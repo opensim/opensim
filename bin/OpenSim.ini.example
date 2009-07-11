@@ -1166,6 +1166,64 @@
     ; Keep it false for now. Making it true requires the use of a special client in order to access inventory
     safemode = false
 
+[VivoxVoice]
+
+    ; The VivoxVoice module will allow you to provide voice on your
+    ; region(s). It uses the same voice technology as the LL grid and
+    ; works with recent LL clients (we have tested 1.22.9.110075, so
+    ; anything later ought to be fine as well). 
+    ;
+    ; For this to work you need to obtain an admin account from Vivox
+    ; that allows you to create voice accounts and region channels.
+
+    enabled = false
+
+    ; vivox voice server
+    vivox_server = www.foobar.vivox.com
+
+    ; vivox SIP URI
+    vivox_sip_uri = foobar.vivox.com
+
+    ; vivox admin user name
+    vivox_admin_user = DeepThroat
+
+    ; vivox admin password
+    vivox_admin_password = VoiceG4te
+
+    ; channel type: "channel" or "positional"
+    ; - positional: spatial sound (default)
+    ; - channel: normal "conference call", no spatial sound
+    ;vivox_channel_type = positional
+
+    ; channel characteristics (unless you know what you are doing, i'd
+    ; leave them as they are --- now you WILL muck around with them,
+    ; huh? sigh)
+
+    ; channel distance model:
+    ; 0 - no attenuation
+    ; 1 - inverse distance attenuation
+    ; 2 - linear attenuation (default)
+    ; 3 - exponential attenuation
+    ;vivox_channel_distance_model = 2
+
+    ; channel mode:
+    ; - "open" (default)
+    ; - "lecture"
+    ; - "presentation"
+    ; - "auditorium"
+    ;vivox_channel_mode = "open"
+
+    ; channel roll off: rate of attenuation
+    ; - a value between 1.0 and 4.0, default is 2.0
+    ;vivox_channel_roll_off = 2.0
+
+    ; channel max range: distance at which channel is silent
+    ; - a value between 0 and 160, default is 80
+    ;vivox_channel_max_range = 80
+
+    ; channel clamping distance: distance before attenuation applies
+    ; - a value between 0 and 160, default is 10
+    ;vivox_channel_clamping_distance = 10
 
 [FreeSwitchVoice]
     ; In order for this to work you need a functioning freeswitch pbx set
