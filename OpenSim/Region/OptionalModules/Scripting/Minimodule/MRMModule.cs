@@ -68,13 +68,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     m_log.Info("[MRM] Enabling MRM Module");
                     m_scene = scene;
                 
-					// when hidden, we don't listen for client initiated script events
-					// only making the MRM engine available for region modules
-					if(!source.Configs["MRM"].GetBoolean("Hidden", false))
-					{
-						scene.EventManager.OnRezScript += EventManager_OnRezScript;
-					}
-					
+                    // when hidden, we don't listen for client initiated script events
+                    // only making the MRM engine available for region modules
+                    if (!source.Configs["MRM"].GetBoolean("Hidden", false))
+                    {
+                        scene.EventManager.OnRezScript += EventManager_OnRezScript;
+                    }
+                    
                     scene.EventManager.OnFrame += EventManager_OnFrame;
 
                     scene.RegisterModuleInterface<IMRMModule>(this);
@@ -198,7 +198,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// <returns></returns>
         internal string CompileFromDotNetText(string Script, string uuid)
         {
-			m_log.Info("MRM 1");
+            m_log.Info("MRM 1");
             const string ext = ".cs";
             const string FilePrefix = "MiniModule";
 
