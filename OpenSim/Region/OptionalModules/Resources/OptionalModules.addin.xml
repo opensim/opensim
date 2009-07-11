@@ -12,5 +12,6 @@
       <RegionModule id="Concierge"             type="OpenSim.Region.OptionalModules.Avatar.Concierge.ConciergeModule" />
       <RegionModule id="XmlRpcGroups"          type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsModule" />
       <RegionModule id="XmlRpcGroupsMessaging" type="OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups.XmlRpcGroupsMessaging" />
+      <RegionModule id="VivoxVoice"            type="OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice.VivoxVoiceModule" />
     </Extension>
 </Addin>
