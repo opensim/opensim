@@ -256,6 +256,11 @@ namespace OpenSim.Grid.UserServer.Modules
                         }
                     }
                 }
+                else if ((templateItems != null) && (templateItems.Count == 0))
+                {
+                   // m_log.Info("[AvatarAppearance]Folder being cloned was empty");
+                    success = true;
+                }
 
                 List<InventoryFolderBase> subFolders = FindSubFolders(templateFolder.ID.Guid, templateFolders);
                 foreach (InventoryFolderBase subFolder in subFolders)
