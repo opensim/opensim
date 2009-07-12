@@ -976,10 +976,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             channelId = String.Empty;
             channelUri = String.Empty;
 
-            XmlDocument tmpDoc = new XmlDocument();
-            tmpDoc.AppendChild(resp);
-
-            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + tmpDoc.InnerText);
+            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerText);
 
             return false;
         }
