@@ -972,11 +972,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     return true;
                 }
             }
+            else
+            {
+                m_log.Debug("[VivoxVoice] No channels registered.");
+            }
 
             channelId = String.Empty;
             channelUri = String.Empty;
 
-            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerText);
+            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerXml);
 
             return false;
         }
