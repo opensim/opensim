@@ -739,8 +739,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     
             lock (vlock)
             {
-                if (!VivoxTryGetChannel(parentId, landUUID, out channelId, out channelUri) &&
-                    !VivoxTryCreateChannel(parentId, landUUID, landName, out channelUri))
+                // Added by Adam to help debug channel not availible errors.
+                if (VivoxTryGetChannel(parentId, landUUID, out channelId, out channelUri))
+                    m_log.DebugFormat("[VivoxVoice] Found existing channel at " + channelUri);
+                else if (VivoxTryCreateChannel(parentId, landUUID, landName, out channelUri))
+                    m_log.DebugFormat("[VivoxVoice] Created new channel at " + channelUri);
+                else
                     throw new Exception("vivox channel uri not available");
 
                 m_log.DebugFormat("[VivoxVoice]: Region:Parcel \"{0}\": parent channel id {1}: retrieved parcel channel_uri {2} ", 
@@ -956,6 +960,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
             channelId = String.Empty;
             channelUri = String.Empty;
+
+            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp);
+
             return false;
         }
 
