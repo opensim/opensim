@@ -921,6 +921,21 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             if (XmlFind(resp, "response.level0.channel-search.count", out count))
             {
                 int channels = Convert.ToInt32(count);
+
+                // Bug in Vivox Server r2978 where count returns 0
+                // Found by Adam
+                if(channels == 0)
+                {
+                    for(int j=0;j<100;j++)
+                    {
+                        string tmpId;
+                        if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.id", j, out tmpId))
+                            break;
+
+                        channels = j + 1;
+                    }
+                }
+
                 for (int i = 0; i < channels; i++)
                 {
                     string name;
@@ -974,13 +989,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             }
             else
             {
-                m_log.Debug("[VivoxVoice] No channels registered.");
+                m_log.Debug("[VivoxVoice] No count element?");
             }
 
             channelId = String.Empty;
             channelUri = String.Empty;
 
-            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerXml);
+            // Useful incase something goes wrong.
+            //m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerXml);
 
             return false;
         }
