@@ -930,26 +930,41 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     string parent;
 
                     // skip if not a channel
-                    if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.type", i, out type) || 
+                    if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.type", i, out type) ||
                         (type != "channel" && type != "positional_M"))
+                    {
+                        m_log.Debug("[VivoxVoice] Skipping Channel " + i + " as it's not a channel.");
                         continue;
+                    }
 
                     // skip if not the name we are looking for
                     if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.name", i, out name) ||
                         name != channelName)
+                    {
+                        m_log.Debug("[VivoxVoice] Skipping Channel " + i + " as it has no name.");
                         continue;
+                    }
 
                     // skip if parent does not match
                     if (channelParent != null && !XmlFind(resp, "response.level0.channel-search.channels.channels.level4.parent", i, out parent))
+                    {
+                        m_log.Debug("[VivoxVoice] Skipping Channel " + i + "/" + name + " as it's parent doesnt match");
                         continue;
+                    }
 
                     // skip if no channel id available
                     if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.id", i, out id))
+                    {
+                        m_log.Debug("[VivoxVoice] Skipping Channel " + i + "/" + name + " as it has no channel ID");
                         continue;
+                    }
 
                     // skip if no channel uri available
                     if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.uri", i, out uri))
+                    {
+                        m_log.Debug("[VivoxVoice] Skipping Channel " + i + "/" + name + " as it has no channel URI");
                         continue;
+                    }
 
                     channelId = id;
                     channelUri = uri;
@@ -961,7 +976,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             channelId = String.Empty;
             channelUri = String.Empty;
 
-            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp);
+            XmlDocument tmpDoc = new XmlDocument();
+            tmpDoc.AppendChild(resp);
+
+            m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + tmpDoc.InnerText);
 
             return false;
         }
