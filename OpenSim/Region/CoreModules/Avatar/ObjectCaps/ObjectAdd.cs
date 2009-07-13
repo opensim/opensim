@@ -303,7 +303,7 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
             if (m_scene.Permissions.CanRezObject(1, avatar.UUID, pos))
             {
                 // rez ON the ground, not IN the ground
-                pos.Z += 0.25F;
+               // pos.Z += 0.25F;
 
                 obj = m_scene.AddNewPrim(avatar.UUID, group_id, pos, rotation, pbs);
             }

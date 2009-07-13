@@ -1349,8 +1349,11 @@ namespace OpenSim.Region.Framework.Scenes
                         Vector3 offset = (normal * (ScaleOffset / 2f));
                         pos = (intersectionpoint + offset);
 
+                        //Seems to make no sense to do this as this call is used for rezzing from inventory as well, and with inventory items their size is not always 0.5f
+                        //And in cases when we weren't rezzing from inventory we were re-adding the 0.25 straight after calling this method
                         // Un-offset the prim (it gets offset later by the consumer method)
-                        pos.Z -= 0.25F;
+                        //pos.Z -= 0.25F; 
+                       
                     }
 
                     return pos;
@@ -1380,6 +1383,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // fall back to our stupid functionality
                 pos = RayEnd;
+
+                //increase height so its above the ground.
+                //should be getting the normal of the ground at the rez point and using that?
+               float  ScaleOffset = Math.Abs(scale.Z);
+               pos.Z += ScaleOffset / 2f;
                 return pos;
             }
         }
@@ -1393,7 +1401,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Permissions.CanRezObject(1, ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
-                pos.Z += 0.25F;
+               // pos.Z += 0.25F; The rez point should now be correct so that its not in the ground
 
                 AddNewPrim(ownerID, groupID, pos, rot, shape);
             }
