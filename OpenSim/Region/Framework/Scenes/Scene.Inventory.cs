@@ -2318,7 +2318,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 pos = GetNewRezLocation(
                                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                                    BypassRayCast, bRayEndIsIntersection, true, group.GroupScale(), false);
+                                    BypassRayCast, bRayEndIsIntersection, true, group.GetAxisAlignedBoundingBox(), false);
                                 group.AbsolutePosition = pos;
                             }
                             else

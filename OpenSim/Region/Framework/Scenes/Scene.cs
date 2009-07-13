@@ -1386,8 +1386,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //increase height so its above the ground.
                 //should be getting the normal of the ground at the rez point and using that?
-               float  ScaleOffset = Math.Abs(scale.Z);
-               pos.Z += ScaleOffset / 2f;
+                pos.Z += scale.Z / 2f;
                 return pos;
             }
         }
