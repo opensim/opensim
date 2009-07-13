@@ -624,7 +624,6 @@ namespace OpenSim.Region.Framework.Scenes
                         maxZ = tz;
                     if (bz < minZ)
                         minZ = bz;
-
                 }
 
             }
