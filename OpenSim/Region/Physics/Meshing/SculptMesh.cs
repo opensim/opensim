@@ -91,6 +91,13 @@ namespace PrimMesher
             return sculptMesh;
         }
 
+        public SculptMesh(string fileName, int sculptType, int lod, int viewerMode, int mirror, int invert)
+        {
+            Bitmap bitmap = (Bitmap)Bitmap.FromFile(fileName);
+            _SculptMesh(bitmap, (SculptType)sculptType, lod, viewerMode != 0, mirror != 0, invert != 0);
+            bitmap.Dispose();
+        }
+
         /// <summary>
         /// ** Experimental ** May disappear from future versions ** not recommeneded for use in applications
         /// Construct a sculpt mesh from a 2D array of floats
@@ -467,6 +474,32 @@ namespace PrimMesher
             }
         }
 
+        /// <summary>
+        /// Adds a value to each XYZ vertex coordinate in the mesh
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        public void AddPos(float x, float y, float z)
+        {
+            int i;
+            int numVerts = this.coords.Count;
+            Coord vert;
+
+            for (i = 0; i < numVerts; i++)
+            {
+                vert = this.coords[i];
+                vert.X += x;
+                vert.Y += y;
+                vert.Z += z;
+                this.coords[i] = vert;
+            }
+        }
+
+        /// <summary>
+        /// Rotates the mesh
+        /// </summary>
+        /// <param name="q"></param>
         public void AddRot(Quat q)
         {
             int i;
