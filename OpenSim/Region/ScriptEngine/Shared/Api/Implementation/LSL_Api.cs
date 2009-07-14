@@ -2562,11 +2562,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
 
                     Vector3 llpos = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-
-                    // test if we're further away then 10m
-                    if (Util.GetDistanceTo(llpos, m_host.AbsolutePosition) > 10)
-                        return; // wiki says, if it's further away then 10m, silently fail.
-
                     Vector3 llvel = new Vector3((float)vel.x, (float)vel.y, (float)vel.z);
 
                     // need the magnitude later
