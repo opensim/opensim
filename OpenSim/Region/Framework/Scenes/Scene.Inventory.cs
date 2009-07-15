@@ -2312,14 +2312,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                             AddNewSceneObject(group, true);
 
+                          //  m_log.InfoFormat("ray end point for inventory rezz is {0} {1} {2} ", RayEnd.X, RayEnd.Y, RayEnd.Z);
                             // if attachment we set it's asset id so object updates can reflect that
                             // if not, we set it's position in world.
                             if (!attachment)
                             {
+                                float offsetHeight = 0;
                                 pos = GetNewRezLocation(
                                     RayStart, RayEnd, RayTargetID, Quaternion.Identity,
-                                    BypassRayCast, bRayEndIsIntersection, true, group.GetAxisAlignedBoundingBox(), false);
+                                    BypassRayCast, bRayEndIsIntersection, true, group.GetAxisAlignedBoundingBox(out offsetHeight), false);
+                                pos.Z += offsetHeight;
                                 group.AbsolutePosition = pos;
+                             //   m_log.InfoFormat("rezx point for inventory rezz is {0} {1} {2}  and offsetheight was {3}", pos.X, pos.Y, pos.Z, offsetHeight);
+
                             }
                             else
                             {

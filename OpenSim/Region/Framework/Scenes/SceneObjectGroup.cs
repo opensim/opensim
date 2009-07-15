@@ -587,21 +587,22 @@ namespace OpenSim.Region.Framework.Scenes
             return returnresult;
         }
 
-        
+
 
         /// <summary>
         /// Gets a vector representing the size of the bounding box containing all the prims in the group
         /// Treats all prims as rectangular, so no shape (cut etc) is taken into account
+        /// offsetHeight is the offset in the Z axis from the centre of the bounding box to the centre of the root prim
         /// </summary>
         /// <returns></returns>
-        public Vector3 GetAxisAlignedBoundingBox()
+        public Vector3 GetAxisAlignedBoundingBox(out float offsetHeight)
         {
             float maxX = -256f, maxY = -256f, maxZ = -256f, minX = 256f, minY = 256f, minZ = 256f;
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                  
+
                     Vector3 worldPos = part.GetWorldPosition();
                     Vector3 offset = worldPos - AbsolutePosition;
                     Quaternion worldRot;
@@ -658,7 +659,6 @@ namespace OpenSim.Region.Framework.Scenes
                     backBottomRight.X = orig.X + (part.Scale.X / 2);
                     backBottomRight.Y = orig.Y + (part.Scale.Y / 2);
                     backBottomRight.Z = orig.Z - (part.Scale.Z / 2);
-
 
                     frontTopLeft = frontTopLeft * worldRot;
                     frontTopRight = frontTopRight * worldRot;
@@ -795,10 +795,23 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
+
+            offsetHeight = 0;
+            float lower = (minZ * -1);
+            if (lower > maxZ)
+            {
+                offsetHeight = lower - (boundingBox.Z / 2);
+                
+            }
+            else if (maxZ > lower)
+            {
+                offsetHeight = maxZ - (boundingBox.Z / 2);
+                offsetHeight *= -1;
+            }
+            
           //  m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
         }
-
         #endregion
 
         public void SaveScriptedState(XmlTextWriter writer)
