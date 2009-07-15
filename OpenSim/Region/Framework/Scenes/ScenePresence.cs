@@ -145,8 +145,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Vector3 m_lastVelocity = Vector3.Zero;
 
-        private int m_maxPrimsPerFrame = 200;
-
         // Default AV Height
         private float m_avHeight = 127.0f;
 

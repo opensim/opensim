@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Servers.Tests
         {
             GetAssetStreamHandler handler;
             OSHttpResponse response;
-            AssetBase asset = CreateTestEnvironment(out handler, out response);
+            CreateTestEnvironment(out handler, out response);
 
             GetAssetStreamHandlerTestHelpers.BaseFetchMissingAsset(handler, response);
         }

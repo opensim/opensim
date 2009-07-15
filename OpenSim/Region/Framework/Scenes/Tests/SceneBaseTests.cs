@@ -74,7 +74,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [Test]
         public void TestConstructor()
         {
-            SceneBase scene = new SceneBaseImpl();
+            new SceneBaseImpl();
         }
     }
 }

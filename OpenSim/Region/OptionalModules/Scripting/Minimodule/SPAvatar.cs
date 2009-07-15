@@ -42,7 +42,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_rootScene;
         private readonly UUID m_ID;
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public SPAvatar(Scene scene, UUID ID)
         {

@@ -43,13 +43,13 @@ namespace OpenSim.Services.Connectors
     /// </summary>
     public class QuickAndDirtyInventoryServiceConnector : IInventoryService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
 
-        private Dictionary<UUID, InventoryReceiptCallback> m_RequestingInventory = new Dictionary<UUID, InventoryReceiptCallback>();
+        //private Dictionary<UUID, InventoryReceiptCallback> m_RequestingInventory = new Dictionary<UUID, InventoryReceiptCallback>();
 
         public QuickAndDirtyInventoryServiceConnector()
         {

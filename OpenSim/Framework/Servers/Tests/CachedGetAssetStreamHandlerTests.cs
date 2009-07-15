@@ -93,10 +93,9 @@ namespace OpenSim.Framework.Servers.Tests
         [Test]
         public void TestHandleFetchMissingAsset()
         {
-            IAssetCache assetCache = new TestAssetCache();
             CachedGetAssetStreamHandler handler;
             OSHttpResponse response;
-            AssetBase asset = CreateTestEnvironment(out handler, out response);
+            CreateTestEnvironment(out handler, out response);
 
             GetAssetStreamHandlerTestHelpers.BaseFetchMissingAsset(handler, response);
         }

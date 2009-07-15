@@ -427,7 +427,7 @@ namespace OpenSim.Framework
                 if (name == String.Empty)
                     throw new Exception("Cannot interactively create region with no name");
 
-                IConfig newRegion = source.AddConfig(name);
+                source.AddConfig(name);
 
                 creatingNew = true;
             }
@@ -437,7 +437,7 @@ namespace OpenSim.Framework
 
             if (source.Configs[name] == null)
             {
-                IConfig newRegion = source.AddConfig(name);
+                source.AddConfig(name);
 
                 creatingNew = true;
             }

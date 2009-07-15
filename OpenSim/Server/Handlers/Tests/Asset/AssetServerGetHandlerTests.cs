@@ -46,7 +46,7 @@ namespace OpenSim.Server.Handlers.Tests.Asset
         {
             TestHelper.InMethod();
 
-            AssetServerGetHandler handler = new AssetServerGetHandler(null);
+            new AssetServerGetHandler(null);
         }
 
         [Test]
