@@ -602,6 +602,7 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     Vector3 worldPos = part.GetWorldPosition();
+                    Vector3 offset = worldPos - AbsolutePosition;
                     Quaternion worldRot = part.GetWorldRotation();
 
                     Vector3 frontTopLeft;
@@ -660,15 +661,15 @@ namespace OpenSim.Region.Framework.Scenes
                     backTopRight = backTopRight * worldRot;
 
 
-                    //frontTopLeft += worldPos;
-                    //frontTopRight += worldPos;
-                    //frontBottomLeft += worldPos;
-                    //frontBottomRight += worldPos;
+                    frontTopLeft += offset;
+                    frontTopRight += offset;
+                    frontBottomLeft += offset;
+                    frontBottomRight += offset;
 
-                    //backBottomLeft += worldPos;
-                    //backBottomRight += worldPos;
-                    //backTopLeft += worldPos;
-                    //backTopRight += worldPos;
+                    backBottomLeft += offset;
+                    backBottomRight += offset;
+                    backTopLeft += offset;
+                    backTopRight += offset;
 
                     if (frontTopRight.X > maxX)
                         maxX = frontTopRight.X;
