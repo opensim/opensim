@@ -114,7 +114,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
          */
 
         public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
-        {            
+        {
+
             foreach (Scene s in m_sceneList)
             {                
                 if (s.RegionInfo.RegionHandle == regionHandle)
