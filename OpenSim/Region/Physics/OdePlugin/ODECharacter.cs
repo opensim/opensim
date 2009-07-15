@@ -49,16 +49,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         FudgeFactor = 4,
         Bounce = 5,
         CFM = 6,
-        ERP = 7,
+        StopERP = 7,
         StopCFM = 8,
         LoStop2 = 256,
         HiStop2 = 257,
         Vel2 = 258,
         FMax2 = 259,
+        StopERP2 = 7 + 256,
+        StopCFM2 = 8 + 256,
         LoStop3 = 512,
         HiStop3 = 513,
         Vel3 = 514,
-        FMax3 = 515
+        FMax3 = 515,
+        StopERP3 = 7 + 512,
+        StopCFM3 = 8 + 512
     }
     public class OdeCharacter : PhysicsActor
     {
@@ -560,12 +564,78 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0);
-                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0);
-                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0);
+                #region Documentation of capsule motor LowStop and HighStop parameters
+                // Intentionally introduce some tilt into the capsule by setting
+                // the motor stops to small epsilon values. This small tilt prevents
+                // the capsule from falling into the terrain; a straight-up capsule
+                // (with -0..0 motor stops) falls into the terrain for reasons yet
+                // to be comprehended in their entirety.
+                #endregion
+                d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+                d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
+                #region Documentation of capsule motor StopERP and StopCFM parameters
+                // In addition to the above tilt, we allow a dynamic tilt, or
+                // wobble, to emerge as the capsule is pushed around the environment.
+                // We do this with an experimentally determined combination of
+                // StopERP and StopCFM which make the above motor stops soft.
+                // The softness of the stops should be tweaked according to two
+                // requirements:
+                //
+                // 1. Motor stops should be weak enough to allow enough wobble such 
+                // that the capsule can tilt slightly more when moving, to allow 
+                // "gliding" over obstacles:
+                //
+                // 
+                //                                        .-.
+                //                                       / /
+                //                                      / /
+                //     _                               / /       _ 
+                //    / \                     .-.     / /       / \
+                //    | | ---->              / /     / /        | |
+                //    | |                   / /     `-'         | |
+                //    | |                  / / +------+         | |
+                //    | |                 / /  |      |         | |
+                //    | |                / /   |      |         | |
+                //    \_/               `-'    +------+         \_/
+                // ----------------------------------------------------------
+                // 
+                // Note that requirement 1 is made complicated by the ever-present
+                // slight avatar tilt (assigned in the above code to prevent avatar
+                // from falling through terrain), which introduces a direction-dependent
+                // bias into the wobble (wobbling against the existing tilt is harder
+                // than wobbling with the tilt), which makes it easier to walk over
+                // prims from some directions. I have tried to minimize this effect by
+                // minimizing the avatar tilt to the minimum that prevents the avatar from
+                // falling through the terrain.
+                // 
+                // 2. Motor stops should be strong enough to prevent the capsule
+                // from being forced all the way to the ground; otherwise the
+                // capsule could slip underneath obstacles like this:
+                //     _                                         _ 
+                //    / \                      +------+         / \
+                //    | | ---->                |      |         | |
+                //    | |                      |      |         | |
+                //    | |             .--.___  +------+         | |
+                //    | |              `--.__`--.__             | |
+                //    | |                    `--.__`--.         | |
+                //    \_/                          `--'         \_/
+                // ----------------------------------------------------------
+                // 
+                //
+                // It is strongly recommended you enable USE_DRAWSTUFF if you want to
+                // tweak these values, to see how the capsule is reacting in various
+                // situations.
+                #endregion
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0.0035f); 
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0.0035f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0.0035f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP, 0.8f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP2, 0.8f);
+                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP3, 0.8f);
             }
 
             // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
