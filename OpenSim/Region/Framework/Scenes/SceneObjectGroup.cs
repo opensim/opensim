@@ -596,14 +596,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Vector3 GetAxisAlignedBoundingBox()
         {
-            float maxX = 0f, maxY = 0f, maxZ = 0f, minX = 256f, minY = 256f, minZ = 256f;
+            float maxX = -256f, maxY = -256f, maxZ = -256f, minX = 256f, minY = 256f, minZ = 256f;
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
+                  
                     Vector3 worldPos = part.GetWorldPosition();
                     Vector3 offset = worldPos - AbsolutePosition;
-                    Quaternion worldRot = part.GetWorldRotation();
+                    Quaternion worldRot;
+                    if (part.ParentID == 0)
+                    {
+                        worldRot = part.RotationOffset;
+                    }
+                    else
+                    {
+                        worldRot = part.GetWorldRotation();
+                    }
 
                     Vector3 frontTopLeft;
                     Vector3 frontTopRight;
@@ -621,34 +630,35 @@ namespace OpenSim.Region.Framework.Scenes
                     frontTopLeft.Y = orig.Y - (part.Scale.Y / 2);
                     frontTopLeft.Z = orig.Z + (part.Scale.Z / 2);
 
-                    frontTopRight.X = orig.X + (part.Scale.X / 2);
-                    frontTopRight.Y = orig.Y - (part.Scale.Y / 2);
+                    frontTopRight.X = orig.X - (part.Scale.X / 2);
+                    frontTopRight.Y = orig.Y + (part.Scale.Y / 2);
                     frontTopRight.Z = orig.Z + (part.Scale.Z / 2);
 
                     frontBottomLeft.X = orig.X - (part.Scale.X / 2);
                     frontBottomLeft.Y = orig.Y - (part.Scale.Y / 2);
                     frontBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
 
-                    frontBottomRight.X = orig.X + (part.Scale.X / 2);
-                    frontBottomRight.Y = orig.Y - (part.Scale.Y / 2);
+                    frontBottomRight.X = orig.X - (part.Scale.X / 2);
+                    frontBottomRight.Y = orig.Y + (part.Scale.Y / 2);
                     frontBottomRight.Z = orig.Z - (part.Scale.Z / 2);
 
 
-                    backTopLeft.X = orig.X - (part.Scale.X / 2);
-                    backTopLeft.Y = orig.Y + (part.Scale.Y / 2);
+                    backTopLeft.X = orig.X + (part.Scale.X / 2);
+                    backTopLeft.Y = orig.Y - (part.Scale.Y / 2);
                     backTopLeft.Z = orig.Z + (part.Scale.Z / 2);
 
                     backTopRight.X = orig.X + (part.Scale.X / 2);
                     backTopRight.Y = orig.Y + (part.Scale.Y / 2);
                     backTopRight.Z = orig.Z + (part.Scale.Z / 2);
 
-                    backBottomLeft.X = orig.X - (part.Scale.X / 2);
-                    backBottomLeft.Y = orig.Y + (part.Scale.Y / 2);
+                    backBottomLeft.X = orig.X + (part.Scale.X / 2);
+                    backBottomLeft.Y = orig.Y - (part.Scale.Y / 2);
                     backBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
 
                     backBottomRight.X = orig.X + (part.Scale.X / 2);
                     backBottomRight.Y = orig.Y + (part.Scale.Y / 2);
                     backBottomRight.Z = orig.Z - (part.Scale.Z / 2);
+
 
                     frontTopLeft = frontTopLeft * worldRot;
                     frontTopRight = frontTopRight * worldRot;
@@ -785,7 +795,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
-           // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
+          //  m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
         }
 
