@@ -195,6 +195,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         [XmlIgnore]
         private PrimFlags LocalFlags = 0;
+        [XmlIgnore]
+        private float m_damage = -1.0f;
         private byte[] m_TextureAnimation;
         private byte m_clickAction = 0;
         private Color m_color = Color.Black;
@@ -482,6 +484,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_rezzed; }
             set { m_rezzed = value; }
+        }
+
+        [XmlIgnore]
+        public float Damage
+        {
+            get { return m_damage; }
+            set { m_damage = value; }
         }
 
         /// <summary>

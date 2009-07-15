@@ -326,6 +326,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_rootPart.OwnerID = value; }
         }
 
+        public float Damage
+        {
+            get { return m_rootPart.Damage; }
+            set { m_rootPart.Damage = value; }
+        }
+
         public Color Color
         {
             get { return m_rootPart.Color; }

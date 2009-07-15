@@ -3833,7 +3833,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetDamage(double damage)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetDamage");
+            m_host.ParentGroup.Damage = (float)damage;
         }
 
         public void llTeleportAgentHome(string agent)

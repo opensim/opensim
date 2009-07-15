@@ -3230,7 +3230,12 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (localid == 0)
                     //continue;
 
-                Health -= coldata[localid] * 5;
+                SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
+
+                if (part != null && part.ParentGroup.Damage != -1.0f)
+                    Health -= part.ParentGroup.Damage;
+                else
+                    Health -= coldata[localid] * 5;
 
                 if (Health <= 0)
                 {
