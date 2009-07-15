@@ -596,7 +596,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public Vector3 GetAxisAlignedBoundingBox()
         {
-            //int count = 0;
             float maxX = 0f, maxY = 0f, maxZ = 0f, minX = 256f, minY = 256f, minZ = 256f;
             lock (m_parts)
             {
@@ -605,37 +604,187 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 worldPos = part.GetWorldPosition();
                     Quaternion worldRot = part.GetWorldRotation();
 
-                    Vector3 size = part.Scale * worldRot;
+                    Vector3 frontTopLeft;
+                    Vector3 frontTopRight;
+                    Vector3 frontBottomLeft;
+                    Vector3 frontBottomRight;
 
-                   // m_log.InfoFormat("prim {0} , world pos is {1} , {2} , {3} , and size is {4} , {5} , {6}", count, worldPos.X, worldPos.Y, worldPos.Z, size.X, size.Y, size.Z);
-                  //  count++;
+                    Vector3 backTopLeft;
+                    Vector3 backTopRight;
+                    Vector3 backBottomLeft;
+                    Vector3 backBottomRight;
 
-                    float tx= worldPos.X +( size.X/2);
-                    float bx = worldPos.X - (size.X/2);
-                    if (tx > maxX)
-                        maxX = tx;
-                    if (bx < minX)
-                        minX = bx;
+                    Vector3 orig = Vector3.Zero;
 
-                    float ty = worldPos.Y + (size.Y / 2);
-                    float by = worldPos.Y - (size.Y / 2);
-                    if (ty > maxY)
-                        maxY = ty;
-                    if (by < minY)
-                        minY = by;
+                    frontTopLeft.X = orig.X - (part.Scale.X / 2);
+                    frontTopLeft.Y = orig.Y - (part.Scale.Y / 2);
+                    frontTopLeft.Z = orig.Z + (part.Scale.Z / 2);
 
-                    float tz = worldPos.Z + (size.Z / 2);
-                    float bz = worldPos.Z - (size.Z / 2);
-                    if (tz > maxZ)
-                        maxZ = tz;
-                    if (bz < minZ)
-                        minZ = bz;
+                    frontTopRight.X = orig.X + (part.Scale.X / 2);
+                    frontTopRight.Y = orig.Y - (part.Scale.Y / 2);
+                    frontTopRight.Z = orig.Z + (part.Scale.Z / 2);
+
+                    frontBottomLeft.X = orig.X - (part.Scale.X / 2);
+                    frontBottomLeft.Y = orig.Y - (part.Scale.Y / 2);
+                    frontBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
+
+                    frontBottomRight.X = orig.X + (part.Scale.X / 2);
+                    frontBottomRight.Y = orig.Y - (part.Scale.Y / 2);
+                    frontBottomRight.Z = orig.Z - (part.Scale.Z / 2);
+
+
+                    backTopLeft.X = orig.X - (part.Scale.X / 2);
+                    backTopLeft.Y = orig.Y + (part.Scale.Y / 2);
+                    backTopLeft.Z = orig.Z + (part.Scale.Z / 2);
+
+                    backTopRight.X = orig.X + (part.Scale.X / 2);
+                    backTopRight.Y = orig.Y + (part.Scale.Y / 2);
+                    backTopRight.Z = orig.Z + (part.Scale.Z / 2);
+
+                    backBottomLeft.X = orig.X - (part.Scale.X / 2);
+                    backBottomLeft.Y = orig.Y + (part.Scale.Y / 2);
+                    backBottomLeft.Z = orig.Z - (part.Scale.Z / 2);
+
+                    backBottomRight.X = orig.X + (part.Scale.X / 2);
+                    backBottomRight.Y = orig.Y + (part.Scale.Y / 2);
+                    backBottomRight.Z = orig.Z - (part.Scale.Z / 2);
+
+                    frontTopLeft = frontTopLeft * worldRot;
+                    frontTopRight = frontTopRight * worldRot;
+                    frontBottomLeft = frontBottomLeft * worldRot;
+                    frontBottomRight = frontBottomRight * worldRot;
+
+                    backBottomLeft = backBottomLeft * worldRot;
+                    backBottomRight = backBottomRight * worldRot;
+                    backTopLeft = backTopLeft * worldRot;
+                    backTopRight = backTopRight * worldRot;
+
+
+                    //frontTopLeft += worldPos;
+                    //frontTopRight += worldPos;
+                    //frontBottomLeft += worldPos;
+                    //frontBottomRight += worldPos;
+
+                    //backBottomLeft += worldPos;
+                    //backBottomRight += worldPos;
+                    //backTopLeft += worldPos;
+                    //backTopRight += worldPos;
+
+                    if (frontTopRight.X > maxX)
+                        maxX = frontTopRight.X;
+                    if (frontTopLeft.X > maxX)
+                        maxX = frontTopLeft.X;
+                    if (frontBottomRight.X > maxX)
+                        maxX = frontBottomRight.X;
+                    if (frontBottomLeft.X > maxX)
+                        maxX = frontBottomLeft.X;
+
+                    if (backTopRight.X > maxX)
+                        maxX = backTopRight.X;
+                    if (backTopLeft.X > maxX)
+                        maxX = backTopLeft.X;
+                    if (backBottomRight.X > maxX)
+                        maxX = backBottomRight.X;
+                    if (backBottomLeft.X > maxX)
+                        maxX = backBottomLeft.X;
+
+                    if (frontTopRight.X < minX)
+                        minX = frontTopRight.X;
+                    if (frontTopLeft.X < minX)
+                        minX = frontTopLeft.X;
+                    if (frontBottomRight.X < minX)
+                        minX = frontBottomRight.X;
+                    if (frontBottomLeft.X < minX)
+                        minX = frontBottomLeft.X;
+
+                    if (backTopRight.X < minX)
+                        minX = backTopRight.X;
+                    if (backTopLeft.X < minX)
+                        minX = backTopLeft.X;
+                    if (backBottomRight.X < minX)
+                        minX = backBottomRight.X;
+                    if (backBottomLeft.X < minX)
+                        minX = backBottomLeft.X;
+
+                    //
+                    if (frontTopRight.Y > maxY)
+                        maxY = frontTopRight.Y;
+                    if (frontTopLeft.Y > maxY)
+                        maxY = frontTopLeft.Y;
+                    if (frontBottomRight.Y > maxY)
+                        maxY = frontBottomRight.Y;
+                    if (frontBottomLeft.Y > maxY)
+                        maxY = frontBottomLeft.Y;
+
+                    if (backTopRight.Y > maxY)
+                        maxY = backTopRight.Y;
+                    if (backTopLeft.Y > maxY)
+                        maxY = backTopLeft.Y;
+                    if (backBottomRight.Y > maxY)
+                        maxY = backBottomRight.Y;
+                    if (backBottomLeft.Y > maxY)
+                        maxY = backBottomLeft.Y;
+
+                    if (frontTopRight.Y < minY)
+                        minY = frontTopRight.Y;
+                    if (frontTopLeft.Y < minY)
+                        minY = frontTopLeft.Y;
+                    if (frontBottomRight.Y < minY)
+                        minY = frontBottomRight.Y;
+                    if (frontBottomLeft.Y < minY)
+                        minY = frontBottomLeft.Y;
+
+                    if (backTopRight.Y < minY)
+                        minY = backTopRight.Y;
+                    if (backTopLeft.Y < minY)
+                        minY = backTopLeft.Y;
+                    if (backBottomRight.Y < minY)
+                        minY = backBottomRight.Y;
+                    if (backBottomLeft.Y < minY)
+                        minY = backBottomLeft.Y;
+
+                    //
+                    if (frontTopRight.Z > maxZ)
+                        maxZ = frontTopRight.Z;
+                    if (frontTopLeft.Z > maxZ)
+                        maxZ = frontTopLeft.Z;
+                    if (frontBottomRight.Z > maxZ)
+                        maxZ = frontBottomRight.Z;
+                    if (frontBottomLeft.Z > maxZ)
+                        maxZ = frontBottomLeft.Z;
+
+                    if (backTopRight.Z > maxZ)
+                        maxZ = backTopRight.Z;
+                    if (backTopLeft.Z > maxZ)
+                        maxZ = backTopLeft.Z;
+                    if (backBottomRight.Z > maxZ)
+                        maxZ = backBottomRight.Z;
+                    if (backBottomLeft.Z > maxZ)
+                        maxZ = backBottomLeft.Z;
+
+                    if (frontTopRight.Z < minZ)
+                        minZ = frontTopRight.Z;
+                    if (frontTopLeft.Z < minZ)
+                        minZ = frontTopLeft.Z;
+                    if (frontBottomRight.Z < minZ)
+                        minZ = frontBottomRight.Z;
+                    if (frontBottomLeft.Z < minZ)
+                        minZ = frontBottomLeft.Z;
+
+                    if (backTopRight.Z < minZ)
+                        minZ = backTopRight.Z;
+                    if (backTopLeft.Z < minZ)
+                        minZ = backTopLeft.Z;
+                    if (backBottomRight.Z < minZ)
+                        minZ = backBottomRight.Z;
+                    if (backBottomLeft.Z < minZ)
+                        minZ = backBottomLeft.Z;
                 }
 
             }
 
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
-            //m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
+           // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
         }
 
