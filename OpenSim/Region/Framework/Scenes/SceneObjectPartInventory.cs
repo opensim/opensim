@@ -862,6 +862,8 @@ namespace OpenSim.Region.Framework.Scenes
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
 
             List<string> ret = new List<string>();
+            if (engines == null) // No engine at all
+                return new string[0];
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
@@ -885,7 +887,10 @@ namespace OpenSim.Region.Framework.Scenes
         public Dictionary<UUID, string> GetScriptStates()
         {
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+
             Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
+            if (engines == null) // No engine at all
+                return ret;
 
             foreach (TaskInventoryItem item in m_items.Values)
             {
