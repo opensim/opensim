@@ -308,7 +308,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (m_wascolliding != m_iscolliding)
                 {
-                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
                 }
                 m_wascolliding = m_iscolliding;
             }
@@ -362,7 +362,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (m_wascollidingGround != m_iscollidingGround)
                 {
-                    base.SendCollisionUpdate(new CollisionEventUpdate());
+                    //base.SendCollisionUpdate(new CollisionEventUpdate());
                 }
                 m_wascollidingGround = m_iscollidingGround;
             }

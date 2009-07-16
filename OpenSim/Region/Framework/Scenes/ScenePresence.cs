@@ -3217,7 +3217,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
-            if (e == null)
+            if ((e == null) || m_invulnerable)
                 return;
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, float> coldata = collisionData.m_objCollisionList;
