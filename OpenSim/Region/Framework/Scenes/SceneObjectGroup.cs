@@ -527,8 +527,8 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 partoffset = part.OffsetPosition;
 
                     minScale.X = (partscale.X + partoffset.X < minScale.X) ? partscale.X + partoffset.X : minScale.X;
-                    minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.X + partoffset.Y : minScale.Y;
-                    minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.X + partoffset.Z : minScale.Z;
+                    minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.Y + partoffset.Y : minScale.Y;
+                    minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.Z + partoffset.Z : minScale.Z;
 
                     maxScale.X = (partscale.X + partoffset.X > maxScale.X) ? partscale.X + partoffset.X : maxScale.X;
                     maxScale.Y = (partscale.Y + partoffset.Y > maxScale.Y) ? partscale.Y + partoffset.Y : maxScale.Y;
