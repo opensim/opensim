@@ -267,6 +267,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private UpdateVector handlerUpdatePrimSinglePosition; //OnUpdatePrimSinglePosition;
         private UpdatePrimSingleRotation handlerUpdatePrimSingleRotation; //OnUpdatePrimSingleRotation;
+        private UpdatePrimSingleRotationPosition handlerUpdatePrimSingleRotationPosition; //OnUpdatePrimSingleRotation;
         private UpdateVector handlerUpdatePrimScale; //OnUpdatePrimScale;
         private UpdateVector handlerUpdatePrimGroupScale; //OnUpdateGroupScale;
         private UpdateVector handlerUpdateVector; //OnUpdatePrimGroupPosition;
@@ -1095,6 +1096,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event UpdateVector OnUpdatePrimSinglePosition;
         public event UpdatePrimRotation OnUpdatePrimGroupRotation;
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
+        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
         public event UpdateVector OnUpdatePrimGroupScale;
@@ -4481,18 +4483,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdatePrimSingleRotation = OnUpdatePrimSingleRotation;
                                 if (handlerUpdatePrimSingleRotation != null)
                                 {
-                                    //m_log.Debug("new tab rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                                   // m_log.Info("new tab rotation is " + rot1.X + " , " + rot1.Y + " , " + rot1.Z + " , " + rot1.W);
                                     handlerUpdatePrimSingleRotation(localId, rot1, this);
                                 }
                                 break;
                             case 3:
-
+                                Vector3 rotPos = new Vector3(block.Data, 0);
                                 Quaternion rot2 = new Quaternion(block.Data, 12, true);
-                                handlerUpdatePrimSingleRotation = OnUpdatePrimSingleRotation;
-                                if (handlerUpdatePrimSingleRotation != null)
+
+                                handlerUpdatePrimSingleRotationPosition = OnUpdatePrimSingleRotationPosition;
+                                if (handlerUpdatePrimSingleRotationPosition != null)
                                 {
-                                    //m_log.Debug("new mouse rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
-                                    handlerUpdatePrimSingleRotation(localId, rot2, this);
+                                   // m_log.Debug("new mouse rotation position is " + rotPos.X + " , " + rotPos.Y + " , " + rotPos.Z);
+                                   // m_log.Info("new mouse rotation is " + rot2.X + " , " + rot2.Y + " , " + rot2.Z + " , " + rot2.W);
+                                    handlerUpdatePrimSingleRotationPosition(localId, rot2, rotPos, this);
                                 }
                                 break;
                             case 4:
@@ -4541,7 +4545,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
                                 if (handlerUpdatePrimRotation != null)
                                 {
-                                    //  Console.WriteLine("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                                  //  Console.WriteLine("new rotation is " + rot3.X + " , " + rot3.Y + " , " + rot3.Z + " , " + rot3.W);
                                     handlerUpdatePrimRotation(localId, rot3, this);
                                 }
                                 break;
@@ -4552,8 +4556,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
                                 if (handlerUpdatePrimGroupRotation != null)
                                 {
-                                    //m_log.Debug("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
-                                    // m_log.Debug("new rotation is " + rot.X + " , " + rot.Y + " , " + rot.Z + " , " + rot.W);
+                                  //  m_log.Debug("new rotation position is " + pos.X + " , " + pos.Y + " , " + pos.Z);
+                                   // m_log.Debug("new group mouse rotation is " + rot4.X + " , " + rot4.Y + " , " + rot4.Z + " , " + rot4.W);
                                     handlerUpdatePrimGroupRotation(localId, pos3, rot4, this);
                                 }
                                 break;

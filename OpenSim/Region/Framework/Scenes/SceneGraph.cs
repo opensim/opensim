@@ -1207,6 +1207,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="localID"></param>
         /// <param name="rot"></param>
         /// <param name="remoteClient"></param>
+        protected internal void UpdatePrimSingleRotationPosition(uint localID, Quaternion rot, Vector3 pos, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = GetGroupByPrim(localID);
+            if (group != null)
+            {
+                if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
+                {
+                    group.UpdateSingleRotation(rot,pos, localID);
+                }
+            }
+        }
+
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="rot"></param>
+        /// <param name="remoteClient"></param>
         protected internal void UpdatePrimRotation(uint localID, Quaternion rot, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);

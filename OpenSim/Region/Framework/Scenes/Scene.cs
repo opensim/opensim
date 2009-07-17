@@ -1964,6 +1964,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
             client.OnUpdatePrimGroupMouseRotation += m_sceneGraph.UpdatePrimRotation;
             client.OnUpdatePrimSingleRotation += m_sceneGraph.UpdatePrimSingleRotation;
+            client.OnUpdatePrimSingleRotationPosition += m_sceneGraph.UpdatePrimSingleRotationPosition;
             client.OnUpdatePrimScale += m_sceneGraph.UpdatePrimScale;
             client.OnUpdatePrimGroupScale += m_sceneGraph.UpdatePrimGroupScale;
             client.OnUpdateExtraParams += m_sceneGraph.UpdateExtraParam;

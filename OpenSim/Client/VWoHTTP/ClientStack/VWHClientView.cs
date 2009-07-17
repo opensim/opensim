@@ -272,6 +272,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event UpdateVector OnUpdatePrimSinglePosition = delegate { };
         public event UpdatePrimRotation OnUpdatePrimGroupRotation = delegate { };
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation = delegate { };
+        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition = delegate { };
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation = delegate { };
         public event UpdateVector OnUpdatePrimScale = delegate { };
         public event UpdateVector OnUpdatePrimGroupScale = delegate { };

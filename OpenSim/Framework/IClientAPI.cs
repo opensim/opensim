@@ -129,6 +129,8 @@ namespace OpenSim.Framework
 
     public delegate void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
 
+    public delegate void UpdatePrimSingleRotationPosition( uint localID, Quaternion rot, Vector3 pos,  IClientAPI remoteClient);
+
     public delegate void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient);
 
     public delegate void ObjectDuplicate(uint localID, Vector3 offset, uint dupeFlags, UUID AgentID, UUID GroupID);
@@ -633,6 +635,7 @@ namespace OpenSim.Framework
         event UpdateVector OnUpdatePrimSinglePosition;
         event UpdatePrimRotation OnUpdatePrimGroupRotation;
         event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
+        event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
         event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         event UpdateVector OnUpdatePrimScale;
         event UpdateVector OnUpdatePrimGroupScale;

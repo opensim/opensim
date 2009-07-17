@@ -625,6 +625,8 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 backBottomLeft;
                     Vector3 backBottomRight;
 
+                   // Vector3[] corners = new Vector3[8];
+
                     Vector3 orig = Vector3.Zero;
 
                     frontTopLeft.X = orig.X - (part.Scale.X / 2);
@@ -660,6 +662,36 @@ namespace OpenSim.Region.Framework.Scenes
                     backBottomRight.Y = orig.Y + (part.Scale.Y / 2);
                     backBottomRight.Z = orig.Z - (part.Scale.Z / 2);
 
+                    //m_log.InfoFormat("pre corner 1 is {0} {1} {2}", frontTopLeft.X, frontTopLeft.Y, frontTopLeft.Z);
+                    //m_log.InfoFormat("pre corner 2 is {0} {1} {2}", frontTopRight.X, frontTopRight.Y, frontTopRight.Z);
+                    //m_log.InfoFormat("pre corner 3 is {0} {1} {2}", frontBottomRight.X, frontBottomRight.Y, frontBottomRight.Z);
+                    //m_log.InfoFormat("pre corner 4 is {0} {1} {2}", frontBottomLeft.X, frontBottomLeft.Y, frontBottomLeft.Z);
+                    //m_log.InfoFormat("pre corner 5 is {0} {1} {2}", backTopLeft.X, backTopLeft.Y, backTopLeft.Z);
+                    //m_log.InfoFormat("pre corner 6 is {0} {1} {2}", backTopRight.X, backTopRight.Y, backTopRight.Z);
+                    //m_log.InfoFormat("pre corner 7 is {0} {1} {2}", backBottomRight.X, backBottomRight.Y, backBottomRight.Z);
+                    //m_log.InfoFormat("pre corner 8 is {0} {1} {2}", backBottomLeft.X, backBottomLeft.Y, backBottomLeft.Z);
+
+                    //for (int i = 0; i < 8; i++)
+                    //{
+                    //    corners[i] = corners[i] * worldRot;
+                    //    corners[i] += offset;
+
+                    //    if (corners[i].X > maxX)
+                    //        maxX = corners[i].X;
+                    //    if (corners[i].X < minX)
+                    //        minX = corners[i].X;
+
+                    //    if (corners[i].Y > maxY)
+                    //        maxY = corners[i].Y;
+                    //    if (corners[i].Y < minY)
+                    //        minY = corners[i].Y;
+
+                    //    if (corners[i].Z > maxZ)
+                    //        maxZ = corners[i].Y;
+                    //    if (corners[i].Z < minZ)
+                    //        minZ = corners[i].Z;
+                    //}
+
                     frontTopLeft = frontTopLeft * worldRot;
                     frontTopRight = frontTopRight * worldRot;
                     frontBottomLeft = frontBottomLeft * worldRot;
@@ -680,6 +712,15 @@ namespace OpenSim.Region.Framework.Scenes
                     backBottomRight += offset;
                     backTopLeft += offset;
                     backTopRight += offset;
+
+                    //m_log.InfoFormat("corner 1 is {0} {1} {2}", frontTopLeft.X, frontTopLeft.Y, frontTopLeft.Z);
+                    //m_log.InfoFormat("corner 2 is {0} {1} {2}", frontTopRight.X, frontTopRight.Y, frontTopRight.Z);
+                    //m_log.InfoFormat("corner 3 is {0} {1} {2}", frontBottomRight.X, frontBottomRight.Y, frontBottomRight.Z);
+                    //m_log.InfoFormat("corner 4 is {0} {1} {2}", frontBottomLeft.X, frontBottomLeft.Y, frontBottomLeft.Z);
+                    //m_log.InfoFormat("corner 5 is {0} {1} {2}", backTopLeft.X, backTopLeft.Y, backTopLeft.Z);
+                    //m_log.InfoFormat("corner 6 is {0} {1} {2}", backTopRight.X, backTopRight.Y, backTopRight.Z);
+                    //m_log.InfoFormat("corner 7 is {0} {1} {2}", backBottomRight.X, backBottomRight.Y, backBottomRight.Z);
+                    //m_log.InfoFormat("corner 8 is {0} {1} {2}", backBottomLeft.X, backBottomLeft.Y, backBottomLeft.Z);
 
                     if (frontTopRight.X > maxX)
                         maxX = frontTopRight.X;
@@ -801,15 +842,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (lower > maxZ)
             {
                 offsetHeight = lower - (boundingBox.Z / 2);
-                
+
             }
             else if (maxZ > lower)
             {
                 offsetHeight = maxZ - (boundingBox.Z / 2);
                 offsetHeight *= -1;
             }
-            
-          //  m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
+
+           // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
         }
         #endregion
@@ -3009,6 +3050,29 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     part.UpdateRotation(rot);
+                }
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="rot"></param>
+        /// <param name="localID"></param>
+        public void UpdateSingleRotation(Quaternion rot, Vector3 pos, uint localID)
+        {
+            SceneObjectPart part = GetChildPart(localID);
+            if (part != null)
+            {
+                if (part.UUID == m_rootPart.UUID)
+                {
+                    UpdateRootRotation(rot);
+                    AbsolutePosition = pos;
+                }
+                else
+                {
+                    part.UpdateRotation(rot);
+                    part.OffsetPosition = pos;
                 }
             }
         }
