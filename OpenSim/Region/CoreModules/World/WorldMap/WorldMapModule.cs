@@ -806,10 +806,18 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 finally
                 {
                     // Reclaim memory, these are unmanaged resources
-                    mapTexture.Dispose();
-                    image.Dispose();
-                    imgstream.Close();
-                    imgstream.Dispose();
+                    // If we encountered an exception, one or more of these will be null
+                    if (mapTexture != null)
+                        mapTexture.Dispose();
+
+                    if (image != null)
+                        image.Dispose();
+
+                    if (imgstream != null)
+                    {
+                        imgstream.Close();
+                        imgstream.Dispose();
+                    }
                 }
             }
             else
