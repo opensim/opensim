@@ -1705,6 +1705,8 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
                 SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
+                if (sceneObject.IsAttachment)
+                    sceneObject.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
 
                 return AddSceneObject(sceneObject);
             }
@@ -1842,6 +1844,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (sceneObject.RootPart.Shape.State != 0) // Attachment
                 {
                     sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
+                    sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
 
                     AddRestoredSceneObject(sceneObject, false, false);
 
