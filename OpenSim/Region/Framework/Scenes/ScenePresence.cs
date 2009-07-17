@@ -870,14 +870,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysicsActor != null)
             {
-                lock (m_scene.SyncRoot)
-                {
-                    m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
-                    m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
-                    m_physicsActor.UnSubscribeEvents();
-                    m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
-                    PhysicsActor = null;
-                }
+                m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
+                m_physicsActor.UnSubscribeEvents();
+                m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
+                PhysicsActor = null;
             }
         }
 
@@ -999,7 +996,7 @@ namespace OpenSim.Region.Framework.Scenes
         internal void SetHeight(float height)
         {
             m_avHeight = height;
-            if (PhysicsActor != null)
+            if (PhysicsActor != null && !IsChildAgent)
             {
                 PhysicsVector SetSize = new PhysicsVector(0.45f, 0.6f, m_avHeight);
                 PhysicsActor.Size = SetSize;
@@ -2219,7 +2216,35 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_isChildAgent)
             {
-                m_log.Debug("DEBUG: AddNewMovement: child agent");
+                m_log.Debug("DEBUG: AddNewMovement: child agent, Making root agent!");
+
+                // we have to reset the user's child agent connections.  
+                // Likely, here they've lost the eventqueue for other regions so border 
+                // crossings will fail at this point unless we reset them.
+
+                List<ulong> regions = new List<ulong>(KnownChildRegionHandles);
+                regions.Remove(m_scene.RegionInfo.RegionHandle);
+
+                MakeRootAgent(new Vector3(127, 127, 127), true);
+
+                // Async command
+                if (m_scene.SceneGridService != null)
+                {
+                    m_scene.SceneGridService.SendCloseChildAgentConnections(UUID, regions);
+
+                    // Give the above command some time to try and close the connections.
+                    // this is really an emergency..   so sleep, or we'll get all discombobulated.
+                    System.Threading.Thread.Sleep(500);
+                }
+                
+
+                if (m_scene.SceneGridService != null)
+                {
+                    m_scene.SceneGridService.EnableNeighbourChildAgents(this, new List<RegionInfo>());
+                }
+                
+
+                
                 return;
             }
 
@@ -2554,11 +2579,19 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_physicsActor != null)
             {
-                // This may seem like it's redundant, remove the avatar from the physics scene
-                // just to add it back again, but it saves us from having to update
-                // 3 variables 10 times a second.
-                m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
-                AddToPhysicalScene(m_physicsActor.Flying);
+                if (!IsChildAgent)
+                {
+                    // This may seem like it's redundant, remove the avatar from the physics scene
+                    // just to add it back again, but it saves us from having to update
+                    // 3 variables 10 times a second.
+                    bool flyingTemp = m_physicsActor.Flying;
+                    RemoveFromPhysicalScene();
+                    //m_scene.PhysicsScene.RemoveAvatar(m_physicsActor);
+
+                    //PhysicsActor = null;
+
+                    AddToPhysicalScene(flyingTemp);
+                }
             }
             m_appearance.SetAppearance(texture, visualParam);
             if (m_appearance.AvatarHeight > 0)
@@ -3188,30 +3221,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
-            lock (m_scene.SyncRoot)
+            
+            PhysicsScene scene = m_scene.PhysicsScene;
+
+            PhysicsVector pVec =
+                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                  AbsolutePosition.Z);
+
+            // Old bug where the height was in centimeters instead of meters
+            if (m_avHeight == 127.0f)
             {
-                PhysicsScene scene = m_scene.PhysicsScene;
-
-                PhysicsVector pVec =
-                    new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                      AbsolutePosition.Z);
-
-                if (m_avHeight == 127.0f)
-                {
-                    m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f),
-                                                     isFlying);
-                }
-                else
-                {
-                    m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
-                                                     new PhysicsVector(0, 0, m_avHeight), isFlying);
-                }
-                scene.AddPhysicsActorTaint(m_physicsActor);
-                //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
-                m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-                m_physicsActor.SubscribeEvents(1000);
-                m_physicsActor.LocalID = LocalId;
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f),
+                                                 isFlying);
             }
+            else
+            {
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
+                                                 new PhysicsVector(0, 0, m_avHeight), isFlying);
+            }
+            scene.AddPhysicsActorTaint(m_physicsActor);
+            //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
+            m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+            m_physicsActor.SubscribeEvents(1000);
+            m_physicsActor.LocalID = LocalId;
+            
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.

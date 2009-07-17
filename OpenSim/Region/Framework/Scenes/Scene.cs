@@ -901,24 +901,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame == Int32.MaxValue)
                         m_frame = 0;
 
-                    physicsMS2 = Environment.TickCount;
-                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        m_sceneGraph.UpdatePreparePhysics();
-                    physicsMS2 = Environment.TickCount - physicsMS2;
-
-                    if (m_frame % m_update_entitymovement == 0)
-                        m_sceneGraph.UpdateEntityMovement();
-
-                    physicsMS = Environment.TickCount;
-                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(
-                            Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
-                            );
-                    if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
-                        SynchronizeScene(this);
-
-                    physicsMS = Environment.TickCount - physicsMS;
-                    physicsMS += physicsMS2;
+                    
 
                     otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
@@ -948,6 +931,25 @@ namespace OpenSim.Region.Framework.Scenes
                     // Run through scenepresences looking for updates
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
+
+                    physicsMS2 = Environment.TickCount;
+                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
+                        m_sceneGraph.UpdatePreparePhysics();
+                    physicsMS2 = Environment.TickCount - physicsMS2;
+
+                    if (m_frame % m_update_entitymovement == 0)
+                        m_sceneGraph.UpdateEntityMovement();
+
+                    physicsMS = Environment.TickCount;
+                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
+                        physicsFPS = m_sceneGraph.UpdatePhysics(
+                            Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
+                            );
+                    if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
+                        SynchronizeScene(this);
+
+                    physicsMS = Environment.TickCount - physicsMS;
+                    physicsMS += physicsMS2;
 
                     // Delete temp-on-rez stuff
                     if (m_frame % m_update_backup == 0)
