@@ -2310,6 +2310,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                             group.ResetIDs();
 
+                            if (attachment)
+                                group.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
+
                             AddNewSceneObject(group, true);
 
                           //  m_log.InfoFormat("ray end point for inventory rezz is {0} {1} {2} ", RayEnd.X, RayEnd.Y, RayEnd.Z);
