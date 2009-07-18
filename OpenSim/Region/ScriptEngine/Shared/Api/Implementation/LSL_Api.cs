@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
+using System.Text.RegularExpressions;
 using Nini.Config;
 using log4net;
 using OpenMetaverse;
@@ -66,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     /// </summary>
     public class LSL_Api : MarshalByRefObject, ILSL_Api, IScriptApi
     {
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected IScriptEngine m_ScriptEngine;
         protected SceneObjectPart m_host;
         protected uint m_localID;
@@ -9017,6 +9018,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             string userAgent = config.Configs["Network"].GetString("user_agent", null);
             if (userAgent != null)
                 httpHeaders["User-Agent"] = userAgent;
+
+			string authregex = @"^(https?:\/\/)(\w+):(\w+)@(.*)$";
+			Regex r = new Regex(authregex);
+			int[] gnums = r.GetGroupNumbers();
+			Match m = r.Match(url);
+			if ( m.Success ) {
+				for (int i = 1; i < gnums.Length; i++) {
+					System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
+					CaptureCollection cc = g.Captures;
+				}	
+				if ( m.Groups.Count == 5 ) {
+					httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
+					url = m.Groups[1].ToString() + m.Groups[4].ToString();
+				}
+			}
 
             UUID reqID = httpScriptMod.
                 StartHttpRequest(m_localID, m_itemID, url, param, httpHeaders, body);
