@@ -700,6 +700,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 m_world.SetCollisionAddedCallback(m_CollisionInterface);
             }
         }
+        
+
 
     }
 }

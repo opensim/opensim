@@ -904,6 +904,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+        }
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
         }

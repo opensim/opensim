@@ -1233,6 +1233,11 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+
+        }
+
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
             

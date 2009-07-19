@@ -1007,6 +1007,7 @@ namespace OpenSim.Framework
 
         void SendLandAccessListData(List<UUID> avatars, uint accessFlag, int localLandID);
         void SendForceClientSelectObjects(List<uint> objectIDs);
+        void SendCameraConstraint(Vector4 ConstraintPlane);
         void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount);
         void SendLandParcelOverlay(byte[] data, int sequence_id);
 

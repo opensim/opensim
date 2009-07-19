@@ -186,6 +186,14 @@ namespace OpenSim.Region.Framework.Scenes
         //PauPaw:Proper PID Controler for autopilot************
         private bool m_moveToPositionInProgress;
         private Vector3 m_moveToPositionTarget = Vector3.Zero;
+
+        private bool m_followCamAuto = false;
+
+        private int m_movementUpdateCount = 0;
+
+        private const int NumMovementsBetweenRayCast = 5;
+
+        private bool CameraConstraintActive = false;
         //private int m_moveToPositionStateStatus = 0;
         //*****************************************************
 
@@ -1073,6 +1081,44 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        /// <summary>
+        /// Callback for the Camera view block check.  Gets called with the results of the camera view block test
+        /// hitYN is true when there's something in the way.
+        /// </summary>
+        /// <param name="hitYN"></param>
+        /// <param name="collisionPoint"></param>
+        /// <param name="localid"></param>
+        /// <param name="distance"></param>
+        public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
+        {
+            if (m_followCamAuto)
+            {
+
+                if (hitYN)
+                {
+                    CameraConstraintActive = true;
+                    //m_log.DebugFormat("[RAYCASTRESULT]: {0}, {1}, {2}, {3}", hitYN, collisionPoint, localid, distance);
+                    
+                    Vector3 normal = Vector3.Normalize(new Vector3(0,0,collisionPoint.Z) - collisionPoint);
+                    ControllingClient.SendCameraConstraint(new Vector4(normal.X, normal.Y, normal.Z, -1 * Vector3.Distance(new Vector3(0,0,collisionPoint.Z),collisionPoint)));
+                }
+                else 
+                {
+                    if (((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02)
+                         || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)
+                         || lastPhysRot != m_bodyRot))
+                    {
+                        if (CameraConstraintActive)
+                        {
+                            ControllingClient.SendCameraConstraint(new Vector4(0, 0.5f, 0.9f, -3000f));
+                            CameraConstraintActive = false;
+                        }
+                    }
+                }
+            } 
+        }
+
         /// <summary>
         /// This is the event handler for client movement.   If a client is moving, this event is triggering.
         /// </summary>
@@ -1098,11 +1144,18 @@ namespace OpenSim.Region.Framework.Scenes
             //    return;
             //}
 
+            
+            m_movementUpdateCount++;
+            if (m_movementUpdateCount >= int.MaxValue)
+                m_movementUpdateCount = 1;
+
+
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
             //m_log.Debug("agentPos:" + AbsolutePosition.ToString());
 
             // This is irritating.  Really.
+
             if (!AbsolutePosition.IsFinite())
             {
                 RemoveFromPhysicalScene();
@@ -1157,8 +1210,26 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 StandUp();
             }
-
             
+           
+
+            // Check if Client has camera in 'follow cam' or 'build' mode.
+            Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
+
+            m_followCamAuto = ((m_CameraUpAxis.Z > 0.959f && m_CameraUpAxis.Z < 0.98f) 
+               && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
+
+
+            // Raycast from the avatar's head to the camera to see if there's anything blocking the view
+            if ((m_movementUpdateCount % NumMovementsBetweenRayCast) == 0 && m_scene.PhysicsScene.SupportsRayCast())
+            {
+
+                if (m_followCamAuto)
+                {
+                    Vector3 headadjustment = new Vector3(0, 0, 0.3f);
+                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(m_CameraCenter - (m_pos + headadjustment)), Vector3.Distance(m_CameraCenter, (m_pos + headadjustment)) + 0.3f, RayCastCameraCallback);
+                }
+            }
 
             m_mouseLook = (flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
 

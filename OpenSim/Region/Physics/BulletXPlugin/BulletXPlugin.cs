@@ -817,8 +817,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 GC.Collect();
                 BulletXMessage("Terrain erased!", false);
             }
+
+            
+
             //this._heightmap = null;
         }
+
+        
 
         internal void AddForgottenRigidBody(RigidBody forgottenRigidBody)
         {

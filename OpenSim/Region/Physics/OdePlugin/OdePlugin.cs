@@ -306,6 +306,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private volatile int m_global_contactcount = 0;
 
+        private ODERayCastRequestManager m_rayCastManager;
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -321,7 +323,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
-
+            m_rayCastManager = new ODERayCastRequestManager(this);
             lock (OdeLock)
             {
                 // Create the world and the first space
@@ -2833,6 +2835,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //if ((framecount % m_randomizeWater) == 0)
                                    // randomizeWater(waterlevel);
 
+                                int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
+
                                 collision_optimized(timeStep);
 
                                 lock (_collisionEventPrim)
@@ -3377,6 +3381,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void Dispose()
         {
+            m_rayCastManager.Dispose();
+            m_rayCastManager = null;
+
             lock (OdeLock)
             {
                 lock (_prims)
@@ -3417,6 +3424,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             return returncolliders;
         }
+
+        public override bool SupportsRayCast()
+        {
+            return true;
+        }
+
+        public override void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
+        {
+            if (retMethod != null)
+            {
+                m_rayCastManager.QueueRequest(position, direction, length, retMethod);
+            }
+        }
+
 #if USE_DRAWSTUFF
         // Keyboard callback
         public void command(int cmd)

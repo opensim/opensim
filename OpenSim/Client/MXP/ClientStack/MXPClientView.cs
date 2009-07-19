@@ -1240,6 +1240,11 @@ namespace OpenSim.Client.MXP.ClientStack
             // Need to translate to MXP somehow
         }
 
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+
+        }
+
         public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
             // Need to translate to MXP somehow

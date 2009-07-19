@@ -3779,8 +3779,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+            CameraConstraintPacket cpack = (CameraConstraintPacket)PacketPool.Instance.GetPacket(PacketType.CameraConstraint);
+            cpack.CameraCollidePlane = new CameraConstraintPacket.CameraCollidePlaneBlock();
+            cpack.CameraCollidePlane.Plane = ConstraintPlane;
+            m_log.DebugFormat("[CLIENTVIEW]: Constraint {0}", ConstraintPlane);
+            OutPacket(cpack, ThrottleOutPacketType.Task);
+        }
+
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
+            
+
             int notifyCount = ownersAndCount.Count;
             ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
 

@@ -942,6 +942,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+        }
+
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
         }

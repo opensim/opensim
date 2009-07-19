@@ -780,6 +780,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+
+        }
+
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
             throw new System.NotImplementedException();

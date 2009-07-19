@@ -210,6 +210,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
             return returncolliders;
         }
+        
     }
 
     public class BasicActor : PhysicsActor

@@ -36,6 +36,8 @@ namespace OpenSim.Region.Physics.Manager
 {
     public delegate void physicsCrash();
 
+    public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance);
+
     public abstract class PhysicsScene
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -152,6 +154,39 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool IsThreaded { get; }
 
+        /// <summary>
+        /// True if the physics plugin supports raycasting against the physics scene
+        /// </summary>
+        public virtual bool SupportsRayCast()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Queue a raycast against the physics scene.  
+        /// The provided callback method will be called when the raycast is complete
+        /// 
+        /// Many physics engines don't support collision testing at the same time as 
+        /// manipulating the physics scene, so we queue the request up and callback 
+        /// a custom method when the raycast is complete.  
+        /// This allows physics engines that give an immediate result to callback immediately
+        /// and ones that don't, to callback when it gets a result back.
+        /// 
+        /// ODE for example will not allow you to change the scene while collision testing or
+        /// it asserts, 'opteration not valid for locked space'.  This includes adding a ray to the scene.
+        /// 
+        /// This is named RayCastWorld to not conflict with modrex's Raycast method.
+        /// </summary>
+        /// <param name="position">Origin of the ray</param>
+        /// <param name="direction">Direction of the ray</param>
+        /// <param name="length">Length of ray in meters</param>
+        /// <param name="retMethod">Method to call when the raycast is complete</param>
+        public virtual void RaycastWorld( Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
+        {
+            if (retMethod != null)
+                retMethod(false, Vector3.Zero, 0, 999999999999f);
+        }
+
         private class NullPhysicsScene : PhysicsScene
         {
             private static int m_workIndicator;
@@ -240,6 +275,7 @@ namespace OpenSim.Region.Physics.Manager
                 Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
                 return returncolliders;
             }
+            
         }
     }
     public delegate void JointMoved(PhysicsJoint joint);

@@ -900,6 +900,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
         {
         }
+
+        public void SendCameraConstraint(Vector4 ConstraintPlane)
+        {
+
+        }
         
         public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {

@@ -214,6 +214,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
             return returncolliders;
         }
+        
     }
 
     public class PhysXCharacter : PhysicsActor
