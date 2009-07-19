@@ -3784,7 +3784,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             CameraConstraintPacket cpack = (CameraConstraintPacket)PacketPool.Instance.GetPacket(PacketType.CameraConstraint);
             cpack.CameraCollidePlane = new CameraConstraintPacket.CameraCollidePlaneBlock();
             cpack.CameraCollidePlane.Plane = ConstraintPlane;
-            m_log.DebugFormat("[CLIENTVIEW]: Constraint {0}", ConstraintPlane);
+            //m_log.DebugFormat("[CLIENTVIEW]: Constraint {0}", ConstraintPlane);
             OutPacket(cpack, ThrottleOutPacketType.Task);
         }
 
