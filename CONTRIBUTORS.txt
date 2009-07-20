@@ -102,6 +102,7 @@ what it is today.
 * ralphos
 * RemedyTomm
 * Richard Alimi (IBM)
+* Rick Alther (IBM)
 * Rob Smart (IBM)
 * rtomita
 * Ruud Lathorp
