@@ -63,7 +63,6 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         public override string ToString()
         {
-            WriteEndElement();
             Flush();
             Close();
             return m_sw.ToString();
