@@ -1575,7 +1575,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
             else
                 return 0;
-        }
+        } 
 // End recovered. Kitto Flora
 
         public void addCollisionEventReporting(PhysicsActor obj)
