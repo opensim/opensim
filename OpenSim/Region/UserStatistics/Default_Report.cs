@@ -112,15 +112,15 @@ TD.align_top { vertical-align: top; }
 
             ajaxUpdaterDivs[0] = "activeconnections";
             ajaxUpdaterSeconds[0] = 10;
-            ajaxUpdaterReportFragments[0] = "activeconnectionsajax.ajax";
+            ajaxUpdaterReportFragments[0] = "activeconnectionsajax.html";
 
             ajaxUpdaterDivs[1] = "activesimstats";
             ajaxUpdaterSeconds[1] = 20;
-            ajaxUpdaterReportFragments[1] = "simstatsajax.ajax";
+            ajaxUpdaterReportFragments[1] = "simstatsajax.html";
 
             ajaxUpdaterDivs[2] = "activelog";
             ajaxUpdaterSeconds[2] = 5;
-            ajaxUpdaterReportFragments[2] = "activelogajax.ajax";
+            ajaxUpdaterReportFragments[2] = "activelogajax.html";
 
             HTMLUtil.InsertPeriodicUpdaters(ref output, ajaxUpdaterDivs, ajaxUpdaterSeconds, ajaxUpdaterReportFragments);
             

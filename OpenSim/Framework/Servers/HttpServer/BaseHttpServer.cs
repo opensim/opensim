@@ -226,6 +226,15 @@ namespace OpenSim.Framework.Servers.HttpServer
             return true;
         }
 
+        private void OnRequest(object source, RequestEventArgs args)
+        {
+            IHttpClientContext context = (IHttpClientContext)source;
+            IHttpRequest request = args.Request;
+
+            OnHandleRequestIOThread(context,request);
+
+        }
+
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
@@ -1406,7 +1415,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
-                    m_httpListener2 = new CoolHTTPListener(m_listenIPAddress, (int)m_port);
+                    m_httpListener2 = CoolHTTPListener.Create(m_listenIPAddress, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
                     m_httpListener2.LogWriter = httpserverlog;
                     
@@ -1414,7 +1423,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // if you want more detailed trace information from the HttpServer
                     //m_httpListener2.UseTraceLogs = true;
                     
-                    m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;                    
+                    //m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;                    
                 }
                 else
                 {
@@ -1422,7 +1431,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     //m_httpListener.Prefixes.Add("http://+:" + m_port + "/");
                 }
 
-                m_httpListener2.RequestHandler += OnHandleRequestIOThread;
+                m_httpListener2.RequestReceived += OnRequest;
                 //m_httpListener.Start();
                 m_httpListener2.Start(64);
                 HTTPDRunning = true;
@@ -1474,10 +1483,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             HTTPDRunning = false;
             m_httpListener2.ExceptionThrown -= httpServerException;
-            m_httpListener2.DisconnectHandler = null;
+            //m_httpListener2.DisconnectHandler = null;
             
             m_httpListener2.LogWriter = null;
-            m_httpListener2.RequestHandler -= OnHandleRequestIOThread;
+            m_httpListener2.RequestReceived -= OnRequest;
 
             m_httpListener2.Stop();
         }

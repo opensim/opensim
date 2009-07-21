@@ -46,6 +46,10 @@ namespace OpenSim.Framework.Servers.Tests
         public class TestHttpClientContext: IHttpClientContext
         {
             private bool _secured;
+            public bool IsSecured
+            {
+                get { return _secured; }
+            }
             public bool Secured
             {
                 get { return _secured; }
@@ -62,10 +66,19 @@ namespace OpenSim.Framework.Servers.Tests
             public void Respond(string body) {}
             public void Send(byte[] buffer) {}
             public void Send(byte[] buffer, int offset, int size) {}
+            public void Respond(string httpVersion, HttpStatusCode statusCode, string reason, string body, string contentType) {}
+
+            public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
+            /// <summary>
+            /// A request have been received in the context.
+            /// </summary>
+            public event EventHandler<RequestEventArgs> RequestReceived = delegate { };
+
         }
 
         public class TestHttpRequest: IHttpRequest
         {
+            private string _uriPath;
             public bool BodyIsComplete 
             { 
                 get { return true; } 
@@ -183,6 +196,24 @@ namespace OpenSim.Framework.Servers.Tests
 
                 return clone;
             }
+            public IHttpResponse CreateResponse(IHttpClientContext context)
+            {
+                return new HttpResponse(context, this);
+            }
+            /// <summary>
+            /// Path and query (will be merged with the host header) and put in Uri
+            /// </summary>
+            /// <see cref="Uri"/>
+            public string UriPath
+            {
+                get { return _uriPath; }
+                set
+                {
+                    _uriPath = value;
+                   
+                }
+            }
+
         }
 
         public class TestHttpResponse: IHttpResponse

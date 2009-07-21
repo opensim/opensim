@@ -110,9 +110,9 @@ namespace OpenSim.Region.UserStatistics
                     reports.Add("", rep);
                     reports.Add("prototype.js", protodep);
                     reports.Add("updater.js", updatedep);
-                    reports.Add("activeconnectionsajax.ajax", ajConnections);
-                    reports.Add("simstatsajax.ajax", ajSimStats);
-                    reports.Add("activelogajax.ajax", ajLogLines);
+                    reports.Add("activeconnectionsajax.html", ajConnections);
+                    reports.Add("simstatsajax.html", ajSimStats);
+                    reports.Add("activelogajax.html", ajLogLines);
                     reports.Add("clients.report", clientReport);
                     reports.Add("sessions.report", sessionsReport);
 
