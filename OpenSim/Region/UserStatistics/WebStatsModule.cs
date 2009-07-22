@@ -168,7 +168,7 @@ namespace OpenSim.Region.UserStatistics
                 }
             } 
             catch (KeyNotFoundException)
-            {               
+            {
             }
         }
         
