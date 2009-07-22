@@ -236,7 +236,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             if (g2 == m_scene.LandGeom)
                 return;
-             
+            if (g1 == m_scene.WaterGeom)
+                return;
+            if (g2 == m_scene.WaterGeom)
+                return;
             
             
             
