@@ -171,6 +171,75 @@ namespace OpenSim.Region.Physics.OdePlugin
         // This is the standard Near.   Uses space AABBs to speed up detection.
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
+
+            //Don't test against heightfield Geom, or you'll be sorry!
+            
+            /*
+             terminate called after throwing an instance of 'std::bad_alloc'
+                  what():  std::bad_alloc
+                Stacktrace:
+                 
+                  at (wrapper managed-to-native) Ode.NET.d.Collide (intptr,intptr,int,Ode.NET.d/ContactGeom[],int) <0x00004>
+                  at (wrapper managed-to-native) Ode.NET.d.Collide (intptr,intptr,int,Ode.NET.d/ContactGeom[],int) <0xffffffff>
+                  at OpenSim.Region.Physics.OdePlugin.ODERayCastRequestManager.near (intptr,intptr,intptr) <0x00280>
+                  at (wrapper native-to-managed) OpenSim.Region.Physics.OdePlugin.ODERayCastRequestManager.near (intptr,intptr,intptr) <0xfff
+                fffff>
+                  at (wrapper managed-to-native) Ode.NET.d.SpaceCollide2 (intptr,intptr,intptr,Ode.NET.d/NearCallback) <0x00004>
+                  at (wrapper managed-to-native) Ode.NET.d.SpaceCollide2 (intptr,intptr,intptr,Ode.NET.d/NearCallback) <0xffffffff>
+                  at OpenSim.Region.Physics.OdePlugin.ODERayCastRequestManager.RayCast (OpenSim.Region.Physics.OdePlugin.ODERayCastRequest) <
+                0x00114>
+                  at OpenSim.Region.Physics.OdePlugin.ODERayCastRequestManager.ProcessQueuedRequests () <0x000eb>
+                  at OpenSim.Region.Physics.OdePlugin.OdeScene.Simulate (single) <0x017e6>
+                  at OpenSim.Region.Framework.Scenes.SceneGraph.UpdatePhysics (double) <0x00042>
+                  at OpenSim.Region.Framework.Scenes.Scene.Update () <0x0039e>
+                  at OpenSim.Region.Framework.Scenes.Scene.Heartbeat (object) <0x00019>
+                  at (wrapper runtime-invoke) object.runtime_invoke_void__this___object (object,intptr,intptr,intptr) <0xffffffff>
+                 
+                Native stacktrace:
+                 
+                        mono [0x80d2a42]
+                        [0xb7f5840c]
+                        /lib/i686/cmov/libc.so.6(abort+0x188) [0xb7d1a018]
+                        /usr/lib/libstdc++.so.6(_ZN9__gnu_cxx27__verbose_terminate_handlerEv+0x158) [0xb45fc988]
+                        /usr/lib/libstdc++.so.6 [0xb45fa865]
+                        /usr/lib/libstdc++.so.6 [0xb45fa8a2]
+                        /usr/lib/libstdc++.so.6 [0xb45fa9da]
+                        /usr/lib/libstdc++.so.6(_Znwj+0x83) [0xb45fb033]
+                        /usr/lib/libstdc++.so.6(_Znaj+0x1d) [0xb45fb11d]
+                        libode.so(_ZN13dxHeightfield23dCollideHeightfieldZoneEiiiiP6dxGeomiiP12dContactGeomi+0xd04) [0xb46678e4]
+                        libode.so(_Z19dCollideHeightfieldP6dxGeomS0_iP12dContactGeomi+0x54b) [0xb466832b]
+                        libode.so(dCollide+0x102) [0xb46571b2]
+                        [0x95cfdec9]
+                        [0x8ea07fe1]
+                        [0xab260146]
+                        libode.so [0xb465a5c4]
+                        libode.so(_ZN11dxHashSpace8collide2EPvP6dxGeomPFvS0_S2_S2_E+0x75) [0xb465bcf5]
+                        libode.so(dSpaceCollide2+0x177) [0xb465ac67]
+                        [0x95cf978e]
+                        [0x8ea07945]
+                        [0x95cf2bbc]
+                        [0xab2787e7]
+                        [0xab419fb3]
+                        [0xab416657]
+                        [0xab415bda]
+                        [0xb609b08e]
+                        mono(mono_runtime_delegate_invoke+0x34) [0x8192534]
+                        mono [0x81a2f0f]
+                        mono [0x81d28b6]
+                        mono [0x81ea2c6]
+                        /lib/i686/cmov/libpthread.so.0 [0xb7e744c0]
+                        /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb7dcd6de]             
+             */
+
+            // Exclude heightfield geom
+            if (g1 == m_scene.LandGeom)
+                return;
+            if (g2 == m_scene.LandGeom)
+                return;
+             
+            
+            
+            
             // Raytest against AABBs of spaces first, then dig into the spaces it hits for actual geoms.
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {

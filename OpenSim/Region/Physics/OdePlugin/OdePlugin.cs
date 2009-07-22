@@ -177,7 +177,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         //private int m_returncollisions = 10;
 
         private readonly IntPtr contactgroup;
-        private IntPtr LandGeom;
+        internal IntPtr LandGeom;
 
         private IntPtr WaterGeom;
 
