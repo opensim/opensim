@@ -240,13 +240,16 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private Hashtable HttpRequestHandler(Hashtable request)
         {
-            foreach (KeyValuePair<string, Object> kvp in request)
-            {
-                m_log.DebugFormat("{0} = {1}", kvp.Key, kvp.Value.ToString());
-            }
+		   	string uri = request["uri"].ToString();
+		   	//A solution to this ugly mess would be to use only the /lslhttp/<UUID>/ part of the URI as the key.
+		    UrlData url = m_UrlMap["http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+uri]; 
+		    
+		    //UUID.Random() below is a hack! Eventually we will do HTTP requests and responses properly.
+		    url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { UUID.Random().ToString(), request["http-method"].ToString(), request["body"].ToString() });
+
             Hashtable response = new Hashtable();
-            response["int_response_code"] = 404;
-            response["str_response_string"] = "Test";
+            response["int_response_code"] = 200;
+            response["str_response_string"] = "This is a generic response as OpenSim does not yet support proper responses. Your request has been passed to the object.";
 
             return response;
         }
