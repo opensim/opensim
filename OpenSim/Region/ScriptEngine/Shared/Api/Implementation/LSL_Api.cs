@@ -9019,20 +9019,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (userAgent != null)
                 httpHeaders["User-Agent"] = userAgent;
 
-			string authregex = @"^(https?:\/\/)(\w+):(\w+)@(.*)$";
-			Regex r = new Regex(authregex);
-			int[] gnums = r.GetGroupNumbers();
-			Match m = r.Match(url);
-			if ( m.Success ) {
-				for (int i = 1; i < gnums.Length; i++) {
-					System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
-					CaptureCollection cc = g.Captures;
-				}	
-				if ( m.Groups.Count == 5 ) {
-					httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
-					url = m.Groups[1].ToString() + m.Groups[4].ToString();
-				}
-			}
+            string authregex = @"^(https?:\/\/)(\w+):(\w+)@(.*)$";
+            Regex r = new Regex(authregex);
+            int[] gnums = r.GetGroupNumbers();
+            Match m = r.Match(url);
+            if (m.Success) {
+                for (int i = 1; i < gnums.Length; i++) {
+                    System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
+                    CaptureCollection cc = g.Captures;
+                }    
+                if (m.Groups.Count == 5) {
+                    httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));
+                    url = m.Groups[1].ToString() + m.Groups[4].ToString();
+                }
+            }
 
             UUID reqID = httpScriptMod.
                 StartHttpRequest(m_localID, m_itemID, url, param, httpHeaders, body);

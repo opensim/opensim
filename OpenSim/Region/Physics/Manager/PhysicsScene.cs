@@ -181,7 +181,7 @@ namespace OpenSim.Region.Physics.Manager
         /// <param name="direction">Direction of the ray</param>
         /// <param name="length">Length of ray in meters</param>
         /// <param name="retMethod">Method to call when the raycast is complete</param>
-        public virtual void RaycastWorld( Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
+        public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
         {
             if (retMethod != null)
                 retMethod(false, Vector3.Zero, 0, 999999999999f);

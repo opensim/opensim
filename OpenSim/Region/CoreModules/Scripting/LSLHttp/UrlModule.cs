@@ -240,12 +240,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private Hashtable HttpRequestHandler(Hashtable request)
         {
-		   	string uri = request["uri"].ToString();
-		   	//A solution to this ugly mess would be to use only the /lslhttp/<UUID>/ part of the URI as the key.
-		    UrlData url = m_UrlMap["http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+uri]; 
-		    
-		    //UUID.Random() below is a hack! Eventually we will do HTTP requests and responses properly.
-		    url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { UUID.Random().ToString(), request["http-method"].ToString(), request["body"].ToString() });
+            string uri = request["uri"].ToString();
+            //A solution to this ugly mess would be to use only the /lslhttp/<UUID>/ part of the URI as the key.
+            UrlData url = m_UrlMap["http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+uri]; 
+            
+            //UUID.Random() below is a hack! Eventually we will do HTTP requests and responses properly.
+            url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { UUID.Random().ToString(), request["http-method"].ToString(), request["body"].ToString() });
 
             Hashtable response = new Hashtable();
             response["int_response_code"] = 200;

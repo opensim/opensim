@@ -724,17 +724,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 remoteClient.SendCreateGroupReply(UUID.Zero, false, "A group with the same name already exists.");
                 return UUID.Zero;
             }
-			// is there is a money module present ?
-			IMoneyModule money=remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
+            // is there is a money module present ?
+            IMoneyModule money=remoteClient.Scene.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
-			  // do the transaction, that is if the agent has got sufficient funds
-              if (!money.GroupCreationCovered(remoteClient)) {
-                remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got issuficient funds to create a group.");
-                return UUID.Zero;
-              }
-              money.ApplyGroupCreationCharge(remoteClient.AgentId);
-			}
+                // do the transaction, that is if the agent has got sufficient funds
+                if (!money.GroupCreationCovered(remoteClient)) {
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, "You have got issuficient funds to create a group.");
+                    return UUID.Zero;
+                }
+                money.ApplyGroupCreationCharge(remoteClient.AgentId);
+            }
             UUID groupID = m_groupData.CreateGroup(grID, name, charter, showInList, insigniaID, membershipFee, openEnrollment, allowPublish, maturePublish, remoteClient.AgentId);
 
             remoteClient.SendCreateGroupReply(groupID, true, "Group created successfullly");
@@ -743,7 +743,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             SendAgentGroupDataUpdate(remoteClient, remoteClient.AgentId);
 
             return groupID;
-
         }
 
         public GroupNoticeData[] GroupNoticesListRequest(IClientAPI remoteClient, UUID groupID)

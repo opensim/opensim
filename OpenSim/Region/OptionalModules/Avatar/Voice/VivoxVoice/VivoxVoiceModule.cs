@@ -924,9 +924,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
                 // Bug in Vivox Server r2978 where count returns 0
                 // Found by Adam
-                if(channels == 0)
+                if (channels == 0)
                 {
-                    for(int j=0;j<100;j++)
+                    for (int j=0;j<100;j++)
                     {
                         string tmpId;
                         if (!XmlFind(resp, "response.level0.channel-search.channels.channels.level4.id", j, out tmpId))

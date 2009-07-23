@@ -129,7 +129,7 @@ namespace OpenSim.Framework
 
     public delegate void UpdatePrimSingleRotation(uint localID, Quaternion rot, IClientAPI remoteClient);
 
-    public delegate void UpdatePrimSingleRotationPosition( uint localID, Quaternion rot, Vector3 pos,  IClientAPI remoteClient);
+    public delegate void UpdatePrimSingleRotationPosition(uint localID, Quaternion rot, Vector3 pos, IClientAPI remoteClient);
 
     public delegate void UpdatePrimGroupRotation(uint localID, Vector3 pos, Quaternion rot, IClientAPI remoteClient);
 
@@ -139,7 +139,6 @@ namespace OpenSim.Framework
                                               UUID RayTargetObj, Vector3 RayEnd, Vector3 RayStart,
                                               bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters,
                                               bool CopyRotates);
-
 
     public delegate void StatusChange(bool status);
 
@@ -151,8 +150,7 @@ namespace OpenSim.Framework
 
     public delegate void AgentSit(IClientAPI remoteClient, UUID agentID);
 
-    public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery
-        );
+    public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery);
 
     public delegate void GrabObject(
         uint localID, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
@@ -161,8 +159,7 @@ namespace OpenSim.Framework
         uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
 
     public delegate void MoveObject(
-        UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs
-        );
+        UUID objectID, Vector3 offset, Vector3 grapPos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs);
 
     public delegate void SpinStart(UUID objectID, IClientAPI remoteClient);
     public delegate void SpinObject(UUID objectID, Quaternion rotation, IClientAPI remoteClient);

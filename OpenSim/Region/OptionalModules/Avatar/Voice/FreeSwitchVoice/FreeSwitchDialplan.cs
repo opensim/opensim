@@ -36,7 +36,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
     public class FreeSwitchDialplan 
     {
         private static readonly ILog m_log = 
-			LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
             
          
         public Hashtable HandleDialplanRequest(string Context, string Realm, Hashtable request)
@@ -54,50 +54,50 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              response["content_type"] = "text/xml";
              response["keepalive"] = false;
              response["int_response_code"] = 200;
-			if ( Context != requestcontext )
-			{
-				m_log.Debug("[FreeSwitchDirectory] returning empty as it's for another context");
-				response["str_response_string"] = "";
-			} else {
-            	response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
-	               <document type=""freeswitch/xml"">
-	                 <section name=""dialplan"">
-	                 <context name=""{0}"">" + 
+            if (Context != requestcontext)
+            {
+                m_log.Debug("[FreeSwitchDirectory] returning empty as it's for another context");
+                response["str_response_string"] = "";
+            } else {
+                response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+                   <document type=""freeswitch/xml"">
+                     <section name=""dialplan"">
+                     <context name=""{0}"">" + 
                
-/*	                       <!-- dial via SIP uri -->
-	                        <extension name=""sip_uri"">
-	                               <condition field=""destination_number"" expression=""^sip:(.*)$"">
-	                               <action application=""bridge"" data=""sofia/${use_profile}/$1""/>
-	                               <!--<action application=""bridge"" data=""$1""/>-->
-	                               </condition>
-	                       </extension>*/
+/*                           <!-- dial via SIP uri -->
+                            <extension name=""sip_uri"">
+                                   <condition field=""destination_number"" expression=""^sip:(.*)$"">
+                                   <action application=""bridge"" data=""sofia/${use_profile}/$1""/>
+                                   <!--<action application=""bridge"" data=""$1""/>-->
+                                   </condition>
+                           </extension>*/
                
-	                       @"<extension name=""opensim_conferences"">
-	                               <condition field=""destination_number"" expression=""^confctl-(.*)$"">
-	                                       <action application=""answer""/>
-	                                       <action application=""conference"" data=""$1-{1}@grid""/>
-	                               </condition>
-	                       </extension>
+                           @"<extension name=""opensim_conferences"">
+                                   <condition field=""destination_number"" expression=""^confctl-(.*)$"">
+                                           <action application=""answer""/>
+                                           <action application=""conference"" data=""$1-{1}@grid""/>
+                                   </condition>
+                           </extension>
                        
-	                       <extension name=""opensim_conf"">
-	                               <condition field=""destination_number"" expression=""^conf-(.*)$"">
-	                                       <action application=""answer""/>
-	                                       <action application=""conference"" data=""$1-${domain_name}@default""/>
-	                               </condition>
-	                       </extension>
+                           <extension name=""opensim_conf"">
+                                   <condition field=""destination_number"" expression=""^conf-(.*)$"">
+                                           <action application=""answer""/>
+                                           <action application=""conference"" data=""$1-${domain_name}@default""/>
+                                   </condition>
+                           </extension>
                
-	                       <extension name=""avatar"">
-	                               <condition field=""destination_number"" expression=""^(x.*)$"">
-	                                       <action application=""bridge"" data=""user/$1""/>
-	                               </condition>
-	                       </extension>
+                           <extension name=""avatar"">
+                                   <condition field=""destination_number"" expression=""^(x.*)$"">
+                                           <action application=""bridge"" data=""user/$1""/>
+                                   </condition>
+                           </extension>
                
-	                 </context>
-	               </section>
-	               </document>", Context, Realm);
-			}
+                     </context>
+                   </section>
+                   </document>", Context, Realm);
+            }
              
-			return response;   
+            return response;   
         }    
     }
     

@@ -40,109 +40,108 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             
         public Hashtable HandleDirectoryRequest(string Context, string Realm, Hashtable request)
         {
-			Hashtable response = new Hashtable();
-        	string domain = (string) request["domain"];
-			if ( domain != Realm ) {
-				response["content_type"] = "text/xml";
-				response["keepalive"] = false;
-				response["int_response_code"] = 200;
-				response["str_response_string"] = "";
-			} else {
-	             m_log.DebugFormat("[FreeSwitchDirectory] HandleDirectoryRequest called with {0}",request.ToString());
+            Hashtable response = new Hashtable();
+            string domain = (string) request["domain"];
+            if (domain != Realm) {
+                response["content_type"] = "text/xml";
+                response["keepalive"] = false;
+                response["int_response_code"] = 200;
+                response["str_response_string"] = "";
+            } else {
+                 m_log.DebugFormat("[FreeSwitchDirectory] HandleDirectoryRequest called with {0}",request.ToString());
+            
+                 // information in the request we might be interested in
              
+                 // Request 1 sip_auth for users account
              
-	             // information in the request we might be interested in
+                 //Event-Calling-Function=sofia_reg_parse_auth
+                 //Event-Calling-Line-Number=1494
+                 //action=sip_auth
+                 //sip_user_agent=Vivox-SDK-2.1.3010.6151-Mac%20(Feb-11-2009/16%3A42%3A41)
+                 //sip_auth_username=xhZuXKmRpECyr2AARJYyGgg%3D%3D  (==)
+                 //sip_auth_realm=9.20.151.43
+                 //sip_contact_user=xhZuXKmRpECyr2AARJYyGgg%3D%3D (==)
+                 //sip_contact_host=192.168.0.3    // this shouldnt really be a local IP, investigate STUN servers
+                 //sip_to_user=xhZuXKmRpECyr2AARJYyGgg%3D%3D
+                 //sip_to_host=9.20.151.43
+                 //sip_auth_method=REGISTER
+                 //user=xhZuXKmRpECyr2AARJYyGgg%3D%3D
+                 //domain=9.20.151.43
+                 //ip=9.167.220.137    // this is the correct IP rather than sip_contact_host above when through a vpn or NAT setup
              
-	             // Request 1 sip_auth for users account
+                 foreach (DictionaryEntry item in request)
+                 {
+                    m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}", item.Key, item.Value);
+                 }
              
-	             //Event-Calling-Function=sofia_reg_parse_auth
-	             //Event-Calling-Line-Number=1494
-	             //action=sip_auth
-	             //sip_user_agent=Vivox-SDK-2.1.3010.6151-Mac%20(Feb-11-2009/16%3A42%3A41)
-	             //sip_auth_username=xhZuXKmRpECyr2AARJYyGgg%3D%3D  (==)
-	             //sip_auth_realm=9.20.151.43
-	             //sip_contact_user=xhZuXKmRpECyr2AARJYyGgg%3D%3D (==)
-	             //sip_contact_host=192.168.0.3    // this shouldnt really be a local IP, investigate STUN servers
-	             //sip_to_user=xhZuXKmRpECyr2AARJYyGgg%3D%3D
-	             //sip_to_host=9.20.151.43
-	             //sip_auth_method=REGISTER
-	             //user=xhZuXKmRpECyr2AARJYyGgg%3D%3D
-	             //domain=9.20.151.43
-	             //ip=9.167.220.137    // this is the correct IP rather than sip_contact_host above when through a vpn or NAT setup
-             
-	             foreach (DictionaryEntry item in request)
-	             {
-	                m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}", item.Key, item.Value);
-	             }
-             
-	             string eventCallingFunction = (string) request["Event-Calling-Function"];
-	             if (eventCallingFunction == null)
-	             {
-	                 eventCallingFunction = "sofia_reg_parse_auth";
-	             }
+                 string eventCallingFunction = (string) request["Event-Calling-Function"];
+                 if (eventCallingFunction == null)
+                 {
+                     eventCallingFunction = "sofia_reg_parse_auth";
+                 }
 
-	             if (eventCallingFunction.Length == 0)
-	             {
-	                 eventCallingFunction = "sofia_reg_parse_auth";
-	             }
+                 if (eventCallingFunction.Length == 0)
+                 {
+                     eventCallingFunction = "sofia_reg_parse_auth";
+                 }
              
-	             if (eventCallingFunction == "sofia_reg_parse_auth")
-	             {
-	                 string sipAuthMethod = (string)request["sip_auth_method"];
+                 if (eventCallingFunction == "sofia_reg_parse_auth")
+                 {
+                     string sipAuthMethod = (string)request["sip_auth_method"];
                  
-	                 if (sipAuthMethod == "REGISTER")
-	                 {
-	                     response = HandleRegister(Context, Realm, request);
-	                 } 
-	                 else if (sipAuthMethod == "INVITE")  
-	                 {
-	                      response = HandleInvite(Context, Realm, request);
-	                 }
-	                 else
-	                 {
-	                     m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
-	                     response["int_response_code"] = 404;
-	                     response["content_type"] = "text/xml";
-	                     response["str_response_string"] = "";
-	                 }
-	             }
-	             else if (eventCallingFunction == "switch_xml_locate_user")
-	             {
-	                 response = HandleLocateUser(Realm, request);
-	             }
-	             else if (eventCallingFunction == "user_data_function") // gets called when an avatar to avatar call is made
-	             {
-	                  response = HandleLocateUser(Realm, request);
-	             }
-	             else if (eventCallingFunction == "user_outgoing_channel")
-	             {
-	                 response = HandleRegister(Context, Realm, request);
-	             }
-	             else if (eventCallingFunction == "config_sofia") // happens once on freeswitch startup
-	             {
-	                 response = HandleConfigSofia(Context, Realm, request);
-	             }
-	             else if (eventCallingFunction == "switch_load_network_lists")
-	             {
-	                 //response = HandleLoadNetworkLists(request);
-	                 response["int_response_code"] = 404;
-	                 response["keepalive"] = false;
-	                 response["content_type"] = "text/xml";
-	                 response["str_response_string"] = "";
-	             }
-	             else
-	             {
-	                 m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
-	                 response["int_response_code"] = 404;
-	                 response["keepalive"] = false;
-	                 response["content_type"] = "text/xml";
-	                 response["str_response_string"] = "";
-	             }
-			}
-			return response;   
+                     if (sipAuthMethod == "REGISTER")
+                     {
+                         response = HandleRegister(Context, Realm, request);
+                     } 
+                     else if (sipAuthMethod == "INVITE")  
+                     {
+                          response = HandleInvite(Context, Realm, request);
+                     }
+                     else
+                     {
+                         m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown sip_auth_method {0}",sipAuthMethod);
+                         response["int_response_code"] = 404;
+                         response["content_type"] = "text/xml";
+                         response["str_response_string"] = "";
+                     }
+                 }
+                 else if (eventCallingFunction == "switch_xml_locate_user")
+                 {
+                     response = HandleLocateUser(Realm, request);
+                 }
+                 else if (eventCallingFunction == "user_data_function") // gets called when an avatar to avatar call is made
+                 {
+                      response = HandleLocateUser(Realm, request);
+                 }
+                 else if (eventCallingFunction == "user_outgoing_channel")
+                 {
+                     response = HandleRegister(Context, Realm, request);
+                 }
+                 else if (eventCallingFunction == "config_sofia") // happens once on freeswitch startup
+                 {
+                     response = HandleConfigSofia(Context, Realm, request);
+                 }
+                 else if (eventCallingFunction == "switch_load_network_lists")
+                 {
+                     //response = HandleLoadNetworkLists(request);
+                     response["int_response_code"] = 404;
+                     response["keepalive"] = false;
+                     response["content_type"] = "text/xml";
+                     response["str_response_string"] = "";
+                 }
+                 else
+                 {
+                     m_log.ErrorFormat("[FreeSwitchVoice] HandleDirectoryRequest unknown Event-Calling-Function {0}",eventCallingFunction);
+                     response["int_response_code"] = 404;
+                     response["keepalive"] = false;
+                     response["content_type"] = "text/xml";
+                     response["str_response_string"] = "";
+                 }
+            }
+            return response;   
         }
         
-         private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
+        private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleRegister called");
             
@@ -156,7 +155,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             response["keepalive"] = false;
             response["int_response_code"] = 200;
 
-           	response["str_response_string"] = String.Format(
+            response["str_response_string"] = String.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -225,8 +224,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 
             return response;
         }
-        
-        
+
         private Hashtable HandleLocateUser(String Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleLocateUser called");

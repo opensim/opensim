@@ -95,7 +95,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // private static IPEndPoint m_FreeSwitchServiceIP;
         private int m_freeSwitchServicePort;
         private string m_openSimWellKnownHTTPAddress;
-		private string m_freeSwitchContext;
+        private string m_freeSwitchContext;
 
         private FreeSwitchDirectory m_FreeSwitchDirectory;
         private FreeSwitchDialplan m_FreeSwitchDialplan;
@@ -152,7 +152,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
                     // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
                     m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
-					m_freeSwitchContext = m_config.GetString("freeswitch_context", "public");
+                    m_freeSwitchContext = m_config.GetString("freeswitch_context", "public");
                     
                     if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
                         String.IsNullOrEmpty(m_freeSwitchServerPass) ||

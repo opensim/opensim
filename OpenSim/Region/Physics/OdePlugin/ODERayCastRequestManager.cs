@@ -67,7 +67,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<ContactResult> m_contactResults = new List<ContactResult>();
 
 
-        public ODERayCastRequestManager( OdeScene pScene)
+        public ODERayCastRequestManager(OdeScene pScene)
         {
             m_scene = pScene;
             nearCallback = near;
@@ -149,7 +149,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Find closest contact and object.
             lock (m_contactResults)
             {
-                foreach(ContactResult cResult in m_contactResults)
+                foreach (ContactResult cResult in m_contactResults)
                 {
                     if (Vector3.Distance(req.Origin, cResult.Pos) < Vector3.Distance(req.Origin, closestcontact))
                     {
