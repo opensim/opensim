@@ -30,6 +30,8 @@
         <RegionModule id="RemoteNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.RemoteNeighbourServicesConnector" />
         <RegionModule id="LocalLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.LocalLandServicesConnector" />
         <RegionModule id="RemoteLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.RemoteLandServicesConnector" />
+        <RegionModule id="LocalInterregionComms" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion.LocalInterregionComms" />
+        <RegionModule id="RESTInterregionComms" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion.RESTInterregionComms" />
       <!-- Service connectors IN modules -->
         <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
         <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />

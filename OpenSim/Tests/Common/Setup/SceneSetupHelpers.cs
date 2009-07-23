@@ -214,6 +214,7 @@ namespace OpenSim.Tests.Common.Setup
             foreach (IRegionModuleBase module in newModules)
             {
                 module.AddRegion(scene);
+                module.RegionLoaded(scene);
                 scene.AddRegionModule(module.Name, module);
             }
 

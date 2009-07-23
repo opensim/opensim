@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 {
-    public class LocalInterregionComms : IRegionModule, IInterregionCommsOut, IInterregionCommsIn
+    public class LocalInterregionComms : ISharedRegionModule, IInterregionCommsOut, IInterregionCommsIn
     {
         private bool m_enabled = false;
 
@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
         #region IRegionModule
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             if (m_sceneList.Count == 0)
             {
@@ -62,19 +62,39 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                     m_enabled = true;
                 }
             }
-
-            if (!m_enabled)
-                return;
-
-            Init(scene);
         }
 
         public void PostInitialise()
         {
         }
 
+        public void AddRegion(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_enabled)
+            {
+                RemoveScene(scene);
+            }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_enabled)
+            {
+                Init(scene);
+            }
+        }
+
         public void Close()
         {
+        }
+
+        public Type ReplacableInterface
+        {
+            get { return null; }
         }
 
         public string Name
@@ -82,10 +102,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             get { return "LocalInterregionCommsModule"; }
         }
 
-        public bool IsSharedModule
+        /// <summary>
+        /// Can be called from other modules.
+        /// </summary>
+        /// <param name="scene"></param>
+        public void RemoveScene(Scene scene)
         {
-            get { return true; }
+            lock (m_sceneList)
+            {
+                if (m_sceneList.Contains(scene))
+                {
+                    m_sceneList.Remove(scene);
+                }
+            }
         }
+
         /// <summary>
         /// Can be called from other modules.
         /// </summary>
@@ -110,21 +141,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         #region IInterregionComms
 
         /**
-         * Agent-related communications 
+         * Agent-related communications
          */
 
         public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
         {
 
             foreach (Scene s in m_sceneList)
-            {                
+            {
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
 //                    m_log.DebugFormat("[LOCAL COMMS]: Found region {0} to send SendCreateChildAgent", regionHandle);
                     return s.NewUserConnection(aCircuit, out reason);
                 }
             }
-            
+
 //            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", regionHandle);
             reason = "Did not find region.";
             return false;
@@ -137,14 +168,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
                     //m_log.DebugFormat(
-                    //    "[LOCAL COMMS]: Found region {0} {1} to send ChildAgentUpdate", 
+                    //    "[LOCAL COMMS]: Found region {0} {1} to send ChildAgentUpdate",
                     //    s.RegionInfo.RegionName, regionHandle);
-                    
+
                     s.IncomingChildAgentDataUpdate(cAgentData);
                     return true;
                 }
             }
-            
+
 //            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for ChildAgentUpdate", regionHandle);
             return false;
         }
@@ -218,7 +249,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         }
 
         /**
-         * Object-related communications 
+         * Object-related communications
          */
 
         public bool SendCreateObject(ulong regionHandle, SceneObjectGroup sog, bool isLocalCall)

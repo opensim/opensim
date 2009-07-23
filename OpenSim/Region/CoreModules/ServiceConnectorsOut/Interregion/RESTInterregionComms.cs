@@ -45,7 +45,7 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 {
-    public class RESTInterregionComms : IRegionModule, IInterregionCommsOut
+    public class RESTInterregionComms : ISharedRegionModule, IInterregionCommsOut
     {
         private bool initialized = false;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -64,51 +64,63 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
         #region IRegionModule
 
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(IConfigSource config)
         {
-            if (!initialized)
+            IConfig startupConfig = config.Configs["Communications"];
+
+            if ((startupConfig == null) || ((startupConfig != null)
+                && (startupConfig.GetString("InterregionComms", "RESTComms") == "RESTComms")))
             {
-                initialized = true;
-                IConfig startupConfig = config.Configs["Communications"];
-                
-                if ((startupConfig == null) 
-                    || (startupConfig != null) 
-                    && (startupConfig.GetString("InterregionComms", "RESTComms") == "RESTComms"))
-                {
-                    m_log.Info("[REST COMMS]: Enabling InterregionComms RESTComms module");
-                    m_enabled = true;
-                    if (config.Configs["Hypergrid"] != null)
-                        m_safemode = config.Configs["Hypergrid"].GetBoolean("safemode", false);
-
-                    InitOnce(scene);
-                }
+                m_log.Info("[REST COMMS]: Enabling InterregionComms RESTComms module");
+                m_enabled = true;
+                if (config.Configs["Hypergrid"] != null)
+                    m_safemode = config.Configs["Hypergrid"].GetBoolean("safemode", false);
             }
-
-            if (!m_enabled)
-                return;
-
-            InitEach(scene);
-
         }
 
         public virtual void PostInitialise()
         {
-            if (m_enabled)
-                AddHTTPHandlers();
         }
 
         public virtual void Close()
         {
         }
 
+        public void AddRegion(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_enabled)
+            {
+                m_localBackend.RemoveScene(scene);
+                scene.UnregisterModuleInterface<IInterregionCommsOut>(this);
+            }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_enabled)
+            {
+                if (!initialized)
+                {
+                    InitOnce(scene);
+                    initialized = true;
+                    AddHTTPHandlers();
+                }
+                InitEach(scene);
+            }
+        }
+
+        public Type ReplacableInterface
+        {
+            get { return null; }
+        }
+
         public virtual string Name
         {
             get { return "RESTInterregionCommsModule"; }
-        }
-
-        public virtual bool IsSharedModule
-        {
-            get { return true; }
         }
 
         protected virtual void InitEach(Scene scene)
@@ -137,7 +149,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         #region IInterregionComms
 
         /**
-         * Agent-related communications 
+         * Agent-related communications
          */
 
         public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
@@ -257,7 +269,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         }
 
         /**
-         * Object-related communications 
+         * Object-related communications
          */
 
         public bool SendCreateObject(ulong regionHandle, SceneObjectGroup sog, bool isLocalCall)
@@ -527,7 +539,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
         {
             //m_log.Debug(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
-            
+
             if (action.Equals("release"))
                 m_localBackend.SendReleaseAgent(regionHandle, id, "");
             else
@@ -613,7 +625,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 extraStr = args["extra"].AsString();
 
             UUID regionID = m_localBackend.GetRegionID(regionhandle);
-            SceneObjectGroup sog = null; 
+            SceneObjectGroup sog = null;
             try
             {
                 sog = SceneObjectSerializer.FromXml2Format(sogXmlStr);
@@ -675,7 +687,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             responsedata["str_response_string"] = result.ToString();
         }
 
-        #endregion 
+        #endregion
 
         #region Misc
 
@@ -707,7 +719,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                     UInt64.TryParse(parts[2], out regionHandle);
                 if (parts.Length >= 4)
                     action = parts[3];
-                
+
                 return true;
             }
         }
@@ -759,7 +771,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         }
 
 
-        #endregion Misc 
+        #endregion Misc
 
         protected class RegionToRegionClient : RegionClient
         {

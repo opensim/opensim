@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestCommunicationsManager cm = new TestCommunicationsManager();
 
             // shared module
-            IRegionModule interregionComms = new RESTInterregionComms();
+            ISharedRegionModule interregionComms = new RESTInterregionComms();
             
             Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm);
             SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);

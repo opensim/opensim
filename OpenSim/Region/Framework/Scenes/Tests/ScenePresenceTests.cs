@@ -71,10 +71,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000, cm);
             scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000, cm);
 
-            IRegionModule interregionComms = new RESTInterregionComms();
-            interregionComms.Initialise(scene, new IniConfigSource());
-            interregionComms.Initialise(scene2, new IniConfigSource());
-            interregionComms.Initialise(scene3, new IniConfigSource());
+            ISharedRegionModule interregionComms = new RESTInterregionComms();
+            interregionComms.Initialise(new IniConfigSource());
             interregionComms.PostInitialise();
             SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);
             SceneSetupHelpers.SetupSceneModules(scene2, new IniConfigSource(), interregionComms);
