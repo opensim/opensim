@@ -151,7 +151,7 @@ This software uses components from the following developers:
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
 * Prebuild (http://sourceforge.net/projects/dnpb/)
-* LibSecondLife (http://www.libsecondlife.org/wiki/Main_Page)
+* LibOpenMetaverse (http://lib.openmetaverse.org/)
 * DotNetOpenMail v0.5.8b (http://dotnetopenmail.sourceforge.net)
 * Prototype JavaScript Framework ajax (http://www.prototypejs.org/)
 * C5 GENERIC COLLECTION LIBRARY FOR C#/CLI
