@@ -60,7 +60,7 @@ namespace OpenSim.Data.MSSQL
         // [Obsolete("Cannot be default-initialized!")]
         override public void Initialise()
         {
-            m_log.Info("[MSSQLUserData]: " + Name + " cannot be default-initialized!");
+            m_log.Info("[MSSQLAssetData]: " + Name + " cannot be default-initialized!");
             throw new PluginNotInitialisedException(Name);
         }
 
@@ -165,12 +165,24 @@ namespace OpenSim.Data.MSSQL
                            VALUES
                             (@id, @name, @description, @assetType, @local, 
                              @temporary, @create_time, @access_time, @data)";
+            string assetName = asset.Name;
+            if (asset.Name.Length > 64)
+            {
+                assetName = asset.Name.Substring(0, 64);
+                m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length.ToString() + " to " + assetName.Length.ToString() + " characters");
+            }
+            string assetDescription = asset.Description;
+            if (asset.Description.Length > 64)
+            {
+                assetDescription = asset.Description.Substring(0, 64);
+                m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length.ToString() + " to " + assetDescription.Length.ToString() + " characters");
+            }
             using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(m_database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(m_database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(m_database.CreateParameter("name", assetName));
+                command.Parameters.Add(m_database.CreateParameter("description", assetDescription));
                 command.Parameters.Add(m_database.CreateParameter("assetType", asset.Type));
                 command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
@@ -178,7 +190,14 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(m_database.CreateParameter("create_time", now));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
 
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch(Exception e)
+                {
+                    m_log.Error("[ASSET DB]: Error inserting item :" + e.Message);
+                }
             }
         }
 

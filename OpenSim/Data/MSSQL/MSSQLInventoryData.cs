@@ -412,7 +412,18 @@ namespace OpenSim.Data.MSSQL
                              @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID,
                              @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType,
                              @creationDate, @groupID, @groupOwned, @flags)";
-
+            string itemName = item.Name;
+            if (item.Name.Length > 64)
+            {
+                itemName = item.Name.Substring(0, 64);
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length.ToString() + " to " + itemName.Length.ToString() + " characters");
+            }
+            string itemDesc = item.Description;
+            if (item.Description.Length > 128)
+            {
+                itemDesc = item.Description.Substring(0, 128);
+                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length.ToString() + " to " + itemDesc.Length.ToString() + " characters");
+            }
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
@@ -420,7 +431,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("assetType", item.AssetType));
                 command.Parameters.Add(database.CreateParameter("parentFolderID", item.Folder));
                 command.Parameters.Add(database.CreateParameter("avatarID", item.Owner));
-                command.Parameters.Add(database.CreateParameter("inventoryName", item.Name));
+                command.Parameters.Add(database.CreateParameter("inventoryName", itemName));
                 command.Parameters.Add(database.CreateParameter("inventoryDescription", item.Description));
                 command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
