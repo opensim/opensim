@@ -73,7 +73,16 @@ namespace OpenSim.Data.NHibernate
             int ord = rs.GetOrdinal(names[0]);
             if (!rs.IsDBNull(ord))
             {
-                sbyte1 = Convert.ToSByte(rs.GetInt16(ord));
+                object tempO = rs.GetValue(ord);
+                if (tempO is Byte)
+                {
+                    sbyte1 = Convert.ToSByte(((byte)tempO));
+                }
+                else
+                {
+                    short temp = rs.GetInt16(ord);
+                    sbyte1 = Convert.ToSByte(temp);
+                }
             }
             return sbyte1;
         }
