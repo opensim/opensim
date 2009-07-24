@@ -227,13 +227,19 @@ namespace OpenSim.Data.MSSQL
             string sql = @"INSERT INTO inventoryfolders ([folderID], [agentID], [parentFolderID], [folderName], [type], [version]) 
                             VALUES (@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
 
-
+            string folderName = folder.Name;
+            if (folderName.Length > 64)
+            {
+                folderName = folderName.Substring(0, 64);
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on add");
+            }
+            
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 command.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
                 command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
-                command.Parameters.Add(database.CreateParameter("folderName", folder.Name));
+                command.Parameters.Add(database.CreateParameter("folderName", folderName));
                 command.Parameters.Add(database.CreateParameter("type", folder.Type));
                 command.Parameters.Add(database.CreateParameter("version", folder.Version));
 
@@ -262,15 +268,24 @@ namespace OpenSim.Data.MSSQL
                                                        type = @type,
                                                        version = @version 
                            WHERE folderID = @keyFolderID";
+
+            string folderName = folder.Name;
+            if (folderName.Length > 64)
+            {
+                folderName = folderName.Substring(0, 64);
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on update");
+            }
+            
             using (AutoClosingSqlCommand command = database.Query(sql))
             {
                 command.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 command.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
                 command.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
-                command.Parameters.Add(database.CreateParameter("folderName", folder.Name));
+                command.Parameters.Add(database.CreateParameter("folderName", folderName));
                 command.Parameters.Add(database.CreateParameter("type", folder.Type));
                 command.Parameters.Add(database.CreateParameter("version", folder.Version));
                 command.Parameters.Add(database.CreateParameter("@keyFolderID", folder.ID));
+                
                 try
                 {
                     command.ExecuteNonQuery();
