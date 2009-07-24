@@ -210,6 +210,20 @@ namespace OpenSim.Data.MySQL
                         "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?data)",
                         _dbConnection.Connection);
 
+                string assetName = asset.Name;            
+                if (asset.Name.Length > 64)
+                {
+                    assetName = asset.Name.Substring(0, 64);
+                    m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
+                }
+                
+                string assetDescription = asset.Description;
+                if (asset.Description.Length > 64)
+                {
+                    assetDescription = asset.Description.Substring(0, 64);
+                    m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
+                }
+                
                 // need to ensure we dispose
                 try
                 {
@@ -218,8 +232,8 @@ namespace OpenSim.Data.MySQL
                         // create unix epoch time
                         int now = (int)((DateTime.Now.Ticks - TicksToEpoch) / 10000000);
                         cmd.Parameters.AddWithValue("?id", asset.ID);
-                        cmd.Parameters.AddWithValue("?name", asset.Name);
-                        cmd.Parameters.AddWithValue("?description", asset.Description);
+                        cmd.Parameters.AddWithValue("?name", assetName);
+                        cmd.Parameters.AddWithValue("?description", assetDescription);
                         cmd.Parameters.AddWithValue("?assetType", asset.Type);
                         cmd.Parameters.AddWithValue("?local", asset.Local);
                         cmd.Parameters.AddWithValue("?temporary", asset.Temporary);

@@ -471,6 +471,20 @@ namespace OpenSim.Data.MySQL
                     + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?inventoryGroupPermissions, ?salePrice, ?saleType, ?creationDate"
                     + ", ?groupID, ?groupOwned, ?flags)";
 
+            string itemName = item.Name;            
+            if (item.Name.Length > 64)
+            {
+                itemName = item.Name.Substring(0, 64);
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length + " to " + itemName.Length + " characters on add item");
+            }
+            
+            string itemDesc = item.Description;
+            if (item.Description.Length > 128)
+            {
+                itemDesc = item.Description.Substring(0, 128);
+                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length + " to " + itemDesc.Length + " characters on add item");
+            }            
+
             try
             {
                 database.CheckConnection();
@@ -481,8 +495,8 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?assetType", item.AssetType.ToString());
                 result.Parameters.AddWithValue("?parentFolderID", item.Folder.ToString());
                 result.Parameters.AddWithValue("?avatarID", item.Owner.ToString());
-                result.Parameters.AddWithValue("?inventoryName", item.Name);
-                result.Parameters.AddWithValue("?inventoryDescription", item.Description);
+                result.Parameters.AddWithValue("?inventoryName", itemName);
+                result.Parameters.AddWithValue("?inventoryDescription", itemDesc);
                 result.Parameters.AddWithValue("?inventoryNextPermissions", item.NextPermissions.ToString());
                 result.Parameters.AddWithValue("?inventoryCurrentPermissions",
                                                item.CurrentPermissions.ToString());
@@ -575,13 +589,20 @@ namespace OpenSim.Data.MySQL
                 "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName, type, version) VALUES ";
             sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version)";
 
+            string folderName = folder.Name;            
+            if (folderName.Length > 64)
+            {
+                folderName = folderName.Substring(0, 64);
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length + " to " + folderName.Length + " characters on add folder");
+            }         
+
             database.CheckConnection();
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
             cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
             cmd.Parameters.AddWithValue("?agentID", folder.Owner.ToString());
             cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
-            cmd.Parameters.AddWithValue("?folderName", folder.Name);
+            cmd.Parameters.AddWithValue("?folderName", folderName);
             cmd.Parameters.AddWithValue("?type", (short) folder.Type);
             cmd.Parameters.AddWithValue("?version", folder.Version);
 
