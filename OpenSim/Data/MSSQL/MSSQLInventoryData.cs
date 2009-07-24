@@ -412,6 +412,7 @@ namespace OpenSim.Data.MSSQL
                              @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID,
                              @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType,
                              @creationDate, @groupID, @groupOwned, @flags)";
+            
             string itemName = item.Name;
             if (item.Name.Length > 64)
             {
@@ -432,7 +433,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(database.CreateParameter("parentFolderID", item.Folder));
                 command.Parameters.Add(database.CreateParameter("avatarID", item.Owner));
                 command.Parameters.Add(database.CreateParameter("inventoryName", itemName));
-                command.Parameters.Add(database.CreateParameter("inventoryDescription", item.Description));
+                command.Parameters.Add(database.CreateParameter("inventoryDescription", itemDesc));
                 command.Parameters.Add(database.CreateParameter("inventoryNextPermissions", item.NextPermissions));
                 command.Parameters.Add(database.CreateParameter("inventoryCurrentPermissions", item.CurrentPermissions));
                 command.Parameters.Add(database.CreateParameter("invType", item.InvType));
