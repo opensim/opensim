@@ -428,8 +428,7 @@ namespace OpenSim.Data.MSSQL
                              @inventoryBasePermissions, @inventoryEveryOnePermissions, @inventoryGroupPermissions, @salePrice, @saleType,
                              @creationDate, @groupID, @groupOwned, @flags)";
             
-            string itemName = item.Name;
-            
+            string itemName = item.Name;            
             if (item.Name.Length > 64)
             {
                 itemName = item.Name.Substring(0, 64);
