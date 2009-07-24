@@ -138,7 +138,10 @@ namespace OpenSim
         private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             if (_IsHandlingException)
+            {
                 return;
+            }
+
             _IsHandlingException = true;
             // TODO: Add config option to allow users to turn off error reporting
             // TODO: Post error report (disabled for now)

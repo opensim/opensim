@@ -401,19 +401,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_maxNonphys = startupConfig.GetFloat("NonPhysicalPrimMax", m_maxNonphys);
                 if (RegionInfo.NonphysPrimMax > 0)
+                {
                     m_maxNonphys = RegionInfo.NonphysPrimMax;
+                }
 
                 m_maxPhys = startupConfig.GetFloat("PhysicalPrimMax", m_maxPhys);
 
                 if (RegionInfo.PhysPrimMax > 0)
+                {
                     m_maxPhys = RegionInfo.PhysPrimMax;
+                }
 
                 // Here, if clamping is requested in either global or
                 // local config, it will be used
                 //
                 m_clampPrimSize = startupConfig.GetBoolean("ClampPrimSize", m_clampPrimSize);
                 if (RegionInfo.ClampPrimSize)
+                {
                     m_clampPrimSize = true;
+                }
 
                 m_trustBinaries = startupConfig.GetBoolean("TrustBinaries", m_trustBinaries);
                 m_allowScriptCrossings = startupConfig.GetBoolean("AllowScriptCrossing", m_allowScriptCrossings);

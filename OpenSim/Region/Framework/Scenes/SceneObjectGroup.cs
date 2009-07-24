@@ -501,9 +501,15 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart part in m_parts.Values)
             {
                 if (Object.ReferenceEquals(part, m_rootPart))
+                {
                     continue;
-                if (part.LocalId==0) 
+                }
+
+                if (part.LocalId == 0)
+                {
                     part.LocalId = m_scene.AllocateLocalId();
+                }
+
                 part.ParentID = m_rootPart.LocalId;
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
