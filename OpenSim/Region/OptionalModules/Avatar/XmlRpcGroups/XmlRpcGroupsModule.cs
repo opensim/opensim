@@ -122,7 +122,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                m_log.Info("[GROUPS]: Initializing XmlRpcGroups");
+                m_log.InfoFormat("[GROUPS]: Initializing {0}", this.Name);
 
                 string ServiceURL = groupsConfig.GetString("XmlRpcServiceURL", m_defaultXmlRpcServiceURL);
                 bool DisableKeepAlive = groupsConfig.GetBoolean("XmlRpcDisableKeepAlive", false);
@@ -138,6 +138,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_clientRequestIDFlushTimer.Interval = m_clientRequestIDFlushTimeOut;
                 m_clientRequestIDFlushTimer.Elapsed += FlushClientRequestIDInfoCache;
+                m_clientRequestIDFlushTimer.AutoReset = true;
                 m_clientRequestIDFlushTimer.Start();
             }
         }
@@ -370,6 +371,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             {
                 UUID inviteID = new UUID(im.imSessionID);
                 GroupInviteInfo inviteInfo = m_groupData.GetAgentToGroupInvite(GetClientGroupRequestID(remoteClient), inviteID);
+
+                if (inviteInfo == null)
+                {
+                    if (m_debugEnabled) m_log.WarnFormat("[GROUPS]: Received an Invite IM for an invite that does not exist {0}.", inviteID);
+                    return;
+                }
 
                 if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: Invite is for Agent {0} to Group {1}.", inviteInfo.AgentID, inviteInfo.GroupID);
 
@@ -1037,32 +1044,41 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             // Todo: Security check, probably also want to send some kind of notification
             UUID InviteID = UUID.Random();
-            m_groupData.AddAgentToGroupInvite(GetClientGroupRequestID(remoteClient), InviteID, groupID, roleID, invitedAgentID);
+            GroupRequestID grid = GetClientGroupRequestID(remoteClient);
 
-            if (m_msgTransferModule != null)
+            m_groupData.AddAgentToGroupInvite(grid, InviteID, groupID, roleID, invitedAgentID);
+
+            // Check to see if the invite went through, if it did not then it's possible
+            // the remoteClient did not validate or did not have permission to invite.
+            GroupInviteInfo inviteInfo = m_groupData.GetAgentToGroupInvite(grid, InviteID);
+
+            if (inviteInfo != null)
             {
-                Guid inviteUUID = InviteID.Guid;
+                if (m_msgTransferModule != null)
+                {
+                    Guid inviteUUID = InviteID.Guid;
 
-                GridInstantMessage msg = new GridInstantMessage();
-                
-                msg.imSessionID = inviteUUID;
-                
-                // msg.fromAgentID = remoteClient.AgentId.Guid;
-                msg.fromAgentID = groupID.Guid;
-                msg.toAgentID = invitedAgentID.Guid;
-                //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                msg.timestamp = 0;
-                msg.fromAgentName = remoteClient.Name;
-                msg.message = string.Format("{0} has invited you to join a group. There is no cost to join this group.", remoteClient.Name);
-                msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupInvitation;
-                msg.fromGroup = true;
-                msg.offline = (byte)0;
-                msg.ParentEstateID = 0;
-                msg.Position = Vector3.Zero;
-                msg.RegionID = remoteClient.Scene.RegionInfo.RegionID.Guid;
-                msg.binaryBucket = new byte[20];
+                    GridInstantMessage msg = new GridInstantMessage();
 
-                OutgoingInstantMessage(msg, invitedAgentID);
+                    msg.imSessionID = inviteUUID;
+
+                    // msg.fromAgentID = remoteClient.AgentId.Guid;
+                    msg.fromAgentID = groupID.Guid;
+                    msg.toAgentID = invitedAgentID.Guid;
+                    //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+                    msg.timestamp = 0;
+                    msg.fromAgentName = remoteClient.Name;
+                    msg.message = string.Format("{0} has invited you to join a group. There is no cost to join this group.", remoteClient.Name);
+                    msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupInvitation;
+                    msg.fromGroup = true;
+                    msg.offline = (byte)0;
+                    msg.ParentEstateID = 0;
+                    msg.Position = Vector3.Zero;
+                    msg.RegionID = remoteClient.Scene.RegionInfo.RegionID.Guid;
+                    msg.binaryBucket = new byte[20];
+
+                    OutgoingInstantMessage(msg, invitedAgentID);
+                }
             }
         }
 
