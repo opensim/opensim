@@ -81,7 +81,6 @@ namespace OpenSim.Data.MSSQL
             }
             else
             {
-
                 IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
                 string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
                 string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
@@ -159,24 +158,28 @@ namespace OpenSim.Data.MSSQL
             {
                 return;
             }
+            
             string sql = @"INSERT INTO assets
                             ([id], [name], [description], [assetType], [local], 
                              [temporary], [create_time], [access_time], [data])
                            VALUES
                             (@id, @name, @description, @assetType, @local, 
                              @temporary, @create_time, @access_time, @data)";
-            string assetName = asset.Name;
+            
+            string assetName = asset.Name;            
             if (asset.Name.Length > 64)
             {
                 assetName = asset.Name.Substring(0, 64);
-                m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length.ToString() + " to " + assetName.Length.ToString() + " characters");
+                m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on add");
             }
+            
             string assetDescription = asset.Description;
             if (asset.Description.Length > 64)
             {
                 assetDescription = asset.Description.Substring(0, 64);
-                m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length.ToString() + " to " + assetDescription.Length.ToString() + " characters");
+                m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
             }
+            
             using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
@@ -210,11 +213,26 @@ namespace OpenSim.Data.MSSQL
             string sql = @"UPDATE assets set id = @id, name = @name, description = @description, assetType = @assetType,
                             local = @local, temporary = @temporary, data = @data
                            WHERE id = @keyId;";
+
+            string assetName = asset.Name;            
+            if (asset.Name.Length > 64)
+            {
+                assetName = asset.Name.Substring(0, 64);
+                m_log.Warn("[ASSET DB]: Name field truncated from " + asset.Name.Length + " to " + assetName.Length + " characters on update");
+            }
+            
+            string assetDescription = asset.Description;
+            if (asset.Description.Length > 64)
+            {
+                assetDescription = asset.Description.Substring(0, 64);
+                m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on update");
+            }
+            
             using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
-                command.Parameters.Add(m_database.CreateParameter("name", asset.Name));
-                command.Parameters.Add(m_database.CreateParameter("description", asset.Description));
+                command.Parameters.Add(m_database.CreateParameter("name", assetName));
+                command.Parameters.Add(m_database.CreateParameter("description", assetDescription));
                 command.Parameters.Add(m_database.CreateParameter("assetType", asset.Type));
                 command.Parameters.Add(m_database.CreateParameter("local", asset.Local));
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
@@ -279,6 +297,7 @@ namespace OpenSim.Data.MSSQL
             string sql = @"SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() 
                             OVER (ORDER BY (some column to order by)) 
                             WHERE Row >= @Start AND Row < @Start + @Count";
+            
             using (AutoClosingSqlCommand command = m_database.Query(sql))
             {
                 command.Parameters.Add(m_database.CreateParameter("start", start));
