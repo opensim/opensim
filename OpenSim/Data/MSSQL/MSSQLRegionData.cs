@@ -875,13 +875,13 @@ VALUES
             newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
             newData.Area = Convert.ToInt32(row["Area"]);
             newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
-            newData.Category = (Parcel.ParcelCategory)Convert.ToInt32(row["Category"]);
+            newData.Category = (ParcelCategory)Convert.ToInt32(row["Category"]);
             //Enum libsecondlife.Parcel.ParcelCategory
             newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
             newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
             newData.GroupID = new UUID((Guid)row["GroupUUID"]);
             newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
-            newData.Status = (Parcel.ParcelStatus)Convert.ToInt32(row["LandStatus"]);
+            newData.Status = (ParcelStatus)Convert.ToInt32(row["LandStatus"]);
             //Enum. libsecondlife.Parcel.ParcelStatus
             newData.Flags = Convert.ToUInt32(row["LandFlags"]);
             newData.LandingType = Convert.ToByte(row["LandingType"]);

@@ -3097,11 +3097,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (parcel != null)
                 {
-                    if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) != 0)
+                    if ((parcel.landData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
                     {
                         return true;
                     }
-                    else if ((parcel.landData.Flags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
+                    else if ((parcel.landData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
                     {
                         if (part.OwnerID == parcel.landData.OwnerID
                             || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID)

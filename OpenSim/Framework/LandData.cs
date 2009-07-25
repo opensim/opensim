@@ -38,7 +38,7 @@ namespace OpenSim.Framework
         private int _area = 0;
         private uint _auctionID = 0; //Unemplemented. If set to 0, not being auctioned
         private UUID _authBuyerID = UUID.Zero; //Unemplemented. Authorized Buyer's UUID
-        private Parcel.ParcelCategory _category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
+        private ParcelCategory _category = ParcelCategory.None; //Unemplemented. Parcel's chosen category
         private int _claimDate = 0;
         private int _claimPrice = 0; //Unemplemented
         private UUID _globalID = UUID.Zero;
@@ -49,15 +49,15 @@ namespace OpenSim.Framework
         private string _description = String.Empty;
 
 
-        private uint _flags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
-                                (uint) Parcel.ParcelFlags.AllowAPrimitiveEntry |
-                                (uint) Parcel.ParcelFlags.AllowDeedToGroup | (uint) Parcel.ParcelFlags.AllowTerraform |
-                                (uint) Parcel.ParcelFlags.CreateObjects | (uint) Parcel.ParcelFlags.AllowOtherScripts |
-                                (uint) Parcel.ParcelFlags.SoundLocal;
+        private uint _flags = (uint) ParcelFlags.AllowFly | (uint) ParcelFlags.AllowLandmark |
+                                (uint) ParcelFlags.AllowAPrimitiveEntry |
+                                (uint) ParcelFlags.AllowDeedToGroup | (uint) ParcelFlags.AllowTerraform |
+                                (uint) ParcelFlags.CreateObjects | (uint) ParcelFlags.AllowOtherScripts |
+                                (uint) ParcelFlags.SoundLocal;
 
         private byte _landingType = 0;
         private string _name = "Your Parcel";
-        private Parcel.ParcelStatus _status = Parcel.ParcelStatus.Leased;
+        private ParcelStatus _status = ParcelStatus.Leased;
         private int _localID = 0;
         private byte _mediaAutoScale = 0;
         private UUID _mediaID = UUID.Zero;
@@ -125,7 +125,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public Parcel.ParcelCategory Category {
+        public ParcelCategory Category {
             get {
                 return _category;
             }
@@ -233,7 +233,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public Parcel.ParcelStatus Status {
+        public ParcelStatus Status {
             get {
                 return _status;
             }

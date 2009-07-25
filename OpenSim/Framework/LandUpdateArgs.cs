@@ -33,7 +33,7 @@ namespace OpenSim.Framework
     public class LandUpdateArgs : EventArgs
     {
         public UUID AuthBuyerID;
-        public Parcel.ParcelCategory Category;
+        public ParcelCategory Category;
         public string Desc;
         public UUID GroupID;
         public byte LandingType;

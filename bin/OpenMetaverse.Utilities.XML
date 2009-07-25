@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>OpenMetaverse.Utilities</name>
+    </assembly>
+    <members>
+        <member name="F:OpenMetaverse.Utilities.VoiceManager.BlockingTimeout">
+            <summary>Amount of time to wait for the voice daemon to respond.
+            The value needs to stay relatively high because some of the calls
+            require the voice daemon to make remote queries before replying</summary>
+        </member>
+        <member name="M:OpenMetaverse.Utilities.VoiceManager.RequestRenderAudioStart(System.String,System.Boolean)">
+            <summary>
+            Does not appear to be working
+            </summary>
+            <param name="fileName"></param>
+            <param name="loop"></param>
+        </member>
+        <member name="M:OpenMetaverse.RegistrationApi.CreateUser(OpenMetaverse.RegistrationApi.CreateUserParam)">
+            <summary>
+            Returns the new user ID or throws an exception containing the error code
+            The error codes can be found here: https://wiki.secondlife.com/wiki/RegAPIError
+            </summary>
+            <param name="user">New user account to create</param>
+            <returns>The UUID of the new user account</returns>
+        </member>
+        <member name="T:OpenMetaverse.RegistrationApi.CreateUserParam">
+            <summary>
+            See https://secure-web6.secondlife.com/developers/third_party_reg/#service_create_user or
+            https://wiki.secondlife.com/wiki/RegAPIDoc for description
+            </summary>
+        </member>
+        <member name="T:OpenMetaverse.Utilities.WaterType">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.WaterType.Unknown">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.WaterType.Dry">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.WaterType.Waterfront">
+            <summary></summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.WaterType.Underwater">
+            <summary></summary>
+        </member>
+        <member name="M:OpenMetaverse.Utilities.Realism.Shoot(OpenMetaverse.GridClient,OpenMetaverse.Vector3)">
+            <summary>
+            Aims at the specified position, enters mouselook, presses and
+            releases the left mouse button, and leaves mouselook
+            </summary>
+            <param name="client"></param>
+            <param name="target">Target to shoot at</param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.Utilities.Realism.Shoot(OpenMetaverse.GridClient)">
+            <summary>
+            Enters mouselook, presses and releases the left mouse button, and leaves mouselook
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.Utilities.Realism.Chat(OpenMetaverse.GridClient,System.String)">
+            <summary>
+             A psuedo-realistic chat function that uses the typing sound and
+            animation, types at three characters per second, and randomly 
+            pauses. This function will block until the message has been sent
+            </summary>
+            <param name="client">A reference to the client that will chat</param>
+            <param name="message">The chat message to send</param>
+        </member>
+        <member name="M:OpenMetaverse.Utilities.Realism.Chat(OpenMetaverse.GridClient,System.String,OpenMetaverse.ChatType,System.Int32)">
+            <summary>
+            A psuedo-realistic chat function that uses the typing sound and
+            animation, types at a given rate, and randomly pauses. This 
+            function will block until the message has been sent
+            </summary>
+            <param name="client">A reference to the client that will chat</param>
+            <param name="message">The chat message to send</param>
+            <param name="type">The chat type (usually Normal, Whisper or Shout)</param>
+            <param name="cps">Characters per second rate for chatting</param>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.VoiceServiceType.Unknown">
+            <summary>Unknown voice service level</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.VoiceServiceType.TypeA">
+            <summary>Spatialized local chat</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.VoiceServiceType.TypeB">
+            <summary>Remote multi-party chat</summary>
+        </member>
+        <member name="F:OpenMetaverse.Utilities.VoiceServiceType.TypeC">
+            <summary>One-to-one and small group chat</summary>
+        </member>
+    </members>
+</doc>

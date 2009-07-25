@@ -827,7 +827,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             sendbuffer.Length, SocketFlags.None, m_Client.CircuitCode);
                 }
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException n)
             {
                 m_log.Debug("[PACKET] Detected reuse of a returned packet");
                 m_PacketQueue.Cancel(item.Sequence);

@@ -45,6 +45,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Timer=System.Timers.Timer;
+using AssetLandmark = OpenSim.Framework.AssetLandmark;
 using Nini.Config;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
@@ -1266,7 +1267,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
         {
             RegionHandshakePacket handshake = (RegionHandshakePacket)PacketPool.Instance.GetPacket(PacketType.RegionHandshake);
-
+            handshake.RegionInfo = new RegionHandshakePacket.RegionInfoBlock();
             handshake.RegionInfo.BillableFactor = args.billableFactor;
             handshake.RegionInfo.IsEstateManager = args.isEstateManager;
             handshake.RegionInfo.TerrainHeightRange00 = args.terrainHeightRange0;
@@ -1292,14 +1293,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handshake.RegionInfo.TerrainDetail2 = args.terrainDetail2;
             handshake.RegionInfo.TerrainDetail3 = args.terrainDetail3;
             handshake.RegionInfo.CacheID = UUID.Random(); //I guess this is for the client to remember an old setting?
-
+            handshake.RegionInfo2 = new RegionHandshakePacket.RegionInfo2Block();
             handshake.RegionInfo2.RegionID = regionInfo.RegionID;
+            
+            handshake.RegionInfo3 = new RegionHandshakePacket.RegionInfo3Block();
+            handshake.RegionInfo3.CPUClassID = 9;
+            handshake.RegionInfo3.CPURatio = 1;
 
-//            handshake.RegionInfo3.ColoName = Utils.EmptyBytes;
-//            handshake.RegionInfo3.CPUClassID = 0;
-//            handshake.RegionInfo3.CPURatio = 0;
-//            handshake.RegionInfo3.ProductName = Utils.StringToBytes("OpenSim");
-//            handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
+            handshake.RegionInfo3.ColoName = Utils.EmptyBytes;
+            handshake.RegionInfo3.ProductName = Utils.EmptyBytes;
+            handshake.RegionInfo3.ProductSKU = Utils.EmptyBytes;
 
             OutPacket(handshake, ThrottleOutPacketType.Task);
         }
@@ -3551,8 +3554,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             rinfoblk.UseEstateSun = args.useEstateSun;
             rinfoblk.WaterHeight = args.waterHeight;
             rinfoblk.SimName = Utils.StringToBytes(args.simName);
+            
+            rinfopack.RegionInfo2 = new RegionInfoPacket.RegionInfo2Block();
+            rinfopack.RegionInfo2.HardMaxAgents = uint.MaxValue;
+            rinfopack.RegionInfo2.HardMaxObjects = uint.MaxValue;
+            rinfopack.RegionInfo2.MaxAgents32 = uint.MaxValue;
+            rinfopack.RegionInfo2.ProductName = Utils.EmptyBytes;
+            rinfopack.RegionInfo2.ProductSKU = Utils.EmptyBytes;
 
+            rinfopack.HasVariableBlocks = true;
             rinfopack.RegionInfo = rinfoblk;
+            rinfopack.AgentData = new RegionInfoPacket.AgentDataBlock();
+            rinfopack.AgentData.AgentID = AgentId;
+            rinfopack.AgentData.SessionID = SessionId;
+
 
             OutPacket(rinfopack, ThrottleOutPacketType.Task);
         }
@@ -7536,7 +7551,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         LandUpdateArgs args = new LandUpdateArgs();
 
                         args.AuthBuyerID = parcelPropertiesPacket.ParcelData.AuthBuyerID;
-                        args.Category = (Parcel.ParcelCategory)parcelPropertiesPacket.ParcelData.Category;
+                        args.Category = (ParcelCategory)parcelPropertiesPacket.ParcelData.Category;
                         args.Desc = Utils.BytesToString(parcelPropertiesPacket.ParcelData.Desc);
                         args.GroupID = parcelPropertiesPacket.ParcelData.GroupID;
                         args.LandingType = parcelPropertiesPacket.ParcelData.LandingType;
@@ -10030,8 +10045,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Bit 0: Mature, bit 7: on sale, other bits: no idea
             reply.Data.Flags = (byte)(
-                ((land.Flags & (uint)Parcel.ParcelFlags.MaturePublish) != 0 ? (1 << 0) : 0) +
-                ((land.Flags & (uint)Parcel.ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
+                ((land.Flags & (uint)ParcelFlags.MaturePublish) != 0 ? (1 << 0) : 0) +
+                ((land.Flags & (uint)ParcelFlags.ForSale) != 0 ? (1 << 7) : 0));
 
             Vector3 pos = land.UserLocation;
             if (pos.Equals(Vector3.Zero))

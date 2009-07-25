@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             // In a perfect world, this would have worked.
             //
-//            if ((landData.Flags & (uint)Parcel.ParcelFlags.AllowLandmark) != 0)
+//            if ((landData.Flags & (uint)ParcelFlags.AllowLandmark) != 0)
 //                regionFlags |=  (uint)RegionFlags.AllowLandmark;
 //            if (landData.OwnerID == remote_client.AgentId)
 //                regionFlags |=  (uint)RegionFlags.AllowSetHome;
@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             newData.ClaimPrice = claimprice;
             newData.SalePrice = 0;
             newData.AuthBuyerID = UUID.Zero;
-            newData.Flags &= ~(uint) (Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
+            newData.Flags &= ~(uint) (ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects);
             m_scene.LandChannel.UpdateLandObject(landData.LocalID, newData);
 
             sendLandUpdateToAvatarsOverMe();
@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool isBannedFromLand(UUID avatar)
         {
-            if ((landData.Flags & (uint) Parcel.ParcelFlags.UseBanList) > 0)
+            if ((landData.Flags & (uint) ParcelFlags.UseBanList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool isRestrictedFromLand(UUID avatar)
         {
-            if ((landData.Flags & (uint) Parcel.ParcelFlags.UseAccessList) > 0)
+            if ((landData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
@@ -318,7 +318,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     if (over.landData.LocalID == landData.LocalID)
                     {
-                        if (((over.landData.Flags & (uint)Parcel.ParcelFlags.AllowDamage) != 0) && m_scene.RegionInfo.RegionSettings.AllowDamage)
+                        if (((over.landData.Flags & (uint)ParcelFlags.AllowDamage) != 0) && m_scene.RegionInfo.RegionSettings.AllowDamage)
                             avatars[i].Invulnerable = false;
                         else
                             avatars[i].Invulnerable = true;

@@ -32,6 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 //using OpenSim.Services.AssetService;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -80,7 +81,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public int Type { get { return m_privateItem.Type; } }
         public UUID AssetID { get { return m_privateItem.AssetID; } }
         
-        public T RetreiveAsset<T>() where T : OpenMetaverse.Asset, new()
+        public T RetreiveAsset<T>() where T : OpenMetaverse.Assets.Asset, new()
         {
             AssetBase a = m_rootSceene.AssetService.Get(AssetID.ToString());
             T result = new T();

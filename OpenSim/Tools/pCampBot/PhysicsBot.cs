@@ -32,6 +32,7 @@ using System.IO;
 using System.Threading;
 using System.Timers;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -142,7 +143,7 @@ namespace pCampBot
             client.Settings.SEND_AGENT_THROTTLE = true;
             client.Settings.SEND_PINGS = true;
             client.Settings.STORE_LAND_PATCHES = false;
-            client.Settings.USE_TEXTURE_CACHE = false;
+            client.Settings.USE_ASSET_CACHE = false;
             client.Settings.MULTIPLE_SIMS = true;
             client.Throttle.Asset = 100000;
             client.Throttle.Land = 100000;
@@ -154,8 +155,7 @@ namespace pCampBot
             client.Network.OnSimConnected += new NetworkManager.SimConnectedCallback(this.Network_OnConnected);
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
             client.Objects.OnNewPrim += Objects_NewPrim;
-            client.Assets.OnImageReceived += Asset_TextureCallback;
-            client.Assets.OnAssetReceived += Asset_ReceivedCallback;
+            //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
                 if (OnConnected != null)
@@ -202,8 +202,8 @@ namespace pCampBot
                 UUID wearable = client.Appearance.GetWearableAsset(wtype);
                 if (wearable != UUID.Zero)
                 {
-                    client.Assets.RequestAsset(wearable, AssetType.Clothing, false);
-                    client.Assets.RequestAsset(wearable, AssetType.Bodypart, false);
+                    client.Assets.RequestAsset(wearable, AssetType.Clothing, false, Asset_ReceivedCallback);
+                    client.Assets.RequestAsset(wearable, AssetType.Bodypart, false, Asset_ReceivedCallback);
                 }
             }
         }
@@ -377,7 +377,7 @@ namespace pCampBot
                 {
                     if (prim.Textures.DefaultTexture.TextureID != UUID.Zero)
                     {
-                        client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal);
+                        client.Assets.RequestImage(prim.Textures.DefaultTexture.TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
                     }
                     for (int i = 0; i < prim.Textures.FaceTextures.Length; i++)
                     {
@@ -385,7 +385,7 @@ namespace pCampBot
                         {
                             if (prim.Textures.FaceTextures[i].TextureID != UUID.Zero)
                             {
-                                client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal);
+                                client.Assets.RequestImage(prim.Textures.FaceTextures[i].TextureID, ImageType.Normal, Asset_TextureCallback_Texture);
                             }
 
                         }
@@ -393,16 +393,18 @@ namespace pCampBot
                 }
                 if (prim.Sculpt.SculptTexture != UUID.Zero)
                 {
-                    client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal);
+                    client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal, Asset_TextureCallback_Texture);
                 }
             }
 
         }
-        public void Asset_TextureCallback(ImageDownload image, AssetTexture asset)
+
+        
+        public void Asset_TextureCallback_Texture(TextureRequestState state, AssetTexture assetTexture)
         {
             //TODO: Implement texture saving and applying
         }
-
+        
         public void Asset_ReceivedCallback(AssetDownload transfer,Asset asset)
         {
             if (wear == "save")

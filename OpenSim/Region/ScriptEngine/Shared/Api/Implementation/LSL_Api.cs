@@ -51,6 +51,8 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 
+using AssetLandmark = OpenSim.Framework.AssetLandmark;
+
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 using LSL_Key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
@@ -4058,7 +4060,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         // Parcel push restriction
-                        if ((targetlandObj.landData.Flags & (uint)Parcel.ParcelFlags.RestrictPushObject) == (uint)Parcel.ParcelFlags.RestrictPushObject)
+                        if ((targetlandObj.landData.Flags & (uint)ParcelFlags.RestrictPushObject) == (uint)ParcelFlags.RestrictPushObject)
                         {
                             // Need provisions for Group Owned here
                             if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
@@ -4066,7 +4068,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 pushAllowed = true;
                             }
 
-                            //Parcel.ParcelFlags.RestrictPushObject
+                            //ParcelFlags.RestrictPushObject
                             //pushAllowed = true;
                         }
                         else

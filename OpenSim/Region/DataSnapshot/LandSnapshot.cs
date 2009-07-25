@@ -87,7 +87,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             //Index sim land
             foreach (KeyValuePair<int, Land> curLand in m_scene.LandManager.landList)
             {
-                //if ((curLand.Value.landData.landFlags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+                //if ((curLand.Value.landData.landFlags & (uint)ParcelFlags.ShowDirectory) == (uint)ParcelFlags.ShowDirectory)
                 //{
                     m_landIndexed.Add(curLand.Key, curLand.Value.Copy());
                 //}
@@ -138,7 +138,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                     LandData parcel = land.landData;
                     if (m_parent.ExposureLevel.Equals("all") ||
                         (m_parent.ExposureLevel.Equals("minimum") && 
-                        (parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory))
+                        (parcel.Flags & (uint)ParcelFlags.ShowDirectory) == (uint)ParcelFlags.ShowDirectory))
                     {
 
                         //TODO: make better method of marshalling data from LandData to XmlNode
@@ -315,7 +315,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string GetScriptsPermissions(LandData parcel)
         {
-            if ((parcel.Flags & (uint)Parcel.ParcelFlags.AllowOtherScripts) == (uint)Parcel.ParcelFlags.AllowOtherScripts)
+            if ((parcel.Flags & (uint)ParcelFlags.AllowOtherScripts) == (uint)ParcelFlags.AllowOtherScripts)
                 return "true";
             else
                 return "false";
@@ -324,7 +324,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string GetPublicPermissions(LandData parcel)
         {
-            if ((parcel.Flags & (uint)Parcel.ParcelFlags.UseAccessList) == (uint)Parcel.ParcelFlags.UseAccessList)
+            if ((parcel.Flags & (uint)ParcelFlags.UseAccessList) == (uint)ParcelFlags.UseAccessList)
                 return "false";
             else
                 return "true";
@@ -333,7 +333,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string GetBuildPermissions(LandData parcel)
         {
-            if ((parcel.Flags & (uint)Parcel.ParcelFlags.CreateObjects) == (uint)Parcel.ParcelFlags.CreateObjects)
+            if ((parcel.Flags & (uint)ParcelFlags.CreateObjects) == (uint)ParcelFlags.CreateObjects)
                 return "true";
             else
                 return "false";
@@ -342,7 +342,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string CheckForSale(LandData parcel)
         {
-            if ((parcel.Flags & (uint)Parcel.ParcelFlags.ForSale) == (uint)Parcel.ParcelFlags.ForSale)
+            if ((parcel.Flags & (uint)ParcelFlags.ForSale) == (uint)ParcelFlags.ForSale)
                 return "true";
             else
                 return "false";
@@ -350,7 +350,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
         private string GetShowInSearch(LandData parcel)
         {
-            if ((parcel.Flags & (uint)Parcel.ParcelFlags.ShowDirectory) == (uint)Parcel.ParcelFlags.ShowDirectory)
+            if ((parcel.Flags & (uint)ParcelFlags.ShowDirectory) == (uint)ParcelFlags.ShowDirectory)
                 return "true";
             else
                 return "false";

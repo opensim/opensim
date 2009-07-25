@@ -33,6 +33,7 @@ using System.Text;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -391,7 +392,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     if (i == (Layers.Length - 1))
                         strEnd = "";
 
-                    stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].Size, strEnd);
+                    stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].End - Layers[i].Start, strEnd);
                 }
                 fsSWCache.Write(stringResult.ToString());
                 fsSWCache.Close();

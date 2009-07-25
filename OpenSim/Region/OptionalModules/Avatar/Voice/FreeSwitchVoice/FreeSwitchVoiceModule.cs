@@ -443,7 +443,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 // }
                 // else
 
-                if ((land.Flags & (uint)Parcel.ParcelFlags.AllowVoiceChat) == 0)
+                if ((land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
                     m_log.DebugFormat("[FreeSwitchVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
                                       scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
@@ -777,7 +777,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             // Create parcel voice channel. If no parcel exists, then the voice channel ID is the same
             // as the directory ID. Otherwise, it reflects the parcel's ID.
 
-            if (land.LocalID != 1 && (land.Flags & (uint)Parcel.ParcelFlags.UseEstateVoiceChan) == 0)
+            if (land.LocalID != 1 && (land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) == 0)
             {
                 landName = String.Format("{0}:{1}", scene.RegionInfo.RegionName, land.Name);
                 landUUID = land.GlobalID.ToString();

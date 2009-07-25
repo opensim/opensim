@@ -27,6 +27,7 @@
 
 using System;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -38,6 +39,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         int Type { get; }
         UUID AssetID { get; }
-        T RetreiveAsset<T>() where T : OpenMetaverse.Asset, new();
+        T RetreiveAsset<T>() where T : Asset, new();
     }
 }

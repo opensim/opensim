@@ -36,14 +36,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     class KillPacket : Packet
     {
-        private Header header;
-
         public override int Length
         {
             get { return 0; }
         }
 
-        public override void FromBytes(Header header, byte[] bytes, ref int i, ref int packetEnd, byte[] zeroBuffer)
+        public override void FromBytes(Header header, byte[] bytes, ref int i, ref int packetEnd)
         {
         }
 
@@ -51,26 +49,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
         }
 
-        public override Header Header { get { return header; } set { header = value; }}
-
         public override byte[] ToBytes()
         {
             return new byte[0];
         }
 
-        public KillPacket()
+        public override byte[][] ToBytesMultiple()
         {
-            Header = new LowHeader();
-            Header.ID = 65531;
-            Header.Reliable = true;
+            return new byte[][] { new byte[0] };
         }
 
-        public override PacketType Type
+        public KillPacket()
         {
-            get
-            {
-                return PacketType.UseCircuitCode;
-            }
+            Type = PacketType.UseCircuitCode;
+            Header = new Header();
+            Header.Frequency = OpenMetaverse.PacketFrequency.Low;
+            Header.ID = 65531;
+            Header.Reliable = true;
         }
     }
 }

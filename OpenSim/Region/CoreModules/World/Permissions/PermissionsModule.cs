@@ -1186,7 +1186,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
             }
 
-            if ((land.landData.Flags & ((int)Parcel.ParcelFlags.AllowAPrimitiveEntry)) != 0)
+            if ((land.landData.Flags & ((int)ParcelFlags.AllowAPrimitiveEntry)) != 0)
             {
                 return true;
             }
@@ -1230,8 +1230,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
             if (land == null) return false;
 
-            if ((land.landData.Flags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
-                (int)Parcel.ParcelFlags.CreateObjects)
+            if ((land.landData.Flags & ((int)ParcelFlags.CreateObjects)) ==
+                (int)ParcelFlags.CreateObjects)
                 permission = true;
 
             if (IsAdministrator(owner))
@@ -1357,7 +1357,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             // Others allowed to terraform?
-            if ((parcel.landData.Flags & ((int)Parcel.ParcelFlags.AllowTerraform)) != 0)
+            if ((parcel.landData.Flags & ((int)ParcelFlags.AllowTerraform)) != 0)
                 return true;
 
             // Land owner can terraform too

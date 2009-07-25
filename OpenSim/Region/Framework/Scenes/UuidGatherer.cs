@@ -32,6 +32,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
+using OpenMetaverse.Assets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Services.Interfaces;

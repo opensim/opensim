@@ -659,8 +659,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                         foreach (ILandObject parcel in parcels)
                         {
-                            parcel.landData.Flags |= (uint) Parcel.ParcelFlags.AllowVoiceChat;
-                            parcel.landData.Flags |= (uint) Parcel.ParcelFlags.UseEstateVoiceChan;
+                            parcel.landData.Flags |= (uint) ParcelFlags.AllowVoiceChat;
+                            parcel.landData.Flags |= (uint) ParcelFlags.UseEstateVoiceChan;
                             ((Scene)newscene).LandChannel.UpdateLandObject(parcel.landData.LocalID, parcel.landData);                    
                         }
                     }
@@ -911,13 +911,13 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         {
                             if (enableVoice)
                             {
-                                parcel.landData.Flags |= (uint)Parcel.ParcelFlags.AllowVoiceChat;
-                                parcel.landData.Flags |= (uint)Parcel.ParcelFlags.UseEstateVoiceChan;
+                                parcel.landData.Flags |= (uint)ParcelFlags.AllowVoiceChat;
+                                parcel.landData.Flags |= (uint)ParcelFlags.UseEstateVoiceChan;
                             }
                             else
                             {
-                                parcel.landData.Flags &= ~(uint)Parcel.ParcelFlags.AllowVoiceChat;
-                                parcel.landData.Flags &= ~(uint)Parcel.ParcelFlags.UseEstateVoiceChan;
+                                parcel.landData.Flags &= ~(uint)ParcelFlags.AllowVoiceChat;
+                                parcel.landData.Flags &= ~(uint)ParcelFlags.UseEstateVoiceChan;
                             }
                             scene.LandChannel.UpdateLandObject(parcel.landData.LocalID, parcel.landData);
                         }

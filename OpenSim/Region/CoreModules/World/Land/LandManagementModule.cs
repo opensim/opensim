@@ -301,12 +301,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (checkBan.isBannedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties((int)ParcelStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                         if (checkBan.isRestrictedFromLand(avatar.AgentId))
                         {
-                            checkBan.sendLandProperties((int)ParcelStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar);
+                            checkBan.sendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar);
                             return; //Only send one
                         }
                     }
@@ -1116,7 +1116,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     UUID pOwnerID = lob.landData.OwnerID;
 
                     bool landforsale = ((lob.landData.Flags &
-                                         (uint)(Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects)) != 0);
+                                         (uint)(ParcelFlags.ForSale | ParcelFlags.ForSaleObjects | ParcelFlags.SellParcelObjects)) != 0);
                     if ((AuthorizedID == UUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
                     {
                         // TODO I don't think we have to lock it here, no?
