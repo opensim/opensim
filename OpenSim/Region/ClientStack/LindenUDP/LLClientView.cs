@@ -9791,9 +9791,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 Group.GroupName = Utils.StringToBytes(GroupMembership[i].GroupName);
                 Group.GroupPowers = GroupMembership[i].GroupPowers;
                 Groups[i] = Group;
-                Groupupdate.GroupData = Groups;
+                
 
             }
+            Groupupdate.GroupData = Groups;
             Groupupdate.AgentData = new AgentGroupDataUpdatePacket.AgentDataBlock();
             Groupupdate.AgentData.AgentID = AgentId;
             OutPacket(Groupupdate, ThrottleOutPacketType.Task);
