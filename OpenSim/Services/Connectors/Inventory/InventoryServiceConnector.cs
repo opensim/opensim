@@ -47,6 +47,7 @@ namespace OpenSim.Services.Connectors
         private string m_ServerURI = String.Empty;
 
         private Dictionary<UUID, InventoryReceiptCallback> m_RequestingInventory = new Dictionary<UUID, InventoryReceiptCallback>();
+        private Dictionary<UUID, DateTime> m_RequestTime = new Dictionary<UUID, DateTime>();
 
         public InventoryServicesConnector()
         {
@@ -102,12 +103,43 @@ namespace OpenSim.Services.Connectors
             {
                 lock (m_RequestingInventory)
                 {
-                    if (!m_RequestingInventory.ContainsKey(userID))
-                        m_RequestingInventory.Add(userID, callback);
-                    else
+                    // *HACK ALERT*
+
+                    // If an inventory request times out, it blocks any further requests from the 
+                    // same user, even after a relog. This is bad, and makes me sad.
+
+                    // Really, we should detect a timeout and report a failure to the callback,
+                    // BUT in my testing i found that it's hard to detect a timeout.. sometimes,
+                    // a partial response is recieved, and sometimes a null response.
+
+                    // So, for now, add a timer of ten seconds (which is the request timeout).
+
+                    // This should basically have the same effect.
+
+                    lock (m_RequestTime)
                     {
-                        m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetUserInventory - ignoring repeated request for user {0}", userID);
-                        return;
+                        if (m_RequestTime.ContainsKey(userID))
+                        {
+                            TimeSpan interval = DateTime.Now - m_RequestTime[userID];
+                            if (interval.TotalSeconds > 10)
+                            {
+                                m_RequestTime.Remove(userID);
+                                if (m_RequestingInventory.ContainsKey(userID))
+                                {
+                                    m_RequestingInventory.Remove(userID);
+                                }
+                            }
+                        }
+                        if (!m_RequestingInventory.ContainsKey(userID))
+                        {
+                            m_RequestTime.Add(userID, DateTime.Now);
+                            m_RequestingInventory.Add(userID, callback);
+                        }
+                        else
+                        {
+                            m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetUserInventory - ignoring repeated request for user {0}", userID);
+                            return;
+                        }
                     }
                 }
 
@@ -283,6 +315,13 @@ namespace OpenSim.Services.Connectors
                 {
                     callback = m_RequestingInventory[userID];
                     m_RequestingInventory.Remove(userID);
+                    lock (m_RequestTime)
+                    {
+                        if (m_RequestTime.ContainsKey(userID))
+                        {
+                            m_RequestTime.Remove(userID);
+                        }
+                    }
                 }
                 else
                 {
