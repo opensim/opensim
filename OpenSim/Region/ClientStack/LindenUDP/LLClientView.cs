@@ -1750,6 +1750,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TeleportFailedPacket tpFailed = (TeleportFailedPacket)PacketPool.Instance.GetPacket(PacketType.TeleportFailed);
             tpFailed.Info.AgentID = AgentId;
             tpFailed.Info.Reason = Utils.StringToBytes(reason);
+            tpFailed.AlertInfo = new TeleportFailedPacket.AlertInfoBlock[0];
 
             // Hack to get this out immediately and skip throttles
             OutPacket(tpFailed, ThrottleOutPacketType.Unknown);
