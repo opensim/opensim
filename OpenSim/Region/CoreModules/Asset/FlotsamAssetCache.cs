@@ -92,6 +92,15 @@ namespace Flotsam.RegionModules.AssetCache
     ///    ; long (in miliseconds) to block a request thread while trying to complete 
     ///    ; writing to disk.
     ///    WaitOnInprogressTimeout = 3000
+    ///    
+    ///    ; Number of tiers to use for cache directories (current valid range 1 to 3)
+    ///    CacheDirectoryTiers = 2
+    ///    
+    ///    ; Number of letters per path tier, 1 will create 16 directories per tier, 2 - 256, 3 - 4096 and 4 - 65K
+    ///    CacheDirectoryTierLength = 3
+    ///    
+    ///    ; Warning level for cache directory size
+    ///    CacheWarnAt = 30000
     /// -------
     /// </summary>
 
@@ -137,6 +146,10 @@ namespace Flotsam.RegionModules.AssetCache
         private TimeSpan m_MemoryExpiration = TimeSpan.Zero;
         private TimeSpan m_FileExpiration = TimeSpan.Zero;
         private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.Zero;
+
+        private static int m_CacheDirectoryTiers = 1;
+        private static int m_CacheDirectoryTierLen = 4;
+        private static int m_CacheWarnAt = 30000;
 
         private System.Timers.Timer m_CachCleanTimer = new System.Timers.Timer();
 
@@ -204,6 +217,28 @@ namespace Flotsam.RegionModules.AssetCache
                     {
                         m_CachCleanTimer.Enabled = false;
                     }
+
+                    m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", 1);
+                    if (m_CacheDirectoryTiers < 1)
+                    {
+                        m_CacheDirectoryTiers = 1;
+                    }
+                    else if (m_CacheDirectoryTiers > 3)
+                    {
+                        m_CacheDirectoryTiers = 3;
+                    }
+
+                    m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLen", 1);
+                    if (m_CacheDirectoryTierLen < 1)
+                    {
+                        m_CacheDirectoryTierLen = 1;
+                    }
+                    else if (m_CacheDirectoryTierLen > 4)
+                    {
+                        m_CacheDirectoryTierLen = 4;
+                    }
+
+                    m_CacheWarnAt = assetConfig.GetInt("CacheWarnAt", 30000);
                 }
             }
         }
@@ -447,6 +482,17 @@ namespace Flotsam.RegionModules.AssetCache
                         File.Delete(file);
                     }
                 }
+
+                int dirSize = Directory.GetFiles(dir).Length;
+                if ( dirSize == 0)
+                {
+                    Directory.Delete(dir);
+                }
+                else if (dirSize >= m_CacheWarnAt)
+                {
+                    m_log.WarnFormat("[ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration", dir, dirSize);
+                }
+                
             }
         }
 
@@ -458,9 +504,14 @@ namespace Flotsam.RegionModules.AssetCache
                 id = id.Replace(c, '_');
             }
 
-            string p = id.Substring(id.Length - 4);
-            p = Path.Combine(p, id);
-            return Path.Combine(m_CacheDirectory, p);
+            string path = m_CacheDirectory;
+            for (int p = 1; p <= m_CacheDirectoryTiers; p++)
+            {
+                string pathPart = id.Substring(id.Length - (p * m_CacheDirectoryTierLen), m_CacheDirectoryTierLen);
+                path = Path.Combine(path, pathPart);
+            }
+
+            return Path.Combine(path, id);
         }
 
         private void WriteFileCache(string filename, AssetBase asset)
