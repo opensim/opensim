@@ -10243,11 +10243,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             packet.QueryReplies = new DirClassifiedReplyPacket.QueryRepliesBlock[
                     data.Length];
+            packet.StatusData = new DirClassifiedReplyPacket.StatusDataBlock[
+                    data.Length];
 
             int i = 0;
             foreach (DirClassifiedReplyData d in data)
             {
                 packet.QueryReplies[i] = new DirClassifiedReplyPacket.QueryRepliesBlock();
+                packet.StatusData[i] = new DirClassifiedReplyPacket.StatusDataBlock();
                 packet.QueryReplies[i].ClassifiedID = d.classifiedID;
                 packet.QueryReplies[i].Name =
                         Utils.StringToBytes(d.name);
@@ -10255,6 +10258,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.QueryReplies[i].CreationDate = d.creationDate;
                 packet.QueryReplies[i].ExpirationDate = d.expirationDate;
                 packet.QueryReplies[i].PriceForListing = d.price;
+                packet.StatusData[i].Status = d.Status;
                 i++;
             }
 

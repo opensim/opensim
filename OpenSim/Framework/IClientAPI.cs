@@ -493,6 +493,7 @@ namespace OpenSim.Framework
         public uint creationDate;
         public uint expirationDate;
         public int price;
+        public uint Status;
     }
 
     public struct DirLandReplyData
