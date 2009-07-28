@@ -10120,6 +10120,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryReplies =
                     new DirPlacesReplyPacket.QueryRepliesBlock[data.Length];
 
+            packet.StatusData = new DirPlacesReplyPacket.StatusDataBlock[
+                    data.Length];
+
             packet.AgentData.AgentID = AgentId;
 
             packet.QueryData[0].QueryID = queryID;
@@ -10129,11 +10132,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 packet.QueryReplies[i] =
                         new DirPlacesReplyPacket.QueryRepliesBlock();
+                packet.StatusData[i] = new DirPlacesReplyPacket.StatusDataBlock();
                 packet.QueryReplies[i].ParcelID = d.parcelID;
                 packet.QueryReplies[i].Name = Utils.StringToBytes(d.name);
                 packet.QueryReplies[i].ForSale = d.forSale;
                 packet.QueryReplies[i].Auction = d.auction;
                 packet.QueryReplies[i].Dwell = d.dwell;
+                packet.StatusData[i].Status = d.Status;
                 i++;
             }
 
@@ -10185,10 +10190,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.QueryReplies = new DirEventsReplyPacket.QueryRepliesBlock[
                     data.Length];
 
+            packet.StatusData = new DirEventsReplyPacket.StatusDataBlock[
+                    data.Length];
+
             int i = 0;
             foreach (DirEventsReplyData d in data)
             {
                 packet.QueryReplies[i] = new DirEventsReplyPacket.QueryRepliesBlock();
+                packet.StatusData[i] = new DirEventsReplyPacket.StatusDataBlock();
                 packet.QueryReplies[i].OwnerID = d.ownerID;
                 packet.QueryReplies[i].Name =
                         Utils.StringToBytes(d.name);
@@ -10197,6 +10206,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         Utils.StringToBytes(d.date);
                 packet.QueryReplies[i].UnixTime = d.unixTime;
                 packet.QueryReplies[i].EventFlags = d.eventFlags;
+                packet.StatusData[i].Status = d.Status;
                 i++;
             }
 

@@ -455,6 +455,7 @@ namespace OpenSim.Framework
         public bool forSale;
         public bool auction;
         public float dwell;
+        public uint Status;
     }
 
     public struct DirPeopleReplyData
@@ -475,6 +476,7 @@ namespace OpenSim.Framework
         public string date;
         public uint unixTime;
         public uint eventFlags;
+        public uint Status;
     }
 
     public struct DirGroupsReplyData
