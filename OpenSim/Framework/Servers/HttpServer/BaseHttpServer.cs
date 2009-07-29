@@ -747,7 +747,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         try
                         {
                             response.Send();
-                            response.FreeContext();
+                            //response.FreeContext();
                         }
                         catch (SocketException e)
                         {
@@ -780,7 +780,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
-                    response.FreeContext();
+                    //response.FreeContext();
                 }
                 catch (SocketException e)
                 {
