@@ -37,3 +37,14 @@
     ; long (in miliseconds) to block a request thread while trying to complete 
     ; an existing write to disk.
     ; WaitOnInprogressTimeout = 3000
+
+    ; Number of tiers to use for cache directories (current valid
+    ; range 1 to 3)
+    ;CacheDirectoryTiers = 1
+
+    ; Number of letters per path tier, 1 will create 16 directories
+    ; per tier, 2 - 256, 3 - 4096 and 4 - 65K
+    ;CacheDirectoryTierLength = 3
+
+    ; Warning level for cache directory size
+    ;CacheWarnAt = 30000

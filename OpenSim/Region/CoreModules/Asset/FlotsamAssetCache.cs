@@ -94,7 +94,7 @@ namespace Flotsam.RegionModules.AssetCache
     ///    WaitOnInprogressTimeout = 3000
     ///    
     ///    ; Number of tiers to use for cache directories (current valid range 1 to 3)
-    ///    CacheDirectoryTiers = 2
+    ///    CacheDirectoryTiers = 1
     ///    
     ///    ; Number of letters per path tier, 1 will create 16 directories per tier, 2 - 256, 3 - 4096 and 4 - 65K
     ///    CacheDirectoryTierLength = 3
@@ -148,7 +148,7 @@ namespace Flotsam.RegionModules.AssetCache
         private TimeSpan m_FileExpirationCleanupTimer = TimeSpan.Zero;
 
         private static int m_CacheDirectoryTiers = 1;
-        private static int m_CacheDirectoryTierLen = 4;
+        private static int m_CacheDirectoryTierLen = 3;
         private static int m_CacheWarnAt = 30000;
 
         private System.Timers.Timer m_CachCleanTimer = new System.Timers.Timer();
@@ -228,7 +228,7 @@ namespace Flotsam.RegionModules.AssetCache
                         m_CacheDirectoryTiers = 3;
                     }
 
-                    m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLen", 1);
+                    m_CacheDirectoryTierLen = assetConfig.GetInt("CacheDirectoryTierLength", 3);
                     if (m_CacheDirectoryTierLen < 1)
                     {
                         m_CacheDirectoryTierLen = 1;
@@ -507,7 +507,7 @@ namespace Flotsam.RegionModules.AssetCache
             string path = m_CacheDirectory;
             for (int p = 1; p <= m_CacheDirectoryTiers; p++)
             {
-                string pathPart = id.Substring(id.Length - (p * m_CacheDirectoryTierLen), m_CacheDirectoryTierLen);
+                string pathPart = id.Substring((p - 1) * m_CacheDirectoryTierLen, m_CacheDirectoryTierLen);
                 path = Path.Combine(path, pathPart);
             }
 
