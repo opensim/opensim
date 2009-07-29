@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </returns>
         bool AddHTTPHandler(string methodName, GenericHTTPMethod handler);
 
-
+         
         bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args);
 
         /// <summary>
