@@ -375,7 +375,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 200;
             responsedata["content_type"] = "application/xml";
-            responsedata["keepalive"] = false;
+            responsedata["keepalive"] = true;
             responsedata["str_response_string"] = OSDParser.SerializeLLSDXmlString(events);
             return responsedata;
             //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
@@ -386,7 +386,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 502;
             responsedata["content_type"] = "text/plain";
-            responsedata["keepalive"] = false;
+            responsedata["keepalive"] = true;
             responsedata["str_response_string"] = "Upstream error: ";
             responsedata["error_status_text"] = "Upstream error:";
             responsedata["http_protocol_version"] = "HTTP/1.0";

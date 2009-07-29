@@ -1616,8 +1616,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             agentData.child = false;
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
-
+            
             ICapabilitiesModule capsModule = m_scene.RequestModuleInterface<ICapabilitiesModule>();
+            
+            if (capsModule == null) // can happen when shutting down.
+                return agentData;
+
             agentData.CapsPath = capsModule.GetCapsPath(m_agentId);
             agentData.ChildrenCapSeeds = new Dictionary<ulong,string>(capsModule.GetChildrenSeeds(m_agentId));
 

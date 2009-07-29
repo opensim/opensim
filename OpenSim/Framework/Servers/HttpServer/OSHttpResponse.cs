@@ -258,6 +258,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
 
         protected IHttpResponse _httpResponse;
+        private IHttpClientContext _httpClientContext;
 
         public OSHttpResponse() {}
 
@@ -275,6 +276,12 @@ namespace OpenSim.Framework.Servers.HttpServer
         public OSHttpResponse(OSHttpRequest req)
         {
             _httpResponse = new HttpResponse(req.IHttpClientContext, req.IHttpRequest);
+            _httpClientContext = req.IHttpClientContext;
+        }
+        public OSHttpResponse(HttpResponse resp, IHttpClientContext clientContext)
+        {
+            _httpResponse = resp;
+            _httpClientContext = clientContext;
         }
 
         /// <summary>
@@ -298,5 +305,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             _httpResponse.Send();
             
         }
+        public void FreeContext()
+        {
+            if (_httpClientContext != null)
+                _httpClientContext.Close();
+        }
+        
     }
 }

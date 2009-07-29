@@ -274,7 +274,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
-            OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request));
+            OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
             //resp.KeepAlive = req.KeepAlive;
             //m_log.Info("[Debug BASE HTTP SERVER]: Got Request");
             //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
@@ -444,6 +444,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     try
                     {
                         response.Send();
+                        response.FreeContext();
                     }
                     catch (SocketException e)
                     {
@@ -746,6 +747,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         try
                         {
                             response.Send();
+                            response.FreeContext();
                         }
                         catch (SocketException e)
                         {
@@ -778,6 +780,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
+                    response.FreeContext();
                 }
                 catch (SocketException e)
                 {
@@ -888,6 +891,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     response.Send();
                     response.OutputStream.Flush();
+                    response.FreeContext();
                     //response.OutputStream.Close();
                 }
                 catch (IOException e)
@@ -1103,6 +1107,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     try
                     {
                         response.Send();
+                        response.FreeContext();
                     }
                     catch (SocketException f)
                     {
@@ -1377,7 +1382,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //response.OutputStream.Close();
                 try
                 {
+                    response.OutputStream.Flush();
                     response.Send();
+                    
+                    if (!response.KeepAlive)
+                        response.FreeContext();
                 }
                 catch (SocketException e)
                 {
@@ -1414,6 +1423,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
+                    response.FreeContext();
                 }
                 catch (SocketException e)
                 {
@@ -1449,6 +1459,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
+                    response.FreeContext();
                 }
                 catch (SocketException e)
                 {

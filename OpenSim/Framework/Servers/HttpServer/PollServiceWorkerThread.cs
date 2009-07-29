@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
         private BlockingQueue<PollServiceHttpRequest> m_request;
         private bool m_running = true;
-        private int m_timeout = 25000;
+        private int m_timeout = 250;
 
         
 
@@ -71,14 +71,14 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     Hashtable responsedata = req.PollServiceArgs.GetEvents(req.PollServiceArgs.Id, str.ReadToEnd());
                     m_server.DoHTTPGruntWork(responsedata,
-                                             new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request)));
+                                             new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                 }
                 else
                 {
                     if ((Environment.TickCount - req.RequestTime) > m_timeout)
                     {
                         m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(),
-                                                 new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request)));
+                                                 new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                     }
                     else
                     {
