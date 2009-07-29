@@ -355,7 +355,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     //m_log.Debug("[BASE HTTP SERVER]: Found Stream Handler");
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
-                    byte[] buffer;
+                    byte[] buffer = null;
 
                     response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
 
@@ -428,6 +428,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     request.InputStream.Close();
                     
+                    // HTTP IN support. The script engine taes it from here
+                    // Nothing to worry about for us.
+                    //
+                    if (buffer == null)
+                        return;
+
                     if (!response.SendChunked)
                         response.ContentLength64 = buffer.LongLength;
 
