@@ -2339,6 +2339,11 @@
             <exception cref="T:System.ArgumentNullException"></exception>
             <exception cref="T:System.ArgumentOutOfRangeException"></exception>
         </member>
+        <member name="M:HttpServer.IHttpClientContext.Close">
+            <summary>
+            Closes the streams and disposes of the unmanaged resources
+            </summary>
+        </member>
         <member name="P:HttpServer.IHttpClientContext.Secured">
             <summary>
             Using SSL or other encryption method.

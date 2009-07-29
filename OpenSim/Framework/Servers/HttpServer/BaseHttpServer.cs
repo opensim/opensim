@@ -64,6 +64,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
         protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
 
+        protected Dictionary<string, PollServiceEventArgs> m_pollHandlers =
+            new Dictionary<string, PollServiceEventArgs>();
+
         protected uint m_port;
         protected uint m_sslport;
         protected bool m_ssl;
@@ -71,6 +74,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected string m_SSLCommonName = "";
 
         protected IPAddress m_listenIPAddress = IPAddress.Any;
+
+        private PollServiceRequestManager m_PollServiceManager;
 
         public uint SSLPort
         {
@@ -189,6 +194,26 @@ namespace OpenSim.Framework.Servers.HttpServer
             return false;
         }
 
+        public bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args)
+        {
+            bool pollHandlerResult = false;
+            lock (m_pollHandlers)
+            {
+                if (!m_pollHandlers.ContainsKey( methodName))
+                {
+                    m_pollHandlers.Add(methodName,args);
+                    pollHandlerResult = true;
+                    
+                }
+            }
+            
+            if (pollHandlerResult)
+                return AddHTTPHandler(methodName, handler);
+
+            return false;
+            
+        }
+
         // Note that the agent string is provided simply to differentiate
         // the handlers - it is NOT required to be an actual agent header
         // value.
@@ -230,8 +255,19 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             IHttpClientContext context = (IHttpClientContext)source;
             IHttpRequest request = args.Request;
+            
 
-            OnHandleRequestIOThread(context,request);
+            PollServiceEventArgs psEvArgs;
+            if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
+            {
+                
+                m_PollServiceManager.Enqueue(new PollServiceHttpRequest(psEvArgs, context, request));
+                //DoHTTPGruntWork(psEvArgs.NoEvents(),new OSHttpResponse(new HttpResponse(context, request)));
+            }
+            else
+            {
+                OnHandleRequestIOThread(context, request);
+            }
 
         }
 
@@ -341,7 +377,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         string requestBody = reader.ReadToEnd();
 
                         reader.Close();
-                        requestStream.Close();
+                        //requestStream.Close();
 
                         Hashtable keysvals = new Hashtable();
                         Hashtable headervals = new Hashtable();
@@ -522,6 +558,36 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else
                 {
                     streamHandler = m_streamHandlers[bestMatch];
+                    return true;
+                }
+            }
+        }
+
+        private bool TryGetPollServiceHTTPHandler(string handlerKey, out PollServiceEventArgs oServiceEventArgs)
+        {
+            string bestMatch = null;
+
+            lock (m_pollHandlers)
+            {
+                foreach (string pattern in m_pollHandlers.Keys)
+                {
+                    if (handlerKey.StartsWith(pattern))
+                    {
+                        if (String.IsNullOrEmpty(bestMatch) || pattern.Length > bestMatch.Length)
+                        {
+                            bestMatch = pattern;
+                        }
+                    }
+                }
+
+                if (String.IsNullOrEmpty(bestMatch))
+                {
+                    oServiceEventArgs = null;
+                    return false;
+                }
+                else
+                {
+                    oServiceEventArgs = m_pollHandlers[bestMatch];
                     return true;
                 }
             }
@@ -822,7 +888,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     response.Send();
                     response.OutputStream.Flush();
-                    response.OutputStream.Close();
+                    //response.OutputStream.Close();
                 }
                 catch (IOException e)
                 {
@@ -1237,7 +1303,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
-        private static void DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
+        internal void DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
         {
             //m_log.Info("[BASE HTTP SERVER]: Doing HTTP Grunt work with response");
             int responsecode = (int)responsedata["int_response_code"];
@@ -1261,7 +1327,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
-
+            
             if (string.IsNullOrEmpty(contentType))
             {
                 contentType = "text/html";
@@ -1402,6 +1468,8 @@ namespace OpenSim.Framework.Servers.HttpServer
             //m_workerThread.Start();
             //ThreadTracker.Add(m_workerThread);
             StartHTTP();
+            
+
         }
 
         private void StartHTTP()
@@ -1434,6 +1502,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_httpListener2.RequestReceived += OnRequest;
                 //m_httpListener.Start();
                 m_httpListener2.Start(64);
+
+                // Long Poll Service Manager with 3 worker threads a 25 second timeout for no events
+                m_PollServiceManager = new PollServiceRequestManager(this, 3, 25000);
                 HTTPDRunning = true;
 
                 //HttpListenerContext context;
@@ -1512,6 +1583,20 @@ namespace OpenSim.Framework.Servers.HttpServer
                 
                 m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
             }
+        }
+
+        public void RemovePollServiceHTTPHandler(string httpMethod, string path)
+        {
+            lock (m_pollHandlers)
+            {
+                if (m_pollHandlers.ContainsKey(httpMethod))
+                {
+                    m_pollHandlers.Remove(httpMethod);
+                }
+            }
+
+            RemoveHTTPHandler(httpMethod, path);
+            
         }
 
         public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)

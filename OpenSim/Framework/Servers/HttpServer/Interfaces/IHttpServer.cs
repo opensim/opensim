@@ -74,6 +74,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </returns>
         bool AddHTTPHandler(string methodName, GenericHTTPMethod handler);
 
+
+        bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args);
+
         /// <summary>
         /// Adds a LLSD handler, yay.
         /// </summary>
@@ -114,6 +117,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// <param name="httpMethod"></param>
         /// <param name="path"></param>
         void RemoveHTTPHandler(string httpMethod, string path);
+
+        void RemovePollServiceHTTPHandler(string httpMethod, string path);
         
         bool RemoveLLSDHandler(string path, LLSDMethod handler);
         

@@ -67,6 +67,7 @@ namespace OpenSim.Framework.Servers.Tests
             public void Send(byte[] buffer) {}
             public void Send(byte[] buffer, int offset, int size) {}
             public void Respond(string httpVersion, HttpStatusCode statusCode, string reason, string body, string contentType) {}
+            public void Close() { }
 
             public event EventHandler<DisconnectedEventArgs> Disconnected = delegate { };
             /// <summary>
