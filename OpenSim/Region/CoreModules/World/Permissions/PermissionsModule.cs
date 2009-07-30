@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         private Dictionary<string, bool> GrantCS = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantVB = new Dictionary<string, bool>();
         private Dictionary<string, bool> GrantJS = new Dictionary<string, bool>();
-
+        private Dictionary<string, bool> GrantYP = new Dictionary<string, bool>();
         #endregion
 
         #region IRegionModule Members
@@ -267,14 +267,26 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
-            grant = myConfig.GetString("GrantJS","");
-            if (grant.Length > 0) {
-                foreach (string uuidl in grant.Split(',')) {
+            grant = myConfig.GetString("GrantJS", "");
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
                     string uuid = uuidl.Trim(" \t".ToCharArray());
                     GrantJS.Add(uuid, true);
                 }
             }
-            
+
+            grant = myConfig.GetString("GrantYP", "");
+            if (grant.Length > 0)
+            {
+                foreach (string uuidl in grant.Split(','))
+                {
+                    string uuid = uuidl.Trim(" \t".ToCharArray());
+                    GrantYP.Add(uuid, true);
+                }
+            }
+
         }
 
         public void HandleBypassPermissions(string module, string[] args)
@@ -1784,8 +1796,15 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                     }
                     break;
                 case 3:
-                    if (GrantJS.Count == 0 || GrantJS.ContainsKey(ownerUUID.ToString())) {
-                        return(true);
+                    if (GrantJS.Count == 0 || GrantJS.ContainsKey(ownerUUID.ToString()))
+                    {
+                        return (true);
+                    }
+                    break;
+                case 4:
+                    if (GrantYP.Count == 0 || GrantYP.ContainsKey(ownerUUID.ToString()))
+                    {
+                        return (true);
                     }
                     break;
             }
