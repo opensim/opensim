@@ -1054,6 +1054,11 @@
     ; only enable this in a trusted environment otherwise you may be subject to hijacking
     ; AutomaticLinkPermission = false
 
+    ; Disable underground movement of prims (default true); set to
+    ; false to allow script controlled underground positioning of
+    ; prims 
+    ; DisableUndergroundMovement = true
+
 
 [GridInfo]
     ; These settings are used to return information on a get_grid_info call.
