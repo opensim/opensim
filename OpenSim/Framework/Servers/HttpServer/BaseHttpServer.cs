@@ -1321,6 +1321,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             string responseString = (string)responsedata["str_response_string"];
             string contentType = (string)responsedata["content_type"];
 
+
             if (responsedata.ContainsKey("error_status_text"))
             {
                 response.StatusDescription = (string)responsedata["error_status_text"];
@@ -1336,6 +1337,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 response.KeepAlive = keepalive;
 
             }
+
+            if (responsedata.ContainsKey("reusecontext"))
+                response.ReuseContext = (bool) responsedata["reusecontext"];
+
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
             
@@ -1391,7 +1396,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.OutputStream.Flush();
                     response.Send();
                     
-                    if (!response.KeepAlive)
+                    if (!response.KeepAlive && response.ReuseContext)
                         response.FreeContext();
                 }
                 catch (SocketException e)

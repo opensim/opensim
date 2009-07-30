@@ -256,6 +256,25 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
         }
 
+        public bool ReuseContext
+        {
+            get
+            {
+                if (_httpClientContext != null)
+                {
+                    return !_httpClientContext.EndWhenDone;
+                }
+                return true;
+            }
+            set
+            {
+                if (_httpClientContext != null)
+                {
+                    _httpClientContext.EndWhenDone = !value;
+                }
+            }
+        }
+
 
         protected IHttpResponse _httpResponse;
         private IHttpClientContext _httpClientContext;
