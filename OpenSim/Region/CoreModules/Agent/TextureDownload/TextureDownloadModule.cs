@@ -60,8 +60,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         private Scene m_scene;
         private List<Scene> m_scenes = new List<Scene>();
 
-        private Thread m_thread;
-
         public TextureDownloadModule()
         {
         }
@@ -70,15 +68,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            
             if (m_scene == null)
             {
                 //m_log.Debug("Creating Texture download module");
                 m_scene = scene;
-                m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
-                m_thread.Name = "ProcessTextureSenderThread";
-                m_thread.IsBackground = true;
-                m_thread.Start();
-                ThreadTracker.Add(m_thread);
+                //m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
+                //m_thread.Name = "ProcessTextureSenderThread";
+                //m_thread.IsBackground = true;
+                //m_thread.Start();
+                //ThreadTracker.Add(m_thread);
             }
 
             if (!m_scenes.Contains(scene))
