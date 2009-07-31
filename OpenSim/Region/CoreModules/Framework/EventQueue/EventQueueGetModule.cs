@@ -329,19 +329,28 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
         public bool HasEvents(UUID agentID)
         {
             Queue<OSD> queue = TryGetQueue(agentID);
-            if (queue.Count > 0)
-                return true;
-            else
-                return false;
-            
+            lock (queue)
+            {
+                if (queue.Count > 0)
+                    return true;
+                else
+                    return false;
+            }
+
         }
 
         public Hashtable GetEvents(UUID pAgentId, string request)
         {
             Queue<OSD> queue = TryGetQueue(pAgentId);
-            OSD element = queue.Dequeue(); // 15s timeout
+            OSD element;
+            lock (queue)
+            {
+                if (queue.Count == 0)
+                    return NoEvents();
+                element = queue.Dequeue(); // 15s timeout
+            }
 
-            
+
 
             int thisID = 0;
             lock (m_ids)
@@ -357,10 +366,13 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             else
             {
                 array.Add(element);
-                while (queue.Count > 0)
+                lock (queue)
                 {
-                    array.Add(queue.Dequeue());
-                    thisID++;
+                    while (queue.Count > 0)
+                    {
+                        array.Add(queue.Dequeue());
+                        thisID++;
+                    }
                 }
             }
 
