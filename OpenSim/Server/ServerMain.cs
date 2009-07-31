@@ -87,7 +87,11 @@ namespace OpenSim.Server
                     m_log.InfoFormat("[SERVER]: Failed to load {0}", conn);
                 }
             }
-            return m_Server.Run();
+            int res = m_Server.Run();
+
+            Environment.Exit(res);
+
+            return 0;
         }
     }
 }

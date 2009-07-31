@@ -202,9 +202,13 @@ namespace OpenSim.Server.Base
             if (fileAppender != null)
             {
                 if (startupConfig != null)
-                    fileAppender.File = startupConfig.GetString("logfile",
-                            fileName + ".log");
-                            // assemblyName.Name + ".log");
+                {
+
+                    fileName = startupConfig.GetString("logfile", fileName+".log");
+                    fileName = Path.GetFullPath(Path.Combine(".", fileName));
+                    fileAppender.File = fileName;
+                    fileAppender.ActivateOptions();
+                }
             }
 
             // Register the quit command
