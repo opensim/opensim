@@ -581,7 +581,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             lock (m_landIDList)
             {
-                return m_landList[m_landIDList[x / 4, y / 4]];
+                if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
+                    return m_landList[m_landIDList[x / 4, y / 4]];
+                else 
+                    return null;
             }
         }
 

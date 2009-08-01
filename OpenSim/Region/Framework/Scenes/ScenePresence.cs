@@ -538,7 +538,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AdjustKnownSeeds()
         {
-            Dictionary<ulong, string> seeds = Scene.CapsModule.GetChildrenSeeds(UUID);
+            Dictionary<ulong, string> seeds;
+
+            if (Scene.CapsModule != null)
+                seeds = Scene.CapsModule.GetChildrenSeeds(UUID);
+            else
+                seeds = new Dictionary<ulong, string>();
+
             List<ulong> old = new List<ulong>();
             foreach (ulong handle in seeds.Keys)
             {
@@ -552,7 +558,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             DropOldNeighbours(old);
-            Scene.CapsModule.SetChildrenSeed(UUID, seeds);
+            
+            if (Scene.CapsModule != null)
+                Scene.CapsModule.SetChildrenSeed(UUID, seeds);
+            
             KnownRegions = seeds;
             //m_log.Debug(" ++++++++++AFTER+++++++++++++ ");
             //DumpKnownRegions();

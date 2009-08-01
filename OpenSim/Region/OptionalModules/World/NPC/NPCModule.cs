@@ -42,8 +42,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             // {
             //     NPCAvatar testAvatar = new NPCAvatar("Jack", "NPC", new Vector3(128, 128, 40), scene);
             //     NPCAvatar testAvatar2 = new NPCAvatar("Jill", "NPC", new Vector3(136, 128, 40), scene);
-            //     scene.AddNewClient(testAvatar, false);
-            //     scene.AddNewClient(testAvatar2, false);
+            //     scene.AddNewClient(testAvatar);
+            //     scene.AddNewClient(testAvatar2);
             // }
         }
 

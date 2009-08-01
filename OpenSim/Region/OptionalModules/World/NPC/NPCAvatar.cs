@@ -1044,7 +1044,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            return false;
         }
 
         public void SendAvatarClassifiedReply(UUID targetID, UUID[] classifiedID, string[] name)

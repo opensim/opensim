@@ -360,15 +360,33 @@ namespace OpenSim.Region.Framework.Scenes
             }
             // we're going to be using the above code once neighbour cache is correct.  Currently it doesn't appear to be
             // So we're temporarily going back to the old method of grabbing it from the Grid Server Every time :/
-            neighbours =
+            if (m_regionInfo != null)
+            {
+                neighbours =
                 m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            }
+            else
+            {
+                m_log.Debug("[ENABLENEIGHBOURCHILDAGENTS]: m_regionInfo was null in EnableNeighbourChildAgents, is this a NPC?");
+            }
+            
 
             /// We need to find the difference between the new regions where there are no child agents
             /// and the regions where there are already child agents. We only send notification to the former.
             List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region
             neighbourHandles.Add(avatar.Scene.RegionInfo.RegionHandle);  // add this region too
-            List<ulong> previousRegionNeighbourHandles 
-                = new List<ulong>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID).Keys);
+            List<ulong> previousRegionNeighbourHandles ;
+
+            if (avatar.Scene.CapsModule != null)
+            {
+                previousRegionNeighbourHandles =
+                    new List<ulong>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID).Keys);
+            }
+            else
+            {
+                previousRegionNeighbourHandles = new List<ulong>();
+            }
+
             List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
             List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
            
@@ -381,8 +399,12 @@ namespace OpenSim.Region.Framework.Scenes
             avatar.DropOldNeighbours(oldRegions);
 
             /// Collect as many seeds as possible
-            Dictionary<ulong, string> seeds 
-                = new Dictionary<ulong, string>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID));
+            Dictionary<ulong, string> seeds;
+            if (avatar.Scene.CapsModule != null)
+                seeds
+                    = new Dictionary<ulong, string>(avatar.Scene.CapsModule.GetChildrenSeeds(avatar.UUID));
+            else
+                seeds = new Dictionary<ulong, string>();
             
             //m_log.Debug(" !!! No. of seeds: " + seeds.Count);
             if (!seeds.ContainsKey(avatar.Scene.RegionInfo.RegionHandle))
@@ -419,8 +441,12 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
             }
-            // These two are the same thing!
-            avatar.Scene.CapsModule.SetChildrenSeed(avatar.UUID, seeds);
+
+            if (avatar.Scene.CapsModule != null)
+            {
+                // These two are the same thing!
+                avatar.Scene.CapsModule.SetChildrenSeed(avatar.UUID, seeds);
+            }
             avatar.KnownRegions = seeds;
             //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
             //avatar.DumpKnownRegions();
