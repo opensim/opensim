@@ -199,7 +199,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             bool pollHandlerResult = false;
             lock (m_pollHandlers)
             {
-                if (!m_pollHandlers.ContainsKey( methodName))
+                if (!m_pollHandlers.ContainsKey(methodName))
                 {
                     m_pollHandlers.Add(methodName,args);
                     pollHandlerResult = true;

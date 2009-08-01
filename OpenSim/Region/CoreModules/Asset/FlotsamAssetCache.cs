@@ -484,7 +484,7 @@ namespace Flotsam.RegionModules.AssetCache
                 }
 
                 int dirSize = Directory.GetFiles(dir).Length;
-                if ( dirSize == 0)
+                if (dirSize == 0)
                 {
                     Directory.Delete(dir);
                 }
