@@ -105,6 +105,10 @@ namespace OpenSim.Framework.Serialization
         {
             byte[] header = m_br.ReadBytes(512);
 
+            // If there are no more bytes in the stream, return null header
+            if (header.Length == 0)
+                return null;
+
             // If we've reached the end of the archive we'll be in null block territory, which means
             // the next byte will be 0
             if (header[0] == 0)
