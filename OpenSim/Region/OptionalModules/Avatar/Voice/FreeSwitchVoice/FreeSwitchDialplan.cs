@@ -56,7 +56,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              response["int_response_code"] = 200;
             if (Context != requestcontext)
             {
-                m_log.Debug("[FreeSwitchDirectory] returning empty as it's for another context");
+                m_log.DebugFormat("[FreeSwitchDirectory] returning empty as it's for context {0} and we are using {1}", requestcontext, Context);
                 response["str_response_string"] = "";
             } else {
                 response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
