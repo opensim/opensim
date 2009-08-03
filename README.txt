@@ -27,7 +27,7 @@ See configuring OpenSim
 Prereqs:
  * Mono >= 2.4 (>= 2.4.2 is better)
  * Nant >= 0.86beta
- * sqlite3 or mysql 5.x (you'll need a backend database)
+ * sqlite3 or mysql 5.x (you'll need a back end database)
 
 From the distribution type:
  * ./runprebuild.sh
@@ -89,4 +89,3 @@ OpenSim, as well as how to report bugs, and participate in the OpenSim
 project can always be found at http://opensimulator.org.
 
 Thanks for trying OpenSim, we hope it is a pleasant experience.
-
