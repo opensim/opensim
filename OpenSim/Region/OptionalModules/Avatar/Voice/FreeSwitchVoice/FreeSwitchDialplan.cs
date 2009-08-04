@@ -26,9 +26,7 @@
  */
  
 using log4net;
-using System;
 using System.Reflection;
-using System.Text;
 using System.Collections;
  
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
@@ -39,7 +37,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
             
          
-        public Hashtable HandleDialplanRequest(string Context, string Realm, Hashtable request)
+        public Hashtable HandleDialplanRequest(Hashtable request)
         {
              m_log.DebugFormat("[FreeSwitchVoice] HandleDialplanRequest called with {0}",request.ToString());
              
@@ -50,32 +48,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 m_log.InfoFormat("[FreeSwitchDirectory] requestBody item {0} {1}",item.Key, item.Value);
              }
 
-             string requestcontext = (string) request["Hunt-Context"];
              response["content_type"] = "text/xml";
              response["keepalive"] = false;
              response["int_response_code"] = 200;
-            if (Context != requestcontext && Context != "public")
-            {
-                m_log.DebugFormat("[FreeSwitchDirectory] returning empty as it's for context {0} and we are using {1}", requestcontext, Context);
-                response["str_response_string"] = "";
-            } else {
-                response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+             response["str_response_string"] = @"<?xml version=""1.0"" encoding=""utf-8""?>
                    <document type=""freeswitch/xml"">
                      <section name=""dialplan"">
-                     <context name=""{0}"">" + 
+                  <context name=""default"">
                
-/*                           <!-- dial via SIP uri -->
+                        <!-- dial via SIP uri -->
                             <extension name=""sip_uri"">
                                    <condition field=""destination_number"" expression=""^sip:(.*)$"">
                                    <action application=""bridge"" data=""sofia/${use_profile}/$1""/>
                                    <!--<action application=""bridge"" data=""$1""/>-->
                                    </condition>
-                           </extension>*/
+                        </extension>
                
-                           @"<extension name=""opensim_conferences"">
+                        <extension name=""opensim_conferences"">
                                    <condition field=""destination_number"" expression=""^confctl-(.*)$"">
                                            <action application=""answer""/>
-                                           <action application=""conference"" data=""$1-{1}@grid""/>
+                                        <action application=""conference"" data=""$1-${domain_name}@default""/>
                                    </condition>
                            </extension>
                        
@@ -94,8 +86,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                
                      </context>
                    </section>
-                   </document>", Context, Realm);
-            }
+                </document>";
              
             return response;   
         }    

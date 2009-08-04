@@ -38,18 +38,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
             
-        public Hashtable HandleDirectoryRequest(string Context, string Realm, Hashtable request)
+        public Hashtable HandleDirectoryRequest(Hashtable request)
         {
-            Hashtable response = new Hashtable();
-            string domain = (string) request["domain"];
-            if (domain != Realm) {
-                response["content_type"] = "text/xml";
-                response["keepalive"] = false;
-                response["int_response_code"] = 200;
-                response["str_response_string"] = "";
-            } else {
                  m_log.DebugFormat("[FreeSwitchDirectory] HandleDirectoryRequest called with {0}",request.ToString());
             
+             Hashtable response = new Hashtable();
+             
                  // information in the request we might be interested in
              
                  // Request 1 sip_auth for users account
@@ -91,11 +85,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                  
                      if (sipAuthMethod == "REGISTER")
                      {
-                         response = HandleRegister(Context, Realm, request);
+                     response = HandleRegister(request);
                      } 
                      else if (sipAuthMethod == "INVITE")  
                      {
-                          response = HandleInvite(Context, Realm, request);
+                     response = HandleInvite(request);
                      }
                      else
                      {
@@ -107,19 +101,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                  }
                  else if (eventCallingFunction == "switch_xml_locate_user")
                  {
-                     response = HandleLocateUser(Realm, request);
+                 response = HandleLocateUser(request);
                  }
                  else if (eventCallingFunction == "user_data_function") // gets called when an avatar to avatar call is made
                  {
-                      response = HandleLocateUser(Realm, request);
+                 response = HandleLocateUser(request);
                  }
                  else if (eventCallingFunction == "user_outgoing_channel")
                  {
-                     response = HandleRegister(Context, Realm, request);
+                 response = HandleRegister(request);
                  }
                  else if (eventCallingFunction == "config_sofia") // happens once on freeswitch startup
                  {
-                     response = HandleConfigSofia(Context, Realm, request);
+                 response = HandleConfigSofia(request);
                  }
                  else if (eventCallingFunction == "switch_load_network_lists")
                  {
@@ -137,11 +131,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                      response["content_type"] = "text/xml";
                      response["str_response_string"] = "";
                  }
-            }
             return response;   
         }
         
-        private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
+        private Hashtable HandleRegister(Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleRegister called");
             
@@ -166,19 +159,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                     "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
-                                    "<variable name=\"user_context\" value=\"{3}\" />\r\n" +
+                                    "<variable name=\"user_context\" value=\"default\" />\r\n" +
                                     "<variable name=\"presence_id\" value=\"{1}@{0}\"/>"+
                                 "</variables>\r\n" +
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain , user, password, Context);
+                domain , user, password);
                 
             return response;
         }
         
-        private Hashtable HandleInvite(string Context, string Realm, Hashtable request)
+        private Hashtable HandleInvite(Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleInvite called");
             
@@ -203,7 +196,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                     "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${1}@${{dialed_domain}}}}${{sofia_contact(${1}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
-                                    "<variable name=\"user_context\" value=\"{4}\" />\r\n" +
+                                    "<variable name=\"user_context\" value=\"default\" />\r\n" +
                                     "<variable name=\"presence_id\" value=\"{1}@$${{domain}}\"/>"+
                                 "</variables>\r\n" +
                             "</user>\r\n" +
@@ -213,19 +206,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                     "<param name=\"dial-string\" value=\"{{sip_contact_user={1}}}{{presence_id=${3}@${{dialed_domain}}}}${{sofia_contact(${3}@${{dialed_domain}})}}\"/>\r\n" +
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
-                                    "<variable name=\"user_context\" value=\"{4}\" />\r\n" +
+                                    "<variable name=\"user_context\" value=\"default\" />\r\n" +
                                     "<variable name=\"presence_id\" value=\"{3}@$${{domain}}\"/>"+
                                 "</variables>\r\n" +
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain , user, password,sipRequestUser, Context);
+                domain , user, password,sipRequestUser);
                 
             return response;
         }
 
-        private Hashtable HandleLocateUser(String Realm, Hashtable request)
+        
+        private Hashtable HandleLocateUser(Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleLocateUser called");
             
@@ -259,7 +253,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             return response;
         }
        
-        private Hashtable HandleConfigSofia(string Context, string Realm, Hashtable request)
+        private Hashtable HandleConfigSofia(Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory] HandleConfigSofia called");
             
@@ -292,7 +286,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                                             "<param name=\"retry-seconds\" value=\"30\"/>\r\n"+
                                             "<param name=\"extension\" value=\"$${{default_provider_contact}}\"/>\r\n"+
                                             "<param name=\"contact-params\" value=\"domain_name=$${{domain}}\"/>\r\n"+
-                                            "<param name=\"context\" value=\"{1}\"/>\r\n"+
+                                            "<param name=\"context\" value=\"public\"/>\r\n"+
                                           "</gateway>\r\n"+
                                         "</gateways>\r\n"+
                                         "<params>\r\n"+
@@ -307,7 +301,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n", 
-                domain, Context); 
+                domain); 
              
             return response;    
         }    
