@@ -1,4 +1,4 @@
-NANT	= $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
+NANT = $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
 
 all: prebuild
 	# @export PATH=/usr/local/bin:$(PATH)
