@@ -512,8 +512,8 @@ namespace OpenSim.Region.Framework.Scenes
                     objatt.HasGroupChanged = true;
 
                 // Fire after attach, so we don't get messy perms dialogs
-                //
-                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 0);
+                // 3 == AttachedRez
+                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
             }
             return objatt;
         }

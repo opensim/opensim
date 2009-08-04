@@ -89,8 +89,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private long m_eventDelayTicks = 0;
         private long m_nextEventTimeTicks = 0;
         private bool m_startOnInit = true;
-        private bool m_isAttachment = false;
-        private UUID m_attachedAvatar = UUID.Zero;
+        private UUID m_AttachedAvatar = UUID.Zero;
         private StateSource m_stateSource;
         private bool m_postOnRez;
         private bool m_startedFromSavedState = false;
@@ -234,8 +233,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             m_MaxScriptQueue = maxScriptQueue;
             m_stateSource = stateSource;
             m_postOnRez = postOnRez;
-            m_isAttachment = part.IsAttachment;
-            m_attachedAvatar = part.AttachedAvatar;
+            m_AttachedAvatar = part.AttachedAvatar;
             m_RegionID = part.ParentGroup.Scene.RegionInfo.RegionID;
 
             if (part != null)
@@ -383,13 +381,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         new Object[] {new LSL_Types.LSLInteger(m_StartParam)}, new DetectParams[0]));
                 }
 
-                if (m_isAttachment)
+                if (m_stateSource == StateSource.AttachedRez)
                 {
                     PostEvent(new EventParams("attach",
-                        new object[] { new LSL_Types.LSLString(m_attachedAvatar.ToString()) }, new DetectParams[0]));
+                        new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
                 }
-
-                if (m_stateSource == StateSource.NewRez)
+                else if (m_stateSource == StateSource.NewRez)
                 {
 //                    m_log.Debug("[Script] Posted changed(CHANGED_REGION_RESTART) to script");
                     PostEvent(new EventParams("changed",
@@ -413,10 +410,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         new Object[] {new LSL_Types.LSLInteger(m_StartParam)}, new DetectParams[0]));
                 }
 
-                if (m_isAttachment)
+                if (m_stateSource == StateSource.AttachedRez)
                 {
                     PostEvent(new EventParams("attach",
-                        new object[] { new LSL_Types.LSLString(m_attachedAvatar.ToString()) }, new DetectParams[0]));
+                        new object[] { new LSL_Types.LSLString(m_AttachedAvatar.ToString()) }, new DetectParams[0]));
                 }
 
             }
