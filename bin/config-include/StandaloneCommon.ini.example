@@ -25,3 +25,9 @@
 
     AssetCaching = "CenomeMemoryAssetCache"
     Include-CenomeCache = "config-include/CenomeCache.ini"
+
+    ;; Enable this to use Freeswitch on a standalone
+    ;FreeswitchServiceInConnector = True
+
+[FreeswitchService]
+    ;; Configuration for the freeswitch service goes here

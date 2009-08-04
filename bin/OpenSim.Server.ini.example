@@ -6,7 +6,7 @@
 ; * read this config file and load the needed OUT and database connectors
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance
@@ -35,4 +35,7 @@ UserServerURI = "http://127.0.0.1:8002"
 SessionAuthentication = "false"
 StorageProvider = "OpenSim.Data.MySQL.dll"
 ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+
+; * This is the configuration for the freeswitch server in grid mode
+[FreeswitchService]
 
