@@ -184,6 +184,8 @@ namespace OpenSim.Region.Framework
 
         public IRegionModule[] LoadModules(string dllName)
         {
+            //m_log.DebugFormat("[MODULES]: Looking for modules in {0}", dllName);
+            
             List<IRegionModule> modules = new List<IRegionModule>();
 
             Assembly pluginAssembly;
