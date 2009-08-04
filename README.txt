@@ -1,4 +1,4 @@
-Welcome to OpenSim! 
+Welcome to OpenSim!
 
 Version 0.6.x
 
@@ -9,8 +9,8 @@ virtual worlds server platform capable of supporting multiple clients
 and servers in a heterogeneous grid structure. OpenSim is written in
 C#, and can run under Mono or the Microsoft .NET runtimes.
 
-This is considered an alpha release.  Some stuff works, a lot
-doesn't.  If it breaks, you get to keep *both* pieces.
+This is considered an alpha release.  Some stuff works, a lot doesn't.
+If it breaks, you get to keep *both* pieces.
 
 == Installation on Windows ==
 
@@ -33,7 +33,7 @@ From the distribution type:
  * ./runprebuild.sh
  * nant
  * cd bin
- * mono ./OpenSim.exe 
+ * mono ./OpenSim.exe
 
 See configuring OpenSim
 
@@ -70,14 +70,14 @@ the OpenSim mantis system. You can find the OpenSim mantis system at
     http://opensimulator.org/mantis/main_page.php
 
 If your bug has already been reported, you might want to add to the
-bug description and supply additional information. 
+bug description and supply additional information.
 
 If your bug has not been reported yet, file a bug report ("opening a
-mantis"). Useful information to include: 
- * description of what went wrong 
- * stack trace 
- * OpenSim.log (attach as file) 
- * OpenSim.ini (attach as file) 
+mantis"). Useful information to include:
+ * description of what went wrong
+ * stack trace
+ * OpenSim.log (attach as file)
+ * OpenSim.ini (attach as file)
  * if running under mono: run OpenSim.exe with the "--debug" flag:
 
        mono --debug OpenSim.exe
