@@ -592,11 +592,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Thread.Sleep(2000);
 
             // Shut down timers
-            m_clientPingTimer.Stop();
-            m_avatarTerseUpdateTimer.Stop();
-            m_primTerseUpdateTimer.Stop();
-            m_primFullUpdateTimer.Stop();
-            m_textureRequestTimer.Stop();
+            if (m_clientPingTimer.Enabled) m_clientPingTimer.Stop();
+            if (m_avatarTerseUpdateTimer.Enabled) m_avatarTerseUpdateTimer.Stop();
+            if (m_primTerseUpdateTimer.Enabled) m_primTerseUpdateTimer.Stop();
+            if (m_primFullUpdateTimer.Enabled) m_primFullUpdateTimer.Stop();
+            if (m_textureRequestTimer.Enabled) m_textureRequestTimer.Stop();
 
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
@@ -676,11 +676,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Stop()
         {
             // Shut down timers
-            m_clientPingTimer.Stop();
-            m_avatarTerseUpdateTimer.Stop();
-            m_primTerseUpdateTimer.Stop();
-            m_primFullUpdateTimer.Stop();
-            m_textureRequestTimer.Stop();
+            if (m_clientPingTimer.Enabled) m_clientPingTimer.Stop();
+            if (m_avatarTerseUpdateTimer.Enabled) m_avatarTerseUpdateTimer.Stop();
+            if (m_primTerseUpdateTimer.Enabled) m_primTerseUpdateTimer.Stop();
+            if (m_primFullUpdateTimer.Enabled) m_primFullUpdateTimer.Stop();
+            if (m_textureRequestTimer.Enabled) m_textureRequestTimer.Stop();
         }
 
         public void Restart()
@@ -3111,7 +3111,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (m_primFullUpdates)
             {
-                if (m_primFullUpdates.Count == 0)
+                if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
                 {
                     m_primFullUpdateTimer.Stop();
 
@@ -3159,7 +3159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.Header.Zerocoded = true;
                 OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
 
-                if (m_primFullUpdates.Count == 0)
+                if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
                     m_primFullUpdateTimer.Stop();
             }
         }
