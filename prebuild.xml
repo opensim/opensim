@@ -1745,7 +1745,11 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Server.Base" />
+      <Reference name="OpenSim.Server.Handlers" />
+      <Reference name="OpenSim.Services.Connectors" />
+      <Reference name="OpenSim.Services.Base" />
+      <Reference name="OpenSim.Services.Interfaces" />
       <Reference name="Mono.Addins.dll" />
 
       <!-- For scripting in funny languages by default -->
