@@ -3383,5 +3383,16 @@ namespace OpenSim.Region.Framework.Scenes
             SetFromAssetID(uuid);
         }
         #endregion 
+
+        public bool CanBeDeleted()
+        {
+            foreach (SceneObjectPart part in Children.Values)
+            {
+                if (!part.CanBeDeleted())
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

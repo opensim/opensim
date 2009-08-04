@@ -991,5 +991,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             get { return m_RegionID; }
         }
+
+        public bool CanBeDeleted()
+        {
+            return true;
+        }
     }
 }

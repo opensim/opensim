@@ -1241,5 +1241,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return "";
             return instance.GetXMLState();
         }
+
+        public bool CanBeDeleted(UUID itemID)
+        {
+            IScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return true;
+
+            return instance.CanBeDeleted();
+        }
     }
 }

@@ -3787,5 +3787,10 @@ if (m_shape != null) {
 
             Inventory.ApplyNextOwnerPermissions();
         }        
+
+        public bool CanBeDeleted()
+        {
+            return Inventory.CanBeDeleted();
+        }
     }        
 }

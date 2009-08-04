@@ -476,5 +476,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             return "";
         }
+
+        public bool CanBeDeleted(UUID itemID)
+        {
+            return true;
+        }
     }
 }

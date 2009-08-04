@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             while (InventoryDeQueueAndDelete())
             {
-                m_log.Debug("[SCENE]: Sent item successfully to inventory, continuing...");
+                //m_log.Debug("[SCENE]: Sent item successfully to inventory, continuing...");
             }
         }            
 
@@ -128,11 +128,16 @@ namespace OpenSim.Region.Framework.Scenes
                     int left = m_inventoryDeletes.Count;
                     if (left > 0)
                     {
+                        x = m_inventoryDeletes.Dequeue();
+                        if (!x.objectGroup.CanBeDeleted())
+                        {
+                            m_inventoryDeletes.Enqueue(x);
+                            return true;
+                        }
+
                         m_log.DebugFormat(
                             "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);
                         
-                        x = m_inventoryDeletes.Dequeue();
-
                         try
                         {
                             m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);                            
