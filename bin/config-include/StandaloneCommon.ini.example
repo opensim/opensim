@@ -31,3 +31,4 @@
 
 [FreeswitchService]
     ;; Configuration for the freeswitch service goes here
+    LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"

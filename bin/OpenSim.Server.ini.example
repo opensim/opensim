@@ -38,4 +38,4 @@ ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=gr
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
-
+LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
