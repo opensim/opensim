@@ -298,6 +298,13 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void EmptyScriptCompileQueue(int numScriptsFailed, string message);
         public event EmptyScriptCompileQueue OnEmptyScriptCompileQueue;
 
+        /// <summary>
+        /// Called whenever an object is attached, or detached
+        /// from an in-world presence.
+        /// </summary>
+        public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
+        public event Attach OnAttach;
+
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
@@ -437,6 +444,15 @@ namespace OpenSim.Region.Framework.Scenes
         private OarFileSaved handlerOarFileSaved = null;
         
         private EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = null;
+
+        private Attach handlerOnAttach = null;
+
+        public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
+        {
+            handlerOnAttach = OnAttach;
+            if (handlerOnAttach != null)
+                handlerOnAttach(localID, itemID, avatarID);
+        }
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {

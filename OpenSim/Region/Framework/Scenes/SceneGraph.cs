@@ -489,6 +489,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Calls attach with a Zero position
             //
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
+            m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromAssetID(), remoteClient.AgentId);
         }
 
         public SceneObjectGroup RezSingleAttachment(
@@ -537,6 +538,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group = (SceneObjectGroup)entity;
                     if (group.GetFromAssetID() == itemID)
                     {
+                        m_parentScene.SendAttachEvent(group.LocalId, itemID, UUID.Zero);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " +
                                 ((uint)group.GetAttachmentPoint()).ToString());

@@ -2574,6 +2574,11 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerStopScript(part.LocalId, itemID);
         }
 
+        internal void SendAttachEvent(uint localID, UUID itemID, UUID avatarID)
+        {
+            EventManager.TriggerOnAttach(localID, itemID, avatarID);
+        }
+
         public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID,
                 uint AttachmentPt)
         {
@@ -2684,6 +2689,7 @@ namespace OpenSim.Region.Framework.Scenes
                     remoteClient.SendRemoveInventoryItem(inventoryID);
                 }
             }
+            SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);
         }
 
         public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
