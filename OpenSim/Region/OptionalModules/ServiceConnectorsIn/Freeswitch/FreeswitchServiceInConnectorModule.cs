@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Freeswitch
 
                 Object[] args = new Object[] { m_Config, MainServer.Instance };
 
-                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:FreeswitchServiceConnector", args);
+                ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:FreeswitchServerConnector", args);
             }
         }
 

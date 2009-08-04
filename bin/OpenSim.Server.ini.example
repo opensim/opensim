@@ -6,7 +6,7 @@
 ; * read this config file and load the needed OUT and database connectors
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServiceConnector"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance
