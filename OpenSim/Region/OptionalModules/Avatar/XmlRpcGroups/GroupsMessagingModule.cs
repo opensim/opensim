@@ -31,6 +31,7 @@ using System.Reflection;
 
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 using OpenMetaverse;
@@ -46,6 +47,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GroupsMessagingModule : ISharedRegionModule
     {
 

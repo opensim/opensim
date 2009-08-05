@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Timers;
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 using OpenMetaverse;
@@ -49,6 +50,7 @@ using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class GroupsModule : ISharedRegionModule, IGroupsModule
     {
         /// <summary>
