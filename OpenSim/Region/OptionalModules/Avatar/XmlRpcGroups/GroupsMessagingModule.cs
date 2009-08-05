@@ -46,7 +46,7 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    public class XmlRpcGroupsMessaging : ISharedRegionModule
+    public class GroupsMessagingModule : ISharedRegionModule
     {
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

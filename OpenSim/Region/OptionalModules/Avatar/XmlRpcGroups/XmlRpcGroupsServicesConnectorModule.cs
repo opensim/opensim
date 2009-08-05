@@ -29,27 +29,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-//using System.Text;
 
 using Nwc.XmlRpc;
 
 using log4net;
-// using Nini.Config;
+using Nini.Config;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 using OpenSim.Framework;
-//using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    public class XmlRpcGroupDataProvider : IGroupDataProvider
+    public class XmlRpcGroupsServicesConnectorModule : ISharedRegionModule, IGroupsServicesConnector
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_serviceURL = string.Empty;
 
         public const GroupPowers m_DefaultEveryonePowers = GroupPowers.AllowSetHome | 
             GroupPowers.Accountable | 
@@ -59,25 +57,107 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             GroupPowers.StartProposal | 
             GroupPowers.VoteOnProposal;
 
+        private bool m_connectorEnabled = false;
+
+        private string m_serviceURL = string.Empty;
+
         private bool m_disableKeepAlive = false;
 
         private string m_groupReadKey  = string.Empty;
         private string m_groupWriteKey = string.Empty;
 
-        public XmlRpcGroupDataProvider(string serviceURL, bool disableKeepAlive, string groupReadKey, string groupWriteKey)
+
+        #region IRegionModuleBase Members
+
+        public string Name
         {
-            m_serviceURL = serviceURL.Trim();
-            m_disableKeepAlive = disableKeepAlive;
-
-            if ((serviceURL == null) ||
-                (serviceURL == string.Empty))
-            {
-                throw new Exception("Please specify a valid ServiceURL for XmlRpcGroupDataProvider in OpenSim.ini, [Groups], XmlRpcServiceURL");
-            }
-
-            m_groupReadKey = groupReadKey;
-            m_groupWriteKey = groupWriteKey;
+            get { return "XmlRpcGroupsServicesConnector"; }
         }
+
+        // this module is not intended to be replaced, but there should only be 1 of them.
+        public Type ReplacableInterface
+        {
+            get { return null; }
+        }
+
+        public void Initialise(IConfigSource config)
+        {
+            IConfig groupsConfig = config.Configs["Groups"];
+
+            if (groupsConfig == null)
+            {
+                // Do not run this module by default.
+                return;
+            }
+            else
+            {
+                // if groups aren't enabled, we're not needed.
+                // if we're not specified as the connector to use, then we're not wanted
+                if ( (groupsConfig.GetBoolean("Enabled", false) == false)
+                     || (groupsConfig.GetString("GroupsServicesConnectorModule", "Default") != Name))
+                {
+                    m_connectorEnabled = false;
+                    return;
+                }
+
+                m_log.InfoFormat("[GROUPS-CONNECTOR]: Initializing {0}", this.Name);
+
+                m_serviceURL = groupsConfig.GetString("XmlRpcServiceURL", string.Empty);
+                if ((m_serviceURL == null) ||
+                    (m_serviceURL == string.Empty))
+                {
+                    m_log.ErrorFormat("Please specify a valid URL for XmlRpcServiceURL in OpenSim.ini, [Groups]");
+                    m_connectorEnabled = false;
+                    return;
+                }
+
+                m_disableKeepAlive = groupsConfig.GetBoolean("XmlRpcDisableKeepAlive", false);
+
+                m_groupReadKey = groupsConfig.GetString("XmlRpcServiceReadKey", string.Empty);
+                m_groupWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
+
+                // If we got all the config options we need, lets start'er'up
+                m_connectorEnabled = true;
+            }
+        }
+
+        public void Close()
+        {
+            m_log.InfoFormat("[GROUPS-CONNECTOR]: Closing {0}", this.Name);
+        }
+
+        public void AddRegion(OpenSim.Region.Framework.Scenes.Scene scene)
+        {
+            if (m_connectorEnabled)
+                scene.RegisterModuleInterface<IGroupsServicesConnector>(this);
+        }
+
+        public void RemoveRegion(OpenSim.Region.Framework.Scenes.Scene scene)
+        {
+            if (scene.RequestModuleInterface<IGroupsServicesConnector>() == this)
+                scene.UnregisterModuleInterface<IGroupsServicesConnector>(this);
+        }
+
+        public void RegionLoaded(OpenSim.Region.Framework.Scenes.Scene scene)
+        {
+            // TODO: May want to consider listenning for Agent Connections so we can pre-cache group info
+            // scene.EventManager.OnNewClient += OnNewClient;
+        }
+
+        #endregion
+
+        #region ISharedRegionModule Members
+
+        public void PostInitialise()
+        {
+            // NoOp
+        }
+
+        #endregion
+
+
+
+        #region IGroupsServicesConnector Members
 
         /// <summary>
         /// Create a Group, including Everyone and Owners Role, place FounderID in both groups, select Owner as selected role, and newly created group as agent's active role.
@@ -275,53 +355,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         }
 
-        private GroupProfileData GroupProfileHashtableToGroupProfileData(Hashtable groupProfile)
-        {
-            GroupProfileData group = new GroupProfileData();
-            group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
-            group.Name = (string)groupProfile["Name"];
 
-            if (groupProfile["Charter"] != null)
-            {
-                group.Charter = (string)groupProfile["Charter"];
-            }
-
-            group.ShowInList = ((string)groupProfile["ShowInList"]) == "1";
-            group.InsigniaID = UUID.Parse((string)groupProfile["InsigniaID"]);
-            group.MembershipFee = int.Parse((string)groupProfile["MembershipFee"]);
-            group.OpenEnrollment = ((string)groupProfile["OpenEnrollment"]) == "1";
-            group.AllowPublish = ((string)groupProfile["AllowPublish"]) == "1";
-            group.MaturePublish = ((string)groupProfile["MaturePublish"]) == "1";
-            group.FounderID = UUID.Parse((string)groupProfile["FounderID"]);
-            group.OwnerRole = UUID.Parse((string)groupProfile["OwnerRoleID"]);
-
-            group.GroupMembershipCount = int.Parse((string)groupProfile["GroupMembershipCount"]);
-            group.GroupRolesCount = int.Parse((string)groupProfile["GroupRolesCount"]);
-
-            return group;
-        }
-
-        private GroupRecord GroupProfileHashtableToGroupRecord(Hashtable groupProfile)
-        {
-
-            GroupRecord group = new GroupRecord();
-            group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
-            group.GroupName = groupProfile["Name"].ToString();
-            if (groupProfile["Charter"] != null)
-            {
-                group.Charter = (string)groupProfile["Charter"];
-            }
-            group.ShowInList = ((string)groupProfile["ShowInList"]) == "1";
-            group.GroupPicture = UUID.Parse((string)groupProfile["InsigniaID"]);
-            group.MembershipFee = int.Parse((string)groupProfile["MembershipFee"]);
-            group.OpenEnrollment = ((string)groupProfile["OpenEnrollment"]) == "1";
-            group.AllowPublish = ((string)groupProfile["AllowPublish"]) == "1";
-            group.MaturePublish = ((string)groupProfile["MaturePublish"]) == "1";
-            group.FounderID = UUID.Parse((string)groupProfile["FounderID"]);
-            group.OwnerRoleID = UUID.Parse((string)groupProfile["OwnerRoleID"]);
-
-            return group;
-        }
 
         public void SetAgentActiveGroup(GroupRequestID requestID, UUID AgentID, UUID GroupID)
         {
@@ -579,40 +613,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         }
 
-        private static GroupMembershipData HashTableToGroupMembershipData(Hashtable respData)
-        {
-            GroupMembershipData data = new GroupMembershipData();
-            data.AcceptNotices = ((string)respData["AcceptNotices"] == "1");
-            data.Contribution = int.Parse((string)respData["Contribution"]);
-            data.ListInProfile = ((string)respData["ListInProfile"] == "1");
 
-            data.ActiveRole = new UUID((string)respData["SelectedRoleID"]);
-            data.GroupTitle = (string)respData["Title"];
-
-            data.GroupPowers = ulong.Parse((string)respData["GroupPowers"]);
-
-            // Is this group the agent's active group
-
-            data.GroupID = new UUID((string)respData["GroupID"]);
-
-            UUID ActiveGroup = new UUID((string)respData["ActiveGroupID"]);
-            data.Active = data.GroupID.Equals(ActiveGroup);
-
-            data.AllowPublish = ((string)respData["AllowPublish"] == "1");
-            if (respData["Charter"] != null)
-            {
-                data.Charter = (string)respData["Charter"];
-            }
-            data.FounderID = new UUID((string)respData["FounderID"]);
-            data.GroupID = new UUID((string)respData["GroupID"]);
-            data.GroupName = (string)respData["GroupName"];
-            data.GroupPicture = new UUID((string)respData["InsigniaID"]);
-            data.MaturePublish = ((string)respData["MaturePublish"] == "1");
-            data.MembershipFee = int.Parse((string)respData["MembershipFee"]);
-            data.OpenEnrollment = ((string)respData["OpenEnrollment"] == "1");
-            data.ShowInList = ((string)respData["ShowInList"] == "1");
-            return data;
-        }
 
         public List<GroupMembersData> GetGroupMembers(GroupRequestID requestID, UUID GroupID)
         {
@@ -744,7 +745,96 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             XmlRpcCall(requestID, "groups.addGroupNotice", param);
         }
+        #endregion
 
+        #region XmlRpcHashtableMarshalling
+        private GroupProfileData GroupProfileHashtableToGroupProfileData(Hashtable groupProfile)
+        {
+            GroupProfileData group = new GroupProfileData();
+            group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
+            group.Name = (string)groupProfile["Name"];
+
+            if (groupProfile["Charter"] != null)
+            {
+                group.Charter = (string)groupProfile["Charter"];
+            }
+
+            group.ShowInList = ((string)groupProfile["ShowInList"]) == "1";
+            group.InsigniaID = UUID.Parse((string)groupProfile["InsigniaID"]);
+            group.MembershipFee = int.Parse((string)groupProfile["MembershipFee"]);
+            group.OpenEnrollment = ((string)groupProfile["OpenEnrollment"]) == "1";
+            group.AllowPublish = ((string)groupProfile["AllowPublish"]) == "1";
+            group.MaturePublish = ((string)groupProfile["MaturePublish"]) == "1";
+            group.FounderID = UUID.Parse((string)groupProfile["FounderID"]);
+            group.OwnerRole = UUID.Parse((string)groupProfile["OwnerRoleID"]);
+
+            group.GroupMembershipCount = int.Parse((string)groupProfile["GroupMembershipCount"]);
+            group.GroupRolesCount = int.Parse((string)groupProfile["GroupRolesCount"]);
+
+            return group;
+        }
+
+        private GroupRecord GroupProfileHashtableToGroupRecord(Hashtable groupProfile)
+        {
+
+            GroupRecord group = new GroupRecord();
+            group.GroupID = UUID.Parse((string)groupProfile["GroupID"]);
+            group.GroupName = groupProfile["Name"].ToString();
+            if (groupProfile["Charter"] != null)
+            {
+                group.Charter = (string)groupProfile["Charter"];
+            }
+            group.ShowInList = ((string)groupProfile["ShowInList"]) == "1";
+            group.GroupPicture = UUID.Parse((string)groupProfile["InsigniaID"]);
+            group.MembershipFee = int.Parse((string)groupProfile["MembershipFee"]);
+            group.OpenEnrollment = ((string)groupProfile["OpenEnrollment"]) == "1";
+            group.AllowPublish = ((string)groupProfile["AllowPublish"]) == "1";
+            group.MaturePublish = ((string)groupProfile["MaturePublish"]) == "1";
+            group.FounderID = UUID.Parse((string)groupProfile["FounderID"]);
+            group.OwnerRoleID = UUID.Parse((string)groupProfile["OwnerRoleID"]);
+
+            return group;
+        }
+        private static GroupMembershipData HashTableToGroupMembershipData(Hashtable respData)
+        {
+            GroupMembershipData data = new GroupMembershipData();
+            data.AcceptNotices = ((string)respData["AcceptNotices"] == "1");
+            data.Contribution = int.Parse((string)respData["Contribution"]);
+            data.ListInProfile = ((string)respData["ListInProfile"] == "1");
+
+            data.ActiveRole = new UUID((string)respData["SelectedRoleID"]);
+            data.GroupTitle = (string)respData["Title"];
+
+            data.GroupPowers = ulong.Parse((string)respData["GroupPowers"]);
+
+            // Is this group the agent's active group
+
+            data.GroupID = new UUID((string)respData["GroupID"]);
+
+            UUID ActiveGroup = new UUID((string)respData["ActiveGroupID"]);
+            data.Active = data.GroupID.Equals(ActiveGroup);
+
+            data.AllowPublish = ((string)respData["AllowPublish"] == "1");
+            if (respData["Charter"] != null)
+            {
+                data.Charter = (string)respData["Charter"];
+            }
+            data.FounderID = new UUID((string)respData["FounderID"]);
+            data.GroupID = new UUID((string)respData["GroupID"]);
+            data.GroupName = (string)respData["GroupName"];
+            data.GroupPicture = new UUID((string)respData["InsigniaID"]);
+            data.MaturePublish = ((string)respData["MaturePublish"] == "1");
+            data.MembershipFee = int.Parse((string)respData["MembershipFee"]);
+            data.OpenEnrollment = ((string)respData["OpenEnrollment"] == "1");
+            data.ShowInList = ((string)respData["ShowInList"] == "1");
+            return data;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Encapsulate the XmlRpc call to standardize security and error handling.
+        /// </summary>
         private Hashtable XmlRpcCall(GroupRequestID requestID, string function, Hashtable param)
         {
             if (requestID == null)
@@ -845,6 +935,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             }
         }
+
 
     }
 

@@ -49,7 +49,7 @@ using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    public class XmlRpcGroupsModule : ISharedRegionModule, IGroupsModule
+    public class GroupsModule : ISharedRegionModule, IGroupsModule
     {
         /// <summary>
         /// ; To use this module, you must specify the following in your OpenSim.ini
@@ -78,7 +78,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private IMessageTransferModule m_msgTransferModule = null;
         
-        private IGroupDataProvider m_groupData = null;
+        private IGroupsServicesConnector m_groupData = null;
 
         class GroupRequestIDInfo
         {
@@ -91,7 +91,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
 
         // Configuration settings
-        private const string m_defaultXmlRpcServiceURL = "http://osflotsam.org/xmlrpc.php";
         private bool m_groupsEnabled = false;
         private bool m_groupNoticesEnabled = true;
         private bool m_debugEnabled = true;
@@ -123,15 +122,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 m_log.InfoFormat("[GROUPS]: Initializing {0}", this.Name);
-
-                string ServiceURL = groupsConfig.GetString("XmlRpcServiceURL", m_defaultXmlRpcServiceURL);
-                bool DisableKeepAlive = groupsConfig.GetBoolean("XmlRpcDisableKeepAlive", false);
-
-                string ServiceReadKey = groupsConfig.GetString("XmlRpcServiceReadKey", string.Empty);
-                string ServiceWriteKey = groupsConfig.GetString("XmlRpcServiceWriteKey", string.Empty);
-
-                m_groupData = new XmlRpcGroupDataProvider(ServiceURL, DisableKeepAlive, ServiceReadKey, ServiceWriteKey);
-                m_log.InfoFormat("[GROUPS]: XmlRpc Service URL set to: {0}", ServiceURL);
 
                 m_groupNoticesEnabled   = groupsConfig.GetBoolean("XmlRpcNoticesEnabled", true);
                 m_debugEnabled          = groupsConfig.GetBoolean("XmlRpcDebugEnabled", true);
@@ -171,6 +161,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 return;
 
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            if (m_groupData == null)
+            {
+                m_groupData = scene.RequestModuleInterface<IGroupsServicesConnector>();
+
+                // No Groups Service Connector, then nothing works...
+                if (m_groupData == null)
+                {
+                    m_groupsEnabled = false;
+                    m_log.Error("[GROUPS]: Could not get IGroupsServicesConnector");
+                    Close();
+                    return;
+                }
+            }
 
             if (m_msgTransferModule == null)
             {
