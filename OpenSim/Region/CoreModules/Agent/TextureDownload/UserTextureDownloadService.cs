@@ -60,22 +60,22 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// currently handle properly as far as I know).  However, this situation should be handled in a more
         /// sophisticated way.
         /// </summary>
-        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
+//        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
 
         /// <summary>
         /// XXX Also going to limit requests for found textures.
         /// </summary>
-        private readonly IRequestLimitStrategy<UUID> foundTextureLimitStrategy
-            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+//        private readonly IRequestLimitStrategy<UUID> foundTextureLimitStrategy
+//            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
-        private readonly IClientAPI m_client;
+//        private readonly IClientAPI m_client;
         private readonly Scene m_scene;
 
         /// <summary>
         /// Texture Senders are placed in this queue once they have received their texture from the asset
         /// cache.  Another module actually invokes the send.
         /// </summary>
-        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_sharedSendersQueue;
+//        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_sharedSendersQueue;
 
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         {
 //            m_client = client;
             m_scene = scene;
-            m_sharedSendersQueue = sharedQueue;
+//            m_sharedSendersQueue = sharedQueue;
         }
 
         /// <summary>

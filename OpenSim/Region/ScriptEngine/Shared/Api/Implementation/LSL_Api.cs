@@ -9032,7 +9032,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Match m = r.Match(url);
             if (m.Success) {
                 for (int i = 1; i < gnums.Length; i++) {
-                    System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
+                    //System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
                     //CaptureCollection cc = g.Captures;
                 }
                 if (m.Groups.Count == 5) {
