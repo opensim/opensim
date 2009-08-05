@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
-        //[Test]
+        [Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
@@ -264,17 +264,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
-            Assert.That(foundItem, Is.Not.Null);
-            Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
-            Assert.That(foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid));
-            Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
+            Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
+            Assert.That(
+                foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 
+                "Loaded item non-uuid creator doesn't match original");
+            Assert.That(
+                foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid), 
+                "Loaded item uuid creator doesn't match original");
+            Assert.That(foundItem.Owner, Is.EqualTo(userUuid),
+                "Loaded item owner doesn't match inventory reciever");
             
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-        /// no account exists with the creator name 
+        /// no account exists with the creator name
         /// </summary>
         //[Test]
         public void TestLoadIarV0_1TempProfiles()
@@ -353,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
         /// </summary>
-        //[Test]
+        [Test]
         public void TestReplicateArchivePathToUserInventory()
         {
             TestHelper.InMethod();
@@ -362,6 +367,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             userInfo.FetchInventory();
+            /*
             for (int i = 0 ; i < 50 ; i++)
             {
                 if (userInfo.HasReceivedInventory == true)
@@ -369,6 +375,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Thread.Sleep(200);
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+            */
+            
+            Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
+            
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
@@ -386,10 +396,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = string.Format(
                     "{0}{1}/{2}/{3}", 
                     ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
+
+            Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
             
             new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
                 .ReplicateArchivePathToUserInventory(itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
-            
+
+            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
             InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
             InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            

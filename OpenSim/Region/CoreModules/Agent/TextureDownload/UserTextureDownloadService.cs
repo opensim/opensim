@@ -45,8 +45,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
     /// </summary>
     public class UserTextureDownloadService
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// True if the service has been closed, probably because a user with texture requests still queued
@@ -61,22 +60,22 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// currently handle properly as far as I know).  However, this situation should be handled in a more
         /// sophisticated way.
         /// </summary>
-        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
+//        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
 
         /// <summary>
         /// XXX Also going to limit requests for found textures.
         /// </summary>
-        private readonly IRequestLimitStrategy<UUID> foundTextureLimitStrategy
-            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+//        private readonly IRequestLimitStrategy<UUID> foundTextureLimitStrategy
+//            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
-        private readonly IClientAPI m_client;
+//        private readonly IClientAPI m_client;
         private readonly Scene m_scene;
 
         /// <summary>
         /// Texture Senders are placed in this queue once they have received their texture from the asset
         /// cache.  Another module actually invokes the send.
         /// </summary>
-        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_sharedSendersQueue;
+//        private readonly OpenSim.Framework.BlockingQueue<ITextureSender> m_sharedSendersQueue;
 
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -88,15 +87,15 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// XXX This is really a temporary solution to deal with the situation where a client continually requests
         /// the same missing textures
         /// </summary>
-        private readonly IRequestLimitStrategy<UUID> missingTextureLimitStrategy
-            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+//        private readonly IRequestLimitStrategy<UUID> missingTextureLimitStrategy
+//            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
         public UserTextureDownloadService(
             IClientAPI client, Scene scene, OpenSim.Framework.BlockingQueue<ITextureSender> sharedQueue)
         {
-            m_client = client;
+//            m_client = client;
             m_scene = scene;
-            m_sharedSendersQueue = sharedQueue;
+//            m_sharedSendersQueue = sharedQueue;
         }
 
         /// <summary>
@@ -231,16 +230,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// Place a ready texture sender on the processing queue.
         /// </summary>
         /// <param name="textureSender"></param>
-        private void EnqueueTextureSender(ITextureSender textureSender)
-        {
-            textureSender.Cancel = false;
-            textureSender.Sending = true;
-
-            if (!m_sharedSendersQueue.Contains(textureSender))
-            {
-                m_sharedSendersQueue.Enqueue(textureSender);
-            }
-        }
+//        private void EnqueueTextureSender(ITextureSender textureSender)
+//        {
+//            textureSender.Cancel = false;
+//            textureSender.Sending = true;
+//
+//            if (!m_sharedSendersQueue.Contains(textureSender))
+//            {
+//                m_sharedSendersQueue.Enqueue(textureSender);
+//            }
+//        }
 
         /// <summary>
         /// Close this module.
