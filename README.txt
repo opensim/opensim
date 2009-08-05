@@ -91,5 +91,3 @@ project can always be found at http://opensimulator.org.
 Thanks for trying OpenSim, we hope it is a pleasant experience.
 
 
-
-
