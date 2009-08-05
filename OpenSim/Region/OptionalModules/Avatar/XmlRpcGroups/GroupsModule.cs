@@ -57,13 +57,18 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// ; To use this module, you must specify the following in your OpenSim.ini
         /// [GROUPS]
         /// Enabled = true
-        /// Module  = XmlRpcGroups
-        /// XmlRpcServiceURL = http://osflotsam.org/xmlrpc.php
-        /// XmlRpcMessagingEnabled = true
-        /// XmlRpcNoticesEnabled = true
-        /// XmlRpcDebugEnabled = true
-        /// XmlRpcServiceReadKey = 1234
+        /// 
+        /// GroupsModule   = GroupsModule
+        /// NoticesEnabled = true
+        /// DebugEnabled   = true
+        /// 
+        /// GroupsServicesConnectorModule = XmlRpcGroupsServicesConnector
+        /// XmlRpcServiceURL      = http://osflotsam.org/xmlrpc.php
+        /// XmlRpcServiceReadKey  = 1234
         /// XmlRpcServiceWriteKey = 1234
+        /// 
+        /// GroupsMessagingModule  = GroupsMessagingModule
+        /// GroupsMessagingEnabled = true
         /// 
         /// ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
         /// ; a problem discovered on some Windows based region servers.  Only disable
@@ -116,7 +121,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     return;
                 }
 
-                if (groupsConfig.GetString("Module", "Default") != "XmlRpcGroups")
+                if (groupsConfig.GetString("Module", "Default") != Name)
                 {
                     m_groupsEnabled = false;
 
@@ -125,8 +130,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 m_log.InfoFormat("[GROUPS]: Initializing {0}", this.Name);
 
-                m_groupNoticesEnabled   = groupsConfig.GetBoolean("XmlRpcNoticesEnabled", true);
-                m_debugEnabled          = groupsConfig.GetBoolean("XmlRpcDebugEnabled", true);
+                m_groupNoticesEnabled   = groupsConfig.GetBoolean("NoticesEnabled", true);
+                m_debugEnabled          = groupsConfig.GetBoolean("DebugEnabled", true);
 
                 m_clientRequestIDFlushTimer.Interval = m_clientRequestIDFlushTimeOut;
                 m_clientRequestIDFlushTimer.Elapsed += FlushClientRequestIDInfoCache;
@@ -224,7 +229,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (!m_groupsEnabled)
                 return;
 
-            if (m_debugEnabled) m_log.Debug("[GROUPS]: Shutting down XmlRpcGroups module.");
+            if (m_debugEnabled) m_log.Debug("[GROUPS]: Shutting down Groups module.");
 
             m_clientRequestIDFlushTimer.Stop();
         }
@@ -236,7 +241,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public string Name
         {
-            get { return "XmlRpcGroupsModule"; }
+            get { return "GroupsModule"; }
         }
 
         #endregion
