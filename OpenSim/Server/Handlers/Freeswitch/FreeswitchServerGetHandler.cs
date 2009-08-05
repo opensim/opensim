@@ -46,12 +46,12 @@ namespace OpenSim.Server.Handlers.Freeswitch
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IFreeswitchService m_FreeswitchService;
+        //private IFreeswitchService m_FreeswitchService;
 
         public FreeswitchServerGetHandler(IFreeswitchService service) :
                 base("GET", "/api")
         {
-            m_FreeswitchService = service;
+            //m_FreeswitchService = service;
         }
 
         public override byte[] Handle(string path, Stream request,

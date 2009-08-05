@@ -9033,7 +9033,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (m.Success) {
                 for (int i = 1; i < gnums.Length; i++) {
                     System.Text.RegularExpressions.Group g = m.Groups[gnums[i]];
-                    CaptureCollection cc = g.Captures;
+                    //CaptureCollection cc = g.Captures;
                 }
                 if (m.Groups.Count == 5) {
                     httpHeaders["Authorization"] = String.Format("Basic {0}", Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(m.Groups[2].ToString() + ":" + m.Groups[3].ToString())));

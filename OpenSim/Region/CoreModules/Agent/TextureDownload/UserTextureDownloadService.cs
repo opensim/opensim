@@ -45,8 +45,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
     /// </summary>
     public class UserTextureDownloadService
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// True if the service has been closed, probably because a user with texture requests still queued
@@ -88,13 +87,13 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// XXX This is really a temporary solution to deal with the situation where a client continually requests
         /// the same missing textures
         /// </summary>
-        private readonly IRequestLimitStrategy<UUID> missingTextureLimitStrategy
-            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
+//        private readonly IRequestLimitStrategy<UUID> missingTextureLimitStrategy
+//            = new RepeatLimitStrategy<UUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
         public UserTextureDownloadService(
             IClientAPI client, Scene scene, OpenSim.Framework.BlockingQueue<ITextureSender> sharedQueue)
         {
-            m_client = client;
+//            m_client = client;
             m_scene = scene;
             m_sharedSendersQueue = sharedQueue;
         }
@@ -231,16 +230,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         /// Place a ready texture sender on the processing queue.
         /// </summary>
         /// <param name="textureSender"></param>
-        private void EnqueueTextureSender(ITextureSender textureSender)
-        {
-            textureSender.Cancel = false;
-            textureSender.Sending = true;
-
-            if (!m_sharedSendersQueue.Contains(textureSender))
-            {
-                m_sharedSendersQueue.Enqueue(textureSender);
-            }
-        }
+//        private void EnqueueTextureSender(ITextureSender textureSender)
+//        {
+//            textureSender.Cancel = false;
+//            textureSender.Sending = true;
+//
+//            if (!m_sharedSendersQueue.Contains(textureSender))
+//            {
+//                m_sharedSendersQueue.Enqueue(textureSender);
+//            }
+//        }
 
         /// <summary>
         /// Close this module.
