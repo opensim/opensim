@@ -3877,6 +3877,8 @@
 
 <!-- /////////////////// END OF INSERTION ///////////////////////////// -->
 
+  <? include file="addon-modules/*/prebuild.xml" ?>
+
   </Solution>
 
   <!-- Prebuild tool -->
