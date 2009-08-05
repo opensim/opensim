@@ -264,17 +264,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
-            Assert.That(foundItem, Is.Not.Null);
-            Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
-            Assert.That(foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid));
-            Assert.That(foundItem.Owner, Is.EqualTo(userUuid));            
+            Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
+            Assert.That(
+                foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 
+                "Loaded item non-uuid creator doesn't match original");
+            Assert.That(
+                foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid), 
+                "Loaded item uuid creator doesn't match original");
+            Assert.That(foundItem.Owner, Is.EqualTo(userUuid),
+                "Loaded item owner doesn't match inventory reciever");
             
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
-        /// no account exists with the creator name 
+        /// no account exists with the creator name
         /// </summary>
         //[Test]
         public void TestLoadIarV0_1TempProfiles()
@@ -353,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
         /// </summary>
-        [Test]
+        //[Test]
         public void TestReplicateArchivePathToUserInventory()
         {
             TestHelper.InMethod();
