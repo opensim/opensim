@@ -15,63 +15,6 @@
             
             </summary>
         </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Byte[])">
-            <summary>
-            
-            </summary>
-            <param name="xmlData"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.String)">
-            <summary>
-            
-            </summary>
-            <param name="xmlData"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Xml.XmlTextReader)">
-            <summary>
-            
-            </summary>
-            <param name="xmlData"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlBytes(OpenMetaverse.StructuredData.OSD)">
-            <summary>
-            
-            </summary>
-            <param name="data"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlString(OpenMetaverse.StructuredData.OSD)">
-            <summary>
-            
-            </summary>
-            <param name="data"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlElement(System.Xml.XmlTextWriter,OpenMetaverse.StructuredData.OSD)">
-            <summary>
-            
-            </summary>
-            <param name="writer"></param>
-            <param name="data"></param>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.TryValidateLLSDXml(System.Xml.XmlTextReader,System.String@)">
-            <summary>
-            
-            </summary>
-            <param name="xmlData"></param>
-            <param name="error"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OpenMetaverse.StructuredData.OSDParser.ParseLLSDXmlElement(System.Xml.XmlTextReader)">
-            <summary>
-            
-            </summary>
-            <param name="reader"></param>
-            <returns></returns>
-        </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDBinary(System.Byte[])">
             <summary>
             
@@ -150,6 +93,63 @@
             </summary>
             <param name="intHostEnd"></param>
             <returns></returns>   
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Byte[])">
+            <summary>
+            
+            </summary>
+            <param name="xmlData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="xmlData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDXml(System.Xml.XmlTextReader)">
+            <summary>
+            
+            </summary>
+            <param name="xmlData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlBytes(OpenMetaverse.StructuredData.OSD)">
+            <summary>
+            
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlString(OpenMetaverse.StructuredData.OSD)">
+            <summary>
+            
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.SerializeLLSDXmlElement(System.Xml.XmlTextWriter,OpenMetaverse.StructuredData.OSD)">
+            <summary>
+            
+            </summary>
+            <param name="writer"></param>
+            <param name="data"></param>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.TryValidateLLSDXml(System.Xml.XmlTextReader,System.String@)">
+            <summary>
+            
+            </summary>
+            <param name="xmlData"></param>
+            <param name="error"></param>
+            <returns></returns>
+        </member>
+        <member name="M:OpenMetaverse.StructuredData.OSDParser.ParseLLSDXmlElement(System.Xml.XmlTextReader)">
+            <summary>
+            
+            </summary>
+            <param name="reader"></param>
+            <returns></returns>
         </member>
         <member name="M:OpenMetaverse.StructuredData.OSDParser.DeserializeLLSDNotationElement(System.IO.StringReader)">
             <summary>

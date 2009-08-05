@@ -4,28 +4,6 @@
         <name>OpenMetaverse.Http</name>
     </assembly>
     <members>
-        <member name="T:OpenMetaverse.Http.Logger">
-            <summary>
-            Singleton logging class for the entire library
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Http.Logger.Log">
-            <summary>log4net logging engine</summary>
-        </member>
-        <member name="F:OpenMetaverse.Http.log4netLogWriter.Instance">
-            <summary>
-            Singleton instance of this class
-            </summary>
-        </member>
-        <member name="F:OpenMetaverse.Http.EventQueueClient.REQUEST_TIMEOUT">
-            <summary>=</summary>
-        </member>
-        <member name="F:OpenMetaverse.Http.EventQueueClient._errorCount">
-            <summary>Number of times we've received an unknown CAPS exception in series.</summary>
-        </member>
-        <member name="F:OpenMetaverse.Http.EventQueueClient._random">
-            <summary>For exponential backoff on error.</summary>
-        </member>
         <member name="F:OpenMetaverse.Http.EventQueueServer.CONNECTION_TIMEOUT">
             <summary>The number of milliseconds to wait before the connection times out
             and an empty response is sent to the client. This value should be higher
@@ -44,6 +22,19 @@
             events and never sending a response if there is a constant stream of new 
             events</summary>
         </member>
+        <member name="T:OpenMetaverse.Http.Logger">
+            <summary>
+            Singleton logging class for the entire library
+            </summary>
+        </member>
+        <member name="F:OpenMetaverse.Http.Logger.Log">
+            <summary>log4net logging engine</summary>
+        </member>
+        <member name="F:OpenMetaverse.Http.log4netLogWriter.Instance">
+            <summary>
+            Singleton instance of this class
+            </summary>
+        </member>
         <member name="T:OpenMetaverse.Http.CapsRequestCallback">
             <summary>
             Delegate for handling incoming HTTP requests through a capability
@@ -52,6 +43,15 @@
             <param name="request">HTTP request</param>
             <param name="response">HTTP response</param>
             <param name="state">User-defined state object</param>
+        </member>
+        <member name="F:OpenMetaverse.Http.EventQueueClient.REQUEST_TIMEOUT">
+            <summary>=</summary>
+        </member>
+        <member name="F:OpenMetaverse.Http.EventQueueClient._errorCount">
+            <summary>Number of times we've received an unknown CAPS exception in series.</summary>
+        </member>
+        <member name="F:OpenMetaverse.Http.EventQueueClient._random">
+            <summary>For exponential backoff on error.</summary>
         </member>
     </members>
 </doc>
