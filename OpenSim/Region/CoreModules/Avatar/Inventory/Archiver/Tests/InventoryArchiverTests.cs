@@ -376,6 +376,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
             */
+            
+            Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
+            
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
@@ -393,11 +396,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = string.Format(
                     "{0}{1}/{2}/{3}", 
                     ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
+
+            Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
             
             new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
                 .ReplicateArchivePathToUserInventory(itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
 
-            Console.WriteLine("userInfo.RootFolder: {0}", userInfo.RootFolder);
+            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
             InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
             InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
