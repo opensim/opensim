@@ -3877,7 +3877,7 @@
 
 <!-- /////////////////// END OF INSERTION ///////////////////////////// -->
 
-  <? include file="addon-modules/*/prebuild.xml" ?>
+  <?include file="addon-modules/*/prebuild.xml" ?>
 
   </Solution>
 
