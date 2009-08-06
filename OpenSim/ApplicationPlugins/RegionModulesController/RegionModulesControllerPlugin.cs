@@ -149,25 +149,126 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
         public void AddRegionToModules (Scene scene)
         {
+            Dictionary<Type, ISharedRegionModule> deferredSharedModules =
+                    new Dictionary<Type, ISharedRegionModule>();
+            Dictionary<Type, INonSharedRegionModule> deferredNonSharedModules =
+                    new Dictionary<Type, INonSharedRegionModule>();
+
+            Type s = scene.GetType();
+            MethodInfo mi = s.GetMethod("RequestModuleInterface");
+
+            List<ISharedRegionModule> sharedlist = new List<ISharedRegionModule>();
             foreach (ISharedRegionModule module in m_sharedInstances)
             {
+                Type replaceableInterface = module.ReplacableInterface;
+                if (replaceableInterface != null)
+                {
+                    MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
+
+                    if (mii.Invoke(scene, new object[0]) != null)
+                    {
+                        m_log.DebugFormat("[REGIONMODULE]: Not loading {0} because another module has registered {1}", module.Name, replaceableInterface.ToString());
+                        continue;
+                    }
+
+                    deferredSharedModules[replaceableInterface] = module;
+                    m_log.DebugFormat("[REGIONMODULE]: Deferred load of {0}", module.Name);
+                    continue;
+                }
+
                 m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to shared module {1}",
                                   scene.RegionInfo.RegionName, module.Name);
+
                 module.AddRegion(scene);
                 scene.AddRegionModule(module.Name, module);
+
+                sharedlist.Add(module);
             }
 
             List<INonSharedRegionModule> list = new List<INonSharedRegionModule>();
             foreach (Type type in m_nonSharedModules)
             {
                 INonSharedRegionModule module = (INonSharedRegionModule)Activator.CreateInstance(type);
+
+                Type replaceableInterface = module.ReplacableInterface;
+                if (replaceableInterface != null)
+                {
+                    MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
+
+                    if (mii.Invoke(scene, new object[0]) != null)
+                    {
+                        m_log.DebugFormat("[REGIONMODULE]: Not loading {0} because another module has registered {1}", module.Name, replaceableInterface.ToString());
+                        continue;
+                    }
+
+                    deferredNonSharedModules[replaceableInterface] = module;
+                    m_log.DebugFormat("[REGIONMODULE]: Deferred load of {0}", module.Name);
+                    continue;
+                }
+
                 m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to non-shared module {1}",
                                   scene.RegionInfo.RegionName, module.Name);
+
                 module.Initialise(m_openSim.ConfigSource.Source);
+
                 list.Add(module);
             }
 
             foreach (INonSharedRegionModule module in list)
+            {
+                module.AddRegion(scene);
+                scene.AddRegionModule(module.Name, module);
+            }
+
+            // Now all modules without a replaceable base interface are loaded
+            // Replaceable modules have either been skipped, or omitted.
+            // Now scan the deferred modules here
+
+            foreach (ISharedRegionModule module in deferredSharedModules.Values)
+            {
+                Type replaceableInterface = module.ReplacableInterface;
+                MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
+
+                if (mii.Invoke(scene, new object[0]) != null)
+                {
+                    m_log.DebugFormat("[REGIONMODULE]: Not loading {0} because another module has registered {1}", module.Name, replaceableInterface.ToString());
+                    continue;
+                }
+
+                m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to shared module {1} (deferred)",
+                                  scene.RegionInfo.RegionName, module.Name);
+
+                module.AddRegion(scene);
+                scene.AddRegionModule(module.Name, module);
+
+                sharedlist.Add(module);
+            }
+
+            List<INonSharedRegionModule> deferredlist = new List<INonSharedRegionModule>();
+            foreach (INonSharedRegionModule module in deferredNonSharedModules.Values)
+            {
+                Type replaceableInterface = module.ReplacableInterface;
+                if (replaceableInterface != null)
+                {
+                    MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
+
+                    if (mii.Invoke(scene, new object[0]) != null)
+                    {
+                        m_log.DebugFormat("[REGIONMODULE]: Not loading {0} because another module has registered {1}", module.Name, replaceableInterface.ToString());
+                        continue;
+                    }
+                }
+
+                m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to non-shared module {1} (deferred)",
+                                  scene.RegionInfo.RegionName, module.Name);
+
+                module.Initialise(m_openSim.ConfigSource.Source);
+
+                list.Add(module);
+                deferredlist.Add(module);
+            }
+
+            foreach (INonSharedRegionModule module in deferredlist)
             {
                 module.AddRegion(scene);
                 scene.AddRegionModule(module.Name, module);
@@ -183,7 +284,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             // and unneccessary caching logic repeated in all modules.
             // The extra function stub is just that much cleaner
             //
-            foreach (ISharedRegionModule module in m_sharedInstances)
+            foreach (ISharedRegionModule module in sharedlist)
             {
                 module.RegionLoaded(scene);
             }
