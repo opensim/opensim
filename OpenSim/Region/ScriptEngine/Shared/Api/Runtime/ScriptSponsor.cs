@@ -32,15 +32,19 @@ using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Api.Runtime
 {
-    [Serializable]
     public class ScriptSponsor : MarshalByRefObject, ISponsor
     {
-        // In theory: I execute, therefore I am.
-        // If GC collects this class then sponsorship will expire
+        private bool m_closed = false;
+
         public TimeSpan Renewal(ILease lease)
         {
-            return TimeSpan.FromMinutes(2);
+            if (!m_closed)
+                return lease.InitialLeaseTime;
+            return TimeSpan.FromTicks(0);
         }
+
+        public void Close() { m_closed = true; }
+
 #if DEBUG
         // For tracing GC while debugging
         public static bool GCDummy = false;

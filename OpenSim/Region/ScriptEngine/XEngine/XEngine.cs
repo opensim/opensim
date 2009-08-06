@@ -272,6 +272,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     instance.ClearQueue();
                     instance.Stop(0);
 
+                    // Release events, timer, etc
+                    //
+                    instance.DestroyScriptInstance();
+
                     // Unload scripts and app domains
                     // Must be done explicitly because they have infinite
                     // lifetime
@@ -282,10 +286,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         m_DomainScripts.Remove(instance.AppDomain);
                         UnloadAppDomain(instance.AppDomain);
                     }
-
-                    // Release events, timer, etc
-                    //
-                    instance.DestroyScriptInstance();
                 }
                 m_Scripts.Clear();
                 m_PrimObjects.Clear();
@@ -802,15 +802,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     }
                 }
 
+                instance.RemoveState();
+                instance.DestroyScriptInstance();
+
                 m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
                 if (m_DomainScripts[instance.AppDomain].Count == 0)
                 {
                     m_DomainScripts.Remove(instance.AppDomain);
                     UnloadAppDomain(instance.AppDomain);
                 }
-
-                instance.RemoveState();
-                instance.DestroyScriptInstance();
 
                 instance = null;
 

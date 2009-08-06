@@ -3673,14 +3673,14 @@ if (m_shape != null) {
                 return;
             }
 
-            if ((GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
-            {
-                m_parentGroup.Scene.EventManager.OnScriptTimerEvent += handleTimerAccounting;
-            }
-            else
-            {
-                m_parentGroup.Scene.EventManager.OnScriptTimerEvent -= handleTimerAccounting;
-            }
+            //if ((GetEffectiveObjectFlags() & (uint)PrimFlags.Scripted) != 0)
+            //{
+            //    m_parentGroup.Scene.EventManager.OnScriptTimerEvent += handleTimerAccounting;
+            //}
+            //else
+            //{
+            //    m_parentGroup.Scene.EventManager.OnScriptTimerEvent -= handleTimerAccounting;
+            //}
 
             LocalFlags=(PrimFlags)objectflagupdate;
 
