@@ -41,8 +41,8 @@ namespace OpenSim.Data.SQLite.Tests
         [TestFixtureSetUp]
         public void Init()
         {
-            // SQLite doesn't work on power linux
-            if (Directory.Exists("/proc/ppc64"))
+            // SQLite doesn't work on power or z linux
+            if (Directory.Exists("/proc/ppc64") || Directory.Exists("/proc/dasd"))
             {
                 Assert.Ignore();
             }
