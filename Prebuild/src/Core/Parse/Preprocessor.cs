@@ -609,6 +609,7 @@ namespace Prebuild.Core.Parse
             {
                 string[] directories = Directory.GetDirectories(preWildcard);
                 Array.Sort(directories);
+                Array.Reverse(directories);
                 foreach (string dirPath in directories )
                 {
                     Console.WriteLine("Scanning : {0}", dirPath);
@@ -642,6 +643,7 @@ namespace Prebuild.Core.Parse
 
                 string[] files = Directory.GetFiles(searchDirectory, searchFilename);
                 Array.Sort(files);
+                Array.Reverse(files);
                 foreach (string includeFile in files)
                 {
                     FileInfo file = new FileInfo(includeFile);
