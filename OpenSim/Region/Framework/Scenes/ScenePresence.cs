@@ -1218,9 +1218,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
-            }
-            
-           
+            }                       
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
