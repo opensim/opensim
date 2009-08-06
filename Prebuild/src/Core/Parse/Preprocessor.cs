@@ -607,7 +607,9 @@ namespace Prebuild.Core.Parse
             // If preWildcard is a directory, recurse
             if (Directory.Exists(preWildcard))
             {
-                foreach (string dirPath in Directory.GetDirectories(preWildcard))
+                string[] directories = Directory.GetDirectories(preWildcard);
+                Array.Sort(directories);
+                foreach (string dirPath in directories )
                 {
                     Console.WriteLine("Scanning : {0}", dirPath);
 
@@ -638,7 +640,9 @@ namespace Prebuild.Core.Parse
                 string searchDirectory = Path.GetDirectoryName(preWildcard);
                 // Console.WriteLine("searchDirectory: {0}", searchDirectory);
 
-                foreach (string includeFile in Directory.GetFiles(searchDirectory, searchFilename))
+                string[] files = Directory.GetFiles(searchDirectory, searchFilename);
+                Array.Sort(files);
+                foreach (string includeFile in files)
                 {
                     FileInfo file = new FileInfo(includeFile);
                     if (file.Exists)
