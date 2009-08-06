@@ -1111,5 +1111,56 @@ namespace OpenSim.Framework
             return null;
         }
 
+        public static string[] Glob(string path)
+        {
+            string vol=String.Empty;
+
+            if (Path.VolumeSeparatorChar != Path.DirectorySeparatorChar)
+            {
+                string[] vcomps = path.Split(new char[] {Path.VolumeSeparatorChar}, 2, StringSplitOptions.RemoveEmptyEntries);
+
+                if (vcomps.Length > 1)
+                {
+                    path = vcomps[1];
+                    vol = vcomps[0];
+                }
+            }
+            
+            string[] comps = path.Split(new char[] {Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar}, StringSplitOptions.RemoveEmptyEntries);
+
+            // Glob
+
+            path = vol;
+            if (vol != String.Empty)
+                path += new String(new char[] {Path.VolumeSeparatorChar, Path.DirectorySeparatorChar});
+            else
+                path = new String(new char[] {Path.DirectorySeparatorChar});
+
+            List<string> paths = new List<string>();
+            List<string> found = new List<string>();
+            paths.Add(path);
+
+            foreach (string c in comps)
+            {
+                List<string> addpaths = new List<string>();
+                foreach (string p in paths)
+                {
+                    string[] dirs = Directory.GetDirectories(p, c);
+
+                    if (dirs.Length != 0)
+                    {
+                        foreach (string dir in dirs)
+                            addpaths.Add(Path.Combine(path, dir));
+                    }
+
+                    string[] files = Directory.GetFiles(p, c);
+                    foreach (string f in files)
+                        found.Add(f);
+                }
+                paths = addpaths;
+            }
+
+            return found.ToArray();
+        }
     }
 }
