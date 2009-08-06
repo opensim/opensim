@@ -3867,16 +3867,6 @@
       </Files>
     </Project>
 
-
-<!-- /////////////////// DO NOT EDIT THE BELOW 6 LINES!!!! //////////// -->
-
-
-
-<!-- FORGE MODULE INSERT -->
-
-
-<!-- /////////////////// END OF INSERTION ///////////////////////////// -->
-
   <?include file="addon-modules/*/prebuild.xml" ?>
 
   </Solution>
