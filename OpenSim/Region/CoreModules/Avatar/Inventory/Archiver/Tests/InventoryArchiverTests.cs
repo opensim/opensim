@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
-        [Test]
+        //[Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
@@ -202,7 +202,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// an account exists with the creator name.
         /// </summary>
-        [Test]
+        //[Test]
         public void TestLoadIarV0_1ExistingUsers()
         {   
             TestHelper.InMethod();
@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             CommunicationsManager commsManager = scene.CommsManager;
 
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
-            userInfo.FetchInventory();
+            //userInfo.FetchInventory();
             /*
             for (int i = 0 ; i < 50 ; i++)
             {

@@ -195,7 +195,6 @@ namespace OpenSim.Services.InventoryService
 
             if (skeletonFolders != null)
             {
-
                 InventoryFolderImpl rootFolder = null;
 
                 // Need to retrieve the root folder on the first pass
