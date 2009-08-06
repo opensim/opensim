@@ -39,11 +39,16 @@ namespace OpenSim.Tests.Common.Mock
     /// tests are single threaded.
     /// </summary>
     public class TestInventoryDataPlugin : IInventoryDataPlugin
-    {
+    {           
         /// <value>
-        /// Known inventory folders
+        /// Inventory folders
         /// </value>
         private Dictionary<UUID, InventoryFolderBase> m_folders = new Dictionary<UUID, InventoryFolderBase>();
+
+        //// <value>
+        /// Inventory items
+        /// </value>
+        private Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>();        
 
         /// <value>
         /// User root folders
@@ -99,9 +104,7 @@ namespace OpenSim.Tests.Common.Mock
             }
 
             return folders;
-        }
-
-        public InventoryItemBase getInventoryItem(UUID item) { return null; }
+        }        
 
         public InventoryFolderBase getInventoryFolder(UUID folderId)
         {
@@ -109,15 +112,6 @@ namespace OpenSim.Tests.Common.Mock
             m_folders.TryGetValue(folderId, out folder);
 
             return folder;
-        }
-
-        public void addInventoryItem(InventoryItemBase item) {}
-        public void updateInventoryItem(InventoryItemBase item) {}
-        public void deleteInventoryItem(UUID item) {}
-
-        public InventoryItemBase queryInventoryItem(UUID item)
-        {
-            return null;
         }
 
         public InventoryFolderBase queryInventoryFolder(UUID folderID)
@@ -149,6 +143,29 @@ namespace OpenSim.Tests.Common.Mock
             if (m_folders.ContainsKey(folderId))
                 m_folders.Remove(folderId);
         }
+
+        public void addInventoryItem(InventoryItemBase item) { m_items[item.ID] = item; }
+        
+        public void updateInventoryItem(InventoryItemBase item) { addInventoryItem(item); }
+        
+        public void deleteInventoryItem(UUID itemId) 
+        {
+            if (m_items.ContainsKey(itemId))
+                m_items.Remove(itemId);
+        }
+        
+        public InventoryItemBase getInventoryItem(UUID itemId) 
+        {
+            if (m_items.ContainsKey(itemId))
+                return m_items[itemId];
+            else
+                return null; 
+        }
+
+        public InventoryItemBase queryInventoryItem(UUID item)
+        {
+            return null;
+        }        
 
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID) { return null; }
     }

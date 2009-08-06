@@ -1,0 +1,5 @@
+In this directory you can place addon modules for OpenSim
+
+Each module should be in it's own tree and the root of the tree
+should contain a file named "prebuild.xml", which will be included in the
+main prebuild file.

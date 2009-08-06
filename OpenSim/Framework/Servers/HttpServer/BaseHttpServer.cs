@@ -457,6 +457,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                         // This has to be here to prevent a Linux/Mono crash
                         m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                     }
+                    catch (IOException e)
+                    {
+                        m_log.Warn("[BASE HTTP SERVER] XmlRpcRequest issue: " + e.Message);
+                    }
                     return;
                 }
 
@@ -464,7 +468,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     foreach (string strAccept in request.AcceptTypes)
                     {
-                        if (strAccept.Contains("application/llsd+xml"))
+                        if (strAccept.Contains("application/llsd+xml") ||
+                            strAccept.Contains("application/llsd+json"))
                         {
                             //m_log.Info("[Debug BASE HTTP SERVER]: Found an application/llsd+xml accept header");
                             HandleLLSDRequests(request, response);
@@ -483,12 +488,14 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                     case "application/llsd+xml":
                     case "application/xml+llsd":
+                    case "application/llsd+json":
                         //m_log.Info("[Debug BASE HTTP SERVER]: found a application/llsd+xml content type");
                         HandleLLSDRequests(request, response);
                         return;
 
                     case "text/xml":
                     case "application/xml":
+                    case "application/json":
                     default:
                         //m_log.Info("[Debug BASE HTTP SERVER]: in default handler");
                         // Point of note..  the DoWeHaveA methods check for an EXACT path
@@ -529,9 +536,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // with the minimum first
                 m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
             }
-            catch (EndOfStreamException e)
+            catch (IOException e)
             {
-                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
+                m_log.ErrorFormat("[BASE HTTP SERVER] HandleRequest() threw ", e);
             }
             catch (InvalidOperationException e)
             {
@@ -760,6 +767,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                             // This has to be here to prevent a Linux/Mono crash
                             m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                         }
+                        catch (IOException e)
+                        {
+                            m_log.Warn("[BASE HTTP SERVER] XmlRpcRequest issue: " + e.Message);
+                        }
                     }
                     return;
                     //responseString = "Error";
@@ -793,6 +804,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // This has to be here to prevent a Linux/Mono crash
                     m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                 }
+                catch (IOException e)
+                {
+                    m_log.Warn("[BASE HTTP SERVER] XmlRpcRequest issue: " + e.Message);
+                }
             }
         }
 
@@ -823,7 +838,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             try
             {
-                llsdRequest = OSDParser.DeserializeLLSDXml(requestBody);
+                llsdRequest = OSDParser.Deserialize(requestBody);
             }
             catch (Exception ex)
             {
@@ -873,10 +888,10 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             else
             {
-                response.ContentType = "application/llsd+xml";
-                //m_log.Info("[Debug BASE HTTP SERVER]: Response: " + llsdResponse.ToString());
-                buffer = OSDParser.SerializeLLSDXmlBytes(llsdResponse);
+                // Select an appropriate response format
+                buffer = BuildLLSDResponse(request, response, llsdResponse);
             }
+
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
             response.ContentEncoding = Encoding.UTF8;
@@ -910,6 +925,47 @@ namespace OpenSim.Framework.Servers.HttpServer
                     m_log.WarnFormat("[BASE HTTP SERVER] LLSD issue {0}.\nNOTE: this may be spurious on Linux.", e);
                 }
             }
+        }
+
+        private byte[] BuildLLSDResponse(OSHttpRequest request, OSHttpResponse response, OSD llsdResponse)
+        {
+            if (request.AcceptTypes != null && request.AcceptTypes.Length > 0)
+            {
+                foreach (string strAccept in request.AcceptTypes)
+                {
+                    switch (strAccept)
+                    {
+                        case "application/llsd+xml":
+                        case "application/xml":
+                        case "text/xml":
+                            response.ContentType = strAccept;
+                            return OSDParser.SerializeLLSDXmlBytes(llsdResponse);
+                        case "application/llsd+json":
+                        case "application/json":
+                            response.ContentType = strAccept;
+                            return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(llsdResponse));
+                    }
+                }
+            }
+
+            if (!String.IsNullOrEmpty(request.ContentType))
+            {
+                switch (request.ContentType)
+                {
+                    case "application/llsd+xml":
+                    case "application/xml":
+                    case "text/xml":
+                        response.ContentType = request.ContentType;
+                        return OSDParser.SerializeLLSDXmlBytes(llsdResponse);
+                    case "application/llsd+json":
+                    case "application/json":
+                        response.ContentType = request.ContentType;
+                        return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(llsdResponse));
+                }
+            }
+
+            response.ContentType = "application/llsd+json";
+            return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(llsdResponse));
         }
 
         /// <summary>
@@ -1403,6 +1459,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     // This has to be here to prevent a Linux/Mono crash
                     m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
+                }
+                catch (IOException e)
+                {
+                    m_log.Warn("[BASE HTTP SERVER] XmlRpcRequest issue: " + e.Message);
                 }
             }            
         }

@@ -202,19 +202,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// an account exists with the creator name.
         /// </summary>
-        //[Test]
+        [Test]
         public void TestLoadIarV0_1ExistingUsers()
         {   
             TestHelper.InMethod();
             
-            //log4net.Config.XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
             
             string userFirstName = "Mr";
             string userLastName = "Tiddles";
             UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000555");
-            string user2FirstName = "Lord";
-            string user2LastName = "Lucan";
-            UUID user2Uuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
+            string userItemCreatorFirstName = "Lord";
+            string userItemCreatorLastName = "Lucan";
+            UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             
             string itemName = "b.lsl";
             string archiveItemName
@@ -227,7 +227,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = itemName;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
-            item1.CreatorId = OspResolver.MakeOspa(user2FirstName, user2LastName);
+            item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
             //item1.CreatorId = userUuid.ToString();
             //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
             item1.Owner = UUID.Zero;
@@ -249,13 +249,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             userAdminService.AddUser(
                 userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
             userAdminService.AddUser(
-                user2FirstName, user2LastName, "hampshire", String.Empty, 1000, 1000, user2Uuid);
+                userItemCreatorFirstName, userItemCreatorLastName, "hampshire", 
+                String.Empty, 1000, 1000, userItemCreatorUuid);
             
             archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
 
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
-            userInfo.FetchInventory();
+            //userInfo.FetchInventory();
+            /*
             for (int i = 0 ; i < 50 ; i++)
             {
                 if (userInfo.HasReceivedInventory == true)
@@ -263,18 +265,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Thread.Sleep(200);
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+            */
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
             Assert.That(
                 foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 
                 "Loaded item non-uuid creator doesn't match original");
             Assert.That(
-                foundItem.CreatorIdAsUuid, Is.EqualTo(user2Uuid), 
+                foundItem.CreatorIdAsUuid, Is.EqualTo(userItemCreatorUuid), 
                 "Loaded item uuid creator doesn't match original");
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid),
                 "Loaded item owner doesn't match inventory reciever");
-            
-            Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
         /// <summary>
@@ -367,6 +368,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
             userInfo.FetchInventory();
+            /*
             for (int i = 0 ; i < 50 ; i++)
             {
                 if (userInfo.HasReceivedInventory == true)
@@ -374,6 +376,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Thread.Sleep(200);
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+            */
+            
+            Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
+            
             Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
@@ -391,10 +397,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = string.Format(
                     "{0}{1}/{2}/{3}", 
                     ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
+
+            Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
             
             new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
                 .ReplicateArchivePathToUserInventory(itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
-            
+
+            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
             InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
             InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
