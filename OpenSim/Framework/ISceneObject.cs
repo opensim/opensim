@@ -34,6 +34,7 @@ namespace OpenSim.Framework
     {
         UUID UUID { get; }            
         ISceneObject CloneForNewScene();
+        string ToXml2();
         string ExtraToXmlString();
         void ExtraFromXmlString(string xmlstr);
         string GetStateSnapshot();

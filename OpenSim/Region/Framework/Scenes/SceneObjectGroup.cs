@@ -37,6 +37,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -3364,6 +3365,11 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup sog = Copy(this.OwnerID, this.GroupID, false);
             sog.m_isDeleted = false;
             return sog;
+        }
+
+        public virtual string ToXml2()
+        {
+            return SceneObjectSerializer.ToXml2Format(this);
         }
 
         public virtual string ExtraToXmlString()
