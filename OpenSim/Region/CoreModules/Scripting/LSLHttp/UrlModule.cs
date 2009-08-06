@@ -60,9 +60,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
     public class UrlModule : ISharedRegionModule, IUrlModule
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, UrlData> m_RequestMap =
                 new Dictionary<UUID, UrlData>();

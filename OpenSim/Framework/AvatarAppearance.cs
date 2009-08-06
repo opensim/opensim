@@ -38,8 +38,7 @@ namespace OpenSim.Framework
 {
     public class AvatarAppearance
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // these are guessed at by the list here -
         // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll

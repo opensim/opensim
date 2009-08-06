@@ -1369,3 +1369,11 @@
     ; config-include/GridCommon.ini.example (if you're connected to a grid)
     ; Copy to your own .ini there (without .example extension) and edit it
     ; to customize your data
+
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; The below pulls in optional module config files
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+[Modules]
+    Include-modules = "addon-modules/*/config/*.ini"

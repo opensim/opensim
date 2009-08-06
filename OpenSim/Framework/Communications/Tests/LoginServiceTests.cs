@@ -90,8 +90,8 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
             // We want to use our own LoginService for this test, one that
             // doesn't require authentication.
-            LoginService loginService = new LLStandaloneLoginService((UserManagerBase)m_commsManager.UserService, "Hello folks", new TestInventoryService(),
-                 m_commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), m_regionConnector);
+            new LLStandaloneLoginService((UserManagerBase)m_commsManager.UserService, "Hello folks", new TestInventoryService(),
+                m_commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), m_regionConnector);
 
             Hashtable loginParams = new Hashtable();
             loginParams["first"] = m_firstName;

@@ -2863,7 +2863,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //if ((framecount % m_randomizeWater) == 0)
                                    // randomizeWater(waterlevel);
 
-                                int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
+                                //int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
+                                m_rayCastManager.ProcessQueuedRequests();
 
                                 collision_optimized(timeStep);
 

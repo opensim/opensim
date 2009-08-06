@@ -188,10 +188,11 @@ namespace OpenSim
                         {
                             string path = Path.GetFullPath(
                                     Path.Combine(Util.configDir(), file));
-                            if (File.Exists(path))
+                            string[] paths = Util.Glob(path);
+                            foreach (string p in paths)
                             {
-                                if (!sources.Contains(path))
-                                    sources.Add(path);
+                                if (!sources.Contains(p))
+                                    sources.Add(p);
                             }
                         }
                     }

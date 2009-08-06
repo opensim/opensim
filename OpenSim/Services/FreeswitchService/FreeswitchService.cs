@@ -38,9 +38,7 @@ namespace OpenSim.Services.FreeswitchService
 {
     public class FreeswitchService : FreeswitchServiceBase, IFreeswitchService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public FreeswitchService(IConfigSource config) : base(config)
         {
