@@ -58,7 +58,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// [GROUPS]
         /// Enabled = true
         /// 
-        /// GroupsModule   = GroupsModule
+        /// Module   = GroupsModule
         /// NoticesEnabled = true
         /// DebugEnabled   = true
         /// 
@@ -67,8 +67,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         /// XmlRpcServiceReadKey  = 1234
         /// XmlRpcServiceWriteKey = 1234
         /// 
-        /// GroupsMessagingModule  = GroupsMessagingModule
-        /// GroupsMessagingEnabled = true
+        /// MessagingModule  = GroupsMessagingModule
+        /// MessagingEnabled = true
         /// 
         /// ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
         /// ; a problem discovered on some Windows based region servers.  Only disable
