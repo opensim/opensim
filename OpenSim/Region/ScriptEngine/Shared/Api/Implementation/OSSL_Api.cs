@@ -105,7 +105,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     public class OSSL_Api : MarshalByRefObject, IOSSL_Api, IScriptApi
     {
         internal IScriptEngine m_ScriptEngine;
-        internal ILSL_Api m_LSL_Api; // get a reference to the LSL API so we can call methods housed there
+        internal ILSL_Api m_LSL_Api = null; // get a reference to the LSL API so we can call methods housed there
         internal SceneObjectPart m_host;
         internal uint m_localID;
         internal UUID m_itemID;
@@ -181,6 +181,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal void OSSLError(string msg)
         {
             throw new Exception("OSSL Runtime Error: " + msg);
+        }
+
+        private void InitLSL()
+        {
+            if (m_LSL_Api != null)
+                return;
+
+            m_LSL_Api = (ILSL_Api)m_ScriptEngine.GetApi(m_itemID, "LSL");
         }
 
         //
