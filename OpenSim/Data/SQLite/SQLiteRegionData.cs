@@ -571,7 +571,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                double[,] terret = new double[256,256];
+                double[,] terret = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
                 terret.Initialize();
 
                 String sql = "select RegionUUID, Revision, Heightfield from terrain" +
@@ -589,9 +589,9 @@ namespace OpenSim.Data.SQLite
                             // TODO: put this into a function
                             MemoryStream str = new MemoryStream((byte[]) row["Heightfield"]);
                             BinaryReader br = new BinaryReader(str);
-                            for (int x = 0; x < 256; x++)
+                            for (int x = 0; x < (int)Constants.RegionSize; x++)
                             {
-                                for (int y = 0; y < 256; y++)
+                                for (int y = 0; y < (int)Constants.RegionSize; y++)
                                 {
                                     terret[x, y] = br.ReadDouble();
                                 }
@@ -1427,12 +1427,12 @@ namespace OpenSim.Data.SQLite
         /// <returns></returns>
         private static Array serializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream(65536*sizeof (double));
+            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) *sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
+            for (int x = 0; x < (int)Constants.RegionSize; x++)
+                for (int y = 0; y < (int)Constants.RegionSize; y++)
                     bw.Write(val[x, y]);
 
             return str.ToArray();
@@ -1443,12 +1443,12 @@ namespace OpenSim.Data.SQLite
 //             row["RegionUUID"] = regionUUID;
 //             row["Revision"] = rev;
 
-//             MemoryStream str = new MemoryStream(65536*sizeof (double));
+        //             MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize )*sizeof (double));
 //             BinaryWriter bw = new BinaryWriter(str);
 
 //             // TODO: COMPATIBILITY - Add byte-order conversions
-//             for (int x = 0; x < 256; x++)
-//                 for (int y = 0; y < 256; y++)
+        //             for (int x = 0; x < (int)Constants.RegionSize; x++)
+        //                 for (int y = 0; y < (int)Constants.RegionSize; y++)
 //                     bw.Write(val[x, y]);
 
 //             row["Heightfield"] = str.ToArray();

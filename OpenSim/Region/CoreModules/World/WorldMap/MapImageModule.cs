@@ -33,6 +33,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -97,7 +98,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             terrainRenderer.Initialise(m_scene, m_config);
 
-            Bitmap mapbmp = new Bitmap(256, 256);
+            Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize);
             //long t = System.Environment.TickCount;
             //for (int i = 0; i < 10; ++i) {
                 terrainRenderer.TerrainToBitmap(mapbmp);

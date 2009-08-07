@@ -485,7 +485,7 @@ ELSE
         /// <returns></returns>
         public double[,] LoadTerrain(UUID regionID)
         {
-            double[,] terrain = new double[256, 256];
+            double[,] terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
             terrain.Initialize();
 
             string sql = "select top 1 RegionUUID, Revision, Heightfield from terrain where RegionUUID = @RegionUUID order by Revision desc";
@@ -502,9 +502,9 @@ ELSE
                     {
                         MemoryStream str = new MemoryStream((byte[])reader["Heightfield"]);
                         BinaryReader br = new BinaryReader(str);
-                        for (int x = 0; x < 256; x++)
+                        for (int x = 0; x < (int)Constants.RegionSize; x++)
                         {
-                            for (int y = 0; y < 256; y++)
+                            for (int y = 0; y < (int)Constants.RegionSize; y++)
                             {
                                 terrain[x, y] = br.ReadDouble();
                             }
@@ -749,12 +749,12 @@ VALUES
         /// <returns></returns>
         private static Array serializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream(65536 * sizeof(double));
+            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) * sizeof(double));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
+            for (int x = 0; x < (int)Constants.RegionSize; x++)
+                for (int y = 0; y < (int)Constants.RegionSize; y++)
                 {
                     double height = val[x, y];
                     if (height == 0.0)
