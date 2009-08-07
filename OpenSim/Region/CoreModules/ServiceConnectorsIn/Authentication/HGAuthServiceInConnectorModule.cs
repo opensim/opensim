@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication
             if (!m_Registered)
             {
                 m_Registered = true;
-                new HGAuthServiceInConnector(m_Config, MainServer.Instance);
+                new HGAuthServiceInConnector(m_Config, MainServer.Instance, scene);
 
                 //Object[] args = new Object[] { m_Config, scene.CommsManager.HttpServer };
                 //ServerUtils.LoadPlugin<IAuthenticationService>("OpenSim.Server.Handlers.dll:HGAuthServiceInConnector", args);
