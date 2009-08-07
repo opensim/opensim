@@ -1155,10 +1155,7 @@ namespace OpenSim.Framework
 
                     string[] files = Directory.GetFiles(p, c);
                     foreach (string f in files)
-                    {
-                        m_log.InfoFormat("Adding file {0} to include list", f);
                         found.Add(f);
-                    }
                 }
                 paths = addpaths;
             }
