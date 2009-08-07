@@ -34,7 +34,7 @@ using OpenSim.Framework;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    interface IGroupDataProvider
+    interface IGroupsServicesConnector
     {
         UUID CreateGroup(GroupRequestID requestID, string name, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish, UUID founderID);
         void UpdateGroup(GroupRequestID requestID, UUID groupID, string charter, bool showInList, UUID insigniaID, int membershipFee, bool openEnrollment, bool allowPublish, bool maturePublish);

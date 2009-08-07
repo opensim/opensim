@@ -31,6 +31,7 @@ using System.Reflection;
 
 
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 
 using OpenMetaverse;
@@ -46,7 +47,8 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 {
-    public class XmlRpcGroupsMessaging : ISharedRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class GroupsMessagingModule : ISharedRegionModule
     {
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -57,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private IGroupsModule m_groupsModule = null;
 
-        // TODO: Move this off to the xmlrpc server
+        // TODO: Move this off to the Groups Server
         public Dictionary<Guid, List<Guid>> m_agentsInGroupSession = new Dictionary<Guid, List<Guid>>();
         public Dictionary<Guid, List<Guid>> m_agentsDroppedSession = new Dictionary<Guid, List<Guid>>();
 
@@ -79,31 +81,28 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             else
             {
-                if (!groupsConfig.GetBoolean("Enabled", false))
-                {
-                    return;
-                }
-
-                if (groupsConfig.GetString("Module", "Default") != "XmlRpcGroups")
+                // if groups aren't enabled, we're not needed.
+                // if we're not specified as the connector to use, then we're not wanted
+                if ((groupsConfig.GetBoolean("Enabled", false) == false)
+                     || (groupsConfig.GetString("MessagingModule", "Default") != Name))
                 {
                     m_groupMessagingEnabled = false;
-
                     return;
                 }
 
-                m_groupMessagingEnabled = groupsConfig.GetBoolean("XmlRpcMessagingEnabled", true);
+                m_groupMessagingEnabled = groupsConfig.GetBoolean("MessagingEnabled", true);
 
                 if (!m_groupMessagingEnabled)
                 {
                     return;
                 }
 
-                m_log.Info("[GROUPS-MESSAGING]: Initializing XmlRpcGroupsMessaging");
+                m_log.Info("[GROUPS-MESSAGING]: Initializing GroupsMessagingModule");
 
-                m_debugEnabled = groupsConfig.GetBoolean("XmlRpcDebugEnabled", true);
+                m_debugEnabled = groupsConfig.GetBoolean("DebugEnabled", true);
             }
 
-            m_log.Info("[GROUPS-MESSAGING]: XmlRpcGroupsMessaging starting up");
+            m_log.Info("[GROUPS-MESSAGING]: GroupsMessagingModule starting up");
 
         }
 
@@ -123,7 +122,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // No groups module, no groups messaging
             if (m_groupsModule == null)
             {
-                m_log.Error("[GROUPS-MESSAGING]: Could not get IGroupsModule, XmlRpcGroupsMessaging is now disabled.");
+                m_log.Error("[GROUPS-MESSAGING]: Could not get IGroupsModule, GroupsMessagingModule is now disabled.");
                 Close();
                 m_groupMessagingEnabled = false;
                 return;
@@ -163,7 +162,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (!m_groupMessagingEnabled)
                 return;
 
-            if (m_debugEnabled) m_log.Debug("[GROUPS-MESSAGING]: Shutting down XmlRpcGroupsMessaging module.");
+            if (m_debugEnabled) m_log.Debug("[GROUPS-MESSAGING]: Shutting down GroupsMessagingModule module.");
 
             foreach (Scene scene in m_sceneList)
             {
@@ -184,7 +183,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         public string Name
         {
-            get { return "XmlRpcGroupsMessaging"; }
+            get { return "GroupsMessagingModule"; }
         }
 
         #endregion
