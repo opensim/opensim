@@ -32,6 +32,7 @@ using OpenSim.Region.OptionalModules.Scripting.Minimodule.Object;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
+    [Serializable]
     public class TouchEventArgs : EventArgs
     {
         public IAvatar Avatar;

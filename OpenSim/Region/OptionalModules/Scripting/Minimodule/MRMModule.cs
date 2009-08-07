@@ -164,16 +164,23 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             }
         }
 
+        public void GetGlobalEnvironment(uint localID, out IWorld world, out IHost host)
+        {
+            world = new World(m_scene);
+            host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions), m_microthreads);
+        }
+
         public void InitializeMRM(MRMBase mmb, uint localID, UUID itemID)
         {
 
             m_log.Info("[MRM] Created MRM Instance");
 
-            IWorld m_world = new World(m_scene);
-            IHost m_host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions),
-                                    m_microthreads);
+            IWorld world;
+            IHost host;
 
-            mmb.InitMiniModule(m_world, m_host, itemID);
+            GetGlobalEnvironment(localID, out world, out host);
+
+            mmb.InitMiniModule(world, host, itemID);
         }
 
         public void PostInitialise()
