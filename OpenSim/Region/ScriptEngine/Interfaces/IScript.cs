@@ -41,5 +41,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         Dictionary<string,Object> GetVars();
         void SetVars(Dictionary<string,Object> vars);
         void ResetVars();
+
+        void Close();
     }
 }

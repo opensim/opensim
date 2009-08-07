@@ -953,11 +953,12 @@ namespace OpenSim.Region.Framework.Scenes
         // this lets us keep track of nasty script events like timer, etc.
         public void TriggerTimerEvent(uint objLocalID, double Interval)
         {
-            handlerScriptTimerEvent = OnScriptTimerEvent;
-            if (handlerScriptTimerEvent != null)
-            {
-                handlerScriptTimerEvent(objLocalID, Interval);
-            }
+            throw new NotImplementedException("TriggerTimerEvent was thought to be not used anymore and the registration for the event from scene object part has been commented out due to a memory leak");
+            //handlerScriptTimerEvent = OnScriptTimerEvent;
+            //if (handlerScriptTimerEvent != null)
+            //{
+            //    handlerScriptTimerEvent(objLocalID, Interval);
+            //}
         }
 
         /// <summary>

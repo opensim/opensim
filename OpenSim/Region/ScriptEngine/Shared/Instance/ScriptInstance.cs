@@ -96,7 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_CurrentState = String.Empty;
         private UUID m_RegionID = UUID.Zero;
 
-        //private ISponsor m_ScriptSponsor;
+        private ScriptSponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
 
@@ -261,12 +261,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     Path.GetFileNameWithoutExtension(assembly),
                     "SecondLife.Script");
 
-                // Add a sponsor to the script
-//                ISponsor scriptSponsor = new ScriptSponsor();
-//                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
-//                lease.Register(scriptSponsor);
-                //m_ScriptSponsor = scriptSponsor;
-
+                m_ScriptSponsor = new ScriptSponsor();
+                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+                lease.Register(m_ScriptSponsor);
             }
             catch (Exception)
             {
@@ -366,6 +363,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 //                // m_log.ErrorFormat("[Script] Unable to load script state, file not found");
             }
+        }
+
+        ~ScriptInstance()
+        {
+            m_Script.Close();
+            m_ScriptSponsor.Close();
+            ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+            lease.Unregister(m_ScriptSponsor);
         }
 
         public void Init()
@@ -884,6 +889,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState(string assembly)
         {
+
+
             // If we're currently in an event, just tell it to save upon return
             //
             if (m_InEvent)
