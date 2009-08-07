@@ -88,6 +88,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     //            cause crashes with potential data loss, or can be used to
     //            trick experienced and cautious users into unwanted situations,
     //            or changes global data permanently and without undo ability
+    //            Malicious scripting can allow theft of content
     //
     // VeryHigh - Even normal use may, depending on the number of instances,
     //            or frequency of use, result in severe service impairment
