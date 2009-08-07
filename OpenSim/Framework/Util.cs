@@ -1113,6 +1113,7 @@ namespace OpenSim.Framework
 
         public static string[] Glob(string path)
         {
+            m_log.DebugFormat("[GLOB]: Globbing {0}", path);
             string vol=String.Empty;
 
             if (Path.VolumeSeparatorChar != Path.DirectorySeparatorChar)
@@ -1145,17 +1146,25 @@ namespace OpenSim.Framework
                 List<string> addpaths = new List<string>();
                 foreach (string p in paths)
                 {
+                    m_log.DebugFormat("[GLOB]: Getting directories (wildcard: {0}) from path {1}", c, p);
                     string[] dirs = Directory.GetDirectories(p, c);
 
                     if (dirs.Length != 0)
                     {
                         foreach (string dir in dirs)
+                        {
+                            m_log.DebugFormat("[GLOB]: Adding path {0} to search list", Path.Combine(path, dir));
                             addpaths.Add(Path.Combine(path, dir));
+                        }
                     }
 
+                    m_log.DebugFormat("[GLOB]: Getting files (wildcard: {0}) from path {1}", c, p);
                     string[] files = Directory.GetFiles(p, c);
                     foreach (string f in files)
+                    {
+                        m_log.DebugFormat("[GLOB]: Adding file {0} to result list", f);
                         found.Add(f);
+                    }
                 }
                 paths = addpaths;
             }
