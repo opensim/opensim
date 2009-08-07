@@ -217,7 +217,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
-        protected List<SceneObjectPart> GetLinkParts(int linkType)
+        public List<SceneObjectPart> GetLinkParts(int linkType)
         {
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
             ret.Add(m_host);
@@ -4172,7 +4172,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // this function to understand which shape it is (taken from meshmerizer)
         // quite useful can be used by meshmerizer to have a centralized point of understanding the shape
         // except that it refers to scripting constants
-        protected int getScriptPrimType(PrimitiveBaseShape primShape)
+        public int getScriptPrimType(PrimitiveBaseShape primShape)
         {
             if (primShape.SculptEntry)
                 return ScriptBaseClass.PRIM_TYPE_SCULPT;
@@ -7246,6 +7246,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
+            return GetLinkPrimitiveParams( m_host, rules );
+        }
+
+        public LSL_List GetLinkPrimitiveParams( SceneObjectPart part, LSL_List rules )
+        {
 
             LSL_List res = new LSL_List();
             int idx=0;
@@ -7257,40 +7262,40 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 switch (code)
                 {
                     case (int)ScriptBaseClass.PRIM_MATERIAL:
-                        res.Add(new LSL_Integer(m_host.Material));
+                        res.Add(new LSL_Integer(part.Material));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_PHYSICS:
-                        if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) != 0)
+                        if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.Physics) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
-                        if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) != 0)
+                        if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_PHANTOM:
-                        if ((m_host.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
+                        if ((part.GetEffectiveObjectFlags() & (uint)PrimFlags.Phantom) != 0)
                             res.Add(new LSL_Integer(1));
                         else
                             res.Add(new LSL_Integer(0));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POSITION:
-                        res.Add(new LSL_Vector(m_host.AbsolutePosition.X,
-                                                      m_host.AbsolutePosition.Y,
-                                                      m_host.AbsolutePosition.Z));
+                        res.Add(new LSL_Vector(part.AbsolutePosition.X,
+                                                      part.AbsolutePosition.Y,
+                                                      part.AbsolutePosition.Z));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_SIZE:
-                        res.Add(new LSL_Vector(m_host.Scale.X,
-                                                      m_host.Scale.Y,
-                                                      m_host.Scale.Z));
+                        res.Add(new LSL_Vector(part.Scale.X,
+                                                      part.Scale.Y,
+                                                      part.Scale.Z));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
@@ -7299,8 +7304,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     case (int)ScriptBaseClass.PRIM_TYPE:
                         // implementing box
-                        PrimitiveBaseShape Shape = m_host.Shape;
-                        int primType = getScriptPrimType(m_host.Shape);
+                        PrimitiveBaseShape Shape = part.Shape;
+                        int primType = getScriptPrimType(part.Shape);
                         res.Add(new LSL_Integer(primType));
                         switch (primType)
                         {
@@ -7372,10 +7377,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             return res;
 
                         int face = (int)rules.GetLSLIntegerItem(idx++);
-                        Primitive.TextureEntry tex = m_host.Shape.Textures;
+                        Primitive.TextureEntry tex = part.Shape.Textures;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
+                            for (face = 0 ; face < GetNumberOfSides(part) ; face++)
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -7391,7 +7396,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            if (face >= 0 && face < GetNumberOfSides(m_host))
+                            if (face >= 0 && face < GetNumberOfSides(part))
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -7413,11 +7418,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         face=(int)rules.GetLSLIntegerItem(idx++);
 
-                        tex = m_host.Shape.Textures;
+                        tex = part.Shape.Textures;
                         Color4 texcolor;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0 ; face < GetNumberOfSides(m_host) ; face++)
+                            for (face = 0 ; face < GetNumberOfSides(part) ; face++)
                             {
                                 texcolor = tex.GetFace((uint)face).RGBA;
                                 res.Add(new LSL_Vector(texcolor.R,
@@ -7458,7 +7463,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_FLEXIBLE:
-                        PrimitiveBaseShape shape = m_host.Shape;
+                        PrimitiveBaseShape shape = part.Shape;
 
                         if (shape.FlexiEntry)
                             res.Add(new LSL_Integer(1));              // active
@@ -7486,7 +7491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
-                        shape = m_host.Shape;
+                        shape = part.Shape;
 
                         if (shape.LightEntry)
                             res.Add(new LSL_Integer(1));              // active

@@ -386,6 +386,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osLoadedCreationID();
         }
+		
+        public LSL_List osGetLinkPrimitiveParams( int linknumber, LSL_List rules )
+        {
+            return m_OSSL_Functions.osGetLinkPrimitiveParams( linknumber, rules );
+        }
 
 
         public OSSLPrim Prim;

@@ -1740,6 +1740,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return World.RegionInfo.RegionSettings.LoadedCreationID;
         }
+        
+        // Threat level is 'Low' because certain users could possibly be tricked into
+        // dropping an unverified script into one of their own objects, which could
+        // then gather the physical construction details of the object and transmit it
+        // to an unscrupulous third party, thus permitting unauthorized duplication of
+        // the object's form.
+        //
+        public LSL_List osGetLinkPrimitiveParams( int linknumber, LSL_List rules )
+        {
+            CheckThreatLevel( ThreatLevel.High, "osGetLinkPrimitiveParams" );
+            m_host.AddScriptLPS( 1 );
+            InitLSL();
+            LSL_List retVal = new LSL_List();
+            List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts( linknumber );
+            foreach (SceneObjectPart part in parts)
+            {
+                retVal += ((LSL_Api)m_LSL_Api).GetLinkPrimitiveParams( part, rules );
+            }
+            return retVal;
+        }
 
     }
 }
