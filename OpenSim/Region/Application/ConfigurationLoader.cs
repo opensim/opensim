@@ -186,6 +186,7 @@ namespace OpenSim
                         }
                         else
                         {
+                            m_log.InfoFormat("Adding {0} to configuration", Path.Combine(Util.configDir(), file));
                             string path = Path.GetFullPath(
                                     Path.Combine(Util.configDir(), file));
                             string[] paths = Util.Glob(path);
