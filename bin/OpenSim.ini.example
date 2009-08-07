@@ -1271,21 +1271,28 @@
     ; The PHP code for the server is available from the Flotsam project for you to deploy 
     ; to your own server.  The Flotsam project is located at http://code.google.com/p/flotsam/
     ;
-    ;Module  = XmlRpcGroups
+    ;Module  = GroupsModule
+    
+    ; Enable Group Notices
+ 	;NoticesEnabled   = true
 
-    ;XmlRpcServiceURL       = http://yourxmlrpcserver.com/xmlrpc.php
-    ;XmlRpcServiceReadKey = 1234
-    ;XmlRpcServiceWriteKey = 1234
+    ; This makes the Groups modules very chatty on the console.
+    ;DebugEnabled     = true
 
-    ;XmlRpcMessagingEnabled = true
-    ;XmlRpcNoticesEnabled   = true
+    ; Specify which messaging module to use for groups messaging and if it's enabled	
+	;MessagingModule = GroupsMessagingModule
+    ;MessagingEnabled = true
 
-    ; This makes the XmlRpcGroups modules very chatty on the console.
-    ;XmlRpcDebugEnabled     = true
+    ; Service connector to Groups Service [Select One]
+    ; XmlRpc Service Connector to the Flotsam XmlRpc Groups Service Implementation
+    ;ServicesConnectorModule = XmlRpcGroupsServicesConnector
+    ;XmlRpcServiceURL        = http://yourxmlrpcserver.com/xmlrpc.php
+    ;XmlRpcServiceReadKey    = 1234
+    ;XmlRpcServiceWriteKey   = 1234
 
-    ; Disables HTTP Keep-Alive for Groups Module HTTP Requests, work around for
-    ; a problem discovered on some Windows based region servers.  Only disable
-    ; if you see a large number (dozens) of the following Exceptions:
+    ; Disables HTTP Keep-Alive for XmlRpcGroupsServicesConnector HTTP Requests, 
+	; this is a work around fora problem discovered on some Windows based region servers.  
+	; Only disable keep alive if you see a large number (dozens) of the following Exceptions:
     ; System.Net.WebException: The request was aborted: The request was canceled.
     ;
     ; XmlRpcDisableKeepAlive = false

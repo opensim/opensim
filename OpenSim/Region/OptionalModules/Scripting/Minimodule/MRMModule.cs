@@ -73,6 +73,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     if (!source.Configs["MRM"].GetBoolean("Hidden", false))
                     {
                         scene.EventManager.OnRezScript += EventManager_OnRezScript;
+                        scene.EventManager.OnStopScript += EventManager_OnStopScript;
                     }
                     
                     scene.EventManager.OnFrame += EventManager_OnFrame;
@@ -87,6 +88,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             else
             {
                 m_log.Info("[MRM] Disabled MRM Module (Default disabled)");
+            }
+        }
+
+        void EventManager_OnStopScript(uint localID, UUID itemID)
+        {
+            if(m_scripts.ContainsKey(itemID))
+            {
+                m_scripts[itemID].Stop();
             }
         }
 
