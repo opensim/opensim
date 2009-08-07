@@ -83,6 +83,8 @@ namespace OpenSim.Services.AuthenticationService
 
                 m_PerformAuthentication = authConfig.GetBoolean("Authenticate", true);
                 m_AuthorityURL = "http://" + authConfig.GetString("Authority", "localhost");
+                if (!m_AuthorityURL.EndsWith("/"))
+                    m_AuthorityURL += "/";
             }
 
             //
