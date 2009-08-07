@@ -81,6 +81,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public int Type { get { return m_privateItem.Type; } }
         public UUID AssetID { get { return m_privateItem.AssetID; } }
         
+        // This method exposes OpenSim/OpenMetaverse internals and needs to be replaced with a IAsset specific to MRM.
         public T RetreiveAsset<T>() where T : OpenMetaverse.Assets.Asset, new()
         {
             AssetBase a = m_rootSceene.AssetService.Get(AssetID.ToString());
