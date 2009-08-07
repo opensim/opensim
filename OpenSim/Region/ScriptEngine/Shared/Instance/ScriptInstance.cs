@@ -53,7 +53,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
-    public class ScriptInstance : IScriptInstance
+    public class ScriptInstance : MarshalByRefObject, IScriptInstance, ISponsor
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -96,7 +96,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_CurrentState = String.Empty;
         private UUID m_RegionID = UUID.Zero;
 
-        private ScriptSponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
 
@@ -261,9 +260,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     Path.GetFileNameWithoutExtension(assembly),
                     "SecondLife.Script");
 
-                m_ScriptSponsor = new ScriptSponsor();
                 ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                lease.Register(m_ScriptSponsor);
+                lease.Register(this);
             }
             catch (Exception)
             {
@@ -363,14 +361,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
 //                // m_log.ErrorFormat("[Script] Unable to load script state, file not found");
             }
-        }
-
-        ~ScriptInstance()
-        {
-            m_Script.Close();
-            m_ScriptSponsor.Close();
-            ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-            lease.Unregister(m_ScriptSponsor);
         }
 
         public void Init()
@@ -1015,6 +1005,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public bool CanBeDeleted()
         {
             return true;
+        }
+
+        public TimeSpan Renewal(ILease lease)
+        {
+            return lease.InitialLeaseTime;
         }
     }
 }
