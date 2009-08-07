@@ -32,7 +32,7 @@ using LSLInteger = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public partial class ScriptBaseClass
+    public partial class ScriptBaseClass : MarshalByRefObject
     {
         // LSL CONSTANTS
         public static readonly LSLInteger TRUE = new LSLInteger(1);

@@ -96,8 +96,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_CurrentState = String.Empty;
         private UUID m_RegionID = UUID.Zero;
 
-        private ScriptSponsor m_ScriptSponsor;
-        private bool m_destroyed = false;
+        //private ISponsor m_ScriptSponsor;
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
 
@@ -262,9 +261,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     Path.GetFileNameWithoutExtension(assembly),
                     "SecondLife.Script");
 
-                m_ScriptSponsor = new ScriptSponsor();
-                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                lease.Register(m_ScriptSponsor);
+                // Add a sponsor to the script
+//                ISponsor scriptSponsor = new ScriptSponsor();
+//                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as MarshalByRefObject);
+//                lease.Register(scriptSponsor);
+                //m_ScriptSponsor = scriptSponsor;
+
             }
             catch (Exception)
             {
@@ -447,13 +449,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         {
             ReleaseControls();
             AsyncCommandManager.RemoveScript(m_Engine, m_LocalID, m_ItemID);
-
-            m_Script.Close();
-            m_ScriptSponsor.Close();
-            ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-            lease.Unregister(m_ScriptSponsor);
-
-            m_destroyed = true;
         }
 
         public void RemoveState()
@@ -889,8 +884,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
         public void SaveState(string assembly)
         {
-
-
             // If we're currently in an event, just tell it to save upon return
             //
             if (m_InEvent)
@@ -898,10 +891,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 m_SaveState = true;
                 return;
             }
-
-            // Data may not be available as the script has already been destroyed
-            if (m_destroyed == true)
-                return;
 
             PluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
