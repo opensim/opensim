@@ -1593,39 +1593,6 @@
       </Files>
     </Project>
 
-
-    <Project name="OpenSim.Services" path="OpenSim/Server" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="OpenSim.Services.Base" />
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Region.CoreModules" path="OpenSim/Region/CoreModules" type="Library">
       <Configuration name="Debug">
         <Options>
