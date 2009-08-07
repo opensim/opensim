@@ -1192,6 +1192,19 @@ namespace OpenSim.Region.Framework.Scenes
                     Heightmap = new TerrainChannel(map);
                 }
             }
+            catch (IOException e)
+            {
+
+                m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString() + " Regenerating");
+                
+                // Non standard region size.    If there's an old terrain in the database, it might read past the buffer
+                if ((int)Constants.RegionSize != 256)
+                {
+                    Heightmap = new TerrainChannel();
+
+                    m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+                }
+            }
             catch (Exception e)
             {
                 m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString());

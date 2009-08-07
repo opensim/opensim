@@ -583,16 +583,16 @@ namespace OpenSim.Data.MySQL
                 {
                     while (reader.Read())
                     {
-                        terrain = new double[256,256];
+                        terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
                         terrain.Initialize();
 
                         MemoryStream mstr = new MemoryStream((byte[]) reader["Heightfield"]);
                         int rev = 0;
 
                         BinaryReader br = new BinaryReader(mstr);
-                        for (int x = 0; x < 256; x++)
+                        for (int x = 0; x < (int)Constants.RegionSize; x++)
                         {
-                            for (int y = 0; y < 256; y++)
+                            for (int y = 0; y < (int)Constants.RegionSize; y++)
                             {
                                 terrain[x, y] = br.ReadDouble();
                             }
@@ -1141,12 +1141,12 @@ namespace OpenSim.Data.MySQL
         /// <returns></returns>
         private static Array SerializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream(65536*sizeof (double));
+            MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize) *sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
 
             // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
+            for (int x = 0; x < (int)Constants.RegionSize; x++)
+                for (int y = 0; y < (int)Constants.RegionSize; y++)
                 {
                     double height = val[x, y];
                     if (height == 0.0)

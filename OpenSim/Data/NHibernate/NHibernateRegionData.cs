@@ -376,8 +376,8 @@ namespace OpenSim.Data.NHibernate
 //            BinaryWriter bw = new BinaryWriter(str);
 //
 //            // TODO: COMPATIBILITY - Add byte-order conversions
-//            for (int x = 0; x < 256; x++)
-//                for (int y = 0; y < 256; y++)
+//            for (int x = 0; x < (int)Constants.RegionSize; x++)
+//                for (int y = 0; y < (int)Constants.RegionSize; y++)
 //                    bw.Write(val[x, y]);
 //
 //            return str.ToArray();

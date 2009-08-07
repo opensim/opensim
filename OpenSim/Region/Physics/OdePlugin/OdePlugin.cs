@@ -304,6 +304,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
 
+        private uint heightmapWidth = m_regionWidth + 1;
+        private uint heightmapHeight = m_regionHeight + 1;
+
+        private uint heightmapWidthSamples;
+
+        private uint heightmapHeightSamples;
+
         private volatile int m_global_contactcount = 0;
 
         private ODERayCastRequestManager m_rayCastManager;
@@ -3271,27 +3278,49 @@ namespace OpenSim.Region.Physics.OdePlugin
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
             _origheightmap = heightMap;    // Used for Fly height. Kitto Flora
-            const uint heightmapWidth = m_regionWidth + 2;
-            const uint heightmapHeight = m_regionHeight + 2;
-            const uint heightmapWidthSamples = 2*m_regionWidth + 2;
-            const uint heightmapHeightSamples = 2*m_regionHeight + 2;
+            uint heightmapWidth = m_regionWidth + 1;
+            uint heightmapHeight = m_regionHeight + 1;
+
+            uint heightmapWidthSamples; 
+            
+            uint heightmapHeightSamples;
+            if (((int)Constants.RegionSize) == 256)
+            {
+                heightmapWidthSamples = 2*m_regionWidth + 2;
+                heightmapHeightSamples = 2*m_regionHeight + 2;
+                heightmapWidth++;
+                heightmapHeight++;
+            }
+            else
+            {
+                heightmapWidthSamples = m_regionWidth + 1;
+                heightmapHeightSamples = m_regionHeight + 1;
+            }
+
             const float scale = 1.0f;
             const float offset = 0.0f;
             const float thickness = 0.2f;
             const int wrap = 0;
+            
 
             //Double resolution
-            heightMap = ResizeTerrain512Interpolation(heightMap);
+            if (((int)Constants.RegionSize) == 256)
+                heightMap = ResizeTerrain512Interpolation(heightMap);
+
+            int regionsize = (int)Constants.RegionSize;
+            if (regionsize == 256)
+                regionsize = 512;
+
             float hfmin = 2000;
             float hfmax = -2000;
             for (int x = 0; x < heightmapWidthSamples; x++)
             {
                 for (int y = 0; y < heightmapHeightSamples; y++)
                 {
-                    int xx = Util.Clip(x - 1, 0, 511);
-                    int yy = Util.Clip(y - 1, 0, 511);
+                    int xx = Util.Clip(x - 1, 0, regionsize - 1);
+                    int yy = Util.Clip(y - 1, 0, regionsize - 1);
 
-                    float val = heightMap[yy*512 + xx];
+                    float val = heightMap[yy*regionsize + xx];
                     _heightmap[x*heightmapHeightSamples + y] = val;
                     hfmin = (val < hfmin) ? val : hfmin;
                     hfmax = (val > hfmax) ? val : hfmax;
@@ -3332,7 +3361,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(LandGeom, ref R);
-                d.GeomSetPosition(LandGeom, 128, 128, 0);
+                d.GeomSetPosition(LandGeom, (int)Constants.RegionSize * 0.5f, (int)Constants.RegionSize * 0.5f, 0);
             }
         }
 

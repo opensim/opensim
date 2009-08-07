@@ -216,8 +216,14 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempMotionState2 = new btDefaultMotionState(_parent_scene.TransZero);
             tempMotionState3 = new btDefaultMotionState(_parent_scene.TransZero);
 
-            AxisLockLinearLow = new btVector3(-256,-256,-256);
-            AxisLockLinearHigh = new btVector3(512, 512, 512);
+            
+            AxisLockLinearLow = new btVector3(-1 * (int)Constants.RegionSize, -1 * (int)Constants.RegionSize, -1 * (int)Constants.RegionSize);
+            int regionsize = (int) Constants.RegionSize;
+            
+            if (regionsize == 256)
+                regionsize = 512;
+
+            AxisLockLinearHigh = new btVector3((int)Constants.RegionSize, (int)Constants.RegionSize, (int)Constants.RegionSize);
 
             _target_velocity = new PhysicsVector(0, 0, 0);
             _velocity = new PhysicsVector();

@@ -56,8 +56,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             ps = cbt.GetScene("test");
             // Initializing Physics Scene.
             ps.Initialise(imp.GetMesher(),null);
-            float[] _heightmap = new float[256 * 256];
-            for (int i = 0; i<(256*256);i++)
+            float[] _heightmap = new float[(int)Constants.RegionSize * (int)Constants.RegionSize];
+            for (int i = 0; i < ((int)Constants.RegionSize * (int)Constants.RegionSize); i++)
             {
                 _heightmap[i] = 21f;
             }

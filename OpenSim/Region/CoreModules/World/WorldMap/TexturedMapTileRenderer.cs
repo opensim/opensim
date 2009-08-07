@@ -306,15 +306,15 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             double[,] hm = m_scene.Heightmap.GetDoubles();
 
-            for (int x = 0; x < 256; x++)
+            for (int x = 0; x < (int)Constants.RegionSize; x++)
             {
-                float columnRatio = x / 255f; // 0 - 1, for interpolation
-                for (int y = 0; y < 256; y++)
+                float columnRatio = x / ((float)Constants.RegionSize - 1); // 0 - 1, for interpolation
+                for (int y = 0; y < (int)Constants.RegionSize; y++)
                 {
-                    float rowRatio = y / 255f; // 0 - 1, for interpolation
+                    float rowRatio = y / ((float)Constants.RegionSize - 1); // 0 - 1, for interpolation
 
                     // Y flip the cordinates for the bitmap: hf origin is lower left, bm origin is upper left
-                    int yr = 255 - y;
+                    int yr = ((int)Constants.RegionSize - 1) - y;
 
                     float heightvalue = getHeight(hm, x, y);
                     if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
@@ -366,7 +366,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                         }
 
                         // Shade the terrain for shadows
-                        if (x < 255 && y < 255)
+                        if (x < ((int)Constants.RegionSize - 1) && y < ((int)Constants.RegionSize - 1))
                         {
                             float hfvaluecompare = getHeight(hm, x + 1, y + 1); // light from north-east => look at land height there
                             if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))

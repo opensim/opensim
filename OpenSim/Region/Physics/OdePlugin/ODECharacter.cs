@@ -1096,8 +1096,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
             if (vec.X < 0.0f) vec.X = 0.0f;
             if (vec.Y < 0.0f) vec.Y = 0.0f;
-            if (vec.X > 255.95f) vec.X = 255.95f;
-            if (vec.Y > 255.95f) vec.Y = 255.95f;
+            if (vec.X > (int)Constants.RegionSize - 0.05f) vec.X = (int)Constants.RegionSize - 0.05f;
+            if (vec.Y > (int)Constants.RegionSize - 0.05f) vec.Y = (int)Constants.RegionSize - 0.05f;
 
             _position.X = vec.X;
             _position.Y = vec.Y;
