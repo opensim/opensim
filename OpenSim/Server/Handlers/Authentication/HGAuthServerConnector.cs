@@ -27,6 +27,7 @@
 
 using System;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
@@ -38,7 +39,7 @@ namespace OpenSim.Server.Handlers.Authentication
     {
         private IAuthenticationService m_AuthenticationService;
 
-        public HGAuthServiceInConnector(IConfigSource config, IHttpServer server) :
+        public HGAuthServiceInConnector(IConfigSource config, IHttpServer server, IScene registry) :
                 base(config, server)
         {
             IConfig serverConfig = config.Configs["AuthenticationService"];
@@ -53,6 +54,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             Object[] args = new Object[] { config };
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
+            registry.RegisterModuleInterface<IAuthenticationService>(m_AuthenticationService);
 
             HGAuthenticationHandlers m_handlers = new HGAuthenticationHandlers(m_AuthenticationService);
             server.AddXmlRPCHandler("hg_new_auth_key", m_handlers.GenerateKeyMethod);
