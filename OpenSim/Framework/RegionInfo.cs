@@ -496,7 +496,7 @@ namespace OpenSim.Framework
             }
             else
             {
-                address = IPAddress.Parse(MainConsole.Instance.CmdPrompt("Internal IP address", "127.0.0.1"));
+                address = IPAddress.Parse(MainConsole.Instance.CmdPrompt("Internal IP address", "0.0.0.0"));
                 config.Set("InternalAddress", address.ToString());
             }
 
