@@ -1443,7 +1443,7 @@ namespace OpenSim.Data.SQLite
 //             row["RegionUUID"] = regionUUID;
 //             row["Revision"] = rev;
 
-        //             MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize )*sizeof (double));
+        //             MemoryStream str = new MemoryStream(((int)Constants.RegionSize * (int)Constants.RegionSize)*sizeof (double));
 //             BinaryWriter bw = new BinaryWriter(str);
 
 //             // TODO: COMPATIBILITY - Add byte-order conversions

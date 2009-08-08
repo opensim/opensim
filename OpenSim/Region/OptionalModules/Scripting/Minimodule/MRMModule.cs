@@ -93,7 +93,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         void EventManager_OnStopScript(uint localID, UUID itemID)
         {
-            if(m_scripts.ContainsKey(itemID))
+            if (m_scripts.ContainsKey(itemID))
             {
                 m_scripts[itemID].Stop();
             }

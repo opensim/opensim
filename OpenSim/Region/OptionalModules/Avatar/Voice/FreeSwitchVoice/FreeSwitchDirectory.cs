@@ -42,7 +42,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         {
             Hashtable response = new Hashtable();
             string domain = (string) request["domain"];
-            if ( domain != Realm) {
+            if (domain != Realm) {
                 response["content_type"] = "text/xml";
                 response["keepalive"] = false;
                 response["int_response_code"] = 200;

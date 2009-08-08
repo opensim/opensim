@@ -146,8 +146,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osLoadedCreationDate();
         string osLoadedCreationTime();
         string osLoadedCreationID();
-		
-        LSL_List osGetLinkPrimitiveParams( int linknumber, LSL_List rules );
+        
+        LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
     }
 }

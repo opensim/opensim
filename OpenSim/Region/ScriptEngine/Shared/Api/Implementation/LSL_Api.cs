@@ -7246,10 +7246,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_List llGetPrimitiveParams(LSL_List rules)
         {
             m_host.AddScriptLPS(1);
-            return GetLinkPrimitiveParams( m_host, rules );
+            return GetLinkPrimitiveParams(m_host, rules);
         }
 
-        public LSL_List GetLinkPrimitiveParams( SceneObjectPart part, LSL_List rules )
+        public LSL_List GetLinkPrimitiveParams(SceneObjectPart part, LSL_List rules)
         {
 
             LSL_List res = new LSL_List();

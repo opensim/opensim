@@ -53,8 +53,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
              string requestcontext = (string) request["Hunt-Context"];
              response["content_type"] = "text/xml";
              response["keepalive"] = false;
-			response["int_response_code"] = 200;
-            if ( Context != String.Empty && Context != requestcontext)
+            response["int_response_code"] = 200;
+            if (Context != String.Empty && Context != requestcontext)
             {
                 m_log.Debug("[FreeSwitchDirectory] returning empty as it's for another context");
                 response["str_response_string"] = "";

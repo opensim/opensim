@@ -927,7 +927,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (IScriptModule e in engines)
                     {
-                        if(!e.CanBeDeleted(item.ItemID))
+                        if (!e.CanBeDeleted(item.ItemID))
                             return false;
                     }
                 }

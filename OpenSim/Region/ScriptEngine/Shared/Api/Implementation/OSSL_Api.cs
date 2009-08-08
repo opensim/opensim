@@ -1748,16 +1748,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // to an unscrupulous third party, thus permitting unauthorized duplication of
         // the object's form.
         //
-        public LSL_List osGetLinkPrimitiveParams( int linknumber, LSL_List rules )
+        public LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
-            CheckThreatLevel( ThreatLevel.High, "osGetLinkPrimitiveParams" );
-            m_host.AddScriptLPS( 1 );
+            CheckThreatLevel(ThreatLevel.High, "osGetLinkPrimitiveParams");
+            m_host.AddScriptLPS(1);
             InitLSL();
             LSL_List retVal = new LSL_List();
-            List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts( linknumber );
+            List<SceneObjectPart> parts = ((LSL_Api)m_LSL_Api).GetLinkParts(linknumber);
             foreach (SceneObjectPart part in parts)
             {
-                retVal += ((LSL_Api)m_LSL_Api).GetLinkPrimitiveParams( part, rules );
+                retVal += ((LSL_Api)m_LSL_Api).GetLinkPrimitiveParams(part, rules);
             }
             return retVal;
         }
