@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Text;
 using Mono.Data.SqliteClient;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Statistics;
 
@@ -39,7 +40,7 @@ namespace OpenSim.Region.UserStatistics
 {
     public class ActiveConnectionsAJAX : IStatsController
     {
-        private Vector3 DefaultNeighborPosition = new Vector3(128, 128, 70);
+        private Vector3 DefaultNeighborPosition = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 70);
 
         #region IStatsController Members
 

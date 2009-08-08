@@ -266,7 +266,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         // the heigthfield might have some jumps in values. Rendered land is smooth, though,
         // as a slope is rendered at that place. So average 4 neighbour values to emulate that.
         private float getHeight(double[,] hm, int x, int y) {
-            if (x < 255 && y < 255)
+            if (x < ((int)Constants.RegionSize - 1) && y < ((int)Constants.RegionSize - 1))
                 return (float)(hm[x, y] * .444 + (hm[x + 1, y] + hm[x, y + 1]) * .222 + hm[x + 1, y +1] * .112);
             else
                 return (float)hm[x, y];

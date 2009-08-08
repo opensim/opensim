@@ -2476,7 +2476,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     l_orientation.Z = tempOrientation2.getZ();
                     l_orientation.W = tempOrientation2.getW();
 
-                    if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+                    if (l_position.X > ((int)Constants.RegionSize - 0.05f) || l_position.X < 0f || l_position.Y > ((int)Constants.RegionSize - 0.05f) || l_position.Y < 0f)
                     {
                         //base.RaiseOutOfBounds(l_position);
 

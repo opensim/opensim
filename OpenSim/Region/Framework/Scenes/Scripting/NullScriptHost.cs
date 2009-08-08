@@ -29,6 +29,7 @@ using System;
 using OpenMetaverse;
 using log4net;
 using System.Reflection;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes.Scripting
 {
@@ -36,7 +37,7 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Vector3 m_pos = new Vector3(128, 128, 30);
+        private Vector3 m_pos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 30);
 
         public string Name
         {

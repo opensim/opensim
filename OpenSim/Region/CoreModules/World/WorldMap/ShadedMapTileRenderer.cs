@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                             // .
                             //
                             // Shade the terrain for shadows
-                            if (x < 255 && yr < 255)
+                            if (x < ((int)Constants.RegionSize - 1) && yr < ((int)Constants.RegionSize - 1))
                             {
                                 float hfvalue = (float)hm[x, y];
                                 float hfvaluecompare = 0f;

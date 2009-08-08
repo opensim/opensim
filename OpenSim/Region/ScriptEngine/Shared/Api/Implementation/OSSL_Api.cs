@@ -298,7 +298,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.High, "osTerrainSetHeight");
 
             m_host.AddScriptLPS(1);
-            if (x > 255 || x < 0 || y > 255 || y < 0)
+            if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
                 OSSLError("osTerrainSetHeight: Coordinate out of bounds");
 
             if (World.Permissions.CanTerraformLand(m_host.OwnerID, new Vector3(x, y, 0)))
@@ -317,7 +317,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osTerrainGetHeight");
 
             m_host.AddScriptLPS(1);
-            if (x > 255 || x < 0 || y > 255 || y < 0)
+            if (x > ((int)Constants.RegionSize - 1) || x < 0 || y > ((int)Constants.RegionSize - 1) || y < 0)
                 OSSLError("osTerrainGetHeight: Coordinate out of bounds");
 
             return World.Heightmap[x, y];

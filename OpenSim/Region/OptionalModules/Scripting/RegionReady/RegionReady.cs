@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
                 c.Channel = m_channelNotify;
                 c.Message += numScriptsFailed.ToString() + "," + message;
                 c.Type = ChatTypeEnum.Region;
-                c.Position = new Vector3(128, 128, 30);
+                c.Position = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 30);
                 c.Sender = null;
                 c.SenderUUID = UUID.Zero;
 

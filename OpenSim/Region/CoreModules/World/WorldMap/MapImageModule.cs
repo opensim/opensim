@@ -331,9 +331,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                     int mapdrawendY = (int)(pos.Y + scale.Y);
 
                                     // If object is beyond the edge of the map, don't draw it to avoid errors
-                                    if (mapdrawstartX < 0 || mapdrawstartX > 255 || mapdrawendX < 0 || mapdrawendX > 255
-                                                          || mapdrawstartY < 0 || mapdrawstartY > 255 || mapdrawendY < 0
-                                                          || mapdrawendY > 255)
+                                    if (mapdrawstartX < 0 || mapdrawstartX > ((int)Constants.RegionSize - 1) || mapdrawendX < 0 || mapdrawendX > ((int)Constants.RegionSize - 1)
+                                                          || mapdrawstartY < 0 || mapdrawstartY > ((int)Constants.RegionSize - 1) || mapdrawendY < 0
+                                                          || mapdrawendY > ((int)Constants.RegionSize - 1))
                                         continue;
 
 #region obb face reconstruction part duex
@@ -537,7 +537,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
            // float z = -point3d.z - topos.z;
 
             returnpt.X = (int)point3d.X;//(int)((topos.x - point3d.x) / z * d);
-            returnpt.Y = (int)(255 - point3d.Y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
+            returnpt.Y = (int)(((int)Constants.RegionSize - 1) - point3d.Y);//(int)(255 - (((topos.y - point3d.y) / z * d)));
 
             return returnpt;
         }

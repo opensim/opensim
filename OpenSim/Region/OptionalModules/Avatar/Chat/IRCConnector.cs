@@ -50,8 +50,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Local constants
- 
-        private static readonly Vector3 CenterOfRegion = new Vector3(128, 128, 20);
+
+        private static readonly Vector3 CenterOfRegion = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 20);
         private static readonly char[]  CS_SPACE = { ' ' };
 
         private const  int  WD_INTERVAL = 1000;     // base watchdog interval
