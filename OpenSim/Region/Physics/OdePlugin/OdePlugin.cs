@@ -350,7 +350,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // zero out a heightmap array float array (single dimention [flattened]))
-            _heightmap = new float[514*514];
+            if ((int)Constants.RegionSize == 256)
+                _heightmap = new float[514*514];
+            else
+                _heightmap = new float[(((int)Constants.RegionSize + 2) * ((int)Constants.RegionSize + 2))];
             _watermap = new float[258 * 258];
 
 
