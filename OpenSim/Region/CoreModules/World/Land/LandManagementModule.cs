@@ -60,7 +60,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         private LandChannel landChannel;
         private Scene m_scene;
 
-        private readonly int[,] m_landIDList = new int[64, 64];
+        // Minimum for parcels to work is 64m even if we don't actually use them.
+        private const int landArrayMax = ((int)((int)Constants.RegionSize / 4) >= 64) ? (int)((int)Constants.RegionSize / 4) : 64;
+
+        private readonly int[,] m_landIDList = new int[landArrayMax, landArrayMax];
         private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
         private bool m_landPrimCountTainted;
@@ -456,9 +459,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 new_land.landData.LocalID = newLandLocalID;
 
                 bool[,] landBitmap = new_land.getLandBitmap();
-                for (int x = 0; x < 64; x++)
+                for (int x = 0; x < landArrayMax; x++)
                 {
-                    for (int y = 0; y < 64; y++)
+                    for (int y = 0; y < landArrayMax; y++)
                     {
                         if (landBitmap[x, y])
                         {
@@ -581,10 +584,17 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             lock (m_landIDList)
             {
-                if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
-                    return m_landList[m_landIDList[x / 4, y / 4]];
-                else 
+                try
+                {
+                    if (m_landList.ContainsKey(m_landIDList[x / 4, y / 4]))
+                        return m_landList[m_landIDList[x / 4, y / 4]];
+                    else
+                        return null;
+                }
+                catch (IndexOutOfRangeException)
+                {
                     return null;
+                }
             }
         }
 
@@ -941,6 +951,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 for (int y = 0; y < inc_y; y++)
                 {
+                    
                     ILandObject currentParcel = GetLandObject(start_x + x, start_y + y);
 
                     if (currentParcel != null)
@@ -951,6 +962,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             temp.Add(currentParcel);
                         }
                     }
+                    
                 }
             }
 

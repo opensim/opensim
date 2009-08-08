@@ -44,7 +44,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         #region Member Variables
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private bool[,] m_landBitmap = new bool[64,64];
+        private const int landArrayMax = ((int)((int)Constants.RegionSize / 4) >= 64) ? (int)((int)Constants.RegionSize / 4) : 64;
+        private bool[,] m_landBitmap = new bool[landArrayMax,landArrayMax];
 
         protected LandData m_landData = new LandData();
         protected Scene m_scene;
@@ -630,7 +631,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private bool[,] convertBytesToLandBitmap()
         {
-            bool[,] tempConvertMap = new bool[64,64];
+            bool[,] tempConvertMap = new bool[landArrayMax, landArrayMax];
             tempConvertMap.Initialize();
             byte tempByte = 0;
             int x = 0, y = 0, i = 0, bitNum = 0;

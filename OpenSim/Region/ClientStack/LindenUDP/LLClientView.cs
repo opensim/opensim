@@ -1457,7 +1457,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //}
                     for (int x = 0; x < 16; x++)
                     {
-                        SendLayerData(x, y, map);
+                        SendLayerData(x, y, LLHeightFieldMoronize(map));
                         Thread.Sleep(35);
                     }
                 }
@@ -1503,7 +1503,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 patches[0] = patchx + 0 + patchy * 16;
 
-                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(map, patches);
+                LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(((map.Length==65536)? map : LLHeightFieldMoronize(map)), patches);
                 layerpack.Header.Zerocoded = true;
 
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
@@ -1513,6 +1513,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.Warn("[client]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
+        }
+
+        /// <summary>
+        /// Munges heightfield into the LLUDP backed in restricted heightfield.
+        /// </summary>
+        /// <param name="map">float array in the base; Constants.RegionSize</param>
+        /// <returns>float array in the base 256</returns>
+        internal float[] LLHeightFieldMoronize(float[] map)
+        {
+            if (map.Length == 65536)
+                return map;
+            else
+            {
+                float[] returnmap = new float[65536];
+
+                if (map.Length < 65535)
+                {
+                    // rebase the vector stride to 256
+                    for (int i = 0; i < Constants.RegionSize; i++)
+                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, (int)Constants.RegionSize);
+                }
+                else
+                {
+                    for (int i = 0; i < 256; i++)
+                        Array.Copy(map, i * (int)Constants.RegionSize, returnmap, i * 256, 256);
+                }
+
+                
+                //Array.Copy(map,0,returnmap,0,(map.Length < 65536)? map.Length : 65536);
+
+                return returnmap;
+            }
+
         }
 
         /// <summary>

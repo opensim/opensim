@@ -2494,6 +2494,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!agent.child)
             {
+                if (agent.startpos.X > (int)Constants.RegionSize - 1)
+                    agent.startpos.X = (int)Constants.RegionSize - 1;
+
+                if (agent.startpos.Y > (int)Constants.RegionSize - 1)
+                    agent.startpos.Y = (int)Constants.RegionSize - 1;
+
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
