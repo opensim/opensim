@@ -450,7 +450,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     try
                     {
                         response.Send();
-                        response.FreeContext();
+                        //response.FreeContext();
                     }
                     catch (SocketException e)
                     {
@@ -912,7 +912,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     response.Send();
                     response.OutputStream.Flush();
-                    response.FreeContext();
+                    //response.FreeContext();
                     //response.OutputStream.Close();
                 }
                 catch (IOException e)
@@ -1169,7 +1169,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     try
                     {
                         response.Send();
-                        response.FreeContext();
+                        //response.FreeContext();
                     }
                     catch (SocketException f)
                     {
@@ -1452,8 +1452,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.OutputStream.Flush();
                     response.Send();
                     
-                    if (!response.KeepAlive && response.ReuseContext)
-                        response.FreeContext();
+                    //if (!response.KeepAlive && response.ReuseContext)
+                    //    response.FreeContext();
                 }
                 catch (SocketException e)
                 {
@@ -1494,7 +1494,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
-                    response.FreeContext();
+                    //response.FreeContext();
                 }
                 catch (SocketException e)
                 {
@@ -1530,7 +1530,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     response.Send();
-                    response.FreeContext();
+                    //response.FreeContext();
                 }
                 catch (SocketException e)
                 {
