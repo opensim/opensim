@@ -95,6 +95,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         // private static IPEndPoint m_FreeSwitchServiceIP;
         private int m_freeSwitchServicePort;
         private string m_openSimWellKnownHTTPAddress;
+        private string m_freeSwitchContext;
 
         private FreeSwitchDirectory m_FreeSwitchDirectory;
         private FreeSwitchDialplan m_FreeSwitchDialplan;
@@ -151,6 +152,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     m_freeSwitchDefaultTimeout = m_config.GetInt("freeswitch_default_timeout", 5000);
                     // m_freeSwitchSubscribeRetry = m_config.GetInt("freeswitch_subscribe_retry", 120);
                     m_freeSwitchUrlResetPassword = m_config.GetString("freeswitch_password_reset_url", String.Empty);
+                    m_freeSwitchContext = m_config.GetString("freeswitch_context", "default");
                     
                     if (String.IsNullOrEmpty(m_freeSwitchServerUser) ||
                         String.IsNullOrEmpty(m_freeSwitchServerPass) ||
@@ -572,7 +574,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     "<App.NoBottomLogo>false</App.NoBottomLogo>\r\n"+
                 "</VCConfiguration>",
                 m_freeSwitchRealm, m_freeSwitchSIPProxy, m_freeSwitchAttemptUseSTUN,
-                m_freeSwitchSTUNServer, m_freeSwitchEchoServer, m_freeSwitchEchoPort,
+                m_freeSwitchEchoServer, m_freeSwitchEchoPort,
                 m_freeSwitchDefaultWellKnownIP, m_freeSwitchDefaultTimeout, 
                 m_freeSwitchUrlResetPassword, "");
             
@@ -728,9 +730,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             string section = (string) requestBody["section"];
 
             if (section == "directory")
-                response = m_FreeSwitchDirectory.HandleDirectoryRequest(requestBody);
+                response = m_FreeSwitchDirectory.HandleDirectoryRequest(m_freeSwitchContext, m_freeSwitchRealm, requestBody);
             else if (section == "dialplan")
-                response = m_FreeSwitchDialplan.HandleDialplanRequest(requestBody);
+                response = m_FreeSwitchDialplan.HandleDialplanRequest(m_freeSwitchContext, m_freeSwitchRealm, requestBody);
             else
                 m_log.WarnFormat("[FreeSwitchVoice]: section was {0}", section);
             
