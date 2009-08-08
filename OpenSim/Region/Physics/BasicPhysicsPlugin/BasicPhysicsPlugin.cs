@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 }
                 else if (actor.Position.Y >= Constants.RegionSize)
                 {
-                    actor.Position.Y = 255.9F;
+                    actor.Position.Y = ((int)Constants.RegionSize - 0.1f);
                 }
 
                 if (actor.Position.X < 0)
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                 }
                 else if (actor.Position.X >= Constants.RegionSize)
                 {
-                    actor.Position.X = 255.9F;
+                    actor.Position.X = ((int)Constants.RegionSize - 0.1f);
                 }
 
                 float height = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + actor.Size.Z;

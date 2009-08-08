@@ -181,7 +181,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _velocity = new PhysicsVector();
             if (!PhysicsVector.isFinite(pos))
             {
-                pos = new PhysicsVector(128, 128, parent_scene.GetTerrainHeightAtXY(128, 128) + 0.5f);
+                pos = new PhysicsVector(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), parent_scene.GetTerrainHeightAtXY(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f)) + 0.5f);
                 m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
             }
             _position = pos;
@@ -2538,7 +2538,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     l_orientation.Z = ori.Z;
                     l_orientation.W = ori.W;
 
-                    if (l_position.X > 255.95f || l_position.X < 0f || l_position.Y > 255.95f || l_position.Y < 0f)
+                    if (l_position.X > ((int)Constants.RegionSize - 0.05f) || l_position.X < 0f || l_position.Y > ((int)Constants.RegionSize - 0.05f) || l_position.Y < 0f)
                     {
                         //base.RaiseOutOfBounds(l_position);
 

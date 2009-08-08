@@ -777,9 +777,9 @@ namespace OpenSim.Region.Framework.Scenes
             // related to the handling of attachments
             //m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);            
 
-            if (pos.X < 0 || pos.X > Constants.RegionSize || pos.Y < 0 || pos.Y > Constants.RegionSize || pos.Z < 0)
+            if (pos.X < 0 || pos.X >= (int)Constants.RegionSize || pos.Y < 0 || pos.Y >= (int)Constants.RegionSize || pos.Z < 0)
             {
-                Vector3 emergencyPos = new Vector3(128, 128, 128);
+                Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
 
                 m_log.WarnFormat(
                     "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
@@ -2948,7 +2948,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Reset()
         {
             // Put the child agent back at the center
-            AbsolutePosition = new Vector3(128, 128, 70);
+            AbsolutePosition = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 70);
             ResetAnimations();
         }
 

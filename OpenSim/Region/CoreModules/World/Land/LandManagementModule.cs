@@ -317,8 +317,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdate(ScenePresence avatar, bool force)
         {
-            ILandObject over = GetLandObject((int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
-                                             (int)Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+            ILandObject over = GetLandObject((int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                             (int)Math.Min(((int)Constants.RegionSize - 1), Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
 
             if (over != null)
             {
@@ -849,10 +849,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];
             int byteArrayCount = 0;
             int sequenceID = 0;
+            int blockmeters = 4 * (int) Constants.RegionSize/(int)Constants.TerrainPatchSize;
 
-            for (int y = 0; y < 64; y++)
+
+            for (int y = 0; y < blockmeters; y++)
             {
-                for (int x = 0; x < 64; x++)
+                for (int x = 0; x < blockmeters; x++)
                 {
                     byte tempByte = 0; //This represents the byte for the current 4x4
 

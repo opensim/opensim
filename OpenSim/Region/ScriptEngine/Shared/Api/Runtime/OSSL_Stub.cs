@@ -31,6 +31,7 @@ using System.Threading;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
@@ -443,12 +444,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             }
             private void Save()
             {
-                if (Position.x > 255)
-                    Position.x = 255;
+                if (Position.x > ((int)Constants.RegionSize - 1))
+                    Position.x = ((int)Constants.RegionSize - 1);
                 if (Position.x < 0)
                     Position.x = 0;
-                if (Position.y > 255)
-                    Position.y = 255;
+                if (Position.y > ((int)Constants.RegionSize - 1))
+                    Position.y = ((int)Constants.RegionSize - 1);
                 if (Position.y < 0)
                     Position.y = 0;
                 if (Position.z > 768)

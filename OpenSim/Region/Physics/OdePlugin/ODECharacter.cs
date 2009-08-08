@@ -161,7 +161,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                _position = new PhysicsVector(128,128,parent_scene.GetTerrainHeightAtXY(128,128) + 10);
+                _position = new PhysicsVector(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), parent_scene.GetTerrainHeightAtXY(128, 128) + 10);
                 m_taintPosition.X = _position.X;
                 m_taintPosition.Y = _position.Y;
                 m_taintPosition.Z = _position.Z;

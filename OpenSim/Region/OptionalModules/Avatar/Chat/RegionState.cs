@@ -45,7 +45,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly OpenMetaverse.Vector3 CenterOfRegion = new OpenMetaverse.Vector3(128, 128, 20);
+        private static readonly OpenMetaverse.Vector3 CenterOfRegion = new OpenMetaverse.Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 20);
         private const  int DEBUG_CHANNEL = 2147483647;
 
         private static int _idk_         = 0;

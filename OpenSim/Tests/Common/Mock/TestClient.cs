@@ -298,7 +298,7 @@ namespace OpenSim.Tests.Common.Mock
         /// </value>
         public string CapsSeedUrl;
 
-        private Vector3 startPos = new Vector3(128, 128, 2);
+        private Vector3 startPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 2);
 
         public virtual Vector3 StartPos
         {

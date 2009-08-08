@@ -305,8 +305,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 try
                 {
                     over =
-                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.X), 0, 255),
-                                                          Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.Y), 0, 255));
+                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.X), 0, ((int)Constants.RegionSize - 1)),
+                                                          Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.Y), 0, ((int)Constants.RegionSize - 1)));
                 }
                 catch (Exception)
                 {
@@ -455,21 +455,21 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
             int tx = min_x * 4;
-            if (tx > 255)
-                tx = 255;
+            if (tx > ((int)Constants.RegionSize - 1))
+                tx = ((int)Constants.RegionSize - 1);
             int ty = min_y * 4;
-            if (ty > 255)
-                ty = 255;
+            if (ty > ((int)Constants.RegionSize - 1))
+                ty = ((int)Constants.RegionSize - 1);
             landData.AABBMin =
                 new Vector3((float) (min_x * 4), (float) (min_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
 
             tx = max_x * 4;
-            if (tx > 255)
-                tx = 255;
+            if (tx > ((int)Constants.RegionSize - 1))
+                tx = ((int)Constants.RegionSize - 1);
             ty = max_y * 4;
-            if (ty > 255)
-                ty = 255;
+            if (ty > ((int)Constants.RegionSize - 1))
+                ty = ((int)Constants.RegionSize - 1);
             landData.AABBMax =
                 new Vector3((float) (max_x * 4), (float) (max_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
