@@ -95,24 +95,24 @@ namespace OpenSim.Services.Interfaces
 
     public interface IUserAccountDataService
     {
-        UserData GetUserAccountData(UUID scopeID, UUID userID);
-        UserData GetUserAccountData(UUID scopeID, string FirstName, string LastName);
+        UserAccountData GetUserAccountData(UUID scopeID, UUID userID);
+        UserAccountData GetUserAccountData(UUID scopeID, string FirstName, string LastName);
+        // Returns the list of avatars that matches both the search
+        // criterion and the scope ID passed
+        //
+        List<UserAccountData> GetUserAccountData(UUID scopeID, string query);
+
 
         // This will set only the home region portion of the data!
         // Can't be used to set god level, flags, type or change the name!
         //
-        bool SetHomePosition(UserData data, UUID RegionID, UUID RegionSecret);
+        bool SetHomePosition(UserAccountData data, UUID RegionID, UUID RegionSecret);
 
         // Update all updatable fields
         //
-        bool SetUserAccountData(UserData data, UUID PrincipalID, UUID SessionID);
+        bool SetUserAccountData(UserAccountData data, UUID PrincipalID, UUID SessionID);
         
-        // Returns the list of avatars that matches both the search
-        // criterion and the scope ID passed
-        //
-        List<UserData> GetAvatarPickerData(UUID scopeID, string query);
-
         // Creates a user data record
-        bool CreateUserAccountData(UserData data, UUID PrincipalID, UUID SessionID);
+        bool CreateUserAccountData(UserAccountData data, UUID PrincipalID, UUID SessionID);
     }
 }
