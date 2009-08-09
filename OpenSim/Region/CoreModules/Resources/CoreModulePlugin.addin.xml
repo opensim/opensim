@@ -37,7 +37,6 @@
         <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />
         <RegionModule id="LandServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Land.LandServiceInConnectorModule" />
         <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour.NeighbourServiceInConnectorModule" />    \
-        <RegionModule id="HGAuthServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication.HGAuthServiceInConnectorModule" />    \
 
     </Extension>
 
