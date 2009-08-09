@@ -30,7 +30,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
-    public class UserData
+    public class UserAccountData
     {
         public UserData()
         {
@@ -78,7 +78,7 @@ namespace OpenSim.Services.Interfaces
 
     };
 
-    public class UserDataMessage
+    public class UserAccountDataMessage
     {
         public UserData Data;
 
@@ -93,10 +93,10 @@ namespace OpenSim.Services.Interfaces
         public UUID SessionID;
     };
 
-    public interface IUserDataService
+    public interface IUserAccountDataService
     {
-        UserData GetUserData(UUID scopeID, UUID userID);
-        UserData GetUserData(UUID scopeID, string FirstName, string LastName);
+        UserData GetUserAccountData(UUID scopeID, UUID userID);
+        UserData GetUserAccountData(UUID scopeID, string FirstName, string LastName);
 
         // This will set only the home region portion of the data!
         // Can't be used to set god level, flags, type or change the name!
@@ -105,7 +105,7 @@ namespace OpenSim.Services.Interfaces
 
         // Update all updatable fields
         //
-        bool SetUserData(UserData data, UUID PrincipalID, UUID SessionID);
+        bool SetUserAccountData(UserData data, UUID PrincipalID, UUID SessionID);
         
         // Returns the list of avatars that matches both the search
         // criterion and the scope ID passed
@@ -113,6 +113,6 @@ namespace OpenSim.Services.Interfaces
         List<UserData> GetAvatarPickerData(UUID scopeID, string query);
 
         // Creates a user data record
-        bool CreateUserData(UserData data, UUID PrincipalID, UUID SessionID);
+        bool CreateUserAccountData(UserData data, UUID PrincipalID, UUID SessionID);
     }
 }
