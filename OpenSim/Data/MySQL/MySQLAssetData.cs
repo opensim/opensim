@@ -168,6 +168,7 @@ namespace OpenSim.Data.MySQL
                             }
                             asset.Name = (string) dbReader["name"];
                             asset.Type = (sbyte) dbReader["assetType"];
+                            asset.Temporary = (bool)dbReader["temporary"];
                         }
                         dbReader.Close();
                         cmd.Dispose();

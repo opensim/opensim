@@ -118,13 +118,6 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T999_StillNull()
-        {
-            Assert.That(db.GetUserByUUID(zero), Is.Null);
-            Assert.That(db.GetAgentByUUID(zero), Is.Null);
-        }
-
-        [Test]
         public void T010_CreateUser()
         {
             UserProfileData u1 = NewUser(user1,fname1,lname1);
@@ -396,6 +389,22 @@ namespace OpenSim.Data.Tests
             Assert.That(customtype,Is.EqualTo(u1a.CustomType), "Assert.That(customtype,Is.EqualTo(u1a.CustomType))");
             Assert.That(partner,Is.EqualTo(u1a.Partner), "Assert.That(partner,Is.EqualTo(u1a.Partner))");
         }
+
+        [Test]
+        public void T017_UserUpdateRandomPersistency()
+        {
+            UUID id = user5;
+            UserProfileData u = db.GetUserByUUID(id);
+            ScrambleForTesting.Scramble(u);
+            u.ID = id;
+            
+            db.UpdateUserProfile(u);
+            UserProfileData u1a = db.GetUserByUUID(id);
+            Assert.That(u1a, Constraints.PropertyCompareConstraint(u)
+                .IgnoreProperty(x=>x.HomeRegionX)
+                .IgnoreProperty(x=>x.HomeRegionY)
+                );
+        }
         
         [Test]
         public void T020_CreateAgent()
@@ -658,6 +667,13 @@ namespace OpenSim.Data.Tests
             Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset), "Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset))");
             Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()), "Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()))");
             Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight), "Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight))");
+        }
+
+        [Test]
+        public void T999_StillNull()
+        {
+            Assert.That(db.GetUserByUUID(zero), Is.Null);
+            Assert.That(db.GetAgentByUUID(zero), Is.Null);
         }
 
         public UserProfileData NewUser(UUID id,string fname,string lname)

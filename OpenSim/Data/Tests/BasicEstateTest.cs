@@ -163,6 +163,24 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
+        private void T012_EstateSettingsRandomStorage()
+        {
+
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            ScrambleForTesting.Scramble(originalSettings);
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+
+            // Checking that loaded values are correct.
+            Assert.That(loadedSettings, Constraints.PropertyCompareConstraint(originalSettings));
+        }
+
+        [Test]
         public void T020_EstateSettingsManagerList()
         {
             // Letting estate store generate rows to database for us

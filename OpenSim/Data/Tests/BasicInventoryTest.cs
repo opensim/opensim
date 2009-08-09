@@ -115,16 +115,6 @@ namespace OpenSim.Data.Tests
             Assert.That(db.getUserRootFolder(owner1), Is.Null);
         }
 
-        [Test]
-        public void T999_StillNull()
-        {
-            // After all tests are run, these should still return no results
-            Assert.That(db.getInventoryFolder(zero), Is.Null);
-            Assert.That(db.getInventoryItem(zero), Is.Null);
-            Assert.That(db.getUserRootFolder(zero), Is.Null);
-            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0))");
-        }
-
         // 01x - folder tests
         [Test]
         public void T010_FolderNonParent()
@@ -248,7 +238,7 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T103UpdateItem()
+        public void T103_UpdateItem()
         {
             // TODO: probably shouldn't have the ability to have an
             // owner of an item in a folder not owned by the user
@@ -263,6 +253,31 @@ namespace OpenSim.Data.Tests
             Assert.That(i1.Name, Is.EqualTo(niname1), "Assert.That(i1.Name, Is.EqualTo(niname1))");
             Assert.That(i1.Description, Is.EqualTo(niname1), "Assert.That(i1.Description, Is.EqualTo(niname1))");
             Assert.That(i1.Owner, Is.EqualTo(owner2), "Assert.That(i1.Owner, Is.EqualTo(owner2))");
+        }
+
+        [Test]
+        public void T104_RandomUpdateItem()
+        {
+            InventoryItemBase expected = db.getInventoryItem(item1);
+            ScrambleForTesting.Scramble(expected);
+            expected.ID = item1;
+            db.updateInventoryItem(expected);
+
+            InventoryItemBase actual = db.getInventoryItem(item1);
+            Assert.That(actual, Constraints.PropertyCompareConstraint(expected)
+                .IgnoreProperty(x=>x.InvType)
+                .IgnoreProperty(x=>x.Description)
+                .IgnoreProperty(x=>x.CreatorId));
+        }
+
+        [Test]
+        public void T999_StillNull()
+        {
+            // After all tests are run, these should still return no results
+            Assert.That(db.getInventoryFolder(zero), Is.Null);
+            Assert.That(db.getInventoryItem(zero), Is.Null);
+            Assert.That(db.getUserRootFolder(zero), Is.Null);
+            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0))");
         }
 
         private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)

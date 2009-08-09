@@ -532,6 +532,53 @@ namespace OpenSim.Data.Tests
                 Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration), "Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration))");
             }
         }
+
+        [Test]
+        public void T016_RandomSogWithSceneParts()
+        {
+            UUID tmpSog = UUID.Random();
+            UUID tmp1 = UUID.Random();
+            UUID tmp2 = UUID.Random();
+            UUID tmp3 = UUID.Random();
+            UUID newregion = UUID.Random();
+            SceneObjectPart p1 = new SceneObjectPart();
+            SceneObjectPart p2 = new SceneObjectPart();
+            SceneObjectPart p3 = new SceneObjectPart();
+            p1.Shape = PrimitiveBaseShape.Default;
+            p2.Shape = PrimitiveBaseShape.Default;
+            p3.Shape = PrimitiveBaseShape.Default;
+            ScrambleForTesting.Scramble(p1);
+            ScrambleForTesting.Scramble(p2);
+            ScrambleForTesting.Scramble(p3);
+            p1.UUID = tmp1;
+            p2.UUID = tmp2;
+            p3.UUID = tmp3;
+            SceneObjectGroup sog = NewSOG("Sop 0", tmpSog, newregion);
+            ScrambleForTesting.Scramble(sog);
+            sog.UUID = tmpSog;
+            sog.AddPart(p1);
+            sog.AddPart(p2);
+            sog.AddPart(p3);
+
+            SceneObjectPart[] parts = sog.GetParts();
+            Assert.That(parts.Length, Is.EqualTo(4), "Assert.That(parts.Length,Is.EqualTo(4))");
+
+            db.StoreObject(sog, newregion);
+            List<SceneObjectGroup> sogs = db.LoadObjects(newregion);
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count,Is.EqualTo(1))");
+            SceneObjectGroup newsog = sogs[0];
+
+            SceneObjectPart[] newparts = newsog.GetParts();
+            Assert.That(newparts.Length, Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
+
+            Assert.That(newsog, Constraints.PropertyCompareConstraint(sog)
+                .IgnoreProperty(x=>x.LocalId)
+                .IgnoreProperty(x=>x.HasGroupChanged)
+                .IgnoreProperty(x=>x.IsSelected)
+                .IgnoreProperty(x=>x.RegionHandle)
+                .IgnoreProperty(x=>x.Scene)
+                .IgnoreProperty(x=>x.RootPart.InventorySerial));
+        }
         
         [Test]
         public void T020_PrimInventoryEmpty()

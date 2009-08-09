@@ -342,7 +342,7 @@ namespace OpenSim.Data.MySQL
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
                 item.GroupPermissions = (uint) reader["inventoryGroupPermissions"];
                 item.SalePrice = (int) reader["salePrice"];
-                item.SaleType = Convert.ToByte(reader["saleType"]);
+                item.SaleType = unchecked((byte)(Convert.ToSByte(reader["saleType"])));
                 item.CreationDate = (int) reader["creationDate"];
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = (uint) reader["flags"];
@@ -423,7 +423,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Returns a specified inventory folder
         /// </summary>
-        /// <param name="folder">The folder to return</param>
+        /// <param name="folderID">The folder to return</param>
         /// <returns>A folder class</returns>
         public InventoryFolderBase getInventoryFolder(UUID folderID)
         {
@@ -438,8 +438,9 @@ namespace OpenSim.Data.MySQL
                     result.Parameters.AddWithValue("?uuid", folderID.ToString());
                     MySqlDataReader reader = result.ExecuteReader();
 
-                    reader.Read();
-                    InventoryFolderBase folder = readInventoryFolder(reader);
+                    InventoryFolderBase folder = null;
+                    if(reader.Read())
+                         folder = readInventoryFolder(reader);
                     reader.Close();
                     result.Dispose();
 
@@ -506,7 +507,7 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
                 result.Parameters.AddWithValue("?inventoryGroupPermissions", item.GroupPermissions);
                 result.Parameters.AddWithValue("?salePrice", item.SalePrice);
-                result.Parameters.AddWithValue("?saleType", item.SaleType);
+                result.Parameters.AddWithValue("?saleType", unchecked((sbyte)item.SaleType));
                 result.Parameters.AddWithValue("?creationDate", item.CreationDate);
                 result.Parameters.AddWithValue("?groupID", item.GroupID);
                 result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
