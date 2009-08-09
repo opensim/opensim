@@ -33,41 +33,41 @@ using OpenSim.Services.Interfaces;
 using System.Collections.Generic;
 using OpenMetaverse;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.UserAccountService
 {
-    public class UserService : UserServiceBase, IUserDataService
+    public class UserAccountService : UserAccountServiceBase, IUserAccountDataService
     {
-        public UserService(IConfigSource config) : base(config)
+        public UserAccountService(IConfigSource config) : base(config)
         {
         }
 
-        public UserData GetUserData(UUID scopeID, string firstName,
+        public UserAccountData GetUserAccountData(UUID scopeID, string firstName,
                 string lastName)
         {
             return null;
         }
 
-        public UserData GetUserData(UUID scopeID, UUID userID)
+        public UserAccountData GetUserAccountData(UUID scopeID, UUID userID)
         {
             return null;
         }
 
-        public bool SetHomePosition(UserData data, UUID regionID, UUID regionSecret)
+        public bool SetHomePosition(UserAccountData data, UUID regionID, UUID regionSecret)
         {
             return false;
         }
 
-        public bool SetUserData(UserData data, UUID principalID, UUID sessionID)
+        public bool SetUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
         {
             return false;
         }
 
-        public bool CreateUserData(UserData data, UUID principalID, UUID sessionID)
+        public bool CreateUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
         {
             return false;
         }
 
-        public List<UserData> GetAvatarPickerData(UUID scopeID,
+        public List<UserAccountData> GetUserAccountData(UUID scopeID,
                 string query)
         {
             return null;

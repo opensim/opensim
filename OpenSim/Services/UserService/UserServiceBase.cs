@@ -32,17 +32,17 @@ using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
-namespace OpenSim.Services.UserService
+namespace OpenSim.Services.UserAccountService
 {
-    public class UserServiceBase: ServiceBase
+    public class UserAccountServiceBase: ServiceBase
     {
         protected IUserDataPlugin m_Database = null;
 
-        public UserServiceBase(IConfigSource config) : base(config)
+        public UserAccountServiceBase(IConfigSource config) : base(config)
         {
-            IConfig userConfig = config.Configs["UserService"];
+            IConfig userConfig = config.Configs["UserAccountService"];
             if (userConfig == null)
-                throw new Exception("No UserService configuration");
+                throw new Exception("No UserAccountService configuration");
 
             string dllName = userConfig.GetString("StorageProvider",
                     String.Empty);

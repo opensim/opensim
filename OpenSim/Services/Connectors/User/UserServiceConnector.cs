@@ -39,7 +39,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class UserServicesConnector : IUserDataService
+    public class UserServicesConnector : IUserAccountDataService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -81,10 +81,10 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI;
         }
 
-        public UserData GetUserData(UUID scopeID, string firstName, string lastName)
+        public UserAccountData GetUserAccountData(UUID scopeID, string firstName, string lastName)
         {
             string uri = m_ServerURI + "/users/";
-            UserData data = new UserData();
+            UserAccountData data = new UserAccountData();
             data.FirstName = firstName;
             data.LastName = lastName;
             data.ScopeID = scopeID;
@@ -93,7 +93,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 data = SynchronousRestObjectRequester.
-                        MakeRequest<UserData, UserData>("POST", uri, data);
+                        MakeRequest<UserAccountData, UserAccountData>("POST", uri, data);
             }
             catch (Exception e)
             {
@@ -107,10 +107,10 @@ namespace OpenSim.Services.Connectors
             return data;
         }
 
-        public UserData GetUserData(UUID scopeID, UUID userID)
+        public UserAccountData GetUserAccountData(UUID scopeID, UUID userID)
         {
             string uri = m_ServerURI + "/users/";
-            UserData data = new UserData();
+            UserAccountData data = new UserAccountData();
             data.FirstName = String.Empty;
             data.LastName = String.Empty;
             data.ScopeID = scopeID;
@@ -119,7 +119,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 data = SynchronousRestObjectRequester.
-                        MakeRequest<UserData, UserData>("POST", uri, data);
+                        MakeRequest<UserAccountData, UserAccountData>("POST", uri, data);
             }
             catch (Exception e)
             {
@@ -133,12 +133,12 @@ namespace OpenSim.Services.Connectors
             return data;
         }
 
-        public bool SetHomePosition(UserData data, UUID regionID, UUID regionSecret)
+        public bool SetHomePosition(UserAccountData data, UUID regionID, UUID regionSecret)
         {
             string uri = m_ServerURI + "/user/";
             bool result = false;
 
-            UserDataMessage msg = new UserDataMessage();
+            UserAccountDataMessage msg = new UserAccountDataMessage();
 
             msg.Data = data;
             msg.RegionID = regionID;
@@ -147,7 +147,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 result = SynchronousRestObjectRequester.
-                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
+                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
             }
             catch (Exception e)
             {
@@ -158,12 +158,12 @@ namespace OpenSim.Services.Connectors
             return result;
         }
 
-        public bool SetUserData(UserData data, UUID principalID, UUID sessionID)
+        public bool SetUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
         {
             string uri = m_ServerURI + "/user/";
             bool result = false;
 
-            UserDataMessage msg = new UserDataMessage();
+            UserAccountDataMessage msg = new UserAccountDataMessage();
 
             msg.Data = data;
             msg.PrincipalID = principalID;
@@ -172,7 +172,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 result = SynchronousRestObjectRequester.
-                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
+                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
             }
             catch (Exception e)
             {
@@ -183,12 +183,12 @@ namespace OpenSim.Services.Connectors
             return result;
         }
 
-        public bool CreateUserData(UserData data, UUID principalID, UUID sessionID)
+        public bool CreateUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
         {
             string uri = m_ServerURI + "/newuser/";
             bool result = false;
 
-            UserDataMessage msg = new UserDataMessage();
+            UserAccountDataMessage msg = new UserAccountDataMessage();
 
             msg.Data = data;
             msg.PrincipalID = principalID;
@@ -197,7 +197,7 @@ namespace OpenSim.Services.Connectors
             try
             {
                 result = SynchronousRestObjectRequester.
-                        MakeRequest<UserDataMessage, bool>("POST", uri, msg);
+                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
             }
             catch (Exception e)
             {
@@ -208,18 +208,18 @@ namespace OpenSim.Services.Connectors
             return result;
         }
 
-        public List<UserData> GetAvatarPickerData(UUID scopeID, string query)
+        public List<UserAccountData> GetUserAccountData(UUID scopeID, string query)
         {
             string uri = m_ServerURI + "/userlist/";
-            UserData data = new UserData();
+            UserAccountData data = new UserAccountData();
             data.FirstName = query;
             data.ScopeID = scopeID;
-            List<UserData> result;
+            List<UserAccountData> result;
 
             try
             {
                 result = SynchronousRestObjectRequester.
-                        MakeRequest<UserData, List<UserData>>("POST", uri, data);
+                        MakeRequest<UserAccountData, List<UserAccountData>>("POST", uri, data);
             }
             catch (Exception e)
             {

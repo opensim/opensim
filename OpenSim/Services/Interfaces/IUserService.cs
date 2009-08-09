@@ -32,11 +32,11 @@ namespace OpenSim.Services.Interfaces
 {
     public class UserAccountData
     {
-        public UserData()
+        public UserAccountData()
         {
         }
 
-        public UserData(UUID userID, UUID homeRegionID, float homePositionX,
+        public UserAccountData(UUID userID, UUID homeRegionID, float homePositionX,
                 float homePositionY, float homePositionZ, float homeLookAtX,
                 float homeLookAtY, float homeLookAtZ)
         {
@@ -80,7 +80,7 @@ namespace OpenSim.Services.Interfaces
 
     public class UserAccountDataMessage
     {
-        public UserData Data;
+        public UserAccountData Data;
 
         // Set to the region's ID and secret when updating home location
         //
