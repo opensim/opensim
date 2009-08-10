@@ -35,14 +35,13 @@ namespace OpenSim.Framework
     /// <summary>
     /// Interface to the local asset cache.  This is the mechanism through which assets can be added and requested.
     /// </summary>    
-    public interface IAssetCache : IAssetReceiver, IPlugin
+    public interface IAssetCache :  IPlugin
     {
         /// <value>
         /// The 'server' from which assets can be requested and to which assets are persisted.
         /// </value>        
-        IAssetServer AssetServer { get; }
-        
-        void Initialise(ConfigSettings cs, IAssetServer server);        
+       
+        void Initialise(ConfigSettings cs);        
 
         /// <summary>
         /// Report statistical data to the log.
@@ -110,23 +109,6 @@ namespace OpenSim.Framework
         /// <param name="userInfo"></param>
         /// <param name="transferRequest"></param>        
         void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest);
-    }
-
-    public class AssetCachePluginInitialiser : PluginInitialiserBase
-    {
-        private ConfigSettings config;
-        private IAssetServer   server;
-
-        public AssetCachePluginInitialiser (ConfigSettings p_sv, IAssetServer p_as)
-        {
-            config = p_sv;
-            server = p_as;
-        }
-        public override void Initialise (IPlugin plugin)
-        {
-            IAssetCache p = plugin as IAssetCache;
-            p.Initialise (config, server);
-        }
     }
 
 }
