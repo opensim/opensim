@@ -59,16 +59,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_gridService = gridInterComms;
             m_osw = gridInterComms;
 
-            // The HG InventoryService always uses secure handlers
-            HGInventoryServiceClient invService = new HGInventoryServiceClient(serversInfo.InventoryURL, this.m_userProfileCacheService, true);
-            invService.UserProfileCache = m_userProfileCacheService; 
-            AddSecureInventoryService(invService);
-            m_defaultInventoryHost = invService.Host;
-            if (SecureInventoryService != null)
-                m_log.Info("[HG]: SecureInventoryService.");
-            else
-                m_log.Info("[HG]: Non-secureInventoryService.");
-
             HGUserServices userServices = new HGUserServices(this);
             // This plugin arrangement could eventually be configurable rather than hardcoded here.
             userServices.AddPlugin(new TemporaryUserProfilePlugin());

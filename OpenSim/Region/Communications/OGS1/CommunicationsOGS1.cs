@@ -42,19 +42,6 @@ namespace OpenSim.Region.Communications.OGS1
             OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo);
             m_gridService = gridInterComms;
 
-            if (serversInfo.secureInventoryServer)
-            {
-                OGS1SecureInventoryService invService = new OGS1SecureInventoryService(serversInfo.InventoryURL);
-                AddSecureInventoryService(invService);
-                m_defaultInventoryHost = invService.Host;
-            }
-            else
-            {
-                OGS1InventoryService invService = new OGS1InventoryService(serversInfo.InventoryURL);
-                AddInventoryService(invService);
-                m_defaultInventoryHost = invService.Host;
-            }
-
             // This plugin arrangement could eventually be configurable rather than hardcoded here.           
             OGS1UserServices userServices = new OGS1UserServices(this);
             userServices.AddPlugin(new TemporaryUserProfilePlugin());
@@ -65,16 +52,5 @@ namespace OpenSim.Region.Communications.OGS1
             m_avatarService = (IAvatarService)m_userService;
         }
 
-        public override void AddInventoryService(string hostUrl)
-        {
-            OGS1InventoryService invService = new OGS1InventoryService(hostUrl);
-            AddInventoryService(invService);
-        }
-
-        public override void AddSecureInventoryService(string hostUrl)
-        {
-            OGS1SecureInventoryService invService = new OGS1SecureInventoryService(hostUrl);
-            AddSecureInventoryService(invService);
-        }
     }
 }

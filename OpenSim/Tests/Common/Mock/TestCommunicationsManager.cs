@@ -57,11 +57,6 @@ namespace OpenSim.Tests.Common.Mock
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, null)
         {                        
-            LocalInventoryService lis = new LocalInventoryService();
-            m_inventoryDataPlugin = new TestInventoryDataPlugin();
-            lis.AddPlugin(m_inventoryDataPlugin);
-            m_interServiceInventoryService = lis;
-            AddInventoryService(lis);
 
             LocalUserServices lus = new LocalUserServices(991, 992, this);
             lus.AddPlugin(new TemporaryUserProfilePlugin());

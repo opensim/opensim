@@ -656,7 +656,7 @@ namespace OpenSim
                 case "Add-InventoryHost":
                     if (cmdparams.Length > 0)
                     {
-                        m_commsManager.AddInventoryService(cmdparams[0]);
+                        m_log.Info("Not implemented.");
                     }
                     break;
 

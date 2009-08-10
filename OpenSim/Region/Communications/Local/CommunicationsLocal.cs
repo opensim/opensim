@@ -42,22 +42,7 @@ namespace OpenSim.Region.Communications.Local
             LibraryRootFolder libraryRootFolder)
             : base(serversInfo, libraryRootFolder)
         {
-            LocalInventoryService inventoryService = new LocalInventoryService();
-            List<IInventoryDataPlugin> plugins 
-                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
-                    configSettings.StandaloneInventoryPlugin, 
-                    configSettings.StandaloneInventorySource);
-
-            foreach (IInventoryDataPlugin plugin in plugins)
-            {
-                // Using the OSP wrapper plugin for database plugins should be made configurable at some point
-                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin, this));
-            }
-            
-            AddInventoryService(inventoryService);
-            m_defaultInventoryHost = inventoryService.Host;
-            m_interServiceInventoryService = inventoryService;
-                        
+                       
             LocalUserServices lus 
                 = new LocalUserServices(
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);

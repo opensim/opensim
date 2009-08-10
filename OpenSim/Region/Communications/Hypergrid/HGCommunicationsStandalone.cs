@@ -53,28 +53,6 @@ namespace OpenSim.Region.Communications.Hypergrid
                 new LocalUserServices(
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
             localUserService.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource); 
-
-            HGInventoryServiceClient inventoryService 
-                = new HGInventoryServiceClient(serversInfo.InventoryURL, null, false);
-            List<IInventoryDataPlugin> plugins 
-                = DataPluginFactory.LoadDataPlugins<IInventoryDataPlugin>(
-                    configSettings.StandaloneInventoryPlugin, 
-                    configSettings.StandaloneInventorySource);
-
-            foreach (IInventoryDataPlugin plugin in plugins)
-            {
-                // Using the OSP wrapper plugin should be made configurable at some point
-                inventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin, this));
-            }
-            
-            AddInventoryService(inventoryService);
-            m_defaultInventoryHost = inventoryService.Host;
-            m_interServiceInventoryService = inventoryService;
-            inventoryService.UserProfileCache = UserProfileCacheService;
-                        
-            // Let's swap to always be secure access to inventory
-            AddSecureInventoryService((ISecureInventoryService)inventoryService);
-            m_inventoryServices = null;
             
             HGUserServices hgUserService = new HGUserServices(this, localUserService);
             // This plugin arrangement could eventually be configurable rather than hardcoded here.
