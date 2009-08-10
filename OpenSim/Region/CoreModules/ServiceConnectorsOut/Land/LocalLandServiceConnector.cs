@@ -60,7 +60,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 
         #region ISharedRegionModule
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

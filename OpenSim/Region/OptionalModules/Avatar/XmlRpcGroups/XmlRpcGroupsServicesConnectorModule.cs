@@ -77,7 +77,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         }
 
         // this module is not intended to be replaced, but there should only be 1 of them.
-        public Type ReplacableInterface
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

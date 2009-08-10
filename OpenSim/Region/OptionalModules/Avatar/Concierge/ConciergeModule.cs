@@ -214,7 +214,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         {
         }
 
-        new public Type ReplacableInterface 
+        new public Type ReplaceableInterface 
         {
             get { return null; }
         }

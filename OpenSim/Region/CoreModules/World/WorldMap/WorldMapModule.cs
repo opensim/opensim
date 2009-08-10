@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         {
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

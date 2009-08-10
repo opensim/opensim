@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         {
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

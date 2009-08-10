@@ -160,7 +160,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             List<ISharedRegionModule> sharedlist = new List<ISharedRegionModule>();
             foreach (ISharedRegionModule module in m_sharedInstances)
             {
-                Type replaceableInterface = module.ReplacableInterface;
+                Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
                     MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
@@ -190,7 +190,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             {
                 INonSharedRegionModule module = (INonSharedRegionModule)Activator.CreateInstance(type);
 
-                Type replaceableInterface = module.ReplacableInterface;
+                Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
                     MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
@@ -226,7 +226,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             foreach (ISharedRegionModule module in deferredSharedModules.Values)
             {
-                Type replaceableInterface = module.ReplacableInterface;
+                Type replaceableInterface = module.ReplaceableInterface;
                 MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
 
                 if (mii.Invoke(scene, new object[0]) != null)
@@ -247,7 +247,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             List<INonSharedRegionModule> deferredlist = new List<INonSharedRegionModule>();
             foreach (INonSharedRegionModule module in deferredNonSharedModules.Values)
             {
-                Type replaceableInterface = module.ReplacableInterface;
+                Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
                     MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);

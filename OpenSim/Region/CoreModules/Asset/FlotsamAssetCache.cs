@@ -159,7 +159,7 @@ namespace Flotsam.RegionModules.AssetCache
             m_InvalidChars.AddRange(Path.GetInvalidFileNameChars());
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

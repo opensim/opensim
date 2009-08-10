@@ -51,7 +51,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// that the developer expects to be replaced by third party provided
         /// modules.
         /// </summary>
-        Type ReplacableInterface { get; }
+        Type ReplaceableInterface { get; }
 
         /// <summary>
         /// This is called to initialize the region module. For shared modules, this is called

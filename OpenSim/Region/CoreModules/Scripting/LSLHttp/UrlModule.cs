@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         private IHttpServer m_HttpServer = null;
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }
