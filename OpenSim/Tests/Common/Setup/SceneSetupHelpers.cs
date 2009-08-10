@@ -33,6 +33,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Physics.Manager;
@@ -105,6 +106,9 @@ namespace OpenSim.Tests.Common.Setup
             string name, UUID id, uint x, uint y, TestCommunicationsManager cm, bool startServices)
         {
             Console.WriteLine("Setting up test scene {0}", name);
+
+            // We must set up a console otherwise setup of some modules may fail
+            MainConsole.Instance = new LocalConsole("TEST PROMPT");
             
             MainServer.Instance = new BaseHttpServer(980);
             RegionInfo regInfo = new RegionInfo(x, y, new IPEndPoint(IPAddress.Loopback, 9000), "127.0.0.1");
