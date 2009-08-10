@@ -43,3 +43,4 @@ OpenSim/OpenSim.usertasks
 TAGS
 *~
 Makefile.local
+bin/.version
