@@ -44,7 +44,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             ConfigSettings configSettings,                          
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
-            IAssetCache assetCache,
             HGGridServices gridService, 
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)

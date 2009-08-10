@@ -190,11 +190,11 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {    
             HGGridServicesStandalone gridService 
                 = new HGGridServicesStandalone(
-                    m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache, m_openSim.SceneManager);                         
+                    m_openSim.NetServersInfo, m_httpServer, m_openSim.SceneManager);                         
 
             m_commsManager 
                 = new HGCommunicationsStandalone(
-                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, m_openSim.AssetCache,
+                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, 
                     gridService, 
                     libraryRootFolder, false);                        
             

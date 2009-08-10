@@ -75,7 +75,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected bool Allow_Alternate_Port;
         protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
         protected IScene m_localScene;
-        protected IAssetCache m_assetCache;
         protected int m_clientSocketReceiveBuffer = 0;
 
         /// <value>
@@ -131,7 +130,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public LLUDPServer(
             IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource, 
-            IAssetCache assetCache, AgentCircuitManager authenticateClass)
+            AgentCircuitManager authenticateClass)
         {
             Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, configSource, authenticateClass);
         }
@@ -451,7 +450,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         proxyCircuits[useCircuit.CircuitCode.Code] = epProxy;
                     }
                     
-                    m_packetServer.AddNewClient(epSender, useCircuit, m_assetCache, sessionInfo, epProxy);
+                    m_packetServer.AddNewClient(epSender, useCircuit, sessionInfo, epProxy);
                                     
                     //m_log.DebugFormat(
                     //    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
@@ -629,7 +628,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            m_packetServer.AddNewClient(userEP, useCircuit, m_assetCache, sessionInfo, proxyEP);
+            m_packetServer.AddNewClient(userEP, useCircuit, sessionInfo, proxyEP);
         }
     }
 }

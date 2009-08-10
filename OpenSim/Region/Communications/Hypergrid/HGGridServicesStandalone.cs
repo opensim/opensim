@@ -76,7 +76,7 @@ namespace OpenSim.Region.Communications.Hypergrid
         }      
 
 
-        public HGGridServicesStandalone(NetworkServersInfo servers_info, BaseHttpServer httpServe, IAssetCache asscache, SceneManager sman)
+        public HGGridServicesStandalone(NetworkServersInfo servers_info, BaseHttpServer httpServe, SceneManager sman)
             : base(servers_info, sman)
         {
             //Respond to Grid Services requests

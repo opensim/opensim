@@ -35,6 +35,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -60,9 +61,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Cache to which dearchived assets will be added
         /// </summary>
-        protected IAssetCache m_cache;
+        protected IAssetService m_cache;
 
-        public AssetsDearchiver(IAssetCache cache)
+        public AssetsDearchiver(IAssetService cache)
         {
             m_cache = cache;
         }
@@ -162,7 +163,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 asset.Type = metadata.AssetType;
                 asset.Data = data;
 
-                m_cache.AddAsset(asset);
+                m_cache.Store(asset);
             }
             else
             {

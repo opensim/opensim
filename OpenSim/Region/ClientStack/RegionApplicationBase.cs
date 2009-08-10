@@ -72,15 +72,7 @@ namespace OpenSim.Region.ClientStack
             get { return m_sceneManager; }
         }
         protected SceneManager m_sceneManager = new SceneManager();
-
-        protected IAssetCache m_assetCache;
-
-        public IAssetCache AssetCache
-        {
-            get { return m_assetCache; }
-            set { m_assetCache = value; }
-        }
-        
+       
         protected abstract void Initialize();
         
         /// <summary>

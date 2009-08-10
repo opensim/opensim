@@ -488,7 +488,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// Constructor
         /// </summary>
         public LLClientView(
-            EndPoint remoteEP, IScene scene, IAssetCache assetCache, LLPacketServer packServer,
+            EndPoint remoteEP, IScene scene, LLPacketServer packServer,
             AuthenticateResponse sessionInfo, UUID agentId, UUID sessionId, uint circuitCode, EndPoint proxyEP,
             ClientStackUserSettings userSettings)
         {
