@@ -145,10 +145,6 @@ namespace OpenSim.Grid.InventoryServer
             }
         }
 
-        public override void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback)
-        {
-        }
-
         /// <summary>
         /// Return a user's entire inventory
         /// </summary>

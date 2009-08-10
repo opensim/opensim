@@ -34,8 +34,6 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 {
     public class OpenSimInventoryService : InventoryServiceBase
     {
-        public override void RequestInventoryForUser(UUID userID, InventoryReceiptCallback callback) {}
-
         public InventoryFolderWithChildren GetInventoryFolder(UUID folderID)
         {
             InventoryFolderBase baseFolder = null;
