@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             get { return "Capabilities Module"; } 
         }
 
-        public Type ReplacableInterface
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

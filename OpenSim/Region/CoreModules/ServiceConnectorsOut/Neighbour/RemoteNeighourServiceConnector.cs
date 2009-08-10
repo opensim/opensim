@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
         //private string serviceDll;
         //private List<Scene> m_Scenes = new List<Scene>();
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

@@ -402,7 +402,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return 0;
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

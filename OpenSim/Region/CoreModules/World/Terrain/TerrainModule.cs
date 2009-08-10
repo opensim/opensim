@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

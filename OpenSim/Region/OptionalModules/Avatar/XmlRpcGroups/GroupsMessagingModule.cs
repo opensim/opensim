@@ -176,7 +176,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             m_msgTransferModule = null;
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

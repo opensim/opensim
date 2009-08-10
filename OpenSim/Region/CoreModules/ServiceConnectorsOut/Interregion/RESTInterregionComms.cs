@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             }
         }
 
-        public Type ReplacableInterface
+        public Type ReplaceableInterface
         {
             get { return null; }
         }

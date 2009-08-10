@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
         {
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

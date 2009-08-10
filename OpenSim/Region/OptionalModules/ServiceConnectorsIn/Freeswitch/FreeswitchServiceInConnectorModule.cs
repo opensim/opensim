@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Freeswitch
         {
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

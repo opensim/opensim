@@ -220,7 +220,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
         }
 
-        public Type ReplacableInterface
+        public Type ReplaceableInterface
         {
             get { return typeof(IMoneyModule); }
         }

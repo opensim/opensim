@@ -234,7 +234,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             m_clientRequestIDFlushTimer.Stop();
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

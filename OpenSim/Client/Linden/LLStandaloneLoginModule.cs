@@ -155,7 +155,7 @@ namespace OpenSim.Client.Linden
             }
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

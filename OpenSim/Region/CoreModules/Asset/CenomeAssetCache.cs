@@ -290,7 +290,7 @@ namespace OpenSim.Region.CoreModules.Asset
             get { return "CenomeMemoryAssetCache"; }
         }
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }

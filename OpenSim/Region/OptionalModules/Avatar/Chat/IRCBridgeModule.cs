@@ -54,7 +54,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         #region INonSharedRegionModule Members
 
-        public Type ReplacableInterface 
+        public Type ReplaceableInterface 
         {
             get { return null; }
         }
