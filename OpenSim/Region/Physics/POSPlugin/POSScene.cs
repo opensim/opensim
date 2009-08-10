@@ -65,10 +65,6 @@ namespace OpenSim.Region.Physics.POSPlugin
             return act;
         }
 
-        public override void SetWaterLevel(float baseheight)
-        {
-        }
-
         public override void RemovePrim(PhysicsActor prim)
         {
             POSPrim p = (POSPrim) prim;
@@ -267,12 +263,14 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
+        public override void SetWaterLevel(float baseheight)
+        {
+        }
+
         public override Dictionary<uint, float> GetTopColliders()
         {
             Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
             return returncolliders;
         }
-
-        
     }
 }
