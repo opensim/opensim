@@ -142,7 +142,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        InventoryFolderBase RequestRootFolder(UUID userID);
+        InventoryFolderBase GetRootFolder(UUID userID);
 
         /// <summary>
         /// Get the active gestures of the agent.

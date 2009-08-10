@@ -265,7 +265,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (Rest.InventoryServices.HasInventoryForUser(rdata.uuid))
             {
-                rdata.root = Rest.InventoryServices.RequestRootFolder(rdata.uuid);
+                rdata.root = Rest.InventoryServices.GetRootFolder(rdata.uuid);
 
                 Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);

@@ -276,9 +276,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
-            return m_InventoryService.RequestRootFolder(userID);
+            return m_InventoryService.GetRootFolder(userID);
         }
 
         public List<InventoryItemBase> GetActiveGestures(UUID userId)

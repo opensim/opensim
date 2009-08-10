@@ -161,7 +161,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
             return null;
         }

@@ -552,7 +552,7 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
             InventoryFolderBase root = new InventoryFolderBase();
             root.ID = UUID.Random();

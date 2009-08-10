@@ -60,7 +60,7 @@ namespace OpenSim.Services.InventoryService
         {
             m_log.DebugFormat("[INVENTORY SERVICE]: Getting inventory skeleton for {0}", userId);
 
-            InventoryFolderBase rootFolder = RequestRootFolder(userId);
+            InventoryFolderBase rootFolder = GetRootFolder(userId);
 
             // Agent has no inventory structure yet.
             if (null == rootFolder)
@@ -86,7 +86,7 @@ namespace OpenSim.Services.InventoryService
         }
 
         // See IInventoryServices
-        public virtual InventoryFolderBase RequestRootFolder(UUID userID)
+        public virtual InventoryFolderBase GetRootFolder(UUID userID)
         {
             // Retrieve the first root folder we get from the DB.
             InventoryFolderBase rootFolder = m_Database.getUserRootFolder(userID);
@@ -100,7 +100,7 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public bool CreateUserInventory(UUID user)
         {
-            InventoryFolderBase existingRootFolder = RequestRootFolder(user);
+            InventoryFolderBase existingRootFolder = GetRootFolder(user);
 
             if (null != existingRootFolder)
             {

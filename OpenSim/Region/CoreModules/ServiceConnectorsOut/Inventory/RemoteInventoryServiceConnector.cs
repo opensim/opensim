@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
             return null;
         }
