@@ -31,13 +31,18 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using Nini.Config;
 
 namespace OpenSim.Tests.Common.Mock
 {
     public class TestAssetService : IAssetService
     {
-        private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();        
-     
+        private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
+
+        public TestAssetService(IConfigSource config)
+        {
+        }
+        
         public AssetBase Get(string id)
         {
             return Assets[ id ];

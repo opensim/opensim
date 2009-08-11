@@ -698,7 +698,7 @@ namespace OpenSim.Framework.Communications
                     if (rootfolder != null)
                         userProf.RootInventoryFolderID = rootfolder.ID;
                 }
-                else if (m_commsManager.InterServiceInventoryService != null)
+                else
                 {
                     // used by the user server
                     m_log.Debug("[USERSTORAGE]: using m_commsManager.InterServiceInventoryService to create user's inventory");

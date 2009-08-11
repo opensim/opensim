@@ -54,6 +54,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo nonExistingUserInfo;
 
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
+            Scene myScene = SceneSetupHelpers.SetupScene(commsManager, "");
 
             // Check we can't retrieve info before it exists by uuid
             nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
@@ -116,7 +117,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -132,7 +133,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -154,7 +155,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -190,7 +191,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -256,7 +257,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -297,7 +298,7 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            Scene myScene = SceneSetupHelpers.SetupScene();
+            Scene myScene = SceneSetupHelpers.SetupScene("inventory");
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
             for (int i = 0 ; i < 50 ; i++)
             {

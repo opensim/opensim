@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene(false);
+            Scene scene = SceneSetupHelpers.SetupScene("");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
             CommunicationsManager cm = scene.CommsManager;
 
@@ -363,7 +363,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestReplicateArchivePathToUserInventory()
         {
             TestHelper.InMethod();
-            Scene scene = SceneSetupHelpers.SetupScene(false);
+            Scene scene = SceneSetupHelpers.SetupScene("");
             CommunicationsManager commsManager = scene.CommsManager;
 
             CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
