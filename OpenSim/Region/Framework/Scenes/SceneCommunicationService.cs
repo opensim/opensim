@@ -1319,17 +1319,17 @@ namespace OpenSim.Region.Framework.Scenes
             return m_commsProvider.GridService.RequestNamedRegions(name, maxNumber);
         }
 
-//        private void Dump(string msg, List<ulong> handles)
-//        {
-//            m_log.Info"-------------- HANDLE DUMP ({0}) ---------", msg);
-//            foreach (ulong handle in handles)
-//            {
-//                uint x, y;
-//                Utils.LongToUInts(handle, out x, out y);
-//                x = x / Constants.RegionSize;
-//                y = y / Constants.RegionSize;
-//                m_log.Info("({0}, {1})", x, y);
-//            }
-//        }
+        //private void Dump(string msg, List<ulong> handles)
+        //{
+        //    m_log.InfoFormat("-------------- HANDLE DUMP ({0}) ---------", msg);
+        //    foreach (ulong handle in handles)
+        //    {
+        //        uint x, y;
+        //        Utils.LongToUInts(handle, out x, out y);
+        //        x = x / Constants.RegionSize;
+        //        y = y / Constants.RegionSize;
+        //        m_log.InfoFormat("({0}, {1})", x, y);
+        //    }
+        //}
     }
 }

@@ -164,20 +164,20 @@ namespace OpenSim.Services.Connectors
         public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
         {
             // !!! Not just yet.
-            try
-            {
-                List<InventoryFolderBase> folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
-                    "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
-                Dictionary<AssetType, InventoryFolderBase> dFolders = new Dictionary<AssetType, InventoryFolderBase>();
-                foreach (InventoryFolderBase f in folders)
-                    dFolders[(AssetType)f.Type] = f;
-                return dFolders;
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}",
-                     e.Source, e.Message);
-            }
+            //try
+            //{
+            //    List<InventoryFolderBase> folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
+            //        "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+            //    Dictionary<AssetType, InventoryFolderBase> dFolders = new Dictionary<AssetType, InventoryFolderBase>();
+            //    foreach (InventoryFolderBase f in folders)
+            //        dFolders[(AssetType)f.Type] = f;
+            //    return dFolders;
+            //}
+            //catch (Exception e)
+            //{
+            //    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}",
+            //         e.Source, e.Message);
+            //}
 
             return new Dictionary<AssetType, InventoryFolderBase>();
         }
