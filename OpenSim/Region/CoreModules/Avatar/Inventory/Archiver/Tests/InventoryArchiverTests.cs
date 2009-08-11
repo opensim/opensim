@@ -386,7 +386,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             log4net.Config.XmlConfigurator.Configure();
             
-            Scene scene = SceneSetupHelpers.SetupScene("");
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
             CommunicationsManager commsManager = scene.CommsManager;
             CachedUserInfo userInfo;
 
