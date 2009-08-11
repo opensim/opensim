@@ -43,6 +43,21 @@ namespace OpenSim.Tests.Common.Mock
             return folders;
         }
 
+        public InventoryFolderBase GetRootFolder(UUID userID)
+        {
+            return new InventoryFolderBase();
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            return null;
+        }
+
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Returns a list of all the active gestures in a user's inventory.
         /// </summary>
