@@ -73,14 +73,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             foreach (Scene s in m_Scenes)
             {
                 s.TryGetAvatar(clientID, out sp);
-                if (sp != null)
+                if ((sp != null) && !sp.IsChildAgent)
                 {
-                    m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed, but user {0} still in sim. Keeping system folders in cache", clientID);
+                    m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache", 
+                        scene.RegionInfo.RegionName, clientID);
                     return;
                 }
             }
 
-            m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed, user {0} out of sim. Dropping system folders", clientID);
+            m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders", 
+                scene.RegionInfo.RegionName, clientID);
             // Drop system folders
             lock (m_InventoryCache)
                 if (m_InventoryCache.ContainsKey(clientID))
