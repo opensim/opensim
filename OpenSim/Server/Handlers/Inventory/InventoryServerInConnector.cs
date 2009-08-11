@@ -86,7 +86,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, Dictionary<AssetType, InventoryFolderBase>>(
-                "GET", "/SystemFolders/", GetSystemFolders, CheckAuthSession));
+                "POST", "/SystemFolders/", GetSystemFolders, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<Guid, InventoryCollection>(

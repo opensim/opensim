@@ -167,11 +167,11 @@ namespace OpenSim.Services.Connectors
             //try
             //{
             //    return SynchronousRestSessionObjectPoster<Guid, Dictionary<AssetType, InventoryFolderBase>>.BeginPostObject(
-            //        "GET", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+            //        "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
             //}
             //catch (Exception e)
             //{
-            //    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}",
+            //    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}",
             //         e.Source, e.Message);
             //}
 
