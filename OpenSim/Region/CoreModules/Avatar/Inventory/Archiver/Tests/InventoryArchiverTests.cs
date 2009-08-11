@@ -379,7 +379,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
         /// </summary>
-        [Test]
+        //[Test]
         public void TestReplicateArchivePathToUserInventory()
         {
             TestHelper.InMethod();
