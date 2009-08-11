@@ -85,7 +85,7 @@ namespace OpenSim.Server.Handlers.Inventory
                     "POST", "/GetInventory/", GetUserInventory, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<Guid, Dictionary<AssetType, InventoryFolderBase>>(
+                new RestDeserialiseSecureHandler<Guid, List<InventoryFolderBase>>(
                 "POST", "/SystemFolders/", GetSystemFolders, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
@@ -163,10 +163,10 @@ namespace OpenSim.Server.Handlers.Inventory
             return m_InventoryService.GetUserInventory(userID);
         }
 
-        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(Guid guid)
+        public List<InventoryFolderBase> GetSystemFolders(Guid guid)
         {
             UUID userID = new UUID(guid);
-            return GetSystemFolders(userID);
+            return new List<InventoryFolderBase>(GetSystemFolders(userID).Values);
         }
 
         // This shouldn't be here, it should be in the inventory service.
