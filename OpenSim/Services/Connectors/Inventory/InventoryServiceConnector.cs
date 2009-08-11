@@ -165,8 +165,8 @@ namespace OpenSim.Services.Connectors
         {
             try
             {
-                return SynchronousRestSessionObjectPoster<string, Dictionary<AssetType, InventoryFolderBase>>.BeginPostObject(
-                    "GET", m_ServerURI + "/SystemFolders/", userID, sessionID.ToString(), userID.ToString());
+                return SynchronousRestSessionObjectPoster<Guid, Dictionary<AssetType, InventoryFolderBase>>.BeginPostObject(
+                    "GET", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
             }
             catch (Exception e)
             {
@@ -187,8 +187,8 @@ namespace OpenSim.Services.Connectors
         {
             try
             {
-                return SynchronousRestSessionObjectPoster<UUID, InventoryCollection>.BeginPostObject(
-                    "GET", m_ServerURI + "/GetFolderContents/", folderID, sessionID.ToString(), userID.ToString());
+                return SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
+                    "POST", m_ServerURI + "/GetFolderContent/", folderID.Guid, sessionID.ToString(), userID.ToString());
             }
             catch (Exception e)
             {

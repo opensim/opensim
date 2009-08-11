@@ -85,6 +85,14 @@ namespace OpenSim.Server.Handlers.Inventory
                     "POST", "/GetInventory/", GetUserInventory, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
+                new RestDeserialiseSecureHandler<Guid, Dictionary<AssetType, InventoryFolderBase>>(
+                "GET", "/SystemFolders/", GetSystemFolders, CheckAuthSession));
+
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseSecureHandler<Guid, InventoryCollection>(
+                "POST", "/GetFolderContent/", GetFolderContent, CheckAuthSession));
+            
+            m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
                     "POST", "/UpdateFolder/", m_InventoryService.UpdateFolder, CheckAuthSession));
 
@@ -153,6 +161,40 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             UUID userID = new UUID(guid);
             return m_InventoryService.GetUserInventory(userID);
+        }
+
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(Guid guid)
+        {
+            UUID userID = new UUID(guid);
+            return GetSystemFolders(userID);
+        }
+
+        // This shouldn't be here, it should be in the inventory service.
+        // But I don't want to deal with types and dependencies for now.
+        private Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            InventoryFolderBase root = m_InventoryService.GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = m_InventoryService.GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    return folders;
+                }
+            }
+            m_log.WarnFormat("[INVENTORY SERVICE]: System folders for {0} not found", userID);
+            return new Dictionary<AssetType, InventoryFolderBase>();
+        }
+
+        public InventoryCollection GetFolderContent(Guid guid)
+        {
+            return m_InventoryService.GetFolderContent(UUID.Zero, new UUID(guid));
         }
 
         public List<InventoryItemBase> GetFolderItems(Guid folderID)
