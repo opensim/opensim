@@ -54,6 +54,8 @@ namespace OpenSim.Tests.Common.Setup
     /// </summary>
     public class SceneSetupHelpers
     {
+        // These static variables in order to allow regions to be linked by shared modules and same
+        // CommunicationsManager. 
         private static ISharedRegionModule m_assetService = null;
         private static ISharedRegionModule m_inventoryService = null;
         private static TestCommunicationsManager commsManager = null;
@@ -74,7 +76,7 @@ namespace OpenSim.Tests.Common.Setup
         /// Set up a test scene
         /// </summary>
         /// 
-        /// <param name="startServices">Start associated service threads for the scene</param>
+        /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
         /// <returns></returns>
         public static TestScene SetupScene(String realServices)
         {
@@ -82,6 +84,13 @@ namespace OpenSim.Tests.Common.Setup
                 "Unit test region", UUID.Random(), 1000, 1000, new TestCommunicationsManager(), realServices);
         }
 
+        /// <summary>
+        /// Set up a test scene
+        /// </summary>
+        /// 
+        /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
+        /// <param name="cm">This should be the same if simulating two scenes within a standalone</param>
+        /// <returns></returns>
         public static TestScene SetupScene(TestCommunicationsManager cm, String realServices)
         {
             return SetupScene(
@@ -102,7 +111,8 @@ namespace OpenSim.Tests.Common.Setup
         }
 
         /// <summary>
-        /// Set up a scene. 
+        /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions
+        /// or a different, to get a brand new scene with new shared region modules.
         /// </summary>
         /// <param name="name">Name of the region</param>
         /// <param name="id">ID of the region</param>
@@ -117,6 +127,10 @@ namespace OpenSim.Tests.Common.Setup
             bool newScene= false;
 
             Console.WriteLine("Setting up test scene {0}", name);
+            
+            // If cm is the same as our last commsManager used, this means the tester wants to link
+            // regions. In this case, don't use the sameshared region modules and dont initialize them again.
+            // Also, no need to start another MainServer and MainConsole instance.
             if (cm == null || cm != commsManager)
             {
                 System.Console.WriteLine("Starting a brand new scene");
@@ -150,6 +164,8 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
             IniConfigSource config = new IniConfigSource();
+            
+            // If we have a brand new scene, need to initialize shared region modules
             if ((m_assetService == null && m_inventoryService == null) || newScene)
             {
                 if (realServices.Contains("asset"))
@@ -161,6 +177,7 @@ namespace OpenSim.Tests.Common.Setup
                 else
                     StartInventoryService(testScene, false);
             }
+            // If not, make sure the shared module gets references to this new scene
             else
             {
                 m_assetService.AddRegion(testScene);
