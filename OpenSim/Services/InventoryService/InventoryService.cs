@@ -233,6 +233,46 @@ namespace OpenSim.Services.InventoryService
             callback.BeginInvoke(folders, items, null, null);
         }
 
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            m_log.Info("[INVENTORY SERVICE]: Processing request for folder " + folderID);
+
+            // Uncomment me to simulate a slow responding inventory server
+            //Thread.Sleep(16000);
+
+            InventoryCollection invCollection = new InventoryCollection();
+
+            List<InventoryItemBase> items = GetFolderItems(userID, folderID);
+            List<InventoryFolderBase> folders = RequestSubFolders(folderID);
+
+            invCollection.UserID = userID;
+            invCollection.Folders = folders;
+            invCollection.Items = items;
+
+            m_log.DebugFormat("[INVENTORY SERVICE]: Found {0} items and {1} folders", items.Count, folders.Count);
+
+            return invCollection;            
+        }
+
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            InventoryFolderBase root = m_Database.getUserRootFolder(userID);
+            if (root != null)
+            {
+                List<InventoryFolderBase> folders = RequestSubFolders(root.ID);
+
+                foreach (InventoryFolderBase folder in folders)
+                {
+                    if (folder.Type == (short)type)
+                        return folder;
+                }
+            }
+
+            // we didn't find any folder of that type. Return the root folder
+            // hopefully the root folder is not null. If it is, too bad
+            return root;
+        }
+
         public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             List<InventoryItemBase> activeGestures = new List<InventoryItemBase>();

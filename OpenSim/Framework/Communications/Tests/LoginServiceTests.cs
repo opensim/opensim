@@ -497,6 +497,16 @@ namespace OpenSim.Framework.Communications.Tests
         {
         }
 
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            return null;
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            return null;
+        }
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return null;

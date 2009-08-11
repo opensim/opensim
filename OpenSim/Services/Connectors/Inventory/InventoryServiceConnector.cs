@@ -155,6 +155,50 @@ namespace OpenSim.Services.Connectors
             }
         }
 
+        /// <summary>
+        /// Gets the user folder for the given folder-type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public List<InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
+        {
+            try
+            {
+                return SynchronousRestSessionObjectPoster<string, List<InventoryFolderBase>>.BeginPostObject(
+                    "GET", m_ServerURI + "/SystemFolders/", userID, sessionID.ToString(), userID.ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return new List<InventoryFolderBase>();
+        }
+
+        /// <summary>
+        /// Gets everything (folders and items) inside a folder
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        public InventoryCollection GetFolderContent(string userID, UUID folderID, UUID sessionID)
+        {
+            try
+            {
+                return SynchronousRestSessionObjectPoster<UUID, InventoryCollection>.BeginPostObject(
+                    "GET", m_ServerURI + "/GetFolderContents/", folderID, sessionID.ToString(), userID.ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
+
         public bool AddFolder(string userID, InventoryFolderBase folder, UUID sessionID)
         {
             try

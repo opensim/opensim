@@ -176,6 +176,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             m_InventoryService.GetUserInventory(userID, callback);
         }
 
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            return m_InventoryService.GetFolderForType(userID, type);
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            return m_InventoryService.GetFolderContent(userID, folderID);
+        }
+
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return m_InventoryService.GetFolderItems(userID, folderID);

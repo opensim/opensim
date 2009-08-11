@@ -120,6 +120,48 @@ namespace OpenSim.Services.Connectors.Inventory
 
         }
 
+        /// <summary>
+        /// Gets the user folder for the given folder-type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public List<InventoryFolderBase> GetSystemFolders(string id, UUID sessionID)
+        {
+            m_log.Debug("[HGInventory]: GetSystemFolders " + id);
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.GetSystemFolders(userID, sessionID);
+            }
+
+            return new List<InventoryFolderBase>();
+        }
+
+        /// <summary>
+        /// Gets everything (folders and items) inside a folder
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        public InventoryCollection GetFolderContent(string id, UUID folderID, UUID sessionID)
+        {
+            m_log.Debug("[HGInventory]: GetSystemFolders " + id);
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.GetFolderContent(userID, folderID, sessionID);
+            }
+
+            return null;
+        }
+
         public bool AddFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
             string url = string.Empty;

@@ -201,6 +201,32 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetFolderForType(userID, type);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                // !!!!!!
+                return null;
+                //return m_HGService.GetFolderForType(uri, sessionID, type);
+            }
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetFolderContent(userID, folderID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                return m_HGService.GetFolderContent(uri, folderID, sessionID);
+            }
+        }
+
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return new List<InventoryItemBase>();

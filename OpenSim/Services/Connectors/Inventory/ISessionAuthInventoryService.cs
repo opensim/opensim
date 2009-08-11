@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
@@ -49,6 +50,22 @@ namespace OpenSim.Services.Connectors
         /// <param name="userID"></param>
         /// <param name="callback"></param>
         void GetUserInventory(string userID, UUID session_id, InventoryReceiptCallback callback);
+
+        /// <summary>
+        /// Gets the user folder for the given folder-type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        List<InventoryFolderBase> GetSystemFolders(string userID, UUID session_id);
+
+        /// <summary>
+        /// Gets everything (folders and items) inside a folder
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        InventoryCollection GetFolderContent(string userID, UUID folderID, UUID session_id);
 
         /// <summary>
         /// Add a new folder to the user's inventory
