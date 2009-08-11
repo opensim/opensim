@@ -54,6 +54,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     [TestFixture]
     public class InventoryArchiverTests
     {
+        private void InventoryReceived(UUID userId)
+        {
+            lock (this)
+            {
+                Monitor.PulseAll(this);
+            }
+        }
+        
         private void SaveCompleted(
             bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
         {
@@ -61,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             {
                 Monitor.PulseAll(this);
             }
-        }
+        }        
 
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
@@ -82,8 +90,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
+            CachedUserInfo userInfo;
+
+            lock (this)
+            {
+                userInfo 
+                    = UserProfileTestUtils.CreateUserWithInventory(
+                        cm, userFirstName, userLastName, userId, InventoryReceived);
+                Monitor.Wait(this, 60000);
+            }
+
+            /*
             cm.UserAdminService.AddUser(userFirstName, userLastName, string.Empty, string.Empty, 1000, 1000, userId);
-            CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId);
+            CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId, InventoryReceived);
             userInfo.FetchInventory();
             for (int i = 0 ; i < 50 ; i++)
             {
@@ -92,6 +111,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Thread.Sleep(200);
             }
             Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+            */
 
             // Create asset
             SceneObjectGroup object1;
@@ -337,15 +357,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(user2Profile.SurName == user2LastName);
             
             CachedUserInfo userInfo 
-                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);            
-            userInfo.FetchInventory();
-            for (int i = 0 ; i < 50 ; i++)
+                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
+            userInfo.OnInventoryReceived += InventoryReceived;
+
+            lock (this)
             {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+                userInfo.FetchInventory();
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+            
             InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             
             Assert.That(foundItem.CreatorId, Is.EqualTo(item1.CreatorId));
@@ -365,8 +385,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
             Scene scene = SceneSetupHelpers.SetupScene("");
             CommunicationsManager commsManager = scene.CommsManager;
+            CachedUserInfo userInfo;
 
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager);
+            lock (this)
+            {
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
+            }
+           
             //userInfo.FetchInventory();
             /*
             for (int i = 0 ; i < 50 ; i++)

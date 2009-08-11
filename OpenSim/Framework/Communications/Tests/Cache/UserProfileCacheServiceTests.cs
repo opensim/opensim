@@ -43,6 +43,18 @@ namespace OpenSim.Framework.Communications.Tests
     [TestFixture]
     public class UserProfileCacheServiceTests
     {
+        /// <value>Used by tests to indicate whether an async operation timed out</value>
+        private bool timedOut;
+        
+        private void InventoryReceived(UUID userId)
+        {
+            lock (this)
+            {
+                timedOut = false;
+                Monitor.PulseAll(this);
+            }
+        }
+        
         [Test]
         public void TestGetUserDetails()
         {
@@ -118,14 +130,15 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
-            }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
+
+            timedOut = true;
+            lock (this)
+            {                   
+                UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
+             }
+
+            Assert.That(timedOut, Is.False, "Timed out");
         }
 
         [Test]
@@ -134,14 +147,13 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+            CachedUserInfo userInfo;
+            
+            lock (this)
+            {                   
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000011");
             Assert.That(userInfo.RootFolder.GetChildFolder(folderId), Is.Null);
@@ -156,14 +168,13 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+            CachedUserInfo userInfo;
+
+            lock (this)
+            {                   
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folderId = UUID.Parse("00000000-0000-0000-0000-000000000010");
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.False);
@@ -192,14 +203,13 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+            CachedUserInfo userInfo;
+
+            lock (this)
+            {                   
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
@@ -258,14 +268,13 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+            CachedUserInfo userInfo;
+
+            lock (this)
+            {                   
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000020");
             UUID folder2Id = UUID.Parse("00000000-0000-0000-0000-000000000021");
@@ -299,14 +308,13 @@ namespace OpenSim.Framework.Communications.Tests
             //log4net.Config.XmlConfigurator.Configure();
 
             Scene myScene = SceneSetupHelpers.SetupScene("inventory");
-            CachedUserInfo userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager);
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
+            CachedUserInfo userInfo;
+
+            lock (this)
+            {                   
+                userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
+                Monitor.Wait(this, 60000);
             }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
 
             UUID folder1Id = UUID.Parse("00000000-0000-0000-0000-000000000070");
             InventoryFolderImpl rootFolder = userInfo.RootFolder;
