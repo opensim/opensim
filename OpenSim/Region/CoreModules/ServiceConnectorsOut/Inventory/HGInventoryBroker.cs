@@ -253,13 +253,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 if (content != null)
                 {
                     Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
-                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
                     foreach (InventoryFolderBase folder in content.Folders)
                     {
-                        m_log.DebugFormat("[HG INVENTORY CONNECTOR]: scanning folder type {0}", (AssetType)folder.Type);
-                        if (folder.Type != (short)AssetType.Folder)
+                        //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: scanning folder type {0}", (AssetType)folder.Type);
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                             folders[(AssetType)folder.Type] = folder;
                     }
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
                     return folders;
                 }
                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);

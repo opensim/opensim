@@ -197,12 +197,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
                     foreach (InventoryFolderBase folder in content.Folders)
                     {
-                        if (folder.Type != (short)AssetType.Folder)
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                             folders[(AssetType)folder.Type] = folder;
                     }
                     return folders;
                 }
             }
+            m_log.WarnFormat("[INVENTORY CONNECTOR]: System folders for {0} not found", userID);
             return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
