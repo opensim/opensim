@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene(false);
+            Scene scene = SceneSetupHelpers.SetupScene("asset");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
             SceneObjectPart part1;

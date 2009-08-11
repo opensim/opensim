@@ -36,6 +36,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Services;
 using OpenSim.Region.Communications.Local;
+using OpenSim.Tests.Common.Setup;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Client.Linden;
 using OpenSim.Tests.Common;
@@ -57,11 +58,12 @@ namespace OpenSim.Framework.Communications.Tests
         private string m_regionExternalName = "localhost";
 
         private IPEndPoint m_capsEndPoint;
-        private CommunicationsManager m_commsManager;
+        private TestCommunicationsManager m_commsManager;
         private TestLoginToRegionConnector m_regionConnector;
         private LocalUserServices m_localUserServices;
         private LoginService m_loginService;
         private UserProfileData m_userProfileData;
+        private TestScene m_testScene;
 
         [SetUp]
         public void SetUpLoginEnviroment()
@@ -69,13 +71,16 @@ namespace OpenSim.Framework.Communications.Tests
             m_capsEndPoint = new IPEndPoint(IPAddress.Loopback, 9123);
             m_commsManager = new TestCommunicationsManager(new NetworkServersInfo(42, 43));
             m_regionConnector = new TestLoginToRegionConnector();
+            m_testScene = SceneSetupHelpers.SetupScene(m_commsManager, "");
 
             m_regionConnector.AddRegion(new RegionInfo(42, 43, m_capsEndPoint, m_regionExternalName));
+
+            //IInventoryService m_inventoryService = new TestInventoryService();
 
             m_localUserServices = (LocalUserServices) m_commsManager.UserService;
             m_localUserServices.AddUser(m_firstName,m_lastName,"boingboing","abc@ftw.com",42,43);
 
-            m_loginService = new LLStandaloneLoginService((UserManagerBase) m_localUserServices, "Hello folks", new TestInventoryService(),
+            m_loginService = new LLStandaloneLoginService((UserManagerBase) m_localUserServices, "Hello folks", m_testScene.InventoryService,
                   m_commsManager.NetworkServersInfo, true, new LibraryRootFolder(String.Empty), m_regionConnector);
 
             m_userProfileData = m_localUserServices.GetUserProfile(m_firstName, m_lastName);

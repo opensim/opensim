@@ -76,7 +76,7 @@ namespace OpenSim.Framework.Servers
         protected string m_startupDirectory = Environment.CurrentDirectory;
 
         /// <summary>
-        /// Server version information.  Usually VersionInfo + information about svn revision, operating system, etc.
+        /// Server version information.  Usually VersionInfo + information about git commit, operating system, etc.
         /// </summary>
         protected string m_version;
 
@@ -422,6 +422,16 @@ namespace OpenSim.Framework.Servers
         {
             string buildVersion = string.Empty;
 
+            // Add commit hash and date information if available
+            // The commit hash and date are stored in a file bin/.version
+            // This file can automatically created by a post
+            // commit script in the opensim git master repository or
+            // by issuing the follwoing command from the top level
+            // directory of the opensim repository
+            // git log -n 1 --pretty="format:%h: %ci" >bin/.version
+            // For the full git commit hash use %H instead of %h
+            //
+            // The subversion information is deprecated and will be removed at a later date
             // Add subversion revision information if available
             // Try file "svn_revision" in the current directory first, then the .svn info.
             // This allows to make the revision available in simulators not running from the source tree.
@@ -429,39 +439,53 @@ namespace OpenSim.Framework.Servers
             // elsewhere as well
             string svnRevisionFileName = "svn_revision";
             string svnFileName = ".svn/entries";
+            string gitCommitFileName = ".version";
             string inputLine;
             int strcmp;
 
-            if (File.Exists(svnRevisionFileName))
+            if (File.Exists( gitCommitFileName))
             {
-                StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
-                buildVersion = RevisionFile.ReadLine();
-                buildVersion.Trim();
-                RevisionFile.Close();
+                StreamReader CommitFile = File.OpenText(gitCommitFileName);
+                buildVersion = Environment.NewLine + "git# " + CommitFile.ReadLine();
+                CommitFile.Close();
+                m_version += buildVersion ?? "";
             }
 
-            if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
+            // Remove the else logic when subversion mirror is no longer used
+            else
             {
-                StreamReader EntriesFile = File.OpenText(svnFileName);
-                inputLine = EntriesFile.ReadLine();
-                while (inputLine != null)
+                if (File.Exists(svnRevisionFileName))
                 {
-                    // using the dir svn revision at the top of entries file
-                    strcmp = String.Compare(inputLine, "dir");
-                    if (strcmp == 0)
-                    {
-                        buildVersion = EntriesFile.ReadLine();
-                        break;
-                    }
-                    else
-                    {
-                        inputLine = EntriesFile.ReadLine();
-                    }
-                }
-                EntriesFile.Close();
-            }
+                    StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
+                    buildVersion = RevisionFile.ReadLine();
+                    buildVersion.Trim();
+                    RevisionFile.Close();
 
-            m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
+                }
+
+                if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
+                {
+                    StreamReader EntriesFile = File.OpenText(svnFileName);
+                    inputLine = EntriesFile.ReadLine();
+                    while (inputLine != null)
+                    {
+                        // using the dir svn revision at the top of entries file
+                        strcmp = String.Compare(inputLine, "dir");
+                        if (strcmp == 0)
+                       {
+                            buildVersion = EntriesFile.ReadLine();
+                            break;
+                        }
+                        else
+                        {
+                            inputLine = EntriesFile.ReadLine();
+                        }
+                    }
+                    EntriesFile.Close();
+                }
+
+                m_version += string.IsNullOrEmpty(buildVersion) ? "      " : ("." + buildVersion + "     ").Substring(0, 6);
+            }
         }
         
         protected void CreatePIDFile(string path)

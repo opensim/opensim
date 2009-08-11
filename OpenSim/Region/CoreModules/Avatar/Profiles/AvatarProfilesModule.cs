@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                                                   Util.ToDateTime(profile.Created).ToString("M/d/yyyy", CultureInfo.InvariantCulture),
                                                   charterMember, profile.FirstLifeAboutText, (uint)(profile.UserFlags & 0xff),
-                                                  profile.FirstLifeImage, profile.Image, String.Empty, profile.Partner);
+                                                  profile.FirstLifeImage, profile.Image, profile.ProfileUrl, profile.Partner);
             }
             else
             {
@@ -130,6 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
                 Profile.FirstLifeImage = newProfile.FirstLifeImage;
                 Profile.AboutText = newProfile.AboutText;
                 Profile.FirstLifeAboutText = newProfile.FirstLifeAboutText;
+                Profile.ProfileUrl = newProfile.ProfileUrl;
             }
             else
             {

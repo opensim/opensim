@@ -280,7 +280,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 UUID newFolderId = UUID.Random();
                 m_userInfo.CreateFolder(
                     folderName, newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
+
+                m_log.DebugFormat("[INVENTORY ARCHIVER]: Retrieving newly created folder {0}", folderName);                
                 foundFolder = foundFolder.GetChildFolder(newFolderId);
+                m_log.DebugFormat(
+                    "[INVENTORY ARCHIVER]: Retrieved newly created folder {0} with ID {1}", 
+                    foundFolder.Name, foundFolder.ID);
 
                 // Record that we have now created this folder
                 fsPath += rawDirsToCreate[i] + "/";

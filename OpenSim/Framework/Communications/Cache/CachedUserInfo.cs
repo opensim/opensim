@@ -49,16 +49,24 @@ namespace OpenSim.Framework.Communications.Cache
         IClientAPI client, UUID folderID, bool fetchFolders, bool fetchItems);
 
     public delegate void OnItemReceivedDelegate(UUID itemID);
+    public delegate void OnInventoryReceivedDelegate(UUID userID);
 
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
     /// </summary>
     public class CachedUserInfo
-    {
+    {        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        //// <value>
+        /// Fired when a particular item has been received from the inventory service
+        /// </value>
         public event OnItemReceivedDelegate OnItemReceived;
 
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /// <value>
+        /// Fired once the entire inventory has been received for the user
+        /// </value>
+        public event OnInventoryReceivedDelegate OnInventoryReceived;
 
         /// <summary>
         /// The comms manager holds references to services (user, grid, inventory, etc.)
@@ -133,7 +141,9 @@ namespace OpenSim.Framework.Communications.Cache
             UUID parentFolderId = folder.ParentID;
 
             if (dictionary.ContainsKey(parentFolderId))
+            {
                 dictionary[parentFolderId].Add(folder);
+            }
             else
             {
                 IList<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
@@ -299,6 +309,9 @@ namespace OpenSim.Framework.Communications.Cache
                     request.Execute();
                 }
             }
+
+            if (OnInventoryReceived != null)
+                OnInventoryReceived(UserProfile.ID);
         }
 
         /// <summary>

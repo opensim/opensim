@@ -4954,6 +4954,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         UserProfile.FirstLifeAboutText = Utils.BytesToString(Properties.FLAboutText);
                         UserProfile.FirstLifeImage = Properties.FLImageID;
                         UserProfile.Image = Properties.ImageID;
+                        UserProfile.ProfileUrl = Utils.BytesToString(Properties.ProfileURL);
 
                         handlerUpdateAvatarProperties(this, UserProfile);
                     }
