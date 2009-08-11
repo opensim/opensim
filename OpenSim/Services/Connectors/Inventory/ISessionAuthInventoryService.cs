@@ -57,7 +57,7 @@ namespace OpenSim.Services.Connectors
         /// <param name="userID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        List<InventoryFolderBase> GetSystemFolders(string userID, UUID session_id);
+        Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string userID, UUID session_id);
 
         /// <summary>
         /// Gets everything (folders and items) inside a folder

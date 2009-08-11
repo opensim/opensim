@@ -126,7 +126,7 @@ namespace OpenSim.Services.Connectors.Inventory
         /// <param name="userID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> GetSystemFolders(string id, UUID sessionID)
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string id, UUID sessionID)
         {
             m_log.Debug("[HGInventory]: GetSystemFolders " + id);
             string url = string.Empty;
@@ -138,7 +138,7 @@ namespace OpenSim.Services.Connectors.Inventory
                 return connector.GetSystemFolders(userID, sessionID);
             }
 
-            return new List<InventoryFolderBase>();
+            return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
         /// <summary>

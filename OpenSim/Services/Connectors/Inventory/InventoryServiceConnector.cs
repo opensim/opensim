@@ -161,11 +161,11 @@ namespace OpenSim.Services.Connectors
         /// <param name="userID"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
         {
             try
             {
-                return SynchronousRestSessionObjectPoster<string, List<InventoryFolderBase>>.BeginPostObject(
+                return SynchronousRestSessionObjectPoster<string, Dictionary<AssetType, InventoryFolderBase>>.BeginPostObject(
                     "GET", m_ServerURI + "/SystemFolders/", userID, sessionID.ToString(), userID.ToString());
             }
             catch (Exception e)
@@ -174,7 +174,7 @@ namespace OpenSim.Services.Connectors
                      e.Source, e.Message);
             }
 
-            return new List<InventoryFolderBase>();
+            return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
         /// <summary>

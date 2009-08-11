@@ -273,6 +273,26 @@ namespace OpenSim.Services.InventoryService
             return root;
         }
 
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            InventoryFolderBase root = GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        if (folder.Type != (short)AssetType.Folder)
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    return folders;
+                }
+            }
+            return new Dictionary<AssetType, InventoryFolderBase>();
+        }
+
         public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             List<InventoryItemBase> activeGestures = new List<InventoryItemBase>();

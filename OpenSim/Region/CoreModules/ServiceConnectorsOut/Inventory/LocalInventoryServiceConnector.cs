@@ -41,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class LocalInventoryServicesConnector : ISharedRegionModule, IInventoryService
+    public class LocalInventoryServicesConnector : InventoryCache, ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -108,6 +108,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     //    m_InventoryService.AddPlugin(new OspInventoryWrapperPlugin(plugin, this));
                     //}
 
+                    Init(source);
+
                     m_Enabled = true;
                     m_log.Info("[INVENTORY CONNECTOR]: Local inventory connector enabled");
                 }
@@ -122,7 +124,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
-        public void AddRegion(Scene scene)
+        public override void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -139,10 +141,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 //                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
             
             scene.RegisterModuleInterface<IInventoryService>(this);
+            base.AddRegion(scene);
         }
 
-        public void RemoveRegion(Scene scene)
+        public override void RemoveRegion(Scene scene)
         {
+            base.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -176,9 +180,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             m_InventoryService.GetUserInventory(userID, callback);
         }
 
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        // Inherited. See base
+        //public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        //{
+        //    return m_InventoryService.GetFolderForType(userID, type);
+        //}
+
+        public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
-            return m_InventoryService.GetFolderForType(userID, type);
+            InventoryFolderBase root = GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        if (folder.Type != (short)AssetType.Folder)
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    return folders;
+                }
+            }
+            return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
