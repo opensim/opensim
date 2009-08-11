@@ -114,6 +114,11 @@ namespace OpenSim.Framework
         /// </summary>
         private uint m_profileWantDoMask; // Profile window "I want to" mask
 
+        /// <summary>
+        /// The profile url for an avatar
+        /// </summary>
+        private string m_profileUrl;
+
         private UUID m_rootInventoryFolderId;
 
         /// <summary>
@@ -347,6 +352,12 @@ namespace OpenSim.Framework
         {
             get { return m_profileFirstText; }
             set { m_profileFirstText = value; }
+        }
+
+        public string ProfileUrl
+        {
+            get { return m_profileUrl; }
+            set { m_profileUrl = value; }
         }
 
         public UUID Image
