@@ -60,8 +60,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             // If not, go get them and place them in the cache
             Dictionary<AssetType, InventoryFolderBase> folders = GetSystemFolders(presence.UUID);
-            m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent, fetched system folders for {0} {1}: count {2}", 
-                presence.Firstname, presence.Lastname, folders.Count);
+            m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
+                presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
             if (folders.Count > 0)
                 lock (m_InventoryCache)
                     m_InventoryCache.Add(presence.UUID, folders);
@@ -69,25 +69,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         void OnClientClosed(UUID clientID, Scene scene)
         {
-            ScenePresence sp = null;
-            foreach (Scene s in m_Scenes)
+            if (m_InventoryCache.ContainsKey(clientID)) // if it's still in cache
             {
-                s.TryGetAvatar(clientID, out sp);
-                if ((sp != null) && !sp.IsChildAgent)
+                ScenePresence sp = null;
+                foreach (Scene s in m_Scenes)
                 {
-                    m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache", 
-                        scene.RegionInfo.RegionName, clientID);
-                    return;
+                    s.TryGetAvatar(clientID, out sp);
+                    if ((sp != null) && !sp.IsChildAgent && (s != scene))
+                    {
+                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache",
+                            scene.RegionInfo.RegionName, clientID);
+                        return;
+                    }
                 }
+
+                // Drop system folders
+                lock (m_InventoryCache)
+                    if (m_InventoryCache.ContainsKey(clientID))
+                    {
+                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders",
+                            scene.RegionInfo.RegionName, clientID);
+
+                        m_InventoryCache.Remove(clientID);
+                    }
             }
-
-            m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders", 
-                scene.RegionInfo.RegionName, clientID);
-            // Drop system folders
-            lock (m_InventoryCache)
-                if (m_InventoryCache.ContainsKey(clientID))
-                    m_InventoryCache.Remove(clientID);
-
         }
 
         public abstract Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID);
