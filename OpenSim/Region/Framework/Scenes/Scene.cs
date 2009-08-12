@@ -2019,12 +2019,13 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
+
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
-            client.OnMoveInventoryFolder += HandleMoveInventoryFolder;
+            client.OnMoveInventoryFolder += HandleMoveInventoryFolder; // 2; //!!
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
-            client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents;
+            client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
@@ -2036,6 +2037,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRemoveTaskItem += RemoveTaskInventory;
             client.OnUpdateTaskInventory += UpdateTaskInventory;
             client.OnMoveTaskItem += ClientMoveTaskInventoryItem;
+
             client.OnGrabObject += ProcessObjectGrab;
             client.OnDeGrabObject += ProcessObjectDeGrab;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;

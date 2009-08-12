@@ -12,21 +12,23 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public abstract class InventoryCache
+    public class InventoryCache
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(
             MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected BaseInventoryConnector m_Connector;
         protected List<Scene> m_Scenes;
 
         // The cache proper
         protected Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>> m_InventoryCache;
 
-        protected virtual void Init(IConfigSource source)
+        public virtual void Init(IConfigSource source, BaseInventoryConnector connector)
         {
             m_Scenes = new List<Scene>();
             m_InventoryCache = new Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>>();
+            m_Connector = connector;
         }
 
         public virtual void AddRegion(Scene scene)
@@ -59,7 +61,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             // If not, go get them and place them in the cache
-            Dictionary<AssetType, InventoryFolderBase> folders = GetSystemFolders(presence.UUID);
+            Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(presence.UUID);
             m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
                 presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
             if (folders.Count > 0)
@@ -95,7 +97,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public abstract Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID);
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {

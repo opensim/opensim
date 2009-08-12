@@ -68,5 +68,24 @@ namespace OpenSim.Framework
             get { return _version; }
             set { _version = value; }
         }
+
+        public InventoryFolderBase()
+        {
+        }
+
+        public InventoryFolderBase(UUID id)
+        {
+            ID = id;
+        }
+
+        public InventoryFolderBase(UUID id, string name, UUID owner, short type, UUID parent, ushort version)
+        {
+            ID = id;
+            Name = name;
+            Owner = owner;
+            Type = type;
+            ParentID = parent;
+            Version = version;
+        }
     }
 }

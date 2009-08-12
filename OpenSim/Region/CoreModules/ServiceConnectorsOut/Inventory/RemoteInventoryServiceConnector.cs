@@ -40,7 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class RemoteInventoryServicesConnector : InventoryCache, ISharedRegionModule, IInventoryService
+    public class RemoteInventoryServicesConnector : BaseInventoryConnector, ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
-        public override void AddRegion(Scene scene)
+        public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -117,12 +117,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             scene.RegisterModuleInterface<IInventoryService>(this);
-            base.AddRegion(scene);
+            m_cache.AddRegion(scene);
         }
 
-        public override void RemoveRegion(Scene scene)
+        public void RemoveRegion(Scene scene)
         {
-            base.RemoveRegion(scene);
+            if (!m_Enabled)
+                return;
+
+            m_cache.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -138,22 +141,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         #region IInventoryService
 
-        public bool CreateUserInventory(UUID user)
+        public override bool CreateUserInventory(UUID user)
         {
             return false;
         }
 
-        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        public override List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
             return new List<InventoryFolderBase>();
         }
 
-        public InventoryCollection GetUserInventory(UUID userID)
+        public override InventoryCollection GetUserInventory(UUID userID)
         {
             return null;
         }
 
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
+        public override void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
             UUID sessionID = GetSessionID(userID);
             try
@@ -180,7 +183,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.GetSystemFolders(userID.ToString(), sessionID);
         }
 
-        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        public override InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             UUID sessionID = GetSessionID(userID);
             try
@@ -199,12 +202,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return nullCollection;
         }
 
-        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
+        public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return new List<InventoryItemBase>();
         }
 
-        public bool AddFolder(InventoryFolderBase folder)
+        public override bool AddFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -213,7 +216,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.AddFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
-        public bool UpdateFolder(InventoryFolderBase folder)
+        public override bool UpdateFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -222,7 +225,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.UpdateFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
-        public bool MoveFolder(InventoryFolderBase folder)
+        public override bool MoveFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -231,7 +234,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.MoveFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
-        public bool PurgeFolder(InventoryFolderBase folder)
+        public override bool PurgeFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return false;
@@ -240,7 +243,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.PurgeFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
-        public bool AddItem(InventoryItemBase item)
+        // public bool AddItem(InventoryItemBase item) inherited
+        // Uses AddItemPlain
+
+        protected override bool AddItemPlain(InventoryItemBase item)
         {
             if (item == null)
                 return false;
@@ -249,7 +255,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.AddItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public bool UpdateItem(InventoryItemBase item)
+        public override bool UpdateItem(InventoryItemBase item)
         {
             if (item == null)
                 return false;
@@ -258,7 +264,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.UpdateItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItem(InventoryItemBase item)
         {
             if (item == null)
                 return false;
@@ -267,7 +273,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.DeleteItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase QueryItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
@@ -276,7 +282,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.QueryItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
@@ -285,17 +291,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.QueryFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
-        public bool HasInventoryForUser(UUID userID)
+        public override bool HasInventoryForUser(UUID userID)
         {
             return false;
         }
 
-        public InventoryFolderBase GetRootFolder(UUID userID)
+        public override InventoryFolderBase GetRootFolder(UUID userID)
         {
             return null;
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
