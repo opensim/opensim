@@ -155,6 +155,55 @@ namespace OpenSim.Services.Connectors
             }
         }
 
+        /// <summary>
+        /// Gets the user folder for the given folder-type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
+        {
+            // !!! Not just yet.
+            //try
+            //{
+            //    List<InventoryFolderBase> folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
+            //        "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+            //    Dictionary<AssetType, InventoryFolderBase> dFolders = new Dictionary<AssetType, InventoryFolderBase>();
+            //    foreach (InventoryFolderBase f in folders)
+            //        dFolders[(AssetType)f.Type] = f;
+            //    return dFolders;
+            //}
+            //catch (Exception e)
+            //{
+            //    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}",
+            //         e.Source, e.Message);
+            //}
+
+            return new Dictionary<AssetType, InventoryFolderBase>();
+        }
+
+        /// <summary>
+        /// Gets everything (folders and items) inside a folder
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        public InventoryCollection GetFolderContent(string userID, UUID folderID, UUID sessionID)
+        {
+            try
+            {
+                return SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
+                    "POST", m_ServerURI + "/GetFolderContent/", folderID.Guid, sessionID.ToString(), userID.ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
+
         public bool AddFolder(string userID, InventoryFolderBase folder, UUID sessionID)
         {
             try

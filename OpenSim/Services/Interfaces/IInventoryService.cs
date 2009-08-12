@@ -70,6 +70,29 @@ namespace OpenSim.Services.Interfaces
         void GetUserInventory(UUID userID, InventoryReceiptCallback callback);
 
         /// <summary>
+        /// Retrieve the root inventory folder for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>null if no root folder was found</returns>
+        InventoryFolderBase GetRootFolder(UUID userID);
+
+        /// <summary>
+        /// Gets the user folder for the given folder-type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        InventoryFolderBase GetFolderForType(UUID userID, AssetType type);
+
+        /// <summary>
+        /// Gets everything (folders and items) inside a folder
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        InventoryCollection GetFolderContent(UUID userID, UUID folderID);
+        
+        /// <summary>
         /// Gets the items inside a folder
         /// </summary>
         /// <param name="userID"></param>
@@ -136,13 +159,6 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <returns></returns>
         bool HasInventoryForUser(UUID userID);
-
-        /// <summary>
-        /// Retrieve the root inventory folder for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns>null if no root folder was found</returns>
-        InventoryFolderBase RequestRootFolder(UUID userID);
 
         /// <summary>
         /// Get the active gestures of the agent.

@@ -41,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class HGInventoryBroker : ISharedRegionModule, IInventoryService
+    public class HGInventoryBroker : InventoryCache, ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -122,6 +122,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
                     m_LocalGridInventoryURI = inventoryConfig.GetString("InventoryServerURI", string.Empty);
 
+                    Init(source);
+
                     m_Enabled = true;
                     m_log.Info("[HG INVENTORY CONNECTOR]: HG inventory broker enabled");
                 }
@@ -136,7 +138,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
-        public void AddRegion(Scene scene)
+        public override void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -154,10 +156,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             scene.RegisterModuleInterface<IInventoryService>(this);
+            base.AddRegion(scene);
         }
 
-        public void RemoveRegion(Scene scene)
+        public override void RemoveRegion(Scene scene)
         {
+            base.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -165,7 +169,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[INVENTORY CONNECTOR]: Enabled HG inventory for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[HG INVENTORY CONNECTOR]: Enabled HG inventory for region {0}", scene.RegionInfo.RegionName);
 
         }
 
@@ -199,6 +203,72 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
                 m_HGService.GetUserInventory(uri, sessionID, callback);
             }
+        }
+
+        // Inherited. See base
+        //public override InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        //{
+        //    if (IsLocalGridUser(userID))
+        //        return m_GridService.GetFolderForType(userID, type);
+        //    else
+        //    {
+        //        UUID sessionID = GetSessionID(userID);
+        //        string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+        //        // !!!!!!
+        //        return null;
+        //        //return m_HGService.GetFolderForType(uri, sessionID, type);
+        //    }
+        //}
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetFolderContent(userID, folderID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                return m_HGService.GetFolderContent(uri, folderID, sessionID);
+            }
+        }
+
+        public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            if (IsLocalGridUser(userID))
+                return GetSystemFoldersLocal(userID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                return m_HGService.GetSystemFolders(uri, sessionID);
+            }
+        }
+
+        private Dictionary<AssetType, InventoryFolderBase> GetSystemFoldersLocal(UUID userID)
+        {
+            InventoryFolderBase root = m_GridService.GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = m_GridService.GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: scanning folder type {0}", (AssetType)folder.Type);
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
+                    return folders;
+                }
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);
+
+            }
+
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder not found for {0}", userID);
+
+            return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
@@ -346,7 +416,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
             return null;
         }

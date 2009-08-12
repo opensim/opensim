@@ -328,15 +328,19 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
 
         public bool HasEvents(UUID agentID)
         {
-            Queue<OSD> queue = TryGetQueue(agentID);
-            lock (queue)
-            {
-                if (queue.Count > 0)
-                    return true;
-                else
-                    return false;
-            }
+            // Don't use this, because of race conditions at agent closing time
+            //Queue<OSD> queue = TryGetQueue(agentID);
 
+            Queue<OSD> queue = GetQueue(agentID);
+            if (queue != null)
+                lock (queue)
+                {
+                    if (queue.Count > 0)
+                        return true;
+                    else
+                        return false;
+                }
+            return false;
         }
 
         public Hashtable GetEvents(UUID pAgentId, string request)

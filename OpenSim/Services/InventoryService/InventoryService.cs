@@ -60,7 +60,7 @@ namespace OpenSim.Services.InventoryService
         {
             m_log.DebugFormat("[INVENTORY SERVICE]: Getting inventory skeleton for {0}", userId);
 
-            InventoryFolderBase rootFolder = RequestRootFolder(userId);
+            InventoryFolderBase rootFolder = GetRootFolder(userId);
 
             // Agent has no inventory structure yet.
             if (null == rootFolder)
@@ -86,7 +86,7 @@ namespace OpenSim.Services.InventoryService
         }
 
         // See IInventoryServices
-        public virtual InventoryFolderBase RequestRootFolder(UUID userID)
+        public virtual InventoryFolderBase GetRootFolder(UUID userID)
         {
             // Retrieve the first root folder we get from the DB.
             InventoryFolderBase rootFolder = m_Database.getUserRootFolder(userID);
@@ -100,7 +100,7 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public bool CreateUserInventory(UUID user)
         {
-            InventoryFolderBase existingRootFolder = RequestRootFolder(user);
+            InventoryFolderBase existingRootFolder = GetRootFolder(user);
 
             if (null != existingRootFolder)
             {
@@ -231,6 +231,67 @@ namespace OpenSim.Services.InventoryService
             }
 
             callback.BeginInvoke(folders, items, null, null);
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            m_log.Info("[INVENTORY SERVICE]: Processing request for folder " + folderID);
+
+            // Uncomment me to simulate a slow responding inventory server
+            //Thread.Sleep(16000);
+
+            InventoryCollection invCollection = new InventoryCollection();
+
+            List<InventoryItemBase> items = GetFolderItems(userID, folderID);
+            List<InventoryFolderBase> folders = RequestSubFolders(folderID);
+
+            invCollection.UserID = userID;
+            invCollection.Folders = folders;
+            invCollection.Items = items;
+
+            m_log.DebugFormat("[INVENTORY SERVICE]: Found {0} items and {1} folders", items.Count, folders.Count);
+
+            return invCollection;            
+        }
+
+        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+        {
+            InventoryFolderBase root = m_Database.getUserRootFolder(userID);
+            if (root != null)
+            {
+                List<InventoryFolderBase> folders = RequestSubFolders(root.ID);
+
+                foreach (InventoryFolderBase folder in folders)
+                {
+                    if (folder.Type == (short)type)
+                        return folder;
+                }
+            }
+
+            // we didn't find any folder of that type. Return the root folder
+            // hopefully the root folder is not null. If it is, too bad
+            return root;
+        }
+
+        public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            InventoryFolderBase root = GetRootFolder(userID);
+            if (root != null)
+            {
+                InventoryCollection content = GetFolderContent(userID, root.ID);
+                if (content != null)
+                {
+                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    foreach (InventoryFolderBase folder in content.Folders)
+                    {
+                        if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
+                            folders[(AssetType)folder.Type] = folder;
+                    }
+                    return folders;
+                }
+            }
+            m_log.WarnFormat("[INVENTORY SERVICE]: System folders for {0} not found", userID);
+            return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
         public List<InventoryItemBase> GetActiveGestures(UUID userId)

@@ -40,7 +40,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class RemoteInventoryServicesConnector : ISharedRegionModule, IInventoryService
+    public class RemoteInventoryServicesConnector : InventoryCache, ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -69,9 +69,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Init(source);
         }
 
-        private void Init(IConfigSource source)
+        protected override void Init(IConfigSource source)
         {
             m_RemoteConnector = new InventoryServicesConnector(source);
+            base.Init(source);
         }
 
 
@@ -101,7 +102,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
-        public void AddRegion(Scene scene)
+        public override void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -116,10 +117,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             scene.RegisterModuleInterface<IInventoryService>(this);
+            base.AddRegion(scene);
         }
 
-        public void RemoveRegion(Scene scene)
+        public override void RemoveRegion(Scene scene)
         {
+            base.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -166,6 +169,34 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     e.Source, e.Message);
             }
 
+        }
+
+        // inherited. See base class
+        // public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
+
+        public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
+        {
+            UUID sessionID = GetSessionID(userID);
+            return m_RemoteConnector.GetSystemFolders(userID.ToString(), sessionID);
+        }
+
+        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        {
+            UUID sessionID = GetSessionID(userID);
+            try
+            {
+                return m_RemoteConnector.GetFolderContent(userID.ToString(), folderID, sessionID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation failed, {0} {1}",
+                    e.Source, e.Message);
+            }
+            InventoryCollection nullCollection = new InventoryCollection();
+            nullCollection.Folders = new List<InventoryFolderBase>();
+            nullCollection.Items = new List<InventoryItemBase>();
+            nullCollection.UserID = userID;
+            return nullCollection;
         }
 
         public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
@@ -259,7 +290,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public InventoryFolderBase RequestRootFolder(UUID userID)
+        public InventoryFolderBase GetRootFolder(UUID userID)
         {
             return null;
         }

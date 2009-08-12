@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
         public void SetChildrenSeed(UUID agentID, Dictionary<ulong, string> seeds)
         {
-            //m_log.Debug(" !!! Setting child seeds in {0} to {1}", RegionInfo.RegionName, value.Count);
+            //m_log.DebugFormat(" !!! Setting child seeds in {0} to {1}", m_scene.RegionInfo.RegionName, seeds.Count);
             childrenSeeds[agentID] = seeds;
         }
 

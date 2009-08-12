@@ -694,11 +694,11 @@ namespace OpenSim.Framework.Communications
                     // local service (standalone)
                     m_log.Debug("[USERSTORAGE]: using IInventoryService to create user's inventory");
                     m_InventoryService.CreateUserInventory(userProf.ID);
-                    InventoryFolderBase rootfolder = m_InventoryService.RequestRootFolder(userProf.ID);
+                    InventoryFolderBase rootfolder = m_InventoryService.GetRootFolder(userProf.ID);
                     if (rootfolder != null)
                         userProf.RootInventoryFolderID = rootfolder.ID;
                 }
-                else
+                else if (m_commsManager.InterServiceInventoryService != null)
                 {
                     // used by the user server
                     m_log.Debug("[USERSTORAGE]: using m_commsManager.InterServiceInventoryService to create user's inventory");
