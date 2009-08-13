@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 
                 UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
                     
-                InventoryItemBase item = invService.QueryItem(new InventoryItemBase(inventoryEntityID));
+                InventoryItemBase item = invService.GetItem(new InventoryItemBase(inventoryEntityID));
                 InventoryFolderBase folder = null;
                 
                 if (item != null && trashFolder != null)
@@ -271,7 +271,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
                 else
                 {
-                    folder = invService.QueryFolder(new InventoryFolderBase(inventoryEntityID));
+                    folder = invService.GetFolder(new InventoryFolderBase(inventoryEntityID));
                     
                     if (folder != null & trashFolder != null)
                     {
@@ -428,7 +428,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 // Fetch from service
                 //
-                folder = invService.QueryFolder(folder);
+                folder = invService.GetFolder(folder);
                 if (folder == null)
                 {
                     m_log.Debug("[INVENTORY TRANSFER] Can't find folder to give");
@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                 // Fetch from service
                 //
-                item = invService.QueryItem(item);
+                item = invService.GetItem(item);
                 if (item == null)
                 {
                     m_log.Debug("[INVENTORY TRANSFER] Can't find item to give");

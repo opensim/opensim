@@ -184,9 +184,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully deleted</returns>
         public abstract bool DeleteItem(InventoryItemBase item);
 
-        public abstract InventoryItemBase QueryItem(InventoryItemBase item);
+        public abstract InventoryItemBase GetItem(InventoryItemBase item);
 
-        public abstract InventoryFolderBase QueryFolder(InventoryFolderBase folder);
+        public abstract InventoryFolderBase GetFolder(InventoryFolderBase folder);
 
         /// <summary>
         /// Does the given user have an inventory structure?

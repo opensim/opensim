@@ -292,14 +292,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.DeleteItem(item);
         }
 
-        public override InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(InventoryItemBase item)
         {
-            return m_InventoryService.QueryItem(item);
+            return m_InventoryService.GetItem(item);
         }
 
-        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            return m_InventoryService.QueryFolder(folder);
+            return m_InventoryService.GetFolder(folder);
         }
 
         /// <summary>

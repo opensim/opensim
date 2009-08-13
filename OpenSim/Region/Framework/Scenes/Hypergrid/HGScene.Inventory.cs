@@ -119,7 +119,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             {
                 InventoryItemBase item = new InventoryItemBase(itemID);
                 item.Owner = remoteClient.AgentId;
-                item = InventoryService.QueryItem(item);
+                item = InventoryService.GetItem(item);
                 //if (item == null)
                 //{ // Fetch the item
                 //    item = new InventoryItemBase();

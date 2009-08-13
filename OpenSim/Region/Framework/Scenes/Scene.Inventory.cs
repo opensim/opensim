@@ -140,7 +140,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public virtual UUID CapsUpdateInventoryItemAsset(IClientAPI remoteClient, UUID itemID, byte[] data)
         {
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
             if (item != null)
             {
@@ -315,7 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateInventoryItemAsset(IClientAPI remoteClient, UUID transactionID,
                                              UUID itemID, InventoryItemBase itemUpd)
         {
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
             if (item != null)
             {
@@ -408,7 +408,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
 
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemId));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemId));
 
             if ((item != null) && (item.Owner == senderId))
             {
@@ -505,7 +505,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID recipientId, UUID senderId, UUID folderId, UUID recipientParentFolderId)
         {
             //// Retrieve the folder from the sender
-            InventoryFolderBase folder = InventoryService.QueryFolder(new InventoryFolderBase(folderId));
+            InventoryFolderBase folder = InventoryService.GetFolder(new InventoryFolderBase(folderId));
             if (null == folder)
             {
                 m_log.ErrorFormat(
@@ -558,7 +558,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (item == null)
             {
-                item = InventoryService.QueryItem(new InventoryItemBase(oldItemID));
+                item = InventoryService.GetItem(new InventoryItemBase(oldItemID));
 
                 if (item == null)
                 {
@@ -636,7 +636,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Moving item {0} to {1} for {2}", itemID, folderID, remoteClient.AgentId);
 
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
             if (item != null)
             {
@@ -1224,7 +1224,7 @@ namespace OpenSim.Region.Framework.Scenes
                     UUID copyID = UUID.Random();
                     if (itemID != UUID.Zero)
                     {
-                        InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+                        InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
                         // Try library
                         if (null == item)
@@ -1287,7 +1287,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (itemID != UUID.Zero)  // transferred from an avatar inventory to the prim's inventory
             {
-                InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+                InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
                 // Try library
                 // XXX clumsy, possibly should be one call
@@ -1673,7 +1673,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (DeRezAction.SaveToExistingUserInventoryItem == action)
             {
                 item = new InventoryItemBase(objectGroup.RootPart.FromUserInventoryItemID);
-                item = InventoryService.QueryItem(item);
+                item = InventoryService.GetItem(item);
 
                 //item = userInfo.RootFolder.FindItem(
                 //        objectGroup.RootPart.FromUserInventoryItemID);
@@ -1834,7 +1834,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
 
-                InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+                InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
                 if (item != null)
                 {
@@ -1984,7 +1984,7 @@ namespace OpenSim.Region.Framework.Scenes
                       BypassRayCast, bRayEndIsIntersection,true,scale, false);
 
             // Rez object
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
 
             if (item != null)
             {

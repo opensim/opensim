@@ -382,7 +382,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
             
-            InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
             
             if (item != null)
             {
@@ -516,7 +516,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
             InventoryFolderBase folder = new InventoryFolderBase(folderID);
-            folder = InventoryService.QueryFolder(folder);
+            folder = InventoryService.GetFolder(folder);
             if (folder != null)
             {
                 folder.ParentID = parentID;

@@ -149,9 +149,9 @@ namespace OpenSim.Services.Interfaces
         /// <returns>true if the item was successfully deleted</returns>
         bool DeleteItem(InventoryItemBase item);
 
-        InventoryItemBase QueryItem(InventoryItemBase item);
+        InventoryItemBase GetItem(InventoryItemBase item);
 
-        InventoryFolderBase QueryFolder(InventoryFolderBase folder);
+        InventoryFolderBase GetFolder(InventoryFolderBase folder);
 
         /// <summary>
         /// Does the given user have an inventory structure?

@@ -387,13 +387,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
 
             if (IsLocalGridUser(item.Owner))
-                return m_GridService.QueryItem(item);
+                return m_GridService.GetItem(item);
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
@@ -402,13 +402,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
 
             if (IsLocalGridUser(folder.Owner))
-                return m_GridService.QueryFolder(folder);
+                return m_GridService.GetFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);

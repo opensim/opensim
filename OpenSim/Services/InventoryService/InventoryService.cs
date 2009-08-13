@@ -398,7 +398,7 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public virtual InventoryItemBase QueryItem(InventoryItemBase item)
+        public virtual InventoryItemBase GetItem(InventoryItemBase item)
         {
             InventoryItemBase result = m_Database.queryInventoryItem(item.ID);
             if (result != null)
@@ -407,7 +407,7 @@ namespace OpenSim.Services.InventoryService
             return null;
         }
 
-        public virtual InventoryFolderBase QueryFolder(InventoryFolderBase item)
+        public virtual InventoryFolderBase GetFolder(InventoryFolderBase item)
         {
             InventoryFolderBase result = m_Database.queryInventoryFolder(item.ID);
             if (result != null)

@@ -552,12 +552,12 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
-        public InventoryItemBase QueryItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             return null;
         }

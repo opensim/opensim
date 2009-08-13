@@ -6611,7 +6611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 //InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
                                 IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
-                                InventoryItemBase assetRequestItem = invService.QueryItem(new InventoryItemBase(itemID));
+                                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(itemID));
                                 if (assetRequestItem == null)
                                 {
                                     assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);

@@ -148,12 +148,12 @@ namespace OpenSim.Tests.Common.Mock
             return false;
         }
 
-        public InventoryItemBase QueryItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             return null;
         }

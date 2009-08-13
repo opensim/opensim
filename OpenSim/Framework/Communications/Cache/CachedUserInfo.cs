@@ -747,7 +747,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 InventoryItemBase itemInfo = null;
 
-                itemInfo = m_InventoryService.QueryItem(item);
+                itemInfo = m_InventoryService.GetItem(item);
 
                 if (itemInfo != null)
                 {
@@ -784,7 +784,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 InventoryFolderBase folderInfo = null;
 
-                folderInfo = m_InventoryService.QueryFolder(folder);
+                folderInfo = m_InventoryService.GetFolder(folder);
 
                 if (folderInfo != null)
                 {

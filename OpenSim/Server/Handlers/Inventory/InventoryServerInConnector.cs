@@ -110,11 +110,11 @@ namespace OpenSim.Server.Handlers.Inventory
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                    "POST", "/QueryItem/", m_InventoryService.QueryItem, CheckAuthSession));
+                    "POST", "/QueryItem/", m_InventoryService.GetItem, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryFolderBase>(
-                    "POST", "/QueryFolder/", m_InventoryService.QueryFolder, CheckAuthSession));
+                    "POST", "/QueryFolder/", m_InventoryService.GetFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, bool>(

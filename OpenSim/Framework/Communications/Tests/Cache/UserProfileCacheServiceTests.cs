@@ -186,14 +186,14 @@ namespace OpenSim.Framework.Communications.Tests
 
             Assert.That(
                 userInfo.CreateFolder("testFolder1", folderId, (ushort)AssetType.Animation, missingFolderId), Is.False);
-            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Null);
+            Assert.That(myScene.InventoryService.GetFolder(myFolder), Is.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(missingFolderId), Is.False);
             Assert.That(userInfo.RootFolder.FindFolder(folderId), Is.Null);
 
             // 2: Try a folder create that should work
             Assert.That(
                 userInfo.CreateFolder("testFolder2", folderId, (ushort)AssetType.Animation, userInfo.RootFolder.ID), Is.True);
-            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Not.Null);
+            Assert.That(myScene.InventoryService.GetFolder(myFolder), Is.Not.Null);
             Assert.That(userInfo.RootFolder.ContainsChildFolder(folderId), Is.True);
         }
 
@@ -228,7 +228,7 @@ namespace OpenSim.Framework.Communications.Tests
                 Assert.That(newFolderName1, Is.EqualTo(folder1.Name));
                 Assert.That(folderType1, Is.EqualTo((ushort)folder1.Type));
 
-                InventoryFolderBase dataFolder1 = myScene.InventoryService.QueryFolder(myFolder);
+                InventoryFolderBase dataFolder1 = myScene.InventoryService.GetFolder(myFolder);
                 Assert.That(newFolderName1, Is.EqualTo(dataFolder1.Name));
                 Assert.That(folderType1, Is.EqualTo((ushort)dataFolder1.Type));
             }
@@ -254,7 +254,7 @@ namespace OpenSim.Framework.Communications.Tests
                 Assert.That(folder2.ContainsChildFolder(folder1Id), Is.True);
                 Assert.That(rootFolder.ContainsChildFolder(folder1Id), Is.False);
 
-                InventoryFolderBase dataFolder1 = myScene.InventoryService.QueryFolder(myFolder2);
+                InventoryFolderBase dataFolder1 = myScene.InventoryService.GetFolder(myFolder2);
                 Assert.That(newFolderName2, Is.EqualTo(dataFolder1.Name));
                 Assert.That(folderType2, Is.EqualTo((ushort)dataFolder1.Type));
                 Assert.That(folder2Id, Is.EqualTo(dataFolder1.ParentID));
@@ -296,7 +296,7 @@ namespace OpenSim.Framework.Communications.Tests
             InventoryFolderBase myFolder = new InventoryFolderBase();
             myFolder.ID = folderToMoveId;
             Assert.That(folder2.ContainsChildFolder(folderToMoveId), Is.True);
-            Assert.That(myScene.InventoryService.QueryFolder(myFolder).ParentID, Is.EqualTo(folder2Id));
+            Assert.That(myScene.InventoryService.GetFolder(myFolder).ParentID, Is.EqualTo(folder2Id));
 
             Assert.That(folder1.ContainsChildFolder(folderToMoveId), Is.False);
         }
@@ -322,13 +322,13 @@ namespace OpenSim.Framework.Communications.Tests
             myFolder.ID = folder1Id;
 
             userInfo.CreateFolder("folder1", folder1Id, (ushort)AssetType.Animation, rootFolder.ID);
-            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Not.Null);
+            Assert.That(myScene.InventoryService.GetFolder(myFolder), Is.Not.Null);
 
             // Test purge
             userInfo.PurgeFolder(rootFolder.ID);
 
             Assert.That(rootFolder.RequestListOfFolders(), Is.Empty);
-            Assert.That(myScene.InventoryService.QueryFolder(myFolder), Is.Null);
+            Assert.That(myScene.InventoryService.GetFolder(myFolder), Is.Null);
         }
     }
 }
