@@ -1098,30 +1098,29 @@ if (m_shape != null) {
             }
         }
 
-        private void handleTimerAccounting(uint localID, double interval)
-        {
-            if (localID == LocalId)
-            {
-
-                float sec = (float)interval;
-                if (m_parentGroup != null)
-                {
-                    if (sec == 0)
-                    {
-                        if (m_parentGroup.scriptScore + 0.001f >= float.MaxValue - 0.001)
-                            m_parentGroup.scriptScore = 0;
-
-                        m_parentGroup.scriptScore += 0.001f;
-                        return;
-                    }
-
-                    if (m_parentGroup.scriptScore + (0.001f / sec) >= float.MaxValue - (0.001f / sec))
-                        m_parentGroup.scriptScore = 0;
-                    m_parentGroup.scriptScore += (0.001f / sec);
-                }
-
-            }
-        }
+        // TODO: unused:
+        // private void handleTimerAccounting(uint localID, double interval)
+        // {
+        //     if (localID == LocalId)
+        //     {
+        //         float sec = (float)interval;
+        //         if (m_parentGroup != null)
+        //         {
+        //             if (sec == 0)
+        //             {
+        //                 if (m_parentGroup.scriptScore + 0.001f >= float.MaxValue - 0.001)
+        //                     m_parentGroup.scriptScore = 0;
+        //
+        //                 m_parentGroup.scriptScore += 0.001f;
+        //                 return;
+        //             }
+        //
+        //             if (m_parentGroup.scriptScore + (0.001f / sec) >= float.MaxValue - (0.001f / sec))
+        //                 m_parentGroup.scriptScore = 0;
+        //             m_parentGroup.scriptScore += (0.001f / sec);
+        //         }
+        //     }
+        // }
 
         #endregion Private Methods
 
@@ -1247,7 +1246,6 @@ if (m_shape != null) {
                 m_parentGroup.applyImpulse(impulse);
             }
         }
-
 
         /// <summary>
         /// hook to the physics scene to apply angular impulse
@@ -1808,7 +1806,6 @@ if (m_shape != null) {
         {
             m_parentGroup.SetHoverHeight(0f, PIDHoverType.Ground, 0f);
         }
-
 
         public virtual void OnGrab(Vector3 offsetPos, IClientAPI remoteClient)
         {

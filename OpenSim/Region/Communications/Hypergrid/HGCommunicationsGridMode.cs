@@ -40,9 +40,6 @@ namespace OpenSim.Region.Communications.Hypergrid
 {
     public class HGCommunicationsGridMode : CommunicationsManager // CommunicationsOGS1
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         IHyperlink m_osw = null;
         public IHyperlink HGServices
         {
