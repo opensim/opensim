@@ -429,7 +429,7 @@ namespace OpenSim.Region.Framework.Scenes
         private RequestParcelPrimCountUpdate handlerRequestParcelPrimCountUpdate = null;
         private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
-        private ScriptTimerEvent handlerScriptTimerEvent = null;
+        // TODO: unused: private ScriptTimerEvent handlerScriptTimerEvent = null;
         private EstateToolsSunUpdate handlerEstateToolsSunUpdate = null;
 
         private ScriptColliding handlerCollidingStart = null;

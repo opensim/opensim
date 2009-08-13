@@ -25,45 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Reflection;
-using log4net;
-using OpenSim.Data;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Framework.Scenes;
+using System.Collections;
+using OpenMetaverse;
 
-namespace OpenSim.Region.Communications.Hypergrid
+namespace OpenSim.Framework
 {
-    public class HGCommunicationsGridMode : CommunicationsManager // CommunicationsOGS1
+    public interface IProfileModule
     {
-        IHyperlink m_osw = null;
-        public IHyperlink HGServices
-        {
-            get { return m_osw; }
-        }
-
-        public HGCommunicationsGridMode(
-            NetworkServersInfo serversInfo,
-            SceneManager sman, LibraryRootFolder libraryRootFolder)
-            : base(serversInfo, libraryRootFolder)
-        {
-            // From constructor at CommunicationsOGS1
-            HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, sman, m_userProfileCacheService);
-            m_gridService = gridInterComms;
-            m_osw = gridInterComms;
-
-            HGUserServices userServices = new HGUserServices(this);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.
-            userServices.AddPlugin(new TemporaryUserProfilePlugin());
-            userServices.AddPlugin(new OGS1UserDataPlugin(this));            
-            
-            m_userService = userServices;
-            m_messageService = userServices;
-            m_avatarService = userServices;           
-        }
+        Hashtable GetProfileData(UUID userID);
     }
 }
