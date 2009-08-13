@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using log4net;
@@ -57,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
 
         public void PostInitialise()
         {
-            m_profileModule = scene.RequestModuleInterface<IProfileModule>();
+            m_profileModule = m_scene.RequestModuleInterface<IProfileModule>();
         }
 
         public void Close()
