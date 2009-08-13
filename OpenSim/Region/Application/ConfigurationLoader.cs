@@ -37,12 +37,32 @@ using OpenSim.Framework;
 
 namespace OpenSim
 {
+    /// <summary>
+    /// Loads the Configuration files into nIni
+    /// </summary>
     public class ConfigurationLoader
     {
+        /// <summary>
+        /// Various Config settings the region needs to start
+        /// Physics Engine, Mesh Engine, GridMode, PhysicsPrim allowed, Neighbor, 
+        /// StorageDLL, Storage Connection String, Estate connection String, Client Stack
+        /// Standalone settings.
+        /// </summary>
         protected ConfigSettings m_configSettings;
+
+        /// <summary>
+        /// A source of Configuration data
+        /// </summary>
         protected OpenSimConfigSource m_config;
+
+        /// <summary>
+        /// Grid Service Information.  This refers to classes and addresses of the grid service
+        /// </summary>
         protected NetworkServersInfo m_networkServersInfo;
 
+        /// <summary>
+        /// Console logger
+        /// </summary>
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
@@ -51,6 +71,13 @@ namespace OpenSim
         {
         }
 
+        /// <summary>
+        /// Loads the region configuration
+        /// </summary>
+        /// <param name="argvSource">Parameters passed into the process when started</param>
+        /// <param name="configSettings"></param>
+        /// <param name="networkInfo"></param>
+        /// <returns>A configuration that gets passed to modules</returns>
         public OpenSimConfigSource LoadConfigSettings(
                 IConfigSource argvSource, out ConfigSettings configSettings,
                 out NetworkServersInfo networkInfo)
@@ -169,15 +196,22 @@ namespace OpenSim
             return m_config;
         }
 
+        /// <summary>
+        /// Adds the included files as ini configuration files
+        /// </summary>
+        /// <param name="sources">List of URL strings or filename strings</param>
         private void AddIncludes(List<string> sources)
         {
+            //loop over config sources
             foreach (IConfig config in m_config.Source.Configs)
             {
+                // Look for Include-* in the key name
                 string[] keys = config.GetKeys();
                 foreach (string k in keys)
                 {
                     if (k.StartsWith("Include-"))
                     {
+                        // read the config file to be included.
                         string file = config.GetString(k);
                         if (IsUri(file))
                         {
@@ -199,7 +233,11 @@ namespace OpenSim
                 }
             }
         }
-
+        /// <summary>
+        /// Check if we can convert the string to a URI
+        /// </summary>
+        /// <param name="file">String uri to the remote resource</param>
+        /// <returns>true if we can convert the string to a Uri object</returns>
         bool IsUri(string file)
         {
             Uri configUri;
@@ -253,7 +291,7 @@ namespace OpenSim
         /// <summary>
         /// Setup a default config values in case they aren't present in the ini file
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A Configuration source containing the default configuration</returns>
         private static IConfigSource DefaultConfig()
         {
             IConfigSource defaultConfig = new IniConfigSource();
@@ -322,6 +360,9 @@ namespace OpenSim
             return defaultConfig;
         }
 
+        /// <summary>
+        /// Read initial region settings from the ConfigSource
+        /// </summary>
         protected virtual void ReadConfigSettings()
         {
             IConfig startupConfig = m_config.Source.Configs["Startup"];
