@@ -31,6 +31,9 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Details of a Parcel of land
+    /// </summary>
     public class LandData
     {
         private Vector3 _AABBMax = new Vector3();
