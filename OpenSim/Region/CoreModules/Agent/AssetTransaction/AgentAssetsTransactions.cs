@@ -192,40 +192,29 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         {
              if (XferUploaders.ContainsKey(transactionID))
             {
-                CachedUserInfo userInfo = Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
-                        remoteClient.AgentId);
+                UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
 
-                if (userInfo != null)
+                AssetBase asset = Manager.MyScene.AssetService.Get(assetID.ToString());
+
+                if (asset == null)
                 {
-                    UUID assetID = UUID.Combine(transactionID, remoteClient.SecureSessionId);
-
-                    AssetBase asset = Manager.MyScene.AssetService.Get(assetID.ToString());
-
-                    if (asset == null)
-                    {
-                        asset = GetTransactionAsset(transactionID);
-                    }
-
-                    if (asset != null && asset.FullID == assetID)
-                    {
-                        // Assets never get updated, new ones get created
-                        asset.FullID = UUID.Random();
-                        asset.Name = item.Name;
-                        asset.Description = item.Description;
-                        asset.Type = (sbyte)item.AssetType;
-                        item.AssetID = asset.FullID;
-
-                        Manager.MyScene.AssetService.Store(asset);
-                    }
-
-                    userInfo.UpdateItem(item);
+                    asset = GetTransactionAsset(transactionID);
                 }
-                else
+
+                if (asset != null && asset.FullID == assetID)
                 {
-                   m_log.ErrorFormat(
-                        "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item update",
-                       remoteClient.AgentId);
+                    // Assets never get updated, new ones get created
+                    asset.FullID = UUID.Random();
+                    asset.Name = item.Name;
+                    asset.Description = item.Description;
+                    asset.Type = (sbyte)item.AssetType;
+                    item.AssetID = asset.FullID;
+
+                    Manager.MyScene.AssetService.Store(asset);
                 }
+
+                IInventoryService invService = Manager.MyScene.InventoryService;
+                invService.UpdateItem(item);
             }
         }
     }

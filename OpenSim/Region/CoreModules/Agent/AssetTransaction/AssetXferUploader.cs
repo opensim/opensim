@@ -32,6 +32,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
@@ -214,39 +215,31 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private void DoCreateItem(uint callbackID)
         {
             m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
-            CachedUserInfo userInfo =
-                m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
-                    ourClient.AgentId);
 
-            if (userInfo != null)
-            {
-                InventoryItemBase item = new InventoryItemBase();
-                item.Owner = ourClient.AgentId;
-                item.CreatorId = ourClient.AgentId.ToString();
-                item.ID = UUID.Random();
-                item.AssetID = m_asset.FullID;
-                item.Description = m_description;
-                item.Name = m_name;
-                item.AssetType = type;
-                item.InvType = invType;
-                item.Folder = InventFolder;
-                item.BasePermissions = 0x7fffffff;
-                item.CurrentPermissions = 0x7fffffff;
-                item.GroupPermissions=0;
-                item.EveryOnePermissions=0;
-                item.NextPermissions = nextPerm;
-                item.Flags = (uint) wearableType;
-                item.CreationDate = Util.UnixTimeSinceEpoch();
+            IInventoryService invService = m_userTransactions.Manager.MyScene.InventoryService;
 
-                userInfo.AddItem(item);
+            InventoryItemBase item = new InventoryItemBase();
+            item.Owner = ourClient.AgentId;
+            item.CreatorId = ourClient.AgentId.ToString();
+            item.ID = UUID.Random();
+            item.AssetID = m_asset.FullID;
+            item.Description = m_description;
+            item.Name = m_name;
+            item.AssetType = type;
+            item.InvType = invType;
+            item.Folder = InventFolder;
+            item.BasePermissions = 0x7fffffff;
+            item.CurrentPermissions = 0x7fffffff;
+            item.GroupPermissions=0;
+            item.EveryOnePermissions=0;
+            item.NextPermissions = nextPerm;
+            item.Flags = (uint) wearableType;
+            item.CreationDate = Util.UnixTimeSinceEpoch();
+
+            if (invService.AddItem(item))
                 ourClient.SendInventoryItemCreateUpdate(item, callbackID);
-            }
             else
-            {
-                m_log.ErrorFormat(
-                    "[ASSET TRANSACTIONS]: Could not find user {0} for inventory item creation",
-                    ourClient.AgentId);
-            }
+                ourClient.SendAlertMessage("Unable to create inventory item");
         }
 
         /// <summary>

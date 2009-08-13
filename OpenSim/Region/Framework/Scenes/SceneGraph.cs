@@ -542,7 +542,7 @@ namespace OpenSim.Region.Framework.Scenes
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " +
                                 ((uint)group.GetAttachmentPoint()).ToString());
-                        m_parentScene.updateKnownAsset(remoteClient, group,
+                        m_parentScene.UpdateKnownItem(remoteClient, group,
                                 group.GetFromAssetID(), group.OwnerID);
                         m_parentScene.DeleteSceneObject(group, false);
                         return;
@@ -1307,7 +1307,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group.UpdateGroupPosition(pos);
                     group.RootPart.IsAttachment = false;
                     group.AbsolutePosition = group.RootPart.AttachedPos;
-                    m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
+                    m_parentScene.UpdateKnownItem(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
                     group.SetAttachmentPoint(attachmentPoint);
 
                 }

@@ -435,17 +435,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);  
-                return;
-            }
-
-            userProfile.SendInventoryDecendents(remoteClient, folderID, fetchFolders, fetchItems);
+            SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
         }        
         
         /// <summary>
@@ -543,19 +533,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort folderType,
                                                 string folderName, UUID parentID)
         {
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-
-            if (null == userProfile)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, folderName, remoteClient.AgentId, (short)folderType, parentID, 1);
+            if (!InventoryService.AddFolder(folder))
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-            
-            if (!userProfile.CreateFolder(folderName, folderID, folderType, parentID))
-            {
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                      "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
