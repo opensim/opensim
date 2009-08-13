@@ -29,11 +29,23 @@ using OpenSim.Framework;
 
 namespace OpenSim
 {
+    /// <summary>
+    /// OpenSimulator Application Plugin framework interface
+    /// </summary>
     public interface IApplicationPlugin : IPlugin
     {
+        /// <summary>
+        /// Initialize the Plugin
+        /// </summary>
+        /// <param name="openSim">The Application instance</param>
         void Initialise(OpenSimBase openSim);
+
+        /// <summary>
+        /// Called when the application loading is completed 
+        /// </summary>
         void PostInitialise();
     }
+
 
     public class ApplicationPluginInitialiser : PluginInitialiserBase
     {

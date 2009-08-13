@@ -31,10 +31,17 @@ using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Information about an Animation
+    /// </summary>
     [Serializable]
     public class Animation
     {
         private UUID animID;
+
+        /// <summary>
+        /// ID of Animation
+        /// </summary>
         public UUID AnimID
         {
             get { return animID; }
@@ -49,6 +56,10 @@ namespace OpenSim.Framework
         }
 
         private UUID objectID;
+
+        /// <summary>
+        /// Unique ID of object that is being animated
+        /// </summary>
         public UUID ObjectID
         {
             get { return objectID; }
@@ -59,6 +70,12 @@ namespace OpenSim.Framework
         {
         }
 
+        /// <summary>
+        /// Creates an Animation based on the data
+        /// </summary>
+        /// <param name="animID">UUID ID of animation</param>
+        /// <param name="sequenceNum"></param>
+        /// <param name="objectID">ID of object to be animated</param>
         public Animation(UUID animID, int sequenceNum, UUID objectID)
         {
             this.animID = animID;
@@ -66,11 +83,20 @@ namespace OpenSim.Framework
             this.objectID = objectID;
         }
 
+        /// <summary>
+        /// Animation from OSDMap from LLSD XML or LLSD json
+        /// </summary>
+        /// <param name="args"></param>
         public Animation(OSDMap args)
         {
             UnpackUpdateMessage(args);
         }
 
+
+        /// <summary>
+        /// Pack this object up as an OSDMap for transferring via LLSD XML or LLSD json
+        /// </summary>
+        /// <returns></returns>
         public OSDMap PackUpdateMessage()
         {
             OSDMap anim = new OSDMap();
@@ -80,6 +106,10 @@ namespace OpenSim.Framework
             return anim;
         }
 
+        /// <summary>
+        /// Fill object with data from OSDMap
+        /// </summary>
+        /// <param name="args"></param>
         public void UnpackUpdateMessage(OSDMap args)
         {
             if (args["animation"] != null)
