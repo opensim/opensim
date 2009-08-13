@@ -304,12 +304,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Vector3 xyz = new d.Vector3(128.1640f, 128.3079f, 25.7600f);
         public d.Vector3 hpr = new d.Vector3(125.5000f, -17.0000f, 0.0000f);
 
-        private uint heightmapWidth = m_regionWidth + 1;
-        private uint heightmapHeight = m_regionHeight + 1;
-
-        private uint heightmapWidthSamples;
-
-        private uint heightmapHeightSamples;
+        // TODO: unused: private uint heightmapWidth = m_regionWidth + 1;
+        // TODO: unused: private uint heightmapHeight = m_regionHeight + 1;
+        // TODO: unused: private uint heightmapWidthSamples;
+        // TODO: unused: private uint heightmapHeightSamples;
 
         private volatile int m_global_contactcount = 0;
 
