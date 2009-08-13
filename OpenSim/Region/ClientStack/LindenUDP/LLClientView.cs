@@ -6609,20 +6609,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             else // Agent
                             {
-                                CachedUserInfo userInfo = ((Scene)m_scene).CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
-                                if (userInfo == null)
-                                {
-                                    m_log.ErrorFormat(
-                                        "[CLIENT]: Could not resolve user {0} for caps inventory update",
-                                        AgentId);
-
-                                    break;
-                                }
-
-                                if (userInfo.RootFolder == null)
-                                    break;
-
-                                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
+                                //InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
+                                IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
+                                InventoryItemBase assetRequestItem = invService.QueryItem(new InventoryItemBase(itemID));
                                 if (assetRequestItem == null)
                                 {
                                     assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);

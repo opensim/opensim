@@ -558,24 +558,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (item == null)
             {
-                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(oldAgentID);
-                if (userInfo == null)
-                {
-                    m_log.Error("[AGENT INVENTORY]: Failed to find user " + oldAgentID.ToString());
-                    return;
-                }
+                item = InventoryService.QueryItem(new InventoryItemBase(oldItemID));
 
-                if (userInfo.RootFolder != null)
-                {
-                    item = userInfo.RootFolder.FindItem(oldItemID);
-
-                    if (item == null)
-                    {
-                        m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
-                        return;
-                    }
-                }
-                else
+                if (item == null)
                 {
                     m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
                     return;
@@ -822,28 +807,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="folderID"></param>
         private void RemoveInventoryFolder(IClientAPI remoteClient, UUID folderID)
         {
-            CachedUserInfo userInfo
-                = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            // Unclear is this handler is ever called by the Linden client, but it might
 
-            if (userInfo == null)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            folder.Owner = remoteClient.AgentId;
+            InventoryFolderBase trash = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.TrashFolder);
+            if (trash != null)
             {
-                m_log.Warn("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
-                return;
-            }
-
-            if (userInfo.RootFolder != null)
-            {
-                InventoryItemBase folder = userInfo.RootFolder.FindItem(folderID);
-
-                if (folder != null)
-                {
-                    m_log.WarnFormat(
-                         "[AGENT INVENTORY]: Remove folder not implemented in request by {0} {1} for {2}",
-                         remoteClient.Name, remoteClient.AgentId, folderID);
-
-                    // doesn't work just yet, commented out. will fix in next patch.
-                    // userInfo.DeleteItem(folder);
-                }
+                folder.ParentID = trash.ID;
+                InventoryService.MoveFolder(folder);
             }
         }
 
@@ -1060,20 +1032,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
             }
             else
-            {
-                CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
-                if (profile == null || profile.RootFolder == null)
-                {
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Avatar {0} cannot be found to add item",
-                        avatarId);
-                    return null;
-                }
-                
-                if (!profile.HasReceivedInventory)
-                    profile.FetchInventory();
-                
+            {             
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
 
                 if (agentItem == null)
@@ -1265,38 +1224,32 @@ namespace OpenSim.Region.Framework.Scenes
                     UUID copyID = UUID.Random();
                     if (itemID != UUID.Zero)
                     {
-                        CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                        InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
 
-                        if (userInfo != null && userInfo.RootFolder != null)
+                        // Try library
+                        if (null == item)
                         {
-                            InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                            item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
+                        }
 
-                            // Try library
-                            // XXX clumsy, possibly should be one call
-                            if (null == item)
+                        if (item != null)
+                        {
+                            part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                            m_log.InfoFormat(
+                                "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
+                                item.Name, primLocalID, remoteClient.Name);
+                            part.GetProperties(remoteClient);
+                            if (!Permissions.BypassPermissions())
                             {
-                                item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
+                                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                                    RemoveInventoryItem(remoteClient, itemID);
                             }
-
-                            if (item != null)
-                            {
-                                part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
-                                m_log.InfoFormat(
-                                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
-                                    item.Name, primLocalID, remoteClient.Name);
-                                part.GetProperties(remoteClient);
-                                if (!Permissions.BypassPermissions())
-                                {
-                                    if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                                        RemoveInventoryItem(remoteClient, itemID);
-                                }
-                            }
-                            else
-                            {
-                                m_log.ErrorFormat(
-                                    "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
-                                    itemID, remoteClient.Name);
-                            }
+                        }
+                        else
+                        {
+                            m_log.ErrorFormat(
+                                "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
+                                itemID, remoteClient.Name);
                         }
                     }
                 }
@@ -1334,52 +1287,47 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (itemID != UUID.Zero)  // transferred from an avatar inventory to the prim's inventory
             {
-                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                InventoryItemBase item = InventoryService.QueryItem(new InventoryItemBase(itemID));
 
-                if (userInfo != null && userInfo.RootFolder != null)
+                // Try library
+                // XXX clumsy, possibly should be one call
+                if (null == item)
                 {
-                    InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                    item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
+                }
 
-                    // Try library
-                    // XXX clumsy, possibly should be one call
-                    if (null == item)
+                if (item != null)
+                {
+                    SceneObjectPart part = GetSceneObjectPart(localID);
+                    if (part != null)
                     {
-                        item = CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
-                    }
+                        if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
+                            return;
 
-                    if (item != null)
-                    {
-                        SceneObjectPart part = GetSceneObjectPart(localID);
-                        if (part != null)
-                        {
-                            if (!Permissions.CanEditObjectInventory(part.UUID, remoteClient.AgentId))
-                                return;
+                        part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
+                        // TODO: switch to posting on_rez here when scripts
+                        // have state in inventory
+                        part.Inventory.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
 
-                            part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                            // TODO: switch to posting on_rez here when scripts
-                            // have state in inventory
-                            part.Inventory.CreateScriptInstance(copyID, 0, false, DefaultScriptEngine, 0);
-
-                            //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
-                            //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
-                            //                                         item.inventoryName, localID, remoteClient.Name);
-                            part.GetProperties(remoteClient);
-                        }
-                        else
-                        {
-                            m_log.ErrorFormat(
-                                "[PRIM INVENTORY]: " +
-                                "Could not rez script {0} into prim local ID {1} for user {2}"
-                                + " because the prim could not be found in the region!",
-                                item.Name, localID, remoteClient.Name);
-                        }
+                        //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
+                        //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
+                        //                                         item.inventoryName, localID, remoteClient.Name);
+                        part.GetProperties(remoteClient);
                     }
                     else
                     {
                         m_log.ErrorFormat(
-                            "[PRIM INVENTORY]: Could not find script inventory item {0} to rez for {1}!",
-                            itemID, remoteClient.Name);
+                            "[PRIM INVENTORY]: " +
+                            "Could not rez script {0} into prim local ID {1} for user {2}"
+                            + " because the prim could not be found in the region!",
+                            item.Name, localID, remoteClient.Name);
                     }
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[PRIM INVENTORY]: Could not find script inventory item {0} to rez for {1}!",
+                        itemID, remoteClient.Name);
                 }
             }
             else  // script has been rezzed directly into a prim's inventory
@@ -1668,26 +1616,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 DeleteSceneObject(grp, false);
             }
-        }
-
-        private bool WaitForInventory(CachedUserInfo info)
-        {
-            // 200 Seconds wait. This is called in the context of the
-            // background delete thread, so we can afford to waste time
-            // here.
-            //
-            int count = 200;
-
-            while (count > 0)
-            {
-                System.Threading.Thread.Sleep(100);
-                count--;
-                if (info.HasReceivedInventory)
-                    return true;
-            }
-            m_log.DebugFormat("Timed out waiting for inventory of user {0}",
-                    info.UserProfile.ID.ToString());
-            return false;
         }
 
         /// <summary>

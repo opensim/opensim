@@ -1249,11 +1249,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else // Not successful
             {
-                CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
-                if (userInfo != null)
-                {
-                    userInfo.FetchInventory();
-                }
+                //CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
+                //if (userInfo != null)
+                //{
+                //    userInfo.FetchInventory();
+                //}
                 agent.RestoreInCurrentScene();
             }
             // In any case
