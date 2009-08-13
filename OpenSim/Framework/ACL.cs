@@ -46,6 +46,11 @@ namespace OpenSim.Framework
         private Dictionary<string, Resource> Resources = new Dictionary<string, Resource>();
         private Dictionary<string, Role> Roles = new Dictionary<string, Role>();
 
+        /// <summary>
+        /// Adds a new role
+        /// </summary>
+        /// <param name="role"></param>
+        /// <returns></returns>
         public ACL AddRole(Role role)
         {
             if (Roles.ContainsKey(role.Name))
@@ -56,6 +61,11 @@ namespace OpenSim.Framework
             return this;
         }
 
+        /// <summary>
+        /// Adds a new resource
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <returns></returns>
         public ACL AddResource(Resource resource)
         {
             Resources.Add(resource.Name, resource);
@@ -63,6 +73,12 @@ namespace OpenSim.Framework
             return this;
         }
 
+        /// <summary>
+        /// Permision for user/roll on a resource
+        /// </summary>
+        /// <param name="role"></param>
+        /// <param name="resource"></param>
+        /// <returns></returns>
         public Permission HasPermission(string role, string resource)
         {
             if (!Roles.ContainsKey(role))
@@ -234,6 +250,9 @@ namespace OpenSim.Framework
 
     #region Tests
 
+    /// <summary>
+    /// ACL Test class
+    /// </summary>
     internal class ACLTester
     {
         public ACLTester()
