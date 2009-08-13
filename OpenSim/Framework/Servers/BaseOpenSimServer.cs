@@ -443,7 +443,7 @@ namespace OpenSim.Framework.Servers
             string inputLine;
             int strcmp;
 
-            if (File.Exists( gitCommitFileName))
+            if (File.Exists(gitCommitFileName))
             {
                 StreamReader CommitFile = File.OpenText(gitCommitFileName);
                 buildVersion = Environment.NewLine + "git# " + CommitFile.ReadLine();
