@@ -53,7 +53,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Instance
 {
-    public class ScriptInstance : MarshalByRefObject, IScriptInstance, ISponsor
+    public class ScriptInstance : MarshalByRefObject, IScriptInstance
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -1005,11 +1005,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         public bool CanBeDeleted()
         {
             return true;
-        }
-
-        public TimeSpan Renewal(ILease lease)
-        {
-            return lease.InitialLeaseTime;
         }
     }
 }
