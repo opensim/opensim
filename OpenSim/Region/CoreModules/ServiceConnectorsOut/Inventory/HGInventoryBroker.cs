@@ -238,7 +238,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
             if (IsLocalGridUser(userID))
-                return GetSystemFoldersLocal(userID);
+            {
+                // This is not pretty, but it will have to do for now
+                if (m_GridService is BaseInventoryConnector)
+                {
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to RemoteInventoryServiceConnector module");
+                    return ((BaseInventoryConnector)m_GridService).GetSystemFolders(userID);
+                }
+                else
+                {
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to GetSystemFoldersLocal");
+                    return GetSystemFoldersLocal(userID);
+                }
+            }
             else
             {
                 UUID sessionID = GetSessionID(userID);
@@ -464,7 +476,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
             if (uinfo == null)
             {
-                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile for user {0}. Returning false.", userID);
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile for user {0}. Returning true.", userID);
                 return true;
             }
 
