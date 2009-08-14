@@ -34,25 +34,53 @@ namespace OpenSim.Services.Interfaces
 
     public interface IAssetService
     {
-        // Three different ways to retrieve an asset
-        //
+        /// <summary>
+        /// Get an asset synchronously.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         AssetBase Get(string id);
+
+        /// <summary>
+        /// Get an asset's metadata
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         AssetMetadata GetMetadata(string id);
+        
         byte[] GetData(string id);
 
+        /// <summary>
+        /// Get an asset asynchronously
+        /// </summary>
+        /// <param name="id">The asset id</param>
+        /// <param name="sender">Represents the requester.  Passed back via the handler</param>
+        /// <param name="handler">The handler to call back once the asset has been retrieved</param>
+        /// <returns>True if the id was parseable, false otherwise</returns>
         bool Get(string id, Object sender, AssetRetrieved handler);
 
-        // Creates a new asset
-        // Returns a random ID if none is passed into it
-        //
+        /// <summary>
+        /// Creates a new asset
+        /// </summary>
+        /// Returns a random ID if none is passed into it
+        /// <param name="asset"></param>
+        /// <returns></returns>
         string Store(AssetBase asset);
 
-        // Attachments and bare scripts need this!!
-        //
+        /// <summary>
+        /// Update an asset's content
+        /// </summary>
+        /// Attachments and bare scripts need this!!
+        /// <param name="id"> </param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         bool UpdateContent(string id, byte[] data);
 
-        // Kill an asset
-        //
+        /// <summary>
+        /// Delete an asset
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         bool Delete(string id);
     }
 }
