@@ -395,17 +395,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(commsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
-           
-            //userInfo.FetchInventory();
-            /*
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
-            }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
-            */
             
             Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
             
@@ -429,22 +418,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 
-            try
-            {
-                new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
-                    .ReplicateArchivePathToUserInventory(itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);           
+            new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
+                .ReplicateArchivePathToUserInventory(
+                    itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
 
-                Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
-                InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
-                Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-                InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
-                Assert.That(folder2, Is.Not.Null, "Could not find folder b");
-            }
-            catch (NullReferenceException e)
-            {
-                // Non fatal for now until we resolve the race condition
-                Console.WriteLine("Test failed with {0}", e);
-            }
+            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
+            InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            Assert.That(folder1, Is.Not.Null, "Could not find folder a");
+            InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
+            Assert.That(folder2, Is.Not.Null, "Could not find folder b");
         }
     }
 }
