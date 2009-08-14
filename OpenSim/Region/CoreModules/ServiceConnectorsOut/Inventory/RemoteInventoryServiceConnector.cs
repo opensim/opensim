@@ -104,12 +104,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void AddRegion(Scene scene)
         {
+            m_Scene = scene;
+
             if (!m_Enabled)
                 return;
 
             if (!m_Initialized)
             {
-                m_Scene = scene;
                 // ugh!
                 scene.CommsManager.UserProfileCacheService.SetInventoryService(this);
                 scene.CommsManager.UserService.SetInventoryService(this); 

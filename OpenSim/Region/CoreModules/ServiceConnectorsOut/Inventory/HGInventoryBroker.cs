@@ -455,15 +455,24 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool IsLocalGridUser(UUID userID)
         {
             if (m_UserProfileService == null)
+            {
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile service. Returning false.");
                 return false;
+            }
 
             CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
             if (uinfo == null)
+            {
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile for user {0}. Returning false.", userID);
                 return true;
+            }
 
             string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            string uri = m_LocalGridInventoryURI.TrimEnd('/');
 
-            if ((userInventoryServerURI == m_LocalGridInventoryURI) || (userInventoryServerURI == ""))
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, comparing {0} to {1}.", userInventoryServerURI, uri);
+
+            if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
             {
                 return true;
             }
