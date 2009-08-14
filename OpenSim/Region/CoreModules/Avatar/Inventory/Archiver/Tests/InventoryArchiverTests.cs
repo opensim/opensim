@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule();
 
-            Scene scene = SceneSetupHelpers.SetupScene("");
+            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
             CommunicationsManager cm = scene.CommsManager;
 
