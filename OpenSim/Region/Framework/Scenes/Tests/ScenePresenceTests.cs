@@ -113,6 +113,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = Vector3.Zero;
             agent.CapsPath = GetRandomCapsObjectPath();
+            agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
 
             string reason;
             scene.NewUserConnection(agent, out reason);
