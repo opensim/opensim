@@ -729,8 +729,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                   item.Name, startParam, postOnRez,
                                                   stateSource, m_MaxScriptQueue);
                     
-                    m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
-                            part.ParentGroup.RootPart.Name, item.Name);
+                    m_log.DebugFormat("[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
+                            part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, part.ParentGroup.RootPart.AbsolutePosition.ToString());
 
                     instance.AppDomain = appDomain;
                     instance.LineMap = linemap;
