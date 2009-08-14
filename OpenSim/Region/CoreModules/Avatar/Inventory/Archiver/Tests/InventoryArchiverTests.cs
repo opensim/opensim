@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
         /// </summary>
-        //[Test]
+        [Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
