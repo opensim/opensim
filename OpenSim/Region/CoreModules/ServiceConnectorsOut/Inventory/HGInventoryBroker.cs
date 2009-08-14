@@ -263,6 +263,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             folders[(AssetType)folder.Type] = folder;
                     }
                     m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
+                    // Put the root folder there, as type Folder
+                    folders[AssetType.Folder] = root;
                     return folders;
                 }
                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);
@@ -422,14 +424,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public override InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            return null;
-        }
-
         public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
+        }
+
+        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetAssetPermissions(userID, assetID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                return m_HGService.GetAssetPermissions(uri, assetID, sessionID);
+            }
         }
 
         #endregion

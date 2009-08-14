@@ -171,5 +171,10 @@ namespace OpenSim.Tests.Common.Mock
             root.ParentID = UUID.Zero;
             return root;
         }
+
+        public int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            return 1;
+        }
     }
 }

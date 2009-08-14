@@ -296,15 +296,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public override InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            return null;
-        }
-
         public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
+
+        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            UUID sessionID = GetSessionID(userID);
+            return m_RemoteConnector.GetAssetPermissions(userID.ToString(), assetID, sessionID);
+        }
+
 
         #endregion
 

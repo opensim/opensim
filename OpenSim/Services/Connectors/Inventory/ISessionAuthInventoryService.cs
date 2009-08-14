@@ -120,5 +120,7 @@ namespace OpenSim.Services.Connectors
 
         InventoryFolderBase QueryFolder(string userID, InventoryFolderBase item, UUID session_id);
 
+        int GetAssetPermissions(string userID, UUID assetID, UUID session_id);
+
     }
 }

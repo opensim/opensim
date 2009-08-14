@@ -176,5 +176,10 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
+        public int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            return 0;
+        }
+
     }
 }

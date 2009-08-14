@@ -465,6 +465,29 @@ namespace OpenSim.Services.InventoryService
             return null;
         }
 
+        public int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            InventoryFolderBase parent = GetRootFolder(userID);
+            return FindAssetPerms(parent, assetID);
+        }
+
+        private int FindAssetPerms(InventoryFolderBase folder, UUID assetID)
+        {
+            InventoryCollection contents = GetFolderContent(folder.Owner, folder.ID);
+
+            int perms = 0;
+            foreach (InventoryItemBase item in contents.Items)
+            {
+                if (item.AssetID == assetID)
+                    perms = (int)item.CurrentPermissions | perms;
+            }
+
+            foreach (InventoryFolderBase subfolder in contents.Folders)
+                perms = perms | FindAssetPerms(subfolder, assetID);
+
+            return perms;
+        }
+
         /// <summary>
         /// Used to create a new user inventory.
         /// </summary>
