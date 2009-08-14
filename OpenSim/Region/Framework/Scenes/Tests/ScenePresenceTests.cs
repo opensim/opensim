@@ -113,6 +113,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = Vector3.Zero;
             agent.CapsPath = GetRandomCapsObjectPath();
+            agent.ChildrenCapSeeds = new Dictionary<ulong, string>();
 
             string reason;
             scene.NewUserConnection(agent, out reason);
@@ -147,7 +148,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestHelper.InMethod();
 
             string reason;
+
+            if (acd1 == null)
+                fixNullPresence();
+
             scene.NewUserConnection(acd1, out reason);
+            if (testclient == null)
+                testclient = new TestClient(acd1, scene);
             scene.AddNewClient(testclient);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
@@ -161,6 +168,24 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             List<ulong> neighbours = presence.GetKnownRegionList();
 
             Assert.That(neighbours.Count, Is.EqualTo(2));
+        }
+        public void fixNullPresence()
+        {
+            string firstName = "testfirstname";
+
+            AgentCircuitData agent = new AgentCircuitData();
+            agent.AgentID = agent1;
+            agent.firstname = firstName;
+            agent.lastname = "testlastname";
+            agent.SessionID = UUID.Zero;
+            agent.SecureSessionID = UUID.Zero;
+            agent.circuitcode = 123;
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = Vector3.Zero;
+            agent.CapsPath = GetRandomCapsObjectPath();
+
+            acd1 = agent;
         }
 
         [Test]

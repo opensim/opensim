@@ -204,8 +204,16 @@ namespace OpenSim.Data.Tests
             UUID webloginkey = UUID.Random();
             uint homeregx = (uint) random.Next();
             uint homeregy = (uint) random.Next();
-            Vector3 homeloc = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
-            Vector3 homelookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
+            Vector3 homeloc 
+                = new Vector3(
+                    (float)Math.Round(random.NextDouble(), 5),
+                    (float)Math.Round(random.NextDouble(), 5),
+                    (float)Math.Round(random.NextDouble(), 5));
+            Vector3 homelookat 
+                = new Vector3(
+                    (float)Math.Round(random.NextDouble(), 5),
+                    (float)Math.Round(random.NextDouble(), 5),
+                    (float)Math.Round(random.NextDouble(), 5));
             int created = random.Next();
             int lastlogin = random.Next();
             string userinvuri = RandomName();
