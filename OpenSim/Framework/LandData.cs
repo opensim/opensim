@@ -520,7 +520,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Depreciated idea.   Number of visitors ~= free money
+        /// Deprecated idea.  Number of visitors ~= free money
         /// </summary>
         public int Dwell {
             get {

@@ -928,25 +928,22 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // Primitive Ray Tracing
             float closestDistance = 280f;
-            EntityIntersection returnResult = new EntityIntersection();
+            EntityIntersection result = new EntityIntersection();
             List<EntityBase> EntityList = GetEntities();
             foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup reportingG = (SceneObjectGroup)ent;
-                    EntityIntersection result = reportingG.TestIntersection(hray, frontFacesOnly, faceCenters);
-                    if (result.HitTF)
+                    EntityIntersection inter = reportingG.TestIntersection(hray, frontFacesOnly, faceCenters);
+                    if (inter.HitTF && inter.distance < closestDistance)
                     {
-                        if (result.distance < closestDistance)
-                        {
-                            closestDistance = result.distance;
-                            returnResult = result;
-                        }
+                        closestDistance = inter.distance;
+                        result = inter;
                     }
                 }
             }
-            return returnResult;
+            return result;
         }
 
         /// <summary>
@@ -979,7 +976,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (SceneObjectPart p in ((SceneObjectGroup) ent).GetParts())
                     {
-                        if (p.Name==name)
+                        if (p.Name == name)
                         {
                             return p;
                         }
