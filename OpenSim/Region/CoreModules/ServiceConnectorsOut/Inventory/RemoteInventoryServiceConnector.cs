@@ -32,6 +32,7 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -313,11 +314,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            ScenePresence sp = m_Scene.GetScenePresence(userID);
-            if (sp != null)
-                return sp.ControllingClient.SessionId;
-
+            CachedUserInfo uinfo = m_Scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+            if (uinfo != null)
+                return uinfo.SessionID;
+            m_log.DebugFormat("[INVENTORY CONNECTOR]: user profile for {0} not found", userID);
             return UUID.Zero;
+
         }
 
     }

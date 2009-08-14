@@ -393,7 +393,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             if (item == null)
                 return null;
-
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetItem {0} for user {1}", item.ID, item.Owner);
             if (IsLocalGridUser(item.Owner))
                 return m_GridService.GetItem(item);
             else
@@ -445,10 +445,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            ScenePresence sp = m_Scene.GetScenePresence(userID);
-            if (sp != null)
-                return sp.ControllingClient.SessionId;
+            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
+            if (uinfo != null)
+                return uinfo.SessionID;
 
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user profile for {0} not found", userID);
             return UUID.Zero;
         }
 
