@@ -105,6 +105,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void AddRegion(Scene scene)
         {
+            m_log.Debug("[XXXX] Adding scene " + scene.RegionInfo.RegionName);
             m_Scene = scene;
 
             if (!m_Enabled)
@@ -314,6 +315,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
+            if (m_Scene == null)
+                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
+
+            if (m_Scene.CommsManager.UserProfileCacheService == null)
+                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
+
             CachedUserInfo uinfo = m_Scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
             if (uinfo != null)
                 return uinfo.SessionID;
