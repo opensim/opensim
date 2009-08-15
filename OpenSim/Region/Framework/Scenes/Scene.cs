@@ -1038,6 +1038,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Send out simstats data to all clients
+        /// </summary>
+        /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
             List<ScenePresence> StatSendAgents = GetScenePresences();
@@ -1050,6 +1054,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Recount SceneObjectPart in parcel aabb
+        /// </summary>
         private void UpdateLand()
         {
             if (LandChannel != null)
@@ -1061,11 +1068,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Update the terrain if it needs to be updated.
+        /// </summary>
         private void UpdateTerrain()
         {
             EventManager.TriggerTerrainTick();
         }
 
+        /// <summary>
+        /// Back up queued up changes
+        /// </summary>
         private void UpdateStorageBackup()
         {
             if (!m_backingup)
@@ -1078,6 +1091,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Sends out the OnFrame event to the modules
+        /// </summary>
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
@@ -1133,6 +1149,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Synchronous force backup.  For deletes and links/unlinks
+        /// </summary>
+        /// <param name="group">Object to be backed up</param>
         public void ForceSceneObjectBackup(SceneObjectGroup group)
         {
             if (group != null)
@@ -1141,6 +1161,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Return object to avatar Message
+        /// </summary>
+        /// <param name="agentID">Avatar Unique Id</param>
+        /// <param name="objectName">Name of object returned</param>
+        /// <param name="location">Location of object returned</param>
+        /// <param name="reason">Reasion for object return</param>
         public void AddReturn(UUID agentID, string objectName, Vector3 location, string reason)
         {
             lock (m_returns)
@@ -1167,6 +1194,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Load Terrain
 
+        /// <summary>
+        /// Store the terrain in the persistant data store
+        /// </summary>
         public void SaveTerrain()
         {
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
@@ -1269,6 +1299,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Load Land
 
+        /// <summary>
+        /// Loads all Parcel data from the datastore for region identified by regionID
+        /// </summary>
+        /// <param name="regionID">Unique Identifier of the Region to load parcel data for</param>
         public void loadAllLandObjectsFromStorage(UUID regionID)
         {
             m_log.Info("[SCENE]: Loading land objects from storage");
@@ -1322,6 +1356,20 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
+
+        /// <summary>
+        /// Gets a new rez location based on the raycast and the size of the object that is being rezzed.
+        /// </summary>
+        /// <param name="RayStart"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="rot"></param>
+        /// <param name="bypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="frontFacesOnly"></param>
+        /// <param name="scale"></param>
+        /// <param name="FaceCenter"></param>
+        /// <returns></returns>
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)
         {
             Vector3 pos = Vector3.Zero;
@@ -1412,6 +1460,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        /// <summary>
+        /// Create a New SceneObjectGroup/Part by raycasting
+        /// </summary>
+        /// <param name="ownerID"></param>
+        /// <param name="groupID"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="rot"></param>
+        /// <param name="shape"></param>
+        /// <param name="bypassRaycast"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="RayEndIsIntersection"></param>
         public virtual void AddNewPrim(UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
                                        byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
                                        byte RayEndIsIntersection)
@@ -1829,6 +1890,12 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Attachment rezzing
+        /// </summary>
+        /// <param name="userID">Agent Unique ID</param>
+        /// <param name="itemID">Object ID</param>
+        /// <returns>False</returns>
         public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
         {
             ScenePresence sp = GetScenePresence(userID);
@@ -1841,6 +1908,13 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Adds a Scene Object group to the Scene.
+        /// Verifies that the creator of the object is not banned from the simulator.
+        /// Checks if the item is an Attachment
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns>True if the SceneObjectGroup was added, False if it was not</returns>
         public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
             // If the user is banned, we won't let any of their objects
@@ -1933,6 +2007,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Avatar Methods
 
+        /// <summary>
+        /// Adding a New Client and Create a Presence for it.
+        /// </summary>
+        /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
             SubscribeToClientEvents(client);
@@ -1977,6 +2055,10 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnNewClient(client);
         }
 
+        /// <summary>
+        /// Register for events from the client
+        /// </summary>
+        /// <param name="client">The IClientAPI of the connected client</param>
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
@@ -2070,8 +2152,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Teleport an avatar to their home region
         /// </summary>
-        /// <param name="agentId"></param>
-        /// <param name="client"></param>
+        /// <param name="agentId">The avatar's Unique ID</param>
+        /// <param name="client">The IClientAPI for the client</param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
@@ -2099,6 +2181,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Duplicates object specified by localID at position raycasted against RayTargetObject using 
+        /// RayEnd and RayStart to determine what the angle of the ray is
+        /// </summary>
+        /// <param name="localID">ID of object to duplicate</param>
+        /// <param name="dupeFlags"></param>
+        /// <param name="AgentID">Agent doing the duplication</param>
+        /// <param name="GroupID">Group of new object</param>
+        /// <param name="RayTargetObj">The target of the Ray</param>
+        /// <param name="RayEnd">The ending of the ray (farthest away point)</param>
+        /// <param name="RayStart">The Beginning of the ray (closest point)</param>
+        /// <param name="BypassRaycast">Bool to bypass raycasting</param>
+        /// <param name="RayEndIsIntersection">The End specified is the place to add the object</param>
+        /// <param name="CopyCenters">Position the object at the center of the face that it's colliding with</param>
+        /// <param name="CopyRotates">Rotate the object the same as the localID object</param>
         public void doObjectDuplicateOnRay(uint localID, uint dupeFlags, UUID AgentID, UUID GroupID,
                                            UUID RayTargetObj, Vector3 RayEnd, Vector3 RayStart,
                                            bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
