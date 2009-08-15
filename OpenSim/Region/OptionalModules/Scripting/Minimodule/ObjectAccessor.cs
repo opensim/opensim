@@ -40,10 +40,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_scene;
         private readonly IEnumerator<EntityBase> m_sogEnum;
+        private readonly ISecurityCredential m_security;
 
-        public IObjEnum(Scene scene)
+        public IObjEnum(Scene scene, ISecurityCredential security)
         {
             m_scene = scene;
+            m_security = security;
             m_sogEnum = m_scene.Entities.GetAllByType<SceneObjectGroup>().GetEnumerator();
         }
 
@@ -66,7 +68,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                return new SOPObject(m_scene, m_sogEnum.Current.LocalId);
+                return new SOPObject(m_scene, m_sogEnum.Current.LocalId, m_security);
             }
         }
 
@@ -79,17 +81,19 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     public class ObjectAccessor : System.MarshalByRefObject, IObjectAccessor
     {
         private readonly Scene m_scene;
+        private readonly ISecurityCredential m_security;
 
-        public ObjectAccessor(Scene scene)
+        public ObjectAccessor(Scene scene, ISecurityCredential security)
         {
             m_scene = scene;
+            m_security = security;
         }
 
         public IObject this[int index]
         {
             get
             {
-                return new SOPObject(m_scene, m_scene.Entities[(uint)index].LocalId);
+                return new SOPObject(m_scene, m_scene.Entities[(uint)index].LocalId, m_security);
             }
         }
 
@@ -97,7 +101,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                return new SOPObject(m_scene, m_scene.Entities[index].LocalId);
+                return new SOPObject(m_scene, m_scene.Entities[index].LocalId, m_security);
             }
         }
 
@@ -105,7 +109,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                return new SOPObject(m_scene, m_scene.Entities[index].LocalId);
+                return new SOPObject(m_scene, m_scene.Entities[index].LocalId, m_security);
             }
         }
 
@@ -117,20 +121,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public IObject Create(Vector3 position, Quaternion rotation)
         {
 
-            SceneObjectGroup sog = m_scene.AddNewPrim(m_scene.RegionInfo.MasterAvatarAssignedUUID,
+            SceneObjectGroup sog = m_scene.AddNewPrim(m_security.owner.GlobalID,
                                                       UUID.Zero,
                                                       position,
                                                       rotation,
                                                       PrimitiveBaseShape.CreateBox());
 
-            IObject ret = new SOPObject(m_scene, sog.LocalId);
+            IObject ret = new SOPObject(m_scene, sog.LocalId, m_security);
 
             return ret;
         }
 
         public IEnumerator<IObject> GetEnumerator()
         {
-            return new IObjEnum(m_scene);
+            return new IObjEnum(m_scene, m_security);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

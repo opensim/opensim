@@ -42,11 +42,20 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_rootScene;
         private readonly uint m_localID;
+        private readonly ISecurityCredential m_security;
 
+        [Obsolete("Replace with 'credential' constructor [security]")]
         public SOPObject(Scene rootScene, uint localID)
         {
             m_rootScene = rootScene;
             m_localID = localID;
+        }
+
+        public SOPObject(Scene rootScene, uint localID, ISecurityCredential credential)
+        {
+            m_rootScene = rootScene;
+            m_localID = localID;
+            m_security = credential;
         }
 
         /// <summary>

@@ -166,8 +166,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public void GetGlobalEnvironment(uint localID, out IWorld world, out IHost host)
         {
-            world = new World(m_scene);
-            host = new Host(new SOPObject(m_scene, localID), m_scene, new ExtensionHandler(m_extensions), m_microthreads);
+            // UUID should be changed to object owner.
+            UUID owner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            SEUser securityUser = new SEUser(owner, "Name Unassigned");
+            SecurityCredential creds = new SecurityCredential(securityUser);
+
+            world = new World(m_scene, creds);
+            host = new Host(new SOPObject(m_scene, localID, creds), m_scene, new ExtensionHandler(m_extensions),
+                            m_microthreads);
         }
 
         public void InitializeMRM(MRMBase mmb, uint localID, UUID itemID)
