@@ -36,25 +36,47 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim
 {
+    /// <summary>
+    /// Starting class for the OpenSimulator Region
+    /// </summary>
     public class Application
     {
+        /// <summary>
+        /// Text Console Logger
+        /// </summary>
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Path to the main ini Configuration file
+        /// </summary>
         public static string iniFilePath = "";
 
+        /// <summary>
+        /// Save Crashes in the bin/crashes folder.  Configurable with m_crashDir
+        /// </summary>
         public static bool m_saveCrashDumps = false;
+
+        /// <summary>
+        /// Directory to save crash reports to.  Relative to bin/
+        /// </summary>
         public static string m_crashDir = "crashes";
 
+        /// <summary>
+        /// Instance of the OpenSim class.  This could be OpenSim or OpenSimBackground depending on the configuration
+        /// </summary>
         protected static OpenSimBase m_sim = null;
 
         //could move our main function into OpenSimMain and kill this class
         public static void Main(string[] args)
         {
-            // First line
+            // First line, hook the appdomain to the crash reporter
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            // Add the arguments supplied when running the application to the configuration
             ArgvConfigSource configSource = new ArgvConfigSource(args);
+
+            // Configure Log4Net
             configSource.AddSwitch("Startup", "logconfig");
             string logConfigFile = configSource.Configs["Startup"].GetString("logconfig", String.Empty);
             if (logConfigFile != String.Empty)
@@ -69,6 +91,8 @@ namespace OpenSim
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
 
+            // Check if the system is compatible with OpenSimulator.   
+            // Ensures that the minimum system requirements are met
             m_log.Info("Performing compatibility checks... ");
             string supported = String.Empty;
             if (Util.IsEnvironmentSupported(ref supported))
@@ -80,6 +104,7 @@ namespace OpenSim
                 m_log.Warn("Environment is unsupported (" + supported + ")\n");
             }
 
+            // Configure nIni aliases and localles
             Culture.SetCurrentCulture();
 
 
@@ -99,8 +124,13 @@ namespace OpenSim
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");
 
+            // Check if we're running in the background or not
             bool background = configSource.Configs["Startup"].GetBoolean("background", false);
+
+            // Check if we're saving crashes
             m_saveCrashDumps = configSource.Configs["Startup"].GetBoolean("save_crashes", false);
+
+            // load Crash directory config
             m_crashDir = configSource.Configs["Startup"].GetString("crash_dir", m_crashDir);
 
             if (background)
@@ -118,6 +148,7 @@ namespace OpenSim
                 {
                     try
                     {
+                        // Block thread here for input
                         MainConsole.Instance.Prompt();
                     }
                     catch (Exception e)

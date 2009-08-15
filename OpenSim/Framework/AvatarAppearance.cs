@@ -28,14 +28,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 using OpenMetaverse;
-using log4net;
-using System.Reflection;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Contains the Avatar's Appearance and methods to manipulate the appearance.
+    /// </summary>
     public class AvatarAppearance
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -77,12 +77,15 @@ namespace OpenSim.Framework
         public static void Add(Thread thread)
         {
 #if DEBUG
-            lock (m_Threads)
+            if (thread != null)
             {
-                ThreadTrackerItem tti = new ThreadTrackerItem();
-                tti.Thread = thread;
-                tti.LastSeenActive = DateTime.Now.Ticks;
-                m_Threads.Add(tti);
+                lock (m_Threads)
+                {
+                    ThreadTrackerItem tti = new ThreadTrackerItem();
+                    tti.Thread = thread;
+                    tti.LastSeenActive = DateTime.Now.Ticks;
+                    m_Threads.Add(tti);
+                }
             }
 #endif
         }
@@ -107,16 +110,25 @@ namespace OpenSim.Framework
             {
                 foreach (ThreadTrackerItem tti in new ArrayList(m_Threads))
                 {
-                    if (tti.Thread.IsAlive)
+                    try
                     {
-                        // Its active
-                        tti.LastSeenActive = DateTime.Now.Ticks;
+                        
+                    
+                        if (tti.Thread.IsAlive)
+                        {
+                            // Its active
+                            tti.LastSeenActive = DateTime.Now.Ticks;
+                        }
+                        else
+                        {
+                            // Its not active -- if its expired then remove it
+                            if (tti.LastSeenActive + ThreadTimeout < DateTime.Now.Ticks)
+                                m_Threads.Remove(tti);
+                        }
                     }
-                    else
+                    catch (NullReferenceException)
                     {
-                        // Its not active -- if its expired then remove it
-                        if (tti.LastSeenActive + ThreadTimeout < DateTime.Now.Ticks)
-                            m_Threads.Remove(tti);
+                        m_Threads.Remove(tti);
                     }
                 }
             }

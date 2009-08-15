@@ -31,10 +31,20 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Asset class.   All Assets are reference by this class or a class derived from this class
+    /// </summary>
     [Serializable]
     public class AssetBase
     {
+        /// <summary>
+        /// Data of the Asset
+        /// </summary>
         private byte[] m_data;
+
+        /// <summary>
+        /// Meta Data of the Asset
+        /// </summary>
         private AssetMetadata m_metadata;
 
         public AssetBase()
@@ -71,6 +81,9 @@ namespace OpenSim.Framework
 
         }
 
+        /// <summary>
+        /// Checks if this asset is a binary or text asset
+        /// </summary>
         public bool IsBinaryAsset
         {
             get
@@ -102,12 +115,17 @@ namespace OpenSim.Framework
             set { m_data = value; }
         }
 
+        /// <summary>
+        /// Asset UUID
+        /// </summary>
         public UUID FullID
         {
             get { return m_metadata.FullID; }
             set { m_metadata.FullID = value; }
         }
-
+        /// <summary>
+        /// Asset MetaData ID (transferring from UUID to string ID)
+        /// </summary>
         public string ID
         {
             get { return m_metadata.ID; }
@@ -126,18 +144,27 @@ namespace OpenSim.Framework
             set { m_metadata.Description = value; }
         }
 
+        /// <summary>
+        /// (sbyte) AssetType enum
+        /// </summary>
         public sbyte Type
         {
             get { return m_metadata.Type; }
             set { m_metadata.Type = value; }
         }
 
+        /// <summary>
+        /// Is this a region only asset, or does this exist on the asset server also
+        /// </summary>
         public bool Local
         {
             get { return m_metadata.Local; }
             set { m_metadata.Local = value; }
         }
 
+        /// <summary>
+        /// Is this asset going to be saved to the asset database?
+        /// </summary>
         public bool Temporary
         {
             get { return m_metadata.Temporary; }

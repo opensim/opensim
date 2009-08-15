@@ -25,47 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using Nini.Config;
-using NUnit.Framework;
-using OpenSim.Tests.Common.Setup;
-using OpenSim.Tests.Common.Mock;
-using OpenSim.Region.Framework.Scenes;
+using System.Collections;
 using OpenMetaverse;
-using OpenSim.Region.Framework.Interfaces;
 
-namespace OpenSim.Region.ScriptEngine.XEngine.Tests
+namespace OpenSim.Framework
 {
-    /// <summary>
-    /// Scene presence tests
-    /// </summary>
-    /// Commented out XEngineTests that don't do anything
-    /*
-    [TestFixture]
-    public class XEngineTest
+    public interface IProfileModule
     {
-        public Scene scene;
-        
-        public static Random random;
-        public TestClient testclient;
-        //TestCommunicationsManager cm;
-
-        [TestFixtureSetUp]
-        public void Init()
-        {
-            TestCommunicationsManager cm = new TestCommunicationsManager();
-            scene = SceneSetupHelpers.SetupScene("My Test", UUID.Random(), 1000, 1000, cm);
-            random = new Random();
-        }
-        
-        [Test]
-        public void T001_XStart()
-        {
-            INonSharedRegionModule xengine = new XEngine();
-            SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), xengine);
-            xengine.RegionLoaded(scene);
-        }
+        Hashtable GetProfileData(UUID userID);
     }
-    */
 }

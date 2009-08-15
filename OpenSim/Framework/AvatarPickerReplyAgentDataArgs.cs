@@ -30,9 +30,19 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Args to return to a client that queries picker data
+    /// </summary>
     public class AvatarPickerReplyAgentDataArgs : EventArgs
     {
+        /// <summary>
+        /// Unique Agent ID
+        /// </summary>
         public UUID AgentID;
+
+        /// <summary>
+        /// ID of query user submitted
+        /// </summary>
         public UUID QueryID;
     }
 }

@@ -1,4 +1,31 @@
-﻿using System;
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -12,21 +39,23 @@ using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public abstract class InventoryCache
+    public class InventoryCache
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(
             MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected BaseInventoryConnector m_Connector;
         protected List<Scene> m_Scenes;
 
         // The cache proper
         protected Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>> m_InventoryCache;
 
-        protected virtual void Init(IConfigSource source)
+        public virtual void Init(IConfigSource source, BaseInventoryConnector connector)
         {
             m_Scenes = new List<Scene>();
             m_InventoryCache = new Dictionary<UUID, Dictionary<AssetType, InventoryFolderBase>>();
+            m_Connector = connector;
         }
 
         public virtual void AddRegion(Scene scene)
@@ -59,9 +88,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             // If not, go get them and place them in the cache
-            Dictionary<AssetType, InventoryFolderBase> folders = GetSystemFolders(presence.UUID);
-            m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent, fetched system folders for {0} {1}: count {2}", 
-                presence.Firstname, presence.Lastname, folders.Count);
+            Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(presence.UUID);
+            m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
+                presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
             if (folders.Count > 0)
                 lock (m_InventoryCache)
                     m_InventoryCache.Add(presence.UUID, folders);
@@ -69,28 +98,32 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         void OnClientClosed(UUID clientID, Scene scene)
         {
-            ScenePresence sp = null;
-            foreach (Scene s in m_Scenes)
+            if (m_InventoryCache.ContainsKey(clientID)) // if it's still in cache
             {
-                s.TryGetAvatar(clientID, out sp);
-                if ((sp != null) && !sp.IsChildAgent)
+                ScenePresence sp = null;
+                foreach (Scene s in m_Scenes)
                 {
-                    m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache", 
-                        scene.RegionInfo.RegionName, clientID);
-                    return;
+                    s.TryGetAvatar(clientID, out sp);
+                    if ((sp != null) && !sp.IsChildAgent && (s != scene))
+                    {
+                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, but user {1} still in sim. Keeping system folders in cache",
+                            scene.RegionInfo.RegionName, clientID);
+                        return;
+                    }
                 }
+
+                // Drop system folders
+                lock (m_InventoryCache)
+                    if (m_InventoryCache.ContainsKey(clientID))
+                    {
+                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders",
+                            scene.RegionInfo.RegionName, clientID);
+
+                        m_InventoryCache.Remove(clientID);
+                    }
             }
-
-            m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders", 
-                scene.RegionInfo.RegionName, clientID);
-            // Drop system folders
-            lock (m_InventoryCache)
-                if (m_InventoryCache.ContainsKey(clientID))
-                    m_InventoryCache.Remove(clientID);
-
         }
 
-        public abstract Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID);
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {

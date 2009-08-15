@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using log4net;
@@ -41,6 +42,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
+        private IProfileModule m_profileModule = null;
 
         public AvatarProfilesModule()
         {
@@ -56,6 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
 
         public void PostInitialise()
         {
+            m_profileModule = m_scene.RequestModuleInterface<IProfileModule>();
         }
 
         public void Close()
@@ -108,6 +111,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
                     charterMember = Utils.StringToBytes(profile.CustomType);
                 }
 
+                if (m_profileModule != null)
+                {
+                    Hashtable profileData = m_profileModule.GetProfileData(remoteClient.AgentId);
+                    if (profileData["ProfileUrl"] != null)
+                        profile.ProfileUrl = profileData["ProfileUrl"].ToString();
+                }
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                                                   Util.ToDateTime(profile.Created).ToString("M/d/yyyy", CultureInfo.InvariantCulture),
                                                   charterMember, profile.FirstLifeAboutText, (uint)(profile.UserFlags & 0xff),

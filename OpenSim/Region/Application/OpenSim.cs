@@ -146,6 +146,9 @@ namespace OpenSim
                 ChangeSelectedRegion("region", new string[] {"change", "region", "root"});
         }
 
+        /// <summary>
+        /// Register standard set of region console commands
+        /// </summary>
         private void RegisterConsoleCommands()
         {
             m_console.Commands.AddCommand("region", false, "clear assets",
@@ -332,6 +335,11 @@ namespace OpenSim
             base.ShutdownSpecific();
         }
 
+        /// <summary>
+        /// Timer to run a specific text file as console commands.  Configured in in the main ini file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
             if (m_timedScript != "disabled")
@@ -342,6 +350,11 @@ namespace OpenSim
 
         #region Console Commands
 
+        /// <summary>
+        /// Kicks users off the region
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams">name of avatar to kick</param>
         private void KickUserCommand(string module, string[] cmdparams)
         {
             if (cmdparams.Length < 4)
@@ -401,6 +414,10 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Opens a file and uses it as input to the console command parser.
+        /// </summary>
+        /// <param name="fileName">name of file to use as input to the console</param>
         private static void PrintFileToConsole(string fileName)
         {
             if (File.Exists(fileName))
@@ -419,12 +436,22 @@ namespace OpenSim
             m_log.Info("Not implemented.");
         }
 
+        /// <summary>
+        /// Force resending of all updates to all clients in active region(s)
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="args"></param>
         private void HandleForceUpdate(string module, string[] args)
         {
             m_log.Info("Updating all clients");
             m_sceneManager.ForceCurrentSceneClientUpdate();
         }
 
+        /// <summary>
+        /// Edits the scale of a primative with the name specified
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="args">0,1, name, x, y, z</param>
         private void HandleEditScale(string module, string[] args)
         {
             if (args.Length == 6)
@@ -437,6 +464,11 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Creates a new region based on the parameters specified.   This will ask the user questions on the console
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd">0,1,region name, region XML file</param>
         private void HandleCreateRegion(string module, string[] cmd)
         {
             if (cmd.Length < 4)
@@ -473,16 +505,32 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Enable logins
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
         private void HandleLoginEnable(string module, string[] cmd)
         {
             ProcessLogin(true);
         }
 
+
+        /// <summary>
+        /// Disable logins
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
         private void HandleLoginDisable(string module, string[] cmd)
         {
             ProcessLogin(false);
         }
 
+        /// <summary>
+        /// Log login status to the console
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
         private void HandleLoginStatus(string module, string[] cmd)
         {
             if (m_commsManager.GridService.RegionLoginsEnabled == false)
@@ -492,6 +540,12 @@ namespace OpenSim
                 m_log.Info("[ Login ]  Login are enabled");
         }
 
+
+        /// <summary>
+        /// Change and load configuration file data.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
         private void HandleConfig(string module, string[] cmd)
         {
             List<string> args = new List<string>(cmd);
@@ -557,6 +611,12 @@ namespace OpenSim
             }
         }
 
+
+        /// <summary>
+        /// Load, Unload, and list Region modules in use
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmd"></param>
         private void HandleModules(string module, string[] cmd)
         {
             List<string> args = new List<string>(cmd);
@@ -797,6 +857,11 @@ namespace OpenSim
         }
 
         // see BaseOpenSimServer
+        /// <summary>
+        /// Many commands list objects for debugging.  Some of the types are listed  here
+        /// </summary>
+        /// <param name="mod"></param>
+        /// <param name="cmd"></param>
         public override void HandleShow(string mod, string[] cmd)
         {
             base.HandleShow(mod, cmd);
@@ -902,6 +967,10 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// print UDP Queue data for each client
+        /// </summary>
+        /// <returns></returns>
         private string GetQueuesReport()
         {
             string report = String.Empty;
@@ -1010,6 +1079,11 @@ namespace OpenSim
             m_commsManager.UserAdminService.ResetUserPassword(firstName, lastName, newPassword);
         }
 
+        /// <summary>
+        /// Use XML2 format to serialize data to a file
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
         protected void SavePrimsXml2(string module, string[] cmdparams)
         {
             if (cmdparams.Length > 5)
@@ -1022,6 +1096,11 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Use XML format to serialize data to a file
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
         protected void SaveXml(string module, string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
@@ -1036,6 +1115,11 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Loads data and region objects from XML format.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
         protected void LoadXml(string module, string[] cmdparams)
         {
             m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
@@ -1079,7 +1163,11 @@ namespace OpenSim
                 }
             }
         }
-
+        /// <summary>
+        /// Serialize region data to XML2Format
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
         protected void SaveXml2(string module, string[] cmdparams)
         {
             if (cmdparams.Length > 2)
@@ -1092,6 +1180,11 @@ namespace OpenSim
             }
         }
 
+        /// <summary>
+        /// Load region data from Xml2Format
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="cmdparams"></param>
         protected void LoadXml2(string module, string[] cmdparams)
         {
             if (cmdparams.Length > 2)

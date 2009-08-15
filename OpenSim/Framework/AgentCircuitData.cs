@@ -32,26 +32,83 @@ using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Circuit data for an agent.  Connection information shared between
+    /// regions that accept UDP connections from a client
+    /// </summary>
     public class AgentCircuitData
     {
+        /// <summary>
+        /// Avatar Unique Agent Identifier
+        /// </summary>
         public UUID AgentID;
+
+        /// <summary>
+        /// Avatar's Appearance
+        /// </summary>
         public AvatarAppearance Appearance;
+
+        /// <summary>
+        /// Agent's root inventory folder
+        /// </summary>
         public UUID BaseFolder;
+
+        /// <summary>
+        /// Base Caps path for user
+        /// </summary>
         public string CapsPath = String.Empty;
+
+        /// <summary>
+        /// Seed caps for neighbor regions that the user can see into
+        /// </summary>
         public Dictionary<ulong, string> ChildrenCapSeeds;
+
+        /// <summary>
+        /// Root agent, or Child agent
+        /// </summary>
         public bool child;
+
+        /// <summary>
+        /// Number given to the client when they log-in that they provide 
+        /// as credentials to the UDP server
+        /// </summary>
         public uint circuitcode;
+
+        /// <summary>
+        /// Agent's account first name
+        /// </summary>
         public string firstname;
         public UUID InventoryFolder;
+
+        /// <summary>
+        /// Agent's account last name
+        /// </summary>
         public string lastname;
+
+        /// <summary>
+        /// Random Unique GUID for this session.  Client gets this at login and it's
+        /// only supposed to be disclosed over secure channels
+        /// </summary>
         public UUID SecureSessionID;
+
+        /// <summary>
+        /// Non secure Session ID
+        /// </summary>
         public UUID SessionID;
+
+        /// <summary>
+        /// Position the Agent's Avatar starts in the region
+        /// </summary>
         public Vector3 startpos;
 
         public AgentCircuitData()
         {
         }
 
+        /// <summary>
+        /// Create AgentCircuitData from a Serializable AgentCircuitData
+        /// </summary>
+        /// <param name="cAgent"></param>
         public AgentCircuitData(sAgentCircuitData cAgent)
         {
             AgentID = new UUID(cAgent.AgentID);
@@ -68,6 +125,10 @@ namespace OpenSim.Framework
             ChildrenCapSeeds = cAgent.ChildrenCapSeeds;
         }
 
+        /// <summary>
+        /// Pack AgentCircuitData into an OSDMap for transmission over LLSD XML or LLSD json
+        /// </summary>
+        /// <returns>map of the agent circuit data</returns>
         public OSDMap PackAgentCircuitData()
         {
             OSDMap args = new OSDMap();
@@ -98,6 +159,10 @@ namespace OpenSim.Framework
             return args;
         }
 
+        /// <summary>
+        /// Unpack agent circuit data map into an AgentCiruitData object
+        /// </summary>
+        /// <param name="args"></param>
         public void UnpackAgentCircuitData(OSDMap args)
         {
             if (args["agent_id"] != null)
@@ -150,6 +215,9 @@ namespace OpenSim.Framework
         }
     }
 
+    /// <summary>
+    /// Serializable Agent Circuit Data
+    /// </summary>
     [Serializable]
     public class sAgentCircuitData
     {

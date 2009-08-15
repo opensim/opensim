@@ -1038,6 +1038,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Send out simstats data to all clients
+        /// </summary>
+        /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
             List<ScenePresence> StatSendAgents = GetScenePresences();
@@ -1050,6 +1054,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Recount SceneObjectPart in parcel aabb
+        /// </summary>
         private void UpdateLand()
         {
             if (LandChannel != null)
@@ -1061,11 +1068,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Update the terrain if it needs to be updated.
+        /// </summary>
         private void UpdateTerrain()
         {
             EventManager.TriggerTerrainTick();
         }
 
+        /// <summary>
+        /// Back up queued up changes
+        /// </summary>
         private void UpdateStorageBackup()
         {
             if (!m_backingup)
@@ -1078,6 +1091,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Sends out the OnFrame event to the modules
+        /// </summary>
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
@@ -1133,6 +1149,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Synchronous force backup.  For deletes and links/unlinks
+        /// </summary>
+        /// <param name="group">Object to be backed up</param>
         public void ForceSceneObjectBackup(SceneObjectGroup group)
         {
             if (group != null)
@@ -1141,6 +1161,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Return object to avatar Message
+        /// </summary>
+        /// <param name="agentID">Avatar Unique Id</param>
+        /// <param name="objectName">Name of object returned</param>
+        /// <param name="location">Location of object returned</param>
+        /// <param name="reason">Reasion for object return</param>
         public void AddReturn(UUID agentID, string objectName, Vector3 location, string reason)
         {
             lock (m_returns)
@@ -1167,6 +1194,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Load Terrain
 
+        /// <summary>
+        /// Store the terrain in the persistant data store
+        /// </summary>
         public void SaveTerrain()
         {
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
@@ -1269,6 +1299,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Load Land
 
+        /// <summary>
+        /// Loads all Parcel data from the datastore for region identified by regionID
+        /// </summary>
+        /// <param name="regionID">Unique Identifier of the Region to load parcel data for</param>
         public void loadAllLandObjectsFromStorage(UUID regionID)
         {
             m_log.Info("[SCENE]: Loading land objects from storage");
@@ -1322,6 +1356,20 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count.ToString() + " SceneObject(s)");
         }
 
+
+        /// <summary>
+        /// Gets a new rez location based on the raycast and the size of the object that is being rezzed.
+        /// </summary>
+        /// <param name="RayStart"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="rot"></param>
+        /// <param name="bypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="frontFacesOnly"></param>
+        /// <param name="scale"></param>
+        /// <param name="FaceCenter"></param>
+        /// <returns></returns>
         public Vector3 GetNewRezLocation(Vector3 RayStart, Vector3 RayEnd, UUID RayTargetID, Quaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, Vector3 scale, bool FaceCenter)
         {
             Vector3 pos = Vector3.Zero;
@@ -1412,6 +1460,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+
+        /// <summary>
+        /// Create a New SceneObjectGroup/Part by raycasting
+        /// </summary>
+        /// <param name="ownerID"></param>
+        /// <param name="groupID"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="rot"></param>
+        /// <param name="shape"></param>
+        /// <param name="bypassRaycast"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="RayEndIsIntersection"></param>
         public virtual void AddNewPrim(UUID ownerID, UUID groupID, Vector3 RayEnd, Quaternion rot, PrimitiveBaseShape shape,
                                        byte bypassRaycast, Vector3 RayStart, UUID RayTargetID,
                                        byte RayEndIsIntersection)
@@ -1829,6 +1890,12 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Attachment rezzing
+        /// </summary>
+        /// <param name="userID">Agent Unique ID</param>
+        /// <param name="itemID">Object ID</param>
+        /// <returns>False</returns>
         public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
         {
             ScenePresence sp = GetScenePresence(userID);
@@ -1841,6 +1908,13 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Adds a Scene Object group to the Scene.
+        /// Verifies that the creator of the object is not banned from the simulator.
+        /// Checks if the item is an Attachment
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns>True if the SceneObjectGroup was added, False if it was not</returns>
         public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
             // If the user is banned, we won't let any of their objects
@@ -1933,6 +2007,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Add/Remove Avatar Methods
 
+        /// <summary>
+        /// Adding a New Client and Create a Presence for it.
+        /// </summary>
+        /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
             SubscribeToClientEvents(client);
@@ -1977,6 +2055,10 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnNewClient(client);
         }
 
+        /// <summary>
+        /// Register for events from the client
+        /// </summary>
+        /// <param name="client">The IClientAPI of the connected client</param>
         protected virtual void SubscribeToClientEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
@@ -2019,12 +2101,13 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
+
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
-            client.OnMoveInventoryFolder += HandleMoveInventoryFolder;
+            client.OnMoveInventoryFolder += HandleMoveInventoryFolder; // 2; //!!
             client.OnFetchInventoryDescendents += HandleFetchInventoryDescendents;
-            client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents;
+            client.OnPurgeInventoryDescendents += HandlePurgeInventoryDescendents; // 2; //!!
             client.OnFetchInventory += HandleFetchInventory;
             client.OnUpdateInventoryItem += UpdateInventoryItemAsset;
             client.OnCopyInventoryItem += CopyInventoryItem;
@@ -2036,6 +2119,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRemoveTaskItem += RemoveTaskInventory;
             client.OnUpdateTaskInventory += UpdateTaskInventory;
             client.OnMoveTaskItem += ClientMoveTaskInventoryItem;
+
             client.OnGrabObject += ProcessObjectGrab;
             client.OnDeGrabObject += ProcessObjectDeGrab;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
@@ -2068,8 +2152,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Teleport an avatar to their home region
         /// </summary>
-        /// <param name="agentId"></param>
-        /// <param name="client"></param>
+        /// <param name="agentId">The avatar's Unique ID</param>
+        /// <param name="client">The IClientAPI for the client</param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
@@ -2097,6 +2181,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Duplicates object specified by localID at position raycasted against RayTargetObject using 
+        /// RayEnd and RayStart to determine what the angle of the ray is
+        /// </summary>
+        /// <param name="localID">ID of object to duplicate</param>
+        /// <param name="dupeFlags"></param>
+        /// <param name="AgentID">Agent doing the duplication</param>
+        /// <param name="GroupID">Group of new object</param>
+        /// <param name="RayTargetObj">The target of the Ray</param>
+        /// <param name="RayEnd">The ending of the ray (farthest away point)</param>
+        /// <param name="RayStart">The Beginning of the ray (closest point)</param>
+        /// <param name="BypassRaycast">Bool to bypass raycasting</param>
+        /// <param name="RayEndIsIntersection">The End specified is the place to add the object</param>
+        /// <param name="CopyCenters">Position the object at the center of the face that it's colliding with</param>
+        /// <param name="CopyRotates">Rotate the object the same as the localID object</param>
         public void doObjectDuplicateOnRay(uint localID, uint dupeFlags, UUID AgentID, UUID GroupID,
                                            UUID RayTargetObj, Vector3 RayEnd, Vector3 RayStart,
                                            bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
@@ -2168,6 +2267,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Sets the Home Point.   The GridService uses this to know where to put a user when they log-in
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);
@@ -2338,6 +2445,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Removes region from an avatar's known region list.  This coincides with child agents.  For each child agent, there will be a known region entry.
+        /// 
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <param name="regionslst"></param>
         public void HandleRemoveKnownRegionsFromAvatar(UUID avatarID, List<ulong> regionslst)
         {
             ScenePresence av = GetScenePresence(avatarID);
@@ -2353,12 +2466,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Closes all endpoints with the circuitcode provided.
+        /// </summary>
+        /// <param name="circuitcode">Circuit Code of the endpoint to close</param>
         public override void CloseAllAgents(uint circuitcode)
         {
             // Called by ClientView to kill all circuit codes
             ClientManager.CloseAllAgents(circuitcode);
         }
 
+        /// <summary>
+        /// Inform all other ScenePresences on this Scene that someone else has changed position on the minimap.
+        /// </summary>
         public void NotifyMyCoarseLocationChange()
         {
             ForEachScenePresence(delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -2453,9 +2573,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// The return bool should allow for connections to be refused, but as not all calling paths
         /// take proper notice of it let, we allowed banned users in still.
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agent"></param>
-        /// <param name="reason"></param>
+        /// <param name="agent">CircuitData of the agent who is connecting</param>
+        /// <param name="reason">Outputs the reason for the false response on this string</param>
+        /// <returns>True if the region accepts this agent.  False if it does not.  False will 
+        /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, out string reason)
         {
             // Don't disable this log message - it's too helpful
@@ -2528,6 +2649,13 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Verifies that the user has a session on the Grid
+        /// </summary>
+        /// <param name="agent">Circuit Data of the Agent we're verifying</param>
+        /// <param name="reason">Outputs the reason for the false response on this string</param>
+        /// <returns>True if the user has a session on the grid.  False if it does not.  False will 
+        /// also return a reason.</returns>
         public virtual bool AuthenticateUser(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
@@ -2540,6 +2668,13 @@ namespace OpenSim.Region.Framework.Scenes
             return result;
         }
 
+        /// <summary>
+        /// Verify if the user can connect to this region.  Checks the banlist and ensures that the region is set for public access
+        /// </summary>
+        /// <param name="agent">The circuit data for the agent</param>
+        /// <param name="reason">outputs the reason to this string</param>
+        /// <returns>True if the region accepts this agent.  False if it does not.  False will 
+        /// also return a reason.</returns>
         protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
@@ -2598,16 +2733,32 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Update an AgentCircuitData object with new information
+        /// </summary>
+        /// <param name="data">Information to update the AgentCircuitData with</param>
         public void UpdateCircuitData(AgentCircuitData data)
         {
             m_authenticateHandler.UpdateAgentData(data);
         }
 
+        /// <summary>
+        /// Change the Circuit Code for the user's Circuit Data
+        /// </summary>
+        /// <param name="oldcc">The old Circuit Code.  Must match a previous circuit code</param>
+        /// <param name="newcc">The new Circuit Code.  Must not be an already existing circuit code</param>
+        /// <returns>True if we successfully changed it.  False if we did not</returns>
         public bool ChangeCircuitCode(uint oldcc, uint newcc)
         {
             return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
         }
 
+        /// <summary>
+        /// The Grid has requested that we log-off a user.  Log them off.
+        /// </summary>
+        /// <param name="AvatarID">Unique ID of the avatar to log-off</param>
+        /// <param name="RegionSecret">SecureSessionID of the user, or the RegionSecret text when logging on to the grid</param>
+        /// <param name="message">message to display to the user.  Reason for being logged off</param>
         public void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
             ScenePresence loggingOffUser = null;
@@ -2673,6 +2824,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// We've got an update about an agent that sees into this region, 
+        /// send it to ScenePresence for processing  It's the full data.
+        /// </summary>
+        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.  
+        /// Appearance, animations, position, etc.</param>
+        /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)
         {
 //            m_log.DebugFormat(
@@ -2690,6 +2848,12 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// We've got an update about an agent that sees into this region, 
+        /// send it to ScenePresence for processing  It's only positional data
+        /// </summary>
+        /// <param name="cAgentData">AgentPosition that contains agent positional data so we can know what to send</param>
+        /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
         {
             //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);

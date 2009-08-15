@@ -41,12 +41,18 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Client.Linden
 {
+    /// <summary>
+    /// Linden UDP Stack Region Module
+    /// </summary>
     public class LLClientStackModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region IRegionModule Members
 
+        /// <summary>
+        /// Scene that contains the region's data
+        /// </summary>
         protected Scene m_scene;
         protected bool m_createClientStack = false;
         protected IClientNetworkServer m_clientServer;

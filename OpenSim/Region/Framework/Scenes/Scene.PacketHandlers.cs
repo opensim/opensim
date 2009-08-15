@@ -622,8 +622,26 @@ namespace OpenSim.Region.Framework.Scenes
                      "[AGENT INVENTORY]: Failed to move folder {0} to {1} for user {2}",
                      folderID, parentID, remoteClient.Name);
             }
+        }
+
+        public void HandleMoveInventoryFolder2(IClientAPI remoteClient, UUID folderID, UUID parentID)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            folder = InventoryService.QueryFolder(folder);
+            if (folder != null)
+            {
+                folder.ParentID = parentID;
+                if (!InventoryService.MoveFolder(folder))
+                    m_log.WarnFormat("[AGENT INVENTORY]: could not move folder {0}", folderID);
+                else
+                    m_log.DebugFormat("[AGENT INVENTORY]: folder {0} moved to parent {1}", folderID, parentID);
+            }
+            else
+            {
+                m_log.WarnFormat("[AGENT INVENTORY]: request to move folder {0} but folder not found", folderID);
+            }
         }      
-        
+
         /// <summary>
         /// This should delete all the items and folders in the given directory.
         /// </summary>
@@ -647,6 +665,17 @@ namespace OpenSim.Region.Framework.Scenes
                      "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
+        }
+
+        public void HandlePurgeInventoryDescendents2(IClientAPI remoteClient, UUID folderID)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+
+            if (InventoryService.PurgeFolder(folder))
+                m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
+            else
+                m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
         }        
+
     }
 }

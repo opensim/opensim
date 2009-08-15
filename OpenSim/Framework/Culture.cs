@@ -45,6 +45,9 @@ namespace OpenSim.Framework
             get { return m_cultureInfo; }
         }
 
+        /// <summary>
+        /// Set Culture to en-US to make string processing of numbers simpler.
+        /// </summary>
         public static void SetCurrentCulture()
         {
             Thread.CurrentThread.CurrentCulture = m_cultureInfo;

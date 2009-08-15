@@ -41,7 +41,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class LocalInventoryServicesConnector : InventoryCache, ISharedRegionModule, IInventoryService
+    public class LocalInventoryServicesConnector : BaseInventoryConnector, ISharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -124,7 +124,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
         }
 
-        public override void AddRegion(Scene scene)
+        public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -141,12 +141,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 //                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
             
             scene.RegisterModuleInterface<IInventoryService>(this);
-            base.AddRegion(scene);
+            m_cache.AddRegion(scene);
         }
 
-        public override void RemoveRegion(Scene scene)
+        public void RemoveRegion(Scene scene)
         {
-            base.RemoveRegion(scene);
+            if (!m_Enabled)
+                return;
+
+            m_cache.RemoveRegion(scene);
         }
 
         public void RegionLoaded(Scene scene)
@@ -160,22 +163,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         #region IInventoryService
 
-        public bool CreateUserInventory(UUID user)
+        public override bool CreateUserInventory(UUID user)
         {
             return m_InventoryService.CreateUserInventory(user);
         }
 
-        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        public override List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
         {
             return m_InventoryService.GetInventorySkeleton(userId);
         }
 
-        public InventoryCollection GetUserInventory(UUID id)
+        public override InventoryCollection GetUserInventory(UUID id)
         {
             return m_InventoryService.GetUserInventory(id);
         }
 
-        public void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
+        public override void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
             m_InventoryService.GetUserInventory(userID, callback);
         }
@@ -207,13 +210,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
-        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
+        public override InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             return m_InventoryService.GetFolderContent(userID, folderID);
         }
 
 
-        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
+        public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
             return m_InventoryService.GetFolderItems(userID, folderID);
         }
@@ -223,7 +226,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully added</returns>
-        public bool AddFolder(InventoryFolderBase folder)
+        public override bool AddFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.AddFolder(folder);
         }
@@ -233,7 +236,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully updated</returns>
-        public bool UpdateFolder(InventoryFolderBase folder)
+        public override bool UpdateFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.UpdateFolder(folder);
         }
@@ -243,7 +246,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="folder">A folder containing the details of the new location</param>
         /// <returns>true if the folder was successfully moved</returns>
-        public bool MoveFolder(InventoryFolderBase folder)
+        public override bool MoveFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.MoveFolder(folder);
         }
@@ -253,17 +256,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully purged</returns>
-        public bool PurgeFolder(InventoryFolderBase folder)
+        public override bool PurgeFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.PurgeFolder(folder);
         }
 
         /// <summary>
-        /// Add a new item to the user's inventory
+        /// Add a new item to the user's inventory, plain
+        /// Called by base class AddItem
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully added</returns>
-        public bool AddItem(InventoryItemBase item)
+        protected override bool AddItemPlain(InventoryItemBase item)
         {
             return m_InventoryService.AddItem(item);
         }
@@ -273,7 +277,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully updated</returns>
-        public bool UpdateItem(InventoryItemBase item)
+        public override bool UpdateItem(InventoryItemBase item)
         {
             return m_InventoryService.UpdateItem(item);
         }
@@ -283,17 +287,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        public bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItem(InventoryItemBase item)
         {
             return m_InventoryService.DeleteItem(item);
         }
 
-        public InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase QueryItem(InventoryItemBase item)
         {
             return m_InventoryService.QueryItem(item);
         }
 
-        public InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
         {
             return m_InventoryService.QueryFolder(folder);
         }
@@ -303,7 +307,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        public bool HasInventoryForUser(UUID userID)
+        public override bool HasInventoryForUser(UUID userID)
         {
             return m_InventoryService.HasInventoryForUser(userID);
         }
@@ -313,12 +317,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        public InventoryFolderBase GetRootFolder(UUID userID)
+        public override InventoryFolderBase GetRootFolder(UUID userID)
         {
             return m_InventoryService.GetRootFolder(userID);
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return m_InventoryService.GetActiveGestures(userId);
         }

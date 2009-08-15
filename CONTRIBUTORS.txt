@@ -77,7 +77,6 @@ what it is today.
 * Intimidated
 * Jeremy Bongio (IBM)
 * jhurliman
-* Mike Osias (IBM)
 * John R Sohn (XenReborn)
 * jonc
 * Junta Kohime
@@ -91,6 +90,7 @@ what it is today.
 * maimedleech
 * Mic Bowman
 * Michelle Argus
+* Mike Osias (IBM)
 * Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
 * Mircea Kitsune
@@ -119,7 +119,9 @@ what it is today.
 * Xantor
 * Y. Nitta
 * YZh
+* Zackary Geers aka Kunnis Basiat
 * Zha Ewry
+
 
 
 LSL Devs
