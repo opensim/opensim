@@ -2170,6 +2170,14 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Sets the Home Point.   The GridService uses this to know where to put a user when they log-in
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        /// <param name="lookAt"></param>
+        /// <param name="flags"></param>
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);
@@ -2340,6 +2348,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Removes region from an avatar's known region list.  This coincides with child agents.  For each child agent, there will be a known region entry.
+        /// 
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <param name="regionslst"></param>
         public void HandleRemoveKnownRegionsFromAvatar(UUID avatarID, List<ulong> regionslst)
         {
             ScenePresence av = GetScenePresence(avatarID);
@@ -2355,12 +2369,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Closes all endpoints with the circuitcode provided.
+        /// </summary>
+        /// <param name="circuitcode">Circuit Code of the endpoint to close</param>
         public override void CloseAllAgents(uint circuitcode)
         {
             // Called by ClientView to kill all circuit codes
             ClientManager.CloseAllAgents(circuitcode);
         }
 
+        /// <summary>
+        /// Inform all other ScenePresences on this Scene that someone else has changed position on the minimap.
+        /// </summary>
         public void NotifyMyCoarseLocationChange()
         {
             ForEachScenePresence(delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -2455,9 +2476,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// The return bool should allow for connections to be refused, but as not all calling paths
         /// take proper notice of it let, we allowed banned users in still.
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agent"></param>
-        /// <param name="reason"></param>
+        /// <param name="agent">CircuitData of the agent who is connecting</param>
+        /// <param name="reason">Outputs the reason for the false response on this string</param>
+        /// <returns>True if the region accepts this agent.  False if it does not.  False will 
+        /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, out string reason)
         {
             // Don't disable this log message - it's too helpful
@@ -2530,6 +2552,13 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Verifies that the user has a session on the Grid
+        /// </summary>
+        /// <param name="agent">Circuit Data of the Agent we're verifying</param>
+        /// <param name="reason">Outputs the reason for the false response on this string</param>
+        /// <returns>True if the user has a session on the grid.  False if it does not.  False will 
+        /// also return a reason.</returns>
         public virtual bool AuthenticateUser(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
@@ -2542,6 +2571,13 @@ namespace OpenSim.Region.Framework.Scenes
             return result;
         }
 
+        /// <summary>
+        /// Verify if the user can connect to this region.  Checks the banlist and ensures that the region is set for public access
+        /// </summary>
+        /// <param name="agent">The circuit data for the agent</param>
+        /// <param name="reason">outputs the reason to this string</param>
+        /// <returns>True if the region accepts this agent.  False if it does not.  False will 
+        /// also return a reason.</returns>
         protected virtual bool AuthorizeUser(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
@@ -2600,16 +2636,32 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Update an AgentCircuitData object with new information
+        /// </summary>
+        /// <param name="data">Information to update the AgentCircuitData with</param>
         public void UpdateCircuitData(AgentCircuitData data)
         {
             m_authenticateHandler.UpdateAgentData(data);
         }
 
+        /// <summary>
+        /// Change the Circuit Code for the user's Circuit Data
+        /// </summary>
+        /// <param name="oldcc">The old Circuit Code.  Must match a previous circuit code</param>
+        /// <param name="newcc">The new Circuit Code.  Must not be an already existing circuit code</param>
+        /// <returns>True if we successfully changed it.  False if we did not</returns>
         public bool ChangeCircuitCode(uint oldcc, uint newcc)
         {
             return m_authenticateHandler.TryChangeCiruitCode(oldcc, newcc);
         }
 
+        /// <summary>
+        /// The Grid has requested that we log-off a user.  Log them off.
+        /// </summary>
+        /// <param name="AvatarID">Unique ID of the avatar to log-off</param>
+        /// <param name="RegionSecret">SecureSessionID of the user, or the RegionSecret text when logging on to the grid</param>
+        /// <param name="message">message to display to the user.  Reason for being logged off</param>
         public void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
             ScenePresence loggingOffUser = null;
@@ -2675,6 +2727,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// We've got an update about an agent that sees into this region, 
+        /// send it to ScenePresence for processing  It's the full data.
+        /// </summary>
+        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.  
+        /// Appearance, animations, position, etc.</param>
+        /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)
         {
 //            m_log.DebugFormat(
@@ -2692,6 +2751,12 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
+        /// <summary>
+        /// We've got an update about an agent that sees into this region, 
+        /// send it to ScenePresence for processing  It's only positional data
+        /// </summary>
+        /// <param name="cAgentData">AgentPosition that contains agent positional data so we can know what to send</param>
+        /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentPosition cAgentData)
         {
             //m_log.Debug(" XXX Scene IncomingChildAgentDataUpdate POSITION in " + RegionInfo.RegionName);
