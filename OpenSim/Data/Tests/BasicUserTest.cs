@@ -403,6 +403,7 @@ namespace OpenSim.Data.Tests
             Assert.That(u1a, Constraints.PropertyCompareConstraint(u)
                 .IgnoreProperty(x=>x.HomeRegionX)
                 .IgnoreProperty(x=>x.HomeRegionY)
+                .IgnoreProperty(x=>x.RootInventoryFolderID)
                 );
         }
         

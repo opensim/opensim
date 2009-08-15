@@ -576,8 +576,10 @@ namespace OpenSim.Data.Tests
                 .IgnoreProperty(x=>x.HasGroupChanged)
                 .IgnoreProperty(x=>x.IsSelected)
                 .IgnoreProperty(x=>x.RegionHandle)
+                .IgnoreProperty(x=>x.RegionUUID)
                 .IgnoreProperty(x=>x.Scene)
-                .IgnoreProperty(x=>x.RootPart.InventorySerial));
+                .IgnoreProperty(x=>x.Children)
+                .IgnoreProperty(x=>x.RootPart));
         }
         
         [Test]

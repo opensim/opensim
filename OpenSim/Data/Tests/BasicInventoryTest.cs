@@ -266,6 +266,7 @@ namespace OpenSim.Data.Tests
             InventoryItemBase actual = db.getInventoryItem(item1);
             Assert.That(actual, Constraints.PropertyCompareConstraint(expected)
                 .IgnoreProperty(x=>x.InvType)
+                .IgnoreProperty(x=>x.CreatorIdAsUuid)
                 .IgnoreProperty(x=>x.Description)
                 .IgnoreProperty(x=>x.CreatorId));
         }
