@@ -1906,8 +1906,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 item.CreationDate = Util.UnixTimeSinceEpoch();
 
-                // sets assetID so client can show asset as 'attached' in inventory
-                grp.SetFromAssetID(item.ID);
+                // sets itemID so client can show item as 'attached' in inventory
+                grp.SetFromItemID(item.ID);
 
                 if (InventoryService.AddItem(item))
                     remoteClient.SendInventoryItemCreateUpdate(item, 0);
@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        group.SetFromAssetID(itemID);
+                        group.SetFromItemID(itemID);
                     }
 
                     SceneObjectPart rootPart = null;
@@ -2373,7 +2373,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null || part.ParentGroup == null)
                 return;
 
-            UUID inventoryID = part.ParentGroup.GetFromAssetID();
+            UUID inventoryID = part.ParentGroup.GetFromItemID();
 
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))

@@ -442,7 +442,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (group != null)
             {
                 //group.DetachToGround();
-                m_parentScene.DetachSingleAttachmentToInv(group.GetFromAssetID(), remoteClient);
+                m_parentScene.DetachSingleAttachmentToInv(group.GetFromItemID(), remoteClient);
             }
         }
 
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Calls attach with a Zero position
             //
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
-            m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromAssetID(), remoteClient.AgentId);
+            m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
         }
 
         public SceneObjectGroup RezSingleAttachment(
@@ -536,14 +536,14 @@ namespace OpenSim.Region.Framework.Scenes
                 if (entity is SceneObjectGroup)
                 {
                     group = (SceneObjectGroup)entity;
-                    if (group.GetFromAssetID() == itemID)
+                    if (group.GetFromItemID() == itemID)
                     {
                         m_parentScene.SendAttachEvent(group.LocalId, itemID, UUID.Zero);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " +
                                 ((uint)group.GetAttachmentPoint()).ToString());
                         m_parentScene.UpdateKnownItem(remoteClient, group,
-                                group.GetFromAssetID(), group.OwnerID);
+                                group.GetFromItemID(), group.OwnerID);
                         m_parentScene.DeleteSceneObject(group, false);
                         return;
                     }
@@ -588,13 +588,13 @@ namespace OpenSim.Region.Framework.Scenes
                     // Saves and gets assetID
                     UUID itemId;
 
-                    if (group.GetFromAssetID() == UUID.Zero)
+                    if (group.GetFromItemID() == UUID.Zero)
                     {
                         m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);
                     }
                     else
                     {
-                        itemId = group.GetFromAssetID();
+                        itemId = group.GetFromItemID();
                     }
 
                     m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
@@ -1307,7 +1307,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group.UpdateGroupPosition(pos);
                     group.RootPart.IsAttachment = false;
                     group.AbsolutePosition = group.RootPart.AttachedPos;
-                    m_parentScene.UpdateKnownItem(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
+                    m_parentScene.UpdateKnownItem(remoteClient, group, group.GetFromItemID(), group.OwnerID);
                     group.SetAttachmentPoint(attachmentPoint);
 
                 }

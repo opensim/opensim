@@ -1962,7 +1962,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[ATTACHMENT]: Received " +
                                     "attachment {0}, inworld asset id {1}",
                                     //grp.RootPart.LastOwnerID.ToString(),
-                                    grp.GetFromAssetID(),
+                                    grp.GetFromItemID(),
                                     grp.UUID.ToString());
 
                         //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
