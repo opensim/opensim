@@ -84,7 +84,7 @@ namespace OpenSim.Data.Tests
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;
-
+            
             a1.FullID = uuid1;
             a2.FullID = uuid2;
             a3.FullID = uuid3;
@@ -92,15 +92,40 @@ namespace OpenSim.Data.Tests
             db.CreateAsset(a1);
             db.CreateAsset(a2);
             db.CreateAsset(a3);
-
+            
             AssetBase a1a = db.FetchAsset(uuid1);
-            Assert.That(a1, Constraints.PropertyCompareConstraint(a1a));
+            Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
 
             AssetBase a2a = db.FetchAsset(uuid2);
-            Assert.That(a2, Constraints.PropertyCompareConstraint(a2a));
+            Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
 
             AssetBase a3a = db.FetchAsset(uuid3);
-            Assert.That(a3, Constraints.PropertyCompareConstraint(a3a));
+            Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
+
+            ScrambleForTesting.Scramble(a1a);
+            ScrambleForTesting.Scramble(a2a);
+            ScrambleForTesting.Scramble(a3a);
+
+            a1a.Data = asset1;
+            a2a.Data = asset1;
+            a3a.Data = asset1;
+
+            a1a.FullID = uuid1;
+            a2a.FullID = uuid2;
+            a3a.FullID = uuid3;
+
+            db.UpdateAsset(a1a);
+            db.UpdateAsset(a2a);
+            db.UpdateAsset(a3a);
+
+            AssetBase a1b = db.FetchAsset(uuid1);
+            Assert.That(a1b, Constraints.PropertyCompareConstraint(a1a));
+
+            AssetBase a2b = db.FetchAsset(uuid2);
+            Assert.That(a2b, Constraints.PropertyCompareConstraint(a2a));
+
+            AssetBase a3b = db.FetchAsset(uuid3);
+            Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
         }
 
         [Test]

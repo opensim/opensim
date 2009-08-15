@@ -604,7 +604,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("?agentID", folder.Owner.ToString());
             cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
             cmd.Parameters.AddWithValue("?folderName", folderName);
-            cmd.Parameters.AddWithValue("?type", (short) folder.Type);
+            cmd.Parameters.AddWithValue("?type", folder.Type);
             cmd.Parameters.AddWithValue("?version", folder.Version);
 
             try

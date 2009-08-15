@@ -196,18 +196,11 @@ namespace OpenSim.Data.MySQL
         {
             lock (_dbConnection)
             {
-                //m_log.Info("[ASSET DB]: Creating Asset " + asset.FullID);
-                if (ExistsAsset(asset.FullID))
-                {
-                    //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
-                    return;
-                }
-
                 _dbConnection.CheckConnection();
 
                 MySqlCommand cmd =
                     new MySqlCommand(
-                        "insert INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, data)" +
+                        "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, data)" +
                         "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?data)",
                         _dbConnection.Connection);
 

@@ -69,6 +69,19 @@ namespace OpenSim.Data.Tests
 
         private bool ObjectCompare(object expected, object actual, Stack<string> propertyNames)
         {
+            //If they are both null, they are equal
+            if (actual == null && expected == null)
+                return true;
+
+            //If only one is null, then they aren't
+            if (actual == null || expected == null)
+            {
+                failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                failingActual = actual;
+                failingExpected = expected;
+                return false;
+            }
+
             //prevent loops...
             if(propertyNames.Count > 50)
             {
@@ -194,21 +207,6 @@ namespace OpenSim.Data.Tests
 
                 object actualValue = property.GetValue(actual, null);
                 object expectedValue = property.GetValue(expected, null);
-
-                //If they are both null, they are equal
-                if (actualValue == null && expectedValue == null)
-                    continue;
-
-                //If only one is null, then they aren't
-                if (actualValue == null || expectedValue == null)
-                {
-                    propertyNames.Push(property.Name);
-                    failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
-                    propertyNames.Pop();
-                    failingActual = actualValue;
-                    failingExpected = expectedValue;
-                    return false;
-                }
 
                 propertyNames.Push(property.Name);
                 if (!ObjectCompare(expectedValue, actualValue, propertyNames))

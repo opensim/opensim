@@ -258,17 +258,59 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T104_RandomUpdateItem()
         {
-            InventoryItemBase expected = db.getInventoryItem(item1);
+            UUID owner = UUID.Random();
+            UUID folder = UUID.Random();
+            UUID rootId = UUID.Random();
+            UUID rootAsset = UUID.Random();
+            InventoryFolderBase f1 = NewFolder(folder, zero, owner, name1);
+            ScrambleForTesting.Scramble(f1);
+            f1.Owner = owner;
+            f1.ParentID = zero;
+            f1.ID = folder;
+
+            // succeed with true
+            db.addInventoryFolder(f1);
+            InventoryFolderBase f1a = db.getUserRootFolder(owner);
+            Assert.That(f1a, Constraints.PropertyCompareConstraint(f1));
+
+            ScrambleForTesting.Scramble(f1a);
+            f1a.Owner = owner;
+            f1a.ParentID = zero;
+            f1a.ID = folder;
+            db.updateInventoryFolder(f1a);
+
+            InventoryFolderBase f1b = db.getUserRootFolder(owner);
+            Assert.That(f1b, Constraints.PropertyCompareConstraint(f1a));
+
+            //Now we have a valid folder to insert into, we can insert the item.
+            InventoryItemBase root = NewItem(rootId, folder, owner, iname1, rootAsset);
+            ScrambleForTesting.Scramble(root);
+            root.ID = rootId;
+            root.AssetID = rootAsset;
+            root.Owner = owner;
+            root.Folder = folder;
+            db.addInventoryItem(root);
+
+            InventoryItemBase expected = db.getInventoryItem(rootId);
+            Assert.That(expected, Constraints.PropertyCompareConstraint(root)
+                                    .IgnoreProperty(x => x.InvType)
+                                    .IgnoreProperty(x => x.CreatorIdAsUuid)
+                                    .IgnoreProperty(x => x.Description)
+                                    .IgnoreProperty(x => x.CreatorId));
+
             ScrambleForTesting.Scramble(expected);
-            expected.ID = item1;
+            expected.ID = rootId;
+            expected.AssetID = rootAsset;
+            expected.Owner = owner;
+            expected.Folder = folder;
             db.updateInventoryItem(expected);
 
-            InventoryItemBase actual = db.getInventoryItem(item1);
+            InventoryItemBase actual = db.getInventoryItem(rootId);
             Assert.That(actual, Constraints.PropertyCompareConstraint(expected)
-                .IgnoreProperty(x=>x.InvType)
-                .IgnoreProperty(x=>x.CreatorIdAsUuid)
-                .IgnoreProperty(x=>x.Description)
-                .IgnoreProperty(x=>x.CreatorId));
+                                    .IgnoreProperty(x => x.InvType)
+                                    .IgnoreProperty(x => x.CreatorIdAsUuid)
+                                    .IgnoreProperty(x => x.Description)
+                                    .IgnoreProperty(x => x.CreatorId));
         }
 
         [Test]
