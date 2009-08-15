@@ -585,7 +585,7 @@ namespace OpenSim.Region.Framework.Scenes
                     group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
                     group.AbsolutePosition = attachPos;
 
-                    // Saves and gets assetID
+                    // Saves and gets itemID
                     UUID itemId;
 
                     if (group.GetFromItemID() == UUID.Zero)
