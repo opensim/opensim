@@ -313,6 +313,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private volatile int m_global_contactcount = 0;
 
+        private Vector3 m_worldOffset = Vector3.Zero;
+        private Vector2 m_worldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
+
         private ODERayCastRequestManager m_rayCastManager;
 
         /// <summary>
@@ -1653,6 +1656,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
                                      IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
+            
             PhysicsVector pos = new PhysicsVector(position.X, position.Y, position.Z);
             //pos.X = position.X;
             //pos.Y = position.Y;
@@ -2555,6 +2559,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (framecount >= int.MaxValue)
                 framecount = 0;
 
+            if (m_worldOffset != Vector3.Zero)
+                return 0;
+
             framecount++;
 
             float fps = 0;
@@ -3376,6 +3383,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             return waterlevel;
         }
+
+
 
         public override void SetWaterLevel(float baseheight)
         {

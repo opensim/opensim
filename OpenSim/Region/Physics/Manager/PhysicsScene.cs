@@ -162,6 +162,16 @@ namespace OpenSim.Region.Physics.Manager
             return false;
         }
 
+        public virtual bool SupportsCombining()
+        {
+            return false;
+        }
+
+        public virtual void Combine(PhysicsScene pScene, Vector3 offset)
+        {
+            return;
+        }
+
         /// <summary>
         /// Queue a raycast against the physics scene.  
         /// The provided callback method will be called when the raycast is complete
