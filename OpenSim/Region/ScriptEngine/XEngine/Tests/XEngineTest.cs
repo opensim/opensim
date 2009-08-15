@@ -67,5 +67,5 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             xengine.RegionLoaded(scene);
         }
     }
-    *
+    */
 }
