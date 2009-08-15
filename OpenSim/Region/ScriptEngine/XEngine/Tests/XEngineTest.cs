@@ -40,6 +40,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
     /// <summary>
     /// Scene presence tests
     /// </summary>
+    /// Commented out XEngineTests that don't do anything
+    /*
     [TestFixture]
     public class XEngineTest
     {
@@ -65,4 +67,5 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Tests
             xengine.RegionLoaded(scene);
         }
     }
+    */
 }

@@ -48,6 +48,9 @@ namespace OpenSim.Region.Framework.Scenes
 
     public delegate void RemoveKnownRegionsFromAvatarList(UUID avatarID, List<ulong> regionlst);
 
+    /// <summary>
+    /// Class that Region communications runs through
+    /// </summary>
     public class SceneCommunicationService //one instance per region
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -60,15 +63,46 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected List<UUID> m_agentsInTransit;
 
+        /// <summary>
+        /// An agent is crossing into this region
+        /// </summary>
         public event AgentCrossing OnAvatarCrossingIntoRegion;
+
+        /// <summary>
+        /// A user will arrive shortly, set up appropriate credentials so it can connect
+        /// </summary>
         public event ExpectUserDelegate OnExpectUser;
+
+        /// <summary>
+        /// A Prim will arrive shortly
+        /// </summary>
         public event ExpectPrimDelegate OnExpectPrim;
         public event CloseAgentConnection OnCloseAgentConnection;
+
+        /// <summary>
+        /// A new prim has arrived
+        /// </summary>
         public event PrimCrossing OnPrimCrossingIntoRegion;
+
+        /// <summary>
+        /// A New Region is up and available
+        /// </summary>
         public event RegionUp OnRegionUp;
+
+        /// <summary>
+        /// We have a child agent for this avatar and we're getting a status update about it
+        /// </summary>
         public event ChildAgentUpdate OnChildAgentUpdate;
         //public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
+
+        /// <summary>
+        /// Time to log one of our users off.   Grid Service sends this mostly
+        /// </summary>
         public event LogOffUser OnLogOffUser;
+
+        /// <summary>
+        /// A region wants land data from us!
+        /// </summary>
         public event GetLandData OnGetLandData;
 
         private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
@@ -123,11 +157,20 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Returns a region with the name closest to string provided
+        /// </summary>
+        /// <param name="name">Partial Region Name for matching</param>
+        /// <returns>Region Information for the region</returns>
         public RegionInfo RequestClosestRegion(string name)
         {
             return m_commsProvider.GridService.RequestClosestRegion(name);
         }
 
+        /// <summary>
+        /// This region is shutting down, de-register all events!
+        /// De-Register region from Grid!
+        /// </summary>
         public void Close()
         {
             if (regionCommsHost != null)
@@ -159,10 +202,9 @@ namespace OpenSim.Region.Framework.Scenes
         #region CommsManager Event handlers
 
         /// <summary>
-        ///
+        /// A New User will arrive shortly, Informs the scene that there's a new user on the way
         /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="agent"></param>
+        /// <param name="agent">Data we need to ensure that the agent can connect</param>
         ///
         protected void NewUserConnection(AgentCircuitData agent)
         {
@@ -174,6 +216,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// The Grid has requested us to log-off the user
+        /// </summary>
+        /// <param name="AgentID">Unique ID of agent to log-off</param>
+        /// <param name="RegionSecret">The secret string that the region establishes with the grid when registering</param>
+        /// <param name="message">The message to send to the user that tells them why they were logged off</param>
         protected void GridLogOffUser(UUID AgentID, UUID RegionSecret, string message)
         {
             handlerLogOffUser = OnLogOffUser;
@@ -183,6 +231,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// A New Region is now available.  Inform the scene that there is a new region available.
+        /// </summary>
+        /// <param name="region">Information about the new region that is available</param>
+        /// <returns>True if the event was handled</returns>
         protected bool newRegionUp(RegionInfo region)
         {
             handlerRegionUp = OnRegionUp;
@@ -194,6 +247,11 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+        /// <summary>
+        /// Inform the scene that we've got an update about a child agent that we have
+        /// </summary>
+        /// <param name="cAgentData"></param>
+        /// <returns></returns>
         protected bool ChildAgentUpdate(ChildAgentDataUpdate cAgentData)
         {
             handlerChildAgentUpdate = OnChildAgentUpdate;
@@ -204,6 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
             return true;
         }
 
+
         protected void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             handlerAvatarCrossingIntoRegion = OnAvatarCrossingIntoRegion;
@@ -213,6 +272,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// We have a new prim from a neighbor
+        /// </summary>
+        /// <param name="primID">unique ID for the primative</param>
+        /// <param name="objXMLData">XML2 encoded data of the primative</param>
+        /// <param name="XMLMethod">An Int that represents the version of the XMLMethod</param>
+        /// <returns>True if the prim was accepted, false if it was not</returns>
         protected bool IncomingPrimCrossing(UUID primID, String objXMLData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;

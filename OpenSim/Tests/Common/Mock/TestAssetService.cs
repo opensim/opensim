@@ -45,7 +45,13 @@ namespace OpenSim.Tests.Common.Mock
         
         public AssetBase Get(string id)
         {
-            return Assets[ id ];
+            AssetBase asset;
+            if (Assets.ContainsKey(id))
+                asset = Assets[id];
+            else
+                asset = null;            
+            
+            return asset;
         }
 
         public AssetMetadata GetMetadata(string id)
@@ -59,8 +65,10 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
-        {
-            throw new NotImplementedException();
+        {            
+            handler(id, sender, Get(id));
+            
+            return true;
         }
 
         public string Store(AssetBase asset)
