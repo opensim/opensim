@@ -110,11 +110,11 @@ namespace OpenSim.Server.Handlers.Inventory
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
-                    "POST", "/QueryItem/", m_InventoryService.QueryItem, CheckAuthSession));
+                    "POST", "/QueryItem/", m_InventoryService.GetItem, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryFolderBase, InventoryFolderBase>(
-                    "POST", "/QueryFolder/", m_InventoryService.QueryFolder, CheckAuthSession));
+                    "POST", "/QueryFolder/", m_InventoryService.GetFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, bool>(
@@ -153,6 +153,11 @@ namespace OpenSim.Server.Handlers.Inventory
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, List<InventoryFolderBase>>
                     ("POST", "/RootFolders/", GetInventorySkeleton, CheckTrustSource));
+
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseTrustedHandler<InventoryItemBase, int>
+                ("POST", "/AssetPermissions/", GetAssetPermissions, CheckTrustSource));
+
         }
 
         #region Wrappers for converting the Guid parameter
@@ -185,6 +190,8 @@ namespace OpenSim.Server.Handlers.Inventory
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                             folders[(AssetType)folder.Type] = folder;
                     }
+                    // Put the root folder there, as type Folder
+                    folders[AssetType.Folder] = root;
                     return folders;
                 }
             }
@@ -233,6 +240,11 @@ namespace OpenSim.Server.Handlers.Inventory
         {
             UUID userID = new UUID(rawUserID);
             return m_InventoryService.GetInventorySkeleton(userID);
+        }
+
+        public int GetAssetPermissions(InventoryItemBase item)
+        {
+            return m_InventoryService.GetAssetPermissions(item.Owner, item.AssetID);
         }
 
         #endregion

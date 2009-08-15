@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Gestures
 {
@@ -62,42 +63,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
         
         public virtual void ActivateGesture(IClientAPI client, UUID assetId, UUID gestureId)
         {
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
+            IInventoryService invService = m_scene.InventoryService;
 
-            if (userInfo != null)
+            InventoryItemBase item = invService.GetItem(new InventoryItemBase(gestureId));
+            if (item != null)
             {
-                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
-                if (item != null)
-                {
-                    item.Flags = 1;
-                    userInfo.UpdateItem(item);
-                }
-                else 
-                    m_log.ErrorFormat(
-                        "[GESTURES]: Unable to find gesture to activate {0} for {1}", gestureId, client.Name);
+                item.Flags = 1;
+                invService.UpdateItem(item);
             }
             else 
-                m_log.ErrorFormat("[GESTURES]: Unable to find user {0}", client.Name);
+                m_log.WarnFormat(
+                    "[GESTURES]: Unable to find gesture {0} to activate for {1}", gestureId, client.Name);
         }
 
         public virtual void DeactivateGesture(IClientAPI client, UUID gestureId)
         {
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
+            IInventoryService invService = m_scene.InventoryService;
 
-            if (userInfo != null)
+            InventoryItemBase item = invService.GetItem(new InventoryItemBase(gestureId));
+            if (item != null)
             {
-                InventoryItemBase item = userInfo.RootFolder.FindItem(gestureId);
-                if (item != null)
-                {
-                    item.Flags = 0;
-                    userInfo.UpdateItem(item);
-                }
-                else 
-                    m_log.ErrorFormat(
-                        "[GESTURES]: Unable to find gesture to deactivate {0} for {1}", gestureId, client.Name);
+                item.Flags = 0;
+                invService.UpdateItem(item);
             }
             else 
-                m_log.ErrorFormat("[GESTURES]: Unable to find user {0}", client.Name);
+                m_log.ErrorFormat(
+                    "[GESTURES]: Unable to find gesture to deactivate {0} for {1}", gestureId, client.Name);
         }        
     }
 }

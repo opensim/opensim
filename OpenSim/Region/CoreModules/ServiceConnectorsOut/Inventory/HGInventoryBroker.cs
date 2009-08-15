@@ -238,7 +238,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
             if (IsLocalGridUser(userID))
-                return GetSystemFoldersLocal(userID);
+            {
+                // This is not pretty, but it will have to do for now
+                if (m_GridService is BaseInventoryConnector)
+                {
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to RemoteInventoryServiceConnector module");
+                    return ((BaseInventoryConnector)m_GridService).GetSystemFolders(userID);
+                }
+                else
+                {
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetSystemsFolders redirected to GetSystemFoldersLocal");
+                    return GetSystemFoldersLocal(userID);
+                }
+            }
             else
             {
                 UUID sessionID = GetSessionID(userID);
@@ -263,6 +275,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                             folders[(AssetType)folder.Type] = folder;
                     }
                     m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
+                    // Put the root folder there, as type Folder
+                    folders[AssetType.Folder] = root;
                     return folders;
                 }
                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);
@@ -387,13 +401,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
-
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetItem {0} for user {1}", item.ID, item.Owner);
             if (IsLocalGridUser(item.Owner))
-                return m_GridService.QueryItem(item);
+                return m_GridService.GetItem(item);
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
@@ -402,13 +416,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
 
             if (IsLocalGridUser(folder.Owner))
-                return m_GridService.QueryFolder(folder);
+                return m_GridService.GetFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
@@ -422,39 +436,56 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public override InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            return null;
-        }
-
         public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
+        }
+
+        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetAssetPermissions(userID, assetID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                return m_HGService.GetAssetPermissions(uri, assetID, sessionID);
+            }
         }
 
         #endregion
 
         private UUID GetSessionID(UUID userID)
         {
-            ScenePresence sp = m_Scene.GetScenePresence(userID);
-            if (sp != null)
-                return sp.ControllingClient.SessionId;
+            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
+            if (uinfo != null)
+                return uinfo.SessionID;
 
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user profile for {0} not found", userID);
             return UUID.Zero;
         }
 
         private bool IsLocalGridUser(UUID userID)
         {
             if (m_UserProfileService == null)
+            {
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile service. Returning false.");
                 return false;
+            }
 
             CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
             if (uinfo == null)
+            {
+                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile for user {0}. Returning true.", userID);
                 return true;
+            }
 
             string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            string uri = m_LocalGridInventoryURI.TrimEnd('/');
 
-            if ((userInventoryServerURI == m_LocalGridInventoryURI) || (userInventoryServerURI == ""))
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, comparing {0} to {1}.", userInventoryServerURI, uri);
+
+            if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
             {
                 return true;
             }

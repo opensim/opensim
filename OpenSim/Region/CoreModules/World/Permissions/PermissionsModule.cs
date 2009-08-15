@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 // Temporary fix of wrong GroupPowers constants in OpenMetaverse library
 enum GroupPowers : long
@@ -964,19 +965,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (objectID == UUID.Zero) // User inventory
             {
-                CachedUserInfo userInfo =
-                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            
-                if (userInfo == null)
-                {
-                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for edit notecard check", user);
-                    return false;
-                }                                
-
-                if (userInfo.RootFolder == null)
-                    return false;
-
-                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                IInventoryService invService = m_scene.InventoryService;
+                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(notecard));
                 if (assetRequestItem == null) // Library item
                 {
                     assetRequestItem = scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
@@ -1394,19 +1384,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (objectID == UUID.Zero) // User inventory
             {
-                CachedUserInfo userInfo =
-                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            
-                if (userInfo == null)
-                {
-                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for administrator check", user);
-                    return false;
-                }                  
-
-                if (userInfo.RootFolder == null)
-                    return false;
-
-                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(script);
+                IInventoryService invService = m_scene.InventoryService;
+                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(script));
                 if (assetRequestItem == null) // Library item
                 {
                     assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(script);
@@ -1499,19 +1478,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (objectID == UUID.Zero) // User inventory
             {
-                CachedUserInfo userInfo =
-                        scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-            
-                if (userInfo == null)
-                {
-                    m_log.ErrorFormat("[PERMISSIONS]: Could not find user {0} for view notecard check", user);
-                    return false;
-                }    
-
-                if (userInfo.RootFolder == null)
-                    return false;
-
-                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(notecard);
+                IInventoryService invService = m_scene.InventoryService;
+                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(notecard));
                 if (assetRequestItem == null) // Library item
                 {
                     assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);

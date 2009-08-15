@@ -447,22 +447,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SetFromAssetID(UUID AssetId)
+        public void SetFromItemID(UUID AssetId)
         {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.FromAssetID = AssetId;
+                    part.FromItemID = AssetId;
                 }
             }
         }
 
-        public UUID GetFromAssetID()
+        public UUID GetFromItemID()
         {
             if (m_rootPart != null)
             {
-                return m_rootPart.FromAssetID;
+                return m_rootPart.FromItemID;
             }
             return UUID.Zero;
         }
@@ -3374,19 +3374,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual string ExtraToXmlString()
         {
-            return "<ExtraFromAssetID>" + GetFromAssetID().ToString() + "</ExtraFromAssetID>";
+            return "<ExtraFromItemID>" + GetFromItemID().ToString() + "</ExtraFromItemID>";
         }
 
         public virtual void ExtraFromXmlString(string xmlstr)
         {
-            string id = xmlstr.Substring(xmlstr.IndexOf("<ExtraFromAssetID>"));
-            id = xmlstr.Replace("<ExtraFromAssetID>", "");
-            id = id.Replace("</ExtraFromAssetID>", "");
+            string id = xmlstr.Substring(xmlstr.IndexOf("<ExtraFromItemID>"));
+            id = xmlstr.Replace("<ExtraFromItemID>", "");
+            id = id.Replace("</ExtraFromItemID>", "");
 
             UUID uuid = UUID.Zero;
             UUID.TryParse(id, out uuid);
 
-            SetFromAssetID(uuid);
+            SetFromItemID(uuid);
         }
         #endregion 
 

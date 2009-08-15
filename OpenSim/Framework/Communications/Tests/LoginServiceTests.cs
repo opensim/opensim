@@ -552,12 +552,12 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
-        public InventoryItemBase QueryItem(InventoryItemBase item)
+        public InventoryItemBase GetItem(InventoryItemBase item)
         {
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             return null;
         }
@@ -574,6 +574,11 @@ namespace OpenSim.Framework.Communications.Tests
             root.Owner = userID;
             root.ParentID = UUID.Zero;
             return root;
+        }
+
+        public int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            return 1;
         }
     }
 }

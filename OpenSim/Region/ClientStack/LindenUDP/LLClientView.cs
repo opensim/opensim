@@ -2156,16 +2156,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase)
         {
-            // XXX: Nasty temporary move that will be resolved shortly
-            InventoryFolderImpl folder = (InventoryFolderImpl)folderBase;
-
             // We will use the same transaction id for all the separate packets to be sent out in this update.
             UUID transactionId = UUID.Random();
 
             List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks
                 = new List<BulkUpdateInventoryPacket.FolderDataBlock>();
 
-            SendBulkUpdateInventoryFolderRecursive(folder, ref folderDataBlocks, transactionId);
+            SendBulkUpdateInventoryFolderRecursive(folderBase, ref folderDataBlocks, transactionId);
 
             if (folderDataBlocks.Count > 0)
             {
@@ -2191,17 +2188,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="folderDataBlocks"></param>
         /// <param name="transactionId"></param>
         private void SendBulkUpdateInventoryFolderRecursive(
-            InventoryFolderImpl folder, ref List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks,
+            InventoryFolderBase folder, ref List<BulkUpdateInventoryPacket.FolderDataBlock> folderDataBlocks,
             UUID transactionId)
         {
             folderDataBlocks.Add(GenerateBulkUpdateFolderDataBlock(folder));
 
             const int MAX_ITEMS_PER_PACKET = 5;
 
+            IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
             // If there are any items then we have to start sending them off in this packet - the next folder will have
             // to be in its own bulk update packet.  Also, we can only fit 5 items in a packet (at least this was the limit
             // being used on the Linden grid at 20081203).
-            List<InventoryItemBase> items = folder.RequestListOfItems();
+            InventoryCollection contents = invService.GetFolderContent(AgentId, folder.ID); // folder.RequestListOfItems();
+            List<InventoryItemBase> items = contents.Items;
             while (items.Count > 0)
             {
                 BulkUpdateInventoryPacket bulkUpdate
@@ -2233,8 +2232,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     folderDataBlocks.Add(GenerateBulkUpdateFolderDataBlock(folder));
             }
 
-            List<InventoryFolderImpl> subFolders = folder.RequestListOfFolderImpls();
-            foreach (InventoryFolderImpl subFolder in subFolders)
+            List<InventoryFolderBase> subFolders = contents.Folders;
+            foreach (InventoryFolderBase subFolder in subFolders)
             {
                 SendBulkUpdateInventoryFolderRecursive(subFolder, ref folderDataBlocks, transactionId);
             }
@@ -6609,20 +6608,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             else // Agent
                             {
-                                CachedUserInfo userInfo = ((Scene)m_scene).CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
-                                if (userInfo == null)
-                                {
-                                    m_log.ErrorFormat(
-                                        "[CLIENT]: Could not resolve user {0} for caps inventory update",
-                                        AgentId);
-
-                                    break;
-                                }
-
-                                if (userInfo.RootFolder == null)
-                                    break;
-
-                                InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
+                                //InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
+                                IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
+                                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(itemID));
                                 if (assetRequestItem == null)
                                 {
                                     assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);

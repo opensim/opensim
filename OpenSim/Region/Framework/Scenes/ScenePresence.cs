@@ -833,11 +833,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scene.SwapRootAgentCount(false);
             
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
-            if (userInfo != null)
-                    userInfo.FetchInventory();
-            else
-                m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
+            //CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
+            //if (userInfo != null)
+            //        userInfo.FetchInventory();
+            //else
+            //    m_log.ErrorFormat("[SCENE]: Could not find user info for {0} when making it a root agent", m_uuid);
             
             // On the next prim update, all objects will be sent
             //

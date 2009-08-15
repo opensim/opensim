@@ -37,6 +37,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Framework.Interfaces.ITextureSender>;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
@@ -217,11 +218,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
                     if (profile == null) // Deny unknown user
                         return;
 
-                    if (profile.RootFolder == null) // Deny no inventory
+                    IInventoryService invService = scene.InventoryService;
+                    if (invService.GetRootFolder(client.AgentId) == null) // Deny no inventory
                         return;
 
-                    if (profile.UserProfile.GodLevel < 200 && profile.RootFolder.FindAsset(e.RequestedAssetID) == null) // Deny if not owned
-                        return;
+                    // Diva 2009-08-13: this test doesn't make any sense to many devs
+                    //if (profile.UserProfile.GodLevel < 200 && profile.RootFolder.FindAsset(e.RequestedAssetID) == null) // Deny if not owned
+                    //{
+                    //    m_log.WarnFormat("[TEXTURE]: user {0} doesn't have permissions to texture {1}");
+                    //    return;
+                    //}
 
                     m_log.Debug("Texture preview");
                 }

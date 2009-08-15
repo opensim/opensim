@@ -32,6 +32,7 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -48,6 +49,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool m_Enabled = false;
         private bool m_Initialized = false;
         private Scene m_Scene;
+        private UserProfileCacheService m_UserProfileService; 
         private InventoryServicesConnector m_RemoteConnector;
 
         public Type ReplaceableInterface 
@@ -104,12 +106,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void AddRegion(Scene scene)
         {
+            m_Scene = scene;
+            m_log.Debug("[XXXX] Adding scene " + m_Scene.RegionInfo.RegionName);
+
             if (!m_Enabled)
                 return;
 
             if (!m_Initialized)
             {
-                m_Scene = scene;
                 // ugh!
                 scene.CommsManager.UserProfileCacheService.SetInventoryService(this);
                 scene.CommsManager.UserService.SetInventoryService(this); 
@@ -130,6 +134,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void RegionLoaded(Scene scene)
         {
+            m_UserProfileService = m_Scene.CommsManager.UserProfileCacheService;
+            if (m_UserProfileService != null)
+                m_log.Debug("[XXXX] Set m_UserProfileService in " + m_Scene.RegionInfo.RegionName);
+
             if (!m_Enabled)
                 return;
 
@@ -273,7 +281,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.DeleteItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public override InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(InventoryItemBase item)
         {
             if (item == null)
                 return null;
@@ -282,7 +290,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.QueryItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             if (folder == null)
                 return null;
@@ -296,25 +304,39 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return false;
         }
 
-        public override InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            return null;
-        }
-
         public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return new List<InventoryItemBase>();
         }
 
+        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            UUID sessionID = GetSessionID(userID);
+            return m_RemoteConnector.GetAssetPermissions(userID.ToString(), assetID, sessionID);
+        }
+
+
         #endregion
 
         private UUID GetSessionID(UUID userID)
         {
-            ScenePresence sp = m_Scene.GetScenePresence(userID);
-            if (sp != null)
-                return sp.ControllingClient.SessionId;
+            if (m_Scene == null)
+            {
+                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
+            }
 
+            if (m_UserProfileService == null)
+            {
+                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
+                return UUID.Zero;
+            }
+
+            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
+            if (uinfo != null)
+                return uinfo.SessionID;
+            m_log.DebugFormat("[INVENTORY CONNECTOR]: user profile for {0} not found", userID);
             return UUID.Zero;
+
         }
 
     }

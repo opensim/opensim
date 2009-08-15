@@ -1962,7 +1962,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[ATTACHMENT]: Received " +
                                     "attachment {0}, inworld asset id {1}",
                                     //grp.RootPart.LastOwnerID.ToString(),
-                                    grp.GetFromAssetID(),
+                                    grp.GetFromItemID(),
                                     grp.UUID.ToString());
 
                         //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
@@ -3672,59 +3672,53 @@ namespace OpenSim.Region.Framework.Scenes
             case 2: // Sell a copy
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
 
-                CachedUserInfo userInfo =
-                    CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                uint perms=group.GetEffectivePermissions();
 
-                if (userInfo != null)
+                if ((perms & (uint)PermissionMask.Transfer) == 0)
                 {
-                    uint perms=group.GetEffectivePermissions();
-
-                    if ((perms & (uint)PermissionMask.Transfer) == 0)
-                    {
-                        m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
-                        return false;
-                    }
-
-                    AssetBase asset = CreateAsset(
-                        group.GetPartName(localID),
-                        group.GetPartDescription(localID),
-                        (sbyte)AssetType.Object,
-                        Utils.StringToBytes(sceneObjectXml));
-                    AssetService.Store(asset);
-
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.CreatorId = part.CreatorID.ToString();
-
-                    item.ID = UUID.Random();
-                    item.Owner = remoteClient.AgentId;
-                    item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = (int)InventoryType.Object;
-                    item.Folder = categoryID;
-
-                    uint nextPerms=(perms & 7) << 13;
-                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                        perms &= ~(uint)PermissionMask.Copy;
-                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                        perms &= ~(uint)PermissionMask.Transfer;
-                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                        perms &= ~(uint)PermissionMask.Modify;
-
-                    item.BasePermissions = perms & part.NextOwnerMask;
-                    item.CurrentPermissions = perms & part.NextOwnerMask;
-                    item.NextPermissions = part.NextOwnerMask;
-                    item.EveryOnePermissions = part.EveryoneMask &
-                                               part.NextOwnerMask;
-                    item.GroupPermissions = part.GroupMask &
-                                               part.NextOwnerMask;
-                    item.CurrentPermissions |= 8; // Slam!
-                    item.CreationDate = Util.UnixTimeSinceEpoch();
-
-                    userInfo.AddItem(item);
-                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
+                    m_dialogModule.SendAlertToUser(remoteClient, "This item doesn't appear to be for sale");
+                    return false;
                 }
+
+                AssetBase asset = CreateAsset(
+                    group.GetPartName(localID),
+                    group.GetPartDescription(localID),
+                    (sbyte)AssetType.Object,
+                    Utils.StringToBytes(sceneObjectXml));
+                AssetService.Store(asset);
+
+                InventoryItemBase item = new InventoryItemBase();
+                item.CreatorId = part.CreatorID.ToString();
+
+                item.ID = UUID.Random();
+                item.Owner = remoteClient.AgentId;
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+                item.InvType = (int)InventoryType.Object;
+                item.Folder = categoryID;
+
+                uint nextPerms=(perms & 7) << 13;
+                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                    perms &= ~(uint)PermissionMask.Copy;
+                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                    perms &= ~(uint)PermissionMask.Transfer;
+                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                    perms &= ~(uint)PermissionMask.Modify;
+
+                item.BasePermissions = perms & part.NextOwnerMask;
+                item.CurrentPermissions = perms & part.NextOwnerMask;
+                item.NextPermissions = part.NextOwnerMask;
+                item.EveryOnePermissions = part.EveryoneMask &
+                                           part.NextOwnerMask;
+                item.GroupPermissions = part.GroupMask &
+                                           part.NextOwnerMask;
+                item.CurrentPermissions |= 8; // Slam!
+                item.CreationDate = Util.UnixTimeSinceEpoch();
+
+                if (InventoryService.AddItem(item))
+                    remoteClient.SendInventoryItemCreateUpdate(item, 0);
                 else
                 {
                     m_dialogModule.SendAlertToUser(remoteClient, "Cannot buy now. Your inventory is unavailable");
@@ -3739,8 +3733,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (UUID invID in invList)
                 {
-                    TaskInventoryItem item = part.Inventory.GetInventoryItem(invID);
-                    if ((item.CurrentPermissions &
+                    TaskInventoryItem item1 = part.Inventory.GetInventoryItem(invID);
+                    if ((item1.CurrentPermissions &
                             (uint)PermissionMask.Transfer) == 0)
                     {
                         okToSell = false;

@@ -398,7 +398,7 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public virtual InventoryItemBase QueryItem(InventoryItemBase item)
+        public virtual InventoryItemBase GetItem(InventoryItemBase item)
         {
             InventoryItemBase result = m_Database.queryInventoryItem(item.ID);
             if (result != null)
@@ -407,7 +407,7 @@ namespace OpenSim.Services.InventoryService
             return null;
         }
 
-        public virtual InventoryFolderBase QueryFolder(InventoryFolderBase item)
+        public virtual InventoryFolderBase GetFolder(InventoryFolderBase item)
         {
             InventoryFolderBase result = m_Database.queryInventoryFolder(item.ID);
             if (result != null)
@@ -463,6 +463,29 @@ namespace OpenSim.Services.InventoryService
                 return item;
 
             return null;
+        }
+
+        public int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            InventoryFolderBase parent = GetRootFolder(userID);
+            return FindAssetPerms(parent, assetID);
+        }
+
+        private int FindAssetPerms(InventoryFolderBase folder, UUID assetID)
+        {
+            InventoryCollection contents = GetFolderContent(folder.Owner, folder.ID);
+
+            int perms = 0;
+            foreach (InventoryItemBase item in contents.Items)
+            {
+                if (item.AssetID == assetID)
+                    perms = (int)item.CurrentPermissions | perms;
+            }
+
+            foreach (InventoryFolderBase subfolder in contents.Folders)
+                perms = perms | FindAssetPerms(subfolder, assetID);
+
+            return perms;
         }
 
         /// <summary>

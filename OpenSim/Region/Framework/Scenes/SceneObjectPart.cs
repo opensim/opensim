@@ -139,7 +139,7 @@ namespace OpenSim.Region.Framework.Scenes
         public uint TimeStampTerse = 0;
         
         [XmlIgnore]
-        public UUID FromAssetID = UUID.Zero;
+        public UUID FromItemID = UUID.Zero;
                
         /// <value>
         /// The UUID of the user inventory item from which this object was rezzed if this is a root part.  
@@ -2389,7 +2389,7 @@ if (m_shape != null) {
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
-                                               AttachmentPoint,FromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
+                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
         /// <summary>
@@ -3767,7 +3767,7 @@ if (m_shape != null) {
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
                     RotationOffset, Velocity,
-                    RotationalVelocity, state, FromAssetID,
+                    RotationalVelocity, state, FromItemID,
                     OwnerID, (int)AttachmentPoint);
         }
                 
