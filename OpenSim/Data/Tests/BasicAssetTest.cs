@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -37,8 +38,7 @@ namespace OpenSim.Data.Tests
 {
     public class BasicAssetTest
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public AssetDataBase db;
+        public IAssetDataPlugin db;
         public UUID uuid1;
         public UUID uuid2;
         public UUID uuid3;
@@ -46,14 +46,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             uuid1 = UUID.Random();
             uuid2 = UUID.Random();
@@ -126,26 +119,19 @@ namespace OpenSim.Data.Tests
 
             AssetBase a3b = db.FetchAsset(uuid3);
             Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
-        }
 
-        [Test]
-        public void T011_ExistsSimpleAsset()
-        {
             Assert.That(db.ExistsAsset(uuid1), Is.True);
             Assert.That(db.ExistsAsset(uuid2), Is.True);
             Assert.That(db.ExistsAsset(uuid3), Is.True);
-        }
 
-        // this has questionable use, but it is in the interface at the moment.
-        // [Test]
-        // public void T012_DeleteAsset()
-        // {
-        //     db.DeleteAsset(uuid1);
-        //     db.DeleteAsset(uuid2);
-        //     db.DeleteAsset(uuid3);
-        //     Assert.That(db.ExistsAsset(uuid1), Is.False);
-        //     Assert.That(db.ExistsAsset(uuid2), Is.False);
-        //     Assert.That(db.ExistsAsset(uuid3), Is.False);
-        // }
+            List<AssetMetadata> metadatas = db.FetchAssetMetadataSet(0, 1000);
+
+            AssetMetadata metadata = metadatas.Find(x => x.FullID == uuid1);
+            Assert.That(metadata.Name, Is.EqualTo(a1b.Name));
+            Assert.That(metadata.Description, Is.EqualTo(a1b.Description));
+            Assert.That(metadata.Type, Is.EqualTo(a1b.Type));
+            Assert.That(metadata.Temporary, Is.EqualTo(a1b.Temporary));
+            Assert.That(metadata.FullID, Is.EqualTo(a1b.FullID));
+        }
     }
 }
