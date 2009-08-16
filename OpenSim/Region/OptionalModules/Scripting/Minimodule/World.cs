@@ -146,7 +146,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (chat.Sender == null && chat.SenderObject != null)
             {
                 ChatEventArgs e = new ChatEventArgs();
-                e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId);
+                e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId, m_security);
                 e.Text = chat.Message;
 
                 _OnChat(this, e);

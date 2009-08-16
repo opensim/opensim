@@ -181,7 +181,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 int i = 0;
                 foreach (KeyValuePair<UUID, SceneObjectPart> pair in my.ParentGroup.Children)
                 {
-                    rets[i++] = new SOPObject(m_rootScene, pair.Value.LocalId);
+                    rets[i++] = new SOPObject(m_rootScene, pair.Value.LocalId, m_security);
                 }
 
                 return rets;
