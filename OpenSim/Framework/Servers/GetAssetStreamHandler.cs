@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Servers
 
         protected override AssetBase GetAsset(UUID assetID)
         {
-            return m_assetProvider.FetchAsset(assetID);
+            return m_assetProvider.GetAsset(assetID);
         }
     }
 }

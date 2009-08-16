@@ -36,15 +36,9 @@ namespace OpenSim.Data
 {
     public abstract class AssetDataBase : IAssetDataPlugin
     {
-        public virtual AssetBase FetchAsset(UUID uuid)
-        {
-            return FetchStoredAsset(uuid);
-        }
-
-        protected abstract AssetBase FetchStoredAsset(UUID uuid);
+        public abstract AssetBase GetAsset(UUID uuid);
         
-        public abstract void CreateAsset(AssetBase asset);
-        public abstract void UpdateAsset(AssetBase asset);
+        public abstract void StoreAsset(AssetBase asset);
         public abstract bool ExistsAsset(UUID uuid);
 
         public abstract List<AssetMetadata> FetchAssetMetadataSet(int start, int count);

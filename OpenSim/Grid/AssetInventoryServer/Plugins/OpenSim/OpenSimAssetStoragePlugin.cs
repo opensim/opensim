@@ -57,7 +57,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             metadata = null;
             BackendResponse ret;
 
-            AssetBase asset = m_assetProvider.FetchAsset(assetID);
+            AssetBase asset = m_assetProvider.GetAsset(assetID);
 
             if (asset == null) ret = BackendResponse.NotFound;
             else
@@ -75,7 +75,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
             assetData = null;
             BackendResponse ret;
 
-            AssetBase asset = m_assetProvider.FetchAsset(assetID);
+            AssetBase asset = m_assetProvider.GetAsset(assetID);
 
             if (asset == null) ret = BackendResponse.NotFound;
             else
@@ -90,7 +90,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
 
         public BackendResponse TryFetchDataMetadata(UUID assetID, out AssetBase asset)
         {
-            asset = m_assetProvider.FetchAsset(assetID);
+            asset = m_assetProvider.GetAsset(assetID);
 
             if (asset == null) return BackendResponse.NotFound;
 
@@ -107,7 +107,7 @@ namespace OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim
         {
             BackendResponse ret;
 
-            m_assetProvider.CreateAsset(asset);
+            m_assetProvider.StoreAsset(asset);
             ret = BackendResponse.Success;
 
             m_server.MetricsProvider.LogAssetCreate(EXTENSION_NAME, ret, asset.FullID, asset.Data.Length, DateTime.Now);
