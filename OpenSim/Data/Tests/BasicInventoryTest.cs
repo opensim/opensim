@@ -66,14 +66,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             folder1 = UUID.Random();
             folder2 = UUID.Random();
@@ -258,37 +251,38 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T104_RandomUpdateItem()
         {
+            PropertyScrambler<InventoryFolderBase> folderScrambler =
+                new PropertyScrambler<InventoryFolderBase>()
+                    .DontScramble(x => x.Owner)
+                    .DontScramble(x => x.ParentID)
+                    .DontScramble(x => x.ID);
             UUID owner = UUID.Random();
             UUID folder = UUID.Random();
             UUID rootId = UUID.Random();
             UUID rootAsset = UUID.Random();
             InventoryFolderBase f1 = NewFolder(folder, zero, owner, name1);
-            ScrambleForTesting.Scramble(f1);
-            f1.Owner = owner;
-            f1.ParentID = zero;
-            f1.ID = folder;
+            folderScrambler.Scramble(f1);
 
-            // succeed with true
             db.addInventoryFolder(f1);
             InventoryFolderBase f1a = db.getUserRootFolder(owner);
             Assert.That(f1a, Constraints.PropertyCompareConstraint(f1));
 
-            ScrambleForTesting.Scramble(f1a);
-            f1a.Owner = owner;
-            f1a.ParentID = zero;
-            f1a.ID = folder;
+            folderScrambler.Scramble(f1a);
+
             db.updateInventoryFolder(f1a);
 
             InventoryFolderBase f1b = db.getUserRootFolder(owner);
             Assert.That(f1b, Constraints.PropertyCompareConstraint(f1a));
 
             //Now we have a valid folder to insert into, we can insert the item.
+            PropertyScrambler<InventoryItemBase> inventoryScrambler =
+                new PropertyScrambler<InventoryItemBase>()
+                    .DontScramble(x => x.ID)
+                    .DontScramble(x => x.AssetID)
+                    .DontScramble(x => x.Owner)
+                    .DontScramble(x => x.Folder);
             InventoryItemBase root = NewItem(rootId, folder, owner, iname1, rootAsset);
-            ScrambleForTesting.Scramble(root);
-            root.ID = rootId;
-            root.AssetID = rootAsset;
-            root.Owner = owner;
-            root.Folder = folder;
+            inventoryScrambler.Scramble(root);
             db.addInventoryItem(root);
 
             InventoryItemBase expected = db.getInventoryItem(rootId);
@@ -298,11 +292,7 @@ namespace OpenSim.Data.Tests
                                     .IgnoreProperty(x => x.Description)
                                     .IgnoreProperty(x => x.CreatorId));
 
-            ScrambleForTesting.Scramble(expected);
-            expected.ID = rootId;
-            expected.AssetID = rootAsset;
-            expected.Owner = owner;
-            expected.Folder = folder;
+            inventoryScrambler.Scramble(expected);
             db.updateInventoryItem(expected);
 
             InventoryItemBase actual = db.getInventoryItem(rootId);

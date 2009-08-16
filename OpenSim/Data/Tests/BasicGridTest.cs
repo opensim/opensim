@@ -28,22 +28,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
-using log4net;
-using System.Reflection;
 
 namespace OpenSim.Data.Tests
 {
     public class BasicGridTest
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public GridDataBase db;
+        public IGridDataPlugin db;
         public UUID region1, region2, region3;
         public UUID zero = UUID.Zero;
-        public static Random random;
+        public static Random random = new Random();
 
         [TearDown]
         public void removeAllRegions()
@@ -61,24 +57,16 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
             region1 = UUID.Random();
             region2 = UUID.Random();
             region3 = UUID.Random();
-            random = new Random();
         }
 
         protected RegionProfileData createRegion(UUID regionUUID, string regionName)
         {
             RegionProfileData reg = new RegionProfileData();
-            ScrambleForTesting.Scramble(reg);
+            new PropertyScrambler<RegionProfileData>().Scramble(reg);
             reg.Uuid = regionUUID;
             reg.RegionName = regionName;
 

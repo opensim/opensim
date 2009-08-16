@@ -69,18 +69,20 @@ namespace OpenSim.Data.Tests
             AssetBase a1 = new AssetBase(uuid1, "asset one");
             AssetBase a2 = new AssetBase(uuid2, "asset two");
             AssetBase a3 = new AssetBase(uuid3, "asset three");
-            
-            ScrambleForTesting.Scramble(a1);
-            ScrambleForTesting.Scramble(a2);
-            ScrambleForTesting.Scramble(a3);
-            
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;
-            
-            a1.FullID = uuid1;
-            a2.FullID = uuid2;
-            a3.FullID = uuid3;
+
+            PropertyScrambler<AssetBase> scrambler = new PropertyScrambler<AssetBase>()
+                .DontScramble(x => x.Data)
+                .DontScramble(x => x.ID)
+                .DontScramble(x => x.FullID)
+                .DontScramble(x => x.Metadata.ID)
+                .DontScramble(x => x.Metadata.FullID);
+
+            scrambler.Scramble(a1);
+            scrambler.Scramble(a2);
+            scrambler.Scramble(a3);
 
             db.CreateAsset(a1);
             db.CreateAsset(a2);
@@ -95,17 +97,9 @@ namespace OpenSim.Data.Tests
             AssetBase a3a = db.FetchAsset(uuid3);
             Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
 
-            ScrambleForTesting.Scramble(a1a);
-            ScrambleForTesting.Scramble(a2a);
-            ScrambleForTesting.Scramble(a3a);
-
-            a1a.Data = asset1;
-            a2a.Data = asset1;
-            a3a.Data = asset1;
-
-            a1a.FullID = uuid1;
-            a2a.FullID = uuid2;
-            a3a.FullID = uuid3;
+            scrambler.Scramble(a1a);
+            scrambler.Scramble(a2a);
+            scrambler.Scramble(a3a);
 
             db.UpdateAsset(a1a);
             db.UpdateAsset(a2a);

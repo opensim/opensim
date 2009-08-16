@@ -71,14 +71,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             region1 = UUID.Random();
             region3 = UUID.Random();
@@ -536,6 +529,9 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T016_RandomSogWithSceneParts()
         {
+            PropertyScrambler<SceneObjectPart> scrambler =
+                new PropertyScrambler<SceneObjectPart>()
+                    .DontScramble(x => x.UUID);
             UUID tmpSog = UUID.Random();
             UUID tmp1 = UUID.Random();
             UUID tmp2 = UUID.Random();
@@ -547,14 +543,18 @@ namespace OpenSim.Data.Tests
             p1.Shape = PrimitiveBaseShape.Default;
             p2.Shape = PrimitiveBaseShape.Default;
             p3.Shape = PrimitiveBaseShape.Default;
-            ScrambleForTesting.Scramble(p1);
-            ScrambleForTesting.Scramble(p2);
-            ScrambleForTesting.Scramble(p3);
             p1.UUID = tmp1;
             p2.UUID = tmp2;
             p3.UUID = tmp3;
+            scrambler.Scramble(p1);
+            scrambler.Scramble(p2);
+            scrambler.Scramble(p3);
+
             SceneObjectGroup sog = NewSOG("Sop 0", tmpSog, newregion);
-            ScrambleForTesting.Scramble(sog);
+            PropertyScrambler<SceneObjectGroup> sogScrambler =
+                new PropertyScrambler<SceneObjectGroup>()
+                    .DontScramble(x => x.UUID);
+            sogScrambler.Scramble(sog);
             sog.UUID = tmpSog;
             sog.AddPart(p1);
             sog.AddPart(p2);

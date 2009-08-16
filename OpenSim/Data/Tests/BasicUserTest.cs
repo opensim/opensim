@@ -71,14 +71,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
             random = new Random();
             user1 = UUID.Random();
             user2 = UUID.Random();
@@ -395,8 +388,7 @@ namespace OpenSim.Data.Tests
         {
             UUID id = user5;
             UserProfileData u = db.GetUserByUUID(id);
-            ScrambleForTesting.Scramble(u);
-            u.ID = id;
+            new PropertyScrambler<UserProfileData>().DontScramble(x=>x.ID).Scramble(u);
             
             db.UpdateUserProfile(u);
             UserProfileData u1a = db.GetUserByUUID(id);
