@@ -120,6 +120,7 @@ namespace OpenSim.Tests.Common.Mock
         public event ObjectExtraParams OnUpdateExtraParams;
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event ObjectSelect OnObjectSelect;
+        public event ObjectRequest OnObjectRequest;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
         public event GenericCall7 OnObjectClickAction;

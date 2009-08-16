@@ -213,6 +213,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
+        public event ObjectRequest OnObjectRequest;
         public event ObjectSelect OnObjectSelect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;

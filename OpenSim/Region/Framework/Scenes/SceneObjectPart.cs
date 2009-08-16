@@ -2710,11 +2710,10 @@ if (m_shape != null) {
 
         public EntityIntersection TestIntersection(Ray iray, Quaternion parentrot)
         {
-            // In this case we're using a sphere with a radius of the largest dimention of the prim
+            // In this case we're using a sphere with a radius of the largest dimension of the prim
             // TODO: Change to take shape into account
 
-
-            EntityIntersection returnresult = new EntityIntersection();
+            EntityIntersection result = new EntityIntersection();
             Vector3 vAbsolutePosition = AbsolutePosition;
             Vector3 vScale = Scale;
             Vector3 rOrigin = iray.Origin;
@@ -2738,8 +2737,7 @@ if (m_shape != null) {
 
             Vector3 tmVal6 = vAbsolutePosition*rOrigin;
 
-
-            // Set Radius to the largest dimention of the prim
+            // Set Radius to the largest dimension of the prim
             float radius = 0f;
             if (vScale.X > radius)
                 radius = vScale.X;
@@ -2765,7 +2763,7 @@ if (m_shape != null) {
             if (rootsqr < 0.0f)
             {
                 // No intersection
-                return returnresult;
+                return result;
             }
             float root = ((-itestPart2) - (float) Math.Sqrt((double) rootsqr))/(itestPart1*2.0f);
 
@@ -2778,7 +2776,7 @@ if (m_shape != null) {
                 if (root < 0.0f)
                 {
                     // nope, no intersection
-                    return returnresult;
+                    return result;
                 }
             }
 
@@ -2788,12 +2786,12 @@ if (m_shape != null) {
                 new Vector3(iray.Origin.X + (iray.Direction.X*root), iray.Origin.Y + (iray.Direction.Y*root),
                             iray.Origin.Z + (iray.Direction.Z*root));
 
-            returnresult.HitTF = true;
-            returnresult.ipoint = ipoint;
+            result.HitTF = true;
+            result.ipoint = ipoint;
 
             // Normal is calculated by the difference and then normalizing the result
             Vector3 normalpart = ipoint - vAbsolutePosition;
-            returnresult.normal = normalpart / normalpart.Length();
+            result.normal = normalpart / normalpart.Length();
 
             // It's funny how the Vector3 object has a Distance function, but the Axiom.Math object doesn't.
             // I can write a function to do it..    but I like the fact that this one is Static.
@@ -2802,9 +2800,9 @@ if (m_shape != null) {
             Vector3 distanceConvert2 = new Vector3(ipoint.X, ipoint.Y, ipoint.Z);
             float distance = (float) Util.GetDistanceTo(distanceConvert1, distanceConvert2);
 
-            returnresult.distance = distance;
+            result.distance = distance;
 
-            return returnresult;
+            return result;
         }
 
         public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot, bool frontFacesOnly, bool faceCenters)
@@ -3008,9 +3006,9 @@ if (m_shape != null) {
                 //distance[i] = (normals[i].X * AmBa.X + normals[i].Y * AmBa.Y + normals[i].Z * AmBa.Z) * -1;
             }
 
-            EntityIntersection returnresult = new EntityIntersection();
+            EntityIntersection result = new EntityIntersection();
 
-            returnresult.distance = 1024;
+            result.distance = 1024;
             float c = 0;
             float a = 0;
             float d = 0;
@@ -3030,7 +3028,7 @@ if (m_shape != null) {
                 //{
                     //if (iray.Origin.Dot(normals[i]) > d)
                     //{
-                        //return returnresult;
+                        //return result;
                     //}
                    // else
                     //{
@@ -3044,7 +3042,7 @@ if (m_shape != null) {
                     //{
                         //if (a > fmin)
                         //{
-                            //return returnresult;
+                            //return result;
                         //}
                         //fmax = a;
                     //}
@@ -3056,7 +3054,7 @@ if (m_shape != null) {
                     //{
                         //if (a < 0 || a < fmax)
                         //{
-                            //return returnresult;
+                            //return result;
                         //}
                         //fmin = a;
                     //}
@@ -3112,17 +3110,17 @@ if (m_shape != null) {
                     //    distance2 = (float)GetDistanceTo(q, iray.Origin);
                     //}
 
-                    if (distance2 < returnresult.distance)
+                    if (distance2 < result.distance)
                     {
-                        returnresult.distance = distance2;
-                        returnresult.HitTF = true;
-                        returnresult.ipoint = q;
+                        result.distance = distance2;
+                        result.HitTF = true;
+                        result.ipoint = q;
                         //m_log.Info("[FACE]:" + i.ToString());
                         //m_log.Info("[POINT]: " + q.ToString());
                         //m_log.Info("[DIST]: " + distance2.ToString());
                         if (faceCenters)
                         {
-                            returnresult.normal = AAfacenormals[i] * AXrot;
+                            result.normal = AAfacenormals[i] * AXrot;
 
                             Vector3 scaleComponent = AAfacenormals[i];
                             float ScaleOffset = 0.5f;
@@ -3130,20 +3128,20 @@ if (m_shape != null) {
                             if (scaleComponent.Y != 0) ScaleOffset = AXscale.Y;
                             if (scaleComponent.Z != 0) ScaleOffset = AXscale.Z;
                             ScaleOffset = Math.Abs(ScaleOffset);
-                            Vector3 offset = returnresult.normal * ScaleOffset;
-                            returnresult.ipoint = AXpos + offset;
+                            Vector3 offset = result.normal * ScaleOffset;
+                            result.ipoint = AXpos + offset;
 
                             ///pos = (intersectionpoint + offset);
                         }
                         else
                         {
-                            returnresult.normal = normals[i];
+                            result.normal = normals[i];
                         }
-                        returnresult.AAfaceNormal = AAfacenormals[i];
+                        result.AAfaceNormal = AAfacenormals[i];
                     }
                 }
             }
-            return returnresult;
+            return result;
         }
 
         /// <summary>

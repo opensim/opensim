@@ -212,6 +212,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         bool Bright { get; set; } // SetPrimParms(FULLBRIGHT)
         double Bloom { get; set; } // SetPrimParms(GLOW)
         bool Shiny { get; set; } // SetPrimParms(SHINY)
-        bool BumpMap { get; set; } // SetPrimParms(BUMPMAP) [DEPRECIATE IN FAVOUR OF UUID?]
+        bool BumpMap { get; set; } // SetPrimParms(BUMPMAP) [DEPRECATE IN FAVOUR OF UUID?]
     }
 }
