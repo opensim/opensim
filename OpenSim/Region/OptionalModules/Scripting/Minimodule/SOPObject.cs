@@ -87,14 +87,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             add
             {
-                if (!_OnTouchActive)
+                if (CanEdit())
                 {
-                    GetSOP().Flags |= PrimFlags.Touch;
-                    _OnTouchActive = true;
-                    m_rootScene.EventManager.OnObjectGrab += EventManager_OnObjectGrab;
-                }
+                    if (!_OnTouchActive)
+                    {
+                        GetSOP().Flags |= PrimFlags.Touch;
+                        _OnTouchActive = true;
+                        m_rootScene.EventManager.OnObjectGrab += EventManager_OnObjectGrab;
+                    }
 
-                _OnTouch += value;
+                    _OnTouch += value;
+                }
             }
             remove
             {
