@@ -169,7 +169,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             // UUID should be changed to object owner.
             UUID owner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
             SEUser securityUser = new SEUser(owner, "Name Unassigned");
-            SecurityCredential creds = new SecurityCredential(securityUser);
+            SecurityCredential creds = new SecurityCredential(securityUser, m_scene);
 
             world = new World(m_scene, creds);
             host = new Host(new SOPObject(m_scene, localID, creds), m_scene, new ExtensionHandler(m_extensions),

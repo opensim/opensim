@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -38,9 +38,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly ISocialEntity m_owner;
         private readonly Scene m_scene;
 
-        public SecurityCredential(ISocialEntity m_owner)
+        public SecurityCredential(ISocialEntity m_owner, Scene m_scene)
         {
             this.m_owner = m_owner;
+            this.m_scene = m_scene;
         }
 
         public ISocialEntity owner
