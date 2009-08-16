@@ -161,7 +161,7 @@ namespace OpenSim.Framework.Tests
         /// Worker thread 0
         /// </summary>
         /// <param name="o"></param>
-        public void run( object o)
+        public void run(object o)
         {
             while (running)
             {

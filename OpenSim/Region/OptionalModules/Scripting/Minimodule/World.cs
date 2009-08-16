@@ -37,15 +37,17 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     public class World : System.MarshalByRefObject, IWorld, IWorldAudio 
     {
         private readonly Scene m_internalScene;
+        private readonly ISecurityCredential m_security;
         private readonly Heightmap m_heights;
 
         private readonly ObjectAccessor m_objs;
 
-        public World(Scene internalScene)
+        public World(Scene internalScene, ISecurityCredential securityCredential)
         {
+            m_security = securityCredential;
             m_internalScene = internalScene;
             m_heights = new Heightmap(m_internalScene);
-            m_objs = new ObjectAccessor(m_internalScene);
+            m_objs = new ObjectAccessor(m_internalScene, securityCredential);
         }
 
         #region Events
@@ -84,7 +86,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (_OnNewUser != null)
             {
                 NewUserEventArgs e = new NewUserEventArgs();
-                e.Avatar = new SPAvatar(m_internalScene, presence.UUID);
+                e.Avatar = new SPAvatar(m_internalScene, presence.UUID, m_security);
                 _OnNewUser(this, e);
             }
         }
@@ -144,7 +146,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (chat.Sender == null && chat.SenderObject != null)
             {
                 ChatEventArgs e = new ChatEventArgs();
-                e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId);
+                e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId, m_security);
                 e.Text = chat.Message;
 
                 _OnChat(this, e);
@@ -154,7 +156,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (chat.Sender != null && chat.SenderObject == null)
             {
                 ChatEventArgs e = new ChatEventArgs();
-                e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID);
+                e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID, m_security);
                 e.Text = chat.Message;
 
                 _OnChat(this, e);
@@ -207,7 +209,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 for (int i = 0; i < ents.Count; i++)
                 {
                     EntityBase ent = ents[i];
-                    rets[i] = new SPAvatar(m_internalScene, ent.UUID);
+                    rets[i] = new SPAvatar(m_internalScene, ent.UUID, m_security);
                 }
 
                 return rets;

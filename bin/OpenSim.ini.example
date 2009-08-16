@@ -4,7 +4,7 @@
     save_crashes = false
 
     ; Directory to save crashes to if above is enabled
-    ; (eg default is /opensimdir/crashes/*.txt or C:\opensim\crashes\*.txt)
+    ; (default is /opensimdir/crashes/*.txt or C:\opensim\crashes\*.txt)
     crash_dir = "crashes"
 
     ; Place to create a PID file
@@ -14,16 +14,16 @@
     ; Set HttpProxy to the URL for your proxy server if you would like
     ; to proxy llHTTPRequests through a firewall
     ; HttpProxy = "http://proxy.com"
-    ; Set HttpProxyExceptions to a list of regular expressions for 
+    ; Set HttpProxyExceptions to a list of regular expressions for
     ; URLs that you don't want going through the proxy such as servers
     ; inside your firewall, separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
 
-    ; Set this to true if you are connecting your OpenSimulator regions to a grid
-    ; Set this to false if you are running OpenSimulator in standalone mode
+    ; Set this to true if you are connecting your regions to a grid
+    ; Set this to false if you are running in standalone mode
     gridmode = false
-    
-    ; Set this to true if you want this OpenSimulator to run the Hypergrid functionality
+
+    ; Set this to true if you want Hypergrid functionality
     hypergrid = false
 
     startup_console_commands_file = "startup_commands.txt"
@@ -39,7 +39,7 @@
     ; Enables EventQueueGet Service.
     EventQueue = true
 
-    ; Set this to the DLL containig the client stack to use.
+    ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
 
     ; ##
@@ -60,7 +60,7 @@
     ; except that everything is also enclosed in a <Regions> tag.
     ; regionload_webserver_url = "http://example.com/regions.xml";
 
-    ; Draw objects on maptile.   This step might take a long time if you've got a huge amount of
+    ; Draw objects on maptile.  This step might take a long time if you've got a large number of
     ; objects, so you can turn it off here if you'd like.
     DrawPrimOnMapTile = true
     ; Use terrain texture for maptiles if true, use shaded green if false
@@ -109,11 +109,11 @@
     ; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the
     ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
     ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
-    
+
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
     ; prevent frequently changing objects from heavily loading the region data store.
     ; If both of these values are set to zero then persistence of all changed objects will happen on every sweep.
-    ; 
+    ;
     ; Objects will be considered for persistance in the next sweep when they have not changed for this number of seconds
     MinimumTimeBeforePersistenceConsidered = 60
     ; Objects will always be considered for persistance in the next sweep if the first change occurred this number of seconds ago
@@ -129,11 +129,11 @@
     ; if you would like to allow prims to be physical and move by physics with the physical checkbox in the client set this to true.
     physical_prim = true
 
-    ; Select a mesher here. ZeroMesher is save and fast.
+    ; Select a mesher here. ZeroMesher is safe and fast.
     ; ZeroMesher also means that the physics engine models the physics of prims
     ; sticking to the basic shapes the engine does support. Usually this is only a box.
     ; Meshmerizer gives a better handling of complex prims by using triangle meshes.
-    ; Note, that only ODE physics currently deals with meshed prims in a satisfactoring way
+    ; Note that only ODE physics currently deals with meshed prims in a satisfactory way
     ;
     meshing = ZeroMesher
     ;meshing = Meshmerizer
@@ -165,20 +165,20 @@
 
     ; Control user types that are allowed to create new scripts
     ; Only enforced if serviceside_object_permissions is true
-    ;   
-    ; Current possible values are 
+    ;
+    ; Current possible values are
     ;     all - anyone can create scripts (subject to normal permissions)
     ;     gods - only administrators can create scripts (as long as allow_grid_gods is true)
-    ; Default value is all 
+    ; Default value is all
     ; allowed_script_creators = all
 
     ; Control user types that are allowed to edit (save) scripts
     ; Only enforced if serviceside_object_permissions is true
-    ;   
-    ; Current possible values are 
+    ;
+    ; Current possible values are
     ;     all - anyone can edit scripts (subject to normal permissions)
     ;     gods - only administrators can edit scripts (as long as allow_grid_gods is true)
-    ; Default value is all 
+    ; Default value is all
     ; allowed_script_editors = all
 
     ; ##
@@ -220,9 +220,9 @@
     ; FLYSLOW, and the "always run" state will be the regular fly.
 
     enableflyslow = false
-   
+
     ; PreJump is an additional animation state, but it probably
-    ; won't look right until the physics engine supports it 
+    ; won't look right until the physics engine supports it
     ; (i.e delays takeoff for a moment)
 
     ; This is commented so it will come on automatically once it's
@@ -290,7 +290,7 @@
     ; Specifies the location and filename of the default inventory library control file.  The path can be relative or absolute
     ; Default is ./inventory/Libraries.xml
     LibrariesXMLFile="./inventory/Libraries.xml"
-    
+
 [Network]
     http_listener_port = 9000
     default_location_x = 1000
@@ -337,10 +337,10 @@
 
 [ClientStack.LindenUDP]
     ; This is the multiplier applied to all client throttles for outgoing UDP network data
-    ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we 
+    ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we
     ; multiply that setting by 3 (e.g. if the client gives us a setting of 250 kilobits per second then we
     ; will actually push down data at a maximum rate of 750 kilobits per second).
-    ; 
+    ;
     ; In principle, setting a multiplier greater than 1 will allow data to be pushed down to a client much faster
     ; than its UI allows the setting to go.  This may be okay in some situations, such as standalone OpenSim
     ; applications on a LAN.  However, the greater the multipler, the higher the risk of packet drop, resulting
@@ -350,11 +350,11 @@
     ; Currently this setting is 2 by default because we currently send much more texture data than is strictly
     ; necessary.  A setting of 1 could result in slow texture transfer.  This will be fixed when the transfer
     ; of textures at different levels of quality is improved.
-    ; 
+    ;
     ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
     ; unexpected difficulties
     client_throttle_multiplier = 2;
-    
+
     ; the client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
@@ -429,9 +429,8 @@
     ; surface layer around geometries other geometries can sink into before generating a contact
     world_contact_surface_layer = 0.001
 
-    ; Filtering Collisions helps keep things stable physics wise, but sometimes 
-    ; it can be over zealous.  If you notice bouncing, chances are it's being just
-    ; that
+    ; Filtering collisions helps keep things stable physics wise, but sometimes
+    ; it can be overzealous.  If you notice bouncing, chances are it's that.
     filter_collisions = false
 
     ; Non Moving Terrain Contact (avatar isn't moving)
@@ -551,15 +550,15 @@
     ; ## Joint support
     ; ##
 
-    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true. 
+    ; if you would like physics joints to be enabled through a special naming convention in the client, set this to true.
     ; (see NINJA Physics documentation, http://opensimulator.org/wiki/NINJA_Physics)
     ; default is false
     ;use_NINJA_physics_joints = true
-    
+
     ; ##
     ; ## additional meshing options
     ; ##
-    
+
     ; physical collision mesh proxies are normally created for complex prim shapes, and collisions for simple boxes and
     ; spheres are computed algorithmically. If you would rather have mesh proxies for simple prims, you can set this to
     ; true. Note that this will increase memory usage and region startup time. Default is false.
@@ -602,10 +601,10 @@
     ;region_limit = 0
 
     ; enable only those methods you deem to be appropriate using a | delimited whitelist
-    ; for example, enabled_methods = admin_broadcast|admin_region_query|admin_save_oar|admin_save_xml    
+    ; for example, enabled_methods = admin_broadcast|admin_region_query|admin_save_oar|admin_save_xml
     ; if this parameter is not specified but enabled = true, all methods will be available
     enabled_methods = all
-   
+
 
 [RestPlugins]
     ; Change this to true to enable REST Plugins. This must be true if you wish to use
@@ -739,7 +738,7 @@
     ; Density of cloud cover 0.0 to 1.0 Defult 0.5
     density = 0.5
 
-    ; update interval for the cloud cover data returned by llCloud().  
+    ; update interval for the cloud cover data returned by llCloud().
     ; default is 1000
     cloud_update_rate = 1000
 
@@ -914,7 +913,7 @@
     ; This will be created in bin, if it doesn't exist already. It will hold the data snapshots.
     snapshot_cache_directory = "DataSnapshot"
 
-    ; This semicolon-separated string serves to notify specific data services about the existence 
+    ; This semicolon-separated string serves to notify specific data services about the existence
     ; of this sim. Uncomment if you want to index your data with this and/or other search providers.
     ;data_services="http://metaverseink.com/cgi-bin/register.py"
 
@@ -997,7 +996,7 @@
     DefaultCompileLanguage = lsl
 
     ; List of allowed languages (lsl,vb,js,cs)
-    ; AllowedCompilers=lsl,cs,js,vb.  
+    ; AllowedCompilers=lsl,cs,js,vb.
     ; *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
     AllowedCompilers=lsl
 
@@ -1050,13 +1049,13 @@
     ; Comma separated list of UUIDS allows the function for that list of UUIDS
     ; Allow_osSetRegionWaterHeight = 888760cb-a3cf-43ac-8ea4-8732fd3ee2bb
 
-    ; Allow for llCreateLink and llBreakLink to work without asking for permission 
+    ; Allow for llCreateLink and llBreakLink to work without asking for permission
     ; only enable this in a trusted environment otherwise you may be subject to hijacking
     ; AutomaticLinkPermission = false
 
     ; Disable underground movement of prims (default true); set to
     ; false to allow script controlled underground positioning of
-    ; prims 
+    ; prims
     ; DisableUndergroundMovement = true
 
 
@@ -1164,7 +1163,7 @@
 [MRM]
     ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
     ; default is false
-    Enabled = false 
+    Enabled = false
 
 
 [Hypergrid]
@@ -1176,7 +1175,7 @@
     ; The VivoxVoice module will allow you to provide voice on your
     ; region(s). It uses the same voice technology as the LL grid and
     ; works with recent LL clients (we have tested 1.22.9.110075, so
-    ; anything later ought to be fine as well). 
+    ; anything later ought to be fine as well).
     ;
     ; For this to work you need to obtain an admin account from Vivox
     ; that allows you to create voice accounts and region channels.
@@ -1234,14 +1233,14 @@
     ; In order for this to work you need a functioning freeswitch pbx set
     ; up.  Configuration for that will be posted in the wiki soon.
     enabled = false
-    ;FreeSwitch server is going to contact us and ask us all     
-    ;sorts of things.     
-    freeswitch_server_user = freeswitch     
-    freeswitch_server_pass = password     
-    freeswitch_api_prefix = /api     
-    ; this is the IP of your sim     
+    ;FreeSwitch server is going to contact us and ask us all
+    ;sorts of things.
+    freeswitch_server_user = freeswitch
+    freeswitch_server_pass = password
+    freeswitch_api_prefix = /api
+    ; this is the IP of your sim
     freeswitch_service_server = ip.address.of.your.sim
-    ;freeswitch_service_port = 80     
+    ;freeswitch_service_port = 80
     ; this should be the same port the region listens on
     freeswitch_service_port = 9000
     freeswitch_realm = ip.address.of.freeswitch.server
@@ -1251,15 +1250,15 @@
     freeswitch_echo_server = ip.address.of.freeswitch.server
     freeswitch_echo_port = 50505
     freeswitch_well_known_ip = ip.address.of.freeswitch.server
-    
+
     ;Type the address of your http server here, hostname is allowed.  This is provided so you can specify a hostname
     ;This is used by client for account verification.  By default, it's the same as the freeswitch service server.
-    
+
     ;opensim_well_known_http_address = Address_Of_your_SIM_HTTP_Server_Hostname_Allowed
 
     freeswitch_default_timeout = 5000
     freeswitch_subscribe_retry = 120
-    ; freeswitch_password_reset_url =  
+    ; freeswitch_password_reset_url =
 
 
 [Groups]
@@ -1268,19 +1267,19 @@
     ; This is the current groups stub in Region.CoreModules.Avatar.Groups
     Module  = Default
 
-    ; The PHP code for the server is available from the Flotsam project for you to deploy 
+    ; The PHP code for the server is available from the Flotsam project for you to deploy
     ; to your own server.  The Flotsam project is located at http://code.google.com/p/flotsam/
     ;
     ;Module  = GroupsModule
-    
+
     ; Enable Group Notices
- 	;NoticesEnabled   = true
+    ;NoticesEnabled   = true
 
     ; This makes the Groups modules very chatty on the console.
     ;DebugEnabled     = true
 
-    ; Specify which messaging module to use for groups messaging and if it's enabled	
-	;MessagingModule = GroupsMessagingModule
+    ; Specify which messaging module to use for groups messaging and if it's enabled
+    ;MessagingModule = GroupsMessagingModule
     ;MessagingEnabled = true
 
     ; Service connector to Groups Service [Select One]
@@ -1290,9 +1289,9 @@
     ;XmlRpcServiceReadKey    = 1234
     ;XmlRpcServiceWriteKey   = 1234
 
-    ; Disables HTTP Keep-Alive for XmlRpcGroupsServicesConnector HTTP Requests, 
-	; this is a work around fora problem discovered on some Windows based region servers.  
-	; Only disable keep alive if you see a large number (dozens) of the following Exceptions:
+    ; Disables HTTP Keep-Alive for XmlRpcGroupsServicesConnector HTTP Requests,
+    ; this is a work around fora problem discovered on some Windows based region servers.
+    ; Only disable keep alive if you see a large number (dozens) of the following Exceptions:
     ; System.Net.WebException: The request was aborted: The request was canceled.
     ;
     ; XmlRpcDisableKeepAlive = false
@@ -1321,7 +1320,7 @@
     ;FullUpdateRate=14
 
     ;PacketMTU = 1400
-    
+
     ; TextureUpdateRate (mS) determines how many times per second
     ; texture send processing will occur. The default is 100mS.
     ;
@@ -1369,7 +1368,6 @@
     ; config-include/GridCommon.ini.example (if you're connected to a grid)
     ; Copy to your own .ini there (without .example extension) and edit it
     ; to customize your data
-
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -109,6 +109,29 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Invoked when the client requests a prim.
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="remoteClient"></param>
+        public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
+        {
+            PacketType i = PacketType.ObjectUpdate;
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
+                    {
+                        ((SceneObjectGroup)ent).SendFullUpdateToClient(remoteClient);
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Invoked when the client selects a prim.
         /// </summary>
         /// <param name="primLocalID"></param>

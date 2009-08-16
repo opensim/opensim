@@ -25,24 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenMetaverse;
-
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
-    public interface IAvatar : IEntity
+    public interface ISecurityCredential
     {
-        //// <value>
-        /// Array of worn attachments, empty but not null, if no attachments are worn
-        /// </value>
-
-        IAvatarAttachment[] Attachments { get; }
-
-        /// <summary>
-        /// Request to open an url clientside
-        /// </summary>
-        void LoadUrl(IObject sender, string message, string url);
+        ISocialEntity owner { get; }
+        bool CanEditObject(IObject target);
+        bool CanEditTerrain(int x, int y);
     }
 }
