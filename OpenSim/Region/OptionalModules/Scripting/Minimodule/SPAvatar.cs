@@ -42,11 +42,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_rootScene;
         private readonly UUID m_ID;
+        private readonly ISecurityCredential m_security;
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SPAvatar(Scene scene, UUID ID)
+        public SPAvatar(Scene scene, UUID ID, ISecurityCredential security)
         {
             m_rootScene = scene;
+            m_security = security;
             m_ID = ID;
         }
 
@@ -84,7 +86,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     foreach (DictionaryEntry element in internalAttachments)
                     {
                         Hashtable attachInfo = (Hashtable)element.Value;
-                        attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int)element.Key, new UUID((string)attachInfo["item"]), new UUID((string)attachInfo["asset"])));
+                        attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int) element.Key,
+                                                               new UUID((string) attachInfo["item"]),
+                                                               new UUID((string) attachInfo["asset"]), m_security));
                     }
                 }
                 

@@ -117,7 +117,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (_OnTouchActive && m_localID == localID)
             {
                 TouchEventArgs e = new TouchEventArgs();
-                e.Avatar = new SPAvatar(m_rootScene, remoteClient.AgentId);
+                e.Avatar = new SPAvatar(m_rootScene, remoteClient.AgentId, m_security);
                 e.TouchBiNormal = surfaceArgs.Binormal;
                 e.TouchMaterialIndex = surfaceArgs.FaceIndex;
                 e.TouchNormal = surfaceArgs.Normal;
