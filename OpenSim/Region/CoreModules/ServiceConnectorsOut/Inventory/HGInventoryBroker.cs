@@ -274,9 +274,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                             folders[(AssetType)folder.Type] = folder;
                     }
-                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
                     // Put the root folder there, as type Folder
                     folders[AssetType.Folder] = root;
+                    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: System folders count for {0}: {1}", userID, folders.Count);
                     return folders;
                 }
                 m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Root folder content not found for {0}", userID);

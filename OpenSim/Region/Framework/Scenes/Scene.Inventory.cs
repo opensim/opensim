@@ -2357,7 +2357,9 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence presence;
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, att.UUID);
+                // XXYY!!
+                InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
                 IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
                 if (ava != null)
                 {

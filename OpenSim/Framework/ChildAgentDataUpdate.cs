@@ -226,6 +226,46 @@ namespace OpenSim.Framework
         }
     }
 
+    public class AttachmentData
+    {
+        public int AttachPoint;
+        public UUID ItemID;
+        public UUID AssetID;
+
+        public AttachmentData(int point, UUID item, UUID asset)
+        {
+            AttachPoint = point;
+            ItemID = item;
+            AssetID = asset;
+        }
+
+        public AttachmentData(OSDMap args)
+        {
+            UnpackUpdateMessage(args);
+        }
+
+        public OSDMap PackUpdateMessage()
+        {
+            OSDMap attachdata = new OSDMap();
+            attachdata["point"] = OSD.FromInteger(AttachPoint);
+            attachdata["item"] = OSD.FromUUID(ItemID);
+            attachdata["asset"] = OSD.FromUUID(AssetID);
+
+            return attachdata;
+        }
+
+
+        public void UnpackUpdateMessage(OSDMap args)
+        {
+            if (args["point"] != null)
+                AttachPoint = args["point"].AsInteger();
+            if (args["item"] != null)
+                ItemID = args["item"].AsUUID();
+            if (args["asset"] != null)
+                AssetID = args["asset"].AsUUID();
+        }
+    }
+
     public class AgentData : IAgentData
     {
         private UUID m_id;
@@ -272,6 +312,7 @@ namespace OpenSim.Framework
         public byte[] AgentTextures;
         public byte[] VisualParams;
         public UUID[] Wearables;
+        public AttachmentData[] Attachments;
 
         public string CallbackURI;
 
@@ -352,6 +393,13 @@ namespace OpenSim.Framework
                 args["wearables"] = wears;
             }
 
+            if ((Attachments != null) && (Attachments.Length > 0))
+            {
+                OSDArray attachs = new OSDArray(Attachments.Length);
+                foreach (AttachmentData att in Attachments)
+                    attachs.Add(att.PackUpdateMessage());
+                args["attachments"] = attachs;
+            }
 
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
@@ -492,7 +540,21 @@ namespace OpenSim.Framework
                 foreach (OSD o in wears)
                     Wearables[i++] = o.AsUUID();
             }
-            
+
+            if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
+            {
+                OSDArray attachs = (OSDArray)(args["attachments"]);
+                Attachments = new AttachmentData[attachs.Count];
+                int i = 0;
+                foreach (OSD o in attachs)
+                {
+                    if (o.Type == OSDType.Map)
+                    {
+                        Attachments[i++] = new AttachmentData((OSDMap)o);
+                    }
+                }
+            }
+
             if (args["callback_uri"] != null)
                 CallbackURI = args["callback_uri"].AsString();
         }

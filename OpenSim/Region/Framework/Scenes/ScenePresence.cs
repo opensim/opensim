@@ -652,9 +652,6 @@ namespace OpenSim.Region.Framework.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(m_uuid);
-            if (userInfo != null)
-                userInfo.OnItemReceived += ItemReceived;
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -1021,7 +1018,9 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Complete Avatar's movement into the region
+        /// Complete Avatar's movement into the region.
+        /// This is called upon a very important packet sent from the client,
+        /// so it's client-controlled. Never call this method directly.
         /// </summary>
         public void CompleteMovement()
         {
@@ -1042,21 +1041,18 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = pos;
             }
 
-            if (m_isChildAgent)
+            m_isChildAgent = false;
+            bool m_flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            MakeRootAgent(AbsolutePosition, m_flying);
+
+            if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
-                m_isChildAgent = false;
-                bool m_flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-                MakeRootAgent(AbsolutePosition, m_flying);
-
-                if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
-                {
-                    m_log.DebugFormat("[SCENE PRESENCE]: Releasing agent in URI {0}", m_callbackURI);
-                    Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
-                    m_callbackURI = null;
-                }
-
-                //m_log.DebugFormat("Completed movement");
+                m_log.DebugFormat("[SCENE PRESENCE]: Releasing agent in URI {0}", m_callbackURI);
+                Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
+                m_callbackURI = null;
             }
+
+            //m_log.DebugFormat("Completed movement");
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
@@ -3154,6 +3150,20 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Warn("[SCENE PRESENCE]: exception in CopyTo " + e.Message);
             }
 
+            //Attachments
+            List<int> attPoints = m_appearance.GetAttachedPoints();
+            if (attPoints != null)
+            {
+                m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
+                int i = 0;
+                AttachmentData[] attachs = new AttachmentData[attPoints.Count];
+                foreach (int point in attPoints)
+                {
+                    attachs[i++] = new AttachmentData(point, m_appearance.GetAttachedItem(point), m_appearance.GetAttachedAsset(point));
+                }
+                cAgent.Attachments = attachs;
+            }
+
             // Animations
             try
             {
@@ -3218,6 +3228,19 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Warn("[SCENE PRESENCE]: exception in CopyFrom " + e.Message);
             }
+
+            // Attachments
+            try
+            {
+                if (cAgent.Attachments != null)
+                {
+                    foreach (AttachmentData att in cAgent.Attachments)
+                    {
+                        m_appearance.SetAttachment(att.AttachPoint, att.ItemID, att.AssetID);
+                    }
+                }
+            }
+            catch { } 
 
             // Animations
             try
@@ -3729,37 +3752,46 @@ namespace OpenSim.Region.Framework.Scenes
             return flags;
         }
 
-        private void ItemReceived(UUID itemID)
+        /// <summary>
+        /// RezAttachments. This should only be called upon login on the first region
+        /// </summary>
+        public void RezAttachments()
         {
-            if (IsChildAgent)
-                return;
-
             if (null == m_appearance)
             {
-                m_log.Warn("[ATTACHMENT] Appearance has not been initialized");
+                m_log.WarnFormat("[ATTACHMENT] Appearance has not been initialized for agent {0}", UUID);
                 return;
             }
 
-            int attachpoint = m_appearance.GetAttachpoint(itemID);
-            if (attachpoint == 0)
-                return;
-
-            UUID asset = m_appearance.GetAttachedAsset(attachpoint);
-            if (UUID.Zero == asset) // We have just logged in
+            List<int> attPoints = m_appearance.GetAttachedPoints();
+            foreach (int p in attPoints)
             {
+                UUID itemID = m_appearance.GetAttachedItem(p);
+                UUID assetID = m_appearance.GetAttachedAsset(p);
+
+                if (UUID.Zero == assetID) 
+                {
+                    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
+                    continue;
+                }
+
                 try
                 {
                     // Rez from inventory
-                    asset = m_scene.RezSingleAttachment(ControllingClient,
-                            itemID, (uint)attachpoint);
-                    // Corner case: We are not yet a Scene Entity
-                    // Setting attachment info in RezSingleAttachment will fail
-                    // Set it here
-                    //
-                    m_appearance.SetAttachment((int)attachpoint, itemID,
-                            asset);
-                    m_log.InfoFormat("[ATTACHMENT] Rezzed attachment {0}, inworld asset {1}",
-                            itemID.ToString(), asset);
+                    UUID asset = m_scene.RezSingleAttachment(ControllingClient,
+                            itemID, (uint)p);
+
+                    m_log.InfoFormat("[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
+                            p, itemID, assetID, asset);
+
+                    //SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
+                    //m_log.DebugFormat("[ATTCHMENT]: Got scene object parent {0} IsAtt {1}",
+                    //    ((att.ParentGroup != null) ? "not null" : "null"), att.IsAttachment);
+                    //if (att.ParentGroup != null && !att.IsAttachment)
+                    //{
+                    //    att.FromItemID = itemID;
+                    //    m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, 0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
+                    //}
 
                 }
                 catch (Exception e)
@@ -3767,31 +3799,30 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("[ATTACHMENT] Unable to rez attachment: {0}", e.ToString());
                 }
 
-                return;
             }
 
-            SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
+            //SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
 
-            // If this is null, then the asset has not yet appeared in world
-            // so we revisit this when it does
-            //
-            if (att != null && att.UUID != asset) // Yes. It's really needed
-            {
-                m_log.DebugFormat("[ATTACHMENT]: Attach from in world: ItemID {0}, Asset ID {1}, Attachment inworld: {2}", itemID.ToString(), asset.ToString(), att.UUID.ToString());
+            //// If this is null, then the asset has not yet appeared in world
+            //// so we revisit this when it does
+            ////
+            //if (att != null && att.UUID != asset) // Yes. It's really needed
+            //{
+            //    m_log.DebugFormat("[ATTACHMENT]: Attach from in world: ItemID {0}, Asset ID {1}, Attachment inworld: {2}", itemID.ToString(), asset.ToString(), att.UUID.ToString());
 
-                // This will throw if crossing katty-korner
-                // So catch it here to avoid the noid
-                //
-                try
-                {
-                    // Attach from world, if not already attached
-                    if (att.ParentGroup != null && !att.IsAttachment)
-                        m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, 0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
-                }
-                catch (NullReferenceException)
-                {
-                }
-            }
+            //    // This will throw if crossing katty-korner
+            //    // So catch it here to avoid the noid
+            //    //
+            //    try
+            //    {
+            //        // Attach from world, if not already attached
+            //        if (att.ParentGroup != null && !att.IsAttachment)
+            //            m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, 0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
+            //    }
+            //    catch (NullReferenceException)
+            //    {
+            //    }
+            //}
         }
     }
 }

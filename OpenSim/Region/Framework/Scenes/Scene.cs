@@ -2042,13 +2042,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
+                AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
+
                 m_log.DebugFormat(
-                    "[SCENE]: Adding new child agent for {0} in {1}",
-                    client.Name, RegionInfo.RegionName);
+                    "[SCENE]: Adding new {0} agent for {1} in {2}",
+                    ((aCircuit.child == true) ? "child" : "root"), client.Name, RegionInfo.RegionName);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
-                CreateAndAddScenePresence(client);
+                ScenePresence sp = CreateAndAddScenePresence(client);
+
+                // HERE!!! Do the initial attachments here
+                if (aCircuit.child == false) // first agent upon login is root agent
+                {
+                    sp.IsChildAgent = false;
+                    sp.RezAttachments();
+                }
             }
 
             m_LastLogin = Environment.TickCount;
