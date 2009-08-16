@@ -259,6 +259,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event SpinStop OnSpinStop = delegate { };
         public event UpdateShape OnUpdatePrimShape = delegate { };
         public event ObjectExtraParams OnUpdateExtraParams = delegate { };
+        public event ObjectRequest OnObjectRequest = delegate { };
         public event ObjectSelect OnObjectSelect = delegate { };
         public event ObjectDeselect OnObjectDeselect = delegate { };
         public event GenericCall7 OnObjectDescription = delegate { };

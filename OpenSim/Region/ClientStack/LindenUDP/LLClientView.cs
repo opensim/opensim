@@ -197,6 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectExtraParams handlerUpdateExtraParams; //OnUpdateExtraParams;
         private ObjectDuplicate handlerObjectDuplicate;
         private ObjectDuplicateOnRay handlerObjectDuplicateOnRay;
+        private ObjectRequest handlerObjectRequest;
         private ObjectSelect handlerObjectSelect;
         private ObjectDeselect handlerObjectDeselect;
         private ObjectIncludeInSearch handlerObjectIncludeInSearch;
@@ -1083,6 +1084,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event GodKickUser OnGodKickUser;
         public event ObjectExtraParams OnUpdateExtraParams;
         public event UpdateShape OnUpdatePrimShape;
+        public event ObjectRequest OnObjectRequest;
         public event ObjectSelect OnObjectSelect;
         public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
@@ -5936,6 +5938,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     break;
 
+                case PacketType.RequestMultipleObjects:
+                    RequestMultipleObjectsPacket incomingRequest = (RequestMultipleObjectsPacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (incomingRequest.AgentData.SessionID != SessionId ||
+                            incomingRequest.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
+                    handlerObjectRequest = null;
+
+                    for (int i = 0; i < incomingRequest.ObjectData.Length; i++)
+                    {
+                        handlerObjectRequest = OnObjectRequest;
+                        if (handlerObjectRequest != null)
+                        {
+                            handlerObjectRequest(incomingRequest.ObjectData[i].ID, this);
+                        }
+                    }
+                    break;
                 case PacketType.ObjectSelect:
                     ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
 

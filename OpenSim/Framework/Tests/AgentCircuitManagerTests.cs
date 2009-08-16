@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Tests
             Vector3 StartPos = new Vector3(5, 23, 125);
 
             UUID SecureSessionId = UUID.Random();
-            UUID SessionId = UUID.Random();
+            // TODO: unused: UUID SessionId = UUID.Random();
 
             m_agentCircuitData1 = new AgentCircuitData();
             m_agentCircuitData1.AgentID = AgentId1;

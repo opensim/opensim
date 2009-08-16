@@ -2076,6 +2076,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimTexture += m_sceneGraph.UpdatePrimTexture;
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
+            client.OnObjectRequest += RequestPrim;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
             client.OnGrabUpdate += m_sceneGraph.MoveObject;

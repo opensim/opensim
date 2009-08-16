@@ -634,7 +634,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             get { return (uint)Util.RandomClass.Next(0,int.MaxValue); }
         }
-
+#pragma warning disable 67
         public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
         public event ChatMessage OnChatFromClient;
@@ -686,6 +686,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event SpinStop OnSpinStop;
         public event UpdateShape OnUpdatePrimShape;
         public event ObjectExtraParams OnUpdateExtraParams;
+        public event ObjectRequest OnObjectRequest;
         public event ObjectSelect OnObjectSelect;
         public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
@@ -825,6 +826,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event AvatarNotesUpdate OnAvatarNotesUpdate;
         public event MuteListRequest OnMuteListRequest;
         public event PlacesQuery OnPlacesQuery;
+#pragma warning restore 67
 
         public void SetDebugPacketLevel(int newDebug)
         {

@@ -63,7 +63,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void OnNewClientDelegate(IClientAPI client);
 
         /// <summary>
-        /// Depreciated in favour of OnClientConnect.
+        /// Deprecated in favour of OnClientConnect.
         /// Will be marked Obsolete after IClientCore has 100% of IClientAPI interfaces.
         /// </summary>
         public event OnNewClientDelegate OnNewClient;
