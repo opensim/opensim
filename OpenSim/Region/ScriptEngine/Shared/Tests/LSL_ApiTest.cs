@@ -35,6 +35,7 @@ using Nini.Config;
 using OpenSim.Region.ScriptEngine.Shared.Api;
 using OpenMetaverse;
 using System;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ScriptEngine.Shared.Tests
 {
@@ -52,7 +53,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Tests
         public void SetUp()
         {
 
-            IniConfigSource initConfigSource = new IniConfigSource();
+            IConfigSource initConfigSource = new IniConfigSource();
             IConfig config = initConfigSource.AddConfig("XEngine");
             config.Set("Enabled", "true");
 

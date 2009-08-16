@@ -70,6 +70,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
+        /// <summary>
+        /// When an object gets paid by an avatar and generates the paid event, 
+        /// this will pipe it to the script engine
+        /// </summary>
+        /// <param name="objectID">Object ID that got paid</param>
+        /// <param name="agentID">Agent Id that did the paying</param>
+        /// <param name="amount">Amount paid</param>
         private void HandleObjectPaid(UUID objectID, UUID agentID,
                 int amount)
         {
@@ -93,6 +100,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
+        /// <summary>
+        /// Handles piping the proper stuff to The script engine for touching
+        /// Including DetectedParams
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="originalID"></param>
+        /// <param name="offsetPos"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="surfaceArgs"></param>
         public void touch_start(uint localID, uint originalID, Vector3 offsetPos,
                 IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
