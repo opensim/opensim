@@ -557,7 +557,6 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
             if (group != null)
             {
-                m_log.DebugFormat("[SCENE GRAPH]: AttachObject got {0}", group.UUID);
                 if (m_parentScene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
                 {
                     // If the attachment point isn't the same as the one previously used
@@ -565,7 +564,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // and not in a weird location somewhere unknown.
                     if (AttachmentPt != 0 && AttachmentPt != (uint)group.GetAttachmentPoint())
                     {
-                        m_log.DebugFormat("[SCENE GRAPH]: AttachObject 1 got {0}", group.UUID); 
                         attachPos = Vector3.Zero;
                     }
 
@@ -574,7 +572,6 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // Check object for stored attachment point
                         AttachmentPt = (uint)group.GetAttachmentPoint();
-                        m_log.DebugFormat("[SCENE GRAPH]: AttachObject 2 got {0}", group.UUID);
                     }
 
                     // if we still didn't find a suitable attachment point.......
@@ -583,11 +580,9 @@ namespace OpenSim.Region.Framework.Scenes
                         // Stick it on left hand with Zero Offset from the attachment point.
                         AttachmentPt = (uint)AttachmentPoint.LeftHand;
                         attachPos = Vector3.Zero;
-                        m_log.DebugFormat("[SCENE GRAPH]: AttachObject 3 got {0}", group.UUID); 
 
                     }
 
-                    m_log.DebugFormat("[SCENE GRAPH]: AttachObject 4 got {0}", group.UUID); 
 
                     group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
                     group.AbsolutePosition = attachPos;
@@ -597,12 +592,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (group.GetFromItemID() == UUID.Zero)
                     {
-                        m_log.DebugFormat("[SCENE GRAPH]: AttachObject 5 got {0}", group.UUID);
                         m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);
                     }
                     else
                     {
-                        m_log.DebugFormat("[SCENE GRAPH]: AttachObject 6 got {0}", group.GetFromItemID());
                         itemId = group.GetFromItemID();
                     }
 

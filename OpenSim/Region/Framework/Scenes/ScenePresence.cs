@@ -3753,7 +3753,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// RezAttachments. This should only be called upon login on the first region
+        /// RezAttachments. This should only be called upon login on the first region.
+        /// Attachment rezzings on crossings and TPs are done in a different way.
         /// </summary>
         public void RezAttachments()
         {
@@ -3784,45 +3785,14 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.InfoFormat("[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
                             p, itemID, assetID, asset);
 
-                    //SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
-                    //m_log.DebugFormat("[ATTCHMENT]: Got scene object parent {0} IsAtt {1}",
-                    //    ((att.ParentGroup != null) ? "not null" : "null"), att.IsAttachment);
-                    //if (att.ParentGroup != null && !att.IsAttachment)
-                    //{
-                    //    att.FromItemID = itemID;
-                    //    m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, 0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
-                    //}
-
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[ATTACHMENT] Unable to rez attachment: {0}", e.ToString());
+                    m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}", e.ToString());
                 }
 
             }
 
-            //SceneObjectPart att = m_scene.GetSceneObjectPart(asset);
-
-            //// If this is null, then the asset has not yet appeared in world
-            //// so we revisit this when it does
-            ////
-            //if (att != null && att.UUID != asset) // Yes. It's really needed
-            //{
-            //    m_log.DebugFormat("[ATTACHMENT]: Attach from in world: ItemID {0}, Asset ID {1}, Attachment inworld: {2}", itemID.ToString(), asset.ToString(), att.UUID.ToString());
-
-            //    // This will throw if crossing katty-korner
-            //    // So catch it here to avoid the noid
-            //    //
-            //    try
-            //    {
-            //        // Attach from world, if not already attached
-            //        if (att.ParentGroup != null && !att.IsAttachment)
-            //            m_scene.AttachObject(ControllingClient, att.ParentGroup.LocalId, 0, Quaternion.Identity, att.ParentGroup.AbsolutePosition, false);
-            //    }
-            //    catch (NullReferenceException)
-            //    {
-            //    }
-            //}
         }
     }
 }

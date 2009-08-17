@@ -2052,8 +2052,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
 
-                // HERE!!! Do the initial attachments here
-                if (aCircuit.child == false) // first agent upon login is root agent
+                // HERE!!! Do the initial attachments right here
+                // first agent upon login is a root agent by design.
+                // All other AddNewClient calls find aCircuit.child to be true
+                if (aCircuit.child == false) 
                 {
                     sp.IsChildAgent = false;
                     sp.RezAttachments();
