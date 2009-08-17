@@ -373,9 +373,27 @@ namespace OpenSim.Framework.Console
 
         public XmlElement GetXml(XmlDocument doc)
         {
+            CommandInfo help = (CommandInfo)((Dictionary<string, object>)tree["help"])[String.Empty];
+            ((Dictionary<string, object>)tree["help"]).Remove(string.Empty);
+            if (((Dictionary<string, object>)tree["help"]).Count == 0)
+                tree.Remove("help");
+
+            CommandInfo quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[String.Empty];
+            ((Dictionary<string, object>)tree["quit"]).Remove(string.Empty);
+            if (((Dictionary<string, object>)tree["quit"]).Count == 0)
+                tree.Remove("quit");
+
             XmlElement root = doc.CreateElement("", "HelpTree", "");
 
             ProcessTreeLevel(tree, root, doc);
+
+            if (!tree.ContainsKey("help"))
+                tree["help"] = (object) new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["help"])[String.Empty] = help;
+
+            if (!tree.ContainsKey("quit"))
+                tree["quit"] = (object) new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["quit"])[String.Empty] = quit;
 
             return root;
         }
@@ -426,8 +444,80 @@ namespace OpenSim.Framework.Console
             }
         }
 
-        public void FromXml(XmlElement root)
+        public void FromXml(XmlElement root, CommandDelegate fn)
         {
+            CommandInfo help = (CommandInfo)((Dictionary<string, object>)tree["help"])[String.Empty];
+            ((Dictionary<string, object>)tree["help"]).Remove(string.Empty);
+            if (((Dictionary<string, object>)tree["help"]).Count == 0)
+                tree.Remove("help");
+
+            CommandInfo quit = (CommandInfo)((Dictionary<string, object>)tree["quit"])[String.Empty];
+            ((Dictionary<string, object>)tree["quit"]).Remove(string.Empty);
+            if (((Dictionary<string, object>)tree["quit"]).Count == 0)
+                tree.Remove("quit");
+
+            tree.Clear();
+
+            ReadTreeLevel(tree, root, fn);
+
+            if (!tree.ContainsKey("help"))
+                tree["help"] = (object) new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["help"])[String.Empty] = help;
+
+            if (!tree.ContainsKey("quit"))
+                tree["quit"] = (object) new Dictionary<string, object>();
+            ((Dictionary<string, object>)tree["quit"])[String.Empty] = quit;
+        }
+
+        private void ReadTreeLevel(Dictionary<string, object> level, XmlNode node, CommandDelegate fn)
+        {
+            Dictionary<string, object> next;
+            string name;
+
+            XmlNodeList nodeL = node.ChildNodes;
+            XmlNodeList cmdL;
+            CommandInfo c;
+
+            foreach (XmlNode part in nodeL)
+            {
+                switch (part.Name)
+                {
+                case "Level":
+                    name = ((XmlElement)part).GetAttribute("Name");
+                    next = new Dictionary<string, object>();
+                    level[name] = next;
+                    ReadTreeLevel(next, part, fn);
+                    break;
+                case "Command":
+                    cmdL = part.ChildNodes;
+                    c = new CommandInfo();
+                    foreach (XmlNode cmdPart in cmdL)
+                    {
+                        switch (cmdPart.Name)
+                        {
+                        case "Module":
+                            c.module = cmdPart.InnerText;
+                            break;
+                        case "Shared":
+                            c.shared = Convert.ToBoolean(cmdPart.InnerText);
+                            break;
+                        case "HelpText":
+                            c.help_text = cmdPart.InnerText;
+                            break;
+                        case "LongHelp":
+                            c.long_help = cmdPart.InnerText;
+                            break;
+                        case "Description":
+                            c.descriptive_help = cmdPart.InnerText;
+                            break;
+                        }
+                    }
+                    c.fn = new List<CommandDelegate>();
+                    c.fn.Add(fn);
+                    level[String.Empty] = c;
+                    break;
+                }
+            }
         }
     }
 

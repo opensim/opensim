@@ -98,7 +98,12 @@ namespace OpenSim.Framework.Console
                 m_LineNumber++;
                 m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
             }
-            System.Console.Write(text);
+            System.Console.WriteLine(text.Trim());
+        }
+
+        public override void Output(string text)
+        {
+            Output(text, "normal");
         }
 
         public override string ReadLine(string p, bool isCommand, bool e)
@@ -152,9 +157,8 @@ namespace OpenSim.Framework.Console
 
                 foreach (UUID id in expired)
                 {
-                    System.Console.WriteLine("Expired {0}", id.ToString());
-                    CloseConnection(id);
                     m_Connections.Remove(id);
+                    CloseConnection(id);
                 }
             }
         }
@@ -244,8 +248,8 @@ namespace OpenSim.Framework.Console
             {
                 if (m_Connections.ContainsKey(id))
                 {
-                    CloseConnection(id);
                     m_Connections.Remove(id);
+                    CloseConnection(id);
                 }
             }
 
@@ -346,9 +350,15 @@ namespace OpenSim.Framework.Console
 
         public void CloseConnection(UUID id)
         {
-            string uri = "/ReadResponses/" + id.ToString() + "/";
+            try
+            {
+                string uri = "/ReadResponses/" + id.ToString() + "/";
 
-            m_Server.RemovePollServiceHTTPHandler("", uri);
+                m_Server.RemovePollServiceHTTPHandler("", uri);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private bool HasEvents(UUID sessionID)
@@ -394,8 +404,11 @@ namespace OpenSim.Framework.Console
             lock (m_Scrollback)
             {
                 long startLine = m_LineNumber - m_Scrollback.Count;
+                long sendStart = startLine;
+                if (sendStart < c.lastLineSeen)
+                    sendStart = c.lastLineSeen;
 
-                for (long i = startLine ; i < m_LineNumber ; i++)
+                for (long i = sendStart ; i < m_LineNumber ; i++)
                 {
                     XmlElement res = xmldoc.CreateElement("", "Line", "");
                     long line = i + 1;
@@ -422,12 +435,21 @@ namespace OpenSim.Framework.Console
         {
             Hashtable result = new Hashtable();
 
-            result["int_response_code"] = 502;
-            result["content_type"] = "text/plain";
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            xmldoc.AppendChild(rootElement);
+
+            result["str_response_string"] = xmldoc.InnerXml;
+            result["int_response_code"] = 200;
+            result["content_type"] = "text/xml";
             result["keepalive"] = false;
             result["reusecontext"] = false;
-            result["str_response_string"] = "Upstream error: ";
-            result["error_status_text"] = "Upstream error:";
 
             return result;
         }
