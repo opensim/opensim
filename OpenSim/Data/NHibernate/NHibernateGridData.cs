@@ -117,7 +117,7 @@ namespace OpenSim.Data.NHibernate
             throw new NotImplementedException();
         }
 
-        public override DataResponse AddProfile(RegionProfileData profile)
+        public override DataResponse StoreProfile(RegionProfileData profile)
         {
             if (manager.Get(typeof(RegionProfileData), profile.Uuid) == null)
             {
@@ -126,20 +126,8 @@ namespace OpenSim.Data.NHibernate
             }
             else
             {
-                return DataResponse.RESPONSE_ERROR;
-            }
-        }
-
-        public override DataResponse UpdateProfile(RegionProfileData profile)
-        {
-            if (manager.Get(typeof(RegionProfileData), profile.Uuid) != null)
-            {
                 manager.Update(profile);
                 return DataResponse.RESPONSE_OK;
-            }
-            else
-            {
-                return DataResponse.RESPONSE_ERROR;
             }
         }
 

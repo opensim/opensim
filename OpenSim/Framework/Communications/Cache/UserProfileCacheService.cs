@@ -184,7 +184,7 @@ namespace OpenSim.Framework.Communications.Cache
         // Commented out for now.  The implementation needs to be improved by protecting against race conditions,
         // probably by making sure that the update doesn't use the UserCacheInfo.UserProfile directly (possibly via
         // returning a read only class from the cache).
-//        public bool UpdateProfile(UserProfileData userProfile)
+//        public bool StoreProfile(UserProfileData userProfile)
 //        {            
 //            lock (m_userProfilesById)
 //            {            

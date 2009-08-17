@@ -391,7 +391,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>Successful?</returns>
-        override public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse StoreProfile(RegionProfileData profile)
         {
             MySQLSuperManager dbm = GetLockedConnection();
             try {
@@ -405,17 +405,6 @@ namespace OpenSim.Data.MySQL
             {
                 dbm.Release();
             }
-        }
-
-        /// <summary>
-        /// Update a sim profile
-        /// </summary>
-        /// <param name="profile">The profile to update</param>
-        /// <returns>Sucessful?</returns>
-        /// <remarks>Same as AddProfile</remarks>
-        override public DataResponse UpdateProfile(RegionProfileData profile)
-        {
-            return AddProfile(profile);
         }
 
         /// <summary>

@@ -110,14 +110,14 @@ namespace OpenSim.Framework.Communications.Tests
             IUserDataPlugin userDataPlugin = commsManager.UserDataPlugin;
 
             // Check that we can't update info before it exists
-            Assert.That(userCacheService.UpdateProfile(newProfile), Is.False);
+            Assert.That(userCacheService.StoreProfile(newProfile), Is.False);
             Assert.That(userDataPlugin.GetUserByUUID(userId), Is.Null);
 
             // Check that we can update a profile once it exists
             LocalUserServices lus = (LocalUserServices)commsManager.UserService;
             lus.AddUser(firstName, originalLastName, "pingu", "ted@excellentadventure.com", 1000, 1000, userId);
 
-            Assert.That(userCacheService.UpdateProfile(newProfile), Is.True);
+            Assert.That(userCacheService.StoreProfile(newProfile), Is.True);
             UserProfileData retrievedProfile = userCacheService.GetUserDetails(userId).UserProfile;
             Assert.That(retrievedProfile.SurName, Is.EqualTo(newLastName));
             Assert.That(userDataPlugin.GetUserByUUID(userId).SurName, Is.EqualTo(newLastName));
