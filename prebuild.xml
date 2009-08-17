@@ -105,6 +105,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="System.Web"/>
       <Reference name="log4net.dll"/>
       <Reference name="Nini.dll"/>
