@@ -3770,11 +3770,13 @@ namespace OpenSim.Region.Framework.Scenes
                 UUID itemID = m_appearance.GetAttachedItem(p);
                 UUID assetID = m_appearance.GetAttachedAsset(p);
 
-                if (UUID.Zero == assetID) 
-                {
-                    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
-                    continue;
-                }
+                // For some reason assetIDs are being written as Zero's in the DB -- need to track tat down
+                // But they're not used anyway, the item is being looked up for now, so let's proceed.
+                //if (UUID.Zero == assetID) 
+                //{
+                //    m_log.DebugFormat("[ATTACHMENT]: Cannot rez attachment in point {0} with itemID {1}", p, itemID);
+                //    continue;
+                //}
 
                 try
                 {
