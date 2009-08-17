@@ -83,6 +83,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         internal string _accessPassword      = String.Empty;
         internal Regex  AccessPasswordRegex  = null;
+        internal List<string> ExcludeList    = new List<string>();
         internal string AccessPassword
         {
             get { return _accessPassword; }
@@ -210,8 +211,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] PingDelay : <{1}>", cs.idn, cs.PingDelay);
             cs.AccessPassword = Substitute(rs, config.GetString("access_password", cs.AccessPassword));
             m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
-
-
+            string[] excludes = config.GetString("exclude_list", "").Trim().Split(new Char[] { ',' });
+            cs.ExcludeList = new List<string>(excludes.Length);
+            foreach(string name in excludes)
+            {
+                cs.ExcludeList.Add(name.Trim().ToLower());
+            }
+            
             // Fail if fundamental information is still missing
 
             if (cs.Server == null || cs.IrcChannel == null || cs.BaseNickname == null || cs.User == null)
