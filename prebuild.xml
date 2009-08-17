@@ -105,9 +105,11 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Web"/>
       <Reference name="log4net.dll"/>
       <Reference name="Nini.dll"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

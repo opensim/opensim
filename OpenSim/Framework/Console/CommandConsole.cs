@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -368,6 +369,65 @@ namespace OpenSim.Framework.Console
             }
             
             return new string[0];
+        }
+
+        public XmlElement GetXml(XmlDocument doc)
+        {
+            XmlElement root = doc.CreateElement("", "HelpTree", "");
+
+            ProcessTreeLevel(tree, root, doc);
+
+            return root;
+        }
+
+        private void ProcessTreeLevel(Dictionary<string, object> level, XmlElement xml, XmlDocument doc)
+        {
+            foreach (KeyValuePair<string, object> kvp in level)
+            {
+                if (kvp.Value is Dictionary<string, Object>)
+                {
+                    XmlElement next = doc.CreateElement("", "Level", "");
+                    next.SetAttribute("Name", kvp.Key);
+
+                    xml.AppendChild(next);
+
+                    ProcessTreeLevel((Dictionary<string, object>)kvp.Value, next, doc);
+                }
+                else
+                {
+                    CommandInfo c = (CommandInfo)kvp.Value;
+
+                    XmlElement cmd = doc.CreateElement("", "Command", "");
+
+                    XmlElement e;
+
+                    e = doc.CreateElement("", "Module", "");
+                    cmd.AppendChild(e);
+                    e.AppendChild(doc.CreateTextNode(c.module));
+
+                    e = doc.CreateElement("", "Shared", "");
+                    cmd.AppendChild(e);
+                    e.AppendChild(doc.CreateTextNode(c.shared.ToString()));
+
+                    e = doc.CreateElement("", "HelpText", "");
+                    cmd.AppendChild(e);
+                    e.AppendChild(doc.CreateTextNode(c.help_text));
+
+                    e = doc.CreateElement("", "LongHelp", "");
+                    cmd.AppendChild(e);
+                    e.AppendChild(doc.CreateTextNode(c.long_help));
+
+                    e = doc.CreateElement("", "Description", "");
+                    cmd.AppendChild(e);
+                    e.AppendChild(doc.CreateTextNode(c.descriptive_help));
+
+                    xml.AppendChild(cmd);
+                }
+            }
+        }
+
+        public void FromXml(XmlElement root)
+        {
         }
     }
 
