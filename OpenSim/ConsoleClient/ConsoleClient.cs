@@ -163,12 +163,25 @@ namespace OpenSim.ConsoleClient
                 return;
             }
             
+            List<string> lines = new List<string>();
+
             foreach (XmlNode part in rootNodeL[0].ChildNodes)
             {
                 if (part.Name != "Line")
                     continue;
 
-                string[] parts = part.InnerText.Split(new char[] {':'}, 3);
+                lines.Add(part.InnerText);
+            }
+
+            // Cut down scrollback to 100 lines (4 screens)
+            // for the command line client
+            //
+            while (lines.Count > 100)
+                lines.RemoveAt(0);
+
+            foreach (string l in lines)
+            {
+                string[] parts = l.Split(new char[] {':'}, 3);
                 if (parts.Length != 3)
                     continue;
                 
