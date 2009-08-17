@@ -205,6 +205,7 @@ namespace OpenSim.Framework.Communications.Services
                     // Otherwise...
                     // Create a new agent session
 
+                    // XXYY we don't need this
                     m_userManager.ResetAttachments(userProfile.ID);
 
                     CreateAgent(userProfile, request);
@@ -462,7 +463,8 @@ namespace OpenSim.Framework.Communications.Services
                     // Otherwise...
                     // Create a new agent session
 
-                    m_userManager.ResetAttachments(userProfile.ID);
+                    // XXYY We don't need this
+                    //m_userManager.ResetAttachments(userProfile.ID);
 
                     CreateAgent(userProfile, request);
 
