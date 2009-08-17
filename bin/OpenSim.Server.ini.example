@@ -14,6 +14,12 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 [Network]
 port = 8003
 
+; * The following are for the remote console
+; * They have no effect for the local or basic console types
+; * Leave commented to diable logins to the console
+;ConsoleUser = Test
+;ConsolePass = secret
+
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
 ; * and it then loads the OUT connector (a local database module). That,
