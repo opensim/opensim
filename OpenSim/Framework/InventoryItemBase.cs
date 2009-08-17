@@ -364,6 +364,12 @@ namespace OpenSim.Framework
             ID = id;
         }
 
+        public InventoryItemBase(UUID id, UUID owner)
+        {
+            ID = id;
+            Owner = owner;
+        }
+
         public object Clone()
         {
             return MemberwiseClone();
