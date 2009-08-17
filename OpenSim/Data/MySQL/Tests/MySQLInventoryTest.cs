@@ -53,6 +53,7 @@ namespace OpenSim.Data.MySQL.Tests
             try 
             {
                 database = new MySQLManager(connect);
+                DropTables();
                 db = new MySQLInventoryData();
                 db.Initialise(connect);
             } 
@@ -72,10 +73,15 @@ namespace OpenSim.Data.MySQL.Tests
             }
             if (database != null)
             {
-                database.ExecuteSql("drop table inventoryitems");
-                database.ExecuteSql("drop table inventoryfolders");
-                database.ExecuteSql("drop table migrations");
+                DropTables();
             }
+        }
+
+        private void DropTables()
+        {
+            database.ExecuteSql("drop table IF EXISTS inventoryitems");
+            database.ExecuteSql("drop table IF EXISTS inventoryfolders");
+            database.ExecuteSql("drop table IF EXISTS migrations");
         }
     }
 }

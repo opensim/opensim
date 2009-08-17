@@ -71,14 +71,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             region1 = UUID.Random();
             region3 = UUID.Random();
@@ -531,6 +524,62 @@ namespace OpenSim.Data.Tests
                 Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity), "Assert.That(cursop.AngularVelocity,Is.EqualTo(parts[i].AngularVelocity))");
                 Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration), "Assert.That(cursop.Acceleration,Is.EqualTo(parts[i].Acceleration))");
             }
+        }
+
+        [Test]
+        public void T016_RandomSogWithSceneParts()
+        {
+            PropertyScrambler<SceneObjectPart> scrambler =
+                new PropertyScrambler<SceneObjectPart>()
+                    .DontScramble(x => x.UUID);
+            UUID tmpSog = UUID.Random();
+            UUID tmp1 = UUID.Random();
+            UUID tmp2 = UUID.Random();
+            UUID tmp3 = UUID.Random();
+            UUID newregion = UUID.Random();
+            SceneObjectPart p1 = new SceneObjectPart();
+            SceneObjectPart p2 = new SceneObjectPart();
+            SceneObjectPart p3 = new SceneObjectPart();
+            p1.Shape = PrimitiveBaseShape.Default;
+            p2.Shape = PrimitiveBaseShape.Default;
+            p3.Shape = PrimitiveBaseShape.Default;
+            p1.UUID = tmp1;
+            p2.UUID = tmp2;
+            p3.UUID = tmp3;
+            scrambler.Scramble(p1);
+            scrambler.Scramble(p2);
+            scrambler.Scramble(p3);
+
+            SceneObjectGroup sog = NewSOG("Sop 0", tmpSog, newregion);
+            PropertyScrambler<SceneObjectGroup> sogScrambler =
+                new PropertyScrambler<SceneObjectGroup>()
+                    .DontScramble(x => x.UUID);
+            sogScrambler.Scramble(sog);
+            sog.UUID = tmpSog;
+            sog.AddPart(p1);
+            sog.AddPart(p2);
+            sog.AddPart(p3);
+
+            SceneObjectPart[] parts = sog.GetParts();
+            Assert.That(parts.Length, Is.EqualTo(4), "Assert.That(parts.Length,Is.EqualTo(4))");
+
+            db.StoreObject(sog, newregion);
+            List<SceneObjectGroup> sogs = db.LoadObjects(newregion);
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count,Is.EqualTo(1))");
+            SceneObjectGroup newsog = sogs[0];
+
+            SceneObjectPart[] newparts = newsog.GetParts();
+            Assert.That(newparts.Length, Is.EqualTo(4), "Assert.That(newparts.Length,Is.EqualTo(4))");
+
+            Assert.That(newsog, Constraints.PropertyCompareConstraint(sog)
+                .IgnoreProperty(x=>x.LocalId)
+                .IgnoreProperty(x=>x.HasGroupChanged)
+                .IgnoreProperty(x=>x.IsSelected)
+                .IgnoreProperty(x=>x.RegionHandle)
+                .IgnoreProperty(x=>x.RegionUUID)
+                .IgnoreProperty(x=>x.Scene)
+                .IgnoreProperty(x=>x.Children)
+                .IgnoreProperty(x=>x.RootPart));
         }
         
         [Test]

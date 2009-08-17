@@ -307,26 +307,21 @@ namespace OpenSim.Data.SQLite
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, UUID regionUUID)
         {
+            uint flags = obj.RootPart.GetEffectiveObjectFlags();
+
+            // Eligibility check
+            //
+            if ((flags & (uint)PrimFlags.Temporary) != 0)
+                return;
+            if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
+                return;
+
             lock (ds)
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)PrimFlags.Temporary) == 0
-                        && (prim.GetEffectiveObjectFlags() & (uint)PrimFlags.TemporaryOnRez) == 0)
-                    {
-                        m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
-                        addPrim(prim, obj.UUID, regionUUID);
-                    }
-                    else if (prim.Stopped)
-                    {
-                        //m_log.Info("[DATASTORE]: " +
-                                                 //"Adding stopped obj: " + obj.UUID + " to region: " + regionUUID);
-                        //addPrim(prim, obj.UUID.ToString(), regionUUID.ToString());
-                    }
-                    else
-                    {
-                        // m_log.Info("[DATASTORE]: Ignoring Physical obj: " + obj.UUID + " in region: " + regionUUID);
-                    }
+                    m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                    addPrim(prim, obj.UUID, regionUUID);
                 }
             }
 
@@ -1130,7 +1125,7 @@ namespace OpenSim.Data.SQLite
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.Name = (String) row["Name"];
+            prim.Name = row["Name"] == DBNull.Value ? string.Empty : (string)row["Name"];
             // various text fields
             prim.Text = (String) row["Text"];
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),

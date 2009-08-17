@@ -71,14 +71,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
             random = new Random();
             user1 = UUID.Random();
             user2 = UUID.Random();
@@ -115,13 +108,6 @@ namespace OpenSim.Data.Tests
             Assert.That(db.GetAgentByUUID(agent2), Is.Null);
             Assert.That(db.GetAgentByUUID(agent3), Is.Null);
             Assert.That(db.GetAgentByUUID(UUID.Random()), Is.Null);
-        }
-
-        [Test]
-        public void T999_StillNull()
-        {
-            Assert.That(db.GetUserByUUID(zero), Is.Null);
-            Assert.That(db.GetAgentByUUID(zero), Is.Null);
         }
 
         [Test]
@@ -396,6 +382,22 @@ namespace OpenSim.Data.Tests
             Assert.That(customtype,Is.EqualTo(u1a.CustomType), "Assert.That(customtype,Is.EqualTo(u1a.CustomType))");
             Assert.That(partner,Is.EqualTo(u1a.Partner), "Assert.That(partner,Is.EqualTo(u1a.Partner))");
         }
+
+        [Test]
+        public void T017_UserUpdateRandomPersistency()
+        {
+            UUID id = user5;
+            UserProfileData u = db.GetUserByUUID(id);
+            new PropertyScrambler<UserProfileData>().DontScramble(x=>x.ID).Scramble(u);
+            
+            db.UpdateUserProfile(u);
+            UserProfileData u1a = db.GetUserByUUID(id);
+            Assert.That(u1a, Constraints.PropertyCompareConstraint(u)
+                .IgnoreProperty(x=>x.HomeRegionX)
+                .IgnoreProperty(x=>x.HomeRegionY)
+                .IgnoreProperty(x=>x.RootInventoryFolderID)
+                );
+        }
         
         [Test]
         public void T020_CreateAgent()
@@ -658,6 +660,13 @@ namespace OpenSim.Data.Tests
             Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset), "Assert.That(skirtasset,Is.EqualTo(app.SkirtAsset))");
             Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()), "Assert.That(texture.ToString(),Is.EqualTo(app.Texture.ToString()))");
             Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight), "Assert.That(avatarheight,Is.EqualTo(app.AvatarHeight))");
+        }
+
+        [Test]
+        public void T999_StillNull()
+        {
+            Assert.That(db.GetUserByUUID(zero), Is.Null);
+            Assert.That(db.GetAgentByUUID(zero), Is.Null);
         }
 
         public UserProfileData NewUser(UUID id,string fname,string lname)

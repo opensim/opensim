@@ -21,6 +21,7 @@ bin/*.db
 bin/addin-db-*
 bin/*.dll
 bin/OpenSim.vshost.exe.config
+bin/ScriptEngines/*-*-*-*-*
 bin/ScriptEngines/*.dll
 bin/ScriptEngines/*/*.dll
 bin/ScriptEngines/*/*.state
