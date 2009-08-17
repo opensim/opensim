@@ -26,30 +26,43 @@
  */
 
 using System;
+using System.Xml;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Framework.Servers.HttpServer;
 using log4net;
 
 namespace OpenSim.Framework.Console
 {
+    public class ConsoleConnection
+    {
+        public int last;
+        public long lastLineSeen;
+    }
+
     // A console that uses REST interfaces
     //
     public class RemoteConsole : CommandConsole
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private IHttpServer m_Server = null;
-        // private IConfigSource m_Config = null;
+        private IHttpServer m_Server = null;
+        private IConfigSource m_Config = null;
 
         private List<string> m_Scrollback = new List<string>();
         private ManualResetEvent m_DataEvent = new ManualResetEvent(false);
         private List<string> m_InputData = new List<string>();
-        private uint m_LineNumber = 1;
+        private long m_LineNumber = 0;
+        private Dictionary<UUID, ConsoleConnection> m_Connections =
+                new Dictionary<UUID, ConsoleConnection>();
+        private string m_UserName = String.Empty;
+        private string m_Password = String.Empty;
 
         public RemoteConsole(string defaultPrompt) : base(defaultPrompt)
         {
@@ -57,12 +70,23 @@ namespace OpenSim.Framework.Console
 
         public void ReadConfig(IConfigSource config)
         {
-            // m_Config = config;
+            m_Config = config;
+
+            IConfig netConfig = m_Config.Configs["Network"];
+            if (netConfig == null)
+                return;
+
+            m_UserName = netConfig.GetString("ConsoleUser", String.Empty);
+            m_Password = netConfig.GetString("ConsolePass", String.Empty);
         }
 
         public void SetServer(IHttpServer server)
         {
-            // m_Server = server;
+            m_Server = server;
+
+            m_Server.AddHTTPHandler("/StartSession/", HandleHttpStartSession);
+            m_Server.AddHTTPHandler("/CloseSession/", HandleHttpCloseSession);
+            m_Server.AddHTTPHandler("/SessionCommand/", HandleHttpSessionCommand);
         }
 
         public override void Output(string text, string level)
@@ -71,16 +95,19 @@ namespace OpenSim.Framework.Console
             {
                 while (m_Scrollback.Count >= 1000)
                     m_Scrollback.RemoveAt(0);
-                m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
                 m_LineNumber++;
+                m_Scrollback.Add(String.Format("{0}", m_LineNumber)+":"+level+":"+text);
             }
-            System.Console.Write(text);
+            System.Console.WriteLine(text.Trim());
+        }
+
+        public override void Output(string text)
+        {
+            Output(text, "normal");
         }
 
         public override string ReadLine(string p, bool isCommand, bool e)
         {
-            System.Console.Write("{0}", prompt);
-            
             m_DataEvent.WaitOne();
 
             lock (m_InputData)
@@ -114,6 +141,317 @@ namespace OpenSim.Framework.Console
                 }
                 return cmdinput;
             }
+        }
+
+        private void DoExpire()
+        {
+            List<UUID> expired = new List<UUID>();
+
+            lock (m_Connections)
+            {
+                foreach (KeyValuePair<UUID, ConsoleConnection> kvp in m_Connections)
+                {
+                    if (System.Environment.TickCount - kvp.Value.last > 500000)
+                        expired.Add(kvp.Key);
+                }
+
+                foreach (UUID id in expired)
+                {
+                    m_Connections.Remove(id);
+                    CloseConnection(id);
+                }
+            }
+        }
+
+        private Hashtable HandleHttpStartSession(Hashtable request)
+        {
+            DoExpire();
+
+            Hashtable post = DecodePostString(request["body"].ToString());
+            Hashtable reply = new Hashtable();
+
+            reply["str_response_string"] = "";
+            reply["int_response_code"] = 401;
+            reply["content_type"] = "text/plain";
+
+            if (m_UserName == String.Empty)
+                return reply;
+
+            if (post["USER"] == null || post["PASS"] == null)
+                return reply;
+
+            if (m_UserName != post["USER"].ToString() ||
+                m_Password != post["PASS"].ToString())
+            {
+                return reply;
+            }
+
+            ConsoleConnection c = new ConsoleConnection();
+            c.last = System.Environment.TickCount;
+            c.lastLineSeen = 0;
+
+            UUID sessionID = UUID.Random();
+
+            lock (m_Connections)
+            {
+                m_Connections[sessionID] = c;
+            }
+
+            string uri = "/ReadResponses/" + sessionID.ToString() + "/";
+
+            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpCloseSession,
+                    new PollServiceEventArgs(HasEvents, GetEvents, NoEvents,
+                    sessionID));
+
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            xmldoc.AppendChild(rootElement);
+
+            XmlElement id = xmldoc.CreateElement("", "SessionID", "");
+            id.AppendChild(xmldoc.CreateTextNode(sessionID.ToString()));
+
+            rootElement.AppendChild(id);
+            rootElement.AppendChild(MainConsole.Instance.Commands.GetXml(xmldoc));
+
+            reply["str_response_string"] = xmldoc.InnerXml;
+            reply["int_response_code"] = 200;
+            reply["content_type"] = "text/xml";
+
+            return reply;
+        }
+
+        private Hashtable HandleHttpCloseSession(Hashtable request)
+        {
+            DoExpire();
+
+            Hashtable post = DecodePostString(request["body"].ToString());
+            Hashtable reply = new Hashtable();
+
+            reply["str_response_string"] = "";
+            reply["int_response_code"] = 404;
+            reply["content_type"] = "text/plain";
+
+            if (post["ID"] == null)
+                return reply;
+
+            UUID id;
+            if (!UUID.TryParse(post["ID"].ToString(), out id))
+                return reply;
+
+            lock (m_Connections)
+            {
+                if (m_Connections.ContainsKey(id))
+                {
+                    m_Connections.Remove(id);
+                    CloseConnection(id);
+                }
+            }
+
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            xmldoc.AppendChild(rootElement);
+
+            XmlElement res = xmldoc.CreateElement("", "Result", "");
+            res.AppendChild(xmldoc.CreateTextNode("OK"));
+
+            rootElement.AppendChild(res);
+
+            reply["str_response_string"] = xmldoc.InnerXml;
+            reply["int_response_code"] = 200;
+            reply["content_type"] = "text/plain";
+
+            return reply;
+        }
+
+        private Hashtable HandleHttpSessionCommand(Hashtable request)
+        {
+            DoExpire();
+
+            Hashtable post = DecodePostString(request["body"].ToString());
+            Hashtable reply = new Hashtable();
+
+            reply["str_response_string"] = "";
+            reply["int_response_code"] = 404;
+            reply["content_type"] = "text/plain";
+
+            if (post["ID"] == null)
+                return reply;
+
+            UUID id;
+            if (!UUID.TryParse(post["ID"].ToString(), out id))
+                return reply;
+
+            if (post["COMMAND"] == null || post["COMMAND"].ToString() == String.Empty)
+                return reply;
+
+            lock (m_InputData)
+            {
+                m_DataEvent.Set();
+                m_InputData.Add(post["COMMAND"].ToString());
+            }
+
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            xmldoc.AppendChild(rootElement);
+
+            XmlElement res = xmldoc.CreateElement("", "Result", "");
+            res.AppendChild(xmldoc.CreateTextNode("OK"));
+
+            rootElement.AppendChild(res);
+
+            reply["str_response_string"] = xmldoc.InnerXml;
+            reply["int_response_code"] = 200;
+            reply["content_type"] = "text/plain";
+
+            return reply;
+        }
+
+        private Hashtable DecodePostString(string data)
+        {
+            Hashtable result = new Hashtable();
+
+            string[] terms = data.Split(new char[] {'&'});
+
+            foreach (string term in terms)
+            {
+                string[] elems = term.Split(new char[] {'='});
+                if (elems.Length == 0)
+                    continue;
+
+                string name = System.Web.HttpUtility.UrlDecode(elems[0]);
+                string value = String.Empty;
+
+                if (elems.Length > 1)
+                    value = System.Web.HttpUtility.UrlDecode(elems[1]);
+                
+                result[name] = value;
+            }
+
+            return result;
+        }
+
+        public void CloseConnection(UUID id)
+        {
+            try
+            {
+                string uri = "/ReadResponses/" + id.ToString() + "/";
+
+                m_Server.RemovePollServiceHTTPHandler("", uri);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private bool HasEvents(UUID sessionID)
+        {
+            ConsoleConnection c = null;
+
+            lock (m_Connections)
+            {
+                if (!m_Connections.ContainsKey(sessionID))
+                    return false;
+                c = m_Connections[sessionID];
+            }
+            c.last = System.Environment.TickCount;
+            if (c.lastLineSeen < m_LineNumber)
+                return true;
+            return false;
+        }
+
+        private Hashtable GetEvents(UUID sessionID, string request)
+        {
+            ConsoleConnection c = null;
+
+            lock (m_Connections)
+            {
+                if (!m_Connections.ContainsKey(sessionID))
+                    return NoEvents();
+                c = m_Connections[sessionID];
+            }
+            c.last = System.Environment.TickCount;
+            if (c.lastLineSeen >= m_LineNumber)
+                return NoEvents();
+
+            Hashtable result = new Hashtable();
+
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            lock (m_Scrollback)
+            {
+                long startLine = m_LineNumber - m_Scrollback.Count;
+                long sendStart = startLine;
+                if (sendStart < c.lastLineSeen)
+                    sendStart = c.lastLineSeen;
+
+                for (long i = sendStart ; i < m_LineNumber ; i++)
+                {
+                    XmlElement res = xmldoc.CreateElement("", "Line", "");
+                    long line = i + 1;
+                    res.SetAttribute("Number", line.ToString());
+                    res.AppendChild(xmldoc.CreateTextNode(m_Scrollback[(int)(i - startLine)]));
+
+                    rootElement.AppendChild(res);
+                }
+            }
+            c.lastLineSeen = m_LineNumber;
+
+            xmldoc.AppendChild(rootElement);
+
+            result["str_response_string"] = xmldoc.InnerXml;
+            result["int_response_code"] = 200;
+            result["content_type"] = "application/xml";
+            result["keepalive"] = false;
+            result["reusecontext"] = false;
+
+            return result;
+        }
+
+        private Hashtable NoEvents()
+        {
+            Hashtable result = new Hashtable();
+
+            XmlDocument xmldoc = new XmlDocument();
+            XmlNode xmlnode = xmldoc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            xmldoc.AppendChild(xmlnode);
+            XmlElement rootElement = xmldoc.CreateElement("", "ConsoleSession",
+                    "");
+
+            xmldoc.AppendChild(rootElement);
+
+            result["str_response_string"] = xmldoc.InnerXml;
+            result["int_response_code"] = 200;
+            result["content_type"] = "text/xml";
+            result["keepalive"] = false;
+            result["reusecontext"] = false;
+
+            return result;
         }
     }
 }

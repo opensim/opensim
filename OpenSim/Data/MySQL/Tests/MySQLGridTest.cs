@@ -62,11 +62,18 @@ namespace OpenSim.Data.MySQL.Tests
                 m_log.Error("Exception {0}", e);
                 Assert.Ignore();
             }
+
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(database.Connection, assem, "GridStore");
+
+            m.Update();
         }
 
         [TestFixtureTearDown]
         public void Cleanup()
         {
+            m_log.Warn("Cleaning up.");
             if (db != null)
             {
                 db.Dispose();
@@ -74,6 +81,7 @@ namespace OpenSim.Data.MySQL.Tests
             // if a new table is added, it has to be dropped here
             if (database != null)
             {
+                database.ExecuteSql("drop table migrations");
                 database.ExecuteSql("drop table regions");
             }
         }

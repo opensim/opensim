@@ -120,6 +120,7 @@ namespace OpenSim
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
             configSource.AddSwitch("Startup", "gui");
+            configSource.AddSwitch("Startup", "console");
 
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");

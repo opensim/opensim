@@ -154,7 +154,7 @@ namespace OpenSim.Tests.Common.Setup
             TestScene testScene = new TestScene(
                 regInfo, acm, cm, scs, sm, null, false, false, false, configSource, null);
 
-            INonSharedRegionModule capsModule = new CapabilitiesModule();            
+            INonSharedRegionModule capsModule = new CapabilitiesModule();
             capsModule.Initialise(new IniConfigSource());
             testScene.AddRegionModule(capsModule.Name, capsModule);
             capsModule.AddRegion(testScene);
@@ -163,7 +163,7 @@ namespace OpenSim.Tests.Common.Setup
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
-            IniConfigSource config = new IniConfigSource();
+            IConfigSource config = new IniConfigSource();
             
             // If we have a brand new scene, need to initialize shared region modules
             if ((m_assetService == null && m_inventoryService == null) || newScene)
@@ -198,7 +198,7 @@ namespace OpenSim.Tests.Common.Setup
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
             testScene.PhysicsScene
-                = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher", configSource, "test");
+                = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher",   new IniConfigSource(), "test");
             
             return testScene;
         }
@@ -206,7 +206,7 @@ namespace OpenSim.Tests.Common.Setup
         private static void StartAssetService(Scene testScene, bool real)
         {
             ISharedRegionModule assetService = new LocalAssetServicesConnector();
-            IniConfigSource config = new IniConfigSource();
+            IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("AssetService");
             config.Configs["Modules"].Set("AssetServices", "LocalAssetServicesConnector");
@@ -225,7 +225,7 @@ namespace OpenSim.Tests.Common.Setup
         private static void StartInventoryService(Scene testScene, bool real)
         {
             ISharedRegionModule inventoryService = new LocalInventoryServicesConnector();
-            IniConfigSource config = new IniConfigSource();
+            IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("InventoryService");
             config.Configs["Modules"].Set("InventoryServices", "LocalInventoryServicesConnector");
@@ -418,4 +418,5 @@ namespace OpenSim.Tests.Common.Setup
             sogd.InventoryDeQueueAndDelete();
         }
     }
+    
 }

@@ -52,6 +52,7 @@ namespace OpenSim
         protected string m_startupCommandsFile;
         protected string m_shutdownCommandsFile;
         protected bool m_gui = false;
+        protected string m_consoleType = "local";
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -71,7 +72,10 @@ namespace OpenSim
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");
                 m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", "shutdown_commands.txt");
 
-                m_gui = startupConfig.GetBoolean("gui", false);
+                if (startupConfig.GetString("console", String.Empty) == String.Empty)
+                    m_gui = startupConfig.GetBoolean("gui", false);
+                else
+                    m_consoleType= startupConfig.GetString("console", String.Empty);
 
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
                 if (m_logFileAppender != null)
@@ -110,12 +114,30 @@ namespace OpenSim
             if (m_gui) // Driven by external GUI
                 m_console = new CommandConsole("Region");
             else
-                m_console = new LocalConsole("Region");
+            {
+                switch (m_consoleType)
+                {
+                case "basic":
+                    m_console = new CommandConsole("Region");
+                    break;
+                case "rest":
+                    m_console = new RemoteConsole("Region");
+                    ((RemoteConsole)m_console).ReadConfig(m_config.Source);
+                    break;
+                default:
+                    m_console = new LocalConsole("Region");
+                    break;
+                }
+            }
+
             MainConsole.Instance = m_console;
 
             RegisterConsoleCommands();
 
             base.StartupSpecific();
+
+            if (m_console is RemoteConsole)
+                ((RemoteConsole)m_console).SetServer(m_httpServer);
 
             //Run Startup Commands
             if (String.IsNullOrEmpty(m_startupCommandsFile))

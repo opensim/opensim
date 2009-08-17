@@ -834,7 +834,10 @@ namespace OpenSim.Data.MySQL
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
             prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
-            prim.Name = (String) row["Name"];
+            if (row["Name"] != DBNull.Value)
+                prim.Name = (String)row["Name"];
+            else
+                prim.Name = string.Empty;
             // various text fields
             prim.Text = (String) row["Text"];
             prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
@@ -945,12 +948,12 @@ namespace OpenSim.Data.MySQL
                 prim.DIE_AT_EDGE = true;
 
             prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
-            prim.ObjectSaleType = Convert.ToByte(row["SaleType"]);
+            prim.ObjectSaleType = unchecked((byte)Convert.ToSByte(row["SaleType"]));
 
-            prim.Material = Convert.ToByte(row["Material"]);
+            prim.Material = unchecked((byte)Convert.ToSByte(row["Material"]));
 
             if (!(row["ClickAction"] is DBNull))
-                prim.ClickAction = (byte)Convert.ToByte(row["ClickAction"]);
+                prim.ClickAction = unchecked((byte)Convert.ToSByte(row["ClickAction"]));
 
             prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
             prim.CollisionSoundVolume = Convert.ToSingle(row["CollisionSoundVolume"]);
@@ -1277,12 +1280,12 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("DieAtEdge", 0);
 
             cmd.Parameters.AddWithValue("SalePrice", prim.SalePrice);
-            cmd.Parameters.AddWithValue("SaleType", Convert.ToInt16(prim.ObjectSaleType));
+            cmd.Parameters.AddWithValue("SaleType", unchecked((sbyte)(prim.ObjectSaleType)));
 
             byte clickAction = prim.ClickAction;
-            cmd.Parameters.AddWithValue("ClickAction", clickAction);
+            cmd.Parameters.AddWithValue("ClickAction", unchecked((sbyte)(clickAction)));
 
-            cmd.Parameters.AddWithValue("Material", prim.Material);
+            cmd.Parameters.AddWithValue("Material", unchecked((sbyte)(prim.Material)));
 
             cmd.Parameters.AddWithValue("CollisionSound", prim.CollisionSound.ToString());
             cmd.Parameters.AddWithValue("CollisionSoundVolume", prim.CollisionSoundVolume);

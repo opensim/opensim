@@ -25,18 +25,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
+using System;
+using System.Collections.Generic;
+using System.Text;
+using log4net.Appender;
+using log4net.Layout;
+
+namespace OpenSim.Tests.Common
 {
-    public interface IAvatarAttachment
+    public static class TestLogging
     {
-        //// <value>
-        /// Describes where on the avatar the attachment is located
-        /// </value>
-        int Location { get ; }
-        
-        //// <value>
-        /// Accessor to the rez'ed asset, representing the attachment
-        /// </value>
-        IObject Asset { get; }
+        public static void LogToConsole()
+        {
+            ConsoleAppender consoleAppender = new ConsoleAppender();
+            consoleAppender.Layout =
+                new PatternLayout("%date [%thread] %-5level %logger [%property{NDC}] - %message%newline");
+            log4net.Config.BasicConfigurator.Configure(consoleAppender);
+        }
     }
 }

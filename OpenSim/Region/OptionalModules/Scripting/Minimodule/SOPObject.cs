@@ -71,7 +71,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         private bool CanEdit()
         {
-            if(!m_security.CanEditObject(this))
+            if (!m_security.CanEditObject(this))
             {
                 throw new SecurityException("Insufficient Permission to edit object with UUID [" + GetSOP().UUID + "]");
             }
@@ -672,7 +672,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             get { return m_sculptType; }
             set
             {
-                if(!CanEdit())
+                if (!CanEdit())
                     return;
 
                 m_sculptType = value;

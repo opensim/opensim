@@ -115,7 +115,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            PacketType i = PacketType.ObjectUpdate;
             List<EntityBase> EntityList = GetEntities();
 
             foreach (EntityBase ent in EntityList)

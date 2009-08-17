@@ -26,67 +26,61 @@
  */
 
 using System;
-using System.Threading;
+using System.IO;
+using System.Net;
 using System.Reflection;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers.HttpServer;
+using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 using log4net;
-using Nini.Config;
 
-namespace OpenSim.Server.Base
+namespace OpenSim.ConsoleClient
 {
-    public class HttpServerBase : ServicesServerBase
+    public delegate void ReplyDelegate(string requestUrl, string requestData, string replyData);
+
+    public class Requester
     {
-        // Logger
-        //
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
-
-        // The http server instance
-        //
-        protected BaseHttpServer m_HttpServer = null;
-
-        public IHttpServer HttpServer
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public static void MakeRequest(string requestUrl, string data,
+                ReplyDelegate action)
         {
-            get { return m_HttpServer; }
-        }
+            WebRequest request = WebRequest.Create(requestUrl);
+            WebResponse response = null;
 
-        // Handle all the automagical stuff
-        //
-        public HttpServerBase(string prompt, string[] args) : base(prompt, args)
-        {
-        }
+            request.Method = "POST";
 
-        protected override void ReadConfig()
-        {
-            IConfig networkConfig = m_Config.Configs["Network"];
+            request.ContentType = "application/x-www-form-urlencoded";
 
-            if (networkConfig == null)
+            byte[] buffer = new System.Text.ASCIIEncoding().GetBytes(data);
+            int length = (int) buffer.Length;
+            request.ContentLength = length;
+
+            request.BeginGetRequestStream(delegate(IAsyncResult res)
             {
-                System.Console.WriteLine("Section 'Network' not found, server can't start");
-                Thread.CurrentThread.Abort();
-            }
-            uint port = (uint)networkConfig.GetInt("port", 0);
+                Stream requestStream = request.EndGetRequestStream(res);
 
-            if (port == 0)
-            {
-                System.Console.WriteLine("Port number not specified or 0, server can't start");
-                Thread.CurrentThread.Abort();
-            }
+                requestStream.Write(buffer, 0, length);
 
-            m_HttpServer = new BaseHttpServer(port);
+                request.BeginGetResponse(delegate(IAsyncResult ar)
+                {
+                    string reply = String.Empty;
 
-            MainServer.Instance = m_HttpServer;
-        }
+                    response = request.EndGetResponse(ar);
 
-        protected override void Initialise()
-        {
-            m_HttpServer.Start();
+                    try
+                    {
+                        StreamReader r = new StreamReader(response.GetResponseStream());
+                        reply = r.ReadToEnd();
 
-            if (MainConsole.Instance is RemoteConsole)
-            {
-                ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
-            }
+                    }
+                    catch (System.InvalidOperationException)
+                    {
+                    }
+
+                    action(requestUrl, data, reply);
+                }, null);
+            }, null);
         }
     }
 }

@@ -66,14 +66,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             folder1 = UUID.Random();
             folder2 = UUID.Random();
@@ -113,16 +106,6 @@ namespace OpenSim.Data.Tests
 
             Assert.That(db.getUserRootFolder(zero), Is.Null);
             Assert.That(db.getUserRootFolder(owner1), Is.Null);
-        }
-
-        [Test]
-        public void T999_StillNull()
-        {
-            // After all tests are run, these should still return no results
-            Assert.That(db.getInventoryFolder(zero), Is.Null);
-            Assert.That(db.getInventoryItem(zero), Is.Null);
-            Assert.That(db.getUserRootFolder(zero), Is.Null);
-            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0))");
         }
 
         // 01x - folder tests
@@ -248,7 +231,7 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
-        public void T103UpdateItem()
+        public void T103_UpdateItem()
         {
             // TODO: probably shouldn't have the ability to have an
             // owner of an item in a folder not owned by the user
@@ -263,6 +246,71 @@ namespace OpenSim.Data.Tests
             Assert.That(i1.Name, Is.EqualTo(niname1), "Assert.That(i1.Name, Is.EqualTo(niname1))");
             Assert.That(i1.Description, Is.EqualTo(niname1), "Assert.That(i1.Description, Is.EqualTo(niname1))");
             Assert.That(i1.Owner, Is.EqualTo(owner2), "Assert.That(i1.Owner, Is.EqualTo(owner2))");
+        }
+
+        [Test]
+        public void T104_RandomUpdateItem()
+        {
+            PropertyScrambler<InventoryFolderBase> folderScrambler =
+                new PropertyScrambler<InventoryFolderBase>()
+                    .DontScramble(x => x.Owner)
+                    .DontScramble(x => x.ParentID)
+                    .DontScramble(x => x.ID);
+            UUID owner = UUID.Random();
+            UUID folder = UUID.Random();
+            UUID rootId = UUID.Random();
+            UUID rootAsset = UUID.Random();
+            InventoryFolderBase f1 = NewFolder(folder, zero, owner, name1);
+            folderScrambler.Scramble(f1);
+
+            db.addInventoryFolder(f1);
+            InventoryFolderBase f1a = db.getUserRootFolder(owner);
+            Assert.That(f1a, Constraints.PropertyCompareConstraint(f1));
+
+            folderScrambler.Scramble(f1a);
+
+            db.updateInventoryFolder(f1a);
+
+            InventoryFolderBase f1b = db.getUserRootFolder(owner);
+            Assert.That(f1b, Constraints.PropertyCompareConstraint(f1a));
+
+            //Now we have a valid folder to insert into, we can insert the item.
+            PropertyScrambler<InventoryItemBase> inventoryScrambler =
+                new PropertyScrambler<InventoryItemBase>()
+                    .DontScramble(x => x.ID)
+                    .DontScramble(x => x.AssetID)
+                    .DontScramble(x => x.Owner)
+                    .DontScramble(x => x.Folder);
+            InventoryItemBase root = NewItem(rootId, folder, owner, iname1, rootAsset);
+            inventoryScrambler.Scramble(root);
+            db.addInventoryItem(root);
+
+            InventoryItemBase expected = db.getInventoryItem(rootId);
+            Assert.That(expected, Constraints.PropertyCompareConstraint(root)
+                                    .IgnoreProperty(x => x.InvType)
+                                    .IgnoreProperty(x => x.CreatorIdAsUuid)
+                                    .IgnoreProperty(x => x.Description)
+                                    .IgnoreProperty(x => x.CreatorId));
+
+            inventoryScrambler.Scramble(expected);
+            db.updateInventoryItem(expected);
+
+            InventoryItemBase actual = db.getInventoryItem(rootId);
+            Assert.That(actual, Constraints.PropertyCompareConstraint(expected)
+                                    .IgnoreProperty(x => x.InvType)
+                                    .IgnoreProperty(x => x.CreatorIdAsUuid)
+                                    .IgnoreProperty(x => x.Description)
+                                    .IgnoreProperty(x => x.CreatorId));
+        }
+
+        [Test]
+        public void T999_StillNull()
+        {
+            // After all tests are run, these should still return no results
+            Assert.That(db.getInventoryFolder(zero), Is.Null);
+            Assert.That(db.getInventoryItem(zero), Is.Null);
+            Assert.That(db.getUserRootFolder(zero), Is.Null);
+            Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0), "Assert.That(db.getInventoryInFolder(zero).Count, Is.EqualTo(0))");
         }
 
         private InventoryItemBase NewItem(UUID id, UUID parent, UUID owner, string name, UUID asset)
