@@ -156,10 +156,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
-        private bool IsLocked = false;
+
         private float ODE_STEPSIZE = 0.020f;
         private float metersInSpace = 29.9f;
-        private List<PhysicsActor> RemoveQueue;
+
         public float gravityx = 0f;
         public float gravityy = 0f;
         public float gravityz = -9.8f;
@@ -376,7 +376,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
-            RemoveQueue = new List<PhysicsActor>();
             mesher = meshmerizer;
             m_config = config;
             // Defaults
@@ -2048,21 +2047,13 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (prim is OdePrim)
             {
-                if (!IsLocked) //Fix a deadlock situation.. have we been locked by Simulate?
+                lock (OdeLock)
                 {
-                    lock (OdeLock)
-                    {
-                        OdePrim p = (OdePrim)prim;
+                    OdePrim p = (OdePrim) prim;
 
-                        p.setPrimForRemoval();
-                        AddPhysicsActorTaint(prim);
-                        //RemovePrimThreadLocked(p);
-                    }
-                }
-                else
-                {
-                    //Add the prim to a queue which will be removed when Simulate has finished what it's doing.
-                    RemoveQueue.Add(prim);
+                    p.setPrimForRemoval();
+                    AddPhysicsActorTaint(prim);
+                    //RemovePrimThreadLocked(p);
                 }
             }
         }
@@ -2584,7 +2575,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 DeleteRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
                 CreateRequestedJoints(); // this must be outside of the lock (OdeLock) to avoid deadlocks
             }
-            IsLocked = true;
+
             lock (OdeLock)
             {
                 // Process 10 frames if the sim is running normal..
@@ -2996,19 +2987,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
-            }
-            IsLocked = false;
-            if (RemoveQueue.Count > 0)
-            {
-                do
-                {
-                    if (RemoveQueue[0] != null)
-                    {
-                        RemovePrimThreadLocked((OdePrim)RemoveQueue[0]);
-                    }
-                    RemoveQueue.RemoveAt(0);
-                } 
-                while (RemoveQueue.Count > 0);
             }
 
             return fps;
