@@ -211,25 +211,39 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             if (script.StartsWith("//MRM:C#"))
             {
-                if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID
-                    ||
-                    m_scene.GetSceneObjectPart(localID).CreatorID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
-                    return;
+                if (m_config.GetBoolean("OwnerOnly", true))
+                    if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID
+                        || m_scene.GetSceneObjectPart(localID).CreatorID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                        return;
 
                 script = ConvertMRMKeywords(script);
 
                 try
                 {
-                    m_log.Info("[MRM] Found C# MRM - Starting in AppDomain with " + m_config.GetString("permissionLevel", "Internet") + "-level security.");
+                    AppDomain target;
+                    if (m_config.GetBoolean("Sandboxed", true))
+                    {
+                        m_log.Info("[MRM] Found C# MRM - Starting in AppDomain with " +
+                                   m_config.GetString("SandboxLevel", "Internet") + "-level security.");
 
-                    string domainName = UUID.Random().ToString();
-                    AppDomain target = CreateRestrictedDomain(m_config.GetString("permissionLevel", "Internet"),
-                                                              domainName);
+                        string domainName = UUID.Random().ToString();
+                        target = CreateRestrictedDomain(m_config.GetString("SandboxLevel", "Internet"),
+                                                                  domainName);
+                    }
+                    else
+                    {
+                        m_log.Info("[MRM] Found C# MRM - Starting in current AppDomain");
+                        m_log.Warn(
+                            "[MRM] Security Risk: AppDomain is run in current context. Use only in trusted environments.");
+                        target = AppDomain.CurrentDomain;
+                    }
 
+                    m_log.Info("[MRM] Unwrapping into target AppDomain");
                     MRMBase mmb = (MRMBase) target.CreateInstanceFromAndUnwrap(
                                                 CompileFromDotNetText(script, itemID.ToString()),
                                                 "OpenSim.MiniModule");
 
+                    m_log.Info("[MRM] Initialising MRM Globals");
                     InitializeMRM(mmb, localID, itemID);
 
                     m_scripts[itemID] = mmb;
