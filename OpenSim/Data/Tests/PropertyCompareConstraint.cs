@@ -83,7 +83,7 @@ namespace OpenSim.Data.Tests
             }
 
             //prevent loops...
-            if(propertyNames.Count > 50)
+            if (propertyNames.Count > 50)
             {
                 failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
                 failingActual = actual;

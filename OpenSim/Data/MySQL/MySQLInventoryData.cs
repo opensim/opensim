@@ -439,7 +439,7 @@ namespace OpenSim.Data.MySQL
                     MySqlDataReader reader = result.ExecuteReader();
 
                     InventoryFolderBase folder = null;
-                    if(reader.Read())
+                    if (reader.Read())
                          folder = readInventoryFolder(reader);
                     reader.Close();
                     result.Dispose();
