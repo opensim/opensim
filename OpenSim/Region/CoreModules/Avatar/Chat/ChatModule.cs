@@ -48,7 +48,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private int m_saydistance = 30;
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
-        private string m_adminprefix = String.Empty;
         private List<Scene> m_scenes = new List<Scene>();
 
         internal object m_syncy = new object();
@@ -77,7 +76,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
             m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
             m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
-            m_adminprefix = config.Configs["Chat"].GetString("admin_prefix", m_adminprefix);
         }
 
         public virtual void AddRegion(Scene scene)
@@ -209,8 +207,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Name;
                 fromID = c.Sender.AgentId;
-                if (avatar.GodLevel > 100)
-                    fromName = m_adminprefix + fromName;
 
                 break;
 
@@ -259,22 +255,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             string fromName = c.From;
             
             UUID fromID = UUID.Zero;
-            UUID ownerID = UUID.Zero;
             ChatSourceType sourceType = ChatSourceType.Object;
             if (null != c.Sender)
             {
                 ScenePresence avatar = (c.Scene as Scene).GetScenePresence(c.Sender.AgentId);
                 fromID = c.Sender.AgentId;
-                ownerID = c.Sender.AgentId;
                 fromName = avatar.Name;
                 sourceType = ChatSourceType.Agent;
-            }
-            if (c.SenderObject != null)
-            {
-                SceneObjectPart senderObject = (SceneObjectPart)c.SenderObject;
-                fromID = senderObject.UUID;
-                ownerID = senderObject.OwnerID;
-                fromName = senderObject.Name;
             }
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);

@@ -214,8 +214,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateRestartSimRequest(IClientAPI remoteClient, int timeInSeconds)
         {
-//            m_scene.Restart(timeInSeconds);
-            remoteClient.SendBlueBoxMessage(UUID.Zero, "System", "Restart is not available");
+            m_scene.Restart(timeInSeconds);
         }
 
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, UUID estateCovenantID)
