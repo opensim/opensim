@@ -185,7 +185,7 @@ namespace OpenSim.ConsoleClient
                 if (parts.Length != 3)
                     continue;
                 
-                MainConsole.Instance.Output(parts[2], parts[1]);
+                MainConsole.Instance.Output(parts[2].Trim(), parts[1]);
             }
 
             Requester.MakeRequest(requestUrl, requestData, ReadResponses);
