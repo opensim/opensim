@@ -70,14 +70,14 @@ namespace OpenSim
 
         protected bool m_autoCreateClientStack = true;
 
-        /// <summary>
+        /// <value>
         /// The file used to load and save prim backup xml if no filename has been specified
-        /// </summary>
+        /// </value>
         protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
-        /// <summary>
+        /// <value>
         /// The file used to load and save an opensimulator archive if no filename has been specified
-        /// </summary>
+        /// </value>
         protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";
 
         public ConfigSettings ConfigurationSettings

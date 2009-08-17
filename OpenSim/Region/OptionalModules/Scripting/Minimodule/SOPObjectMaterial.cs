@@ -91,24 +91,45 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public bool Bright
         {
             get { return GetTexface().Fullbright; }
-            set { throw new System.NotImplementedException(); }
+            set
+            {
+                Primitive.TextureEntry tex = m_parent.Shape.Textures;
+                Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
+                texface.Fullbright = value;
+                tex.FaceTextures[m_face] = texface;
+                m_parent.UpdateTexture(tex);
+            }
         }
 
         public double Bloom
         {
             get { return GetTexface().Glow; }
-            set { throw new System.NotImplementedException(); }
+            set
+            {
+                Primitive.TextureEntry tex = m_parent.Shape.Textures;
+                Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
+                texface.Glow = (float) value;
+                tex.FaceTextures[m_face] = texface;
+                m_parent.UpdateTexture(tex);
+            }
         }
 
         public bool Shiny
         {
             get { return GetTexface().Shiny != Shininess.None; }
-            set { throw new System.NotImplementedException(); }
+            set
+            {
+                Primitive.TextureEntry tex = m_parent.Shape.Textures;
+                Primitive.TextureEntryFace texface = tex.CreateFace((uint)m_face);
+                texface.Shiny = value ? Shininess.High : Shininess.None;
+                tex.FaceTextures[m_face] = texface;
+                m_parent.UpdateTexture(tex);
+            }
         }
 
         public bool BumpMap
         {
-            get { throw new System.NotImplementedException(); }
+            get { return GetTexface().Bump == Bumpiness.None; }
             set { throw new System.NotImplementedException(); }
         }
     }

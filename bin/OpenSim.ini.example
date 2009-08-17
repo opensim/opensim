@@ -679,16 +679,21 @@
     ;relay_chat = true
     ;access_password = foobar
 
-    ;fallback_region = name of "default" region
-    ;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
-    ; must start with "PRIVMSG {0} : " or irc server will get upset
-    ;for <bot>:<user in region> :<message>
-    ;msgformat = "PRIVMSG {0} :<{1} in {2}>: {3}"
-    ;for <bot>:<message> - <user of region> :
-    msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
-    ;for <bot>:<message> - from <user> :
-    ;msgformat = "PRIVMSG {0} : {3} - from {1}"
+    ;;fallback_region = name of "default" region
+    ;;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
+    ;; must start with "PRIVMSG {0} : " or irc server will get upset
+    ;;for <bot>:<user in region> :<message>
+    ;;msgformat = "PRIVMSG {0} :<{1} in {2}>: {3}"
+    ;;for <bot>:<message> - <user of region> :
+    ;msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
+    ;;for <bot>:<message> - from <user> :
+    ;;msgformat = "PRIVMSG {0} : {3} - from {1}"
 
+    ;; exclude_list allows you to stop the IRC connector from announcing the
+    ;;arrival and departure of certain users. For example: admins, bots.
+
+    ;exclude_list=User 1,User 2,User 3
+    
 
 ;[CMS]
     ;enabled = true
@@ -1163,10 +1168,28 @@
 
 
 [MRM]
-    ; Enables the Mini Region Modules Script Engine. WARNING: SECURITY RISK.
+    ; Enables the Mini Region Modules Script Engine.
     ; default is false
     Enabled = false
+	
+	; Runs MRM in a Security Sandbox
+	; WARNING: DISABLING IS A SECURITY RISK.
+	Sandboxed = true
+	
+	; The level sandbox to use, adjust at your OWN RISK.
+	; Valid values are: 
+	; *  FullTrust
+    ; *  SkipVerification
+    ; *  Execution
+    ; *  Nothing
+    ; *  LocalIntranet
+    ; *  Internet
+    ; *  Everything
+	SandboxLevel = "Internet"
 
+	; Only allow Region Owners to run MRMs
+	; May represent a security risk if you disable this.
+	OwnerOnly = true
 
 [Hypergrid]
     ; Keep it false for now. Making it true requires the use of a special client in order to access inventory

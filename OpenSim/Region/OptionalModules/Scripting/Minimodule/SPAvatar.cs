@@ -25,16 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Security;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-
-using log4net;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -60,7 +56,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string Name
         {
             get { return GetSP().Name; }
-            set { throw new InvalidOperationException("Avatar Names are a read-only property."); }
+            set { throw new SecurityException("Avatar Names are a read-only property."); }
         }
 
         public UUID GlobalID

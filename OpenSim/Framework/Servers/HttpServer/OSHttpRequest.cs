@@ -33,6 +33,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Web;
 using HttpServer;
 using log4net;
 
@@ -71,6 +72,18 @@ namespace OpenSim.Framework.Servers.HttpServer
             get { return _contentType; }
         }
         private string _contentType;
+
+        public HttpCookieCollection Cookies
+        {
+            get
+            {
+                RequestCookies cookies = _request.Cookies;
+                HttpCookieCollection httpCookies = new HttpCookieCollection();
+                foreach (RequestCookie cookie in cookies)
+                    httpCookies.Add(new HttpCookie(cookie.Name, cookie.Value));
+                return httpCookies;
+            }
+        }
 
         public bool HasEntityBody
         {
