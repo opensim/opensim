@@ -301,7 +301,7 @@ namespace OpenSim.Data.SQLite
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
                 inventoryRow = inventoryFolderTable.Rows.Find(item.Folder.ToString());
-                if(inventoryRow != null) //MySQL doesn't throw an exception here, so sqlite shouldn't either.
+                if (inventoryRow != null) //MySQL doesn't throw an exception here, so sqlite shouldn't either.
                     inventoryRow["version"] = (int)inventoryRow["version"] + 1;
 
                 invFoldersDa.Update(ds, "inventoryfolders");

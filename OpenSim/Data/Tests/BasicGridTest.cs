@@ -46,7 +46,7 @@ namespace OpenSim.Data.Tests
         {
             // Clean up all the regions.
             List<RegionProfileData> regions = db.GetRegionsByName("", 100);
-            if(regions != null)
+            if (regions != null)
             {
                 foreach (RegionProfileData region in regions)
                 {
