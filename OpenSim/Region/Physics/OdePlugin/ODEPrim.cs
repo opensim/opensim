@@ -2538,7 +2538,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     l_orientation.Z = ori.Z;
                     l_orientation.W = ori.W;
 
-                    if (l_position.X > ((int)Constants.RegionSize - 0.05f) || l_position.X < 0f || l_position.Y > ((int)Constants.RegionSize - 0.05f) || l_position.Y < 0f)
+                    if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || l_position.X < 0f || l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || l_position.Y < 0f)
                     {
                         //base.RaiseOutOfBounds(l_position);
 

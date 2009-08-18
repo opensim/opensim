@@ -167,7 +167,7 @@ namespace OpenSim.Region.Physics.Manager
             return false;
         }
 
-        public virtual void Combine(PhysicsScene pScene, Vector3 offset)
+        public virtual void Combine(PhysicsScene pScene, Vector3 offset, Vector3 extents)
         {
             return;
         }
