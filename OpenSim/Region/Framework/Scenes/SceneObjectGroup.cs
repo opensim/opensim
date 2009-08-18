@@ -447,22 +447,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void SetFromAssetID(UUID AssetId)
+        public void SetFromItemID(UUID AssetId)
         {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.FromAssetID = AssetId;
+                    part.FromItemID = AssetId;
                 }
             }
         }
 
-        public UUID GetFromAssetID()
+        public UUID GetFromItemID()
         {
             if (m_rootPart != null)
             {
-                return m_rootPart.FromAssetID;
+                return m_rootPart.FromItemID;
             }
             return UUID.Zero;
         }
@@ -555,7 +555,7 @@ namespace OpenSim.Region.Framework.Scenes
             // If we get a result, we're going to find the closest result to the origin of the ray
             // and send back the intersection information back to the innerscene.
 
-            EntityIntersection returnresult = new EntityIntersection();
+            EntityIntersection result = new EntityIntersection();
 
             lock (m_parts)
             {
@@ -576,25 +576,22 @@ namespace OpenSim.Region.Framework.Scenes
                     // when the camera crosses the border.
                     float idist = Constants.RegionSize;
 
-
                     if (inter.HitTF)
                     {
                         // We need to find the closest prim to return to the testcaller along the ray
                         if (inter.distance < idist)
                         {
-                            returnresult.HitTF = true;
-                            returnresult.ipoint = inter.ipoint;
-                            returnresult.obj = part;
-                            returnresult.normal = inter.normal;
-                            returnresult.distance = inter.distance;
+                            result.HitTF = true;
+                            result.ipoint = inter.ipoint;
+                            result.obj = part;
+                            result.normal = inter.normal;
+                            result.distance = inter.distance;
                         }
                     }
                 }
             }
-            return returnresult;
+            return result;
         }
-
-
 
         /// <summary>
         /// Gets a vector representing the size of the bounding box containing all the prims in the group
@@ -651,7 +648,6 @@ namespace OpenSim.Region.Framework.Scenes
                     frontBottomRight.X = orig.X - (part.Scale.X / 2);
                     frontBottomRight.Y = orig.Y + (part.Scale.Y / 2);
                     frontBottomRight.Z = orig.Z - (part.Scale.Z / 2);
-
 
                     backTopLeft.X = orig.X + (part.Scale.X / 2);
                     backTopLeft.Y = orig.Y - (part.Scale.Y / 2);
@@ -839,7 +835,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (backBottomLeft.Z < minZ)
                         minZ = backBottomLeft.Z;
                 }
-
             }
 
             Vector3 boundingBox = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
@@ -860,6 +855,7 @@ namespace OpenSim.Region.Framework.Scenes
            // m_log.InfoFormat("BoundingBox is {0} , {1} , {2} ", boundingBox.X, boundingBox.Y, boundingBox.Z);
             return boundingBox;
         }
+
         #endregion
 
         public void SaveScriptedState(XmlTextWriter writer)
@@ -939,6 +935,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 
                 avatar.AddAttachment(this);
+                m_log.DebugFormat("[SOG]: Added att {0} to avie {1}", UUID, avatar.UUID);
 
                 if (!silent)
                 {
@@ -1029,8 +1026,8 @@ namespace OpenSim.Region.Framework.Scenes
             //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             //AttachToBackup();
             //m_rootPart.ScheduleFullUpdate();
-
         }
+
         /// <summary>
         ///
         /// </summary>
@@ -1130,6 +1127,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
         // helper provided for parts.
         public int GetSceneMaxUndo()
         {
@@ -1183,7 +1181,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SceneObjectPart part = GetChildPart(localId);
                 OnGrabPart(part, offsetPos, remoteClient);
-
             }
         }
 
@@ -1267,28 +1264,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if ((aggregateScriptEvents & scriptEvents.at_target) != 0)
-            {
-                m_scriptListens_atTarget = true;
-            }
-            else
-            {
-                m_scriptListens_atTarget = false;
-            }
+            m_scriptListens_atTarget = ((aggregateScriptEvents & scriptEvents.at_target) != 0);
+            m_scriptListens_notAtTarget = ((aggregateScriptEvents & scriptEvents.not_at_target) != 0);
 
-            if ((aggregateScriptEvents & scriptEvents.not_at_target) != 0)
-            {
-                m_scriptListens_notAtTarget = true;
-            }
-            else
-            {
-                m_scriptListens_notAtTarget = false;
-            }
-
-            if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
-            {
-            }
-            else
+            if (!m_scriptListens_atTarget && !m_scriptListens_notAtTarget)
             {
                 lock (m_targets)
                     m_targets.Clear();
@@ -1786,9 +1765,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }            
         }
-
-
-
 
         /// <summary>
         /// Set the owner of the root part.
@@ -3374,19 +3350,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual string ExtraToXmlString()
         {
-            return "<ExtraFromAssetID>" + GetFromAssetID().ToString() + "</ExtraFromAssetID>";
+            return "<ExtraFromItemID>" + GetFromItemID().ToString() + "</ExtraFromItemID>";
         }
 
         public virtual void ExtraFromXmlString(string xmlstr)
         {
-            string id = xmlstr.Substring(xmlstr.IndexOf("<ExtraFromAssetID>"));
-            id = xmlstr.Replace("<ExtraFromAssetID>", "");
-            id = id.Replace("</ExtraFromAssetID>", "");
+            string id = xmlstr.Substring(xmlstr.IndexOf("<ExtraFromItemID>"));
+            id = xmlstr.Replace("<ExtraFromItemID>", "");
+            id = id.Replace("</ExtraFromItemID>", "");
 
             UUID uuid = UUID.Zero;
             UUID.TryParse(id, out uuid);
 
-            SetFromAssetID(uuid);
+            SetFromItemID(uuid);
         }
         #endregion 
 

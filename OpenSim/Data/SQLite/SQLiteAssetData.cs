@@ -183,7 +183,7 @@ namespace OpenSim.Data.SQLite
             int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
 
             m_log.Info("[ASSET DB]: " +
-                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}] \"{1}\":{2} ({7} bytes)",
+                                     string.Format("Loaded {5} {4} Asset: [{0}][{3}] \"{1}\":{2} ({6} bytes)",
                                                    asset.FullID, asset.Name, asset.Description, asset.Type,
                                                    temporary, local, assetLength));
         }

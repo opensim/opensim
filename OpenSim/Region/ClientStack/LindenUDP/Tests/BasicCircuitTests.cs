@@ -34,6 +34,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {

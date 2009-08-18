@@ -163,21 +163,48 @@ namespace OpenSim.Services.Connectors
         /// <returns></returns>
         public Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(string userID, UUID sessionID)
         {
-            // !!! Not just yet.
-            //try
-            //{
-            //    List<InventoryFolderBase> folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
-            //        "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
-            //    Dictionary<AssetType, InventoryFolderBase> dFolders = new Dictionary<AssetType, InventoryFolderBase>();
-            //    foreach (InventoryFolderBase f in folders)
-            //        dFolders[(AssetType)f.Type] = f;
-            //    return dFolders;
-            //}
-            //catch (Exception e)
-            //{
-            //    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}",
-            //         e.Source, e.Message);
-            //}
+            List<InventoryFolderBase> folders = null;
+            Dictionary<AssetType, InventoryFolderBase> dFolders = new Dictionary<AssetType, InventoryFolderBase>();
+            try
+            {
+                folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
+                    "POST", m_ServerURI + "/SystemFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+
+                foreach (InventoryFolderBase f in folders)
+                    dFolders[(AssetType)f.Type] = f;
+
+                return dFolders;
+            }
+            catch (Exception e)
+            {
+                // Maybe we're talking to an old inventory server. Try this other thing.
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetSystemFolders operation failed, {0} {1}. Trying RootFolders.",
+                     e.Source, e.Message);
+
+                try
+                {
+                    folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
+                        "POST", m_ServerURI + "/RootFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+                }
+                catch (Exception ex)
+                {
+                    m_log.ErrorFormat("[INVENTORY CONNECTOR]: RootFolders operation also failed, {0} {1}. Give up.",
+                         e.Source, ex.Message);
+                }
+
+                if ((folders != null) && (folders.Count > 0))
+                {
+                    dFolders[AssetType.Folder] = folders[0]; // Root folder is the first one
+                    folders.RemoveAt(0);
+                    foreach (InventoryFolderBase f in folders)
+                    {
+                        if ((f.Type != (short)AssetType.Folder) && (f.Type != (short)AssetType.Unknown))
+                        dFolders[(AssetType)f.Type] = f;
+                    }
+
+                    return dFolders;
+                }
+            }
 
             return new Dictionary<AssetType, InventoryFolderBase>();
         }
@@ -192,13 +219,52 @@ namespace OpenSim.Services.Connectors
         {
             try
             {
+                // normal case
                 return SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
                     "POST", m_ServerURI + "/GetFolderContent/", folderID.Guid, sessionID.ToString(), userID.ToString());
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}",
+                // Maybe we're talking to an old inventory server. Try this other thing.
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderForType operation failed, {0} {1}. Trying RootFolders and GetItems.",
                      e.Source, e.Message);
+
+                List<InventoryFolderBase> folders = null;
+                try
+                {
+                    folders = SynchronousRestSessionObjectPoster<Guid, List<InventoryFolderBase>>.BeginPostObject(
+                        "POST", m_ServerURI + "/RootFolders/", new Guid(userID), sessionID.ToString(), userID.ToString());
+                }
+                catch (Exception ex)
+                {
+                    m_log.ErrorFormat("[INVENTORY CONNECTOR]: RootFolders operation also failed, {0} {1}. Give up.",
+                         e.Source, ex.Message);
+                }
+
+                if ((folders != null) && (folders.Count > 0))
+                {
+                    folders = folders.FindAll(delegate (InventoryFolderBase f) { return f.ParentID == folderID ; });
+
+                    try
+                    {
+                        List<InventoryItemBase> items = SynchronousRestSessionObjectPoster<Guid, List<InventoryItemBase>>.BeginPostObject(
+                                        "POST", m_ServerURI + "/GetItems/", folderID.Guid, sessionID.ToString(), userID.ToString());
+
+                        if (items != null)
+                        {
+                            InventoryCollection result = new InventoryCollection();
+                            result.Folders = folders;
+                            result.Items = items;
+                            result.UserID = new UUID(userID);
+                            return result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        m_log.ErrorFormat("[INVENTORY CONNECTOR]: QueryFolder and GetItems operation failed, {0} {1}. Give up.",
+                             e.Source, ex.Message);
+                    }
+                }
             }
 
             return null;
@@ -346,6 +412,25 @@ namespace OpenSim.Services.Connectors
             }
 
             return null;
+        }
+
+        public int GetAssetPermissions(string userID, UUID assetID, UUID sessionID)
+        {
+            try
+            {
+                InventoryItemBase item = new InventoryItemBase();
+                item.Owner = new UUID(userID);
+                item.AssetID = assetID;
+                return SynchronousRestSessionObjectPoster<InventoryItemBase, int>.BeginPostObject(
+                    "POST", m_ServerURI + "/AssetPermissions/", item, sessionID.ToString(), userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: AssetPermissions operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return 0;
         }
 
         #endregion

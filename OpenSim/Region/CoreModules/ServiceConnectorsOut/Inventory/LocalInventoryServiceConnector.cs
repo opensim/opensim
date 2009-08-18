@@ -201,8 +201,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     foreach (InventoryFolderBase folder in content.Folders)
                     {
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
+                        {
+                            m_log.InfoFormat("[INVENTORY CONNECTOR]: folder type {0} ", folder.Type);
                             folders[(AssetType)folder.Type] = folder;
+                        }
                     }
+                    // Put the root folder there, as type Folder
+                    folders[AssetType.Folder] = root;
+                    m_log.InfoFormat("[INVENTORY CONNECTOR]: root folder is type {0} ", root.Type);
+
                     return folders;
                 }
             }
@@ -292,14 +299,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.DeleteItem(item);
         }
 
-        public override InventoryItemBase QueryItem(InventoryItemBase item)
+        public override InventoryItemBase GetItem(InventoryItemBase item)
         {
-            return m_InventoryService.QueryItem(item);
+            return m_InventoryService.GetItem(item);
         }
 
-        public override InventoryFolderBase QueryFolder(InventoryFolderBase folder)
+        public override InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            return m_InventoryService.QueryFolder(folder);
+            return m_InventoryService.GetFolder(folder);
         }
 
         /// <summary>
@@ -312,19 +319,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.HasInventoryForUser(userID);
         }
 
-        /// <summary>
-        /// Retrieve the root inventory folder for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns>null if no root folder was found</returns>
-        public override InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            return m_InventoryService.GetRootFolder(userID);
-        }
-
         public override List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
             return m_InventoryService.GetActiveGestures(userId);
+        }
+
+        public override int GetAssetPermissions(UUID userID, UUID assetID)
+        {
+            return m_InventoryService.GetAssetPermissions(userID, assetID);
         }
         #endregion IInventoryService
     }

@@ -109,6 +109,28 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
+        /// Invoked when the client requests a prim.
+        /// </summary>
+        /// <param name="primLocalID"></param>
+        /// <param name="remoteClient"></param>
+        public void RequestPrim(uint primLocalID, IClientAPI remoteClient)
+        {
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)ent).LocalId == primLocalID)
+                    {
+                        ((SceneObjectGroup)ent).SendFullUpdateToClient(remoteClient);
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Invoked when the client selects a prim.
         /// </summary>
         /// <param name="primLocalID"></param>
@@ -382,31 +404,13 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
             
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-
-            if (null == userProfile)
+            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
+            
+            if (item != null)
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);     
-                return;
+                remoteClient.SendInventoryItemDetails(ownerID, item);
             }
-
-            if (userProfile.HasReceivedInventory)
-            {
-                InventoryItemBase item = null;
-                if (userProfile.RootFolder == null)
-                    m_log.ErrorFormat(
-                        "[AGENT INVENTORY]: User {0} {1} does not have a root folder.",
-                        remoteClient.Name, remoteClient.AgentId);
-                else
-                    item = userProfile.RootFolder.FindItem(itemID);
-                
-                if (item != null)
-                {
-                    remoteClient.SendInventoryItemDetails(ownerID, item);
-                }
-            }
+            // else shouldn't we send an alert message?
         }    
         
         /// <summary>
@@ -435,23 +439,14 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);  
-                return;
-            }
-
-            userProfile.SendInventoryDecendents(remoteClient, folderID, fetchFolders, fetchItems);
+            SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
         }        
         
         /// <summary>
         /// Handle the caps inventory descendents fetch.
         ///
         /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
+        /// Diva comment 8/13/2009: what if someone gave us a folder in the meantime??
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="folderID"></param>
@@ -477,59 +472,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return fold.RequestListOfItems();
             }
-            
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat("[AGENT INVENTORY]: Could not find user profile for {0}", agentID);                
-                return null;
-            }
 
-            // XXX: When a client crosses into a scene, their entire inventory is fetched
-            // asynchronously.  If the client makes a request before the inventory is received, we need
-            // to give the inventory a chance to come in.
-            //
-            // This is a crude way of dealing with that by retrying the lookup.  It's not quite as bad
-            // in CAPS as doing this with the udp request, since here it won't hold up other packets.
-            // In fact, here we'll be generous and try for longer.
-            if (!userProfile.HasReceivedInventory)
-            {
-                int attempts = 0;
-                while (attempts++ < 30)
-                {
-                    m_log.DebugFormat(
-                         "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}",
-                         attempts, folderID, agentID);
+            InventoryCollection contents = InventoryService.GetFolderContent(agentID, folderID);
+            return contents.Items;
 
-                    Thread.Sleep(2000);
-
-                    if (userProfile.HasReceivedInventory)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (userProfile.HasReceivedInventory)
-            {
-                if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
-                {
-                    return fold.RequestListOfItems();
-                }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[AGENT INVENTORY]: Could not find folder {0} requested by user {1}",
-                        folderID, agentID);
-                    return null;
-                }
-            }
-            else
-            {
-                m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID);
-                return null;
-            }
         }        
         
         /// <summary>
@@ -543,19 +489,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort folderType,
                                                 string folderName, UUID parentID)
         {
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-
-            if (null == userProfile)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, folderName, remoteClient.AgentId, (short)folderType, parentID, 1);
+            if (!InventoryService.AddFolder(folder))
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-            
-            if (!userProfile.CreateFolder(folderName, folderID, folderType, parentID))
-            {
-                m_log.ErrorFormat(
+                m_log.WarnFormat(
                      "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
@@ -580,54 +517,26 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            folder = InventoryService.GetFolder(folder);
+            if (folder != null)
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-
-            if (!userProfile.UpdateFolder(name, folderID, type, parentID))
-            {
-                m_log.ErrorFormat(
-                     "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
-                     remoteClient.Name, remoteClient.AgentId);
+                folder.Name = name;
+                folder.Type = (short)type;
+                folder.ParentID = parentID;
+                if (!InventoryService.UpdateFolder(folder))
+                {
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
+                         remoteClient.Name, remoteClient.AgentId);
+                }
             }
         }        
         
-        /// <summary>
-        /// Handle an inventory folder move request from the client.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="folderID"></param>
-        /// <param name="parentID"></param>
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-
-            if (!userProfile.MoveFolder(folderID, parentID))
-            {
-                m_log.ErrorFormat(
-                     "[AGENT INVENTORY]: Failed to move folder {0} to {1} for user {2}",
-                     folderID, parentID, remoteClient.Name);
-            }
-        }
-
-        public void HandleMoveInventoryFolder2(IClientAPI remoteClient, UUID folderID, UUID parentID)
-        {
             InventoryFolderBase folder = new InventoryFolderBase(folderID);
-            folder = InventoryService.QueryFolder(folder);
+            folder = InventoryService.GetFolder(folder);
             if (folder != null)
             {
                 folder.ParentID = parentID;
@@ -647,27 +556,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
+
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
-        {
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);     
-                return;
-            }
-
-            if (!userProfile.PurgeFolder(folderID))
-            {
-                m_log.ErrorFormat(
-                     "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}",
-                     remoteClient.Name, remoteClient.AgentId);
-            }
-        }
-
-        public void HandlePurgeInventoryDescendents2(IClientAPI remoteClient, UUID folderID)
         {
             InventoryFolderBase folder = new InventoryFolderBase(folderID);
 

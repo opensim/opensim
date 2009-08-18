@@ -1086,11 +1086,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool WaitForCallback(UUID id)
         {
-            int count = 20;
+            int count = 200;
             while (m_agentsInTransit.Contains(id) && count-- > 0)
             {
                 //m_log.Debug("  >>> Waiting... " + count);
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
             }
 
             if (count > 0)
@@ -1207,16 +1207,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 pos = pos + (agent.Velocity);
 
-                CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
-                if (userInfo != null)
-                {
-                    userInfo.DropInventory();
-                }
-                else
-                {
-                    m_log.WarnFormat("[SCENE COMM]: No cached user info found for {0} {1} on leaving region {2}", 
-                            agent.Name, agent.UUID, agent.Scene.RegionInfo.RegionName);
-                }
+                //CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
+                //if (userInfo != null)
+                //{
+                //    userInfo.DropInventory();
+                //}
+                //else
+                //{
+                //    m_log.WarnFormat("[SCENE COMM]: No cached user info found for {0} {1} on leaving region {2}", 
+                //            agent.Name, agent.UUID, agent.Scene.RegionInfo.RegionName);
+                //}
 
                 //bool crossingSuccessful =
                 //    CrossToNeighbouringRegion(neighbourHandle, agent.ControllingClient.AgentId, pos,
@@ -1315,11 +1315,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else // Not successful
             {
-                CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
-                if (userInfo != null)
-                {
-                    userInfo.FetchInventory();
-                }
+                //CachedUserInfo userInfo = m_commsProvider.UserProfileCacheService.GetUserDetails(agent.UUID);
+                //if (userInfo != null)
+                //{
+                //    userInfo.FetchInventory();
+                //}
                 agent.RestoreInCurrentScene();
             }
             // In any case

@@ -39,10 +39,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         private readonly int m_location;
         //private readonly UUID m_itemId;
         private readonly UUID m_assetId;
+
+        private readonly ISecurityCredential m_security;
         
-        public SPAvatarAttachment(Scene rootScene, IAvatar self, int location, UUID itemId, UUID assetId)
+        public SPAvatarAttachment(Scene rootScene, IAvatar self, int location, UUID itemId, UUID assetId, ISecurityCredential security)
         {
             m_rootScene = rootScene;
+            m_security = security;
             //m_parent = self;
             m_location = location;
             //m_itemId = itemId;
@@ -55,7 +58,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                return new SOPObject(m_rootScene, m_rootScene.GetSceneObjectPart(m_assetId).LocalId);
+                return new SOPObject(m_rootScene, m_rootScene.GetSceneObjectPart(m_assetId).LocalId, m_security);
             }
         }
     }

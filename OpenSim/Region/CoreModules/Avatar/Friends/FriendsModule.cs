@@ -39,6 +39,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
@@ -654,8 +655,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             initiator.ControllingClient.SendAgentOnline(new UUID[] { fromAgentID });
 
             // find the folder for the friend...
-            InventoryFolderImpl folder =
-                initiator.Scene.CommsManager.UserProfileCacheService.GetUserDetails(toAgentID).FindFolderForType((int)InventoryType.CallingCard);
+            //InventoryFolderImpl folder =
+            //    initiator.Scene.CommsManager.UserProfileCacheService.GetUserDetails(toAgentID).FindFolderForType((int)InventoryType.CallingCard);
+            IInventoryService invService = initiator.Scene.InventoryService;
+            InventoryFolderBase folder = invService.GetFolderForType(toAgentID, AssetType.CallingCard);
             if (folder != null)
             {
                 // ... and add the calling card

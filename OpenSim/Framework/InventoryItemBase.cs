@@ -354,7 +354,22 @@ namespace OpenSim.Framework
             }
         }
         protected int m_creationDate = (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-        
+
+        public InventoryItemBase()
+        {
+        }
+
+        public InventoryItemBase(UUID id)
+        {
+            ID = id;
+        }
+
+        public InventoryItemBase(UUID id, UUID owner)
+        {
+            ID = id;
+            Owner = owner;
+        }
+
         public object Clone()
         {
             return MemberwiseClone();

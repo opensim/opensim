@@ -117,25 +117,20 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
             if (fromTaskID.Equals(UUID.Zero))
             {
-                CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-                if (userInfo != null)
+                InventoryItemBase item = new InventoryItemBase(itemID);
+                item.Owner = remoteClient.AgentId;
+                item = InventoryService.GetItem(item);
+                //if (item == null)
+                //{ // Fetch the item
+                //    item = new InventoryItemBase();
+                //    item.Owner = remoteClient.AgentId;
+                //    item.ID = itemID;
+                //    item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
+                //}
+                if (item != null)
                 {
-                    if (userInfo.RootFolder != null)
-                    {
-                        InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
-                        if (item == null)
-                        { // Fetch the item
-                            item = new InventoryItemBase();
-                            item.Owner = remoteClient.AgentId;
-                            item.ID = itemID;
-                            item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
-                        }
-                        if (item != null)
-                        {
-                            m_assMapper.Get(item.AssetID, remoteClient.AgentId);
+                    m_assMapper.Get(item.AssetID, remoteClient.AgentId);
 
-                        }
-                    }
                 }
             }
 

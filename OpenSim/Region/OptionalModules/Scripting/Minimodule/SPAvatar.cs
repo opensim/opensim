@@ -25,16 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Security;
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-
-using log4net;
 
 namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 {
@@ -42,11 +38,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         private readonly Scene m_rootScene;
         private readonly UUID m_ID;
+        private readonly ISecurityCredential m_security;
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SPAvatar(Scene scene, UUID ID)
+        public SPAvatar(Scene scene, UUID ID, ISecurityCredential security)
         {
             m_rootScene = scene;
+            m_security = security;
             m_ID = ID;
         }
 
@@ -58,7 +56,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public string Name
         {
             get { return GetSP().Name; }
-            set { throw new InvalidOperationException("Avatar Names are a read-only property."); }
+            set { throw new SecurityException("Avatar Names are a read-only property."); }
         }
 
         public UUID GlobalID
@@ -84,7 +82,9 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     foreach (DictionaryEntry element in internalAttachments)
                     {
                         Hashtable attachInfo = (Hashtable)element.Value;
-                        attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int)element.Key, new UUID((string)attachInfo["item"]), new UUID((string)attachInfo["asset"])));
+                        attachments.Add(new SPAvatarAttachment(m_rootScene, this, (int) element.Key,
+                                                               new UUID((string) attachInfo["item"]),
+                                                               new UUID((string) attachInfo["asset"]), m_security));
                     }
                 }
                 

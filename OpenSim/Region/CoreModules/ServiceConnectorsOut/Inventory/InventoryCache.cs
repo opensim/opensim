@@ -91,6 +91,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(presence.UUID);
             m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
                 presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
+
             if (folders.Count > 0)
                 lock (m_InventoryCache)
                     m_InventoryCache.Add(presence.UUID, folders);

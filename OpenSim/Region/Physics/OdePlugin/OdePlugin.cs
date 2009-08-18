@@ -350,17 +350,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 #endif
             }
 
-            // zero out a heightmap array float array (single dimention [flattened]))
+            // zero out a heightmap array float array (single dimension [flattened]))
             if ((int)WorldExtents.X == 256 && (int)m_worldOffset.Y == 256)
                 _heightmap = new float[514*514];
             else
                 _heightmap = new float[(((int)WorldExtents.Y + 2) * ((int)WorldExtents.X + 2))];
             _watermap = new float[258 * 258];
-
-
-
-
-
 
             // Zero out the prim spaces array (we split our space into smaller spaces so
             // we can hit test less.
@@ -2206,7 +2201,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
-        /// Called when a static prim moves.  Allocates a space for the prim based on it's position
+        /// Called when a static prim moves.  Allocates a space for the prim based on its position
         /// </summary>
         /// <param name="geom">the pointer to the geom that moved</param>
         /// <param name="pos">the position that the geom moved to</param>
@@ -3025,7 +3020,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float[] returnarr = new float[262144];
             float[,] resultarr = new float[(int)WorldExtents.X, (int)WorldExtents.Y];
 
-            // Filling out the array into it's multi-dimentional components
+            // Filling out the array into its multi-dimensional components
             for (int y = 0; y < WorldExtents.Y; y++)
             {
                 for (int x = 0; x < WorldExtents.X; x++)
@@ -3138,7 +3133,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float[] returnarr = new float[262144];
             float[,] resultarr = new float[(int)WorldExtents.X,(int)WorldExtents.Y];
 
-            // Filling out the array into it's multi-dimentional components
+            // Filling out the array into its multi-dimensional components
             for (int y = 0; y < WorldExtents.Y; y++)
             {
                 for (int x = 0; x < WorldExtents.X; x++)

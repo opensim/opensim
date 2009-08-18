@@ -149,7 +149,7 @@ namespace OpenSim.Services.Connectors.Inventory
         /// <returns></returns>
         public InventoryCollection GetFolderContent(string id, UUID folderID, UUID sessionID)
         {
-            m_log.Debug("[HGInventory]: GetSystemFolders " + id);
+            m_log.Debug("[HGInventory]: GetFolderContent " + id);
             string url = string.Empty;
             string userID = string.Empty;
 
@@ -279,5 +279,17 @@ namespace OpenSim.Services.Connectors.Inventory
             return null;
         }
 
+        public int GetAssetPermissions(string id, UUID assetID, UUID sessionID)
+        {
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.GetAssetPermissions(userID, assetID, sessionID);
+            }
+            return 0;
+        }
     }
 }

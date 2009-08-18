@@ -450,7 +450,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             responseMap["sim_host"] = OSD.FromString(reg.ExternalHostName);
             
-            // DEPRECIATED
+            // DEPRECATED
             responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
             
             responseMap["connect"] = OSD.FromBoolean(true);
@@ -591,7 +591,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     httpaddr = httpsCN;
             }
             
-            // DEPRECIATED
+            // DEPRECATED
             responseMap["seed_capability"] 
                 = OSD.FromString(
                     regionCapsHttpProtocol + httpaddr + ":" + reg.HttpPort + CapsUtil.GetCapsSeedPath(userCap.CapsObjectPath));
@@ -764,7 +764,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     responseMap["sim_port"] = OSD.FromInteger(reg.InternalEndPoint.Port);
                     responseMap["sim_host"] = OSD.FromString(reg.ExternalHostName);// + ":" + reg.InternalEndPoint.Port.ToString());
                     
-                    // DEPRECIATED
+                    // DEPRECATED
                     responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(reg.ExternalHostName).ToString());
 
                     responseMap["session_id"] = OSD.FromUUID(SessionID);
@@ -851,7 +851,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
                     string rezRespSeedCap = "";
 
-                    // DEPRECIATED
+                    // DEPRECATED
                     if (rezResponseMap.ContainsKey("seed_capability"))
                         rezRespSeedCap = rezResponseMap["seed_capability"].AsString();
                     
@@ -863,7 +863,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     if (rezResponseMap.ContainsKey("rez_avatar/rez"))
                         rezRespSeedCap = rezResponseMap["rez_avatar/rez"].AsString();
 
-                    // DEPRECIATED
+                    // DEPRECATED
                     string rezRespSim_ip = rezResponseMap["sim_ip"].AsString();
                     
                     string rezRespSim_host = rezResponseMap["sim_host"].AsString();
@@ -879,13 +879,13 @@ namespace OpenSim.Region.CoreModules.InterGrid
                     {
                         RezResponsePositionArray = (OSDArray)rezResponseMap["position"];
                     }
-                    // DEPRECIATED
+                    // DEPRECATED
                     responseMap["seed_capability"] = OSD.FromString(rezRespSeedCap);
                     
                     // REPLACEMENT r3
                     responseMap["region_seed_capability"] = OSD.FromString(rezRespSeedCap);
 
-                    // DEPRECIATED
+                    // DEPRECATED
                     responseMap["sim_ip"] = OSD.FromString(Util.GetHostFromDNS(rezRespSim_ip).ToString());
                     
                     responseMap["sim_host"] = OSD.FromString(rezRespSim_host);

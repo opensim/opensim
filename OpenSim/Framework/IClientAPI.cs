@@ -111,6 +111,8 @@ namespace OpenSim.Framework
 
     public delegate void ObjectSelect(uint localID, IClientAPI remoteClient);
 
+    public delegate void ObjectRequest(uint localID, IClientAPI remoteClient);
+
     public delegate void RequestObjectPropertiesFamily(
         IClientAPI remoteClient, UUID AgentID, uint RequestFlags, UUID TaskID);
 
@@ -622,6 +624,7 @@ namespace OpenSim.Framework
 
         event UpdateShape OnUpdatePrimShape;
         event ObjectExtraParams OnUpdateExtraParams;
+        event ObjectRequest OnObjectRequest;
         event ObjectSelect OnObjectSelect;
         event ObjectDeselect OnObjectDeselect;
         event GenericCall7 OnObjectDescription;

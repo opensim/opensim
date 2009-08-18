@@ -205,7 +205,8 @@ namespace OpenSim.Framework.Communications.Services
                     // Otherwise...
                     // Create a new agent session
 
-                    m_userManager.ResetAttachments(userProfile.ID);
+                    // XXYY we don't need this
+                    //m_userManager.ResetAttachments(userProfile.ID);
 
                     CreateAgent(userProfile, request);
 
@@ -462,7 +463,8 @@ namespace OpenSim.Framework.Communications.Services
                     // Otherwise...
                     // Create a new agent session
 
-                    m_userManager.ResetAttachments(userProfile.ID);
+                    // XXYY We don't need this
+                    //m_userManager.ResetAttachments(userProfile.ID);
 
                     CreateAgent(userProfile, request);
 
@@ -1129,7 +1131,18 @@ namespace OpenSim.Framework.Communications.Services
                 // tools are creating the user profile directly in the database without creating the inventory.  At
                 // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
                 // exist.
-                if ((m_interInventoryService != null) && !m_interInventoryService.CreateNewUserInventory(userID))
+                if (m_interInventoryService != null)
+                {
+                    if (!m_interInventoryService.CreateNewUserInventory(userID))
+                    {
+                        throw new Exception(
+                            String.Format(
+                                "The inventory creation request for user {0} did not succeed."
+                                + "  Please contact your inventory service provider for more information.",
+                                userID));
+                    }
+                }
+                else if ((m_InventoryService != null) && !m_InventoryService.CreateUserInventory(userID))
                 {
                     throw new Exception(
                         String.Format(
@@ -1137,6 +1150,7 @@ namespace OpenSim.Framework.Communications.Services
                             + "  Please contact your inventory service provider for more information.",
                             userID));
                 }
+
 
                 m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
 

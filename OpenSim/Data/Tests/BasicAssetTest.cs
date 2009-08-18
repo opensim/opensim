@@ -26,20 +26,19 @@
  */
 
 using System;
+using System.Collections.Generic;
 using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
-using System.Reflection;
 
 namespace OpenSim.Data.Tests
 {
     public class BasicAssetTest
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public AssetDataBase db;
+        public IAssetDataPlugin db;
         public UUID uuid1;
         public UUID uuid2;
         public UUID uuid3;
@@ -47,14 +46,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
 
             uuid1 = UUID.Random();
             uuid2 = UUID.Random();
@@ -81,41 +73,59 @@ namespace OpenSim.Data.Tests
             a2.Data = asset1;
             a3.Data = asset1;
 
+            PropertyScrambler<AssetBase> scrambler = new PropertyScrambler<AssetBase>()
+                .DontScramble(x => x.Data)
+                .DontScramble(x => x.ID)
+                .DontScramble(x => x.FullID)
+                .DontScramble(x => x.Metadata.ID)
+                .DontScramble(x => x.Metadata.FullID);
+
+            scrambler.Scramble(a1);
+            scrambler.Scramble(a2);
+            scrambler.Scramble(a3);
+
             db.CreateAsset(a1);
             db.CreateAsset(a2);
             db.CreateAsset(a3);
-
+            
             AssetBase a1a = db.FetchAsset(uuid1);
-            Assert.That(a1.ID, Is.EqualTo(a1a.ID), "Assert.That(a1.ID, Is.EqualTo(a1a.ID))");
-            Assert.That(a1.Name, Is.EqualTo(a1a.Name), "Assert.That(a1.Name, Is.EqualTo(a1a.Name))");
+            Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
 
             AssetBase a2a = db.FetchAsset(uuid2);
-            Assert.That(a2.ID, Is.EqualTo(a2a.ID), "Assert.That(a2.ID, Is.EqualTo(a2a.ID))");
-            Assert.That(a2.Name, Is.EqualTo(a2a.Name), "Assert.That(a2.Name, Is.EqualTo(a2a.Name))");
+            Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
 
             AssetBase a3a = db.FetchAsset(uuid3);
-            Assert.That(a3.ID, Is.EqualTo(a3a.ID), "Assert.That(a3.ID, Is.EqualTo(a3a.ID))");
-            Assert.That(a3.Name, Is.EqualTo(a3a.Name), "Assert.That(a3.Name, Is.EqualTo(a3a.Name))");
-        }
+            Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
 
-        [Test]
-        public void T011_ExistsSimpleAsset()
-        {
+            scrambler.Scramble(a1a);
+            scrambler.Scramble(a2a);
+            scrambler.Scramble(a3a);
+
+            db.UpdateAsset(a1a);
+            db.UpdateAsset(a2a);
+            db.UpdateAsset(a3a);
+
+            AssetBase a1b = db.FetchAsset(uuid1);
+            Assert.That(a1b, Constraints.PropertyCompareConstraint(a1a));
+
+            AssetBase a2b = db.FetchAsset(uuid2);
+            Assert.That(a2b, Constraints.PropertyCompareConstraint(a2a));
+
+            AssetBase a3b = db.FetchAsset(uuid3);
+            Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
+
             Assert.That(db.ExistsAsset(uuid1), Is.True);
             Assert.That(db.ExistsAsset(uuid2), Is.True);
             Assert.That(db.ExistsAsset(uuid3), Is.True);
-        }
 
-        // this has questionable use, but it is in the interface at the moment.
-        // [Test]
-        // public void T012_DeleteAsset()
-        // {
-        //     db.DeleteAsset(uuid1);
-        //     db.DeleteAsset(uuid2);
-        //     db.DeleteAsset(uuid3);
-        //     Assert.That(db.ExistsAsset(uuid1), Is.False);
-        //     Assert.That(db.ExistsAsset(uuid2), Is.False);
-        //     Assert.That(db.ExistsAsset(uuid3), Is.False);
-        // }
+            List<AssetMetadata> metadatas = db.FetchAssetMetadataSet(0, 1000);
+
+            AssetMetadata metadata = metadatas.Find(x => x.FullID == uuid1);
+            Assert.That(metadata.Name, Is.EqualTo(a1b.Name));
+            Assert.That(metadata.Description, Is.EqualTo(a1b.Description));
+            Assert.That(metadata.Type, Is.EqualTo(a1b.Type));
+            Assert.That(metadata.Temporary, Is.EqualTo(a1b.Temporary));
+            Assert.That(metadata.FullID, Is.EqualTo(a1b.FullID));
+        }
     }
 }

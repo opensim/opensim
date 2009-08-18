@@ -40,7 +40,6 @@ namespace OpenSim.Data.Tests
 {
     public class BasicEstateTest
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public IEstateDataStore db;
         public IRegionDataStore regionDb;
 
@@ -57,14 +56,7 @@ namespace OpenSim.Data.Tests
 
         public void SuperInit()
         {
-            try
-            {
-                XmlConfigurator.Configure();
-            }
-            catch (Exception)
-            {
-                // I don't care, just leave log4net off
-            }
+            OpenSim.Tests.Common.TestLogging.LogToConsole();
         }
 
         #region 0Tests
@@ -160,6 +152,24 @@ namespace OpenSim.Data.Tests
                 DataTestUtil.STRING_MAX(1),
                 DataTestUtil.UUID_MIN
                 );
+        }
+
+        [Test]
+        private void T012_EstateSettingsRandomStorage()
+        {
+
+            // Letting estate store generate rows to database for us
+            EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
+            new PropertyScrambler<EstateSettings>().Scramble(originalSettings);
+
+            // Saving settings.
+            db.StoreEstateSettings(originalSettings);
+
+            // Loading settings to another instance variable.
+            EstateSettings loadedSettings = db.LoadEstateSettings(REGION_ID);
+
+            // Checking that loaded values are correct.
+            Assert.That(loadedSettings, Constraints.PropertyCompareConstraint(originalSettings));
         }
 
         [Test]

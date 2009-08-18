@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +69,28 @@ namespace OpenSim.Data.Tests
 
         private bool ObjectCompare(object expected, object actual, Stack<string> propertyNames)
         {
+            //If they are both null, they are equal
+            if (actual == null && expected == null)
+                return true;
+
+            //If only one is null, then they aren't
+            if (actual == null || expected == null)
+            {
+                failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                failingActual = actual;
+                failingExpected = expected;
+                return false;
+            }
+
+            //prevent loops...
+            if (propertyNames.Count > 50)
+            {
+                failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                failingActual = actual;
+                failingExpected = expected;
+                return false;
+            }
+
             if (actual.GetType() != expected.GetType())
             {
                 propertyNames.Push("GetType()");
@@ -52,7 +101,7 @@ namespace OpenSim.Data.Tests
                 return false;
             }
 
-            if(actual.GetType() == typeof(Color))
+            if (actual.GetType() == typeof(Color))
             {
                 Color actualColor = (Color) actual;
                 Color expectedColor = (Color) expected;
@@ -95,6 +144,60 @@ namespace OpenSim.Data.Tests
                 return true;
             }
 
+            IComparable comp = actual as IComparable;
+            if (comp != null)
+            {
+                if (comp.CompareTo(expected) != 0)
+                {
+                    failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                    failingActual = actual;
+                    failingExpected = expected;
+                    return false;
+                }
+                return true;
+            }
+
+            //Now try the much more annoying IComparable<T>
+            Type icomparableInterface = actual.GetType().GetInterface("IComparable`1");
+            if (icomparableInterface != null)
+            {
+                int result = (int)icomparableInterface.GetMethod("CompareTo").Invoke(actual, new[] { expected });
+                if (result != 0)
+                {
+                    failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                    failingActual = actual;
+                    failingExpected = expected;
+                    return false;
+                }
+                return true;
+            }
+
+            IEnumerable arr = actual as IEnumerable;
+            if (arr != null)
+            {
+                List<object> actualList = arr.Cast<object>().ToList();
+                List<object> expectedList = ((IEnumerable)expected).Cast<object>().ToList();
+                if (actualList.Count != expectedList.Count)
+                {
+                    propertyNames.Push("Count");
+                    failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
+                    failingActual = actualList.Count;
+                    failingExpected = expectedList.Count;
+                    propertyNames.Pop();
+                    return false;
+                }
+                //actualList and expectedList should be the same size.
+                for (int i = 0; i < actualList.Count; i++)
+                {
+                    propertyNames.Push("[" + i + "]");
+                    if (!ObjectCompare(expectedList[i], actualList[i], propertyNames))
+                        return false;
+                    propertyNames.Pop();
+                }
+                //Everything seems okay...
+                return true;
+            }
+
             //Skip static properties.  I had a nasty problem comparing colors because of all of the public static colors.
             PropertyInfo[] properties = expected.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var property in properties)
@@ -104,56 +207,6 @@ namespace OpenSim.Data.Tests
 
                 object actualValue = property.GetValue(actual, null);
                 object expectedValue = property.GetValue(expected, null);
-
-                //If they are both null, they are equal
-                if (actualValue == null && expectedValue == null)
-                    continue;
-
-                //If only one is null, then they aren't
-                if (actualValue == null || expectedValue == null)
-                {
-                    propertyNames.Push(property.Name);
-                    failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
-                    propertyNames.Pop();
-                    failingActual = actualValue;
-                    failingExpected = expectedValue;
-                    return false;
-                }
-
-                IComparable comp = actualValue as IComparable;
-                if (comp != null)
-                {
-                    if (comp.CompareTo(expectedValue) != 0)
-                    {
-                        propertyNames.Push(property.Name);
-                        failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
-                        propertyNames.Pop();
-                        failingActual = actualValue;
-                        failingExpected = expectedValue;
-                        return false;
-                    }
-                    continue;
-                }
-
-                IEnumerable arr = actualValue as IEnumerable;
-                if (arr != null)
-                {
-                    List<object> actualList = arr.Cast<object>().ToList();
-                    List<object> expectedList = ((IEnumerable)expectedValue).Cast<object>().ToList();
-                    if (actualList.Count != expectedList.Count)
-                    {
-                        propertyNames.Push(property.Name);
-                        propertyNames.Push("Count");
-                        failingPropertyName = string.Join(".", propertyNames.Reverse().ToArray());
-                        failingActual = actualList.Count;
-                        failingExpected = expectedList.Count;
-                        propertyNames.Pop();
-                        propertyNames.Pop();
-                    }
-                    //Todo: A value-wise comparison of all of the values.
-                    //Everything seems okay...
-                    continue;
-                }
 
                 propertyNames.Push(property.Name);
                 if (!ObjectCompare(expectedValue, actualValue, propertyNames))
@@ -196,15 +249,7 @@ namespace OpenSim.Data.Tests
             {
                 //If the inside of the lambda is the access to x, we've hit the end of the chain.
                 //   We should track by the fully scoped parameter name, but this is the first rev of doing this.
-                if (((MemberExpression)express).Expression is ParameterExpression)
-                {
-                    ignores.Add(((MemberExpression)express).Member.Name);
-                }
-                else
-                {
-                    //Otherwise there could be more parameters inside...
-                    PullApartExpression(((MemberExpression)express).Expression);
-                }
+                ignores.Add(((MemberExpression)express).Member.Name);
             }
         }
     }
@@ -243,7 +288,7 @@ namespace OpenSim.Data.Tests
         {
             HasInt actual = new HasInt { TheValue = 5 };
             HasInt expected = new HasInt { TheValue = 4 };
-            var constraint = Constraints.PropertyCompareConstraint(expected).IgnoreProperty(x=>x.TheValue);
+            var constraint = Constraints.PropertyCompareConstraint(expected).IgnoreProperty(x => x.TheValue);
 
             Assert.That(constraint.Matches(actual), Is.True);
         }
@@ -285,6 +330,28 @@ namespace OpenSim.Data.Tests
         }
 
         [Test]
+        public void UUIDShouldMatch()
+        {
+            UUID uuid1 = UUID.Random();
+            UUID uuid2 = UUID.Parse(uuid1.ToString());
+
+            var constraint = Constraints.PropertyCompareConstraint(uuid1);
+
+            Assert.That(constraint.Matches(uuid2), Is.True);
+        }
+
+        [Test]
+        public void UUIDShouldNotMatch()
+        {
+            UUID uuid1 = UUID.Random();
+            UUID uuid2 = UUID.Random();
+
+            var constraint = Constraints.PropertyCompareConstraint(uuid1);
+
+            Assert.That(constraint.Matches(uuid2), Is.False);
+        }
+
+        [Test]
         public void TestColors()
         {
             Color actual = Color.Red;
@@ -293,6 +360,54 @@ namespace OpenSim.Data.Tests
             var constraint = Constraints.PropertyCompareConstraint(expected);
 
             Assert.That(constraint.Matches(actual), Is.True);
+        }
+
+        [Test]
+        public void ShouldCompareLists()
+        {
+            List<int> expected = new List<int> { 1, 2, 3 };
+            List<int> actual = new List<int> { 1, 2, 3 };
+
+            var constraint = Constraints.PropertyCompareConstraint(expected);
+            Assert.That(constraint.Matches(actual), Is.True);
+        }
+
+
+        [Test]
+        public void ShouldFailToCompareListsThatAreDifferent()
+        {
+            List<int> expected = new List<int> { 1, 2, 3 };
+            List<int> actual = new List<int> { 1, 2, 4 };
+
+            var constraint = Constraints.PropertyCompareConstraint(expected);
+            Assert.That(constraint.Matches(actual), Is.False);
+        }
+
+        [Test]
+        public void ShouldFailToCompareListsThatAreDifferentLengths()
+        {
+            List<int> expected = new List<int> { 1, 2, 3 };
+            List<int> actual = new List<int> { 1, 2 };
+
+            var constraint = Constraints.PropertyCompareConstraint(expected);
+            Assert.That(constraint.Matches(actual), Is.False);
+        }
+
+        public class Recursive
+        {
+            public Recursive Other { get; set; }
+        }
+
+        [Test]
+        public void ErrorsOutOnRecursive()
+        {
+            Recursive parent = new Recursive();
+            Recursive child = new Recursive();
+            parent.Other = child;
+            child.Other = parent;
+
+            var constraint = Constraints.PropertyCompareConstraint(child);
+            Assert.That(constraint.Matches(child), Is.False);
         }
     }
 }

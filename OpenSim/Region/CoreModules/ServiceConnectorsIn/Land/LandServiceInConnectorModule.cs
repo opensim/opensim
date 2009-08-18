@@ -123,7 +123,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Land
 
         public LandData GetLandData(ulong regionHandle, uint x, uint y)
         {
-            m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {2}",
+            m_log.DebugFormat("[LAND IN CONNECTOR]: GetLandData for {0}. Count = {1}",
                 regionHandle, m_Scenes.Count);
             foreach (Scene s in m_Scenes)
             {

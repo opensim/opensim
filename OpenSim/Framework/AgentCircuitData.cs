@@ -215,6 +215,7 @@ namespace OpenSim.Framework
         }
     }
 
+
     /// <summary>
     /// Serializable Agent Circuit Data
     /// </summary>

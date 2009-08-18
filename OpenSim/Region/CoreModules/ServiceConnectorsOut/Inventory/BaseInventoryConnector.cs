@@ -82,7 +82,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no root folder was found</returns>
-        public abstract InventoryFolderBase GetRootFolder(UUID userID);
+        public InventoryFolderBase GetRootFolder(UUID userID)
+        {
+            // Root folder is here as system type Folder.
+            return m_cache.GetFolderForType(userID, AssetType.Folder);
+        }
 
         public abstract Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID);
 
@@ -184,9 +188,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully deleted</returns>
         public abstract bool DeleteItem(InventoryItemBase item);
 
-        public abstract InventoryItemBase QueryItem(InventoryItemBase item);
+        public abstract InventoryItemBase GetItem(InventoryItemBase item);
 
-        public abstract InventoryFolderBase QueryFolder(InventoryFolderBase folder);
+        public abstract InventoryFolderBase GetFolder(InventoryFolderBase folder);
 
         /// <summary>
         /// Does the given user have an inventory structure?
@@ -202,5 +206,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns></returns>
         public abstract List<InventoryItemBase> GetActiveGestures(UUID userId);
 
+        public abstract int GetAssetPermissions(UUID userID, UUID assetID);
     }
 }

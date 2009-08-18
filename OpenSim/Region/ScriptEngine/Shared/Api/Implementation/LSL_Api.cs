@@ -2801,7 +2801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((item.PermsMask & ScriptBaseClass.PERMISSION_ATTACH) != 0)
             {
                 SceneObjectGroup grp = m_host.ParentGroup;
-                UUID itemID = grp.GetFromAssetID();
+                UUID itemID = grp.GetFromItemID();
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
