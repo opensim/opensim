@@ -1978,6 +1978,30 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 
+        private LSL_Rotation GetPartRot( SceneObjectPart part )
+        {
+            Quaternion q;
+            if (part.LinkNum == 0 || part.LinkNum == 1) // unlinked or root prim
+            {
+	            if (part.ParentGroup.RootPart.AttachmentPoint != 0)
+	            {
+	                ScenePresence avatar = World.GetScenePresence(part.AttachedAvatar);
+	                if (avatar != null)
+	                    if ((avatar.AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0)
+	                        q = avatar.CameraRotation; // Mouselook
+	                    else
+	                        q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
+	                else
+	                    q = part.ParentGroup.GroupRotation; // Likely never get here but just in case
+	            }
+	            else
+	                q = part.ParentGroup.GroupRotation; // just the group rotation
+	            return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+            }
+            q = part.GetWorldRotation();
+            return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
+        }
+
         public LSL_Rotation llGetLocalRot()
         {
             m_host.AddScriptLPS(1);
@@ -7299,7 +7323,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_ROTATION:
-                        res.Add(llGetRot());
+                        res.Add(GetPartRot(part));
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TYPE:
