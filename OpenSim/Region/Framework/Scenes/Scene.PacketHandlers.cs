@@ -517,21 +517,19 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            folder = InventoryService.GetFolder(folder);
+            if (folder != null)
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-
-            if (!userProfile.UpdateFolder(name, folderID, type, parentID))
-            {
-                m_log.ErrorFormat(
-                     "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
-                     remoteClient.Name, remoteClient.AgentId);
+                folder.Name = name;
+                folder.Type = (short)type;
+                folder.ParentID = parentID;
+                if (!InventoryService.UpdateFolder(folder))
+                {
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
+                         remoteClient.Name, remoteClient.AgentId);
+                }
             }
         }        
         
