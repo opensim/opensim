@@ -1,1 +1,12 @@
 [Startup]
+    ; set here or use the -user command-line switch
+    ;user = Test
+
+    ; set here or use the -host command-line switch
+    ;host = localhost
+
+    ; set here or use the -port command-line switch
+    ;port = 8003
+
+    ; set here or use the -pass command-line switch
+    ;pass = secret
