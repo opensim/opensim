@@ -334,6 +334,23 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
+        public List<InventoryItemBase> GetFolderItems(string userID, UUID folderID, UUID sessionID)
+        {
+            try
+            {
+                InventoryFolderBase folder = new InventoryFolderBase(folderID, new UUID(userID));
+                return SynchronousRestSessionObjectPoster<InventoryFolderBase, List<InventoryItemBase>>.BeginPostObject(
+                    "POST", m_ServerURI + "/GetItems/", folder, sessionID.ToString(), userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Get folder items operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
+
         public bool AddItem(string userID, InventoryItemBase item, UUID sessionID)
         {
             try

@@ -96,6 +96,13 @@ namespace OpenSim.Services.Connectors
         bool PurgeFolder(string userID, InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
+        /// Get items from a folder.
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns>true if the folder was successfully purged</returns>
+        List<InventoryItemBase> GetFolderItems(string userID, UUID folderID, UUID session_id);
+
+        /// <summary>
         /// Add a new item to the user's inventory
         /// </summary>
         /// <param name="item"></param>

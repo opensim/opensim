@@ -290,7 +290,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetFolderItems(userID, folderID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID;
+                return m_HGService.GetFolderItems(uri, folderID, sessionID);
+            }
         }
 
         public override bool AddFolder(InventoryFolderBase folder)
@@ -487,7 +494,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             {
                 return true;
             }
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user is foreign({0} - {1})", userInventoryServerURI, uri);
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user {0} is foreign({1} - {2})", userID, userInventoryServerURI, uri);
             return false;
         }
 

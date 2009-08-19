@@ -212,7 +212,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            UUID sessionID = GetSessionID(userID);
+            return m_RemoteConnector.GetFolderItems(userID.ToString(), folderID, sessionID);
         }
 
         public override bool AddFolder(InventoryFolderBase folder)
