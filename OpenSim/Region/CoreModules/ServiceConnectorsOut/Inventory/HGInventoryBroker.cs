@@ -483,12 +483,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
             string uri = m_LocalGridInventoryURI.TrimEnd('/');
 
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, comparing {0} to {1}.", userInventoryServerURI, uri);
-
             if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
             {
                 return true;
             }
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user is foreign({0} - {1})", userInventoryServerURI, uri);
             return false;
         }
 

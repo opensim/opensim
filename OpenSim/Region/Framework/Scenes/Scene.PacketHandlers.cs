@@ -404,7 +404,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
             
-            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+            item = InventoryService.GetItem(item);
             
             if (item != null)
             {
