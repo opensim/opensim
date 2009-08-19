@@ -494,7 +494,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     // Send notice out to everyone that wants notices
                     foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetClientGroupRequestID(remoteClient), GroupID))
                     {
-                        if (member.AcceptNotices)
+                         if (m_debugEnabled)
+                        {
+                            UserProfileData targetUserProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(member.AgentID);
+                            if (targetUserProfile != null)
+                            {
+                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, targetUserProfile.Name, member.AcceptNotices);
+                            }
+                            else
+                            {
+                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, member.AgentID, member.AcceptNotices);
+                            }
+                        }
+
+                       if (member.AcceptNotices)
                         {
                             // Build notice IIM
                             GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
