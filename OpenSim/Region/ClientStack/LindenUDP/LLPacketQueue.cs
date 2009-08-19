@@ -128,28 +128,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Store the throttle multiplier for posterity.
             throttleMultiplier = userSettings.ClientThrottleMultipler;
 
+
+            int throttleMaxBPS = 1500000;
+            if (userSettings.TotalThrottleSettings != null)
+                throttleMaxBPS = userSettings.TotalThrottleSettings.Max;
+
             // Set up the throttle classes (min, max, current) in bits per second
-            ResendThrottle =    new LLPacketThrottle(5000, 100000, 16000, userSettings.ClientThrottleMultipler);
-            LandThrottle =      new LLPacketThrottle(1000, 100000, 2000, userSettings.ClientThrottleMultipler);
-            WindThrottle =      new LLPacketThrottle(0, 100000, 0, userSettings.ClientThrottleMultipler);
-            CloudThrottle =     new LLPacketThrottle(0, 100000, 0, userSettings.ClientThrottleMultipler);
-            TaskThrottle =      new LLPacketThrottle(1000, 800000, 3000, userSettings.ClientThrottleMultipler);
-            AssetThrottle =     new LLPacketThrottle(1000, 800000, 1000, userSettings.ClientThrottleMultipler);
-            TextureThrottle =   new LLPacketThrottle(1000, 800000, 4000, userSettings.ClientThrottleMultipler);
-            
-            // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.            
+            ResendThrottle = new LLPacketThrottle(5000, throttleMaxBPS / 15, 16000, userSettings.ClientThrottleMultipler);
+            LandThrottle = new LLPacketThrottle(1000, throttleMaxBPS / 15, 2000, userSettings.ClientThrottleMultipler);
+            WindThrottle = new LLPacketThrottle(0, throttleMaxBPS / 15, 0, userSettings.ClientThrottleMultipler);
+            CloudThrottle = new LLPacketThrottle(0, throttleMaxBPS / 15, 0, userSettings.ClientThrottleMultipler);
+            TaskThrottle = new LLPacketThrottle(1000, throttleMaxBPS / 2, 3000, userSettings.ClientThrottleMultipler);
+            AssetThrottle = new LLPacketThrottle(1000, throttleMaxBPS / 2, 1000, userSettings.ClientThrottleMultipler);
+            TextureThrottle = new LLPacketThrottle(1000, throttleMaxBPS / 2, 4000, userSettings.ClientThrottleMultipler);
+
+
+            // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.           
+
+
             ThrottleSettings totalThrottleSettings = userSettings.TotalThrottleSettings;
             if (null == totalThrottleSettings)
-            {                
-                totalThrottleSettings = new ThrottleSettings(0, 1500000, 28000);
+            {
+                totalThrottleSettings = new ThrottleSettings(0, throttleMaxBPS, 28000);
             }
-            
-            TotalThrottle 
+
+            TotalThrottle
                 = new LLPacketThrottle(
                     totalThrottleSettings.Min, totalThrottleSettings.Max, totalThrottleSettings.Current,
                     userSettings.ClientThrottleMultipler);
 
-            throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
+            throttleTimer = new Timer((int)(throttletimems / throttleTimeDivisor));
             throttleTimer.Elapsed += ThrottleTimerElapsed;
             throttleTimer.Start();
 
