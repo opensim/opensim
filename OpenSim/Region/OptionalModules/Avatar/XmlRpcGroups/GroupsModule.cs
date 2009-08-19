@@ -628,13 +628,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             List<GroupMembersData> data = m_groupData.GetGroupMembers(GetClientGroupRequestID(remoteClient), groupID);
-            if (m_debugEnabled)
-            {
-                foreach (GroupMembersData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: {0} {1}", member.AgentID, member.Title);
-                }
-            }
 
             return data;
 
@@ -646,14 +639,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             List<GroupRolesData> data = m_groupData.GetGroupRoles(GetClientGroupRequestID(remoteClient), groupID);
 
-            if (m_debugEnabled)
-            {
-                foreach (GroupRolesData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: {0} {1}", member.Title, member.Members);
-                }
-            }
-
             return data;
 
         }
@@ -664,14 +649,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             List<GroupRoleMembersData> data = m_groupData.GetGroupRoleMembers(GetClientGroupRequestID(remoteClient), groupID);
 
-            if (m_debugEnabled)
-            {
-                foreach (GroupRoleMembersData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: Av: {0}  Role: {1}", member.MemberID, member.RoleID);
-                }
-            }
-            
             return data;
 
 
