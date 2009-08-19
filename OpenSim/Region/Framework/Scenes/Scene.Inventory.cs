@@ -179,8 +179,8 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not resolve user {0} for caps inventory update",
-                    remoteClient.AgentId);
+                    "[AGENT INVENTORY]: Could not find item {0} for caps inventory update",
+                    itemID);
             }
 
             return UUID.Zero;
