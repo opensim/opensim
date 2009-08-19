@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using log4net;
+using Nini.Config;
 using log4net.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -56,8 +57,22 @@ namespace OpenSim.Grid.MessagingServer
 
         // private UUID m_lastCreatedUser = UUID.Random();
 
+        protected static string m_consoleType = "local";
+        protected static IConfigSource m_config = null;
+
         public static void Main(string[] args)
         {
+            ArgvConfigSource argvSource = new ArgvConfigSource(args);
+            argvSource.AddSwitch("Startup", "console", "c");
+
+            IConfig startupConfig = argvSource.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                m_consoleType = startupConfig.GetString("console", "local");
+            }
+
+            m_config = argvSource;
+
             XmlConfigurator.Configure();
 
             m_log.Info("[SERVER]: Launching MessagingServer...");
@@ -70,7 +85,18 @@ namespace OpenSim.Grid.MessagingServer
 
         public OpenMessage_Main()
         {
-            m_console = new LocalConsole("Messaging");
+            switch (m_consoleType)
+            {
+            case "rest":
+                m_console = new RemoteConsole("Messaging");
+                break;
+            case "basic":
+                m_console = new CommandConsole("Messaging");
+                break;
+            default:
+                m_console = new LocalConsole("Messaging");
+                break;
+            }
             MainConsole.Instance = m_console;
         }
 
@@ -88,20 +114,33 @@ namespace OpenSim.Grid.MessagingServer
         {
             if (m_userServerModule.registerWithUserServer())
             {
-                m_log.Info("[SERVER]: Starting HTTP process");
-                m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+                if (m_httpServer == null)
+                {
+                    m_log.Info("[SERVER]: Starting HTTP process");
+                    m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 
-                m_httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
-                m_httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
-                m_httpServer.AddXmlRPCHandler("get_presence_info_bulk", msgsvc.GetPresenceInfoBulk);
-                m_httpServer.AddXmlRPCHandler("process_region_shutdown", msgsvc.ProcessRegionShutdown);
-                m_httpServer.AddXmlRPCHandler("agent_location", msgsvc.AgentLocation);
-                m_httpServer.AddXmlRPCHandler("agent_leaving", msgsvc.AgentLeaving);
+                    if (m_console is RemoteConsole)
+                    {
+                        RemoteConsole c = (RemoteConsole)m_console;
+                        c.SetServer(m_httpServer);
+                        IConfig netConfig = m_config.AddConfig("Network");
+                        netConfig.Set("ConsoleUser", Cfg.ConsoleUser);
+                        netConfig.Set("ConsolePass", Cfg.ConsolePass);
+                        c.ReadConfig(m_config);
+                    }
 
-                m_httpServer.AddXmlRPCHandler("region_startup", m_regionModule.RegionStartup);
-                m_httpServer.AddXmlRPCHandler("region_shutdown", m_regionModule.RegionShutdown);
+                    m_httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
+                    m_httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
+                    m_httpServer.AddXmlRPCHandler("get_presence_info_bulk", msgsvc.GetPresenceInfoBulk);
+                    m_httpServer.AddXmlRPCHandler("process_region_shutdown", msgsvc.ProcessRegionShutdown);
+                    m_httpServer.AddXmlRPCHandler("agent_location", msgsvc.AgentLocation);
+                    m_httpServer.AddXmlRPCHandler("agent_leaving", msgsvc.AgentLeaving);
 
-                m_httpServer.Start();
+                    m_httpServer.AddXmlRPCHandler("region_startup", m_regionModule.RegionStartup);
+                    m_httpServer.AddXmlRPCHandler("region_shutdown", m_regionModule.RegionShutdown);
+
+                    m_httpServer.Start();
+                }
                 m_log.Info("[SERVER]: Userserver registration was successful");
             }
             else
@@ -114,12 +153,12 @@ namespace OpenSim.Grid.MessagingServer
         private void deregisterFromUserServer()
         {
             m_userServerModule.deregisterWithUserServer();
-            if (m_httpServer != null)
-            {
+//            if (m_httpServer != null)
+//            {
                 // try a completely fresh registration, with fresh handlers, too
-                m_httpServer.Stop();
-                m_httpServer = null;
-            }
+//                m_httpServer.Stop();
+//                m_httpServer = null;
+//            }
             m_console.Output("[SERVER]: Deregistered from userserver.");
         }
 
