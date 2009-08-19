@@ -253,6 +253,19 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
+        public bool MoveItems(string id, List<InventoryItemBase> items, UUID sessionID)
+        {
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.MoveItems(userID, items, sessionID);
+            }
+            return false;
+        }
+
         public bool DeleteItems(string id, List<UUID> itemIDs, UUID sessionID)
         {
             string url = string.Empty;

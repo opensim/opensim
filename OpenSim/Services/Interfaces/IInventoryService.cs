@@ -142,6 +142,8 @@ namespace OpenSim.Services.Interfaces
         /// <returns>true if the item was successfully updated</returns>
         bool UpdateItem(InventoryItemBase item);
 
+        bool MoveItems(UUID ownerID, List<InventoryItemBase> items);
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>

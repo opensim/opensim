@@ -386,6 +386,24 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
+        public virtual bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        {
+            m_log.InfoFormat(
+                "[INVENTORY SERVICE]: Moving {0} items from user {1}", items.Count, ownerID);
+
+            InventoryItemBase itm = null;
+            foreach (InventoryItemBase item in items)
+            {
+                itm = GetInventoryItem(item.ID);
+                itm.Folder = item.Folder;
+                if ((item.Name != null) && !item.Name.Equals(string.Empty))
+                    itm.Name = item.Name;
+                m_Database.updateInventoryItem(itm);
+            }
+
+            return true;
+        }
+
         // See IInventoryServices
         public virtual bool DeleteItems(UUID owner, List<UUID> itemIDs)
         {

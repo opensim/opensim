@@ -116,6 +116,8 @@ namespace OpenSim.Services.Connectors
         /// <returns>true if the item was successfully updated</returns>
         bool UpdateItem(string userID, InventoryItemBase item, UUID session_id);
 
+        bool MoveItems(string userID, List<InventoryItemBase> items, UUID session_id);
+        
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>

@@ -7027,14 +7027,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnMoveInventoryItem != null)
                     {
                         handlerMoveInventoryItem = null;
+                        InventoryItemBase itm = null;
+                        List<InventoryItemBase> items = new List<InventoryItemBase>();
                         foreach (MoveInventoryItemPacket.InventoryDataBlock datablock in moveitem.InventoryData)
                         {
-                            handlerMoveInventoryItem = OnMoveInventoryItem;
-                            if (handlerMoveInventoryItem != null)
-                            {
-                                handlerMoveInventoryItem(this, datablock.FolderID, datablock.ItemID, datablock.Length,
-                                                         Util.FieldToString(datablock.NewName));
-                            }
+                            itm = new InventoryItemBase(datablock.ItemID, AgentId);
+                            itm.Folder = datablock.FolderID;
+                            itm.Name = Util.FieldToString(datablock.NewName);
+                            // weird, comes out as empty string
+                            //m_log.DebugFormat("[XXX] new name: {0}", itm.Name);
+                            items.Add(itm);
+                        }
+                        handlerMoveInventoryItem = OnMoveInventoryItem;
+                        if (handlerMoveInventoryItem != null)
+                        {
+                            handlerMoveInventoryItem(this, items);
                         }
                     }
                     break;

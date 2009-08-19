@@ -547,6 +547,11 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
+        public bool MoveItems(UUID owner, List<InventoryItemBase> items)
+        {
+            return false;
+        }
+
         public bool DeleteItems(UUID owner, List<UUID> items)
         {
             return false;

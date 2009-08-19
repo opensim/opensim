@@ -289,6 +289,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.UpdateItem(item);
         }
 
+
+        public override bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        {
+            return m_InventoryService.MoveItems(ownerID, items);
+        }
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>

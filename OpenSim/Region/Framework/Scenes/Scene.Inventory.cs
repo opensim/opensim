@@ -638,36 +638,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="itemID"></param>
         /// <param name="length"></param>
         /// <param name="newName"></param>
-        public void MoveInventoryItem(IClientAPI remoteClient, UUID folderID, UUID itemID, int length,
-                                      string newName)
+        public void MoveInventoryItem(IClientAPI remoteClient, List<InventoryItemBase> items)
         {
             m_log.DebugFormat(
-                "[AGENT INVENTORY]: Moving item {0} to {1} for {2}", itemID, folderID, remoteClient.AgentId);
+                "[AGENT INVENTORY]: Moving {0} items for user {1}", items.Count, remoteClient.AgentId);
 
-            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-            item = InventoryService.GetItem(item);
-
-            if (item != null)
-            {
-                if (newName != String.Empty)
-                {
-                    item.Name = newName;
-                }
-                item.Folder = folderID;
-
-                // Diva comment: can't we just update?
-                List<UUID> uuids = new List<UUID>();
-                uuids.Add(item.ID);
-                InventoryService.DeleteItems(item.Owner, uuids);
-
-                AddInventoryItem(remoteClient, item);
-            }
-            else
-            {
-                m_log.Warn("[AGENT INVENTORY]: Failed to find item " + itemID.ToString());
-
-                return;
-            }
+            if (!InventoryService.MoveItems(remoteClient.AgentId, items))
+                m_log.Warn("[AGENT INVENTORY]: Failed to move items for user " + remoteClient.AgentId);
         }
 
         /// <summary>

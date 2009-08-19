@@ -181,6 +181,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully updated</returns>
         public abstract bool UpdateItem(InventoryItemBase item);
 
+        public abstract bool MoveItems(UUID ownerID, List<InventoryItemBase> items);
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
