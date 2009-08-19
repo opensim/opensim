@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using OpenMetaverse;
@@ -558,15 +559,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
 
+        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
+
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
+            PurgeFolderDelegate d = PurgeFolderAsync;
+            try
+            {
+                d.BeginInvoke(remoteClient.AgentId, folderID, PurgeFolderCompleted, d);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[AGENT INVENTORY]: Exception on purge folder for user {0}: {1}", remoteClient.AgentId, e.Message);
+            }
+        }        
+
+
+        private void PurgeFolderAsync(UUID userID, UUID folderID)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, userID);
 
             if (InventoryService.PurgeFolder(folder))
                 m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
             else
                 m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
-        }        
+        }
 
+        private void PurgeFolderCompleted(IAsyncResult iar)
+        {
+        }
     }
 }

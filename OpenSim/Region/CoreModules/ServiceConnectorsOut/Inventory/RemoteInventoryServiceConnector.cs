@@ -323,14 +323,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            if (m_Scene == null)
-            {
-                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
-            }
+            //if (m_Scene == null)
+            //{
+            //    m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
+            //}
 
             if (m_UserProfileService == null)
             {
-                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
+                //m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
                 return UUID.Zero;
             }
 
