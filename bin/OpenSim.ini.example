@@ -374,6 +374,9 @@
     ;
     ; client_socket_rcvbuf_size = 8388608
 
+    ; Maximum bits per second to send to any single client. This will override the user's viewer preference settings.
+
+    ; client_throttle_max_bps = 1500000
 
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
