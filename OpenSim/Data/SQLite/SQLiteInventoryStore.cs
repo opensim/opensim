@@ -628,12 +628,12 @@ namespace OpenSim.Data.SQLite
 
         public InventoryItemBase queryInventoryItem(UUID itemID)
         {
-            return null;
+            return getInventoryItem(itemID);
         }
 
         public InventoryFolderBase queryInventoryFolder(UUID folderID)
         {
-            return null;
+            return getInventoryFolder(folderID);
         }
 
         /// <summary>

@@ -420,16 +420,16 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryItemBase GetItem(InventoryItemBase item)
         {
-            InventoryItemBase result = m_Database.queryInventoryItem(item.ID);
+            InventoryItemBase result = m_Database.getInventoryItem(item.ID);
             if (result != null)
                 return result;
-
+            m_log.DebugFormat("[INVENTORY SERVICE]: GetItem failed to find item {0}", item.ID);
             return null;
         }
 
         public virtual InventoryFolderBase GetFolder(InventoryFolderBase item)
         {
-            InventoryFolderBase result = m_Database.queryInventoryFolder(item.ID);
+            InventoryFolderBase result = m_Database.getInventoryFolder(item.ID);
             if (result != null)
                 return result;
 

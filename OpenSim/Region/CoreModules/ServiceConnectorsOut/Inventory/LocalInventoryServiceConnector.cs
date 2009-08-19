@@ -191,7 +191,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
-            InventoryFolderBase root = GetRootFolder(userID);
+            InventoryFolderBase root = m_InventoryService.GetRootFolder(userID);
             if (root != null)
             {
                 InventoryCollection content = GetFolderContent(userID, root.ID);
@@ -202,13 +202,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     {
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                         {
-                            m_log.InfoFormat("[INVENTORY CONNECTOR]: folder type {0} ", folder.Type);
+                            //m_log.InfoFormat("[INVENTORY CONNECTOR]: folder type {0} ", folder.Type);
                             folders[(AssetType)folder.Type] = folder;
                         }
                     }
                     // Put the root folder there, as type Folder
                     folders[AssetType.Folder] = root;
-                    m_log.InfoFormat("[INVENTORY CONNECTOR]: root folder is type {0} ", root.Type);
+                    //m_log.InfoFormat("[INVENTORY CONNECTOR]: root folder is type {0} ", root.Type);
 
                     return folders;
                 }
