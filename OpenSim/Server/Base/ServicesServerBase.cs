@@ -65,6 +65,10 @@ namespace OpenSim.Server.Base
         //
         private bool m_Running = true;
 
+        // PID file
+        //
+        private string m_pidFile = String.Empty;
+
         // Handle all the automagical stuff
         //
         public ServicesServerBase(string prompt, string[] args)
@@ -211,6 +215,11 @@ namespace OpenSim.Server.Base
                 }
             }
 
+            if (startupConfig.GetString("PIDFile", String.Empty) != String.Empty)
+            {
+                CreatePIDFile(startupConfig.GetString("PIDFile"));
+            }
+
             // Register the quit command
             //
             MainConsole.Instance.Commands.AddCommand("base", false, "quit",
@@ -230,6 +239,8 @@ namespace OpenSim.Server.Base
                 MainConsole.Instance.Prompt();
             }
 
+            if (m_pidFile != String.Empty)
+                File.Delete(m_pidFile);
             return 0;
         }
 
@@ -245,6 +256,23 @@ namespace OpenSim.Server.Base
 
         protected virtual void Initialise()
         {
+        }
+
+        protected void CreatePIDFile(string path)
+        {
+            try
+            {
+                string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
+                FileStream fs = File.Create(path);
+                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                Byte[] buf = enc.GetBytes(pidstring);
+                fs.Write(buf, 0, buf.Length);
+                fs.Close();
+                m_pidFile = path;
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }
