@@ -222,10 +222,7 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
 
-        protected enum Cardinals
-        {
-            N=1,NE,E,SE,S,SW,W,NW
-        }
+        
         /// <summary>
         /// Position at which a significant movement was made
         /// </summary>
