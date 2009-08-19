@@ -911,6 +911,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Nini.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

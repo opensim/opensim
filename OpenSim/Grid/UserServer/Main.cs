@@ -157,7 +157,6 @@ namespace OpenSim.Grid.UserServer
 
             if (m_console is RemoteConsole)
             {
-                System.Console.WriteLine("Initialized REST console");
                 RemoteConsole c = (RemoteConsole)m_console;
                 c.SetServer(m_httpServer);
                 IConfig netConfig = m_config.AddConfig("Network");
