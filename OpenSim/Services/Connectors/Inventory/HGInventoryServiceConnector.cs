@@ -214,6 +214,19 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
+        public List<InventoryItemBase> GetFolderItems(string id, UUID folderID, UUID sessionID)
+        {
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.GetFolderItems(userID, folderID, sessionID);
+            }
+            return new List<InventoryItemBase>();
+        }
+        
         public bool AddItem(string id, InventoryItemBase item, UUID sessionID)
         {
             string url = string.Empty;
@@ -240,7 +253,7 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
-        public bool DeleteItem(string id, InventoryItemBase item, UUID sessionID)
+        public bool MoveItems(string id, List<InventoryItemBase> items, UUID sessionID)
         {
             string url = string.Empty;
             string userID = string.Empty;
@@ -248,7 +261,20 @@ namespace OpenSim.Services.Connectors.Inventory
             if (StringToUrlAndUserID(id, out url, out userID))
             {
                 ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.UpdateItem(userID, item, sessionID);
+                return connector.MoveItems(userID, items, sessionID);
+            }
+            return false;
+        }
+
+        public bool DeleteItems(string id, List<UUID> itemIDs, UUID sessionID)
+        {
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.DeleteItems(userID, itemIDs, sessionID);
             }
             return false;
         }

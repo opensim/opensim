@@ -334,6 +334,23 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
+        public List<InventoryItemBase> GetFolderItems(string userID, UUID folderID, UUID sessionID)
+        {
+            try
+            {
+                InventoryFolderBase folder = new InventoryFolderBase(folderID, new UUID(userID));
+                return SynchronousRestSessionObjectPoster<InventoryFolderBase, List<InventoryItemBase>>.BeginPostObject(
+                    "POST", m_ServerURI + "/GetItems/", folder, sessionID.ToString(), userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Get folder items operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return null;
+        }
+
         public bool AddItem(string userID, InventoryItemBase item, UUID sessionID)
         {
             try
@@ -366,12 +383,57 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool DeleteItem(string userID, InventoryItemBase item, UUID sessionID)
+        /**
+         * MoveItems Async group
+         */
+
+        delegate void MoveItemsDelegate(string userID, List<InventoryItemBase> items, UUID sessionID);
+
+        private void MoveItemsAsync(string userID, List<InventoryItemBase> items, UUID sessionID)
         {
             try
             {
-                return SynchronousRestSessionObjectPoster<InventoryItemBase, bool>.BeginPostObject(
-                    "POST", m_ServerURI + "/DeleteItem/", item, sessionID.ToString(), item.Owner.ToString());
+                SynchronousRestSessionObjectPoster<List<InventoryItemBase>, bool>.BeginPostObject(
+                    "POST", m_ServerURI + "/MoveItems/", items, sessionID.ToString(), userID.ToString());
+
+                // Success
+                return;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Move inventory items operation failed, {0} {1} (old server?). Trying slow way.",
+                     e.Source, e.Message);
+            }
+
+            foreach (InventoryItemBase item in items)
+            {
+                InventoryItemBase itm = this.QueryItem(userID, item, sessionID);
+                itm.Name = item.Name;
+                itm.Folder = item.Folder;
+                this.UpdateItem(userID, itm, sessionID);
+            }
+        }
+
+        private void MoveItemsCompleted(IAsyncResult iar)
+        {
+        }
+
+        public bool MoveItems(string userID, List<InventoryItemBase> items, UUID sessionID)
+        {
+            MoveItemsDelegate d = MoveItemsAsync;
+            d.BeginInvoke(userID, items, sessionID, MoveItemsCompleted, d);
+            return true;
+        }
+
+        public bool DeleteItems(string userID, List<UUID> items, UUID sessionID)
+        {
+            try
+            {
+                List<Guid> guids = new List<Guid>();
+                foreach (UUID u in items)
+                    guids.Add(u.Guid);
+                return SynchronousRestSessionObjectPoster<List<Guid>, bool>.BeginPostObject(
+                    "POST", m_ServerURI + "/DeleteItem/", guids, sessionID.ToString(), userID);
             }
             catch (Exception e)
             {

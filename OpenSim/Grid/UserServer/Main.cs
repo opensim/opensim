@@ -43,6 +43,7 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Grid.Communications.OGS1;
 using OpenSim.Grid.Framework;
 using OpenSim.Grid.UserServer.Modules;
+using Nini.Config;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -73,8 +74,22 @@ namespace OpenSim.Grid.UserServer
 
         protected AvatarCreationModule m_appearanceModule;
 
+        protected static string m_consoleType = "local";
+        protected static IConfigSource m_config = null;
+
         public static void Main(string[] args)
         {
+            ArgvConfigSource argvSource = new ArgvConfigSource(args);
+            argvSource.AddSwitch("Startup", "console", "c");
+
+            IConfig startupConfig = argvSource.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                m_consoleType = startupConfig.GetString("console", "local");
+            }
+
+            m_config = argvSource;
+
             XmlConfigurator.Configure();
 
             m_log.Info("Launching UserServer...");
@@ -87,7 +102,18 @@ namespace OpenSim.Grid.UserServer
 
         public OpenUser_Main()
         {
-            m_console = new LocalConsole("User");
+            switch (m_consoleType)
+            {
+            case "rest":
+                m_console = new RemoteConsole("User");
+                break;
+            case "basic":
+                m_console = new CommandConsole("User");
+                break;
+            default:
+                m_console = new LocalConsole("User");
+                break;
+            }
             MainConsole.Instance = m_console;
         }
 
@@ -128,6 +154,16 @@ namespace OpenSim.Grid.UserServer
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+
+            if (m_console is RemoteConsole)
+            {
+                RemoteConsole c = (RemoteConsole)m_console;
+                c.SetServer(m_httpServer);
+                IConfig netConfig = m_config.AddConfig("Network");
+                netConfig.Set("ConsoleUser", Cfg.ConsoleUser);
+                netConfig.Set("ConsolePass", Cfg.ConsolePass);
+                c.ReadConfig(m_config);
+            }
 
             RegisterInterface<CommandConsole>(m_console);
             RegisterInterface<UserConfig>(Cfg);

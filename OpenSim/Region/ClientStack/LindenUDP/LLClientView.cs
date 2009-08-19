@@ -6633,9 +6633,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                             else // Agent
                             {
-                                //InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
                                 IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
-                                InventoryItemBase assetRequestItem = invService.GetItem(new InventoryItemBase(itemID));
+                                InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, AgentId);
+                                assetRequestItem = invService.GetItem(assetRequestItem);
                                 if (assetRequestItem == null)
                                 {
                                     assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
@@ -7027,14 +7027,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnMoveInventoryItem != null)
                     {
                         handlerMoveInventoryItem = null;
+                        InventoryItemBase itm = null;
+                        List<InventoryItemBase> items = new List<InventoryItemBase>();
                         foreach (MoveInventoryItemPacket.InventoryDataBlock datablock in moveitem.InventoryData)
                         {
-                            handlerMoveInventoryItem = OnMoveInventoryItem;
-                            if (handlerMoveInventoryItem != null)
-                            {
-                                handlerMoveInventoryItem(this, datablock.FolderID, datablock.ItemID, datablock.Length,
-                                                         Util.FieldToString(datablock.NewName));
-                            }
+                            itm = new InventoryItemBase(datablock.ItemID, AgentId);
+                            itm.Folder = datablock.FolderID;
+                            itm.Name = Util.FieldToString(datablock.NewName);
+                            // weird, comes out as empty string
+                            //m_log.DebugFormat("[XXX] new name: {0}", itm.Name);
+                            items.Add(itm);
+                        }
+                        handlerMoveInventoryItem = OnMoveInventoryItem;
+                        if (handlerMoveInventoryItem != null)
+                        {
+                            handlerMoveInventoryItem(this, items);
                         }
                     }
                     break;
@@ -7053,14 +7060,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryItem != null)
                     {
                         handlerRemoveInventoryItem = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryItemPacket.InventoryDataBlock datablock in removeItem.InventoryData)
                         {
-                            handlerRemoveInventoryItem = OnRemoveInventoryItem;
-                            if (handlerRemoveInventoryItem != null)
-                            {
-                                handlerRemoveInventoryItem(this, datablock.ItemID);
-                            }
+                            uuids.Add(datablock.ItemID);
                         }
+                        handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                        if (handlerRemoveInventoryItem != null)
+                        {
+                            handlerRemoveInventoryItem(this, uuids);
+                        }
+
                     }
                     break;
                 case PacketType.RemoveInventoryFolder:
@@ -7116,13 +7126,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryItem != null)
                     {
                         handlerRemoveInventoryItem = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryObjectsPacket.ItemDataBlock datablock in removeObject.ItemData)
                         {
-                            handlerRemoveInventoryItem = OnRemoveInventoryItem;
-                            if (handlerRemoveInventoryItem != null)
-                            {
-                                handlerRemoveInventoryItem(this, datablock.ItemID);
-                            }
+                            uuids.Add(datablock.ItemID);
+                        }
+                        handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                        if (handlerRemoveInventoryItem != null)
+                        {
+                            handlerRemoveInventoryItem(this, uuids);
                         }
                     }
                     break;

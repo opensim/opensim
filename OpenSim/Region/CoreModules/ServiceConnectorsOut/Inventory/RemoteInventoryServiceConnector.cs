@@ -212,7 +212,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            UUID sessionID = GetSessionID(userID);
+            return m_RemoteConnector.GetFolderItems(userID.ToString(), folderID, sessionID);
         }
 
         public override bool AddFolder(InventoryFolderBase folder)
@@ -272,13 +273,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.UpdateItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {
-            if (item == null)
+            if (items == null)
                 return false;
 
-            UUID sessionID = GetSessionID(item.Owner);
-            return m_RemoteConnector.DeleteItem(item.Owner.ToString(), item, sessionID);
+            UUID sessionID = GetSessionID(ownerID);
+            return m_RemoteConnector.MoveItems(ownerID.ToString(), items, sessionID);
+        }
+
+
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
+        {
+            if (itemIDs == null)
+                return false;
+            if (itemIDs.Count == 0)
+                return true;
+
+            UUID sessionID = GetSessionID(ownerID);
+            return m_RemoteConnector.DeleteItems(ownerID.ToString(), itemIDs, sessionID);
         }
 
         public override InventoryItemBase GetItem(InventoryItemBase item)
@@ -320,14 +333,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            if (m_Scene == null)
-            {
-                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
-            }
+            //if (m_Scene == null)
+            //{
+            //    m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
+            //}
 
             if (m_UserProfileService == null)
             {
-                m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
+                //m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
                 return UUID.Zero;
             }
 

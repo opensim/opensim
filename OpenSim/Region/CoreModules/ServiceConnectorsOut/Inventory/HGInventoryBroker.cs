@@ -290,7 +290,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            if (IsLocalGridUser(userID))
+                return m_GridService.GetFolderItems(userID, folderID);
+            else
+            {
+                UUID sessionID = GetSessionID(userID);
+                string uri = GetUserInventoryURI(userID) + "/" + userID;
+                return m_HGService.GetFolderItems(uri, folderID, sessionID);
+            }
         }
 
         public override bool AddFolder(InventoryFolderBase folder)
@@ -386,18 +393,39 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {
-            if (item == null)
+            if (items == null)
                 return false;
+            if (items.Count == 0)
+                return true;
 
-            if (IsLocalGridUser(item.Owner))
-                return m_GridService.DeleteItem(item);
+            if (IsLocalGridUser(ownerID))
+                return m_GridService.MoveItems(ownerID, items);
             else
             {
-                UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
-                return m_HGService.DeleteItem(uri, item, sessionID);
+                UUID sessionID = GetSessionID(ownerID);
+                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                return m_HGService.MoveItems(uri, items, sessionID);
+            }
+        }
+
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
+        {
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Delete {0} items for user {1}", itemIDs.Count, ownerID);
+
+            if (itemIDs == null)
+                return false;
+            if (itemIDs.Count == 0)
+                return true;
+
+            if (IsLocalGridUser(ownerID))
+                return m_GridService.DeleteItems(ownerID, itemIDs);
+            else
+            {
+                UUID sessionID = GetSessionID(ownerID);
+                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                return m_HGService.DeleteItems(uri, itemIDs, sessionID);
             }
         }
 
@@ -483,12 +511,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
             string uri = m_LocalGridInventoryURI.TrimEnd('/');
 
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, comparing {0} to {1}.", userInventoryServerURI, uri);
-
             if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
             {
                 return true;
             }
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user {0} is foreign({1} - {2})", userID, userInventoryServerURI, uri);
             return false;
         }
 

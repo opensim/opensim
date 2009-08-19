@@ -26,6 +26,7 @@
  */
 
 using log4net.Config;
+using Nini.Config;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -33,9 +34,20 @@ namespace OpenSim.Grid.GridServer
     {
         public static void Main(string[] args)
         {
+            ArgvConfigSource argvSource = new ArgvConfigSource(args);
+            argvSource.AddSwitch("Startup", "console", "c");
+
             XmlConfigurator.Configure();
 
             GridServerBase app = new GridServerBase();
+
+            IConfig startupConfig = argvSource.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                app.m_consoleType = startupConfig.GetString("console", "local");
+            }
+
+            app.m_configSource = argvSource;
 
 //            if (args.Length > 0 && args[0] == "-setuponly")
 //            {

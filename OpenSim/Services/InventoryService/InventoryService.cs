@@ -386,13 +386,33 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        // See IInventoryServices
-        public virtual bool DeleteItem(InventoryItemBase item)
+        public virtual bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
         {
             m_log.InfoFormat(
-                "[INVENTORY SERVICE]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
+                "[INVENTORY SERVICE]: Moving {0} items from user {1}", items.Count, ownerID);
 
-            m_Database.deleteInventoryItem(item.ID);
+            InventoryItemBase itm = null;
+            foreach (InventoryItemBase item in items)
+            {
+                itm = GetInventoryItem(item.ID);
+                itm.Folder = item.Folder;
+                if ((item.Name != null) && !item.Name.Equals(string.Empty))
+                    itm.Name = item.Name;
+                m_Database.updateInventoryItem(itm);
+            }
+
+            return true;
+        }
+
+        // See IInventoryServices
+        public virtual bool DeleteItems(UUID owner, List<UUID> itemIDs)
+        {
+            m_log.InfoFormat(
+                "[INVENTORY SERVICE]: Deleting {0} items from user {1}", itemIDs.Count, owner);
+
+            // uhh.....
+            foreach (UUID uuid in itemIDs)
+                m_Database.deleteInventoryItem(uuid);
 
             // FIXME: Should return false on failure
             return true;
@@ -439,10 +459,12 @@ namespace OpenSim.Services.InventoryService
 
             List<InventoryItemBase> items = GetFolderItems(folder.Owner, folder.ID);
 
+            List<UUID> uuids = new List<UUID>();
             foreach (InventoryItemBase item in items)
             {
-                DeleteItem(item);
+                uuids.Add(item.ID);
             }
+            DeleteItems(folder.Owner, uuids);
 
             // FIXME: Should return false on failure
             return true;

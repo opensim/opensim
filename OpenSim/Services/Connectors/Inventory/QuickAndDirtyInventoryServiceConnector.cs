@@ -151,7 +151,12 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool DeleteItem(InventoryItemBase item)
+        public bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        {
+            return false;
+        }
+
+        public bool DeleteItems(UUID owner, List<UUID> itemIDs)
         {
             return false;
         }
