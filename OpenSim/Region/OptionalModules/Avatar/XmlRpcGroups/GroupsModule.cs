@@ -485,6 +485,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         bucket[18] = 0; //dunno
                     }
 
+                    
                     m_groupData.AddGroupNotice(GetClientGroupRequestID(remoteClient), GroupID, NoticeID, im.fromAgentName, Subject, Message, bucket);
                     if (OnNewGroupNotice != null)
                     {
@@ -821,7 +822,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            // TODO: Security Checks?
+            // Security Checks are handled in the Groups Service.
 
             GroupRequestID grID = GetClientGroupRequestID(remoteClient);
 
@@ -838,6 +839,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 case OpenMetaverse.GroupRoleUpdate.UpdateAll:
                 case OpenMetaverse.GroupRoleUpdate.UpdateData:
                 case OpenMetaverse.GroupRoleUpdate.UpdatePowers:
+                    if (m_debugEnabled)
+                    {
+                        GroupPowers gp = (GroupPowers)powers;
+                        m_log.DebugFormat("[GROUPS]: Role ({0}) updated with Powers ({1}) ({2})", name, powers.ToString(), gp.ToString());
+                    }
                     m_groupData.UpdateGroupRole(grID, groupID, roleID, name, description, title, powers);
                     break;
 
