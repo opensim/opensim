@@ -294,9 +294,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
-            return m_InventoryService.DeleteItem(item);
+            return m_InventoryService.DeleteItems(ownerID, itemIDs);
         }
 
         public override InventoryItemBase GetItem(InventoryItemBase item)

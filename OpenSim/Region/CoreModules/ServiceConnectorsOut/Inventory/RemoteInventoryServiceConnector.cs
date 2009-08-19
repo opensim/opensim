@@ -273,13 +273,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.UpdateItem(item.Owner.ToString(), item, sessionID);
         }
 
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
-            if (item == null)
+            if (itemIDs == null)
                 return false;
+            if (itemIDs.Count == 0)
+                return true;
 
-            UUID sessionID = GetSessionID(item.Owner);
-            return m_RemoteConnector.DeleteItem(item.Owner.ToString(), item, sessionID);
+            UUID sessionID = GetSessionID(ownerID);
+            return m_RemoteConnector.DeleteItems(ownerID.ToString(), itemIDs, sessionID);
         }
 
         public override InventoryItemBase GetItem(InventoryItemBase item)

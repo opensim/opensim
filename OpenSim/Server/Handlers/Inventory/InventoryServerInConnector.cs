@@ -105,8 +105,8 @@ namespace OpenSim.Server.Handlers.Inventory
                     "POST", "/PurgeFolder/", m_InventoryService.PurgeFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
-                    "POST", "/DeleteItem/", m_InventoryService.DeleteItem, CheckAuthSession));
+                new RestDeserialiseSecureHandler<List<Guid>, bool>(
+                    "POST", "/DeleteItem/", DeleteItems, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
@@ -245,6 +245,15 @@ namespace OpenSim.Server.Handlers.Inventory
         public int GetAssetPermissions(InventoryItemBase item)
         {
             return m_InventoryService.GetAssetPermissions(item.Owner, item.AssetID);
+        }
+
+        public bool DeleteItems(List<Guid> items)
+        {
+            List<UUID> uuids = new List<UUID>();
+            foreach (Guid g in items)
+                uuids.Add(new UUID(g));
+            // oops we lost the user info here. Bad bad handlers
+            return m_InventoryService.DeleteItems(UUID.Zero, uuids);
         }
 
         #endregion

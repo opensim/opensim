@@ -477,7 +477,11 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!Permissions.BypassPermissions())
                 {
                     if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                        InventoryService.DeleteItem(new InventoryItemBase(itemId));
+                    {
+                        List<UUID> items = new List<UUID>();
+                        items.Add(itemId);
+                        InventoryService.DeleteItems(senderId, items);
+                    }
                 }
 
                 return itemCopy;
@@ -652,7 +656,9 @@ namespace OpenSim.Region.Framework.Scenes
                 item.Folder = folderID;
 
                 // Diva comment: can't we just update?
-                InventoryService.DeleteItem(item);
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(item.ID);
+                InventoryService.DeleteItems(item.Owner, uuids);
 
                 AddInventoryItem(remoteClient, item);
             }
@@ -799,9 +805,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
-        private void RemoveInventoryItem(IClientAPI remoteClient, UUID itemID)
+        private void RemoveInventoryItem(IClientAPI remoteClient, List<UUID> itemIDs)
         {
-            InventoryService.DeleteItem(new InventoryItemBase(itemID));
+            //m_log.Debug("[SCENE INVENTORY]: user " + remoteClient.AgentId);
+            InventoryService.DeleteItems(remoteClient.AgentId, itemIDs);
         }
 
         /// <summary>
@@ -1248,7 +1255,11 @@ namespace OpenSim.Region.Framework.Scenes
                             if (!Permissions.BypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                                    RemoveInventoryItem(remoteClient, itemID);
+                                {
+                                    List<UUID> uuids = new List<UUID>();
+                                    uuids.Add(itemID);
+                                    RemoveInventoryItem(remoteClient, uuids);
+                                }
                             }
                         }
                         else
@@ -2144,7 +2155,11 @@ namespace OpenSim.Region.Framework.Scenes
                             // copy ones will be lost, so avoid it
                             //
                             if (!attachment)
-                                InventoryService.DeleteItem(item);
+                            {
+                                List<UUID> uuids = new List<UUID>();
+                                uuids.Add(item.ID);
+                                InventoryService.DeleteItems(item.Owner, uuids);
+                            }
                         }
                     }
 
@@ -2404,7 +2419,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 part.ParentGroup.DetachToGround();
 
-                InventoryService.DeleteItem(new InventoryItemBase(inventoryID));
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(inventoryID);
+                InventoryService.DeleteItems(remoteClient.AgentId, uuids);
                 remoteClient.SendRemoveInventoryItem(inventoryID);
             }
             SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);

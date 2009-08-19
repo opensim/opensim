@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        public abstract bool DeleteItem(InventoryItemBase item);
+        public abstract bool DeleteItems(UUID ownerID, List<UUID> itemIDs);
 
         public abstract InventoryItemBase GetItem(InventoryItemBase item);
 

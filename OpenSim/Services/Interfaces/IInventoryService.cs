@@ -147,7 +147,8 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        bool DeleteItem(InventoryItemBase item);
+        //bool DeleteItem(InventoryItemBase item);
+        bool DeleteItems(UUID userID, List<UUID> itemIDs);
 
         /// <summary>
         /// Get an item, given by its UUID

@@ -7053,14 +7053,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryItem != null)
                     {
                         handlerRemoveInventoryItem = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryItemPacket.InventoryDataBlock datablock in removeItem.InventoryData)
                         {
-                            handlerRemoveInventoryItem = OnRemoveInventoryItem;
-                            if (handlerRemoveInventoryItem != null)
-                            {
-                                handlerRemoveInventoryItem(this, datablock.ItemID);
-                            }
+                            uuids.Add(datablock.ItemID);
                         }
+                        handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                        if (handlerRemoveInventoryItem != null)
+                        {
+                            handlerRemoveInventoryItem(this, uuids);
+                        }
+
                     }
                     break;
                 case PacketType.RemoveInventoryFolder:
@@ -7116,13 +7119,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryItem != null)
                     {
                         handlerRemoveInventoryItem = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryObjectsPacket.ItemDataBlock datablock in removeObject.ItemData)
                         {
-                            handlerRemoveInventoryItem = OnRemoveInventoryItem;
-                            if (handlerRemoveInventoryItem != null)
-                            {
-                                handlerRemoveInventoryItem(this, datablock.ItemID);
-                            }
+                            uuids.Add(datablock.ItemID);
+                        }
+                        handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                        if (handlerRemoveInventoryItem != null)
+                        {
+                            handlerRemoveInventoryItem(this, uuids);
                         }
                     }
                     break;

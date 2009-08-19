@@ -383,12 +383,15 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool DeleteItem(string userID, InventoryItemBase item, UUID sessionID)
+        public bool DeleteItems(string userID, List<UUID> items, UUID sessionID)
         {
             try
             {
-                return SynchronousRestSessionObjectPoster<InventoryItemBase, bool>.BeginPostObject(
-                    "POST", m_ServerURI + "/DeleteItem/", item, sessionID.ToString(), item.Owner.ToString());
+                List<Guid> guids = new List<Guid>();
+                foreach (UUID u in items)
+                    guids.Add(u.Guid);
+                return SynchronousRestSessionObjectPoster<List<Guid>, bool>.BeginPostObject(
+                    "POST", m_ServerURI + "/DeleteItem/", guids, sessionID.ToString(), userID);
             }
             catch (Exception e)
             {

@@ -393,18 +393,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
-            if (item == null)
-                return false;
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: Delete {0} items for user {1}", itemIDs.Count, ownerID);
 
-            if (IsLocalGridUser(item.Owner))
-                return m_GridService.DeleteItem(item);
+            if (itemIDs == null)
+                return false;
+            if (itemIDs.Count == 0)
+                return true;
+
+            if (IsLocalGridUser(ownerID))
+                return m_GridService.DeleteItems(ownerID, itemIDs);
             else
             {
-                UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
-                return m_HGService.DeleteItem(uri, item, sessionID);
+                UUID sessionID = GetSessionID(ownerID);
+                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                return m_HGService.DeleteItems(uri, itemIDs, sessionID);
             }
         }
 

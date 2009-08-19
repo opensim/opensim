@@ -253,7 +253,7 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
-        public bool DeleteItem(string id, InventoryItemBase item, UUID sessionID)
+        public bool DeleteItems(string id, List<UUID> itemIDs, UUID sessionID)
         {
             string url = string.Empty;
             string userID = string.Empty;
@@ -261,7 +261,7 @@ namespace OpenSim.Services.Connectors.Inventory
             if (StringToUrlAndUserID(id, out url, out userID))
             {
                 ISessionAuthInventoryService connector = GetConnector(url);
-                return connector.UpdateItem(userID, item, sessionID);
+                return connector.DeleteItems(userID, itemIDs, sessionID);
             }
             return false;
         }

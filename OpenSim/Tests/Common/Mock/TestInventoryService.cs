@@ -143,7 +143,7 @@ namespace OpenSim.Tests.Common.Mock
             return false;
         }
 
-        public bool DeleteItem(InventoryItemBase item)
+        public bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
             return false;
         }

@@ -121,7 +121,7 @@ namespace OpenSim.Services.Connectors
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        bool DeleteItem(string userID, InventoryItemBase item, UUID session_id);
+        bool DeleteItems(string userID, List<UUID> itemIDs, UUID session_id);
 
         InventoryItemBase QueryItem(string userID, InventoryItemBase item, UUID session_id);
 

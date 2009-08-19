@@ -267,7 +267,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     item.Folder = trashFolder.ID;
 
                     // Diva comment: can't we just update this item???
-                    invService.DeleteItem(item);
+                    List<UUID> uuids = new List<UUID>();
+                    uuids.Add(item.ID);
+                    invService.DeleteItems(item.Owner, uuids);
                     scene.AddInventoryItem(client, item);
                 }
                 else

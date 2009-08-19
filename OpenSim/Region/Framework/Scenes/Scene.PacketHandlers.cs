@@ -560,7 +560,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
 
             if (InventoryService.PurgeFolder(folder))
                 m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
