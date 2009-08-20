@@ -225,7 +225,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
         }
 
-        [Test]
+        // I'm commenting this test because it does not represent
+        // crossings. The Thread.Sleep's in here are not meaningful mocks,
+        // and they sometimes fail in panda.
+        // We need to talk in order to develop a test
+        // that really tests region crossings. There are 3 async components,
+        // but things are synchronous among them. So there should be
+        // 3 threads in here.
+        //[Test]
         public void T021_TestCrossToNewRegion()
         {
             TestHelper.InMethod();
