@@ -67,13 +67,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             if (!m_Scenelist.Contains(scene))
             {
-                if (m_Scenelist.Count == 0)
-                {
-                    m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
-                    if (m_TransferModule == null)
-                        m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
-                }
-
                 m_Scenelist.Add(scene);
 
                 scene.RegisterModuleInterface<IInventoryTransferModule>(this);
@@ -86,6 +79,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         public void PostInitialise()
         {
+            if (m_Scenelist.Count > 0)
+            {
+                m_TransferModule = m_Scenelist[0].RequestModuleInterface<IMessageTransferModule>();
+                if (m_TransferModule == null)
+                    m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
+            }
         }
 
         public void Close()
