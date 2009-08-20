@@ -6,7 +6,7 @@ using OpenSim.Region.Framework.Scenes;
 
 using NUnit.Framework;
 
-namespace OpenSim.Region.Framework.Tests
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
     [TestFixture]
     public class BorderTests

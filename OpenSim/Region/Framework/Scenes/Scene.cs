@@ -81,6 +81,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
+        public List<Border> NorthBorders = new List<Border>();
+        public List<Border> EastBorders = new List<Border>();
+        public List<Border> SouthBorders = new List<Border>();
+        public List<Border> WestBorders = new List<Border>();
+
         /// <value>
         /// The scene graph for this scene
         /// </value>
@@ -326,6 +331,28 @@ namespace OpenSim.Region.Framework.Scenes
             m_config = config;
 
             Random random = new Random();
+
+            Border northBorder = new Border();
+            northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
+            northBorder.CrossDirection = Cardinals.N;
+            NorthBorders.Add(northBorder);
+
+            Border southBorder = new Border();
+            southBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);    //--->
+            southBorder.CrossDirection = Cardinals.S;
+            SouthBorders.Add(southBorder);
+
+            Border eastBorder = new Border();
+            eastBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);   //<---
+            eastBorder.CrossDirection = Cardinals.E;
+            EastBorders.Add(eastBorder);
+
+            Border westBorder = new Border();
+            westBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);     //--->
+            westBorder.CrossDirection = Cardinals.W;
+            WestBorders.Add(westBorder);
+
+
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue/2))+(uint)(uint.MaxValue/4);
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
@@ -455,6 +482,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="regInfo"></param>
         public Scene(RegionInfo regInfo)
         {
+            Border northBorder = new Border();
+            northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
+            northBorder.CrossDirection = Cardinals.N;
+            NorthBorders.Add(northBorder);
+
+            Border southBorder = new Border();
+            southBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);    //--->
+            southBorder.CrossDirection = Cardinals.S;
+            SouthBorders.Add(southBorder);
+
+            Border eastBorder = new Border();
+            eastBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);   //<---
+            eastBorder.CrossDirection = Cardinals.E;
+            EastBorders.Add(eastBorder);
+
+            Border westBorder = new Border();
+            westBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);     //--->
+            westBorder.CrossDirection = Cardinals.W;
+            WestBorders.Add(westBorder);
+
             m_regInfo = regInfo;
             m_eventManager = new EventManager();
         }
@@ -1659,14 +1706,16 @@ namespace OpenSim.Region.Framework.Scenes
             ulong newRegionHandle = 0;
             Vector3 pos = attemptedPosition;
 
-            if (attemptedPosition.X > Constants.RegionSize + 0.1f)
+
+
+            if (TestBorderCross(attemptedPosition, Cardinals.E))
             {
                 pos.X = ((pos.X - Constants.RegionSize));
                 newRegionHandle
                     = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
                 // x + 1
             }
-            else if (attemptedPosition.X < -0.1f)
+            else if (TestBorderCross(attemptedPosition, Cardinals.W))
             {
                 pos.X = ((pos.X + Constants.RegionSize));
                 newRegionHandle
@@ -1674,14 +1723,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // x - 1
             }
 
-            if (attemptedPosition.Y > Constants.RegionSize + 0.1f)
+            if (TestBorderCross(attemptedPosition, Cardinals.N))
             {
                 pos.Y = ((pos.Y - Constants.RegionSize));
                 newRegionHandle
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
                 // y + 1
             }
-            else if (attemptedPosition.Y < -0.1f)
+            else if (TestBorderCross(attemptedPosition, Cardinals.S))
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
                 newRegionHandle
@@ -1700,6 +1749,56 @@ namespace OpenSim.Region.Framework.Scenes
                 grp.ScheduleGroupForFullUpdate();
             }
         }
+
+        public bool TestBorderCross(Vector3 position, Cardinals border)
+        {
+            switch (border)
+            {
+                case Cardinals.N:
+                    lock (NorthBorders)
+                    {
+                        foreach(Border b in NorthBorders)
+                        {
+                            if (b.TestCross(position))
+                                return true;
+                        }
+                    }
+                break;
+                case Cardinals.E:
+                    lock (EastBorders)
+                    {
+                        foreach (Border b in EastBorders)
+                        {
+                            if (b.TestCross(position))
+                                return true;
+                        }
+                    }
+                break;
+                case Cardinals.S:
+                    lock (SouthBorders)
+                    {
+                        foreach (Border b in SouthBorders)
+                        {
+                            if (b.TestCross(position))
+                                return true;
+                        }
+                    }
+                break;
+                case Cardinals.W:
+                    lock (WestBorders)
+                    {
+                        foreach (Border b in WestBorders)
+                        {
+                            if (b.TestCross(position))
+                                return true;
+                        }
+                    }
+                break;
+
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// Move the given scene object into a new region

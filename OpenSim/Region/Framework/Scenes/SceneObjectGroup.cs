@@ -264,7 +264,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Vector3 val = value;
                 
-                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !IsAttachment)
+                if ((m_scene.TestBorderCross(val,Cardinals.E) || m_scene.TestBorderCross(val,Cardinals.W)
+                    || m_scene.TestBorderCross(val, Cardinals.N) || m_scene.TestBorderCross(val, Cardinals.S)) 
+                    && !IsAttachment)
                 {                                       
                     m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }

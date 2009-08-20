@@ -2830,27 +2830,28 @@ namespace OpenSim.Region.Framework.Scenes
             if (!IsInTransit)
             {
                 // Checks if where it's headed exists a region
-                if (pos2.X < 0)
+
+                if (m_scene.TestBorderCross(pos2, Cardinals.W))
                 {
-                    if (pos2.Y < 0)
+                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
                         neighbor = HaveNeighbor(Cardinals.SW, ref fix);
-                    else if (pos2.Y > Constants.RegionSize)
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                         neighbor = HaveNeighbor(Cardinals.NW, ref fix);
                     else
                         neighbor = HaveNeighbor(Cardinals.W, ref fix);
                 }
-                else if (pos2.X > Constants.RegionSize)
+                else if (m_scene.TestBorderCross(pos2, Cardinals.E))
                 {
-                    if (pos2.Y < 0)
+                    if (m_scene.TestBorderCross(pos2, Cardinals.S))
                         neighbor = HaveNeighbor(Cardinals.SE, ref fix);
-                    else if (pos2.Y > Constants.RegionSize)
+                    else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                         neighbor = HaveNeighbor(Cardinals.NE, ref fix);
                     else
                         neighbor = HaveNeighbor(Cardinals.E, ref fix);
                 }
-                else if (pos2.Y < 0)
+                else if (m_scene.TestBorderCross(pos2, Cardinals.S))
                     neighbor = HaveNeighbor(Cardinals.S, ref fix);
-                else if (pos2.Y > Constants.RegionSize)
+                else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                     neighbor = HaveNeighbor(Cardinals.N, ref fix);
 
                 // Makes sure avatar does not end up outside region
