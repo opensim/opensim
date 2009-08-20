@@ -2177,7 +2177,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bulkUpdate.AgentData.AgentID = AgentId;
                 bulkUpdate.AgentData.TransactionID = transactionId;
                 bulkUpdate.FolderData = folderDataBlocks.ToArray();
-
+                List<BulkUpdateInventoryPacket.ItemDataBlock> foo = new List<BulkUpdateInventoryPacket.ItemDataBlock>();
+                bulkUpdate.ItemData = foo.ToArray();
+ 
                 //m_log.Debug("SendBulkUpdateInventory :" + bulkUpdate);
                 OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
             }

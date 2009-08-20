@@ -33,9 +33,8 @@ namespace OpenSim.Data
 {
     public interface IAssetDataPlugin : IPlugin
     {
-        AssetBase FetchAsset(UUID uuid);
-        void CreateAsset(AssetBase asset);
-        void UpdateAsset(AssetBase asset);
+        AssetBase GetAsset(UUID uuid);
+        void StoreAsset(AssetBase asset);
         bool ExistsAsset(UUID uuid);
         List<AssetMetadata> FetchAssetMetadataSet(int start, int count);
         void Initialise(string connect);

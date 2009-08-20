@@ -206,11 +206,11 @@ namespace OpenSim.Grid.GridServer.Modules
                 {
                     if (existingSim == null)
                     {
-                        insertResponse = plugin.AddProfile(sim);
+                        insertResponse = plugin.StoreProfile(sim);
                     }
                     else
                     {
-                        insertResponse = plugin.UpdateProfile(sim);
+                        insertResponse = plugin.StoreProfile(sim);
                     }
                 }
                 catch (Exception e)
@@ -259,7 +259,7 @@ namespace OpenSim.Grid.GridServer.Modules
                     if ((reserveData != null && reserveData.gridRecvKey == theSim.regionRecvKey) ||
                         (reserveData == null && authkeynode.InnerText != theSim.regionRecvKey))
                     {
-                        plugin.AddProfile(theSim);
+                        plugin.StoreProfile(theSim);
                         m_log.Info("[grid]: New sim added to grid (" + theSim.regionName + ")");
                         logToDB(theSim.ToString(), "RestSetSimMethod", String.Empty, 5,
                                 "Region successfully updated and connected to grid.");

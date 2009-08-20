@@ -122,7 +122,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="assetID">the asset UUID</param>
         /// <returns></returns>
-        override protected AssetBase FetchStoredAsset(UUID assetID)
+        override public AssetBase GetAsset(UUID assetID)
         {
             string sql = "SELECT * FROM assets WHERE id = @id";
             using (AutoClosingSqlCommand command = m_database.Query(sql))
@@ -152,7 +152,16 @@ namespace OpenSim.Data.MSSQL
         /// Create asset in m_database
         /// </summary>
         /// <param name="asset">the asset</param>
-        override public void CreateAsset(AssetBase asset)
+        override public void StoreAsset(AssetBase asset)
+        {
+            if (ExistsAsset(asset.FullID))
+                UpdateAsset(asset);
+            else
+                InsertAsset(asset);
+        }
+
+
+        private void InsertAsset(AssetBase asset)
         {
             if (ExistsAsset(asset.FullID))
             {
@@ -208,7 +217,7 @@ namespace OpenSim.Data.MSSQL
         /// Update asset in m_database
         /// </summary>
         /// <param name="asset">the asset</param>
-        override public void UpdateAsset(AssetBase asset)
+        private void UpdateAsset(AssetBase asset)
         {
             string sql = @"UPDATE assets set id = @id, name = @name, description = @description, assetType = @assetType,
                             local = @local, temporary = @temporary, data = @data
@@ -250,7 +259,7 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-// Commented out since currently unused - this probably should be called in FetchAsset()
+// Commented out since currently unused - this probably should be called in GetAsset()
 //        private void UpdateAccessTime(AssetBase asset)
 //        {
 //            using (AutoClosingSqlCommand cmd = m_database.Query("UPDATE assets SET access_time = @access_time WHERE id=@id"))
@@ -276,7 +285,7 @@ namespace OpenSim.Data.MSSQL
         /// <returns>true if exist.</returns>
         override public bool ExistsAsset(UUID uuid)
         {
-            if (FetchAsset(uuid) != null)
+            if (GetAsset(uuid) != null)
             {
                 return true;
             }

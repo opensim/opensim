@@ -65,30 +65,24 @@ namespace OpenSim.Data.NHibernate
 
         }
 
-        override protected AssetBase FetchStoredAsset(UUID uuid)
+        override public AssetBase GetAsset(UUID uuid)
         {
             return (AssetBase)manager.Get(typeof(AssetBase), uuid);
         }
 
-        private void Save(AssetBase asset)
+        override public void StoreAsset(AssetBase asset)
         {
             AssetBase temp = (AssetBase)manager.Get(typeof(AssetBase), asset.FullID);
             if (temp == null)
             {
+                m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
                 manager.Insert(asset);
             }
-        }
-
-        override public void CreateAsset(AssetBase asset)
-        {
-            m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
-            Save(asset);
-        }
-
-        override public void UpdateAsset(AssetBase asset)
-        {
-            m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.FullID);
-            manager.Update(asset);
+            else
+            {
+                m_log.InfoFormat("[NHIBERNATE] updating asset {0}", asset.FullID);
+                manager.Update(asset);
+            }
         }
 
         // private void LogAssetLoad(AssetBase asset)
@@ -107,7 +101,7 @@ namespace OpenSim.Data.NHibernate
         override public bool ExistsAsset(UUID uuid)
         {
             m_log.InfoFormat("[NHIBERNATE] ExistsAsset: {0}", uuid);
-            return (FetchAsset(uuid) != null);
+            return (GetAsset(uuid) != null);
         }
 
         /// <summary>

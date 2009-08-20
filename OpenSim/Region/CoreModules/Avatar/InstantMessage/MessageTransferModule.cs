@@ -56,7 +56,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (cnf != null && cnf.GetString(
                     "MessageTransferModule", "MessageTransferModule") !=
                     "MessageTransferModule")
+            {
+                m_log.Debug("[MESSAGE TRANSFER]: Disabled by configuration");
                 return;
+            }
 
             cnf = config.Configs["Startup"];
             if (cnf != null)
@@ -72,6 +75,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         "grid_instant_message", processXMLRPCGridInstantMessage);
                 }
 
+                m_log.Debug("[MESSAGE TRANSFER]: Message transfer module active");
                 scene.RegisterModuleInterface<IMessageTransferModule>(this);
                 m_Scenes.Add(scene);
             }

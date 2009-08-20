@@ -135,7 +135,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="assetID">Asset UUID to fetch</param>
         /// <returns>Return the asset</returns>
         /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
-        override protected AssetBase FetchStoredAsset(UUID assetID)
+        override public AssetBase GetAsset(UUID assetID)
         {
             AssetBase asset = null;
             lock (_dbConnection)
@@ -192,7 +192,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="asset">Asset UUID to create</param>
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
-        override public void CreateAsset(AssetBase asset)
+        override public void StoreAsset(AssetBase asset)
         {
             lock (_dbConnection)
             {
@@ -282,15 +282,6 @@ namespace OpenSim.Data.MySQL
                 }
             }
 
-        }
-
-        /// <summary>
-        /// Update a asset in database, see <see cref="CreateAsset"/>
-        /// </summary>
-        /// <param name="asset">Asset UUID to update</param>
-        override public void UpdateAsset(AssetBase asset)
-        {
-            CreateAsset(asset);
         }
 
         /// <summary>

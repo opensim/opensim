@@ -99,18 +99,11 @@ namespace OpenSim.Data
         bool AuthenticateSim(UUID UUID, ulong regionHandle, string simrecvkey);
 
         /// <summary>
-        /// Adds a new profile to the database
+        /// Adds or updates a profile in the database
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>RESPONSE_OK if successful, error if not.</returns>
-        DataResponse AddProfile(RegionProfileData profile);
-
-        /// <summary>
-        /// Updates a profile in the database
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <returns></returns>
-        DataResponse UpdateProfile(RegionProfileData profile);
+        DataResponse StoreProfile(RegionProfileData profile);
 
         /// <summary>
         /// Remove a profile from the database
