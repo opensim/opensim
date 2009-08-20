@@ -25,26 +25,74 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public class NPCModule : IRegionModule
+    public interface INPCModule
+    {
+        UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
+        void Say(UUID agentID, Scene scene, string text);
+        void DeleteNPC(UUID agentID, Scene scene);
+    }
+
+    public class NPCModule : IRegionModule, INPCModule
     {
         // private const bool m_enabled = false;
 
+        private Dictionary<UUID,NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
+
+        public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
+        {
+            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
+            scene.AddNewClient(npcAvatar);
+
+            ScenePresence sp;
+            if(scene.TryGetAvatar(npcAvatar.AgentId, out sp))
+            {
+                AvatarAppearance x = scene.CommsManager.AvatarService.GetUserAppearance(cloneAppearanceFrom);
+
+                List<byte> wearbyte = new List<byte>();
+                for (int i = 0; i < x.VisualParams.Length; i++)
+                {
+                    wearbyte.Add(x.VisualParams[i]);
+                }
+
+                sp.SetAppearance(x.Texture.GetBytes(), wearbyte);
+            }
+
+            m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+
+            return npcAvatar.AgentId;
+        }
+
+        public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
+        {
+            ScenePresence sp;
+            scene.TryGetAvatar(agentID, out sp);
+            sp.DoAutoPilot(0,pos,m_avatars[agentID]);
+        }
+
+        public void Say(UUID agentID, Scene scene, string text)
+        {
+            m_avatars[agentID].Say(text);
+        }
+
+        public void DeleteNPC(UUID agentID, Scene scene)
+        {
+            scene.RemoveClient(agentID);
+        }
+
+
         public void Initialise(Scene scene, IConfigSource source)
         {
-            // if (m_enabled)
-            // {
-            //     NPCAvatar testAvatar = new NPCAvatar("Jack", "NPC", new Vector3(128, 128, 40), scene);
-            //     NPCAvatar testAvatar2 = new NPCAvatar("Jill", "NPC", new Vector3(136, 128, 40), scene);
-            //     scene.AddNewClient(testAvatar);
-            //     scene.AddNewClient(testAvatar2);
-            // }
+            scene.RegisterModuleInterface<INPCModule>(this);
         }
 
         public void PostInitialise()
