@@ -272,26 +272,23 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        override public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse StoreProfile(RegionProfileData profile)
         {
-            if (InsertRegionRow(profile))
+            if (GetProfileByUUID(profile.UUID) == null)
             {
-                return DataResponse.RESPONSE_OK;
+                if (InsertRegionRow(profile))
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
             }
-            return DataResponse.RESPONSE_ERROR;
-        }
+            else
+            {
+                if (UpdateRegionRow(profile))
+                {
+                    return DataResponse.RESPONSE_OK;
+                }
+            }
 
-        /// <summary>
-        /// Update the specified region in the database
-        /// </summary>
-        /// <param name="profile">The profile to update</param>
-        /// <returns>A dataresponse enum indicating success</returns>
-        override public DataResponse UpdateProfile(RegionProfileData profile)
-        {
-            if (UpdateRegionRow(profile))
-            {
-                return DataResponse.RESPONSE_OK;
-            }
             return DataResponse.RESPONSE_ERROR;
         }
 
