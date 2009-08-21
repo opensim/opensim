@@ -30,18 +30,11 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public interface INPCModule
-    {
-        UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom);
-        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
-        void Say(UUID agentID, Scene scene, string text);
-        void DeleteNPC(UUID agentID, Scene scene);
-    }
-
     public class NPCModule : IRegionModule, INPCModule
     {
         // private const bool m_enabled = false;
@@ -74,19 +67,32 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
         {
-            ScenePresence sp;
-            scene.TryGetAvatar(agentID, out sp);
-            sp.DoAutoPilot(0,pos,m_avatars[agentID]);
+            lock (m_avatars)
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    ScenePresence sp;
+                    scene.TryGetAvatar(agentID, out sp);
+                    sp.DoAutoPilot(0, pos, m_avatars[agentID]);
+                }
         }
 
         public void Say(UUID agentID, Scene scene, string text)
         {
-            m_avatars[agentID].Say(text);
+            lock (m_avatars)
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    m_avatars[agentID].Say(text);
+                }
         }
 
         public void DeleteNPC(UUID agentID, Scene scene)
         {
-            scene.RemoveClient(agentID);
+            lock(m_avatars)
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    scene.RemoveClient(agentID);
+                    m_avatars.Remove(agentID);
+                }
         }
 
 

@@ -149,5 +149,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
+
+        key osNpcCreate(string user, string name, vector position, key cloneFrom);
+        void osNpcMoveTo(key npc, vector position);
+        void osNpcSay(key npc, string message);
+        void osNpcRemove(key npc);
+
     }
 }
