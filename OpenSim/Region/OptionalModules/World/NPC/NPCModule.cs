@@ -89,7 +89,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 p_returnUuid = UUID.Zero;
             }
 
-            while(p_returnUuid == UUID.Zero)
+            while (p_returnUuid == UUID.Zero)
             {
                 Thread.Sleep(250);
             }
@@ -102,31 +102,37 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
         {
             lock (m_avatars)
+            {
                 if (m_avatars.ContainsKey(agentID))
                 {
                     ScenePresence sp;
                     scene.TryGetAvatar(agentID, out sp);
                     sp.DoAutoPilot(0, pos, m_avatars[agentID]);
                 }
+            }
         }
 
         public void Say(UUID agentID, Scene scene, string text)
         {
             lock (m_avatars)
+            {
                 if (m_avatars.ContainsKey(agentID))
                 {
                     m_avatars[agentID].Say(text);
                 }
+            }
         }
 
         public void DeleteNPC(UUID agentID, Scene scene)
         {
-            lock(m_avatars)
+            lock (m_avatars)
+            {
                 if (m_avatars.ContainsKey(agentID))
                 {
                     scene.RemoveClient(agentID);
                     m_avatars.Remove(agentID);
                 }
+            }
         }
 
 
@@ -145,7 +151,6 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 if (p_inUse)
                 {
                     p_inUse = false;
-
 
                     NPCAvatar npcAvatar = new NPCAvatar(p_firstname, p_lastname, p_position, p_scene);
                     npcAvatar.CircuitCode = (uint) Util.RandomClass.Next(0, int.MaxValue);
