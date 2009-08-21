@@ -232,8 +232,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float[] _watermap;
         private bool m_filterCollisions = true;
 
-        private float[] _origheightmap;    // Used for Fly height. Kitto Flora
-
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
@@ -257,6 +255,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Object externalJointRequestsLock = new Object();
         private readonly Dictionary<String, PhysicsJoint> SOPName_to_activeJoint = new Dictionary<String, PhysicsJoint>();
         private readonly Dictionary<String, PhysicsJoint> SOPName_to_pendingJoint = new Dictionary<String, PhysicsJoint>();
+        private readonly DoubleDictionary<Vector3, IntPtr, IntPtr> RegionTerrain = new DoubleDictionary<Vector3, IntPtr, IntPtr>();
+        private readonly Dictionary<IntPtr,float[]> TerrainHeightFieldHeights = new Dictionary<IntPtr, float[]>();
 
         private d.Contact contact;
         private d.Contact TerrainContact;
@@ -313,6 +313,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private Vector3 m_worldOffset = Vector3.Zero;
         public Vector2 WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
+        private PhysicsScene m_parentScene = null;
 
         private ODERayCastRequestManager m_rayCastManager;
 
@@ -351,7 +352,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             // zero out a heightmap array float array (single dimension [flattened]))
-            if ((int)WorldExtents.X == 256 && (int)m_worldOffset.Y == 256)
+            if ((int)Constants.RegionSize == 256)
                 _heightmap = new float[514*514];
             else
                 _heightmap = new float[(((int)WorldExtents.Y + 2) * ((int)WorldExtents.X + 2))];
@@ -1564,28 +1565,60 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             m_worldOffset = offset;
             WorldExtents = new Vector2(extents.X, extents.Y);
+            m_parentScene = pScene;
+            
         }
 // Recovered for use by fly height. Kitto Flora
         public float GetTerrainHeightAtXY(float x, float y)
         {
 
-            int index;
+            int offsetX = ((int) (x/256)) * 256;
+            int offsetY = ((int) (y/256)) * 256;
 
-            // Teravus: Kitto, this code causes recurring errors that stall physics permenantly unless 
-            // the values are checked, so checking below.
-            // Is there any reason that we don't do this in ScenePresence?   
-            // The only physics engine that benefits from it in the physics plugin is this one
+            IntPtr heightFieldGeom = IntPtr.Zero;
 
-            if ((int)x > WorldExtents.X || (int)y > WorldExtents.Y || 
-                (int)x < 0.001f || (int)y < 0.001f)
-                return 0;
+            if (RegionTerrain.TryGetValue(new Vector3(offsetX,offsetY,0), out heightFieldGeom))
+            {
+                if (heightFieldGeom != IntPtr.Zero)
+                {
+                    if (TerrainHeightFieldHeights.ContainsKey(heightFieldGeom))
+                    {
+                        
+                        int index;
 
-            index = (int)((int)y * WorldExtents.Y + (int)x);
 
-            if (index < _origheightmap.Length)
-                return (float)_origheightmap[(int)y * (int)WorldExtents.Y + (int)x];
+                        if ((int)x > WorldExtents.X || (int)y > WorldExtents.Y ||
+                            (int)x < 0.001f || (int)y < 0.001f)
+                            return 0;
+
+                        x = x - offsetX;
+                        y = y - offsetY;
+
+                        index = (int)((int)y * (int)Constants.RegionSize + (int)x);
+
+                        if (index < TerrainHeightFieldHeights[heightFieldGeom].Length)
+                            return (float)TerrainHeightFieldHeights[heightFieldGeom][(int)y * (int)Constants.RegionSize + (int)x];
+                        else
+                            return 0f;
+                    }
+                    else
+                    {
+                        return 0f;
+                    }
+
+                }
+                else
+                {
+                    return 0f;
+                }
+
+            }
             else
-                return 0;
+            {
+                return 0f;
+            }
+
+
         } 
 // End recovered. Kitto Flora
 
@@ -2557,8 +2590,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (framecount >= int.MaxValue)
                 framecount = 0;
 
-            if (m_worldOffset != Vector3.Zero)
-                return 0;
+            //if (m_worldOffset != Vector3.Zero)
+            //    return 0;
 
             framecount++;
 
@@ -3131,14 +3164,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float[] ResizeTerrain512Interpolation(float[] heightMap)
         {
             float[] returnarr = new float[262144];
-            float[,] resultarr = new float[(int)WorldExtents.X,(int)WorldExtents.Y];
+            float[,] resultarr = new float[512,512];
 
             // Filling out the array into its multi-dimensional components
-            for (int y = 0; y < WorldExtents.Y; y++)
+            for (int y = 0; y < 256; y++)
             {
-                for (int x = 0; x < WorldExtents.X; x++)
+                for (int x = 0; x < 256; x++)
                 {
-                    resultarr[y, x] = heightMap[y*(int)WorldExtents.Y + x];
+                    resultarr[y, x] = heightMap[y * 256 + x];
                 }
             }
 
@@ -3202,17 +3235,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             // on single loop.
 
             float[,] resultarr2 = new float[512,512];
-            for (int y = 0; y < WorldExtents.Y; y++)
+            for (int y = 0; y < (int)Constants.RegionSize; y++)
             {
-                for (int x = 0; x < WorldExtents.X; x++)
+                for (int x = 0; x < (int)Constants.RegionSize; x++)
                 {
                     resultarr2[y*2, x*2] = resultarr[y, x];
 
-                    if (y < WorldExtents.Y)
+                    if (y < (int)Constants.RegionSize)
                     {
-                        if (y + 1 < WorldExtents.Y)
+                        if (y + 1 < (int)Constants.RegionSize)
                         {
-                            if (x + 1 < WorldExtents.X)
+                            if (x + 1 < (int)Constants.RegionSize)
                             {
                                 resultarr2[(y*2) + 1, x*2] = ((resultarr[y, x] + resultarr[y + 1, x] +
                                                                resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
@@ -3227,11 +3260,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             resultarr2[(y*2) + 1, x*2] = resultarr[y, x];
                         }
                     }
-                    if (x < WorldExtents.X)
+                    if (x < (int)Constants.RegionSize)
                     {
-                        if (x + 1 < WorldExtents.X)
+                        if (x + 1 < (int)Constants.RegionSize)
                         {
-                            if (y + 1 < WorldExtents.Y)
+                            if (y + 1 < (int)Constants.RegionSize)
                             {
                                 resultarr2[y*2, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
                                                                resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
@@ -3246,9 +3279,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                             resultarr2[y*2, (x*2) + 1] = resultarr[y, x];
                         }
                     }
-                    if (x < WorldExtents.X && y < WorldExtents.Y)
+                    if (x < (int)Constants.RegionSize && y < (int)Constants.RegionSize)
                     {
-                        if ((x + 1 < WorldExtents.X) && (y + 1 < WorldExtents.Y))
+                        if ((x + 1 < (int)Constants.RegionSize) && (y + 1 < (int)Constants.RegionSize))
                         {
                             resultarr2[(y*2) + 1, (x*2) + 1] = ((resultarr[y, x] + resultarr[y + 1, x] +
                                                                  resultarr[y, x + 1] + resultarr[y + 1, x + 1])/4);
@@ -3283,43 +3316,59 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SetTerrain(float[] heightMap)
         {
+            if (m_worldOffset != Vector3.Zero && m_parentScene != null)
+            {
+                if (m_parentScene is OdeScene)
+                {
+                    ((OdeScene)m_parentScene).SetTerrain(heightMap, m_worldOffset);
+                }
+            }
+            else
+            {
+                SetTerrain(heightMap, m_worldOffset);
+            }
+        }
+
+        public void SetTerrain(float[] heightMap, Vector3 pOffset)
+        {
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
-            _origheightmap = heightMap;    // Used for Fly height. Kitto Flora
-            uint heightmapWidth = (uint)WorldExtents.X + 1;
-            uint heightmapHeight = (uint)WorldExtents.Y + 1;
+            //_origheightmap = heightMap;    
 
-            uint heightmapWidthSamples; 
-            
+            uint heightmapWidth = Constants.RegionSize + 1;
+            uint heightmapHeight = Constants.RegionSize + 1;
+
+            uint heightmapWidthSamples;
+
             uint heightmapHeightSamples;
-            /*
-            if (((int)m_worldExtents.X) == 256 && (int)m_worldExtents.Y == 256)
+
+            if (((int)Constants.RegionSize) == 256)
             {
-                heightmapWidthSamples = 2 * (uint)m_worldExtents.X + 2;
-                heightmapHeightSamples = 2*(uint)m_worldExtents.Y + 2;
+                heightmapWidthSamples = 2 * (uint)Constants.RegionSize + 2;
+                heightmapHeightSamples = 2 * (uint)Constants.RegionSize + 2;
                 heightmapWidth++;
                 heightmapHeight++;
             }
             else
             {
-             */
-            heightmapWidthSamples = (uint)WorldExtents.X + 1;
-            heightmapHeightSamples = (uint)WorldExtents.Y + 1;
-            //}
+
+                heightmapWidthSamples = (uint)Constants.RegionSize + 1;
+                heightmapHeightSamples = (uint)Constants.RegionSize + 1;
+            }
 
             const float scale = 1.0f;
             const float offset = 0.0f;
             const float thickness = 0.2f;
             const int wrap = 0;
-            
 
+            int regionsize = (int) Constants.RegionSize;
             //Double resolution
-            //if (((int)m_worldExtents.X) == 256 && (int)m_worldExtents.Y == 256)
-            //    heightMap = ResizeTerrain512Interpolation(heightMap);
+            if (((int)Constants.RegionSize) == 256)
+                heightMap = ResizeTerrain512Interpolation(heightMap);
 
 
-            //if (((int)m_worldExtents.X) == 256 && (int)m_worldExtents.Y == 256)
-            //    regionsize = 512;
+            if (((int)Constants.RegionSize) == 256 && (int)Constants.RegionSize == 256)
+                regionsize = 512;
 
             float hfmin = 2000;
             float hfmax = -2000;
@@ -3327,11 +3376,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 for (int y = 0; y < heightmapHeightSamples; y++)
                 {
-                    int xx = Util.Clip(x - 1, 0, (int)WorldExtents.X - 1);
-                    int yy = Util.Clip(y - 1, 0, (int)WorldExtents.Y - 1);
+                    int xx = Util.Clip(x - 1, 0, regionsize - 1);
+                    int yy = Util.Clip(y - 1, 0, regionsize - 1);
 
-                    float val = heightMap[yy*(int)WorldExtents.Y + xx];
-                    _heightmap[x*heightmapHeightSamples + y] = val;
+                    float val = heightMap[yy * regionsize + xx];
+                    _heightmap[x * heightmapHeightSamples + y] = val;
                     hfmin = (val < hfmin) ? val : hfmin;
                     hfmax = (val > hfmax) ? val : hfmax;
                 }
@@ -3339,23 +3388,34 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeLock)
             {
-                if (LandGeom != IntPtr.Zero)
+                IntPtr GroundGeom = IntPtr.Zero;
+                if (RegionTerrain.TryGetValue(pOffset, out GroundGeom))
                 {
-                    d.SpaceRemove(space, LandGeom);
+                    RegionTerrain.Remove(pOffset);
+                    if (GroundGeom != IntPtr.Zero)
+                    {
+                        if (TerrainHeightFieldHeights.ContainsKey(GroundGeom))
+                        {
+                            TerrainHeightFieldHeights.Remove(GroundGeom);
+                        }
+                        d.SpaceRemove(space, GroundGeom);
+                        d.GeomDestroy(GroundGeom);
+                    }
+
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
                 d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
-                                                 (int) heightmapWidthSamples, (int) heightmapHeightSamples, scale,
+                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
                                                  offset, thickness, wrap);
-                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1 , hfmax + 1);
-                LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
-                if (LandGeom != IntPtr.Zero)
+                d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
+                GroundGeom = d.CreateHeightfield(space, HeightmapData, 1);
+                if (GroundGeom != IntPtr.Zero)
                 {
-                    d.GeomSetCategoryBits(LandGeom, (int)(CollisionCategories.Land));
-                    d.GeomSetCollideBits(LandGeom, (int)(CollisionCategories.Space));
+                    d.GeomSetCategoryBits(GroundGeom, (int)(CollisionCategories.Land));
+                    d.GeomSetCollideBits(GroundGeom, (int)(CollisionCategories.Space));
 
                 }
-                geom_name_map[LandGeom] = "Terrain";
+                geom_name_map[GroundGeom] = "Terrain";
 
                 d.Matrix3 R = new d.Matrix3();
 
@@ -3363,15 +3423,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Quaternion q2 = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), 1.5707f);
                 //Axiom.Math.Quaternion q3 = Axiom.Math.Quaternion.FromAngleAxis(3.14f, new Axiom.Math.Vector3(0, 0, 1));
 
-                q1 = q1*q2;
+                q1 = q1 * q2;
                 //q1 = q1 * q3;
                 Vector3 v3;
                 float angle;
                 q1.GetAxisAngle(out v3, out angle);
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
-                d.GeomSetRotation(LandGeom, ref R);
-                d.GeomSetPosition(LandGeom, (int)WorldExtents.X * 0.5f, (int)WorldExtents.Y * 0.5f, 0);
+                d.GeomSetRotation(GroundGeom, ref R);
+                d.GeomSetPosition(GroundGeom, pOffset.X + ((int)Constants.RegionSize * 0.5f), (pOffset.Y + (int)Constants.RegionSize * 0.5f), 0);
+                IntPtr testGround = IntPtr.Zero;
+                if (RegionTerrain.TryGetValue(pOffset, out testGround))
+                {
+                    RegionTerrain.Remove(pOffset);
+                }
+                RegionTerrain.Add(pOffset, GroundGeom, GroundGeom);
+                TerrainHeightFieldHeights.Add(GroundGeom,heightMap);
+                
             }
         }
 

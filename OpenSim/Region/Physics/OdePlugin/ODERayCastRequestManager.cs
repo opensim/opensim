@@ -232,17 +232,12 @@ namespace OpenSim.Region.Physics.OdePlugin
              */
 
             // Exclude heightfield geom
-            if (g1 == m_scene.LandGeom)
+
+            if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                 return;
-            if (g2 == m_scene.LandGeom)
+            if (d.GeomGetClass(g1) == d.GeomClassID.HeightfieldClass || d.GeomGetClass(g2) == d.GeomClassID.HeightfieldClass)
                 return;
-            if (g1 == m_scene.WaterGeom)
-                return;
-            if (g2 == m_scene.WaterGeom)
-                return;
-            
-            
-            
+
             // Raytest against AABBs of spaces first, then dig into the spaces it hits for actual geoms.
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {
