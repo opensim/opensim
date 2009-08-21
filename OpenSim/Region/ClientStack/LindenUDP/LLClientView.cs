@@ -1961,7 +1961,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         descend.Header.Zerocoded = true;
                         AddNullFolderBlockToDecendentsPacket(ref descend);
-                        OutPacket(descend, ThrottleOutPacketType.LowPriority);
+                        OutPacket(descend, ThrottleOutPacketType.Asset);
 
                         if ((items.Count - count) > 0)
                         {
@@ -1983,7 +1983,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (0 < i && i < MAX_ITEMS_PER_PACKET)
                 {
                     AddNullFolderBlockToDecendentsPacket(ref descend);
-                    OutPacket(descend, ThrottleOutPacketType.LowPriority);
+                    OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
             }
 
@@ -2021,7 +2021,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (i == MAX_ITEMS_PER_PACKET)
                     {
                         AddNullItemBlockToDescendentsPacket(ref descend);
-                        OutPacket(descend, ThrottleOutPacketType.LowPriority);
+                        OutPacket(descend, ThrottleOutPacketType.Asset);
 
                         if ((folders.Count - count) > 0)
                         {
@@ -2045,7 +2045,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (0 < i && i < MAX_ITEMS_PER_PACKET)
                 {
                     AddNullItemBlockToDescendentsPacket(ref descend);
-                    OutPacket(descend, ThrottleOutPacketType.LowPriority);
+                    OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
             }
 
@@ -2056,7 +2056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 descend.AgentData.Descendents = 0;
                 AddNullItemBlockToDescendentsPacket(ref descend);
                 AddNullFolderBlockToDecendentsPacket(ref descend);
-                OutPacket(descend, ThrottleOutPacketType.LowPriority);
+                OutPacket(descend, ThrottleOutPacketType.Asset);
             }
         }
 
@@ -2153,7 +2153,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                     FULL_MASK_PERMISSIONS);
             inventoryReply.Header.Zerocoded = true;
-            OutPacket(inventoryReply, ThrottleOutPacketType.LowPriority);
+            OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
         
         protected void SendBulkUpdateInventoryFolder(InventoryFolderBase folderBase)
