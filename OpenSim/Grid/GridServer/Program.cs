@@ -36,6 +36,7 @@ namespace OpenSim.Grid.GridServer
         {
             ArgvConfigSource argvSource = new ArgvConfigSource(args);
             argvSource.AddSwitch("Startup", "console", "c");
+            argvSource.AddSwitch("Startup", "xmlfile", "x");
 
             XmlConfigurator.Configure();
 
@@ -45,6 +46,7 @@ namespace OpenSim.Grid.GridServer
             if (startupConfig != null)
             {
                 app.m_consoleType = startupConfig.GetString("console", "local");
+                app.m_configFile = startupConfig.GetString("xmlfile", "GridServer_Config.xml");
             }
 
             app.m_configSource = argvSource;

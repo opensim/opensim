@@ -76,16 +76,19 @@ namespace OpenSim.Grid.UserServer
 
         protected static string m_consoleType = "local";
         protected static IConfigSource m_config = null;
+        protected static string m_configFile = "UserServer_Config.xml";
 
         public static void Main(string[] args)
         {
             ArgvConfigSource argvSource = new ArgvConfigSource(args);
             argvSource.AddSwitch("Startup", "console", "c");
+            argvSource.AddSwitch("Startup", "xmlfile", "x");
 
             IConfig startupConfig = argvSource.Configs["Startup"];
             if (startupConfig != null)
             {
                 m_consoleType = startupConfig.GetString("console", "local");
+                m_configFile = startupConfig.GetString("xmlfile", "UserServer_Config.xml");
             }
 
             m_config = argvSource;
@@ -151,7 +154,7 @@ namespace OpenSim.Grid.UserServer
 
         protected virtual IInterServiceInventoryServices StartupCoreComponents()
         {
-            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
+            Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), m_configFile)));
 
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 

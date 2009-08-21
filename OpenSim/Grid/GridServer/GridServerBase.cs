@@ -49,6 +49,7 @@ namespace OpenSim.Grid.GridServer
         protected GridConfig m_config;
         public string m_consoleType = "local";
         public IConfigSource m_configSource = null;
+        public string m_configFile = "GridServer_Config.xml";
 
         public GridConfig Config
         {
@@ -91,7 +92,7 @@ namespace OpenSim.Grid.GridServer
                 break;
             }
             MainConsole.Instance = m_console;
-            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
+            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), m_configFile)));
 
             m_log.Info("[GRID]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
