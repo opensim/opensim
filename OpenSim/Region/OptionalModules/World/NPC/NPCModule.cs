@@ -44,6 +44,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
+            npcAvatar.CircuitCode = (uint) Util.RandomClass.Next(0, int.MaxValue);
+
+            scene.ClientManager.Add(npcAvatar.CircuitCode, npcAvatar);
             scene.AddNewClient(npcAvatar);
 
             ScenePresence sp;
