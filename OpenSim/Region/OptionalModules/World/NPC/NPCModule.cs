@@ -86,6 +86,12 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 p_scene = scene;
                 p_cloneAppearanceFrom = cloneAppearanceFrom;
                 p_inUse = true;
+                p_returnUuid = UUID.Zero;
+            }
+
+            while(p_returnUuid == UUID.Zero)
+            {
+                Thread.Sleep(250);
             }
 
             m_createMutex.ReleaseMutex();
