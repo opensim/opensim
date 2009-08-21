@@ -48,7 +48,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (m_appearanceCache.ContainsKey(target))
                 return m_appearanceCache[target];
 
-            return scene.CommsManager.AvatarService.GetUserAppearance(target);
+            AvatarAppearance x = scene.CommsManager.AvatarService.GetUserAppearance(target);
+
+            m_appearanceCache.Add(target, x);
+
+            return x;
         }
 
         public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
