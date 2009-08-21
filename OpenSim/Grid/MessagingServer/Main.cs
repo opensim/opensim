@@ -65,6 +65,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             ArgvConfigSource argvSource = new ArgvConfigSource(args);
             argvSource.AddSwitch("Startup", "console", "c");
+            argvSource.AddSwitch("Startup", "xmlfile", "x");
 
             IConfig startupConfig = argvSource.Configs["Startup"];
             if (startupConfig != null)
