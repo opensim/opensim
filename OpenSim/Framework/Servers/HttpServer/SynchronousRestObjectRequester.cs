@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
 
-            if (verb == "POST")
+            if ((verb == "POST") || (verb == "PUT"))
             {
                 request.ContentType = "text/xml";
 

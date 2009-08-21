@@ -143,6 +143,9 @@ namespace OpenSim.Server.Handlers.Inventory
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<List<InventoryItemBase>, bool>(
                     "POST", "/MoveItems/", MoveItems, CheckAuthSession));
+
+            m_httpServer.AddStreamHandler(new InventoryServerMoveItemsHandler(m_InventoryService));
+
             
             // for persistent active gestures
             m_httpServer.AddStreamHandler(

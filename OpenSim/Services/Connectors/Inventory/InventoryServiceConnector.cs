@@ -397,13 +397,28 @@ namespace OpenSim.Services.Connectors
 
         private void MoveItemsAsync(string userID, List<InventoryItemBase> items, UUID sessionID)
         {
+            if (items == null)
+            {
+                m_log.WarnFormat("[INVENTORY CONNECTOR]: request to move items got a null list.");
+                return;
+            }
+
             try
             {
-                SynchronousRestSessionObjectPoster<List<InventoryItemBase>, bool>.BeginPostObject(
-                    "POST", m_ServerURI + "/MoveItems/", items, sessionID.ToString(), userID.ToString());
+                //SynchronousRestSessionObjectPoster<List<InventoryItemBase>, bool>.BeginPostObject(
+                //    "POST", m_ServerURI + "/MoveItems/", items, sessionID.ToString(), userID.ToString());
 
-                // Success
+                //// Success
+                //return;
+                string uri = m_ServerURI + "/inventory/" + userID;
+                if (SynchronousRestObjectRequester.
+                        MakeRequest<List<InventoryItemBase>, bool>("PUT", uri, items))
+                    m_log.DebugFormat("[INVENTORY CONNECTOR]: move {0} items poster succeeded {1}", items.Count, uri);
+                else
+                    m_log.DebugFormat("[INVENTORY CONNECTOR]: move {0} items poster failed {1}", items.Count, uri); ;
+
                 return;
+
             }
             catch (Exception e)
             {
