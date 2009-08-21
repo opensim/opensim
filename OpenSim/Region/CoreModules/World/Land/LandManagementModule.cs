@@ -549,6 +549,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             int x;
             int y;
 
+            if (x_float > Constants.RegionSize || x_float <= 0 || y_float > Constants.RegionSize || y_float <= 0)
+                return null;
             try
             {
                 x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / 4.0));
