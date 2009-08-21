@@ -235,8 +235,6 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
-            m_log.Info("[INVENTORY SERVICE]: Processing request for folder " + folderID);
-
             // Uncomment me to simulate a slow responding inventory server
             //Thread.Sleep(16000);
 
@@ -249,7 +247,7 @@ namespace OpenSim.Services.InventoryService
             invCollection.Folders = folders;
             invCollection.Items = items;
 
-            m_log.DebugFormat("[INVENTORY SERVICE]: Found {0} items and {1} folders", items.Count, folders.Count);
+            m_log.DebugFormat("[INVENTORY SERVICE]: Found {0} items and {1} folders in folder {2}", items.Count, folders.Count, folderID);
 
             return invCollection;            
         }
