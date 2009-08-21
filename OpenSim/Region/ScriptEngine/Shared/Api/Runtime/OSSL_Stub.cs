@@ -393,20 +393,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
         }
 
-        key osNpcCreate(string user, string name, vector position, key cloneFrom)
+        public key osNpcCreate(string user, string name, vector position, key cloneFrom)
         {
             return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
         }
-        void osNpcMoveTo(key npc, vector position)
+
+        public void osNpcMoveTo(key npc, vector position)
         {
             m_OSSL_Functions.osNpcMoveTo(npc, position);
         }
 
-        void osNpcSay(key npc, string message)
+        public void osNpcSay(key npc, string message)
         {
             m_OSSL_Functions.osNpcSay(npc, message);
         }
-        void osNpcRemove(key npc)
+
+        public void osNpcRemove(key npc)
         {
             m_OSSL_Functions.osNpcRemove(npc);
         }
