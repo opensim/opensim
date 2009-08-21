@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Net;
+using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
@@ -1766,6 +1767,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, LSL_Key cloneFrom)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            //QueueUserWorkItem 
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
