@@ -2044,9 +2044,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
-                m_log.DebugFormat(
-                    "[SCENE]: Adding new {0} agent for {1} in {2}",
-                    ((aCircuit.child == true) ? "child" : "root"), client.Name, RegionInfo.RegionName);
+                string logMsg = string.Format("[SCENE]: Adding new {0} agent for {1} in {2}",
+                                              ((aCircuit.child == true) ? "child" : "root"), client.Name,
+                                              RegionInfo.RegionName);
+
+                m_log.Debug(logMsg);
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
