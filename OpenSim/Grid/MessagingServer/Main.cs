@@ -59,6 +59,7 @@ namespace OpenSim.Grid.MessagingServer
 
         protected static string m_consoleType = "local";
         protected static IConfigSource m_config = null;
+        protected static string m_configFile = "MessagingServer_Config.xml";
 
         public static void Main(string[] args)
         {
@@ -69,6 +70,7 @@ namespace OpenSim.Grid.MessagingServer
             if (startupConfig != null)
             {
                 m_consoleType = startupConfig.GetString("console", "local");
+                m_configFile = startupConfig.GetString("xmlfile", "MessagingServer_Config.xml");
             }
 
             m_config = argvSource;
@@ -164,7 +166,7 @@ namespace OpenSim.Grid.MessagingServer
 
         protected override void StartupSpecific()
         {
-            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
+            Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), m_configFile)));
 
             m_userDataBaseService = new UserDataBaseService();
             m_userDataBaseService.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
