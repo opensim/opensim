@@ -41,6 +41,16 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         private Dictionary<UUID,NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
 
+        private Dictionary<UUID,AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
+
+        private AvatarAppearance GetAppearance(UUID target, Scene scene)
+        {
+            if (m_appearanceCache.ContainsKey(target))
+                return m_appearanceCache[target];
+
+            return scene.CommsManager.AvatarService.GetUserAppearance(target);
+        }
+
         public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
             NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
@@ -52,7 +62,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             ScenePresence sp;
             if(scene.TryGetAvatar(npcAvatar.AgentId, out sp))
             {
-                AvatarAppearance x = scene.CommsManager.AvatarService.GetUserAppearance(cloneAppearanceFrom);
+                AvatarAppearance x = GetAppearance(cloneAppearanceFrom, scene);
 
                 List<byte> wearbyte = new List<byte>();
                 for (int i = 0; i < x.VisualParams.Length; i++)
