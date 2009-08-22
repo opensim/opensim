@@ -427,11 +427,11 @@ namespace OpenSim.Services.InventoryService
 
         public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            m_log.DebugFormat("[INVENTORY SERVICE]: GetFolder {0}", folder.ID);
             InventoryFolderBase result = m_Database.getInventoryFolder(folder.ID);
             if (result != null)
                 return result;
 
+            m_log.DebugFormat("[INVENTORY SERVICE]: GetFolder failed to find folder {0}", folder.ID);
             return null;
         }
 
