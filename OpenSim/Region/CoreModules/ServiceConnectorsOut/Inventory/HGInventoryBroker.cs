@@ -330,6 +330,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
         }
 
+        public override bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            if (folderIDs == null)
+                return false;
+            if (folderIDs.Count == 0)
+                return false;
+
+            if (IsLocalGridUser(ownerID))
+                return m_GridService.DeleteFolders(ownerID, folderIDs);
+            else
+            {
+                UUID sessionID = GetSessionID(ownerID);
+                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                return m_HGService.DeleteFolders(uri, folderIDs, sessionID);
+            }
+        }
+
         public override bool MoveFolder(InventoryFolderBase folder)
         {
             if (folder == null)
