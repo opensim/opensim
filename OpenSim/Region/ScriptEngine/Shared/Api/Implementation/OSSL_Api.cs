@@ -833,6 +833,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osDrawFilledPolygon");
+
+            m_host.AddScriptLPS(1);
+
+            if (x.Length != y.Length || x.Length < 3)
+            {
+                return "";
+            }
+            drawList += "FillPolygon " + x.GetLSLStringItem(0) + "," + y.GetLSLStringItem(0);
+            for (int i = 1; i < x.Length; i++)
+            {
+                drawList += "," + x.GetLSLStringItem(i) + "," + y.GetLSLStringItem(i);
+            }
+            drawList += "; ";
+            return drawList;
+        }
+
         public string osSetFontSize(string drawList, int fontSize)
         {
             CheckThreatLevel(ThreatLevel.None, "osSetFontSize");
