@@ -136,6 +136,12 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
+        public bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            return false;
+        }
+
+
         public bool PurgeFolder(InventoryFolderBase folder)
         {
             return false;

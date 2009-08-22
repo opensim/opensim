@@ -201,6 +201,19 @@ namespace OpenSim.Services.Connectors.Inventory
             return false;
         }
 
+        public bool DeleteFolders(string id, List<UUID> folders, UUID sessionID)
+        {
+            string url = string.Empty;
+            string userID = string.Empty;
+
+            if (StringToUrlAndUserID(id, out url, out userID))
+            {
+                ISessionAuthInventoryService connector = GetConnector(url);
+                return connector.DeleteFolders(userID, folders, sessionID);
+            }
+            return false;
+        }
+
         public bool PurgeFolder(string id, InventoryFolderBase folder, UUID sessionID)
         {
             string url = string.Empty;

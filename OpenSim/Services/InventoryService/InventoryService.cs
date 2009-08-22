@@ -425,13 +425,25 @@ namespace OpenSim.Services.InventoryService
             return null;
         }
 
-        public virtual InventoryFolderBase GetFolder(InventoryFolderBase item)
+        public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            InventoryFolderBase result = m_Database.getInventoryFolder(item.ID);
+            m_log.DebugFormat("[INVENTORY SERVICE]: GetFolder {0}", folder.ID);
+            InventoryFolderBase result = m_Database.getInventoryFolder(folder.ID);
             if (result != null)
                 return result;
 
             return null;
+        }
+
+        public virtual bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            foreach (UUID id in folderIDs)
+            {
+                InventoryFolderBase folder = new InventoryFolderBase(id, ownerID);
+                PurgeFolder(folder);
+                m_Database.deleteInventoryFolder(id);
+            }
+            return true;
         }
 
         /// <summary>

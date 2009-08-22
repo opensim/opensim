@@ -789,23 +789,15 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Removes an inventory folder.  Although there is a packet in the Linden protocol for this, it may be
-        /// legacy and not currently used (purge folder is used to remove folders from trash instead).
+        /// Removes an inventory folder.  This packet is sent when the user
+        /// right-clicks a folder that's already in trash and chooses "purge"
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-        private void RemoveInventoryFolder(IClientAPI remoteClient, UUID folderID)
+        private void RemoveInventoryFolder(IClientAPI remoteClient, List<UUID> folderIDs)
         {
-            // Unclear is this handler is ever called by the Linden client, but it might
-
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
-            folder.Owner = remoteClient.AgentId;
-            InventoryFolderBase trash = InventoryService.GetFolderForType(remoteClient.AgentId, AssetType.TrashFolder);
-            if (trash != null)
-            {
-                folder.ParentID = trash.ID;
-                InventoryService.MoveFolder(folder);
-            }
+            m_log.DebugFormat("[SCENE INVENTORY]: RemoveInventoryFolders count {0}", folderIDs.Count);
+            InventoryService.DeleteFolders(remoteClient.AgentId, folderIDs);
         }
 
         private SceneObjectGroup GetGroupByPrim(uint localID)

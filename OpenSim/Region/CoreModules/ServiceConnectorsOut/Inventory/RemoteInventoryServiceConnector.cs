@@ -243,6 +243,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_RemoteConnector.MoveFolder(folder.Owner.ToString(), folder, sessionID);
         }
 
+        public override bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            if (folderIDs == null)
+                return false;
+            if (folderIDs.Count == 0)
+                return false;
+
+            UUID sessionID = GetSessionID(ownerID);
+            return m_RemoteConnector.DeleteFolders(ownerID.ToString(), folderIDs, sessionID);
+        }
+
+
         public override bool PurgeFolder(InventoryFolderBase folder)
         {
             if (folder == null)

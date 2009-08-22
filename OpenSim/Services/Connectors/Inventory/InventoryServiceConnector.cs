@@ -308,6 +308,25 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
+        public bool DeleteFolders(string userID, List<UUID> folderIDs, UUID sessionID)
+        {
+            try
+            {
+                List<Guid> guids = new List<Guid>();
+                foreach (UUID u in folderIDs)
+                    guids.Add(u.Guid);
+                return SynchronousRestSessionObjectPoster<List<Guid>, bool>.BeginPostObject(
+                    "POST", m_ServerURI + "/DeleteFolders/", guids, sessionID.ToString(), userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Delete inventory folders operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return false;
+        }
+
         public bool MoveFolder(string userID, InventoryFolderBase folder, UUID sessionID)
         {
             try
@@ -481,12 +500,12 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(string userID, InventoryFolderBase item, UUID sessionID)
+        public InventoryFolderBase QueryFolder(string userID, InventoryFolderBase folder, UUID sessionID)
         {
             try
             {
                 return SynchronousRestSessionObjectPoster<InventoryFolderBase, InventoryFolderBase>.BeginPostObject(
-                    "POST", m_ServerURI + "/QueryFolder/", item, sessionID.ToString(), item.Owner.ToString());
+                    "POST", m_ServerURI + "/QueryFolder/", folder, sessionID.ToString(), userID);
             }
             catch (Exception e)
             {
