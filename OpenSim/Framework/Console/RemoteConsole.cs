@@ -217,6 +217,12 @@ namespace OpenSim.Framework.Console
             id.AppendChild(xmldoc.CreateTextNode(sessionID.ToString()));
 
             rootElement.AppendChild(id);
+
+            XmlElement prompt = xmldoc.CreateElement("", "Prompt", "");
+            prompt.AppendChild(xmldoc.CreateTextNode(DefaultPrompt));
+
+            rootElement.AppendChild(prompt);
+
             rootElement.AppendChild(MainConsole.Instance.Commands.GetXml(xmldoc));
 
             reply["str_response_string"] = xmldoc.InnerXml;
