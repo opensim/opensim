@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,47 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.IO;
 using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Grid.AssetInventoryServer.Plugins.Simple
+namespace OpenSim.Region.CoreModules.Avatar.NPC
 {
-    public static class SimpleUtils
+    public interface INPCModule
     {
-        public static string ParseNameFromFilename(string filename)
-        {
-            filename = Path.GetFileName(filename);
-
-            int dot = filename.LastIndexOf('.');
-            int firstDash = filename.IndexOf('-');
-
-            if (dot - 37 > 0 && firstDash > 0)
-                return filename.Substring(0, firstDash);
-            else
-                return String.Empty;
-        }
-
-        public static UUID ParseUUIDFromFilename(string filename)
-        {
-            int dot = filename.LastIndexOf('.');
-
-            if (dot > 35)
-            {
-                // Grab the last 36 characters of the filename
-                string uuidString = filename.Substring(dot - 36, 36);
-                UUID uuid;
-                UUID.TryParse(uuidString, out uuid);
-                return uuid;
-            }
-            else
-            {
-                UUID uuid;
-                if (UUID.TryParse(Path.GetFileName(filename), out uuid))
-                    return uuid;
-                else
-                    return UUID.Zero;
-            }
-        }
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
+        void Say(UUID agentID, Scene scene, string text);
+        void DeleteNPC(UUID agentID, Scene scene);
     }
 }

@@ -130,7 +130,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                     }
                     else
                     {
-                        InventoryItemBase baseItem = invService.GetItem(new InventoryItemBase(appearance.Wearables[i].ItemID));
+                        InventoryItemBase baseItem = new InventoryItemBase(appearance.Wearables[i].ItemID, userID);
+                        baseItem = invService.GetItem(baseItem);
 
                         if (baseItem != null)
                         {

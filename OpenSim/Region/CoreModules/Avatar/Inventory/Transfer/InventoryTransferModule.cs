@@ -67,13 +67,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
             if (!m_Scenelist.Contains(scene))
             {
-                if (m_Scenelist.Count == 0)
-                {
-                    m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
-                    if (m_TransferModule == null)
-                        m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
-                }
-
                 m_Scenelist.Add(scene);
 
                 scene.RegisterModuleInterface<IInventoryTransferModule>(this);
@@ -86,6 +79,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         public void PostInitialise()
         {
+            if (m_Scenelist.Count > 0)
+            {
+                m_TransferModule = m_Scenelist[0].RequestModuleInterface<IMessageTransferModule>();
+                if (m_TransferModule == null)
+                    m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
+            }
         }
 
         public void Close()
@@ -257,8 +256,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     invService.GetFolderForType(client.AgentId, AssetType.TrashFolder);
                 
                 UUID inventoryEntityID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
-                    
-                InventoryItemBase item = invService.GetItem(new InventoryItemBase(inventoryEntityID));
+
+                InventoryItemBase item = new InventoryItemBase(inventoryEntityID, client.AgentId);
+                item = invService.GetItem(item);
                 InventoryFolderBase folder = null;
                 
                 if (item != null && trashFolder != null)
@@ -266,12 +266,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     item.Folder = trashFolder.ID;
 
                     // Diva comment: can't we just update this item???
-                    invService.DeleteItem(item);
+                    List<UUID> uuids = new List<UUID>();
+                    uuids.Add(item.ID);
+                    invService.DeleteItems(item.Owner, uuids);
                     scene.AddInventoryItem(client, item);
                 }
                 else
                 {
-                    folder = invService.GetFolder(new InventoryFolderBase(inventoryEntityID));
+                    folder = new InventoryFolderBase(inventoryEntityID, client.AgentId);
+                    folder = invService.GetFolder(folder);
                     
                     if (folder != null & trashFolder != null)
                     {
@@ -451,10 +454,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             else
             {
                 UUID itemID = new UUID(msg.binaryBucket, 1);
-                InventoryItemBase item = new InventoryItemBase();
-
-                item.ID = itemID;
-                item.Owner = user.ControllingClient.AgentId;
+                InventoryItemBase item = new InventoryItemBase(itemID, user.ControllingClient.AgentId);
 
                 // Fetch from service
                 //

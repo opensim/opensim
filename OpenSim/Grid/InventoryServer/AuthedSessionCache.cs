@@ -28,7 +28,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace OpenSim.Framework.Communications.Cache
+namespace OpenSim.Grid.InventoryServer
 {
     public class AuthedSessionCache
     {

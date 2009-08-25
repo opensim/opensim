@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Servers.Tests
             IAssetDataPlugin assetDataPlugin = new TestAssetDataPlugin();
             handler = new GetAssetStreamHandler(assetDataPlugin);
 
-            assetDataPlugin.CreateAsset(asset);
+            assetDataPlugin.StoreAsset(asset);
             return asset;
         }
     }

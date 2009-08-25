@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public string DefaultPrompt
         {
-            set { m_defaultPrompt = value + "# "; }
+            set { m_defaultPrompt = value; }
             get { return m_defaultPrompt; }
         }
         protected string m_defaultPrompt;
@@ -123,7 +123,7 @@ namespace OpenSim.Framework.Console
 
         public virtual string ReadLine(string p, bool isCommand, bool e)
         {
-            System.Console.Write("{0}", prompt);
+            System.Console.Write("{0}", p);
             string cmdinput = System.Console.ReadLine();
 
             return cmdinput;

@@ -135,7 +135,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="assetID">Asset UUID to fetch</param>
         /// <returns>Return the asset</returns>
         /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
-        override protected AssetBase FetchStoredAsset(UUID assetID)
+        override public AssetBase GetAsset(UUID assetID)
         {
             AssetBase asset = null;
             lock (_dbConnection)
@@ -168,7 +168,7 @@ namespace OpenSim.Data.MySQL
                             }
                             asset.Name = (string) dbReader["name"];
                             asset.Type = (sbyte) dbReader["assetType"];
-                            asset.Temporary = (bool)dbReader["temporary"];
+                            asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                         }
                         dbReader.Close();
                         cmd.Dispose();
@@ -192,7 +192,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="asset">Asset UUID to create</param>
         /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
-        override public void CreateAsset(AssetBase asset)
+        override public void StoreAsset(AssetBase asset)
         {
             lock (_dbConnection)
             {
@@ -285,15 +285,6 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Update a asset in database, see <see cref="CreateAsset"/>
-        /// </summary>
-        /// <param name="asset">Asset UUID to update</param>
-        override public void UpdateAsset(AssetBase asset)
-        {
-            CreateAsset(asset);
-        }
-
-        /// <summary>
         /// check if the asset UUID exist in database
         /// </summary>
         /// <param name="uuid">The asset UUID</param>
@@ -368,7 +359,7 @@ namespace OpenSim.Data.MySQL
                             metadata.Name = (string) dbReader["name"];
                             metadata.Description = (string) dbReader["description"];
                             metadata.Type = (sbyte) dbReader["assetType"];
-                            metadata.Temporary = (bool) dbReader["temporary"]; // Not sure if this is correct.
+                            metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
                             metadata.FullID = new UUID((string) dbReader["id"]);
 
                             // Current SHA1s are not stored/computed.

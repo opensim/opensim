@@ -46,6 +46,8 @@ namespace OpenSim.Framework
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
         public string UserServerURL = String.Empty;
+        public string ConsoleUser = String.Empty;
+        public string ConsolePass = String.Empty;
 
         public MessageServerConfig(string description, string filename)
         {
@@ -88,6 +90,12 @@ namespace OpenSim.Framework
                                                 "Use SSL? true/false", ConfigSettings.DefaultMessageServerHttpSSL.ToString(), false);
             m_configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "My Published IP Address", "127.0.0.1", false);
+            m_configMember.addConfigurationOption("console_user", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Remote console access user name [Default: disabled]", "", false);
+
+            m_configMember.addConfigurationOption("console_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Remote console access password [Default: disabled]", "", false);
+
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -129,6 +137,12 @@ namespace OpenSim.Framework
                     break;
                 case "published_ip":
                     MessageServerIP = (string) configuration_result;
+                    break;
+                case "console_user":
+                    ConsoleUser = (string)configuration_result;
+                    break;
+                case "console_pass":
+                    ConsolePass = (string)configuration_result;
                     break;
             }
 

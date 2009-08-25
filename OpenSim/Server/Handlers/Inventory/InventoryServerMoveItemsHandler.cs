@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,71 +25,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Reflection;
-using OpenMetaverse;
-using OpenSim.Framework;
+using Nini.Config;
 using log4net;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenMetaverse;
 
-namespace OpenSim.Grid.AssetInventoryServer.Plugins
+namespace OpenSim.Server.Handlers.Inventory
 {
-    public class NullAuthenticationPlugin : IAuthenticationProvider
+    public class InventoryServerMoveItemsHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        //private AssetInventoryServer m_server;
 
-        public NullAuthenticationPlugin()
+        private IInventoryService m_InventoryService;
+
+        public InventoryServerMoveItemsHandler(IInventoryService service) :
+                base("PUT", "/inventory")
         {
+            m_InventoryService = service;
         }
 
-        #region IPlugin implementation
-
-        public void Initialise(AssetInventoryServer server)
+        public override byte[] Handle(string path, Stream request,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            //m_server = server;
+            XmlSerializer xs = new XmlSerializer(typeof (List<InventoryItemBase>));
+            List<InventoryItemBase> items = (List<InventoryItemBase>)xs.Deserialize(request);
 
-            m_log.Info("[NULLAUTHENTICATION]: Null Authentication loaded.");
-        }
+            bool result = false;
+            string[] p = SplitParams(path);
 
-        /// <summary>
-        /// <para>Initialises asset interface</para>
-        /// </summary>
-        public void Initialise()
-        {
-            m_log.InfoFormat("[NULLAUTHENTICATION]: {0} cannot be default-initialized!", Name);
-            throw new PluginNotInitialisedException(Name);
-        }
+            if (p.Length > 0)
+            {
+                UUID ownerID = UUID.Zero;
+                UUID.TryParse(p[0], out ownerID);
+                result = m_InventoryService.MoveItems(ownerID, items);
+            }
+            else
+                m_log.WarnFormat("[MOVEITEMS HANDLER]: ownerID not provided in request. Unable to serve.");
 
-        public void Dispose()
-        {
-        }
-
-        public string Version
-        {
-            // TODO: this should be something meaningful and not hardcoded?
-            get { return "0.1"; }
-        }
-
-        public string Name
-        {
-            get { return "NullAuthentication"; }
-        }
-
-        #endregion IPlugin implementation
-
-        public void AddIdentifier(UUID authToken, Uri identifier)
-        {
-        }
-
-        public bool RemoveIdentifier(UUID authToken)
-        {
-            return true;
-        }
-
-        public bool TryGetIdentifier(UUID authToken, out Uri identifier)
-        {
-            identifier = null;
-            return true;
+            xs = new XmlSerializer(typeof(bool));
+            return ServerUtils.SerializeResult(xs, result);
         }
     }
 }

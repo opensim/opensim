@@ -851,7 +851,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Delete the old item
 
-                Rest.InventoryServices.DeleteItem(uri);
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(uri.ID);
+                Rest.InventoryServices.DeleteItems(uri.Owner, uuids);
 
                 // Add the new item to the inventory
 
@@ -927,7 +929,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 InventoryItemBase item = (InventoryItemBase) InventoryNode;
                 Rest.Log.DebugFormat("{0} {1}: Item {2} will be deleted",
                                      MsgId, rdata.method, rdata.path);
-                Rest.InventoryServices.DeleteItem(item);
+                List<UUID> uuids = new List<UUID>();
+                uuids.Add(item.ID);
+                Rest.InventoryServices.DeleteItems(item.Owner, uuids);
                 rdata.appendStatus(String.Format("<p>Deleted item {0} UUID {1} <p>", item.Name, item.ID));
             }
 

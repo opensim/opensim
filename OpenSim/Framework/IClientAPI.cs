@@ -254,13 +254,13 @@ namespace OpenSim.Framework
         string newName);
 
     public delegate void MoveInventoryItem(
-        IClientAPI remoteClient, UUID folderID, UUID itemID, int length, string newName);
+        IClientAPI remoteClient, List<InventoryItemBase> items);
 
     public delegate void RemoveInventoryItem(
-        IClientAPI remoteClient, UUID itemID);
+        IClientAPI remoteClient, List<UUID> itemIDs);
 
     public delegate void RemoveInventoryFolder(
-        IClientAPI remoteClient, UUID folderID);
+        IClientAPI remoteClient, List<UUID> folderIDs);
 
     public delegate void RequestAsset(IClientAPI remoteClient, RequestAssetArgs transferRequest);
 

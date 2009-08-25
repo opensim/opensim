@@ -911,6 +911,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Nini.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -986,128 +987,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.AssetInventoryServer" path="OpenSim/Grid/AssetInventoryServer" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.AssetLoader.Filesystem"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.AssetInventoryServer.Plugins" path="OpenSim/Grid/AssetInventoryServer/Plugins" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Web"/>
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenMetaverse.StructuredData"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Serialization"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
-      <Reference name="log4net"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false" />
-        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.AssetInventoryServer.Plugins.Simple" path="OpenSim/Grid/AssetInventoryServer/Plugins/Simple" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml" />
-      <Reference name="OpenMetaverse"/>
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenSim.Framework" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
-      <Reference name="log4net"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="false" />
-        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.AssetInventoryServer.Plugins.OpenSim" path="OpenSim/Grid/AssetInventoryServer/Plugins/OpenSim" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml" />
-      <Reference name="System.Data" />
-      <Reference name="OpenMetaverseTypes"/>
-      <Reference name="OpenSim.Data" />
-      <Reference name="OpenSim.Framework" />
-      <Reference name="OpenSim.Framework.Communications" />
-      <Reference name="OpenSim.Grid.AssetInventoryServer" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="log4net"/>
-      <Reference name="Nini.dll" />
-
-      <Files>
-        <Match pattern="*.cs" recurse="false" />
-        <Match path="Resources" pattern="*.addin.xml" buildAction="EmbeddedResource" recurse="true" />
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Grid.UserServer.Modules" path="OpenSim/Grid/UserServer.Modules" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1178,6 +1057,7 @@
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Nini.dll"/>
       <Reference name="DotNetOpenId.dll"/>
 
       <Files>
@@ -1279,6 +1159,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Nini.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>

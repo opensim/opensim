@@ -267,6 +267,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawFilledRectangle(drawList, width, height);
         }
 
+        public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
+        {
+            return m_OSSL_Functions.osDrawFilledPolygon(drawList, x, y);
+        }
+
         public string osSetFontSize(string drawList, int fontSize)
         {
             return m_OSSL_Functions.osSetFontSize(drawList, fontSize);
@@ -275,6 +280,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public string osSetPenSize(string drawList, int penSize)
         {
             return m_OSSL_Functions.osSetPenSize(drawList, penSize);
+        }
+
+        public string osSetPenCap(string drawList, string direction, string type)
+        {
+            return m_OSSL_Functions.osSetPenCap(drawList, direction, type);
         }
 
         public string osSetPenColour(string drawList, string colour)
@@ -393,6 +403,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
         }
 
+        public key osNpcCreate(string user, string name, vector position, key cloneFrom)
+        {
+            return m_OSSL_Functions.osNpcCreate(user, name, position, cloneFrom);
+        }
+
+        public void osNpcMoveTo(key npc, vector position)
+        {
+            m_OSSL_Functions.osNpcMoveTo(npc, position);
+        }
+
+        public void osNpcSay(key npc, string message)
+        {
+            m_OSSL_Functions.osNpcSay(npc, message);
+        }
+
+        public void osNpcRemove(key npc)
+        {
+            m_OSSL_Functions.osNpcRemove(npc);
+        }
 
         public OSSLPrim Prim;
 

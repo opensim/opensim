@@ -139,6 +139,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public abstract bool MoveFolder(InventoryFolderBase folder);
 
         /// <summary>
+        /// Delete a list of inventory folders (from trash)
+        /// </summary>
+        public abstract bool DeleteFolders(UUID ownerID, List<UUID> folderIDs);
+        
+        /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
         /// <param name="folder"></param>
@@ -181,12 +186,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully updated</returns>
         public abstract bool UpdateItem(InventoryItemBase item);
 
+        public abstract bool MoveItems(UUID ownerID, List<InventoryItemBase> items);
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        public abstract bool DeleteItem(InventoryItemBase item);
+        public abstract bool DeleteItems(UUID ownerID, List<UUID> itemIDs);
 
         public abstract InventoryItemBase GetItem(InventoryItemBase item);
 

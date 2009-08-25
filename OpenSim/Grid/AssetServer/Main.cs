@@ -140,7 +140,7 @@ namespace OpenSim.Grid.AssetServer
 
         protected void StoreAsset(AssetBase asset)
         {
-            m_assetProvider.CreateAsset(asset);
+            m_assetProvider.StoreAsset(asset);
         }
     }
 }

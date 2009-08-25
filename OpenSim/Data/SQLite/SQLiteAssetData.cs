@@ -90,7 +90,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="uuid">UUID of ... ?</param>
         /// <returns>Asset base</returns>
-        override protected AssetBase FetchStoredAsset(UUID uuid)
+        override public AssetBase GetAsset(UUID uuid)
         {
             lock (this)
             {
@@ -119,12 +119,28 @@ namespace OpenSim.Data.SQLite
         /// Create an asset
         /// </summary>
         /// <param name="asset">Asset Base</param>
-        override public void CreateAsset(AssetBase asset)
+        override public void StoreAsset(AssetBase asset)
         {
             //m_log.Info("[ASSET DB]: Creating Asset " + asset.FullID.ToString());
             if (ExistsAsset(asset.FullID))
             {
-                //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
+                LogAssetLoad(asset);
+
+                lock (this)
+                {
+                    using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
+                    {
+                        cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.ToString()));
+                        cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
+                        cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
+                        cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
+                        cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
+                        cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
+                        cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
             else
             {
@@ -142,31 +158,6 @@ namespace OpenSim.Data.SQLite
 
                         cmd.ExecuteNonQuery();
                     }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Update an asset
-        /// </summary>
-        /// <param name="asset"></param>
-        override public void UpdateAsset(AssetBase asset)
-        {
-            LogAssetLoad(asset);
-
-            lock (this)
-            {
-                using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", asset.FullID.ToString()));
-                    cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
-                    cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
-                    cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                    cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
-                    cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
-                    cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-
-                    cmd.ExecuteNonQuery();
                 }
             }
         }

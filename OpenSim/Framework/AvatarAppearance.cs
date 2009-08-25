@@ -503,7 +503,14 @@ namespace OpenSim.Framework
             Owner = new UUID((string)h["owner"]);
             Serial = Convert.ToInt32((string)h["serial"]);
             VisualParams = (byte[])h["visual_params"];
-            Texture = new Primitive.TextureEntry((byte[])h["texture"], 0, ((byte[])h["texture"]).Length);
+
+            if (h.Contains("texture"))
+            {
+                byte[] te = h["texture"] as byte[];
+                if (te != null && te.Length > 0)
+                    Texture = new Primitive.TextureEntry(te, 0, te.Length);
+            }
+            
             AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
 
             m_wearables = new AvatarWearable[MAX_WEARABLES];

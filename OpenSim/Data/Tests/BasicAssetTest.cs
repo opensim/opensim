@@ -84,34 +84,34 @@ namespace OpenSim.Data.Tests
             scrambler.Scramble(a2);
             scrambler.Scramble(a3);
 
-            db.CreateAsset(a1);
-            db.CreateAsset(a2);
-            db.CreateAsset(a3);
+            db.StoreAsset(a1);
+            db.StoreAsset(a2);
+            db.StoreAsset(a3);
             
-            AssetBase a1a = db.FetchAsset(uuid1);
+            AssetBase a1a = db.GetAsset(uuid1);
             Assert.That(a1a, Constraints.PropertyCompareConstraint(a1));
 
-            AssetBase a2a = db.FetchAsset(uuid2);
+            AssetBase a2a = db.GetAsset(uuid2);
             Assert.That(a2a, Constraints.PropertyCompareConstraint(a2));
 
-            AssetBase a3a = db.FetchAsset(uuid3);
+            AssetBase a3a = db.GetAsset(uuid3);
             Assert.That(a3a, Constraints.PropertyCompareConstraint(a3));
 
             scrambler.Scramble(a1a);
             scrambler.Scramble(a2a);
             scrambler.Scramble(a3a);
 
-            db.UpdateAsset(a1a);
-            db.UpdateAsset(a2a);
-            db.UpdateAsset(a3a);
+            db.StoreAsset(a1a);
+            db.StoreAsset(a2a);
+            db.StoreAsset(a3a);
 
-            AssetBase a1b = db.FetchAsset(uuid1);
+            AssetBase a1b = db.GetAsset(uuid1);
             Assert.That(a1b, Constraints.PropertyCompareConstraint(a1a));
 
-            AssetBase a2b = db.FetchAsset(uuid2);
+            AssetBase a2b = db.GetAsset(uuid2);
             Assert.That(a2b, Constraints.PropertyCompareConstraint(a2a));
 
-            AssetBase a3b = db.FetchAsset(uuid3);
+            AssetBase a3b = db.GetAsset(uuid3);
             Assert.That(a3b, Constraints.PropertyCompareConstraint(a3a));
 
             Assert.That(db.ExistsAsset(uuid1), Is.True);

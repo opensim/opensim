@@ -122,6 +122,14 @@ namespace OpenSim.Services.Interfaces
         bool MoveFolder(InventoryFolderBase folder);
 
         /// <summary>
+        /// Delete an item from the user's inventory
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>true if the item was successfully deleted</returns>
+        //bool DeleteItem(InventoryItemBase item);
+        bool DeleteFolders(UUID userID, List<UUID> folderIDs);
+
+        /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
         /// <param name="folder"></param>
@@ -142,12 +150,15 @@ namespace OpenSim.Services.Interfaces
         /// <returns>true if the item was successfully updated</returns>
         bool UpdateItem(InventoryItemBase item);
 
+        bool MoveItems(UUID ownerID, List<InventoryItemBase> items);
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        bool DeleteItem(InventoryItemBase item);
+        //bool DeleteItem(InventoryItemBase item);
+        bool DeleteItems(UUID userID, List<UUID> itemIDs);
 
         /// <summary>
         /// Get an item, given by its UUID

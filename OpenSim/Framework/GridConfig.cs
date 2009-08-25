@@ -45,6 +45,8 @@ namespace OpenSim.Framework
         public string SimSendKey = String.Empty;
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
+        public string ConsoleUser = String.Empty;
+        public string ConsolePass = String.Empty;
 
         public GridConfig(string description, string filename)
         {
@@ -95,6 +97,12 @@ namespace OpenSim.Framework
                                                 "Allow regions to register immediately upon grid server startup? true/false", 
                                                 "True", 
                                                 false);            
+            m_configMember.addConfigurationOption("console_user", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                 "Remote console access user name [Default: disabled]", "", false);
+
+            m_configMember.addConfigurationOption("console_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                 "Remote console access password [Default: disabled]", "", false);
+
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -140,6 +148,12 @@ namespace OpenSim.Framework
                 case "allow_region_registration":
                     AllowRegionRegistration = (bool)configuration_result;
                     break;                
+                case "console_user":
+                    ConsoleUser = (string)configuration_result;
+                    break;
+                case "console_pass":
+                    ConsolePass = (string)configuration_result;
+                    break;
             }
 
             return true;

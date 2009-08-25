@@ -532,6 +532,11 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
+        public bool DeleteFolders(UUID ownerID, List<UUID> ids)
+        {
+            return false;
+        }
+
         public bool PurgeFolder(InventoryFolderBase folder)
         {
             return false;
@@ -547,7 +552,12 @@ namespace OpenSim.Framework.Communications.Tests
             return false;
         }
 
-        public bool DeleteItem(InventoryItemBase item)
+        public bool MoveItems(UUID owner, List<InventoryItemBase> items)
+        {
+            return false;
+        }
+
+        public bool DeleteItems(UUID owner, List<UUID> items)
         {
             return false;
         }

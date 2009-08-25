@@ -152,11 +152,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
             
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
-            
+
             if (config != null)
             {
+                if (config.Contains("client_throttle_max_bps"))
+                {
+                    int maxBPS = config.GetInt("client_throttle_max_bps", 1500000);
+                    userSettings.TotalThrottleSettings = new ThrottleSettings(0, maxBPS,
+                    maxBPS > 28000 ? maxBPS : 28000);
+                }
+
                 if (config.Contains("client_throttle_multiplier"))
-                    userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier"); 
+                    userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier");
                 if (config.Contains("client_socket_rcvbuf_size"))
                     m_clientSocketReceiveBuffer = config.GetInt("client_socket_rcvbuf_size");
             }   

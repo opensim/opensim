@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using OpenMetaverse;
@@ -404,7 +405,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
             
-            InventoryItemBase item = InventoryService.GetItem(new InventoryItemBase(itemID));
+            InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+            item = InventoryService.GetItem(item);
             
             if (item != null)
             {
@@ -439,9 +441,24 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            // We're going to send the reply async, because there may be
+            // an enormous quantity of packets -- basically the entire inventory!
+            // We don't want to block the client thread while all that is happening.
+            SendInventoryDelegate d = SendInventoryAsync;
+            d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+        }
+
+        delegate void SendInventoryDelegate(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
+
+        void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
+        {
             SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
-        }        
-        
+        }
+
+        void SendInventoryComplete(IAsyncResult iar)
+        {
+        }
+
         /// <summary>
         /// Handle the caps inventory descendents fetch.
         ///
@@ -517,27 +534,25 @@ namespace OpenSim.Region.Framework.Scenes
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
-            CachedUserInfo userProfile = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-            
-            if (null == userProfile)
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
+            folder = InventoryService.GetFolder(folder);
+            if (folder != null)
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
-                    remoteClient.Name, remoteClient.AgentId);
-                return;
-            }
-
-            if (!userProfile.UpdateFolder(name, folderID, type, parentID))
-            {
-                m_log.ErrorFormat(
-                     "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
-                     remoteClient.Name, remoteClient.AgentId);
+                folder.Name = name;
+                folder.Type = (short)type;
+                folder.ParentID = parentID;
+                if (!InventoryService.UpdateFolder(folder))
+                {
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
+                         remoteClient.Name, remoteClient.AgentId);
+                }
             }
         }        
         
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
             folder = InventoryService.GetFolder(folder);
             if (folder != null)
             {
@@ -559,15 +574,34 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
 
+        delegate void PurgeFolderDelegate(UUID userID, UUID folder);
+
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, UUID folderID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            PurgeFolderDelegate d = PurgeFolderAsync;
+            try
+            {
+                d.BeginInvoke(remoteClient.AgentId, folderID, PurgeFolderCompleted, d);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[AGENT INVENTORY]: Exception on purge folder for user {0}: {1}", remoteClient.AgentId, e.Message);
+            }
+        }        
+
+
+        private void PurgeFolderAsync(UUID userID, UUID folderID)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, userID);
 
             if (InventoryService.PurgeFolder(folder))
                 m_log.DebugFormat("[AGENT INVENTORY]: folder {0} purged successfully", folderID);
             else
                 m_log.WarnFormat("[AGENT INVENTORY]: could not purge folder {0}", folderID);
-        }        
+        }
 
+        private void PurgeFolderCompleted(IAsyncResult iar)
+        {
+        }
     }
 }

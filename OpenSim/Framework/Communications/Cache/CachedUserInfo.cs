@@ -653,7 +653,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (RootFolder.DeleteItem(item.ID))
                 {
-                    return m_InventoryService.DeleteItem(item);
+                    List<UUID> uuids = new List<UUID>();
+                    uuids.Add(itemID);
+                    return m_InventoryService.DeleteItems(this.UserProfile.ID, uuids);
                 }
             }
             else

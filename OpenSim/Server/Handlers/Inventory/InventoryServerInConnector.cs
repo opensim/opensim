@@ -105,8 +105,12 @@ namespace OpenSim.Server.Handlers.Inventory
                     "POST", "/PurgeFolder/", m_InventoryService.PurgeFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
-                    "POST", "/DeleteItem/", m_InventoryService.DeleteItem, CheckAuthSession));
+                new RestDeserialiseSecureHandler<List<Guid>, bool>(
+                    "POST", "/DeleteFolders/", DeleteFolders, CheckAuthSession));
+
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseSecureHandler<List<Guid>, bool>(
+                    "POST", "/DeleteItem/", DeleteItems, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, InventoryItemBase>(
@@ -125,8 +129,8 @@ namespace OpenSim.Server.Handlers.Inventory
                     "POST", "/NewFolder/", m_InventoryService.AddFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseTrustedHandler<InventoryFolderBase, bool>(
-                    "POST", "/CreateFolder/", m_InventoryService.AddFolder, CheckTrustSource));
+                new RestDeserialiseSecureHandler<InventoryFolderBase, bool>(
+                    "POST", "/CreateFolder/", m_InventoryService.AddFolder, CheckAuthSession));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseSecureHandler<InventoryItemBase, bool>(
@@ -137,9 +141,16 @@ namespace OpenSim.Server.Handlers.Inventory
                  "POST", "/AddNewItem/", m_InventoryService.AddItem, CheckTrustSource));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialiseTrustedHandler<Guid, List<InventoryItemBase>>(
-                    "POST", "/GetItems/", GetFolderItems, CheckTrustSource));
+                new RestDeserialiseSecureHandler<Guid, List<InventoryItemBase>>(
+                    "POST", "/GetItems/", GetFolderItems, CheckAuthSession));
 
+            m_httpServer.AddStreamHandler(
+                new RestDeserialiseSecureHandler<List<InventoryItemBase>, bool>(
+                    "POST", "/MoveItems/", MoveItems, CheckAuthSession));
+
+            m_httpServer.AddStreamHandler(new InventoryServerMoveItemsHandler(m_InventoryService));
+
+            
             // for persistent active gestures
             m_httpServer.AddStreamHandler(
                 new RestDeserialiseTrustedHandler<Guid, List<InventoryItemBase>>
@@ -247,6 +258,33 @@ namespace OpenSim.Server.Handlers.Inventory
             return m_InventoryService.GetAssetPermissions(item.Owner, item.AssetID);
         }
 
+        public bool DeleteFolders(List<Guid> items)
+        {
+            List<UUID> uuids = new List<UUID>();
+            foreach (Guid g in items)
+                uuids.Add(new UUID(g));
+            // oops we lost the user info here. Bad bad handlers
+            return m_InventoryService.DeleteFolders(UUID.Zero, uuids);
+        }
+
+        public bool DeleteItems(List<Guid> items)
+        {
+            List<UUID> uuids = new List<UUID>();
+            foreach (Guid g in items)
+                uuids.Add(new UUID(g));
+            // oops we lost the user info here. Bad bad handlers
+            return m_InventoryService.DeleteItems(UUID.Zero, uuids);
+        }
+
+        public bool MoveItems(List<InventoryItemBase> items)
+        {
+            // oops we lost the user info here. Bad bad handlers
+            // let's peek at one item
+            UUID ownerID = UUID.Zero;
+            if (items.Count > 0)
+                ownerID = items[0].Owner;
+            return m_InventoryService.MoveItems(ownerID, items);
+        }
         #endregion
 
         /// <summary>

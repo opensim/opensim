@@ -89,11 +89,23 @@ namespace OpenSim.Services.Connectors
         bool MoveFolder(string userID, InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
+        /// Delete a list of inventory folders (from trash)
+        /// </summary>
+        bool DeleteFolders(string userID, List<UUID> folders, UUID session_id);
+
+        /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>true if the folder was successfully purged</returns>
         bool PurgeFolder(string userID, InventoryFolderBase folder, UUID session_id);
+
+        /// <summary>
+        /// Get items from a folder.
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns>true if the folder was successfully purged</returns>
+        List<InventoryItemBase> GetFolderItems(string userID, UUID folderID, UUID session_id);
 
         /// <summary>
         /// Add a new item to the user's inventory
@@ -109,12 +121,14 @@ namespace OpenSim.Services.Connectors
         /// <returns>true if the item was successfully updated</returns>
         bool UpdateItem(string userID, InventoryItemBase item, UUID session_id);
 
+        bool MoveItems(string userID, List<InventoryItemBase> items, UUID session_id);
+        
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        bool DeleteItem(string userID, InventoryItemBase item, UUID session_id);
+        bool DeleteItems(string userID, List<UUID> itemIDs, UUID session_id);
 
         InventoryItemBase QueryItem(string userID, InventoryItemBase item, UUID session_id);
 

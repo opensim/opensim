@@ -83,7 +83,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return null;
 
-            return m_Database.FetchAsset(assetID);
+            return m_Database.GetAsset(assetID);
         }
 
         public AssetMetadata GetMetadata(string id)
@@ -93,7 +93,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return null;
 
-            AssetBase asset = m_Database.FetchAsset(assetID);
+            AssetBase asset = m_Database.GetAsset(assetID);
             return asset.Metadata;
         }
 
@@ -104,7 +104,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return null;
 
-            AssetBase asset = m_Database.FetchAsset(assetID);
+            AssetBase asset = m_Database.GetAsset(assetID);
             return asset.Data;
         }
 
@@ -117,7 +117,7 @@ namespace OpenSim.Services.AssetService
             if (!UUID.TryParse(id, out assetID))
                 return false;
 
-            AssetBase asset = m_Database.FetchAsset(assetID);
+            AssetBase asset = m_Database.GetAsset(assetID);
 
             //m_log.DebugFormat("[AssetService]: Got asset {0}", asset);
             
@@ -129,7 +129,7 @@ namespace OpenSim.Services.AssetService
         public string Store(AssetBase asset)
         {
             //m_log.DebugFormat("[ASSET SERVICE]: Store asset {0} {1}", asset.Name, asset.ID);
-            m_Database.CreateAsset(asset);
+            m_Database.StoreAsset(asset);
 
             return asset.ID;
         }

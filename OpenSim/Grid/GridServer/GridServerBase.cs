@@ -31,6 +31,7 @@ using System.IO;
 using System.Reflection;
 using System.Timers;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
@@ -46,6 +47,9 @@ namespace OpenSim.Grid.GridServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected GridConfig m_config;
+        public string m_consoleType = "local";
+        public IConfigSource m_configSource = null;
+        public string m_configFile = "GridServer_Config.xml";
 
         public GridConfig Config
         {
@@ -71,16 +75,36 @@ namespace OpenSim.Grid.GridServer
 
         public GridServerBase()
         {
-            m_console = new LocalConsole("Grid");
-            MainConsole.Instance = m_console;
         }
 
         protected override void StartupSpecific()
         {
-            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), "GridServer_Config.xml")));
+            switch (m_consoleType)
+            {
+            case "rest":
+                m_console = new RemoteConsole("Grid");
+                break;
+            case "basic":
+                m_console = new CommandConsole("Grid");
+                break;
+            default:
+                m_console = new LocalConsole("Grid");
+                break;
+            }
+            MainConsole.Instance = m_console;
+            m_config = new GridConfig("GRID SERVER", (Path.Combine(Util.configDir(), m_configFile)));
 
             m_log.Info("[GRID]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
+            if (m_console is RemoteConsole)
+            {
+                RemoteConsole c = (RemoteConsole)m_console;
+                c.SetServer(m_httpServer);
+                IConfig netConfig = m_configSource.AddConfig("Network");
+                netConfig.Set("ConsoleUser", m_config.ConsoleUser);
+                netConfig.Set("ConsolePass", m_config.ConsolePass);
+                c.ReadConfig(m_configSource);
+            }
 
             LoadPlugins();
 

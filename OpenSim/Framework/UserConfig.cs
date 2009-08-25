@@ -46,6 +46,8 @@ namespace OpenSim.Framework
         public bool HttpSSL = ConfigSettings.DefaultUserServerHttpSSL;
         public uint DefaultUserLevel = 0;
         public string LibraryXmlfile = "";
+        public string ConsoleUser = String.Empty;
+        public string ConsolePass = String.Empty;
 
         private Uri m_inventoryUrl;
 
@@ -155,6 +157,12 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_loginLevel", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Minimum Level a user should have to login [0 default]", "0", false);
             
+            m_configMember.addConfigurationOption("console_user", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Remote console access user name [Default: disabled]", "", false);
+            
+            m_configMember.addConfigurationOption("console_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Remote console access password [Default: disabled]", "", false);
+            
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -208,6 +216,12 @@ namespace OpenSim.Framework
                     break;
                 case "library_location":
                     LibraryXmlfile = (string)configuration_result;
+                    break;
+                case "console_user":
+                    ConsoleUser = (string)configuration_result;
+                    break;
+                case "console_pass":
+                    ConsolePass = (string)configuration_result;
                     break;
             }
 

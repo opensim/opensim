@@ -191,7 +191,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
-            InventoryFolderBase root = GetRootFolder(userID);
+            InventoryFolderBase root = m_InventoryService.GetRootFolder(userID);
             if (root != null)
             {
                 InventoryCollection content = GetFolderContent(userID, root.ID);
@@ -202,13 +202,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     {
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                         {
-                            m_log.InfoFormat("[INVENTORY CONNECTOR]: folder type {0} ", folder.Type);
+                            //m_log.InfoFormat("[INVENTORY CONNECTOR]: folder type {0} ", folder.Type);
                             folders[(AssetType)folder.Type] = folder;
                         }
                     }
                     // Put the root folder there, as type Folder
                     folders[AssetType.Folder] = root;
-                    m_log.InfoFormat("[INVENTORY CONNECTOR]: root folder is type {0} ", root.Type);
+                    //m_log.InfoFormat("[INVENTORY CONNECTOR]: root folder is type {0} ", root.Type);
 
                     return folders;
                 }
@@ -258,6 +258,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.MoveFolder(folder);
         }
 
+        public override bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            return m_InventoryService.DeleteFolders(ownerID, folderIDs);
+        }
+
         /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
@@ -289,14 +294,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.UpdateItem(item);
         }
 
+
+        public override bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        {
+            return m_InventoryService.MoveItems(ownerID, items);
+        }
+
         /// <summary>
         /// Delete an item from the user's inventory
         /// </summary>
         /// <param name="item"></param>
         /// <returns>true if the item was successfully deleted</returns>
-        public override bool DeleteItem(InventoryItemBase item)
+        public override bool DeleteItems(UUID ownerID, List<UUID> itemIDs)
         {
-            return m_InventoryService.DeleteItem(item);
+            return m_InventoryService.DeleteItems(ownerID, itemIDs);
         }
 
         public override InventoryItemBase GetItem(InventoryItemBase item)

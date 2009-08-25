@@ -70,7 +70,7 @@ namespace OpenSim.Data.Tests
             reg.Uuid = regionUUID;
             reg.RegionName = regionName;
 
-            db.AddProfile(reg);
+            db.StoreProfile(reg);
 
             return reg;
         }
@@ -120,7 +120,7 @@ namespace OpenSim.Data.Tests
             RegionProfileData retreg = db.GetProfileByUUID(region2);
             retreg.regionName = "Gotham City";
 
-            db.UpdateProfile(retreg);
+            db.StoreProfile(retreg);
 
             retreg = db.GetProfileByUUID(region2);
             Assert.That(retreg.RegionName, Is.EqualTo("Gotham City"), "Assert.That(retreg.RegionName, Is.EqualTo(\"Gotham City\"))");
@@ -135,13 +135,13 @@ namespace OpenSim.Data.Tests
             retreg.RegionName = "Gotham Town";
             retreg.Uuid = region1;
 
-            db.AddProfile(retreg);
+            db.StoreProfile(retreg);
 
             retreg = db.GetProfileByUUID(region2);
             retreg.RegionName = "Gothan Town";
             retreg.Uuid = region3;
 
-            db.AddProfile(retreg);
+            db.StoreProfile(retreg);
 
             List<RegionProfileData> listreg = db.GetRegionsByName("Gotham",10);
 
