@@ -229,6 +229,11 @@ namespace OpenSim.Services.Connectors
                 return SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
                     "POST", m_ServerURI + "/GetFolderContent/", folderID.Guid, sessionID.ToString(), userID.ToString());
             }
+            catch (TimeoutException e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation to {0} timed out {0} {1}.", m_ServerURI,
+                     e.Source, e.Message);
+            }
             catch (Exception e)
             {
                 // Maybe we're talking to an old inventory server. Try this other thing.
