@@ -1055,6 +1055,7 @@
       <Reference name="OpenSim.Grid.UserServer.Modules"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net.dll"/>
       <Reference name="Nini.dll"/>

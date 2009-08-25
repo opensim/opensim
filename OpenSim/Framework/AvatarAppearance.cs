@@ -510,6 +510,13 @@ namespace OpenSim.Framework
                 if (te != null && te.Length > 0)
                     Texture = new Primitive.TextureEntry(te, 0, te.Length);
             }
+            else
+            {
+                // We shouldn't be receiving appearance hashtables without a TextureEntry,
+                // but in case we do this will prevent a failure when saving to the database
+                Texture = GetDefaultTexture();
+            }
+
             
             AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
 
