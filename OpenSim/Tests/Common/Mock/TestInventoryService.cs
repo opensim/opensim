@@ -128,6 +128,11 @@ namespace OpenSim.Tests.Common.Mock
             return false;
         }
 
+        public bool DeleteFolders(UUID ownerID, List<UUID> ids)
+        {
+            return false;
+        }
+
         public bool PurgeFolder(InventoryFolderBase folder)
         {
             return false;

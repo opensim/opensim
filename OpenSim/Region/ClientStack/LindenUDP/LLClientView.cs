@@ -7090,14 +7090,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryFolder != null)
                     {
                         handlerRemoveInventoryFolder = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryFolderPacket.FolderDataBlock datablock in removeFolder.FolderData)
                         {
-                            handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
-
-                            if (handlerRemoveInventoryFolder != null)
-                            {
-                                handlerRemoveInventoryFolder(this, datablock.FolderID);
-                            }
+                            uuids.Add(datablock.FolderID);
+                        }
+                        handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
+                        if (handlerRemoveInventoryFolder != null)
+                        {
+                            handlerRemoveInventoryFolder(this, uuids);
                         }
                     }
                     break;
@@ -7114,14 +7115,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (OnRemoveInventoryFolder != null)
                     {
                         handlerRemoveInventoryFolder = null;
+                        List<UUID> uuids = new List<UUID>();
                         foreach (RemoveInventoryObjectsPacket.FolderDataBlock datablock in removeObject.FolderData)
                         {
-                            handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
-
-                            if (handlerRemoveInventoryFolder != null)
-                            {
-                                handlerRemoveInventoryFolder(this, datablock.FolderID);
-                            }
+                            uuids.Add(datablock.FolderID);
+                        }
+                        handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
+                        if (handlerRemoveInventoryFolder != null)
+                        {
+                            handlerRemoveInventoryFolder(this, uuids);
                         }
                     }
 

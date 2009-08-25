@@ -552,7 +552,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
             folder = InventoryService.GetFolder(folder);
             if (folder != null)
             {

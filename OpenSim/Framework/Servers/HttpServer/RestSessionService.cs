@@ -75,6 +75,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
             request.ContentType = "text/xml";
+            request.Timeout = 20000;
 
             MemoryStream buffer = new MemoryStream();
 
@@ -98,7 +99,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
                 deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+                resp.Close();
             }
+            requestStream.Close();
             return deserial;
         }
     }

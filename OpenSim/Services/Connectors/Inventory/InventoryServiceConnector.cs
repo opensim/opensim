@@ -229,6 +229,11 @@ namespace OpenSim.Services.Connectors
                 return SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
                     "POST", m_ServerURI + "/GetFolderContent/", folderID.Guid, sessionID.ToString(), userID.ToString());
             }
+            catch (TimeoutException e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation to {0} timed out {0} {1}.", m_ServerURI,
+                     e.Source, e.Message);
+            }
             catch (Exception e)
             {
                 // Maybe we're talking to an old inventory server. Try this other thing.
@@ -302,6 +307,25 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.ErrorFormat("[INVENTORY CONNECTOR]: Update inventory folder operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return false;
+        }
+
+        public bool DeleteFolders(string userID, List<UUID> folderIDs, UUID sessionID)
+        {
+            try
+            {
+                List<Guid> guids = new List<Guid>();
+                foreach (UUID u in folderIDs)
+                    guids.Add(u.Guid);
+                return SynchronousRestSessionObjectPoster<List<Guid>, bool>.BeginPostObject(
+                    "POST", m_ServerURI + "/DeleteFolders/", guids, sessionID.ToString(), userID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Delete inventory folders operation failed, {0} {1}",
                      e.Source, e.Message);
             }
 
@@ -397,13 +421,28 @@ namespace OpenSim.Services.Connectors
 
         private void MoveItemsAsync(string userID, List<InventoryItemBase> items, UUID sessionID)
         {
+            if (items == null)
+            {
+                m_log.WarnFormat("[INVENTORY CONNECTOR]: request to move items got a null list.");
+                return;
+            }
+
             try
             {
-                SynchronousRestSessionObjectPoster<List<InventoryItemBase>, bool>.BeginPostObject(
-                    "POST", m_ServerURI + "/MoveItems/", items, sessionID.ToString(), userID.ToString());
+                //SynchronousRestSessionObjectPoster<List<InventoryItemBase>, bool>.BeginPostObject(
+                //    "POST", m_ServerURI + "/MoveItems/", items, sessionID.ToString(), userID.ToString());
 
-                // Success
+                //// Success
+                //return;
+                string uri = m_ServerURI + "/inventory/" + userID;
+                if (SynchronousRestObjectRequester.
+                        MakeRequest<List<InventoryItemBase>, bool>("PUT", uri, items))
+                    m_log.DebugFormat("[INVENTORY CONNECTOR]: move {0} items poster succeeded {1}", items.Count, uri);
+                else
+                    m_log.DebugFormat("[INVENTORY CONNECTOR]: move {0} items poster failed {1}", items.Count, uri); ;
+
                 return;
+
             }
             catch (Exception e)
             {
@@ -466,12 +505,12 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
-        public InventoryFolderBase QueryFolder(string userID, InventoryFolderBase item, UUID sessionID)
+        public InventoryFolderBase QueryFolder(string userID, InventoryFolderBase folder, UUID sessionID)
         {
             try
             {
                 return SynchronousRestSessionObjectPoster<InventoryFolderBase, InventoryFolderBase>.BeginPostObject(
-                    "POST", m_ServerURI + "/QueryFolder/", item, sessionID.ToString(), item.Owner.ToString());
+                    "POST", m_ServerURI + "/QueryFolder/", folder, sessionID.ToString(), userID);
             }
             catch (Exception e)
             {
