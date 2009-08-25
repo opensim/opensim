@@ -443,7 +443,16 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     endPoint.X = (int) x;
                     endPoint.Y = (int) y;
                     Image image = ImageHttpRequest(nextLine);
-                    graph.DrawImage(image, (float) startPoint.X, (float) startPoint.Y, x, y);
+                    if (image != null)
+                    {
+                        graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                    }
+                    else
+                    {
+                        graph.DrawString("URL couldn't be resolved or is", new Font("Arial",6), myBrush, startPoint);
+                        graph.DrawString("not an image. Please check URL.", new Font("Arial", 6), myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                        graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                    }
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
                 }
@@ -539,6 +548,57 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
                     drawPen.Width = size;
                 }
+                else if (nextLine.StartsWith("PenCap"))
+                {
+                    bool start = true, end = true;
+                    nextLine = nextLine.Remove(0, 6);
+                    nextLine = nextLine.Trim();
+                    string[] cap = nextLine.Split(partsDelimiter);
+                    if (cap[0].ToLower() == "start")
+                        end = false;
+                    else if (cap[0].ToLower() == "end")
+                        start = false;
+                    else if (cap[0].ToLower() != "both")
+                        return;
+                    string type = cap[1].ToLower();
+                    
+                    if (end)
+                    {
+                        switch (type)
+                        {
+                            case "arrow":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                break;
+                            case "round":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                break;
+                            case "diamond":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                break;
+                            case "flat":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                break;
+                        }
+                    }
+                    if (start)
+                    {
+                        switch (type)
+                        {
+                            case "arrow":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                break;
+                            case "round":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                break;
+                            case "diamond":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                break;
+                            case "flat":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                break;
+                        }
+                    }
+                }
                 else if (nextLine.StartsWith("PenColour"))
                 {
                     nextLine = nextLine.Remove(0, 9);
@@ -610,16 +670,19 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         private Bitmap ImageHttpRequest(string url)
         {
+            try
+            {
             WebRequest request = HttpWebRequest.Create(url);
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
-            HttpWebResponse response = (HttpWebResponse) (request).GetResponse();
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                Bitmap image = new Bitmap(response.GetResponseStream());
-                return image;
+                HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    Bitmap image = new Bitmap(response.GetResponseStream());
+                    return image;
+                }
             }
-
+            catch { }
             return null;
         }
     }

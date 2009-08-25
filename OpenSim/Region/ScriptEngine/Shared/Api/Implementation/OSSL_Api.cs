@@ -879,6 +879,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osSetPenCap(string drawList, string direction, string type)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
+
+            m_host.AddScriptLPS(1);
+            drawList += "PenCap " + direction + "," + type + "; ";
+            return drawList;
+        }
+
         public string osDrawImage(string drawList, int width, int height, string imageUrl)
         {
             CheckThreatLevel(ThreatLevel.None, "osDrawImage");

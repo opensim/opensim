@@ -282,6 +282,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSetPenSize(drawList, penSize);
         }
 
+        public string osSetPenCap(string drawList, string direction, string type)
+        {
+            return m_OSSL_Functions.osSetPenCap(drawList, direction, type);
+        }
+
         public string osSetPenColour(string drawList, string colour)
         {
             return m_OSSL_Functions.osSetPenColour(drawList, colour);
