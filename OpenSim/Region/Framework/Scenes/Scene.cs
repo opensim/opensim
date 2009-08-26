@@ -2143,9 +2143,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
-                m_log.DebugFormat(
-                    "[SCENE]: Adding new {0} agent for {1} in {2}",
-                    ((aCircuit.child == true) ? "child" : "root"), client.Name, RegionInfo.RegionName);
+                m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
+                /*
+                string logMsg = string.Format("[SCENE]: Adding new {0} agent for {1} in {2}",
+                                              ((aCircuit.child == true) ? "child" : "root"), client.Name,
+                                              RegionInfo.RegionName);
+
+                m_log.Debug(logMsg);
+                */
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
@@ -2154,7 +2159,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.
                 // All other AddNewClient calls find aCircuit.child to be true
-                if (aCircuit.child == false) 
+                if (aCircuit == null || aCircuit.child == false)
                 {
                     sp.IsChildAgent = false;
                     sp.RezAttachments();

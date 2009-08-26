@@ -97,9 +97,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osDrawEllipse(string drawList, int width, int height);
         string osDrawRectangle(string drawList, int width, int height);
         string osDrawFilledRectangle(string drawList, int width, int height);
+        string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y);
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColour(string drawList, string colour);
+        string osSetPenCap(string drawList, string direction, string type);
         string osDrawImage(string drawList, int width, int height, string imageUrl);
         vector osGetDrawStringSize(string contentType, string text, string fontName, int fontSize);
         void osSetStateEvents(int events);
@@ -148,6 +150,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osLoadedCreationID();
         
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
+
+
+        key osNpcCreate(string user, string name, vector position, key cloneFrom);
+        void osNpcMoveTo(key npc, vector position);
+        void osNpcSay(key npc, string message);
+        void osNpcRemove(key npc);
 
     }
 }

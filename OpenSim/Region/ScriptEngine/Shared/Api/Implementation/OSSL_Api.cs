@@ -31,12 +31,14 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Net;
+using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
+using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
@@ -831,6 +833,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osDrawFilledPolygon");
+
+            m_host.AddScriptLPS(1);
+
+            if (x.Length != y.Length || x.Length < 3)
+            {
+                return "";
+            }
+            drawList += "FillPolygon " + x.GetLSLStringItem(0) + "," + y.GetLSLStringItem(0);
+            for (int i = 1; i < x.Length; i++)
+            {
+                drawList += "," + x.GetLSLStringItem(i) + "," + y.GetLSLStringItem(i);
+            }
+            drawList += "; ";
+            return drawList;
+        }
+
         public string osSetFontSize(string drawList, int fontSize)
         {
             CheckThreatLevel(ThreatLevel.None, "osSetFontSize");
@@ -855,6 +876,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
             drawList += "PenColour " + colour + "; ";
+            return drawList;
+        }
+
+        public string osSetPenCap(string drawList, string direction, string type)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSetPenColour");
+
+            m_host.AddScriptLPS(1);
+            drawList += "PenCap " + direction + "," + type + "; ";
             return drawList;
         }
 
@@ -1762,5 +1792,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return retVal;
         }
 
+        public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, LSL_Key cloneFrom)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
+            //QueueUserWorkItem 
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                UUID x = module.CreateNPC(firstname,
+                                          lastname,
+                                          new Vector3((float) position.x, (float) position.y, (float) position.z),
+                                          World,
+                                          new UUID(cloneFrom));
+
+                return new LSL_Key(x.ToString());
+            }
+            return new LSL_Key(UUID.Zero.ToString());
+        }
+
+        public void osNpcMoveTo(LSL_Key npc, LSL_Vector position)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcMoveTo");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                Vector3 pos = new Vector3((float) position.x, (float) position.y, (float) position.z);
+                module.Autopilot(new UUID(npc.m_string), World, pos);
+            }
+        }
+
+        public void osNpcSay(LSL_Key npc, string message)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcSay");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                module.Say(new UUID(npc.m_string), World, message);
+            }
+        }
+
+        public void osNpcRemove(LSL_Key npc)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osNpcRemove");
+
+            INPCModule module = World.RequestModuleInterface<INPCModule>();
+            if (module != null)
+            {
+                module.DeleteNPC(new UUID(npc.m_string), World);
+            }
+        }
     }
 }

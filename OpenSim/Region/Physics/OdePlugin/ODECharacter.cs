@@ -1025,7 +1025,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-
                 if (flying)
                 {
                     vec.Z = (_target_velocity.Z - vel.Z) * (PID_D);
@@ -1044,7 +1043,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     vec.Z += (target_altitude - _position.Z) * PID_P * 5.0f;
                 }
                 // end add Kitto Flora
-
             }
             if (PhysicsVector.isFinite(vec))
             {
@@ -1080,8 +1078,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _parent_scene.geom_name_map.Remove(Shell);
                     Shell = IntPtr.Zero;
                 }
-
-                return;
             }
         }
 

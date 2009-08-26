@@ -26,73 +26,157 @@
  */
 
 using System.Collections.Generic;
+using System.Threading;
 using OpenMetaverse;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Framework;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public interface INPCModule
-    {
-        UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom);
-        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
-        void Say(UUID agentID, Scene scene, string text);
-        void DeleteNPC(UUID agentID, Scene scene);
-    }
-
     public class NPCModule : IRegionModule, INPCModule
     {
         // private const bool m_enabled = false;
 
+        private Mutex m_createMutex = new Mutex(false);
+
+        private Timer m_timer = new Timer(500);
+
         private Dictionary<UUID,NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
+
+        private Dictionary<UUID,AvatarAppearance> m_appearanceCache = new Dictionary<UUID, AvatarAppearance>();
+
+        // Timer vars.
+        private bool p_inUse = false;
+        private readonly object p_lock = new object();
+        // Private Temporary Variables.
+        private string p_firstname;
+        private string p_lastname;
+        private Vector3 p_position;
+        private Scene p_scene;
+        private UUID p_cloneAppearanceFrom;
+        private UUID p_returnUuid;
+
+        private AvatarAppearance GetAppearance(UUID target, Scene scene)
+        {
+            if (m_appearanceCache.ContainsKey(target))
+                return m_appearanceCache[target];
+
+            AvatarAppearance x = scene.CommsManager.AvatarService.GetUserAppearance(target);
+
+            m_appearanceCache.Add(target, x);
+
+            return x;
+        }
 
         public UUID CreateNPC(string firstname, string lastname,Vector3 position, Scene scene, UUID cloneAppearanceFrom)
         {
-            NPCAvatar npcAvatar = new NPCAvatar(firstname, lastname, position, scene);
-            scene.AddNewClient(npcAvatar);
+            // Block.
+            m_createMutex.WaitOne();
 
-            ScenePresence sp;
-            if(scene.TryGetAvatar(npcAvatar.AgentId, out sp))
+            // Copy Temp Variables for Timer to pick up.
+            lock (p_lock)
             {
-                AvatarAppearance x = scene.CommsManager.AvatarService.GetUserAppearance(cloneAppearanceFrom);
-
-                List<byte> wearbyte = new List<byte>();
-                for (int i = 0; i < x.VisualParams.Length; i++)
-                {
-                    wearbyte.Add(x.VisualParams[i]);
-                }
-
-                sp.SetAppearance(x.Texture.GetBytes(), wearbyte);
+                p_firstname = firstname;
+                p_lastname = lastname;
+                p_position = position;
+                p_scene = scene;
+                p_cloneAppearanceFrom = cloneAppearanceFrom;
+                p_inUse = true;
+                p_returnUuid = UUID.Zero;
             }
 
-            m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+            while (p_returnUuid == UUID.Zero)
+            {
+                Thread.Sleep(250);
+            }
 
-            return npcAvatar.AgentId;
+            m_createMutex.ReleaseMutex();
+
+            return p_returnUuid;
         }
 
         public void Autopilot(UUID agentID, Scene scene, Vector3 pos)
         {
-            ScenePresence sp;
-            scene.TryGetAvatar(agentID, out sp);
-            sp.DoAutoPilot(0,pos,m_avatars[agentID]);
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    ScenePresence sp;
+                    scene.TryGetAvatar(agentID, out sp);
+                    sp.DoAutoPilot(0, pos, m_avatars[agentID]);
+                }
+            }
         }
 
         public void Say(UUID agentID, Scene scene, string text)
         {
-            m_avatars[agentID].Say(text);
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    m_avatars[agentID].Say(text);
+                }
+            }
         }
 
         public void DeleteNPC(UUID agentID, Scene scene)
         {
-            scene.RemoveClient(agentID);
+            lock (m_avatars)
+            {
+                if (m_avatars.ContainsKey(agentID))
+                {
+                    scene.RemoveClient(agentID);
+                    m_avatars.Remove(agentID);
+                }
+            }
         }
 
 
         public void Initialise(Scene scene, IConfigSource source)
         {
             scene.RegisterModuleInterface<INPCModule>(this);
+
+            m_timer.Elapsed += m_timer_Elapsed;
+            m_timer.Start();
+        }
+
+        void m_timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            lock (p_lock)
+            {
+                if (p_inUse)
+                {
+                    p_inUse = false;
+
+                    NPCAvatar npcAvatar = new NPCAvatar(p_firstname, p_lastname, p_position, p_scene);
+                    npcAvatar.CircuitCode = (uint) Util.RandomClass.Next(0, int.MaxValue);
+
+                    p_scene.ClientManager.Add(npcAvatar.CircuitCode, npcAvatar);
+                    p_scene.AddNewClient(npcAvatar);
+
+                    ScenePresence sp;
+                    if (p_scene.TryGetAvatar(npcAvatar.AgentId, out sp))
+                    {
+                        AvatarAppearance x = GetAppearance(p_cloneAppearanceFrom, p_scene);
+
+                        List<byte> wearbyte = new List<byte>();
+                        for (int i = 0; i < x.VisualParams.Length; i++)
+                        {
+                            wearbyte.Add(x.VisualParams[i]);
+                        }
+
+                        sp.SetAppearance(x.Texture.GetBytes(), wearbyte);
+                    }
+
+                    m_avatars.Add(npcAvatar.AgentId, npcAvatar);
+
+                    p_returnUuid = npcAvatar.AgentId;
+                }
+            }
         }
 
         public void PostInitialise()

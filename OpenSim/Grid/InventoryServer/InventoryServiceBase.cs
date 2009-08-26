@@ -30,8 +30,10 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Data;
+using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Grid.InventoryServer
 {
     /// <summary>
     /// Abstract base class used by local and grid implementations of an inventory service.

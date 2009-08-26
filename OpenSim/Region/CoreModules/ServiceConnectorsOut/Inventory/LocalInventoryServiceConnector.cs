@@ -258,6 +258,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return m_InventoryService.MoveFolder(folder);
         }
 
+        public override bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
+        {
+            return m_InventoryService.DeleteFolders(ownerID, folderIDs);
+        }
+
         /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>

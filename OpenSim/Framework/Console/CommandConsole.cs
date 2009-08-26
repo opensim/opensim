@@ -576,7 +576,7 @@ namespace OpenSim.Framework.Console
 
         public void Prompt()
         {
-            string line = ReadLine(m_defaultPrompt, true, true);
+            string line = ReadLine(m_defaultPrompt + "# ", true, true);
 
             if (line != String.Empty)
             {
@@ -592,7 +592,7 @@ namespace OpenSim.Framework.Console
 
         public override string ReadLine(string p, bool isCommand, bool e)
         {
-            System.Console.Write("{0}", prompt);
+            System.Console.Write("{0}", p);
             string cmdinput = System.Console.ReadLine();
 
             if (isCommand)

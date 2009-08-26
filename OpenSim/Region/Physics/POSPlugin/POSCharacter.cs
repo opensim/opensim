@@ -43,7 +43,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
-        private bool iscolliding;
+        private bool isColliding;
 
         public POSCharacter()
         {
@@ -116,8 +116,8 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override bool IsColliding
         {
-            get { return iscolliding; }
-            set { iscolliding = value; }
+            get { return isColliding; }
+            set { isColliding = value; }
         }
 
         public override bool CollidingGround

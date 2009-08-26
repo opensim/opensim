@@ -213,7 +213,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
             string[] excludes = config.GetString("exclude_list", "").Trim().Split(new Char[] { ',' });
             cs.ExcludeList = new List<string>(excludes.Length);
-            foreach(string name in excludes)
+            foreach (string name in excludes)
             {
                 cs.ExcludeList.Add(name.Trim().ToLower());
             }

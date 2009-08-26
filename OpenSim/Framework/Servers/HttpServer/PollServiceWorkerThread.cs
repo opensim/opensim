@@ -59,6 +59,8 @@ using System.IO;
 using System.Text;
 using HttpServer;
 using OpenMetaverse;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -66,6 +68,10 @@ namespace OpenSim.Framework.Servers.HttpServer
     
     public class PollServiceWorkerThread
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+
         public event ReQueuePollServiceItem ReQueue;
 
         private readonly BaseHttpServer m_server;
@@ -92,31 +98,36 @@ namespace OpenSim.Framework.Servers.HttpServer
             while (m_running)
             {
                 PollServiceHttpRequest req = m_request.Dequeue();
-                if (req.PollServiceArgs.HasEvents(req.PollServiceArgs.Id))
+                try
                 {
-                    StreamReader str = new StreamReader(req.Request.Body);
-
-                    Hashtable responsedata = req.PollServiceArgs.GetEvents(req.PollServiceArgs.Id, str.ReadToEnd());
-                    m_server.DoHTTPGruntWork(responsedata,
-                                             new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
-                }
-                else
-                {
-                    if ((Environment.TickCount - req.RequestTime) > m_timeout)
+                    if (req.PollServiceArgs.HasEvents(req.PollServiceArgs.Id))
                     {
-                        m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(),
+                        StreamReader str = new StreamReader(req.Request.Body);
+
+                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.PollServiceArgs.Id, str.ReadToEnd());
+                        m_server.DoHTTPGruntWork(responsedata,
                                                  new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                     }
                     else
                     {
-                        ReQueuePollServiceItem reQueueItem = ReQueue;
-                        if (reQueueItem != null)
-                            reQueueItem(req);
+                        if ((Environment.TickCount - req.RequestTime) > m_timeout)
+                        {
+                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(),
+                                                     new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
+                        }
+                        else
+                        {
+                            ReQueuePollServiceItem reQueueItem = ReQueue;
+                            if (reQueueItem != null)
+                                reQueueItem(req);
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("Exception in poll service thread: " + e.ToString());
+                }
             }
-
-
         }
 
         internal void Enqueue(PollServiceHttpRequest pPollServiceHttpRequest)

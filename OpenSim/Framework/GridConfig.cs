@@ -98,10 +98,10 @@ namespace OpenSim.Framework
                                                 "True", 
                                                 false);            
             m_configMember.addConfigurationOption("console_user", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                 "Remote console access user name [Default: disabled]", "0", false);
+                                                 "Remote console access user name [Default: disabled]", "", false);
 
             m_configMember.addConfigurationOption("console_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                 "Remote console access password [Default: disabled]", "0", false);
+                                                 "Remote console access password [Default: disabled]", "", false);
 
         }
 

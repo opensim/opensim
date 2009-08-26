@@ -443,7 +443,16 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     endPoint.X = (int) x;
                     endPoint.Y = (int) y;
                     Image image = ImageHttpRequest(nextLine);
-                    graph.DrawImage(image, (float) startPoint.X, (float) startPoint.Y, x, y);
+                    if (image != null)
+                    {
+                        graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                    }
+                    else
+                    {
+                        graph.DrawString("URL couldn't be resolved or is", new Font("Arial",6), myBrush, startPoint);
+                        graph.DrawString("not an image. Please check URL.", new Font("Arial", 6), myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                        graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
+                    }
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
                 }
@@ -469,13 +478,19 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
                 }
+                else if (nextLine.StartsWith("FillPolygon"))
+                {
+                    PointF[] points = null;
+                    GetParams(partsDelimiter, ref nextLine, 11, ref points);
+                    graph.FillPolygon(myBrush, points);
+                }
                 else if (nextLine.StartsWith("Ellipse"))
                 {
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
-                    endPoint.X = (int) x;
-                    endPoint.Y = (int) y;
+                    endPoint.X = (int)x;
+                    endPoint.Y = (int)y;
                     graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
@@ -492,30 +507,31 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     nextLine = nextLine.Remove(0, 8);
                     nextLine = nextLine.Trim();
 
-                    string [] fprops = nextLine.Split(partsDelimiter);
-                    foreach (string prop in  fprops) {
-                        
+                    string[] fprops = nextLine.Split(partsDelimiter);
+                    foreach (string prop in fprops)
+                    {
+
                         switch (prop)
                         {
                             case "B":
                                 if (!(myFont.Bold))
                                     myFont = new Font(myFont, myFont.Style | FontStyle.Bold);
-                            break;
+                                break;
                             case "I":
                                 if (!(myFont.Italic))
                                     myFont = new Font(myFont, myFont.Style | FontStyle.Italic);
-                            break;
+                                break;
                             case "U":
                                 if (!(myFont.Underline))
                                     myFont = new Font(myFont, myFont.Style | FontStyle.Underline);
-                            break;
+                                break;
                             case "S":
                                 if (!(myFont.Strikeout))
                                     myFont = new Font(myFont, myFont.Style | FontStyle.Strikeout);
-                            break;
+                                break;
                             case "R":
                                 myFont = new Font(myFont, FontStyle.Regular);
-                            break;
+                                break;
                         }
                     }
                 }
@@ -532,6 +548,57 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
                     drawPen.Width = size;
                 }
+                else if (nextLine.StartsWith("PenCap"))
+                {
+                    bool start = true, end = true;
+                    nextLine = nextLine.Remove(0, 6);
+                    nextLine = nextLine.Trim();
+                    string[] cap = nextLine.Split(partsDelimiter);
+                    if (cap[0].ToLower() == "start")
+                        end = false;
+                    else if (cap[0].ToLower() == "end")
+                        start = false;
+                    else if (cap[0].ToLower() != "both")
+                        return;
+                    string type = cap[1].ToLower();
+                    
+                    if (end)
+                    {
+                        switch (type)
+                        {
+                            case "arrow":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                break;
+                            case "round":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                break;
+                            case "diamond":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                break;
+                            case "flat":
+                                drawPen.EndCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                break;
+                        }
+                    }
+                    if (start)
+                    {
+                        switch (type)
+                        {
+                            case "arrow":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
+                                break;
+                            case "round":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.RoundAnchor;
+                                break;
+                            case "diamond":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.DiamondAnchor;
+                                break;
+                            case "flat":
+                                drawPen.StartCap = System.Drawing.Drawing2D.LineCap.Flat;
+                                break;
+                        }
+                    }
+                }
                 else if (nextLine.StartsWith("PenColour"))
                 {
                     nextLine = nextLine.Remove(0, 9);
@@ -542,7 +609,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                     {
                         newColour = Color.FromArgb(hex);
-                    } 
+                    }
                     else
                     {
                         // this doesn't fail, it just returns black if nothing is found
@@ -582,18 +649,40 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             }
         }
 
+        private static void GetParams(char[] partsDelimiter, ref string line, int startLength, ref PointF[] points)
+        {
+            line = line.Remove(0, startLength);
+            string[] parts = line.Split(partsDelimiter);
+            if (parts.Length > 1 && parts.Length % 2 == 0)
+            {
+                points = new PointF[parts.Length / 2];
+                for (int i = 0; i < parts.Length; i = i + 2)
+                {
+                    string xVal = parts[i].Trim();
+                    string yVal = parts[i+1].Trim();
+                    float x = Convert.ToSingle(xVal, CultureInfo.InvariantCulture);
+                    float y = Convert.ToSingle(yVal, CultureInfo.InvariantCulture);
+                    PointF point = new PointF(x, y);
+                    points[i / 2] = point;
+                }
+            }
+        }
+
         private Bitmap ImageHttpRequest(string url)
         {
+            try
+            {
             WebRequest request = HttpWebRequest.Create(url);
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
-            HttpWebResponse response = (HttpWebResponse) (request).GetResponse();
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                Bitmap image = new Bitmap(response.GetResponseStream());
-                return image;
+                HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    Bitmap image = new Bitmap(response.GetResponseStream());
+                    return image;
+                }
             }
-
+            catch { }
             return null;
         }
     }

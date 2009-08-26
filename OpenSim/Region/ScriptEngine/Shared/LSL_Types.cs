@@ -439,6 +439,13 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
                 set {m_data = value; }
             }
+        // Function to obtain LSL type from an index. This is needed
+        // because LSL lists allow for multiple types, and safely
+        // iterating in them requires a type check.
+            public Type GetLSLListItemType(int itemIndex)
+            {
+                return m_data[itemIndex].GetType();
+            }
 
         // Member functions to obtain item as specific types.
         // For cases where implicit conversions would apply if items
@@ -465,6 +472,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     return new LSL_Types.LSLFloat((Double)m_data[itemIndex]);
                 }
+                else if (m_data[itemIndex] is LSL_Types.LSLString)
+                {
+                    return new LSL_Types.LSLFloat(m_data[itemIndex].ToString());
+                }
                 else
                 {
                     return (LSL_Types.LSLFloat)m_data[itemIndex];
@@ -481,20 +492,32 @@ namespace OpenSim.Region.ScriptEngine.Shared
               {
                 return new LSL_Types.LSLString((string)m_data[itemIndex]);
               }
+              else if (m_data[itemIndex] is LSL_Types.LSLFloat)
+              {
+                  return new LSL_Types.LSLString((LSLFloat)m_data[itemIndex]);
+              }
+              else if (m_data[itemIndex] is LSL_Types.LSLInteger)
+              {
+                  return new LSL_Types.LSLString((LSLInteger)m_data[itemIndex]);
+              }
               else
               {
-                return (LSL_Types.LSLString)m_data[itemIndex];
+                  return (LSL_Types.LSLString)m_data[itemIndex];
               }
             }
 
             public LSL_Types.LSLInteger GetLSLIntegerItem(int itemIndex)
             {
-              if (m_data[itemIndex] is LSL_Types.LSLInteger)
-                  return (LSL_Types.LSLInteger)m_data[itemIndex];
-              else if (m_data[itemIndex] is Int32)
-                  return new LSLInteger((int)m_data[itemIndex]);
-              else
-                  throw new InvalidCastException();
+                if (m_data[itemIndex] is LSL_Types.LSLInteger)
+                    return (LSL_Types.LSLInteger)m_data[itemIndex];
+                if (m_data[itemIndex] is LSL_Types.LSLFloat)
+                    return new LSLInteger((int)m_data[itemIndex]);
+                else if (m_data[itemIndex] is Int32)
+                    return new LSLInteger((int)m_data[itemIndex]);
+                else if (m_data[itemIndex] is LSL_Types.LSLString)
+                    return new LSLInteger((string)m_data[itemIndex]);
+                else
+                    throw new InvalidCastException();
             }
 
             public LSL_Types.Vector3 GetVector3Item(int itemIndex)
@@ -1329,6 +1352,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
             {
                 string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
                 m_string=s;
+            }
+
+            public LSLString(LSLInteger i)
+            {
+                string s = String.Format("{0}", i);
+                m_string = s;
             }
 
             #endregion

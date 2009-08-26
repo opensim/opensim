@@ -25,41 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net.Config;
-using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Region.CoreModules.Avatar.NPC
 {
-    public class Program
+    public interface INPCModule
     {
-        public static void Main(string[] args)
-        {
-            ArgvConfigSource argvSource = new ArgvConfigSource(args);
-            argvSource.AddSwitch("Startup", "console", "c");
-            argvSource.AddSwitch("Startup", "xmlfile", "x");
-
-            XmlConfigurator.Configure();
-
-            GridServerBase app = new GridServerBase();
-
-            IConfig startupConfig = argvSource.Configs["Startup"];
-            if (startupConfig != null)
-            {
-                app.m_consoleType = startupConfig.GetString("console", "local");
-                app.m_configFile = startupConfig.GetString("xmlfile", "GridServer_Config.xml");
-            }
-
-            app.m_configSource = argvSource;
-
-//            if (args.Length > 0 && args[0] == "-setuponly")
-//            {
-//                app.Config();
-//            }
-//            else
-//            {
-                app.Startup();
-                app.Work();
-//            }
-        }
+        UUID CreateNPC(string firstname, string lastname, Vector3 position, Scene scene, UUID cloneAppearanceFrom);
+        void Autopilot(UUID agentID, Scene scene, Vector3 pos);
+        void Say(UUID agentID, Scene scene, string text);
+        void DeleteNPC(UUID agentID, Scene scene);
     }
 }

@@ -110,7 +110,12 @@ namespace OpenSim.Grid.UserServer.Modules
             if (requestData.Contains("owner"))
             {
                 AvatarAppearance appearance = new AvatarAppearance(requestData);
-                m_userDataBaseService.UpdateUserAppearance(new UUID((string)requestData["owner"]), appearance);
+                
+                // TODO: Sometime in the future we may have a database layer that is capable of updating appearance when
+                // the TextureEntry is null. When that happens, this check can be removed
+                if (appearance.Texture != null)
+                    m_userDataBaseService.UpdateUserAppearance(new UUID((string)requestData["owner"]), appearance);
+
                 responseData = new Hashtable();
                 responseData["returnString"] = "TRUE";
             }

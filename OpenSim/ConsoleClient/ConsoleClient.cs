@@ -39,10 +39,6 @@ namespace OpenSim.ConsoleClient
 {
     public class OpenSimConsoleClient
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
         protected static ServicesServerBase m_Server = null;
         private static string m_Host;
         private static int m_Port;

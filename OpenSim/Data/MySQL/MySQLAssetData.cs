@@ -168,7 +168,7 @@ namespace OpenSim.Data.MySQL
                             }
                             asset.Name = (string) dbReader["name"];
                             asset.Type = (sbyte) dbReader["assetType"];
-                            asset.Temporary = (bool)dbReader["temporary"];
+                            asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                         }
                         dbReader.Close();
                         cmd.Dispose();
@@ -359,7 +359,7 @@ namespace OpenSim.Data.MySQL
                             metadata.Name = (string) dbReader["name"];
                             metadata.Description = (string) dbReader["description"];
                             metadata.Type = (sbyte) dbReader["assetType"];
-                            metadata.Temporary = (bool) dbReader["temporary"]; // Not sure if this is correct.
+                            metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
                             metadata.FullID = new UUID((string) dbReader["id"]);
 
                             // Current SHA1s are not stored/computed.

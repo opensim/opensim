@@ -441,9 +441,24 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
+            // We're going to send the reply async, because there may be
+            // an enormous quantity of packets -- basically the entire inventory!
+            // We don't want to block the client thread while all that is happening.
+            SendInventoryDelegate d = SendInventoryAsync;
+            d.BeginInvoke(remoteClient, folderID, ownerID, fetchFolders, fetchItems, sortOrder, SendInventoryComplete, d);
+        }
+
+        delegate void SendInventoryDelegate(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);
+
+        void SendInventoryAsync(IClientAPI remoteClient, UUID folderID, UUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder)
+        {
             SendInventoryUpdate(remoteClient, new InventoryFolderBase(folderID), fetchFolders, fetchItems);
-        }        
-        
+        }
+
+        void SendInventoryComplete(IAsyncResult iar)
+        {
+        }
+
         /// <summary>
         /// Handle the caps inventory descendents fetch.
         ///
@@ -537,7 +552,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID);
+            InventoryFolderBase folder = new InventoryFolderBase(folderID, remoteClient.AgentId);
             folder = InventoryService.GetFolder(folder);
             if (folder != null)
             {

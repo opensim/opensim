@@ -113,20 +113,16 @@ namespace OpenSim.Region.Physics.POSPlugin
                                              c.Position.Z - p.Position.Z) * Quaternion.Inverse(p.Orientation);
             Vector3 avatarSize = new Vector3(c.Size.X, c.Size.Y, c.Size.Z) * Quaternion.Inverse(p.Orientation);
 
-            if (Math.Abs(rotatedPos.X) >= (p.Size.X*0.5 + Math.Abs(avatarSize.X)) ||
-                Math.Abs(rotatedPos.Y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.Y)) ||
-                Math.Abs(rotatedPos.Z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.Z)))
-            {
-                return false;
-            }
-            return true;
+            return (Math.Abs(rotatedPos.X) < (p.Size.X*0.5 + Math.Abs(avatarSize.X)) &&
+                    Math.Abs(rotatedPos.Y) < (p.Size.Y*0.5 + Math.Abs(avatarSize.Y)) &&
+                    Math.Abs(rotatedPos.Z) < (p.Size.Z*0.5 + Math.Abs(avatarSize.Z)));
         }
 
         private bool isCollidingWithPrim(POSCharacter c)
         {
-            for (int i = 0; i < _prims.Count; ++i)
+            foreach (POSPrim p in _prims)
             {
-                if (isColliding(c, _prims[i]))
+                if (isColliding(c, p))
                 {
                     return true;
                 }

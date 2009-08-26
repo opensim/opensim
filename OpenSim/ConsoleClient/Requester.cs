@@ -40,8 +40,6 @@ namespace OpenSim.ConsoleClient
 
     public class Requester
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
         public static void MakeRequest(string requestUrl, string data,
                 ReplyDelegate action)
         {

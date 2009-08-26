@@ -25,41 +25,57 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net.Config;
 using Nini.Config;
+using log4net;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenMetaverse;
 
-namespace OpenSim.Grid.GridServer
+namespace OpenSim.Server.Handlers.Inventory
 {
-    public class Program
+    public class InventoryServerMoveItemsHandler : BaseStreamHandler
     {
-        public static void Main(string[] args)
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private IInventoryService m_InventoryService;
+
+        public InventoryServerMoveItemsHandler(IInventoryService service) :
+                base("PUT", "/inventory")
         {
-            ArgvConfigSource argvSource = new ArgvConfigSource(args);
-            argvSource.AddSwitch("Startup", "console", "c");
-            argvSource.AddSwitch("Startup", "xmlfile", "x");
+            m_InventoryService = service;
+        }
 
-            XmlConfigurator.Configure();
+        public override byte[] Handle(string path, Stream request,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            XmlSerializer xs = new XmlSerializer(typeof (List<InventoryItemBase>));
+            List<InventoryItemBase> items = (List<InventoryItemBase>)xs.Deserialize(request);
 
-            GridServerBase app = new GridServerBase();
+            bool result = false;
+            string[] p = SplitParams(path);
 
-            IConfig startupConfig = argvSource.Configs["Startup"];
-            if (startupConfig != null)
+            if (p.Length > 0)
             {
-                app.m_consoleType = startupConfig.GetString("console", "local");
-                app.m_configFile = startupConfig.GetString("xmlfile", "GridServer_Config.xml");
+                UUID ownerID = UUID.Zero;
+                UUID.TryParse(p[0], out ownerID);
+                result = m_InventoryService.MoveItems(ownerID, items);
             }
+            else
+                m_log.WarnFormat("[MOVEITEMS HANDLER]: ownerID not provided in request. Unable to serve.");
 
-            app.m_configSource = argvSource;
-
-//            if (args.Length > 0 && args[0] == "-setuponly")
-//            {
-//                app.Config();
-//            }
-//            else
-//            {
-                app.Startup();
-                app.Work();
-//            }
+            xs = new XmlSerializer(typeof(bool));
+            return ServerUtils.SerializeResult(xs, result);
         }
     }
 }

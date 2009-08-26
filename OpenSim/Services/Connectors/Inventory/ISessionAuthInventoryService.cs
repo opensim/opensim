@@ -89,6 +89,11 @@ namespace OpenSim.Services.Connectors
         bool MoveFolder(string userID, InventoryFolderBase folder, UUID session_id);
 
         /// <summary>
+        /// Delete a list of inventory folders (from trash)
+        /// </summary>
+        bool DeleteFolders(string userID, List<UUID> folders, UUID session_id);
+
+        /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
         /// <param name="folder"></param>
