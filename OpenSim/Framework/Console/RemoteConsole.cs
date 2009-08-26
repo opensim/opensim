@@ -50,8 +50,6 @@ namespace OpenSim.Framework.Console
     //
     public class RemoteConsole : CommandConsole
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         private IHttpServer m_Server = null;
         private IConfigSource m_Config = null;
 
