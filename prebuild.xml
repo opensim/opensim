@@ -1014,6 +1014,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Grid.Framework"/>
       <Reference name="OpenSim.Grid.Communications.OGS1"/>
+      <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="XMLRPC.dll"/>
