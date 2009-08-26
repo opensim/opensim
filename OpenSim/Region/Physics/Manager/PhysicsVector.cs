@@ -46,12 +46,17 @@ namespace OpenSim.Region.Physics.Manager
             Z = z;
         }
 
+        public PhysicsVector(PhysicsVector pv) : this(pv.X, pv.Y, pv.Z)
+        {
+        }
+        
         public void setValues(float x, float y, float z)
         {
             X = x;
             Y = y;
             Z = z;
         }
+
         public static readonly PhysicsVector Zero = new PhysicsVector(0f, 0f, 0f);
 
         public override string ToString()
