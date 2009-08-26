@@ -43,6 +43,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
         private bool flying;
         private bool iscolliding;
+
         public BasicActor()
         {
             _velocity = new PhysicsVector();
