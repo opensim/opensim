@@ -23,6 +23,8 @@
     MemoryCacheEnabled = false
 
     ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
+    ; Optimization: for VPS or limited memory system installs set Timeout to .016 (1 minute)
+    ; increases performance without large memory impact
     MemoryCacheTimeout = 2
 
     ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
