@@ -78,6 +78,17 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Console.WriteLine("Beginning test {0}", MethodBase.GetCurrentMethod());
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            try
+            {
+                if (MainServer.Instance != null) MainServer.Instance.Stop();
+            }
+            catch (NullReferenceException)
+            { }
+        }
+
     }
 
     public class ThreadRunResults

@@ -378,6 +378,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.HasAttachments(), Is.True, "Presence has not received new objects");
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            if (MainServer.Instance != null) MainServer.Instance.Stop();
+        }
+
         public static string GetRandomCapsObjectPath()
         {
             TestHelper.InMethod();
