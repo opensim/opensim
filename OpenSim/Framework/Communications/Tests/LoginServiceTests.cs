@@ -362,6 +362,16 @@ namespace OpenSim.Framework.Communications.Tests
             //Console.WriteLine("Finished T023_TestAuthenticatedLoginAlreadyLoggedIn()");
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            try
+            {
+                if (MainServer.Instance != null) MainServer.Instance.Stop();
+            } catch (NullReferenceException)
+            {}
+        }
+
         public class TestLoginToRegionConnector : ILoginServiceToRegionsConnector
         {
             private List<RegionInfo> m_regionsList = new List<RegionInfo>();

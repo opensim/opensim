@@ -3181,6 +3181,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
@@ -3245,7 +3246,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-	  <Reference name="System.Core"/>
+	    <Reference name="System.Core"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Data"/>
       <Reference name="OpenMetaverse.dll"/>
@@ -3254,7 +3255,7 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-	  <Reference name="OpenSim.Tests.Common"/>
+	    <Reference name="OpenSim.Tests.Common"/>
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="nunit.framework.dll" />
@@ -3397,6 +3398,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Nini.dll" />
       <Reference name="nunit.framework.dll" />
@@ -3488,6 +3490,7 @@
       <Reference name="OpenSim.Client.Linden"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Framework"/>
@@ -3524,6 +3527,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Framework"/>
@@ -3585,6 +3589,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>

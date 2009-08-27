@@ -330,5 +330,16 @@ namespace OpenSim.Framework.Communications.Tests
             Assert.That(rootFolder.RequestListOfFolders(), Is.Empty);
             Assert.That(myScene.InventoryService.GetFolder(myFolder), Is.Null);
         }
+
+        [TearDown]
+        public void TearDown()
+        {
+            try
+            {
+                if (MainServer.Instance != null) MainServer.Instance.Stop();
+            }
+            catch (System.NullReferenceException)
+            { }
+        }
     }
 }
