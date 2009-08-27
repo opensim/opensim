@@ -361,7 +361,7 @@ namespace Flotsam.RegionModules.AssetCache
                 {
                     try
                     {
-                        FileStream stream = File.Open(filename, FileMode.Open);
+                        FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
                         BinaryFormatter bformatter = new BinaryFormatter();
 
                         asset = (AssetBase)bformatter.Deserialize(stream);
