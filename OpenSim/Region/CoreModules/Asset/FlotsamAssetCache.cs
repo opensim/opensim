@@ -53,57 +53,6 @@ using OpenSim.Services.Interfaces;
 
 namespace Flotsam.RegionModules.AssetCache
 {
-    /// <summary>
-    /// OpenSim.ini Options:
-    /// -------
-    /// [Modules]
-    ///     AssetCaching = "FlotsamAssetCache"
-    ///
-    /// [AssetCache]
-    ///    ; cache directory can be shared by multiple instances
-    ///    CacheDirectory = /directory/writable/by/OpenSim/instance
-    ///    
-    ///    ; Log level
-    ///    ; 0 - (Error) Errors only
-    ///    ; 1 - (Info)  Hit Rate Stats + Level 0
-    ///    ; 2 - (Debug) Cache Activity (Reads/Writes) + Level 1
-    ///    ;
-    ///    LogLevel = 1
-    /// 
-    ///    ; How often should hit rates be displayed (given in AssetRequests)
-    ///    ; 0 to disable
-    ///    HitRateDisplay = 100
-    /// 
-    ///    ; Set to false for disk cache only.
-    ///    MemoryCacheEnabled = true
-    ///    
-    ///    ; How long {in hours} to keep assets cached in memory, .5 == 30 minutes
-    ///    MemoryCacheTimeout = 2
-    ///    
-    ///    ; How long {in hours} to keep assets cached on disk, .5 == 30 minutes
-    ///    ; Specify 0 if you do not want your disk cache to expire
-    ///    FileCacheTimeout = 0
-    ///    
-    ///    ; How often {in hours} should the disk be checked for expired filed
-    ///    ; Specify 0 to disable expiration checking
-    ///    FileCleanupTimer = .166  ;roughly every 10 minutes
-    ///    
-    ///    ; If WAIT_ON_INPROGRESS_REQUESTS has been defined then this specifies how 
-    ///    ; long (in miliseconds) to block a request thread while trying to complete 
-    ///    ; writing to disk.
-    ///    WaitOnInprogressTimeout = 3000
-    ///    
-    ///    ; Number of tiers to use for cache directories (current valid range 1 to 3)
-    ///    CacheDirectoryTiers = 1
-    ///    
-    ///    ; Number of letters per path tier, 1 will create 16 directories per tier, 2 - 256, 3 - 4096 and 4 - 65K
-    ///    CacheDirectoryTierLength = 3
-    ///    
-    ///    ; Warning level for cache directory size
-    ///    CacheWarnAt = 30000
-    /// -------
-    /// </summary>
-
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class FlotsamAssetCache : ISharedRegionModule, IImprovedAssetCache
     {
