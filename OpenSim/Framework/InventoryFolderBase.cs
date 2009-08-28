@@ -30,7 +30,7 @@ using OpenMetaverse;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// A Class for folders which contain users inventory
+    /// User inventory folder
     /// </summary>
     public class InventoryFolderBase : InventoryNodeBase
     {

@@ -139,15 +139,8 @@ namespace OpenSim.Client.Linden
             return m_regionsConnector.RequestNeighbourInfo(homeRegionId);
         }
 
-        /// <summary>
-        /// Prepare a login to the given region.  This involves both telling the region to expect a connection
-        /// and appropriately customising the response to the user.
-        /// </summary>
-        /// <param name="sim"></param>
-        /// <param name="user"></param>
-        /// <param name="response"></param>
-        /// <returns>true if the region was successfully contacted, false otherwise</returns>
-        protected override bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint remoteClient)
+        protected override bool PrepareLoginToRegion(
+            RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint remoteClient)
         {
             IPEndPoint endPoint = regionInfo.ExternalEndPoint;
             response.SimAddress = endPoint.Address.ToString();
@@ -204,7 +197,8 @@ namespace OpenSim.Client.Linden
             agent.Appearance = m_userManager.GetUserAppearance(user.ID);
             if (agent.Appearance == null)
             {
-                m_log.WarnFormat("[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
+                m_log.WarnFormat(
+                    "[INTER]: Appearance not found for {0} {1}. Creating default.", agent.firstname, agent.lastname);
                 agent.Appearance = new AvatarAppearance(agent.AgentID);
             }
 
@@ -243,7 +237,8 @@ namespace OpenSim.Client.Linden
                 return;
             }
 
-            m_regionsConnector.LogOffUserFromGrid(SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
+            m_regionsConnector.LogOffUserFromGrid(
+                SimInfo.RegionHandle, theUser.ID, theUser.CurrentAgent.SecureSessionID, "Logging you off");
         }
     }
 }

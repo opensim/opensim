@@ -535,7 +535,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             UUID newFolderId = UUID.Random();
-            InventoryFolderBase newFolder = new InventoryFolderBase(newFolderId, folder.Name, recipientId, folder.Type, recipientParentFolderId, folder.Version);
+            InventoryFolderBase newFolder 
+                = new InventoryFolderBase(
+                    newFolderId, folder.Name, recipientId, folder.Type, recipientParentFolderId, folder.Version);
             InventoryService.AddFolder(newFolder);
 
             // Give all the subfolders

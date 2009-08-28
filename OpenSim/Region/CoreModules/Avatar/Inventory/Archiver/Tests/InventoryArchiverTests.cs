@@ -135,7 +135,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             //userInfo.RootFolder.FindFolderByPath("Objects").ID;
-            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            //InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            InventoryFolderBase rootFolder = scene.InventoryService.GetRootFolder(userId);            
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
