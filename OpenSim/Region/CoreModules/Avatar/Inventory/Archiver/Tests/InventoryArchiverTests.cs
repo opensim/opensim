@@ -102,19 +102,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Monitor.Wait(this, 60000);
             }
 
-            /*
-            cm.UserAdminService.AddUser(userFirstName, userLastName, string.Empty, string.Empty, 1000, 1000, userId);
-            CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId, InventoryReceived);
-            userInfo.FetchInventory();
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
-            }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
-            */
-
             // Create asset
             SceneObjectGroup object1;
             SceneObjectPart part1;
