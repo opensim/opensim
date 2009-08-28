@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Capabilities
     public delegate void TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
                                                    bool isScriptRunning, byte[] data);
 
-    public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
+    public delegate InventoryCollection FetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
                                                                           bool fetchFolders, bool fetchItems, int sortOrder);
 
     /// <summary>
@@ -460,44 +460,49 @@ namespace OpenSim.Framework.Capabilities
 
             contents.descendents = 0;
             reply.folders.Array.Add(contents);
-            List<InventoryItemBase> itemList = null;
+            InventoryCollection inv = new InventoryCollection();
+            inv.Folders = new List<InventoryFolderBase>();
+            inv.Items = new List<InventoryItemBase>();
             if (CAPSFetchInventoryDescendents != null)
             {
-                itemList = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
+                inv = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
             }
 
-            if (itemList != null)
+            if (inv.Folders != null)
             {
-                foreach (InventoryItemBase invItem in itemList)
+                foreach (InventoryFolderBase invFolder in inv.Folders)
+                {
+                    contents.categories.Array.Add(ConvertInventoryFolder(invFolder));
+                }
+            }
+
+            if (inv.Items != null)
+            {
+                foreach (InventoryItemBase invItem in inv.Items)
                 {
                     contents.items.Array.Add(ConvertInventoryItem(invItem));
                 }
             }
-            /* The following block is removed as it ALWAYS sends the error to the client because the RC 1.22.9 client tries to 
-                find items that have become dissasociated with a paret folder and have parent of 00000000-0000-00000....
-            else
-            {
-                IClientAPI client = GetClient(m_agentID);
-
-                // We're going to both notify the client of inventory service failure and send back a 'no folder contents' response.
-                // If we don't send back the response,
-                // the client becomes unhappy (see Teravus' comment in FetchInventoryRequest())
-                if (client != null)
-                {
-                    client.SendAgentAlertMessage(
-                        "AGIN0001E: The inventory service has either failed or is not responding.  Your inventory will not function properly for the rest of this session.  Please clear your cache and relog.",
-                        true);
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[AGENT INVENTORY]: Could not lookup controlling client for {0} in order to notify them of the inventory service failure",
-                        m_agentID);
-                }
-            }*/
 
             contents.descendents = contents.items.Array.Count;
             return reply;
+        }
+
+        /// <summary>
+        /// Convert an internal inventory folder object into an LLSD object.
+        /// </summary>
+        /// <param name="invFolder"></param>
+        /// <returns></returns>
+        private LLSDInventoryFolder ConvertInventoryFolder(InventoryFolderBase invFolder)
+        {
+            LLSDInventoryFolder llsdFolder = new LLSDInventoryFolder();
+            llsdFolder.folder_id = invFolder.ID;
+            llsdFolder.parent_id = invFolder.ParentID;
+            llsdFolder.name = invFolder.Name;
+            llsdFolder.type = TaskInventoryItem.InvTypes[invFolder.Type];
+            llsdFolder.preferred_type = "-1";
+
+            return llsdFolder;
         }
 
         /// <summary>
@@ -529,15 +534,29 @@ namespace OpenSim.Framework.Capabilities
             llsdItem.permissions.creator_id = invItem.CreatorIdAsUuid;
             llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
             llsdItem.permissions.everyone_mask = (int)invItem.EveryOnePermissions;
-            llsdItem.permissions.group_id = UUID.Zero;
-            llsdItem.permissions.group_mask = 0;
-            llsdItem.permissions.is_owner_group = false;
+            llsdItem.permissions.group_id = invItem.GroupID;
+            llsdItem.permissions.group_mask = (int)invItem.GroupPermissions;
+            llsdItem.permissions.is_owner_group = invItem.GroupOwned;
             llsdItem.permissions.next_owner_mask = (int)invItem.NextPermissions;
-            llsdItem.permissions.owner_id = m_agentID; // FixMe
+            llsdItem.permissions.owner_id = m_agentID;
             llsdItem.permissions.owner_mask = (int)invItem.CurrentPermissions;
             llsdItem.sale_info = new LLSDSaleInfo();
-            llsdItem.sale_info.sale_price = 10;
-            llsdItem.sale_info.sale_type = "not";
+            llsdItem.sale_info.sale_price = invItem.SalePrice;
+            switch (invItem.SaleType)
+            {
+            default:
+                llsdItem.sale_info.sale_type = "not";
+                break;
+            case 1:
+                llsdItem.sale_info.sale_type = "original";
+                break;
+            case 2:
+                llsdItem.sale_info.sale_type = "copy";
+                break;
+            case 3:
+                llsdItem.sale_info.sale_type = "contents";
+                break;
+            }
 
             return llsdItem;
         }

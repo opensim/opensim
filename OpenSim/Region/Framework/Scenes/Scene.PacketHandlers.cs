@@ -472,7 +472,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
         /// <returns>null if the inventory look up failed</returns>
-        public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
+        public InventoryCollection HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
 //            m_log.DebugFormat(
@@ -487,11 +487,15 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryFolderImpl fold;
             if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
             {
-                return fold.RequestListOfItems();
+                InventoryCollection ret = new InventoryCollection();
+                ret.Folders = new List<InventoryFolderBase>();
+                ret.Items = fold.RequestListOfItems();
+
+                return ret;
             }
 
             InventoryCollection contents = InventoryService.GetFolderContent(agentID, folderID);
-            return contents.Items;
+            return contents;
 
         }        
         
