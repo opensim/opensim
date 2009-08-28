@@ -803,11 +803,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 m_log.DebugFormat(
-                    "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation {0} within {1}", 
+                    "[SCENE COMMUNICATION SERVICE]: RequestTeleportToLocation {0} within {1}",
                     position, m_regionInfo.RegionName);
-                
+
                 // Teleport within the same region
-                if (position.X < 0 || position.X > Constants.RegionSize || position.Y < 0 || position.Y > Constants.RegionSize || position.Z < 0)
+                if (IsOutsideRegion(avatar.Scene, position) || position.Z < 0)
                 {
                     Vector3 emergencyPos = new Vector3(128, 128, 128);
 
@@ -816,10 +816,17 @@ namespace OpenSim.Region.Framework.Scenes
                         position, avatar.Name, avatar.UUID, emergencyPos);
                     position = emergencyPos;
                 }
-                
+
                 // TODO: Get proper AVG Height
                 float localAVHeight = 1.56f;
-                float posZLimit = (float)avatar.Scene.Heightmap[(int)position.X, (int)position.Y];
+                float posZLimit = 22;
+
+                // TODO: Check other Scene HeightField
+                if (position.X > 0 && position.X <= (int)Constants.RegionSize && position.Y > 0 && position.Y <=(int)Constants.RegionSize)
+                {
+                    posZLimit = (float) avatar.Scene.Heightmap[(int) position.X, (int) position.Y];
+                }
+
                 float newPosZ = posZLimit + localAVHeight;
                 if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
                 {
@@ -1084,6 +1091,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private bool IsOutsideRegion(Scene s, Vector3 pos)
+        {
+            
+            if (s.TestBorderCross(pos,Cardinals.N))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.S))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.E))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.W))
+                return true;
+
+            return false;
+        }
+
         public bool WaitForCallback(UUID id)
         {
             int count = 200;
@@ -1165,27 +1187,76 @@ namespace OpenSim.Region.Framework.Scenes
             // distance into new region to place avatar
             const float enterDistance = 0.1f;
 
-            if (pos.X < boundaryDistance)
+            if (scene.TestBorderCross(pos, Cardinals.W))
+            {
+                if (scene.TestBorderCross(pos, Cardinals.N))
+                {
+                    Border b = scene.GetCrossedBorder(pos, Cardinals.N);
+                    neighboury += (uint)(int)(b.BorderLine.Z/(int)Constants.RegionSize);
+                }
+                
+                
+                neighbourx--;
+                newpos.X = Constants.RegionSize - enterDistance;
+
+            }
+            else if (scene.TestBorderCross(pos, Cardinals.E))
+            {
+                if (scene.TestBorderCross(pos, Cardinals.S))
+                {
+                    neighboury--;
+                    newpos.Y = Constants.RegionSize - enterDistance;
+                }
+                else if (scene.TestBorderCross(pos, Cardinals.N))
+                {
+                    Border b = scene.GetCrossedBorder(pos, Cardinals.N);
+                    neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                    newpos.Y = enterDistance;
+                }
+                else
+                {
+                    Border b = scene.GetCrossedBorder(pos, Cardinals.E);
+                    neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                    newpos.X = enterDistance;
+                }
+
+            }
+            else if (scene.TestBorderCross(pos, Cardinals.S))
+            {
+                neighboury--;
+                newpos.Y = Constants.RegionSize - enterDistance;
+            }
+            else if (scene.TestBorderCross(pos, Cardinals.N))
+            {
+                Border b = scene.GetCrossedBorder(pos, Cardinals.N);
+                neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                newpos.Y = enterDistance;
+            }
+
+            /*
+
+            if (pos.X < boundaryDistance) //West
             {
                 neighbourx--;
                 newpos.X = Constants.RegionSize - enterDistance;
             }
-            else if (pos.X > Constants.RegionSize - boundaryDistance)
+            else if (pos.X > Constants.RegionSize - boundaryDistance) // East
             {
                 neighbourx++;
                 newpos.X = enterDistance;
             }
 
-            if (pos.Y < boundaryDistance)
+            if (pos.Y < boundaryDistance) // South
             {
                 neighboury--;
                 newpos.Y = Constants.RegionSize - enterDistance;
             }
-            else if (pos.Y > Constants.RegionSize - boundaryDistance)
+            else if (pos.Y > Constants.RegionSize - boundaryDistance) // North
             {
                 neighboury++;
                 newpos.Y = enterDistance;
             }
+            */
 
             CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
             d.BeginInvoke(agent, newpos, neighbourx, neighboury, isFlying, CrossAgentToNewRegionCompleted, d);

@@ -3267,16 +3267,47 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (sp != null)
             {
+                uint regionX = m_regInfo.RegionLocX;
+                uint regionY = m_regInfo.RegionLocY;
+
+                Utils.LongToUInts(regionHandle, out regionX, out regionY);
+
+                int shiftx = (int) regionX - (int) m_regInfo.RegionLocX * (int)Constants.RegionSize;
+                int shifty = (int)regionY - (int)m_regInfo.RegionLocY * (int)Constants.RegionSize;
+
+                position.X += shiftx;
+                position.Y += shifty;
+
+                bool result = false;
+
+                if (TestBorderCross(position,Cardinals.N))
+                    result = true;
+
+                if (TestBorderCross(position, Cardinals.S))
+                    result = true;
+
+                if (TestBorderCross(position, Cardinals.E))
+                    result = true;
+
+                if (TestBorderCross(position, Cardinals.W))
+                    result = true;
+
+                // bordercross if position is outside of region
+
+                if (!result)
+                    regionHandle = m_regInfo.RegionHandle;
+
                 if (m_teleportModule != null)
                 {
                     m_teleportModule.RequestTeleportToLocation(sp, regionHandle,
-                                                                 position, lookAt, teleportFlags);
+                                                               position, lookAt, teleportFlags);
                 }
                 else
                 {
                     m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
                                                                  position, lookAt, teleportFlags);
                 }
+               
             }
         }
 

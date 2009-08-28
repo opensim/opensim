@@ -2854,6 +2854,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else if (m_scene.TestBorderCross(pos2, Cardinals.N))
                     neighbor = HaveNeighbor(Cardinals.N, ref fix);
 
+                
                 // Makes sure avatar does not end up outside region
                 if (neighbor < 0)
                     AbsolutePosition = new Vector3(
