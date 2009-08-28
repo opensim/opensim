@@ -45,6 +45,7 @@ using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -102,6 +103,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Monitor.Wait(this, 60000);
             }
 
+            Console.WriteLine("here");
+
             // Create asset
             SceneObjectGroup object1;
             SceneObjectPart part1;
@@ -135,8 +138,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             //userInfo.RootFolder.FindFolderByPath("Objects").ID;
-            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
-            //InventoryFolderBase rootFolder = scene.InventoryService.GetRootFolder(userId);            
+            //InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            Console.WriteLine("here2");
+            IInventoryService inventoryService = scene.InventoryService;
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+            InventoryCollection rootContents = inventoryService.GetFolderContent(userId, rootFolder.ID);
+            InventoryFolderBase objsFolder = null;
+            foreach (InventoryFolderBase folder in rootContents.Folders)
+                if (folder.Name == "Objects")
+                    objsFolder = folder;
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 

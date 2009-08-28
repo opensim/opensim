@@ -88,13 +88,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
             // If not, go get them and place them in the cache
-            Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(presence.UUID);
+            Dictionary<AssetType, InventoryFolderBase> folders = CacheSystemFolders(presence.UUID);
             m_log.DebugFormat("[INVENTORY CACHE]: OnMakeRootAgent in {0}, fetched system folders for {1} {2}: count {3}", 
                 presence.Scene.RegionInfo.RegionName, presence.Firstname, presence.Lastname, folders.Count);
-
-            if (folders.Count > 0)
-                lock (m_InventoryCache)
-                    m_InventoryCache.Add(presence.UUID, folders);
         }
 
         void OnClientClosed(UUID clientID, Scene scene)
@@ -113,26 +109,51 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     }
                 }
 
-                // Drop system folders
-                lock (m_InventoryCache)
-                    if (m_InventoryCache.ContainsKey(clientID))
-                    {
-                        m_log.DebugFormat("[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders",
-                            scene.RegionInfo.RegionName, clientID);
-
-                        m_InventoryCache.Remove(clientID);
-                    }
+                m_log.DebugFormat(
+                    "[INVENTORY CACHE]: OnClientClosed in {0}, user {1} out of sim. Dropping system folders",
+                    scene.RegionInfo.RegionName, clientID);
+                DropCachedSystemFolders(clientID);
             }
         }
 
+        /// <summary>
+        /// Cache a user's 'system' folders.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>Folders cached</returns>
+        protected Dictionary<AssetType, InventoryFolderBase> CacheSystemFolders(UUID userID)
+        {
+            // If not, go get them and place them in the cache
+            Dictionary<AssetType, InventoryFolderBase> folders = m_Connector.GetSystemFolders(userID);
+
+            if (folders.Count > 0)
+                lock (m_InventoryCache)
+                    m_InventoryCache.Add(userID, folders);
+
+            return folders;
+        }
+
+        /// <summary>
+        /// Drop a user's cached 'system' folders
+        /// </summary>
+        /// <param name="userID"></param>
+        protected void DropCachedSystemFolders(UUID userID)
+        {
+            // Drop system folders
+            lock (m_InventoryCache)
+                if (m_InventoryCache.ContainsKey(userID))
+                    m_InventoryCache.Remove(userID);
+        }
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
             Dictionary<AssetType, InventoryFolderBase> folders = null;
+            
             lock (m_InventoryCache)
             {
                 m_InventoryCache.TryGetValue(userID, out folders);
             }
+            
             if ((folders != null) && folders.ContainsKey(type))
             {
                 return folders[type];

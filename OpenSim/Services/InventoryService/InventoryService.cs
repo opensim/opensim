@@ -88,6 +88,8 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public virtual InventoryFolderBase GetRootFolder(UUID userID)
         {
+            //m_log.DebugFormat("[INVENTORY SERVICE]: Getting root folder for {0}", userID);
+            
             // Retrieve the first root folder we get from the DB.
             InventoryFolderBase rootFolder = m_Database.getUserRootFolder(userID);
             if (rootFolder != null)
