@@ -34,7 +34,7 @@ namespace OpenSim.Region.Framework.Scenes
 {
     public class Border
     {
-
+        
         /// <summary>
         /// Line perpendicular to the Direction Cardinal.  Z value is the 
         /// </summary>
@@ -123,6 +123,25 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return result;
+        }
+
+        public float Extent
+        {
+            get
+            {
+                switch (CrossDirection)
+                {
+                    case Cardinals.N:
+                        break;
+                    case Cardinals.S:
+                        break;
+                    case Cardinals.W:
+                        break;
+                    case Cardinals.E:
+                        break;
+                }
+                return 0;
+            }
         }
 
     }

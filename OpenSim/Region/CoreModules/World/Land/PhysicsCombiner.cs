@@ -216,9 +216,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //xxy
                     //xxx
                     if ((((int)conn.X * (int)Constants.RegionSize) + conn.XEnd
-                        == (regionConnections.X * (int)Constants.RegionSize))
+                        >= (regionConnections.X * (int)Constants.RegionSize))
                         && (((int)conn.Y * (int)Constants.RegionSize)
-                        == (regionConnections.Y * (int)Constants.RegionSize)))
+                        >= (regionConnections.Y * (int)Constants.RegionSize)))
                     {
                         Vector3 offset = Vector3.Zero;
                         offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
@@ -262,9 +262,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //xxx
                     //xxx
                     if ((((int)conn.X * (int)Constants.RegionSize)
-                        == (regionConnections.X * (int)Constants.RegionSize))
+                        >= (regionConnections.X * (int)Constants.RegionSize))
                         && (((int)conn.Y * (int)Constants.RegionSize) + conn.YEnd
-                        == (regionConnections.Y * (int)Constants.RegionSize)))
+                        >= (regionConnections.Y * (int)Constants.RegionSize)))
                     {
                         Vector3 offset = Vector3.Zero;
                         offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
@@ -303,9 +303,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //xxx
                     //xxx
                     if ((((int)conn.X * (int)Constants.RegionSize) + conn.YEnd
-                        == (regionConnections.X * (int)Constants.RegionSize))
+                        >= (regionConnections.X * (int)Constants.RegionSize))
                         && (((int)conn.Y * (int)Constants.RegionSize) + conn.YEnd
-                        == (regionConnections.Y * (int)Constants.RegionSize)))
+                        >= (regionConnections.Y * (int)Constants.RegionSize)))
                     {
                         Vector3 offset = Vector3.Zero;
                         offset.X = (((regionConnections.X * (int)Constants.RegionSize)) -
@@ -315,13 +315,58 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         Vector3 extents = Vector3.Zero;
                         extents.Y = regionConnections.YEnd + conn.YEnd;
-                        extents.X = conn.XEnd + conn.XEnd;
+                        extents.X = regionConnections.XEnd + conn.XEnd;
+                        conn.UpdateExtents(extents);
 
-                        m_log.DebugFormat("Scene: {0} to the south of Scene{1} Offset: {2}. Extents:{3}",
-                                        conn.RegionScene.RegionInfo.RegionName,
-                                        regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+                        m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
+                                         conn.RegionScene.RegionInfo.RegionName,
+                                         regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+                        
+                        conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
+                        scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
-                        scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset,extents);
+                        if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
+                        {
+                            //compound border
+                            conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                            conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                            
+
+                        }
+
+                        scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+
+                        if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
+                        {
+
+                            conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                            conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                            
+                        }
+                        scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
+/*  
+                        else
+                        {
+                            conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                            conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                        }
+*/
+                        
+
+                        // Reset Terrain..  since terrain normally loads first.
+                        //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+                        scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
+                        //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+
+                        connectedYN = true;
+
+                        //scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset,extents);
 
                         break;
                     }

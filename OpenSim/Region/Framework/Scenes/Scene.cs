@@ -1706,36 +1706,85 @@ namespace OpenSim.Region.Framework.Scenes
             ulong newRegionHandle = 0;
             Vector3 pos = attemptedPosition;
 
-
-
-            if (TestBorderCross(attemptedPosition, Cardinals.E))
+            if (TestBorderCross(attemptedPosition, Cardinals.W))
             {
-                pos.X = ((pos.X - Constants.RegionSize));
-                newRegionHandle
-                    = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
-                // x + 1
+                if (TestBorderCross(attemptedPosition, Cardinals.S))
+                {
+                    //Border crossedBorderx = GetCrossedBorder(attemptedPosition,Cardinals.W);
+                    //Border crossedBordery = GetCrossedBorder(attemptedPosition, Cardinals.S);
+                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+                    pos.X = ((pos.X + Constants.RegionSize));
+                    pos.Y = ((pos.Y + Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize),
+                                           (uint)((thisy - 1) * Constants.RegionSize));
+                    // x - 1
+                    // y - 1
+                }
+                else if (TestBorderCross(attemptedPosition, Cardinals.N))
+                {
+                    pos.X = ((pos.X + Constants.RegionSize));
+                    pos.Y = ((pos.Y - Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize),
+                                           (uint)((thisy + 1) * Constants.RegionSize));
+                    // x - 1
+                    // y + 1
+                }
+                else
+                {
+                    pos.X = ((pos.X + Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint) ((thisx - 1)*Constants.RegionSize),
+                                           (uint) (thisy*Constants.RegionSize));
+                    // x - 1
+                }
             }
-            else if (TestBorderCross(attemptedPosition, Cardinals.W))
+            else if (TestBorderCross(attemptedPosition, Cardinals.E))
             {
-                pos.X = ((pos.X + Constants.RegionSize));
-                newRegionHandle
-                    = Util.UIntsToLong((uint)((thisx - 1) * Constants.RegionSize), (uint)(thisy * Constants.RegionSize));
-                // x - 1
-            }
-
-            if (TestBorderCross(attemptedPosition, Cardinals.N))
-            {
-                pos.Y = ((pos.Y - Constants.RegionSize));
-                newRegionHandle
-                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
-                // y + 1
-            }
+                if (TestBorderCross(attemptedPosition, Cardinals.S))
+                {
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    pos.Y = ((pos.Y + Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize),
+                                           (uint)((thisy - 1) * Constants.RegionSize));
+                    // x + 1
+                    // y - 1
+                }
+                else if (TestBorderCross(attemptedPosition, Cardinals.N))
+                {
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    pos.Y = ((pos.Y - Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx + 1) * Constants.RegionSize),
+                                           (uint)((thisy + 1) * Constants.RegionSize));
+                    // x + 1
+                    // y + 1
+                }
+                else
+                {
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint) ((thisx + 1)*Constants.RegionSize),
+                                           (uint) (thisy*Constants.RegionSize));
+                    // x + 1
+                }
+            } 
             else if (TestBorderCross(attemptedPosition, Cardinals.S))
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
                 newRegionHandle
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
                 // y - 1
+            }
+            else if (TestBorderCross(attemptedPosition, Cardinals.N))
+            {
+                
+                pos.Y = ((pos.Y - Constants.RegionSize));
+                newRegionHandle
+                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + 1) * Constants.RegionSize));
+                // y + 1
             }
 
             // Offset the positions for the new region across the border
@@ -1748,6 +1797,62 @@ namespace OpenSim.Region.Framework.Scenes
                 grp.OffsetForNewRegion(oldGroupPosition);
                 grp.ScheduleGroupForFullUpdate();
             }
+        }
+
+        public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
+        {
+
+            switch (gridline)
+            {
+                case Cardinals.N:
+                    lock (NorthBorders)
+                    {
+                        foreach (Border b in NorthBorders)
+                        {
+                            if (b.TestCross(position))
+                                return b;
+                        }
+                    }
+                    break;
+                case Cardinals.S:
+                    
+
+                    lock (SouthBorders)
+                    {
+                        foreach (Border b in SouthBorders)
+                        {
+                            if (b.TestCross(position))
+                                return b;
+                        }
+                    }
+
+                    break;
+                case Cardinals.E:
+                    lock (EastBorders)
+                    {
+                        foreach (Border b in EastBorders)
+                        {
+                            if (b.TestCross(position))
+                                return b;
+                        }
+                    }
+
+                    break;
+                case Cardinals.W:
+                    
+                    lock (WestBorders)
+                    {
+                        foreach (Border b in WestBorders)
+                        {
+                            if (b.TestCross(position))
+                                return b;
+                        }
+                    }
+                    break;
+
+            }
+
+            return null;
         }
 
         public bool TestBorderCross(Vector3 position, Cardinals border)
