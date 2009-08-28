@@ -145,12 +145,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     m_InventoryCache.Remove(userID);
         }
 
+        /// <summary>
+        /// Get the system folder for a particular asset type
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
         {
             Dictionary<AssetType, InventoryFolderBase> folders = null;
             
             lock (m_InventoryCache)
             {
+                m_InventoryCache.TryGetValue(userID, out folders);
+
+                // In some situations (such as non-secured standalones), system folders can be requested without
+                // the user being logged in.  So we need to try caching them here if we don't already have them.
+                if (null == folders)
+                    CacheSystemFolders(userID);
+
                 m_InventoryCache.TryGetValue(userID, out folders);
             }
             
