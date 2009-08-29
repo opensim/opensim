@@ -42,6 +42,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             RegionConnections regionConnections = new RegionConnections();
             regionConnections.ConnectedRegions = new List<RegionData>();
             regionConnections.RegionScene = scene;
+            regionConnections.RegionLandChannel = scene.LandChannel;
             regionConnections.RegionId = scene.RegionInfo.originRegionID;
             regionConnections.X = scene.RegionInfo.RegionLocX;
             regionConnections.Y = scene.RegionInfo.RegionLocY;
@@ -240,6 +241,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                         
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
+
+                        RegionData ConnectedRegion = new RegionData();
+                        ConnectedRegion.Offset = offset;
+                        ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
+                        ConnectedRegion.RegionScene = scene;
+                        conn.ConnectedRegions.Add(ConnectedRegion);
+
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
@@ -259,9 +267,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         //
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+                        
                         conn.RegionScene.BordersLocked = false;
                         scene.BordersLocked = false;
-
                         connectedYN = true;
                         break;
                     }
@@ -291,6 +299,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
+
+                        RegionData ConnectedRegion = new RegionData();
+                        ConnectedRegion.Offset = offset;
+                        ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
+                        ConnectedRegion.RegionScene = scene;
+                        conn.ConnectedRegions.Add(ConnectedRegion);
 
                         m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
@@ -341,6 +355,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
+
+                        RegionData ConnectedRegion = new RegionData();
+                        ConnectedRegion.Offset = offset;
+                        ConnectedRegion.RegionId = scene.RegionInfo.originRegionID;
+                        ConnectedRegion.RegionScene = scene;
+
+                        conn.ConnectedRegions.Add(ConnectedRegion);
 
                         m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
@@ -409,7 +430,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 }
                 if (!connectedYN)
+                {
+                    RegionData rdata = new RegionData();
+                    rdata.Offset = Vector3.Zero;
+                    rdata.RegionId = scene.RegionInfo.originRegionID;
+                    rdata.RegionScene = scene;
+                    regionConnections.RegionLandChannel = scene.LandChannel;
+
+                    LargeLandChannel lnd = new LargeLandChannel(rdata,scene.LandChannel,regionConnections.ConnectedRegions);
+                    scene.LandChannel = lnd;
+                    
                     m_regions.Add(scene.RegionInfo.originRegionID,regionConnections);
+                }
+                    
             }
         }
 
@@ -431,12 +464,29 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             
         }
-    }
 
+       
+        public RegionData GetRegionFromPosition(Vector3 pPosition)
+        {
+            pPosition = pPosition/(int) Constants.RegionSize;
+            int OffsetX = (int) pPosition.X;
+            int OffsetY = (int) pPosition.Y;
+            foreach (RegionConnections regConn in m_regions.Values)
+            {
+                foreach (RegionData reg in regConn.ConnectedRegions)
+                {
+                    if (reg.Offset.X == OffsetX && reg.Offset.Y == OffsetY)
+                        return reg;
+                }
+            }
+            return new RegionData();
+        }
+    }
     public class RegionConnections
     {
         public UUID RegionId;
         public Scene RegionScene;
+        public ILandChannel RegionLandChannel;
         public uint X;
         public uint Y;
         public int XEnd;
@@ -450,10 +500,140 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     }
 
-    public struct RegionData
+    public class RegionData
     {
         public UUID RegionId;
         public Scene RegionScene;
         public Vector3 Offset;
+        
+    }
+
+    public class LargeLandChannel : ILandChannel
+    {
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private RegionData RegData;
+        private ILandChannel RootRegionLandChannel;
+        private readonly List<RegionData> RegionConnections;
+        
+        #region ILandChannel Members
+
+        public LargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,List<RegionData> regionConnections)
+        {
+            RegData = regData;
+            RootRegionLandChannel = rootRegionLandChannel;
+            RegionConnections = regionConnections;
+        }
+
+        public List<ILandObject> ParcelsNearPoint(Vector3 position)
+        {
+            m_log.DebugFormat("[LANDPARCELNEARPOINT]: {0}>", position);
+            return RootRegionLandChannel.ParcelsNearPoint(position - RegData.Offset);
+        }
+
+        public List<ILandObject> AllParcels()
+        {
+
+            return RootRegionLandChannel.AllParcels();
+
+        }
+
+        public ILandObject GetLandObject(int x, int y)
+        {
+            m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
+
+            if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
+            {
+                return RootRegionLandChannel.GetLandObject(x, y);
+            }
+            else
+            {
+                int offsetX = (x / (int)Constants.RegionSize);
+                int offsetY = (x / (int)Constants.RegionSize);
+                offsetX *= (int)Constants.RegionSize;
+                offsetY *= (int)Constants.RegionSize;
+
+                foreach (RegionData regionData in RegionConnections)
+                {
+                    if (regionData.Offset.X == offsetX && regionData.Offset.Y == offsetY)
+                    {
+                        return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
+                    }
+                }
+                ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
+                obj.landData.Name = "NO LAND";
+                return obj;
+            }
+        }
+
+        public ILandObject GetLandObject(int localID)
+        {
+            return RootRegionLandChannel.GetLandObject(localID);
+        }
+
+        public ILandObject GetLandObject(float x, float y)
+        {
+            m_log.DebugFormat("[BIGLANDTESTFLOAT]: <{0},{1}>", x, y);
+            
+            if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
+            {
+                return RootRegionLandChannel.GetLandObject(x, y);
+            }
+            else
+            {
+                int offsetX = (int)(x/(int) Constants.RegionSize);
+                int offsetY = (int)(x/(int) Constants.RegionSize);
+                offsetX *= (int) Constants.RegionSize;
+                offsetY *= (int) Constants.RegionSize;
+
+                foreach (RegionData regionData in RegionConnections)
+                {
+                    if (regionData.Offset.X == offsetX && regionData.Offset.Y == offsetY)
+                    {
+                        return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
+                    }
+                }
+                ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
+                obj.landData.Name = "NO LAND";
+                return obj;
+            }
+        }
+
+        public bool IsLandPrimCountTainted()
+        {
+            return RootRegionLandChannel.IsLandPrimCountTainted();
+        }
+
+        public bool IsForcefulBansAllowed()
+        {
+            return RootRegionLandChannel.IsForcefulBansAllowed();
+        }
+
+        public void UpdateLandObject(int localID, LandData data)
+        {
+            RootRegionLandChannel.UpdateLandObject(localID, data);
+        }
+
+        public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
+        {
+            RootRegionLandChannel.ReturnObjectsInParcel(localID, returnType, agentIDs, taskIDs, remoteClient);
+        }
+
+        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
+        {
+            RootRegionLandChannel.setParcelObjectMaxOverride(overrideDel);
+        }
+
+        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
+        {
+            RootRegionLandChannel.setSimulatorObjectMaxOverride(overrideDel);
+        }
+
+        public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
+        {
+            RootRegionLandChannel.SetParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
+        }
+
+        #endregion
     }
 }
