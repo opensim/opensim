@@ -1366,6 +1366,13 @@
     ;
     ;TextureDataLimit = 5
 
+;; The JPEG2000 decode cache
+;; Timeout is in minutes
+
+[J2KDecoder]
+;CacheDir = "./j2kDecodeCache"
+;CacheTimeout = 60
+
 ;;
 ;; These are defaults that are overwritten below in [Architecture].
 ;; These defaults allow OpenSim to work out of the box with

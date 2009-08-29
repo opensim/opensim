@@ -53,8 +53,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// </summary>
         private readonly Dictionary<UUID, OpenJPEG.J2KLayerInfo[]> m_cacheddecode = new Dictionary<UUID, OpenJPEG.J2KLayerInfo[]>();
         private bool OpenJpegFail = false;
-        private readonly string CacheFolder = Util.dataDir() + "/j2kDecodeCache";
-        private readonly J2KDecodeFileCache fCache;
+        private string CacheFolder = Util.dataDir() + "/j2kDecodeCache";
+        private int CacheTimeout = 60;
+        private J2KDecodeFileCache fCache;
 
         /// <summary>
         /// List of client methods to notify of results of decode
@@ -63,11 +64,19 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         public J2KDecoderModule()
         {
-            fCache = new J2KDecodeFileCache(CacheFolder);
         }
 
         public void Initialise(Scene scene, IConfigSource source)
         {
+            IConfig j2kConfig = source.Configs["J2KDecoder"];
+            if (j2kConfig != null)
+            {
+                CacheFolder = j2kConfig.GetString("CacheDir", CacheFolder);
+                CacheTimeout = j2kConfig.GetInt("CacheTimeout", CacheTimeout);
+            }
+
+            fCache = new J2KDecodeFileCache(CacheFolder, CacheTimeout);
+
             scene.RegisterModuleInterface<IJ2KDecoder>(this);
         }
 
@@ -353,6 +362,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
     public class J2KDecodeFileCache
     {
         private readonly string m_cacheDecodeFolder;
+        private readonly int m_cacheTimeout;
         private bool enabled = true;
         
         private static readonly ILog m_log
@@ -362,9 +372,10 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// Creates a new instance of a file cache
         /// </summary>
         /// <param name="pFolder">base folder for the cache.  Will be created if it doesn't exist</param>
-        public J2KDecodeFileCache(string pFolder)
+        public J2KDecodeFileCache(string pFolder, int timeout)
         {
             m_cacheDecodeFolder = pFolder;
+            m_cacheTimeout = timeout;
             if (!Directory.Exists(pFolder))
             {
                 Createj2KCacheFolder(pFolder);
@@ -423,6 +434,15 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
             if (!enabled)
             {
+                return false;
+            }
+
+            DateTime creationTime = File.GetCreationTime(filename);
+            TimeSpan fileAge = DateTime.Now - creationTime;
+
+            if (m_cacheTimeout != 0 && fileAge >= TimeSpan.FromMinutes(m_cacheTimeout))
+            {
+                File.Delete(filename);
                 return false;
             }
 
