@@ -81,6 +81,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
+        public volatile bool BordersLocked = false;
+
         public List<Border> NorthBorders = new List<Border>();
         public List<Border> EastBorders = new List<Border>();
         public List<Border> SouthBorders = new List<Border>();
@@ -331,6 +333,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_config = config;
 
             Random random = new Random();
+            
+            BordersLocked = true;
 
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
@@ -352,6 +356,7 @@ namespace OpenSim.Region.Framework.Scenes
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
 
+            BordersLocked = false;
 
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue/2))+(uint)(uint.MaxValue/4);
             m_moduleLoader = moduleLoader;
@@ -482,6 +487,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="regInfo"></param>
         public Scene(RegionInfo regInfo)
         {
+            BordersLocked = true;
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
             northBorder.CrossDirection = Cardinals.N;
@@ -501,6 +507,7 @@ namespace OpenSim.Region.Framework.Scenes
             westBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);     //--->
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
+            BordersLocked = false;
 
             m_regInfo = regInfo;
             m_eventManager = new EventManager();
@@ -1801,105 +1808,179 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
         {
-
-            switch (gridline)
+            if (BordersLocked)
             {
-                case Cardinals.N:
-                    lock (NorthBorders)
-                    {
+                switch (gridline)
+                {
+                    case Cardinals.N:
+                        lock (NorthBorders)
+                        {
+                            foreach (Border b in NorthBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return b;
+                            }
+                        }
+                        break;
+                    case Cardinals.S:
+                        lock (SouthBorders)
+                        {
+                            foreach (Border b in SouthBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return b;
+                            }
+                        }
+
+                        break;
+                    case Cardinals.E:
+                        lock (EastBorders)
+                        {
+                            foreach (Border b in EastBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return b;
+                            }
+                        }
+
+                        break;
+                    case Cardinals.W:
+
+                        lock (WestBorders)
+                        {
+                            foreach (Border b in WestBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return b;
+                            }
+                        }
+                        break;
+
+                }
+            }
+            else
+            {
+                switch (gridline)
+                {
+                    case Cardinals.N:
                         foreach (Border b in NorthBorders)
                         {
                             if (b.TestCross(position))
                                 return b;
                         }
-                    }
-                    break;
-                case Cardinals.S:
-                    
-
-                    lock (SouthBorders)
-                    {
+                       
+                        break;
+                    case Cardinals.S:
                         foreach (Border b in SouthBorders)
                         {
                             if (b.TestCross(position))
                                 return b;
                         }
-                    }
-
-                    break;
-                case Cardinals.E:
-                    lock (EastBorders)
-                    {
+                        break;
+                    case Cardinals.E:
                         foreach (Border b in EastBorders)
                         {
                             if (b.TestCross(position))
                                 return b;
                         }
-                    }
 
-                    break;
-                case Cardinals.W:
-                    
-                    lock (WestBorders)
-                    {
+                        break;
+                    case Cardinals.W:
                         foreach (Border b in WestBorders)
                         {
                             if (b.TestCross(position))
                                 return b;
                         }
-                    }
-                    break;
+                        break;
 
+                }
             }
+            
 
             return null;
         }
 
         public bool TestBorderCross(Vector3 position, Cardinals border)
         {
-            switch (border)
+            if (BordersLocked)
             {
-                case Cardinals.N:
-                    lock (NorthBorders)
-                    {
-                        foreach(Border b in NorthBorders)
+                switch (border)
+                {
+                    case Cardinals.N:
+                        lock (NorthBorders)
+                        {
+                            foreach (Border b in NorthBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return true;
+                            }
+                        }
+                        break;
+                    case Cardinals.E:
+                        lock (EastBorders)
+                        {
+                            foreach (Border b in EastBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return true;
+                            }
+                        }
+                        break;
+                    case Cardinals.S:
+                        lock (SouthBorders)
+                        {
+                            foreach (Border b in SouthBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return true;
+                            }
+                        }
+                        break;
+                    case Cardinals.W:
+                        lock (WestBorders)
+                        {
+                            foreach (Border b in WestBorders)
+                            {
+                                if (b.TestCross(position))
+                                    return true;
+                            }
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                switch (border)
+                {
+                    case Cardinals.N:
+                        foreach (Border b in NorthBorders)
                         {
                             if (b.TestCross(position))
                                 return true;
                         }
-                    }
-                break;
-                case Cardinals.E:
-                    lock (EastBorders)
-                    {
+                        break;
+                    case Cardinals.E:
                         foreach (Border b in EastBorders)
                         {
                             if (b.TestCross(position))
                                 return true;
                         }
-                    }
-                break;
-                case Cardinals.S:
-                    lock (SouthBorders)
-                    {
+                        break;
+                    case Cardinals.S:
                         foreach (Border b in SouthBorders)
                         {
                             if (b.TestCross(position))
                                 return true;
                         }
-                    }
-                break;
-                case Cardinals.W:
-                    lock (WestBorders)
-                    {
+                        break;
+                    case Cardinals.W:                     
                         foreach (Border b in WestBorders)
                         {
                             if (b.TestCross(position))
                                 return true;
-                        }
-                    }
-                break;
-
+                        }                       
+                        break;
+                }
             }
             return false;
         }

@@ -236,20 +236,31 @@ namespace OpenSim.Region.CoreModules.World.Land
                         m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
                                           conn.RegionScene.RegionInfo.RegionName,
                                           regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
-
+                        
+                        
+                        scene.BordersLocked = true;
+                        conn.RegionScene.BordersLocked = true;
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
-                        conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                        conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                        conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                        lock (conn.RegionScene.EastBorders)
+                            conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
-                        scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
+                        lock (conn.RegionScene.NorthBorders)
+                            conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                        lock (conn.RegionScene.SouthBorders)
+                            conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                        lock (scene.WestBorders)
+                            scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
 
                         // Reset Terrain..  since terrain normally loads first.
                         //
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+                        conn.RegionScene.BordersLocked = false;
+                        scene.BordersLocked = false;
 
                         connectedYN = true;
                         break;
@@ -277,22 +288,32 @@ namespace OpenSim.Region.CoreModules.World.Land
                         extents.X = conn.XEnd;
                         conn.UpdateExtents(extents);
 
+
+                        scene.BordersLocked = true;
+                        conn.RegionScene.BordersLocked = true;
+
                         m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
                                          regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
                         conn.RegionScene.PhysicsScene.Combine(null,Vector3.Zero,extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
-                        conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                        conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                        conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-
-                        scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                        lock(conn.RegionScene.NorthBorders)
+                            conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                        lock(conn.RegionScene.EastBorders)
+                            conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                        lock(conn.RegionScene.WestBorders)
+                            conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                        lock(scene.SouthBorders)
+                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
 
                         // Reset Terrain..  since terrain normally loads first.
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+
+                        scene.BordersLocked = false;
+                        conn.RegionScene.BordersLocked = false;
 
                         connectedYN = true;
                         break;
@@ -318,36 +339,48 @@ namespace OpenSim.Region.CoreModules.World.Land
                         extents.X = regionConnections.XEnd + conn.XEnd;
                         conn.UpdateExtents(extents);
 
+                        scene.BordersLocked = true;
+                        conn.RegionScene.BordersLocked = true;
+
                         m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
                                          regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
                         
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
-
+                        lock(conn.RegionScene.NorthBorders)
                         if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
                         {
                             //compound border
+                            // already locked above
                             conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                            conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+
+                            lock(conn.RegionScene.EastBorders)
+                                conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            lock(conn.RegionScene.WestBorders)
+                                conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
                             
 
                         }
-
-                        scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
-
+                        lock(scene.SouthBorders)
+                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                        
+                        lock(conn.RegionScene.EastBorders)
                         if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
                         {
 
                             conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                            conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            lock(conn.RegionScene.NorthBorders)
+                                conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                            lock(conn.RegionScene.SouthBorders)
+                                conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
                             
                         }
-                        scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
+
+                        lock (scene.WestBorders)
+                            scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
 /*  
                         else
                         {
@@ -363,6 +396,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
+                        scene.BordersLocked = false;
+                        conn.RegionScene.BordersLocked = false;
 
                         connectedYN = true;
 
