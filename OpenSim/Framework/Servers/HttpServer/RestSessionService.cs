@@ -94,6 +94,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             Stream requestStream = request.GetRequestStream();
             requestStream.Write(buffer.ToArray(), 0, length);
+            requestStream.Close();
             TResponse deserial = default(TResponse);
             using (WebResponse resp = request.GetResponse())
             {
@@ -101,7 +102,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                 deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
                 resp.Close();
             }
-            requestStream.Close();
             return deserial;
         }
     }

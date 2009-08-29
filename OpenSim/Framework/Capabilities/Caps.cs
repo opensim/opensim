@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Capabilities
                                                    bool isScriptRunning, byte[] data);
 
     public delegate InventoryCollection FetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
-                                                                          bool fetchFolders, bool fetchItems, int sortOrder);
+                                                                          bool fetchFolders, bool fetchItems, int sortOrder, out int version);
 
     /// <summary>
     /// XXX Probably not a particularly nice way of allow us to get the scene presence from the scene (chiefly so that
@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Capabilities
         //private static readonly string m_requestTexture = "0003/";
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
-        // private static readonly string m_fetchInventoryPath = "0006/";
+        private static readonly string m_fetchInventoryPath = "0006/";
 
         // The following entries are in a module, however, they are also here so that we don't re-assign
         // the path to another cap by mistake.
@@ -207,7 +207,7 @@ namespace OpenSim.Framework.Capabilities
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
 
-                // m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
+                m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
@@ -449,23 +449,14 @@ namespace OpenSim.Framework.Capabilities
             contents.owner_id =  invFetch.owner_id;
             contents.folder_id = invFetch.folder_id;
 
-            // The version number being sent back was originally 1.
-            // Unfortunately, on 1.19.1.4, this means that we see a problem where on subsequent logins
-            // without clearing client cache, objects in the root folder disappear until the cache is cleared,
-            // at which point they reappear.
-            //
-            // Seeing the version to something other than 0 may be the right thing to do, but there is
-            // a greater subtlety of the second life protocol that needs to be understood first.
-            contents.version = 0;
-
-            contents.descendents = 0;
             reply.folders.Array.Add(contents);
             InventoryCollection inv = new InventoryCollection();
             inv.Folders = new List<InventoryFolderBase>();
             inv.Items = new List<InventoryItemBase>();
+            int version = 0;
             if (CAPSFetchInventoryDescendents != null)
             {
-                inv = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
+                inv = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order, out version);
             }
 
             if (inv.Folders != null)
@@ -484,7 +475,9 @@ namespace OpenSim.Framework.Capabilities
                 }
             }
 
-            contents.descendents = contents.items.Array.Count;
+            contents.descendents = contents.items.Array.Count + contents.categories.Array.Count;
+            contents.version = version;
+
             return reply;
         }
 
@@ -499,7 +492,10 @@ namespace OpenSim.Framework.Capabilities
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-            llsdFolder.type = TaskInventoryItem.InvTypes[invFolder.Type];
+            if (invFolder.Type == -1)
+                llsdFolder.type = "-1";
+            else
+                llsdFolder.type = TaskInventoryItem.Types[invFolder.Type];
             llsdFolder.preferred_type = "-1";
 
             return llsdFolder;
