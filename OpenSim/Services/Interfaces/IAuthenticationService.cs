@@ -38,57 +38,89 @@ namespace OpenSim.Services.Interfaces
     //
     public interface IAuthenticationService
     {
-        //////////////////////////////////////////////////
-        // Web login key portion
+        //////////////////////////////////////////////////////
+        // PKI Zone!
         //
+        // HG2 authentication works by using a cryptographic
+        // exchange.
+        // This method must provide a public key, the other
+        // crypto methods must understand hoow to deal with
+        // messages encrypted to it.
+        //
+        // If the public key is of zero length, you will
+        // get NO encryption and NO security.
+        //
+        // For non-HG installations, this is not relevant
+        //
+        // Implementors who are not using PKI can treat the
+        // cyphertext as a string and provide a zero-length
+        // key. Encryptionless implementations will not
+        // interoperate with implementations using encryption.
+        // If one side uses encryption, both must do so.
+        //
+        byte[] GetPublicKey();
 
-        // Get a service key given that principal's 
-        // authentication token (master key). 
+        //////////////////////////////////////////////////////
+        // Authentication
         //
-        string GetKey(UUID principalID, string authToken);
+        // These methods will return a token, which can be used to access
+        // various services.
+        //
+        // The encrypted versions take the received cyphertext and
+        // the public key of the peer, which the connector must have
+        // obtained using a remote GetPublicKey call.
+        //
+        string AuthenticatePassword(UUID principalID, string password);
+        byte[] AuthenticatePasswordEncrypted(byte[] cyphertext, byte[] key);
 
-        // Verify that a principal key is valid
-        //
-        bool VerifyKey(UUID principalID, string key);
+        string AuthenticateWebkey(UUID principalID, string webkey);
+        byte[] AuthenticateWebkeyEncrypted(byte[] cyphertext, byte[] key);
 
-        //////////////////////////////////////////////////
-        // Password auth portion
+        //////////////////////////////////////////////////////
+        // Verification
         //
+        // Allows to verify the authenticity of a token
+        //
+        // Tokens expire after 30 minutes and can be refreshed by
+        // re-verifying.
+        //
+        // If encrypted authentication was used, encrypted verification
+        // must be used to refresh. Unencrypted verification is still
+        // performed, but doesn't refresh token lifetime.
+        //
+        bool Verify(UUID principalID, string token);
+        bool VerifyEncrypted(byte[] cyphertext, byte[] key);
 
-        // Here's how thos works, and why.
+        //////////////////////////////////////////////////////
+        // Teardown
         //
-        // The authentication methods will return the existing session,
-        // or UUID.Zero if authentication failed. If there is no session,
-        // they will create one.
-        // The CreateUserSession method will unconditionally create a session
-        // and invalidate the prior session.
-        // Grid login uses this method to make sure that the session is
-        // fresh and new. Other software, like management applications,
-        // can obtain this existing session if they have a key or password
-        // for that account, this allows external apps to obtain credentials
-        // and use authenticating interface methods.
+        // A token can be returned before the timeout. This
+        // invalidates it and it can not subsequently be used
+        // or refreshed.
         //
-        
-        // Check the pricipal's password
+        // Tokens created by encrypted authentication must
+        // be returned by encrypted release calls;
         //
-        UUID AuthenticatePassword(UUID principalID, string password);
+        bool Release(UUID principalID, string token);
+        bool ReleaseEncrypted(byte[] cyphertext, byte[] key);
 
-        // Check the principal's key
+        //////////////////////////////////////////////////////
+        // Grid
         //
-        UUID AuthenticateKey(UUID principalID, string password);
+        // We no longer need a shared secret between grid
+        // servers. Anything a server requests from another
+        // server is either done on behalf of a user, in which
+        // case there is a token, or on behalf of a region,
+        // which has a session. So, no more keys.
+        // If sniffing on the local lan is an issue, admins
+        // need to take approriate action (IPSec is recommended)
+        // to secure inter-server traffic.
 
-        // Create a new session, invalidating the old ones
+        //////////////////////////////////////////////////////
+        // NOTE
         //
-        UUID CreateUserSession(UUID principalID, UUID oldSessionID);
-
-        // Verify that a user session ID is valid. A session ID is
-        // considered valid when a user has successfully authenticated
-        // at least one time inside that session.
-        //
-        bool VerifyUserSession(UUID principalID, UUID sessionID);
-
-        // Deauthenticate user
-        //
-        bool DestroyUserSession(UUID principalID, UUID sessionID);
+        // Session IDs are not handled here. After obtaining
+        // a token, the session ID regions use can be
+        // obtained from the presence service.
     }
 }
