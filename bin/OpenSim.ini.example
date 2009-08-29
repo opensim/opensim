@@ -1371,7 +1371,7 @@
 
 [J2KDecoder]
 ;CacheDir = "./j2kDecodeCache"
-;CacheTimeout = 60
+;CacheTimeout = 720
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

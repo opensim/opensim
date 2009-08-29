@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -38,6 +39,7 @@ using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
@@ -56,8 +58,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         private readonly Dictionary<UUID, OpenJPEG.J2KLayerInfo[]> m_cacheddecode = new Dictionary<UUID, OpenJPEG.J2KLayerInfo[]>();
         private bool OpenJpegFail = false;
         private string CacheFolder = Util.dataDir() + "/j2kDecodeCache";
-        private int CacheTimeout = 60;
-        private J2KDecodeFileCache fCache;
+        private int CacheTimeout = 720;
+        private J2KDecodeFileCache fCache = null;
+        private Thread CleanerThread = null;
+        private IAssetService AssetService = null;
+        private Scene m_Scene = null;
 
         /// <summary>
         /// List of client methods to notify of results of decode
@@ -70,6 +75,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         public void Initialise(Scene scene, IConfigSource source)
         {
+            if (m_Scene == null)
+                m_Scene = scene;
+
             IConfig j2kConfig = source.Configs["J2KDecoder"];
             if (j2kConfig != null)
             {
@@ -77,14 +85,23 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 CacheTimeout = j2kConfig.GetInt("CacheTimeout", CacheTimeout);
             }
 
-            fCache = new J2KDecodeFileCache(CacheFolder, CacheTimeout);
+            if (fCache == null)
+                fCache = new J2KDecodeFileCache(CacheFolder, CacheTimeout);
 
             scene.RegisterModuleInterface<IJ2KDecoder>(this);
+
+            if (CleanerThread == null && CacheTimeout != 0)
+            {
+                CleanerThread = new Thread(CleanCache);
+                CleanerThread.Name = "J2KCleanerThread";
+                CleanerThread.IsBackground = true;
+                CleanerThread.Start();
+            }
         }
 
         public void PostInitialise()
         {
-            
+            AssetService = m_Scene.AssetService;
         }
 
         public void Close()
@@ -340,8 +357,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             // Cache Decoded layers
             lock (m_cacheddecode)
             {
-                if (!m_cacheddecode.ContainsKey(AssetId))
-                    m_cacheddecode.Add(AssetId, layers);
+                if (m_cacheddecode.ContainsKey(AssetId))
+                    m_cacheddecode.Remove(AssetId);
+                m_cacheddecode.Add(AssetId, layers);
 
             }            
 
@@ -358,6 +376,28 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     m_notifyList.Remove(AssetId);
                 }
             }
+        }
+        
+        private void CleanCache()
+        {
+            m_log.Info("[J2KDecoderModule]: Cleaner thread started");
+
+            while (true)
+            {
+                if (AssetService != null)
+                    fCache.ScanCacheFiles(RedecodeTexture);
+
+                System.Threading.Thread.Sleep(600000);
+            }
+        }
+
+        private void RedecodeTexture(UUID assetID)
+        {
+            AssetBase texture = AssetService.Get(assetID.ToString());
+            if (texture == null)
+                return;
+
+            doJ2kDecode(assetID, texture.Data);
         }
     }
 
@@ -656,7 +696,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 {
                     File.Delete(f.Name);
                     decode(AssetIdFromFileName(f.Name));
-                    System.Threading.Thread.Sleep(2000);
+                    System.Threading.Thread.Sleep(5000);
                 }
             }
         }
