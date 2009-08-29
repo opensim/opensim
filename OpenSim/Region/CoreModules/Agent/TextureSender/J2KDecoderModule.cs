@@ -41,6 +41,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
+    public delegate void J2KDecodeDelegate(UUID AssetId);
+
     public class J2KDecoderModule : IRegionModule, IJ2KDecoder
     {
         #region IRegionModule Members
@@ -437,15 +439,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 return false;
             }
 
-            DateTime creationTime = File.GetCreationTime(filename);
-            TimeSpan fileAge = DateTime.Now - creationTime;
-
-            if (m_cacheTimeout != 0 && fileAge >= TimeSpan.FromMinutes(m_cacheTimeout))
-            {
-                File.Delete(filename);
-                return false;
-            }
-
             string readResult = string.Empty;
 
             try
@@ -575,6 +568,16 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             return String.Format("j2kCache_{0}.cache", AssetId);
         }
 
+        public UUID AssetIdFromFileName(string fileName)
+        {
+            string rawId = fileName.Replace("j2kCache_", "").Replace(".cache", "");
+            UUID asset;
+            if (!UUID.TryParse(rawId, out asset))
+                return UUID.Zero;
+
+            return asset;
+        }
+
         /// <summary>
         /// Creates the Cache Folder
         /// </summary>
@@ -637,6 +640,24 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     "[J2KDecodeCache]: Cache Directory does not exist and create failed because of an unknown exception.  Cache disabled!  Error: {0}",
                     e.ToString());
                 enabled = false;
+            }
+        }
+
+        public void ScanCacheFiles(J2KDecodeDelegate decode)
+        {
+            DirectoryInfo dir = new DirectoryInfo(m_cacheDecodeFolder);
+            FileInfo[] files = dir.GetFiles("j2kCache_*.cache");
+
+            foreach (FileInfo f in files)
+            {
+                TimeSpan fileAge = DateTime.Now - f.CreationTime;
+
+                if (m_cacheTimeout != 0 && fileAge >= TimeSpan.FromMinutes(m_cacheTimeout))
+                {
+                    File.Delete(f.Name);
+                    decode(AssetIdFromFileName(f.Name));
+                    System.Threading.Thread.Sleep(2000);
+                }
             }
         }
     }
