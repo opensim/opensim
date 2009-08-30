@@ -2097,7 +2097,8 @@ if (m_shape != null) {
             if (PhysActor != null)
             {
                 Vector3 newpos = new Vector3(PhysActor.Position.GetBytes(), 0);
-                if (newpos.X > 257f || newpos.X < -1f || newpos.Y > 257f || newpos.Y < -1f)
+                
+                if (m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.N) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.S) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.E) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
                 {
                     m_parentGroup.AbsolutePosition = newpos;
                     return;
