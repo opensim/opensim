@@ -90,6 +90,7 @@ namespace OpenSim.Framework.Capabilities
         public UUID agent_id; 
         public int descendents;
         public UUID folder_id; 
+        public OSDArray categories = new OSDArray();
         public OSDArray items = new OSDArray();
         public UUID owner_id; 
         public int version;

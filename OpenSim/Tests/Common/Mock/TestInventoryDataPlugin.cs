@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -39,7 +41,9 @@ namespace OpenSim.Tests.Common.Mock
     /// tests are single threaded.
     /// </summary>
     public class TestInventoryDataPlugin : IInventoryDataPlugin
-    {           
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <value>
         /// Inventory folders
         /// </value>
@@ -87,6 +91,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public InventoryFolderBase getUserRootFolder(UUID user)
         {
+            m_log.DebugFormat("[MOCK INV DB]: Looking for root folder for {0}", user);
+            
             InventoryFolderBase folder = null;
             m_rootFolders.TryGetValue(user, out folder);
 
@@ -124,7 +130,11 @@ namespace OpenSim.Tests.Common.Mock
             m_folders[folder.ID] = folder;
 
             if (folder.ParentID == UUID.Zero)
+            {
+                m_log.DebugFormat(
+                    "[MOCK INV DB]: Adding root folder {0} {1} for {2}", folder.Name, folder.ID, folder.Owner);
                 m_rootFolders[folder.Owner] = folder;
+            }
         }
 
         public void updateInventoryFolder(InventoryFolderBase folder)

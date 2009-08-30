@@ -13,7 +13,7 @@ people that make the day to day of OpenSim happen.
 * lbsa71 (Tribal Media AB)
 * Sean Dague / sdague (IBM)
 * Tedd
-* justincc (Black Dress Technology)
+* justincc
 * Teravus (w3z)
 * Johan Berntsson (3Di)
 * Ckrinke (Charles Krinke)
@@ -29,6 +29,7 @@ people that make the day to day of OpenSim happen.
 * nlin (3Di)
 * Arthur Rodrigo S Valadares (IBM)
 
+
 = Past Open Sim Developers =
 These folks are alumns of the OpenSim core group, but are now
 currently not active.  Their great contributions helped get us to
@@ -43,6 +44,7 @@ where we are today.
 * Dalien
 * Darok
 * Alondria
+
 
 = Additional OpenSim Contributors =
 These folks have contributed code patches to OpenSim to help make it
@@ -90,6 +92,7 @@ what it is today.
 * maimedleech
 * Mic Bowman
 * Michelle Argus
+* Michael Cortez (The Flotsam Project, http://osflotsam.org/)
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
@@ -123,8 +126,7 @@ what it is today.
 * Zha Ewry
 
 
-
-LSL Devs
+= LSL Devs =
 
 * Alondria
 * CharlieO
@@ -132,17 +134,13 @@ LSL Devs
 * Melanie Thielker
 
 
-Testers
+= Testers =
 
 * Ai Austin
 * CharlieO (LSL)
 * Ckrinke
 * openlifegrid.com
 
-
-AssetInventory Server and some plugins are based on Cable Beach
-Cable Beach is Copyright (c) 2008 Intel Corporation
-see http://forge.opensimulator.org/gf/project/assetserver/
 
 This software uses components from the following developers:
 * Sleepycat Software (Berkeley DB)
@@ -160,6 +158,10 @@ This software uses components from the following developers:
 * Nini (http://nini.sourceforge.net/)
 * log4net (http://logging.apache.org/log4net/)
 * GlynnTucker.Cache (http://gtcache.sourceforge.net/)
+
+Some plugins are based on Cable Beach
+Cable Beach is Copyright (c) 2008 Intel Corporation
+see http://forge.opensimulator.org/gf/project/assetserver/
 
 In addition, we would like to thank:
 * The Mono Project

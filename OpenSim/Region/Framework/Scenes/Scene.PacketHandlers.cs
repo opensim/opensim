@@ -472,8 +472,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
         /// <returns>null if the inventory look up failed</returns>
-        public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
-                                                   bool fetchFolders, bool fetchItems, int sortOrder)
+        public InventoryCollection HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
+                                                   bool fetchFolders, bool fetchItems, int sortOrder, out int version)
         {
 //            m_log.DebugFormat(
 //                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
@@ -487,11 +487,31 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryFolderImpl fold;
             if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
             {
-                return fold.RequestListOfItems();
+                version = 0;
+                InventoryCollection ret = new InventoryCollection();
+                ret.Folders = new List<InventoryFolderBase>();
+                ret.Items = fold.RequestListOfItems();
+
+                return ret;
             }
 
             InventoryCollection contents = InventoryService.GetFolderContent(agentID, folderID);
-            return contents.Items;
+
+            if (folderID != UUID.Zero)
+            {
+                InventoryFolderBase containingFolder = new InventoryFolderBase();
+                containingFolder.ID = folderID;
+                containingFolder.Owner = agentID;
+                containingFolder = InventoryService.GetFolder(containingFolder);
+                version = containingFolder.Version;
+            }
+            else
+            {
+                // Lost itemsm don't really need a version
+                version = 1;
+            }
+
+            return contents;
 
         }        
         

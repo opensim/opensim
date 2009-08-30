@@ -1063,7 +1063,18 @@ namespace OpenSim.Framework.Communications.Services
         protected abstract RegionInfo RequestClosestRegion(string region);
         protected abstract RegionInfo GetRegionInfo(ulong homeRegionHandle);
         protected abstract RegionInfo GetRegionInfo(UUID homeRegionId);
-        protected abstract bool PrepareLoginToRegion(RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint client);
+
+        /// <summary>
+        /// Prepare a login to the given region.  This involves both telling the region to expect a connection
+        /// and appropriately customising the response to the user.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <param name="user"></param>
+        /// <param name="response"></param>
+        /// <param name="remoteClient"></param>
+        /// <returns>true if the region was successfully contacted, false otherwise</returns>        
+        protected abstract bool PrepareLoginToRegion(
+            RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint client);
 
         /// <summary>
         /// Add active gestures of the user to the login response.

@@ -484,6 +484,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     GetParams(partsDelimiter, ref nextLine, 11, ref points);
                     graph.FillPolygon(myBrush, points);
                 }
+                else if (nextLine.StartsWith("Polygon"))
+                {
+                    PointF[] points = null;
+                    GetParams(partsDelimiter, ref nextLine, 7, ref points);
+                    graph.DrawPolygon(drawPen, points);
+                }
                 else if (nextLine.StartsWith("Ellipse"))
                 {
                     float x = 0;

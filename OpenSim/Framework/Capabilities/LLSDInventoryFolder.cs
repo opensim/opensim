@@ -27,71 +27,15 @@
 
 using OpenMetaverse;
 
-namespace OpenSim.Framework
+namespace OpenSim.Framework.Capabilities
 {
-    /// <summary>
-    /// User inventory folder
-    /// </summary>
-    public class InventoryFolderBase : InventoryNodeBase
+    [OSDMap]
+    public class LLSDInventoryFolder
     {
-        /// <summary>
-        /// The folder this folder is contained in
-        /// </summary>
-        private UUID _parentID;
-
-        /// <summary>
-        /// Type of items normally stored in this folder
-        /// </summary>
-        private short _type;
-
-        /// <summary>
-        /// This is used to denote the version of the client, needed
-        /// because of the changes clients have with inventory from
-        /// time to time (1.19.1 caused us some fits there).
-        /// </summary>
-        private ushort _version;
-
-        public virtual UUID ParentID
-        {
-            get { return _parentID; }
-            set { _parentID = value; }
-        }
-
-        public virtual short Type
-        {
-            get { return _type; }
-            set { _type = value; }
-        }
-
-        public virtual ushort Version
-        {
-            get { return _version; }
-            set { _version = value; }
-        }
-
-        public InventoryFolderBase()
-        {
-        }
-
-        public InventoryFolderBase(UUID id)
-        {
-            ID = id;
-        }
-
-        public InventoryFolderBase(UUID id, UUID owner)
-        {
-            ID = id;
-            Owner = owner;
-        }
-
-        public InventoryFolderBase(UUID id, string name, UUID owner, short type, UUID parent, ushort version)
-        {
-            ID = id;
-            Name = name;
-            Owner = owner;
-            Type = type;
-            ParentID = parent;
-            Version = version;
-        }
+        public UUID folder_id;
+        public UUID parent_id;
+        public string name;
+        public string type;
+        public string preferred_type;
     }
 }

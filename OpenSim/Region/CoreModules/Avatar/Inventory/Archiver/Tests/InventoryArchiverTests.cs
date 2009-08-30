@@ -45,6 +45,7 @@ using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -102,18 +103,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Monitor.Wait(this, 60000);
             }
 
-            /*
-            cm.UserAdminService.AddUser(userFirstName, userLastName, string.Empty, string.Empty, 1000, 1000, userId);
-            CachedUserInfo userInfo = cm.UserProfileCacheService.GetUserDetails(userId, InventoryReceived);
-            userInfo.FetchInventory();
-            for (int i = 0 ; i < 50 ; i++)
-            {
-                if (userInfo.HasReceivedInventory == true)
-                    break;
-                Thread.Sleep(200);
-            }
-            Assert.That(userInfo.HasReceivedInventory, Is.True, "FetchInventory timed out (10 seconds)");
-            */
+            Console.WriteLine("here");
 
             // Create asset
             SceneObjectGroup object1;
@@ -148,7 +138,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             //userInfo.RootFolder.FindFolderByPath("Objects").ID;
-            InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            //InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
+            Console.WriteLine("here2");
+            IInventoryService inventoryService = scene.InventoryService;
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+            InventoryCollection rootContents = inventoryService.GetFolderContent(userId, rootFolder.ID);
+            InventoryFolderBase objsFolder = null;
+            foreach (InventoryFolderBase folder in rootContents.Folders)
+                if (folder.Name == "Objects")
+                    objsFolder = folder;
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 

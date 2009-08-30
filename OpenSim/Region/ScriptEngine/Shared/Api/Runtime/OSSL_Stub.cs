@@ -267,6 +267,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osDrawFilledRectangle(drawList, width, height);
         }
 
+        public string osDrawPolygon(string drawList, LSL_List x, LSL_List y)
+        {
+            return m_OSSL_Functions.osDrawPolygon(drawList, x, y);
+        }
+
         public string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y)
         {
             return m_OSSL_Functions.osDrawFilledPolygon(drawList, x, y);
