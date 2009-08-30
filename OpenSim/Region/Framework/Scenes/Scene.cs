@@ -3377,6 +3377,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (!result)
                     regionHandle = m_regInfo.RegionHandle;
+                else
+                {
+                    // not in this region, undo the shift!
+                    position.X -= shiftx;
+                    position.Y -= shifty;
+                }
 
                 if (m_teleportModule != null)
                 {
