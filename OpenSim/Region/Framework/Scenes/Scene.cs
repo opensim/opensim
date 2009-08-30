@@ -337,22 +337,22 @@ namespace OpenSim.Region.Framework.Scenes
             BordersLocked = true;
 
             Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
+            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
             northBorder.CrossDirection = Cardinals.N;
             NorthBorders.Add(northBorder);
 
             Border southBorder = new Border();
-            southBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);    //--->
+            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0);    //--->
             southBorder.CrossDirection = Cardinals.S;
             SouthBorders.Add(southBorder);
 
             Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);   //<---
+            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);   //<---
             eastBorder.CrossDirection = Cardinals.E;
             EastBorders.Add(eastBorder);
 
             Border westBorder = new Border();
-            westBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);     //--->
+            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0);     //--->
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
 
