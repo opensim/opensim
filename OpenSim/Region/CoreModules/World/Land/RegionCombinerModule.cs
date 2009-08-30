@@ -28,7 +28,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
-            
+            //enabledYN = true;
         }
 
         public void Close()
@@ -40,6 +40,26 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             if (!enabledYN)
                 return;
+
+            Border northBorder = new Border();
+            northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
+            northBorder.CrossDirection = Cardinals.N;
+            scene.NorthBorders[0] = northBorder;
+
+            Border southBorder = new Border();
+            southBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);    //--->
+            southBorder.CrossDirection = Cardinals.S;
+            scene.SouthBorders[0] = southBorder;
+
+            Border eastBorder = new Border();
+            eastBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);   //<---
+            eastBorder.CrossDirection = Cardinals.E;
+            scene.EastBorders[0] = eastBorder;
+
+            Border westBorder = new Border();
+            westBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, 0);     //--->
+            westBorder.CrossDirection = Cardinals.W;
+            scene.WestBorders[0] = westBorder;
 
             RegionConnections regionConnections = new RegionConnections();
             regionConnections.ConnectedRegions = new List<RegionData>();
