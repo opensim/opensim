@@ -10,7 +10,7 @@
     <Extension path = "/OpenSim/RegionModules">
         <RegionModule id="CapabilitiesModule" type="OpenSim.Region.CoreModules.Agent.Capabilities.CapabilitiesModule" />
         <RegionModule id="TerrainModule" type="OpenSim.Region.CoreModules.World.Terrain.TerrainModule" />
-        <RegionModule id="PhysicsCombiner" type="OpenSim.Region.CoreModules.World.Land.PhysicsCombiner" />
+        <RegionModule id="RegionCombinerModule" type="OpenSim.Region.CoreModules.World.Land.RegionCombinerModule" />
         <RegionModule id="WorldMapModule" type="OpenSim.Region.CoreModules.World.WorldMap.WorldMapModule" />
         <RegionModule id="HGWorldMapModule" type="OpenSim.Region.CoreModules.Hypergrid.HGWorldMapModule" />
         <RegionModule id="UrlModule" type="OpenSim.Region.CoreModules.Scripting.LSLHttp.UrlModule" />

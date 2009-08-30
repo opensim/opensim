@@ -10,11 +10,11 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
-    public class PhysicsCombiner : ISharedRegionModule
+    public class RegionCombinerModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "PhysicsCombiner";}  }
+        public string Name { get { return "RegionCombinerModule"; } }
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -23,10 +23,11 @@ namespace OpenSim.Region.CoreModules.World.Land
         public Type ReplacableInterface { get { return null; } }
 
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
-        private bool enabledYN = true;
+        private bool enabledYN = false;
         public void Initialise(IConfigSource source)
         {
-            
+            IConfig myConfig = source.Configs["Startup"];
+            enabledYN = myConfig.GetBoolean("CombineContiguiousRegions", false);
         }
 
         public void Close()
