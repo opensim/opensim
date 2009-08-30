@@ -27,7 +27,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void Initialise(IConfigSource source)
         {
             IConfig myConfig = source.Configs["Startup"];
-            enabledYN = myConfig.GetBoolean("CombineContiguiousRegions", false);
+            enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
+            
         }
 
         public void Close()
@@ -528,7 +529,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
-            m_log.DebugFormat("[LANDPARCELNEARPOINT]: {0}>", position);
+            //m_log.DebugFormat("[LANDPARCELNEARPOINT]: {0}>", position);
             return RootRegionLandChannel.ParcelsNearPoint(position - RegData.Offset);
         }
 
@@ -541,7 +542,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public ILandObject GetLandObject(int x, int y)
         {
-            m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
+            //m_log.DebugFormat("[BIGLANDTESTINT]: <{0},{1}>", x, y);
 
             if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
             {
@@ -574,7 +575,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public ILandObject GetLandObject(float x, float y)
         {
-            m_log.DebugFormat("[BIGLANDTESTFLOAT]: <{0},{1}>", x, y);
+            //m_log.DebugFormat("[BIGLANDTESTFLOAT]: <{0},{1}>", x, y);
             
             if (x > 0 && x <= (int)Constants.RegionSize && y > 0 && y <= (int)Constants.RegionSize)
             {
