@@ -19,7 +19,7 @@ people that make the day to day of OpenSim happen.
 * Ckrinke (Charles Krinke)
 * chi11ken (Genkii)
 * adjohn (Genkii)
-* Dr Scofield aka Dirk Husemann (IBM)
+* Dr Scofield aka Dirk Husemann (IBM Research - Zurich)
 * dahlia
 * mikem (3Di)
 * Melanie Thielker
