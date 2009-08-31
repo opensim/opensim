@@ -8,6 +8,7 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
+      <RegionModule id="RegionReady"           type="OpenSim.Region.OptionalModules.Scripting.RegionReady.RegionReadyModule" />
       <RegionModule id="IRCBridge"             type="OpenSim.Region.OptionalModules.Avatar.Chat.IRCBridgeModule" />
       <RegionModule id="Concierge"             type="OpenSim.Region.OptionalModules.Avatar.Concierge.ConciergeModule" />
       <RegionModule id="VivoxVoice"            type="OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice.VivoxVoiceModule" />

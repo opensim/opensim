@@ -37,11 +37,13 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Scripting.RegionReady
+namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 {
-    public class RegionReady : IRegionModule
+    public class RegionReadyModule : INonSharedRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = 
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IConfig m_config = null;
         private bool m_firstEmptyCompileQueue;
         private bool m_oarFileLoading;
@@ -51,15 +53,17 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
         
         Scene m_scene = null;
         
-        #region IRegionModule interface
+        #region INonSharedRegionModule interface
+
+        public Type ReplaceableInterface 
+        { 
+            get { return null; }
+        }
             
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             m_log.Info("[RegionReady] Initialising");
-            m_scene = scene;
-            m_firstEmptyCompileQueue = true;
-            m_oarFileLoading = false;
-            m_lastOarLoadedOk = true;
+
             m_config = config.Configs["RegionReady"];
 
             if (m_config != null) 
@@ -70,34 +74,50 @@ namespace OpenSim.Region.CoreModules.Scripting.RegionReady
                     m_channelNotify = m_config.GetInt("channel_notify", m_channelNotify);
                 } 
             }
+
+            if (!m_enabled)
+                m_log.Info("[RegionReady] disabled.");
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
         {
-            if (m_enabled) 
-            {
-                m_log.Info("[RegionReady]: Enabled");
-                m_scene.EventManager.OnEmptyScriptCompileQueue += new EventManager.EmptyScriptCompileQueue(OnEmptyScriptCompileQueue);
-                m_scene.EventManager.OnOarFileLoaded += new EventManager.OarFileLoaded(OnOarFileLoaded);
-            }
-            else
-            {
-                m_log.Info("[RegionReady]: Disabled");
-            }
+            if (!m_enabled)
+                return;
+
+            m_firstEmptyCompileQueue = true;
+            m_oarFileLoading = false;
+            m_lastOarLoadedOk = true;
+
+            m_scene = scene;
+
+            m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
+            m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
+
+            m_log.InfoFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_enabled)
+                return;
+
+            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
+            m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
+
+            m_scene = null;
         }
 
         public void Close()
         {
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
         public string Name
         {
             get { return "RegionReadyModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion
