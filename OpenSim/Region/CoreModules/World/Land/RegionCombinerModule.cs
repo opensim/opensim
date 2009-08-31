@@ -20,8 +20,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             get { return null; }
         }
 
-        public Type ReplacableInterface { get { return null; } }
-
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
         private bool enabledYN = false;
         public void Initialise(IConfigSource source)
