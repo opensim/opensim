@@ -282,6 +282,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osSetFontSize(drawList, fontSize);
         }
 
+        public string osSetFontName(string drawList, string fontName)
+        {
+            return m_OSSL_Functions.osSetFontName(drawList, fontName);
+        }
+
         public string osSetPenSize(string drawList, int penSize)
         {
             return m_OSSL_Functions.osSetPenSize(drawList, penSize);

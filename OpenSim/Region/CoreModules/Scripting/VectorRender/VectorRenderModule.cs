@@ -51,6 +51,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
         private Graphics m_graph;
+        private string m_fontName = "Arial";
 
         public VectorRenderModule()
         {
@@ -122,6 +123,12 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
                 m_graph = Graphics.FromImage(bitmap);
+            }
+
+            IConfig cfg = config.Configs["VectorRender"];
+            if (null != cfg)
+            {
+                m_fontName = cfg.GetString("font_name", m_fontName);
             }
         }
 
@@ -397,7 +404,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
             Pen drawPen = new Pen(Color.Black, 7);
-            string fontName = "Arial";
+            string fontName = m_fontName;
             float fontSize = 14;
             Font myFont = new Font(fontName, fontSize);
             SolidBrush myBrush = new SolidBrush(Color.Black);
@@ -449,8 +456,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     }
                     else
                     {
-                        graph.DrawString("URL couldn't be resolved or is", new Font("Arial",6), myBrush, startPoint);
-                        graph.DrawString("not an image. Please check URL.", new Font("Arial", 6), myBrush, new Point(startPoint.X, 12 + startPoint.Y));
+                        graph.DrawString("URL couldn't be resolved or is", new Font(m_fontName,6), 
+                                         myBrush, startPoint);
+                        graph.DrawString("not an image. Please check URL.", new Font(m_fontName, 6), 
+                                         myBrush, new Point(startPoint.X, 12 + startPoint.Y));
                         graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                     }
                     startPoint.X += endPoint.X;

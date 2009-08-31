@@ -880,6 +880,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return drawList;
         }
 
+        public string osSetFontName(string drawList, string fontName)
+        {
+            CheckThreatLevel(ThreatLevel.None, "osSetFontName");
+
+            m_host.AddScriptLPS(1);
+            drawList += "FontName "+ fontName +"; ";
+            return drawList;
+        }
+
         public string osSetPenSize(string drawList, int penSize)
         {
             CheckThreatLevel(ThreatLevel.None, "osSetPenSize");
