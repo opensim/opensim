@@ -172,40 +172,50 @@
     <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Framework.Servers.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
     <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.ClientStack.LindenUDP.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ClientStack.LindenUDP.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.ScriptEngine.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ScriptEngine.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.CoreModules.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
     <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.CoreModules.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.Framework.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
     <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.Framework.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Data.SQLite.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
     <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Data.SQLite.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Data.MySQL.Tests">
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
     <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Data.MySQL.Tests.dll-Results.xml" />
   </exec>
+
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
 
 </target>
 <!--     <exec program="nunit-console.exe" failonerror="false" resultproperty="testresult.acceptancetestassembly"> -->
