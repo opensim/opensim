@@ -34,10 +34,10 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 {
     public interface ICompiler
     {
-        string PerformScriptCompile(string source, string asset, UUID ownerID);
+        object PerformScriptCompile(string source, string asset, UUID ownerID);
         string[] GetWarnings();
         Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 LineMap();
-        string GetAssemblyName(UUID assetID);
+        object GetCompilerOutput(UUID assetID);
     }
 }

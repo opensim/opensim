@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             {
                 // Compile (We assume LSL)
                 CompiledScriptFile =
-                        LSLCompiler.PerformScriptCompile(Script,
+                        (string)LSLCompiler.PerformScriptCompile(Script,
                         assetID.ToString(), taskInventoryItem.OwnerID);
 
                 if (presence != null && (!postOnRez))

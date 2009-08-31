@@ -259,7 +259,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         //    }
         //}
 
-        public string GetAssemblyName(UUID assetID)
+        public object GetCompilerOutput(UUID assetID)
         {
             return Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
@@ -271,7 +271,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// </summary>
         /// <param name="Script">LSL script</param>
         /// <returns>Filename to .dll assembly</returns>
-        public string PerformScriptCompile(string Script, string asset, UUID ownerUUID)
+        public object PerformScriptCompile(string Script, string asset, UUID ownerUUID)
         {
             m_positionMap = null;
             m_warnings.Clear();
