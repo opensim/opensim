@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 m_fontName = cfg.GetString("font_name", m_fontName);
             }
-            m_log.DebugFormat("[VECTORRENDERMODULE]: using font \"{0}\" for text rendering.");
+            m_log.DebugFormat("[VECTORRENDERMODULE]: using font \"{0}\" for text rendering.", m_fontName);
         }
 
         public void PostInitialise()
