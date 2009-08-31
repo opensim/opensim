@@ -38,23 +38,41 @@ namespace OpenSim.Region.CoreModules.World.Archiver
     /// <summary>
     /// This module loads and saves OpenSimulator region archives
     /// </summary>
-    public class ArchiverModule : IRegionModule, IRegionArchiverModule
+    public class ArchiverModule : INonSharedRegionModule, IRegionArchiverModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = 
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
 
-        public string Name { get { return "Region Archiver Module"; } }
+        public string Name 
+        { 
+            get { return "RegionArchiverModule"; } 
+        }
 
-        public bool IsSharedModule { get { return false; } }
+        public Type ReplaceableInterface 
+        { 
+            get { return null; }
+        }
 
-        public void Initialise(Scene scene, IConfigSource source)
+
+        public void Initialise(IConfigSource source)
+        {
+            m_log.Info("[ARCHIVER] Initialising");
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IRegionArchiverModule>(this);
+            m_log.InfoFormat("[ARCHIVER]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
         {
         }
 
