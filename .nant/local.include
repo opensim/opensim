@@ -156,25 +156,86 @@
 
 </target>
 
+<!-- this is used for panda test execution -->
+<!-- work in progress -->
 
 <target name="test-xml" depends="build">
-      <nunit2 failonerror="true" verbose="true">
-      <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" />
-      <test>
-        <assemblies>
-          <include name="./bin/OpenSim.Framework.Tests.dll" />
-          <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/>
-          <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
-          <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
-          <include name="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
-          <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Framework.Tests.dll" />
-          <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
-          <include name="./bin/OpenSim.Data.MySQL.Tests.dll" />
-        </assemblies>
-      </test>
-    </nunit2>
+  <mkdir dir="test-results" failonerror="false" />
+  <!-- Unit Test Assembly -->
+  <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.tests">
+    <arg value="./bin/OpenSim.Framework.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Framework.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
+    <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Framework.Servers.Tests">
+    <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.ClientStack.LindenUDP.Tests">
+    <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Region.ClientStack.LindenUDP.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.ScriptEngine.Tests">
+    <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Region.ScriptEngine.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.CoreModules.Tests">
+    <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Region.CoreModules.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Region.Framework.Tests">
+    <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Region.Framework.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Data.SQLite.Tests">
+    <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Data.SQLite.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="nunit-console2" failonerror="false" resultproperty="testresult.OpenSim.Data.MySQL.Tests">
+    <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Data.MySQL.Tests.dll-Results.xml" />
+  </exec>
+
 </target>
+<!--     <exec program="nunit-console.exe" failonerror="false" resultproperty="testresult.acceptancetestassembly"> -->
+<!--         <arg value="AcceptanceTestAssembly.dll" /> -->
+<!--         <arg value="/xml=AcceptanceTestAssembly-Results.xml" /> -->
+<!--     </exec> -->
+
+<!--     <fail message="Failures reported in unit tests." unless="${int::parse(testresult.unittestassembly)==0}" /> -->
+<!--     <fail message="Failures reported in acceptance tests." unless="${int::parse(testresult.acceptancetestassembly)==0}" /> -->
+<!-- </target> -->
+
+
+
+<!--       <nunit2 failonerror="true" verbose="true"> -->
+<!--       <formatter type="Xml" usefile="true" extension=".xml" outputdir="./test-results" /> -->
+<!--       <test> -->
+<!--         <assemblies> -->
+<!--           <include name="./bin/OpenSim.Framework.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/> -->
+<!--           <include name="./bin/OpenSim.Framework.Servers.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Region.ScriptEngine.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Region.Framework.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Data.SQLite.Tests.dll" /> -->
+<!--           <include name="./bin/OpenSim.Data.MySQL.Tests.dll" /> -->
+<!--         </assemblies> -->
+<!--       </test> -->
+<!--     </nunit2> -->
+<!-- </target> -->
 
 <target name="doxygen">
   <exec program="doxygen" workingdir="doc" commandline="doxygen.conf" />
