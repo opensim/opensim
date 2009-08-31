@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// has registered the interface by then, this module will be
         /// activated, else it will remain inactive, letting the other module
         /// take over. This should return non-null ONLY in modules that are
-        /// intended to be easily replacable, e.g. stub implementations
+        /// intended to be easily replaceable, e.g. stub implementations
         /// that the developer expects to be replaced by third party provided
         /// modules.
         /// </summary>

@@ -99,6 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osDrawFilledRectangle(string drawList, int width, int height);
         string osDrawPolygon(string drawList, LSL_List x, LSL_List y);
         string osDrawFilledPolygon(string drawList, LSL_List x, LSL_List y);
+        string osSetFontName(string drawList, string fontName);
         string osSetFontSize(string drawList, int fontSize);
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColour(string drawList, string colour);
