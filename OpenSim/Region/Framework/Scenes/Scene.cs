@@ -1710,7 +1710,12 @@ namespace OpenSim.Region.Framework.Scenes
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
 
-            ulong newRegionHandle = 0;
+            
+            // use this if no borders were crossed!
+            ulong newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx) * Constants.RegionSize),
+                                           (uint)((thisy) * Constants.RegionSize));
+
             Vector3 pos = attemptedPosition;
 
             if (TestBorderCross(attemptedPosition, Cardinals.W))

@@ -3509,8 +3509,8 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // Set the parent localID to 0 so it transfers over properly.
                         gobj.RootPart.SetParentLocalId(0);
-                        gobj.RootPart.IsAttachment = false;
                         gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
+                        gobj.RootPart.IsAttachment = false;
                         //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
                         m_log.DebugFormat("[ATTACHMENT]: Sending attachment {0} to region {1}", gobj.UUID, regionHandle);
                         m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj, silent);
