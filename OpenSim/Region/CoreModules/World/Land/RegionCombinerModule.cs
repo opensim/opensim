@@ -14,7 +14,10 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "RegionCombinerModule"; } }
+        public string Name { get
+        {
+            return "RegionCombinerModule";
+        } }
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -22,11 +25,15 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
         private bool enabledYN = false;
+        private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
+
         public void Initialise(IConfigSource source)
         {
+         
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
             //enabledYN = true;
+           
         }
 
         public void Close()
@@ -36,8 +43,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void AddRegion(Scene scene)
         {
+           
             if (!enabledYN)
                 return;
+
+            lock (m_startingScenes)
+                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
 
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
@@ -464,11 +475,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                     
             }
+            
         }
 
         public void RemoveRegion(Scene scene)
         {
-            
+           
+                
         }
 
         public void RegionLoaded(Scene scene)
@@ -480,9 +493,62 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             
         }
-        public void OnFrame()
+        
+        // Create a set of infinite borders around the whole aabb of the combined island.
+        private void MakeLargeRegionBounds()
         {
-            
+            lock (m_regions)
+            {
+                foreach (RegionConnections rconn in m_regions.Values)
+                {
+                    Vector3 offset = Vector3.Zero;
+                    rconn.RegionScene.BordersLocked = true;
+                    foreach (RegionData rdata in rconn.ConnectedRegions)
+                    {
+                        if (rdata.Offset.X > offset.X) offset.X = rdata.Offset.X;
+                        if (rdata.Offset.Y > offset.Y) offset.Y = rdata.Offset.Y;
+
+                    }
+
+                    lock (rconn.RegionScene.NorthBorders)
+                    {
+                        Border northBorder = new Border();
+                        northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,
+                                                             offset.Y); //<---
+                        northBorder.CrossDirection = Cardinals.N;
+                        rconn.RegionScene.NorthBorders.Add(northBorder);
+                    }
+
+                    lock (rconn.RegionScene.SouthBorders)
+                    {
+                        Border southBorder = new Border();
+                        southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
+                        southBorder.CrossDirection = Cardinals.S;
+                        rconn.RegionScene.SouthBorders.Add(southBorder);
+                    }
+
+                    lock (rconn.RegionScene.EastBorders)
+                    {
+                        Border eastBorder = new Border();
+                        eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.Y);
+                        //<---
+                        eastBorder.CrossDirection = Cardinals.E;
+                        rconn.RegionScene.EastBorders.Add(eastBorder);
+                    }
+
+                    lock (rconn.RegionScene.WestBorders)
+                    {
+                        Border westBorder = new Border();
+                        westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
+                        westBorder.CrossDirection = Cardinals.W;
+                        rconn.RegionScene.WestBorders.Add(westBorder);
+                    }
+
+
+
+                    rconn.RegionScene.BordersLocked = false;
+                }
+            }
         }
 
        

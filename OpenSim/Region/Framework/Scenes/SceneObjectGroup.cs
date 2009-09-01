@@ -1477,7 +1477,25 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup dupe = (SceneObjectGroup)MemberwiseClone();
             dupe.m_isBackedUp = false;
             dupe.m_parts = new Dictionary<UUID, SceneObjectPart>();
+
+            // Warning, The following code related to previousAttachmentStatus is needed so that clones of 
+            // attachments do not bordercross while they're being duplicated.  This is hacktastic!
+            // Normally, setting AbsolutePosition will bordercross a prim if it's outside the region!
+            // unless IsAttachment is true!, so to prevent border crossing, we save it's attachment state 
+            // (which should be false anyway) set it as an Attachment and then set it's Absolute Position, 
+            // then restore it's attachment state
+
+            // This is only necessary when userExposed is false!
+
+            bool previousAttachmentStatus = dupe.RootPart.IsAttachment;
+            
+            if (!userExposed)
+                dupe.RootPart.IsAttachment = true;
+
             dupe.AbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
+
+            if (!userExposed)
+                dupe.RootPart.IsAttachment = previousAttachmentStatus;
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
             dupe.m_rootPart.LinkNum = m_rootPart.LinkNum;
