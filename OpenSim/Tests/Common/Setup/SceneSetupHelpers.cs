@@ -248,7 +248,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="modules"></param>
         public static void SetupSceneModules(Scene scene, params object[] modules)
         {
-            SetupSceneModules(scene, null, modules);
+            SetupSceneModules(scene, new IniConfigSource(), modules);
         }
 
         /// <summary>

@@ -65,7 +65,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_log.Info("[RegionReady] Initialising");
 
             m_config = config.Configs["RegionReady"];
-
             if (m_config != null) 
             {
                 m_enabled = m_config.GetBoolean("enabled", false);
