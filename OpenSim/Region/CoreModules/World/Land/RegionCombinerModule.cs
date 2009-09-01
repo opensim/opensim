@@ -475,6 +475,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                     
             }
+            AdjustLargeRegionBounds();
             
         }
 
@@ -495,7 +496,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
         
         // Create a set of infinite borders around the whole aabb of the combined island.
-        private void MakeLargeRegionBounds()
+        private void AdjustLargeRegionBounds()
         {
             lock (m_regions)
             {
@@ -512,36 +513,60 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                     lock (rconn.RegionScene.NorthBorders)
                     {
-                        Border northBorder = new Border();
+                        
+                        Border northBorder = null;
+                        
+                        if (!TryGetInfiniteBorder(rconn.RegionScene.NorthBorders, out northBorder))
+                        {
+                            northBorder = new Border();
+                            rconn.RegionScene.NorthBorders.Add(northBorder);
+                        }
+                        
                         northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,
-                                                             offset.Y); //<---
+                                                             offset.Y + (int) Constants.RegionSize); //<---
                         northBorder.CrossDirection = Cardinals.N;
-                        rconn.RegionScene.NorthBorders.Add(northBorder);
+                        
                     }
 
                     lock (rconn.RegionScene.SouthBorders)
                     {
-                        Border southBorder = new Border();
+                        Border southBorder = null;
+                        if (!TryGetInfiniteBorder(rconn.RegionScene.SouthBorders, out southBorder))
+                        {
+                            southBorder = new Border();
+                            rconn.RegionScene.SouthBorders.Add(southBorder);
+                        }
                         southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
                         southBorder.CrossDirection = Cardinals.S;
-                        rconn.RegionScene.SouthBorders.Add(southBorder);
+                        
                     }
 
                     lock (rconn.RegionScene.EastBorders)
                     {
-                        Border eastBorder = new Border();
-                        eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.Y);
+                        Border eastBorder = null;
+                        if (!TryGetInfiniteBorder(rconn.RegionScene.EastBorders, out eastBorder))
+                        {
+                            eastBorder = new Border();
+                            rconn.RegionScene.EastBorders.Add(eastBorder);
+                        }
+                        eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.X + (int)Constants.RegionSize);
                         //<---
                         eastBorder.CrossDirection = Cardinals.E;
-                        rconn.RegionScene.EastBorders.Add(eastBorder);
+                        
                     }
 
                     lock (rconn.RegionScene.WestBorders)
                     {
-                        Border westBorder = new Border();
+                        Border westBorder = null;
+                        if (!TryGetInfiniteBorder(rconn.RegionScene.WestBorders, out westBorder))
+                        {
+                            westBorder = new Border();
+                            rconn.RegionScene.WestBorders.Add(westBorder);
+
+                        }
                         westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
                         westBorder.CrossDirection = Cardinals.W;
-                        rconn.RegionScene.WestBorders.Add(westBorder);
+                        
                     }
 
 
@@ -551,6 +576,20 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        public static bool TryGetInfiniteBorder(List<Border> borders, out Border oborder)
+        {
+            // Warning! Should be locked before getting here!
+            foreach (Border b in borders)
+            {
+                if (b.BorderLine.X == float.MinValue && b.BorderLine.Y == float.MaxValue)
+                {
+                    oborder = b;
+                    return true;
+                }
+            }
+            oborder = null;
+            return false;
+        }
        
         public RegionData GetRegionFromPosition(Vector3 pPosition)
         {
