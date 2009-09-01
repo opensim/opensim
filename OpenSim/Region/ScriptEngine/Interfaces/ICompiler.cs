@@ -38,6 +38,5 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         string[] GetWarnings();
         Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 LineMap();
-        object GetCompilerOutput(UUID assetID);
     }
 }
