@@ -14,7 +14,10 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get { return "RegionCombinerModule"; } }
+        public string Name { get
+        {
+            return "RegionCombinerModule";
+        } }
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -22,11 +25,15 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private Dictionary<UUID, RegionConnections> m_regions = new Dictionary<UUID, RegionConnections>();
         private bool enabledYN = false;
+        private Dictionary<UUID, Scene> m_startingScenes = new Dictionary<UUID, Scene>();
+
         public void Initialise(IConfigSource source)
         {
+         
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
             //enabledYN = true;
+           
         }
 
         public void Close()
@@ -36,8 +43,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void AddRegion(Scene scene)
         {
+           
             if (!enabledYN)
                 return;
+
+            lock (m_startingScenes)
+                m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
 
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
@@ -464,11 +475,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                     
             }
+            
         }
 
         public void RemoveRegion(Scene scene)
         {
-            
+           
+                
         }
 
         public void RegionLoaded(Scene scene)
@@ -478,10 +491,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void PostInitialise()
         {
-            if (!enabledYN)
-                return;
-
-            // Create a set of infinite borders around the whole aabb of the combined island.
+            
+        }
+        
+        // Create a set of infinite borders around the whole aabb of the combined island.
+        private void MakeLargeRegionBounds()
+        {
             lock (m_regions)
             {
                 foreach (RegionConnections rconn in m_regions.Values)
@@ -499,7 +514,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         Border northBorder = new Border();
                         northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,
-                                                             offset.Y + (int) Constants.RegionSize); //<---
+                                                             offset.Y); //<---
                         northBorder.CrossDirection = Cardinals.N;
                         rconn.RegionScene.NorthBorders.Add(northBorder);
                     }
@@ -515,8 +530,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     lock (rconn.RegionScene.EastBorders)
                     {
                         Border eastBorder = new Border();
-                        eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.Y + (int)Constants.RegionSize);
-                            //<---
+                        eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.Y);
+                        //<---
                         eastBorder.CrossDirection = Cardinals.E;
                         rconn.RegionScene.EastBorders.Add(eastBorder);
                     }
@@ -534,10 +549,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     rconn.RegionScene.BordersLocked = false;
                 }
             }
-        }
-        public void OnFrame()
-        {
-            
         }
 
        
