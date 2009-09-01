@@ -2017,7 +2017,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (attachment)
                     {
                         group.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
-                        group.IsAttachment = true;
+                        group.RootPart.IsAttachment = true;
                     }
 
                     AddNewSceneObject(group, true);
