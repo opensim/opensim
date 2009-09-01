@@ -1,6 +1,7 @@
 <!-- -*- xml -*- -->
-<!-- please leve the top comment for us emacs folks -->
+<!-- please leave the top comment for us emacs folks -->
 <property name="projectdir" value="opensim-0.5.5" />
+<property name="nunitcmd" value="nunit-console" />
 
 <target name="distdir">
    <delete dir="${projectdir}" />
@@ -29,24 +30,56 @@
    <touch file="${projectdir}/bin/startup_commands.txt" />
 </target>
 
-<target name="test" depends="build">
+<target name="test" depends="build, find-nunit">
   <setenv name="MONO_THREADS_PER_CPU" value="100" />
-      <nunit2 failonerror="true" verbose="true">
-      <formatter type="Plain" />
-      <test>
-        <assemblies>
-          <include name="./bin/OpenSim.Framework.Tests.dll" />
-          <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/>
-          <include name="./bin/OpenSim.Framework.Servers.Tests.dll" />
-          <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
-          <include name="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
-          <include name="./bin/OpenSim.Region.CoreModules.Tests.dll" />
-          <include name="./bin/OpenSim.Region.Framework.Tests.dll" />
-          <include name="./bin/OpenSim.Data.SQLite.Tests.dll" />
-          <include name="./bin/OpenSim.Data.MySQL.Tests.dll" />
-        </assemblies>
-      </test>
-    </nunit2>
+
+  <!-- Unit Test Assembly -->
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.tests">
+    <arg value="./bin/OpenSim.Framework.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
+    <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
+    <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
+    <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
+    <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
+    <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
+    <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
+    <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
+    <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
+  </exec>
+
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
+ <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
+
 </target>
 
 <target name="test-cov" depends="build">
@@ -156,53 +189,73 @@
 
 </target>
 
+<target name="find-nunit">
+  <exec program="which" failonerror="false"
+        resultproperty="hasnunit2">
+    <arg value="nunit-console2" />
+  </exec>
+
+  <exec program="which" failonerror="false"
+        resultproperty="hasnunit">
+    <arg value="nunit-console" />
+  </exec>
+
+  <property name="nunitcmd" value="nunit-console2"
+    if="${int::parse(hasnunit2)==0}" />
+  <property name="nunitcmd" value="nunit-console"
+    if="${int::parse(hasnunit)==0}" />
+
+</target>
+
 <!-- this is used for panda test execution -->
 <!-- work in progress -->
 
-<target name="test-xml" depends="build">
+<target name="test-xml" depends="build, find-nunit">
+  
+
   <mkdir dir="test-results" failonerror="false" />
   <!-- Unit Test Assembly -->
-  <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.tests">
     <arg value="./bin/OpenSim.Framework.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
     <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
     <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ClientStack.LindenUDP.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ScriptEngine.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
     <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.CoreModules.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
     <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.Framework.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
     <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Data.SQLite.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="nunit-console2" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
     <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Data.MySQL.Tests.dll-Results.xml" />
   </exec>
