@@ -2015,7 +2015,10 @@ namespace OpenSim.Region.Framework.Scenes
                     group.ResetIDs();
 
                     if (attachment)
+                    {
                         group.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
+                        group.IsAttachment = true;
+                    }
 
                     AddNewSceneObject(group, true);
 
