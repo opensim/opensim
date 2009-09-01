@@ -36,8 +36,8 @@ namespace OpenSim.Region.Physics.Meshing
 {
     public class Mesh : IMesh
     {
-        public List<Vertex> vertices;
-        public List<Triangle> triangles;
+        private Dictionary<Vertex, int> vertices;
+        private List<Triangle> triangles;
         GCHandle pinnedVirtexes;
         GCHandle pinnedIndex;
         public PrimMesh primMesh = null;
@@ -45,7 +45,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public Mesh()
         {
-            vertices = new List<Vertex>();
+            vertices = new Dictionary<Vertex, int>();
             triangles = new List<Triangle>();
         }
 
@@ -53,23 +53,9 @@ namespace OpenSim.Region.Physics.Meshing
         {
             Mesh result = new Mesh();
 
-            foreach (Vertex v in vertices)
-            {
-                if (v == null)
-                    result.vertices.Add(null);
-                else
-                    result.vertices.Add(v.Clone());
-            }
-
             foreach (Triangle t in triangles)
             {
-                int iV1, iV2, iV3;
-                iV1 = vertices.IndexOf(t.v1);
-                iV2 = vertices.IndexOf(t.v2);
-                iV3 = vertices.IndexOf(t.v3);
-
-                Triangle newT = new Triangle(result.vertices[iV1], result.vertices[iV2], result.vertices[iV3]);
-                result.Add(newT);
+                result.Add(new Triangle(t.v1.Clone(), t.v2.Clone(), t.v3.Clone()));
             }
 
             return result;
@@ -77,50 +63,15 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void Add(Triangle triangle)
         {
-            int i;
-            i = vertices.IndexOf(triangle.v1);
-            if (i < 0)
-                throw new ArgumentException("Vertex v1 not known to mesh");
-            i = vertices.IndexOf(triangle.v2);
-            if (i < 0)
-                throw new ArgumentException("Vertex v2 not known to mesh");
-            i = vertices.IndexOf(triangle.v3);
-            if (i < 0)
-                throw new ArgumentException("Vertex v3 not known to mesh");
-
+            // If a vertex of the triangle is not yet in the vertices list,
+            // add it and set its index to the current index count
+            if( !vertices.ContainsKey(triangle.v1) )
+                vertices[triangle.v1] = vertices.Count;
+            if (!vertices.ContainsKey(triangle.v2))
+                vertices[triangle.v2] = vertices.Count;
+            if (!vertices.ContainsKey(triangle.v3))
+                vertices[triangle.v3] = vertices.Count;
             triangles.Add(triangle);
-        }
-
-        public void Add(Vertex v)
-        {
-            vertices.Add(v);
-        }
-
-        public void Remove(Vertex v)
-        {
-            int i;
-
-            // First, remove all triangles that are build on v
-            for (i = 0; i < triangles.Count; i++)
-            {
-                Triangle t = triangles[i];
-                if (t.v1 == v || t.v2 == v || t.v3 == v)
-                {
-                    triangles.RemoveAt(i);
-                    i--;
-                }
-            }
-
-            // Second remove v itself
-            vertices.Remove(v);
-        }
-
-        public void Add(List<Vertex> lv)
-        {
-            foreach (Vertex v in lv)
-            {
-                vertices.Add(v);
-            }
         }
 
         public void CalcNormals()
@@ -188,7 +139,7 @@ namespace OpenSim.Region.Physics.Meshing
         public List<PhysicsVector> getVertexList()
         {
             List<PhysicsVector> result = new List<PhysicsVector>();
-            foreach (Vertex v in vertices)
+            foreach (Vertex v in vertices.Keys)
             {
                 result.Add(v);
             }
@@ -201,12 +152,13 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (primMesh == null)
             {
+                //m_log.WarnFormat("vertices.Count = {0}", vertices.Count);
                 result = new float[vertices.Count * 3];
-                for (int i = 0; i < vertices.Count; i++)
+                foreach(KeyValuePair<Vertex, int> kvp in vertices)
                 {
-                    Vertex v = vertices[i];
-                    if (v == null)
-                        continue;
+                    Vertex v = kvp.Key;
+                    int i = kvp.Value;
+                    //m_log.WarnFormat("kvp.Value = {0}", i);
                     result[3 * i + 0] = v.X;
                     result[3 * i + 1] = v.Y;
                     result[3 * i + 2] = v.Z;
@@ -243,9 +195,9 @@ namespace OpenSim.Region.Physics.Meshing
                 for (int i = 0; i < triangles.Count; i++)
                 {
                     Triangle t = triangles[i];
-                    result[3 * i + 0] = vertices.IndexOf(t.v1);
-                    result[3 * i + 1] = vertices.IndexOf(t.v2);
-                    result[3 * i + 2] = vertices.IndexOf(t.v3);
+                    result[3 * i + 0] = vertices[t.v1];
+                    result[3 * i + 1] = vertices[t.v2];
+                    result[3 * i + 2] = vertices[t.v3];
                 }
             }
             else
@@ -298,27 +250,17 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void Append(IMesh newMesh)
         {
-            Mesh newMesh2;
-            if (newMesh is Mesh)
-            {
-                newMesh2 = (Mesh)newMesh;
-            }
-            else
-            {
+            if (!(newMesh is Mesh))
                 return;
-            }
 
-            foreach (Vertex v in newMesh2.vertices)
-                vertices.Add(v);
-
-            foreach (Triangle t in newMesh2.triangles)
+            foreach (Triangle t in ((Mesh)newMesh).triangles)
                 Add(t);
         }
 
         // Do a linear transformation of  mesh.
         public void TransformLinear(float[,] matrix, float[] offset)
         {
-            foreach (Vertex v in vertices)
+            foreach (Vertex v in vertices.Keys)
             {
                 if (v == null)
                     continue;
@@ -345,6 +287,11 @@ namespace OpenSim.Region.Physics.Meshing
                 sw.WriteLine(s);
             }
             sw.Close();
+        }
+
+        public void TrimExcess()
+        {
+            triangles.TrimExcess();
         }
     }
 }

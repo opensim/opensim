@@ -92,40 +92,40 @@ namespace OpenSim.Region.Physics.Meshing
         private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
         {
             Mesh box = new Mesh();
-
+            List<Vertex> vertices = new List<Vertex>();
             // bottom
 
-            box.Add(new Vertex(minX, maxY, minZ));
-            box.Add(new Vertex(maxX, maxY, minZ));
-            box.Add(new Vertex(maxX, minY, minZ));
-            box.Add(new Vertex(minX, minY, minZ));
+            vertices.Add(new Vertex(minX, maxY, minZ));
+            vertices.Add(new Vertex(maxX, maxY, minZ));
+            vertices.Add(new Vertex(maxX, minY, minZ));
+            vertices.Add(new Vertex(minX, minY, minZ));
 
-            box.Add(new Triangle(box.vertices[0], box.vertices[1], box.vertices[2]));
-            box.Add(new Triangle(box.vertices[0], box.vertices[2], box.vertices[3]));
+            box.Add(new Triangle(vertices[0], vertices[1], vertices[2]));
+            box.Add(new Triangle(vertices[0], vertices[2], vertices[3]));
 
             // top
 
-            box.Add(new Vertex(maxX, maxY, maxZ));
-            box.Add(new Vertex(minX, maxY, maxZ));
-            box.Add(new Vertex(minX, minY, maxZ));
-            box.Add(new Vertex(maxX, minY, maxZ));
+            vertices.Add(new Vertex(maxX, maxY, maxZ));
+            vertices.Add(new Vertex(minX, maxY, maxZ));
+            vertices.Add(new Vertex(minX, minY, maxZ));
+            vertices.Add(new Vertex(maxX, minY, maxZ));
 
-            box.Add(new Triangle(box.vertices[4], box.vertices[5], box.vertices[6]));
-            box.Add(new Triangle(box.vertices[4], box.vertices[6], box.vertices[7]));
+            box.Add(new Triangle(vertices[4], vertices[5], vertices[6]));
+            box.Add(new Triangle(vertices[4], vertices[6], vertices[7]));
 
             // sides
 
-            box.Add(new Triangle(box.vertices[5], box.vertices[0], box.vertices[3]));
-            box.Add(new Triangle(box.vertices[5], box.vertices[3], box.vertices[6]));
+            box.Add(new Triangle(vertices[5], vertices[0], vertices[3]));
+            box.Add(new Triangle(vertices[5], vertices[3], vertices[6]));
 
-            box.Add(new Triangle(box.vertices[1], box.vertices[0], box.vertices[5]));
-            box.Add(new Triangle(box.vertices[1], box.vertices[5], box.vertices[4]));
+            box.Add(new Triangle(vertices[1], vertices[0], vertices[5]));
+            box.Add(new Triangle(vertices[1], vertices[5], vertices[4]));
 
-            box.Add(new Triangle(box.vertices[7], box.vertices[1], box.vertices[4]));
-            box.Add(new Triangle(box.vertices[7], box.vertices[2], box.vertices[1]));
+            box.Add(new Triangle(vertices[7], vertices[1], vertices[4]));
+            box.Add(new Triangle(vertices[7], vertices[2], vertices[1]));
 
-            box.Add(new Triangle(box.vertices[3], box.vertices[2], box.vertices[7]));
-            box.Add(new Triangle(box.vertices[3], box.vertices[7], box.vertices[6]));
+            box.Add(new Triangle(vertices[3], vertices[2], vertices[7]));
+            box.Add(new Triangle(vertices[3], vertices[7], vertices[6]));
 
             return box;
         }
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Physics.Meshing
             float minZ = float.MaxValue;
             float maxZ = float.MinValue;
 
-            foreach (Vertex v in meshIn.vertices)
+            foreach (Vertex v in meshIn.getVertexList())
             {
                 if (v != null)
                 {
@@ -394,17 +394,19 @@ namespace OpenSim.Region.Physics.Meshing
             int numCoords = coords.Count;
             int numFaces = faces.Count;
 
+            // Create the list of vertices
+            List<Vertex> vertices = new List<Vertex>();
             for (int i = 0; i < numCoords; i++)
             {
                 Coord c = coords[i];
-                mesh.vertices.Add(new Vertex(c.X, c.Y, c.Z));
+                vertices.Add(new Vertex(c.X, c.Y, c.Z));
             }
 
-            List<Vertex> vertices = mesh.vertices;
+            // Add the corresponding triangles to the mesh
             for (int i = 0; i < numFaces; i++)
             {
                 Face f = faces[i];
-                mesh.triangles.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
+                mesh.Add(new Triangle(vertices[f.v1], vertices[f.v2], vertices[f.v3]));
             }
 
             return mesh;
@@ -438,8 +440,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
 
                 // trim the vertex and triangle lists to free up memory
-                mesh.vertices.TrimExcess();
-                mesh.triangles.TrimExcess();
+                mesh.TrimExcess();
             }
 
             return mesh;
