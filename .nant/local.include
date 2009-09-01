@@ -195,15 +195,10 @@
     <arg value="nunit-console2" />
   </exec>
 
-  <exec program="which" failonerror="false"
-        resultproperty="hasnunit">
-    <arg value="nunit-console" />
-  </exec>
-
   <property name="nunitcmd" value="nunit-console2"
     if="${int::parse(hasnunit2)==0}" />
   <property name="nunitcmd" value="nunit-console"
-    if="${int::parse(hasnunit)==0}" />
+    if="${int::parse(hasnunit2)==1}" />
 
 </target>
 
