@@ -211,7 +211,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (asset != null)
             {
-                handler.BeginInvoke(id, sender, asset, null, null);
+                Util.FireAndForget(delegate { handler(id, sender, asset); });
                 return true;
             }
 
@@ -219,8 +219,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             {
                 if ((a != null) && (m_Cache != null))
                     m_Cache.Cache(a);
-                
-                handler.BeginInvoke(assetID, s, a, null, null);
+
+                Util.FireAndForget(delegate { handler(assetID, s, a); });
             });
         }
 

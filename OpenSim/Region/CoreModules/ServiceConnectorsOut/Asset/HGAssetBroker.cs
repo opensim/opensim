@@ -272,7 +272,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
             if (asset != null)
             {
-                handler.BeginInvoke(id, sender, asset, null, null);
+                Util.FireAndForget(delegate { handler(id, sender, asset); });
                 return true;
             }
 
