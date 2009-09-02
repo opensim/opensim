@@ -65,7 +65,7 @@ namespace OpenSim.Region.Physics.Meshing
         {
             // If a vertex of the triangle is not yet in the vertices list,
             // add it and set its index to the current index count
-            if( !vertices.ContainsKey(triangle.v1) )
+            if (!vertices.ContainsKey(triangle.v1))
                 vertices[triangle.v1] = vertices.Count;
             if (!vertices.ContainsKey(triangle.v2))
                 vertices[triangle.v2] = vertices.Count;
@@ -154,7 +154,7 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 //m_log.WarnFormat("vertices.Count = {0}", vertices.Count);
                 result = new float[vertices.Count * 3];
-                foreach(KeyValuePair<Vertex, int> kvp in vertices)
+                foreach (KeyValuePair<Vertex, int> kvp in vertices)
                 {
                     Vertex v = kvp.Key;
                     int i = kvp.Value;

@@ -87,7 +87,7 @@ namespace OpenSim.Region.Framework.Scenes
             switch (CrossDirection)
             {
                 case Cardinals.N:  // x+0, y+1
-                    if (position.X >= BorderLine.X && position.X <=BorderLine.Y && position.Y > BorderLine.Z )
+                    if (position.X >= BorderLine.X && position.X <= BorderLine.Y && position.Y > BorderLine.Z)
                     {
                         return true;
                     }
@@ -118,8 +118,6 @@ namespace OpenSim.Region.Framework.Scenes
                     break; 
                 case Cardinals.NW: // x-1, y+1
                     break;
-
-                
             }
 
             return result;
@@ -143,8 +141,5 @@ namespace OpenSim.Region.Framework.Scenes
                 return 0;
             }
         }
-
     }
-    
-    
 }
