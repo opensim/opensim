@@ -522,7 +522,7 @@ namespace OpenSim.Framework.Capabilities
             llsdItem.asset_id = invItem.AssetID;
             llsdItem.created_at = invItem.CreationDate;
             llsdItem.desc = invItem.Description;
-            llsdItem.flags = 0;
+            llsdItem.flags = (int)invItem.Flags;
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
