@@ -44,7 +44,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         #region Member Variables
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        #pragma warning disable 0429
         private const int landArrayMax = ((int)((int)Constants.RegionSize / 4) >= 64) ? (int)((int)Constants.RegionSize / 4) : 64;
+        #pragma warning restore 0429
         private bool[,] m_landBitmap = new bool[landArrayMax,landArrayMax];
 
         protected LandData m_landData = new LandData();

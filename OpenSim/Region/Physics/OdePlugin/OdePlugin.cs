@@ -3436,7 +3436,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 d.RFromAxisAndAngle(out R, v3.X, v3.Y, v3.Z, angle);
                 d.GeomSetRotation(GroundGeom, ref R);
-                d.GeomSetPosition(GroundGeom, pOffset.X + ((int)Constants.RegionSize * 0.5f), pOffset.Y + ((int)Constants.RegionSize * 0.5f), 0);
+                d.GeomSetPosition(GroundGeom, (pOffset.X + ((int)Constants.RegionSize * 0.5f)) - 1, (pOffset.Y + ((int)Constants.RegionSize * 0.5f)) - 1, 0);
                 IntPtr testGround = IntPtr.Zero;
                 if (RegionTerrain.TryGetValue(pOffset, out testGround))
                 {
@@ -3457,7 +3457,78 @@ namespace OpenSim.Region.Physics.OdePlugin
             return waterlevel;
         }
 
+        public override bool SupportsCombining()
+        {
+            return true;
+        }
 
+        public override void UnCombine(PhysicsScene pScene)
+        {
+            IntPtr localGround = IntPtr.Zero;
+            float[] localHeightfield;
+            bool proceed = false;
+            List<IntPtr> geomDestroyList = new List<IntPtr>();
+
+            lock (OdeLock)
+            {
+                if (RegionTerrain.TryGetValue(Vector3.Zero, out localGround))
+                {
+                    foreach (IntPtr geom in TerrainHeightFieldHeights.Keys)
+                    {
+                        if (geom == localGround)
+                        {
+                            localHeightfield = TerrainHeightFieldHeights[geom];
+                            proceed = true;
+                        }
+                        else
+                        {
+                            geomDestroyList.Add(geom);
+                        }
+                    }
+
+                    if (proceed)
+                    {
+                        m_worldOffset = Vector3.Zero;
+                        WorldExtents = new Vector2((int)Constants.RegionSize, (int)Constants.RegionSize);
+                        m_parentScene = null;
+
+                        foreach (IntPtr g in geomDestroyList)
+                        {
+                            // removingHeightField needs to be done or the garbage collector will
+                            // collect the terrain data before we tell ODE to destroy it causing 
+                            // memory corruption
+                            if (TerrainHeightFieldHeights.ContainsKey(g))
+                            {
+                                float[] removingHeightField = TerrainHeightFieldHeights[g];
+                                TerrainHeightFieldHeights.Remove(g);
+
+                                if (RegionTerrain.ContainsKey(g))
+                                {
+                                    RegionTerrain.Remove(g);
+                                }
+
+                                d.GeomDestroy(g);
+                                removingHeightField = new float[0];
+                                
+
+                                
+                            }
+                            
+                        }
+
+                    }
+                    else
+                    {
+                        m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
+
+                    }
+
+                }
+                
+            }
+        }
+
+        
 
         public override void SetWaterLevel(float baseheight)
         {

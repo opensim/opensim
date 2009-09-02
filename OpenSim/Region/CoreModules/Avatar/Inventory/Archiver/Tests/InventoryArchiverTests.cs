@@ -93,13 +93,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            CachedUserInfo userInfo;
+            // CachedUserInfo userInfo;
 
             lock (this)
             {
-                userInfo 
-                    = UserProfileTestUtils.CreateUserWithInventory(
-                        cm, userFirstName, userLastName, userId, InventoryReceived);
+                UserProfileTestUtils.CreateUserWithInventory(
+                    cm, userFirstName, userLastName, userId, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
 

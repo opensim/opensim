@@ -172,6 +172,11 @@ namespace OpenSim.Region.Physics.Manager
             return;
         }
 
+        public virtual void UnCombine(PhysicsScene pScene)
+        {
+            
+        }
+
         /// <summary>
         /// Queue a raycast against the physics scene.  
         /// The provided callback method will be called when the raycast is complete

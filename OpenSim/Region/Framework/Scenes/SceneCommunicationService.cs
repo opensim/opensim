@@ -1181,7 +1181,7 @@ namespace OpenSim.Region.Framework.Scenes
             uint neighbourx = m_regionInfo.RegionLocX;
             uint neighboury = m_regionInfo.RegionLocY;
             const float boundaryDistance = 1.7f;
-            Vector3 northCross = new Vector3(0, boundaryDistance, 0);
+            Vector3 northCross = new Vector3(0,boundaryDistance, 0);
             Vector3 southCross = new Vector3(0, -1 * boundaryDistance, 0);
             Vector3 eastCross = new Vector3(boundaryDistance, 0, 0);
             Vector3 westCross = new Vector3(-1 * boundaryDistance, 0, 0);

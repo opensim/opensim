@@ -103,7 +103,7 @@ namespace OpenSim.Region.Framework.Scenes
                 case Cardinals.SE: // x+1, y-1
                     break;
                 case Cardinals.S:  // x+0, y-1
-                    if (position.X >= BorderLine.X && position.X <= BorderLine.Y && position.Y-1 < BorderLine.Z)
+                    if (position.X >= BorderLine.X && position.X <= BorderLine.Y && position.Y < BorderLine.Z)
                     {
                         return true;
                     }
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Framework.Scenes
                 case Cardinals.SW: // x-1, y-1
                     break;
                 case Cardinals.W:  // x-1, y+0
-                    if (position.Y >= BorderLine.X && position.Y <= BorderLine.Y && position.X-1 < BorderLine.Z)
+                    if (position.Y >= BorderLine.X && position.Y <= BorderLine.Y && position.X < BorderLine.Z)
                     {
                         return true;
                     }

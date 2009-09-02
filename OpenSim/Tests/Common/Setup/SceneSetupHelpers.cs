@@ -163,7 +163,7 @@ namespace OpenSim.Tests.Common.Setup
             godsModule.Initialise(testScene, new IniConfigSource());
             testScene.AddModule(godsModule.Name, godsModule);
             realServices = realServices.ToLower();
-            IConfigSource config = new IniConfigSource();
+            // IConfigSource config = new IniConfigSource();
             
             // If we have a brand new scene, need to initialize shared region modules
             if ((m_assetService == null && m_inventoryService == null) || newScene)

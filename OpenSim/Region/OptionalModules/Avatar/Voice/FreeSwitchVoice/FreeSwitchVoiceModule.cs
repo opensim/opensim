@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private static string m_freeSwitchRealm;
         private static string m_freeSwitchSIPProxy;
         private static bool m_freeSwitchAttemptUseSTUN;
-        private static string m_freeSwitchSTUNServer;
+        // private static string m_freeSwitchSTUNServer;
         private static string m_freeSwitchEchoServer;
         private static int m_freeSwitchEchoPort;
         private static string m_freeSwitchDefaultWellKnownIP;
@@ -144,7 +144,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     m_freeSwitchRealm = m_config.GetString("freeswitch_realm", String.Empty);
                     m_freeSwitchSIPProxy = m_config.GetString("freeswitch_sip_proxy", m_freeSwitchRealm);
                     m_freeSwitchAttemptUseSTUN = m_config.GetBoolean("freeswitch_attempt_stun", true);
-                    m_freeSwitchSTUNServer = m_config.GetString("freeswitch_stun_server", m_freeSwitchRealm);
+                    // m_freeSwitchSTUNServer = m_config.GetString("freeswitch_stun_server", m_freeSwitchRealm);
                     m_freeSwitchEchoServer = m_config.GetString("freeswitch_echo_server", m_freeSwitchRealm);
                     m_freeSwitchEchoPort = m_config.GetInt("freeswitch_echo_port", 50505);
                     m_freeSwitchDefaultWellKnownIP = m_config.GetString("freeswitch_well_known_ip", m_freeSwitchRealm);

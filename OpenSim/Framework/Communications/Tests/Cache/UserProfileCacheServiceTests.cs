@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo nonExistingUserInfo;
 
             TestCommunicationsManager commsManager = new TestCommunicationsManager();
-            Scene myScene = SceneSetupHelpers.SetupScene(commsManager, "");
+            // Scene myScene = SceneSetupHelpers.SetupScene(commsManager, "");
 
             // Check we can't retrieve info before it exists by uuid
             nonExistingUserInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
