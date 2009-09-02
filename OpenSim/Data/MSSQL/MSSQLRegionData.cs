@@ -210,6 +210,7 @@ namespace OpenSim.Data.MSSQL
             {
                 foreach (SceneObjectPart objectPart in allPrimsWithInventory)
                 {
+                    command.Parameters.Clear();
                     command.Parameters.Add(_Database.CreateParameter("@PrimID", objectPart.UUID));
                  
                     List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
