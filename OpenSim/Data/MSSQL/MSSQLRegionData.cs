@@ -97,8 +97,8 @@ namespace OpenSim.Data.MSSQL
         {
             UUID lastGroupID = UUID.Zero;
 
-            List<SceneObjectPart> sceneObjectParts = new List<SceneObjectPart>();
-            List<SceneObjectGroup> sceneObjectGroups = new List<SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
+            Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             SceneObjectGroup grp = null;
 
 
@@ -123,14 +123,14 @@ namespace OpenSim.Data.MSSQL
                         else
                             sceneObjectPart.Shape = BuildShape(reader);
                         
-                        sceneObjectParts.Add(sceneObjectPart);
+                        prims[sceneObjectPart.UUID] = sceneObjectPart;
 
                         UUID groupID = new UUID((Guid)reader["SceneGroupID"]);
 
                         if (groupID != lastGroupID) // New SOG
                         {
                             if (grp != null)
-                                sceneObjectGroups.Add(grp);
+                                objects[grp.UUID] = grp;
 
                             lastGroupID = groupID;
                             
@@ -166,38 +166,52 @@ namespace OpenSim.Data.MSSQL
             }
 
             if (grp != null)
-                sceneObjectGroups.Add(grp);
+                objects[grp.UUID] = grp;
 
-            //Load the inventory off all sceneobjects within the region
-            LoadItems(sceneObjectParts);
+            // Instead of attempting to LoadItems on every prim,
+            // most of which probably have no items... get a 
+            // list from DB of all prims which have items and
+            // LoadItems only on those
+            List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
+            string qry = "select distinct primID from primitems";
+            using (AutoClosingSqlCommand command = _Database.Query(qry))
+            {
+                using (SqlDataReader itemReader = command.ExecuteReader())
+                {
+                    while (itemReader.Read())
+                    {
+                        if (!(itemReader["primID"] is DBNull))
+                        {
+                            UUID primID = new UUID(itemReader["primID"].ToString());
+                            if (prims.ContainsKey(primID))
+                            {
+                                primsWithInventory.Add(prims[primID]);
+                            }
+                        }
+                    }
+                }
+            }
 
-            _Log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", sceneObjectGroups.Count, sceneObjectParts.Count);
+            LoadItems(primsWithInventory);
 
-            return sceneObjectGroups;
+            _Log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
+
+            return new List<SceneObjectGroup>(objects.Values);
         }
 
         /// <summary>
         /// Load in the prim's persisted inventory.
         /// </summary>
-        /// <param name="allPrims">all prims on a region</param>
-        private void LoadItems(List<SceneObjectPart> allPrims)
+        /// <param name="allPrims">all prims with inventory on a region</param>
+        private void LoadItems(List<SceneObjectPart> allPrimsWithInventory)
         {
+            
             using (AutoClosingSqlCommand command = _Database.Query("SELECT * FROM primitems WHERE PrimID = @PrimID"))
             {
-                bool createParamOnce = true;
-
-                foreach (SceneObjectPart objectPart in allPrims)
+                foreach (SceneObjectPart objectPart in allPrimsWithInventory)
                 {
-                    if (createParamOnce)
-                    {
-                        command.Parameters.Add(_Database.CreateParameter("@PrimID", objectPart.UUID));
-                        createParamOnce = false;
-                    }
-                    else
-                    {
-                        command.Parameters["@PrimID"].Value = objectPart.UUID.Guid; //.ToString(); //TODO check if this works
-                    }
-
+                    command.Parameters.Add(_Database.CreateParameter("@PrimID", objectPart.UUID));
+                 
                     List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
                     using (SqlDataReader reader = command.ExecuteReader())
