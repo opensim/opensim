@@ -501,6 +501,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
@@ -3714,6 +3715,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>

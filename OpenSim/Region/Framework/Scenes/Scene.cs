@@ -998,7 +998,7 @@ namespace OpenSim.Region.Framework.Scenes
                     physicsMS2 = Environment.TickCount - physicsMS2;
 
                     if (m_frame % m_update_entitymovement == 0)
-                        m_sceneGraph.UpdateEntityMovement();
+                        m_sceneGraph.UpdateScenePresenceMovement();
 
                     physicsMS = Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)

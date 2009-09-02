@@ -260,6 +260,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_localID = value; }
         }
 
+        public override int GetHashCode()
+        {
+            return (int)m_localID;
+        }
+
         public override bool Grabbed
         {
             set { return; }

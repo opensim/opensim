@@ -412,8 +412,8 @@ namespace OpenSim.Data.MySQL
         public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
             UUID lastGroupID = UUID.Zero;
-            List<SceneObjectGroup> objects = new List<SceneObjectGroup>();
-            List<SceneObjectPart> prims = new List<SceneObjectPart>();
+            Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup grp = null;
 
             lock (m_Connection)
@@ -441,14 +441,14 @@ namespace OpenSim.Data.MySQL
                         else
                             prim.Shape = BuildShape(reader);
 
-                        prims.Add(prim);
+                        prims[prim.UUID] = prim;
 
                         UUID groupID = new UUID(reader["SceneGroupID"].ToString());
 
                         if (groupID != lastGroupID) // New SOG
                         {
                             if (grp != null)
-                                objects.Add(grp);
+                                objects[grp.UUID] = grp;
 
                             lastGroupID = groupID;
                             
@@ -487,16 +487,47 @@ namespace OpenSim.Data.MySQL
                 }
 
                 if (grp != null)
-                    objects.Add(grp);
+                    objects[grp.UUID] = grp;
                 cmd.Dispose();
             }
 
-            foreach (SceneObjectPart part in prims)
-                LoadItems(part);
+            // Instead of attempting to LoadItems on every prim,
+            // most of which probably have no items... get a 
+            // list from DB of all prims which have items and
+            // LoadItems only on those
+            List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
+            lock (m_Connection)
+            {
+                MySqlCommand itemCmd = m_Connection.CreateCommand();
+                itemCmd.CommandText = "select distinct primID from primitems";
+                IDataReader itemReader = ExecuteReader(itemCmd);
+                try
+                {
+                    while (itemReader.Read())
+                    {
+                        if (!(itemReader["primID"] is DBNull))
+                        {
+                            UUID primID = new UUID(itemReader["primID"].ToString());
+                            if (prims.ContainsKey(primID))
+                            {
+                                primsWithInventory.Add(prims[primID]);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    itemReader.Close();
+                }
+                itemCmd.Dispose();
+            }
 
+            foreach (SceneObjectPart prim in primsWithInventory)
+            {
+                LoadItems(prim);
+            }
             m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
-
-            return objects;
+            return new List<SceneObjectGroup>(objects.Values);
         }
 
         /// <summary>

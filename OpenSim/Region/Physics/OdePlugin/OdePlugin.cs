@@ -235,11 +235,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
-        private readonly List<OdeCharacter> _characters = new List<OdeCharacter>();
-        private readonly List<OdePrim> _prims = new List<OdePrim>();
-        private readonly List<OdePrim> _activeprims = new List<OdePrim>();
-        private readonly List<OdePrim> _taintedPrim = new List<OdePrim>();
-        private readonly List<OdeCharacter> _taintedActors = new List<OdeCharacter>();
+        private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
+        private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _taintedPrim = new HashSet<OdePrim>();
+        private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();

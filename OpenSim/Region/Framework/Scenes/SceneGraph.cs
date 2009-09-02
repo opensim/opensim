@@ -198,9 +198,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal void UpdateEntityMovement()
+        protected internal void UpdateScenePresenceMovement()
         {
-            List<EntityBase> moveEntities = GetEntities();
+            List<ScenePresence> moveEntities = GetScenePresences();
 
             foreach (EntityBase entity in moveEntities)
             {

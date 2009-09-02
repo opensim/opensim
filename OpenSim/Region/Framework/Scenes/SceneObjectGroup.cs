@@ -1904,7 +1904,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //return;
                 //}
 
-                if (Util.DistanceLessThan(lastPhysGroupPos, AbsolutePosition, 0.02) && UsePhysics)
+                if (UsePhysics && Util.DistanceLessThan(lastPhysGroupPos, AbsolutePosition, 0.02))
                 {
                     m_rootPart.UpdateFlag = 1;
                     lastPhysGroupPos = AbsolutePosition;
@@ -1916,11 +1916,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 checkAtTargets();
 
-                if (((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
+                if (UsePhysics && ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
-                    && UsePhysics)
+                    || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1)))
                 {
                     m_rootPart.UpdateFlag = 1;
 
