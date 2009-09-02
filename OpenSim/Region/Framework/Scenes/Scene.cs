@@ -337,22 +337,22 @@ namespace OpenSim.Region.Framework.Scenes
             BordersLocked = true;
 
             Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize + 1);  //<---
+            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
             northBorder.CrossDirection = Cardinals.N;
             NorthBorders.Add(northBorder);
 
             Border southBorder = new Border();
-            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, -1);    //--->
+            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0);    //--->
             southBorder.CrossDirection = Cardinals.S;
             SouthBorders.Add(southBorder);
 
             Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize + 1);   //<---
+            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);   //<---
             eastBorder.CrossDirection = Cardinals.E;
             EastBorders.Add(eastBorder);
 
             Border westBorder = new Border();
-            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, -1);     //--->
+            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0);     //--->
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
 
@@ -489,22 +489,22 @@ namespace OpenSim.Region.Framework.Scenes
         {
             BordersLocked = true;
             Border northBorder = new Border();
-            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize + 1);  //<---
+            northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize);  //<---
             northBorder.CrossDirection = Cardinals.N;
             NorthBorders.Add(northBorder);
 
             Border southBorder = new Border();
-            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, -1);    //--->
+            southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,0);    //--->
             southBorder.CrossDirection = Cardinals.S;
             SouthBorders.Add(southBorder);
 
             Border eastBorder = new Border();
-            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize + 1);   //<---
+            eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, (int)Constants.RegionSize );   //<---
             eastBorder.CrossDirection = Cardinals.E;
             EastBorders.Add(eastBorder);
 
             Border westBorder = new Border();
-            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, -1);     //--->
+            westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,0);     //--->
             westBorder.CrossDirection = Cardinals.W;
             WestBorders.Add(westBorder);
             BordersLocked = false;
@@ -1709,6 +1709,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
+            Vector3 EastCross = new Vector3(0.1f,0,0);
+            Vector3 WestCross = new Vector3(-0.1f, 0, 0);
+            Vector3 NorthCross = new Vector3(0, 0.1f, 0);
+            Vector3 SouthCross = new Vector3(0, -0.1f, 0);
 
             
             // use this if no borders were crossed!
@@ -1718,9 +1722,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 pos = attemptedPosition;
 
-            if (TestBorderCross(attemptedPosition, Cardinals.W))
+            if (TestBorderCross(attemptedPosition + WestCross, Cardinals.W))
             {
-                if (TestBorderCross(attemptedPosition, Cardinals.S))
+                if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
                 {
                     //Border crossedBorderx = GetCrossedBorder(attemptedPosition,Cardinals.W);
                     //Border crossedBordery = GetCrossedBorder(attemptedPosition, Cardinals.S);
@@ -1733,7 +1737,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // x - 1
                     // y - 1
                 }
-                else if (TestBorderCross(attemptedPosition, Cardinals.N))
+                else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
                 {
                     pos.X = ((pos.X + Constants.RegionSize));
                     pos.Y = ((pos.Y - Constants.RegionSize));
@@ -1752,9 +1756,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // x - 1
                 }
             }
-            else if (TestBorderCross(attemptedPosition, Cardinals.E))
+            else if (TestBorderCross(attemptedPosition + EastCross, Cardinals.E))
             {
-                if (TestBorderCross(attemptedPosition, Cardinals.S))
+                if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
                 {
                     pos.X = ((pos.X - Constants.RegionSize));
                     pos.Y = ((pos.Y + Constants.RegionSize));
@@ -1764,7 +1768,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // x + 1
                     // y - 1
                 }
-                else if (TestBorderCross(attemptedPosition, Cardinals.N))
+                else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
                 {
                     pos.X = ((pos.X - Constants.RegionSize));
                     pos.Y = ((pos.Y - Constants.RegionSize));
@@ -1783,14 +1787,14 @@ namespace OpenSim.Region.Framework.Scenes
                     // x + 1
                 }
             } 
-            else if (TestBorderCross(attemptedPosition, Cardinals.S))
+            else if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
             {
                 pos.Y = ((pos.Y + Constants.RegionSize));
                 newRegionHandle
                     = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - 1) * Constants.RegionSize));
                 // y - 1
             }
-            else if (TestBorderCross(attemptedPosition, Cardinals.N))
+            else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
             {
                 
                 pos.Y = ((pos.Y - Constants.RegionSize));
