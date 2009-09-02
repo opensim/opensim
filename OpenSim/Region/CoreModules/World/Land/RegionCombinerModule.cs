@@ -658,8 +658,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class LargeLandChannel : ILandChannel
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log =
+        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private RegionData RegData;
         private ILandChannel RootRegionLandChannel;
         private readonly List<RegionData> RegionConnections;

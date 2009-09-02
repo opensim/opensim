@@ -43,11 +43,11 @@ namespace OpenSim.Tests.Common.Mock
         }
         private IUserDataPlugin m_userDataPlugin;
 
-        public IInventoryDataPlugin InventoryDataPlugin
-        {
-            get { return m_inventoryDataPlugin; }
-        }
-        private IInventoryDataPlugin m_inventoryDataPlugin;
+        // public IInventoryDataPlugin InventoryDataPlugin
+        // {
+        //     get { return m_inventoryDataPlugin; }
+        // }
+        // private IInventoryDataPlugin m_inventoryDataPlugin;
 
         public TestCommunicationsManager()
             : this(null)
