@@ -106,6 +106,7 @@ namespace OpenSim.Framework.Capabilities
         private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
         private string m_regionName;
+        private object m_fetchLock = new Object();
 
         public bool SSLCaps
         {
@@ -368,15 +369,21 @@ namespace OpenSim.Framework.Capabilities
 
         public string FetchInventoryDescendentsRequest(string request, string path, string param,OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            // m_log.Debug("[CAPS]: FetchInventoryDescendentsRequest in region: " + m_regionName + "request is "+request);
-
-            // nasty temporary hack here, the linden client falsely identifies the uuid 00000000-0000-0000-0000-000000000000 as a string which breaks us
+            // nasty temporary hack here, the linden client falsely
+            // identifies the uuid 00000000-0000-0000-0000-000000000000
+            // as a string which breaks us
+            //
             // correctly mark it as a uuid
+            //
             request = request.Replace("<string>00000000-0000-0000-0000-000000000000</string>", "<uuid>00000000-0000-0000-0000-000000000000</uuid>");
             
-            // another hack <integer>1</integer> results in a System.ArgumentException: Object type System.Int32 cannot be converted to target type: System.Boolean
+            // another hack <integer>1</integer> results in a
+            // System.ArgumentException: Object type System.Int32 cannot
+            // be converted to target type: System.Boolean
+            //
             request = request.Replace("<key>fetch_folders</key><integer>0</integer>", "<key>fetch_folders</key><boolean>0</boolean>");
             request = request.Replace("<key>fetch_folders</key><integer>1</integer>", "<key>fetch_folders</key><boolean>1</boolean>");
+
             Hashtable hash = new Hashtable();
             try
             {
@@ -391,46 +398,49 @@ namespace OpenSim.Framework.Capabilities
             ArrayList foldersrequested = (ArrayList)hash["folders"];
 
             string response = "";
-            for (int i = 0; i < foldersrequested.Count; i++)
+            lock (m_fetchLock)
             {
-                string inventoryitemstr = "";
-                Hashtable inventoryhash = (Hashtable)foldersrequested[i];
-
-                LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
-                
-                try{
-                LLSDHelpers.DeserialiseOSDMap(inventoryhash, llsdRequest);
-                }
-                catch(Exception e)
+                for (int i = 0; i < foldersrequested.Count; i++)
                 {
-                    m_log.Debug("[CAPS]: caught exception doing OSD deserialize" + e);
+                    string inventoryitemstr = "";
+                    Hashtable inventoryhash = (Hashtable)foldersrequested[i];
+
+                    LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                    
+                    try{
+                        LLSDHelpers.DeserialiseOSDMap(inventoryhash, llsdRequest);
+                    }
+                    catch(Exception e)
+                    {
+                        m_log.Debug("[CAPS]: caught exception doing OSD deserialize" + e);
+                    }
+                    LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
+
+                    inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
+                    inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
+                    inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+
+                    response += inventoryitemstr;
                 }
-                LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
+                
+                
+                if (response.Length == 0)
+                {
+                    // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
+                    // Therefore, I'm concluding that the client only has so many threads available to do requests
+                    // and when a thread stalls..   is stays stalled.
+                    // Therefore we need to return something valid
+                    response = "<llsd><map><key>folders</key><array /></map></llsd>";
+                }
+                else
+                {
+                    response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+                }
 
-                inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
-                inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
-                inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                //m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
+                //m_log.Debug("[CAPS] "+response);
 
-                response += inventoryitemstr;
             }
-            
-            
-            if (response.Length == 0)
-            {
-                // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
-                // Therefore, I'm concluding that the client only has so many threads available to do requests
-                // and when a thread stalls..   is stays stalled.
-                // Therefore we need to return something valid
-                response = "<llsd><map><key>folders</key><array /></map></llsd>";
-            }
-            else
-            {
-                response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
-            }
-
-            //m_log.DebugFormat("[CAPS]: Replying to CAPS fetch inventory request with following xml");
-            //m_log.Debug("[CAPS] "+response);
-
             return response;
         }
         
