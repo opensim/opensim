@@ -36,29 +36,19 @@ namespace OpenSim.Services.AuthenticationService
     // or any other components that need 
     // verifiable identification.
     //
-    public class AuthenticationService
+    public class WebkeyAuthenticationService
     {
         public byte[] GetPublicKey()
         {
             return new byte[0];
         }
 
-        public string AuthenticatePassword(UUID principalID, string password)
+        public string Authenticate(UUID principalID, string password)
         {
             return String.Empty;
         }
 
-        public byte[] AuthenticatePasswordEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return new byte[0];
-        }
-
-        public string AuthenticateWebkey(UUID principalID, string webkey)
-        {
-            return String.Empty;
-        }
-
-        public byte[] AuthenticateWebkeyEncrypted(byte[] cyphertext, byte[] key)
+        public byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key)
         {
             return new byte[0];
         }

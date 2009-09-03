@@ -70,11 +70,8 @@ namespace OpenSim.Services.Interfaces
         // the public key of the peer, which the connector must have
         // obtained using a remote GetPublicKey call.
         //
-        string AuthenticatePassword(UUID principalID, string password);
-        byte[] AuthenticatePasswordEncrypted(byte[] cyphertext, byte[] key);
-
-        string AuthenticateWebkey(UUID principalID, string webkey);
-        byte[] AuthenticateWebkeyEncrypted(byte[] cyphertext, byte[] key);
+        string Authenticate(UUID principalID, string password);
+        byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////
         // Verification
