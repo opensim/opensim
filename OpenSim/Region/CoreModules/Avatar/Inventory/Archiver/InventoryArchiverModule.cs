@@ -64,6 +64,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
         private Scene m_aScene;
+        
         /// <value>
         /// The comms manager we will use for all comms requests
         /// </value>
@@ -110,8 +111,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
             if (handlerInventoryArchiveSaved != null)
                 handlerInventoryArchiveSaved(succeeded, userInfo, invPath, saveStream, reportedException);
+        }       
+
+        public void ArchiveInventory(string firstName, string lastName, string invPath, Stream saveStream)
+        {
+            if (m_scenes.Count > 0)
+            {
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+
+                if (userInfo != null)
+                    new InventoryArchiveWriteRequest(this, userInfo, invPath, saveStream).Execute();
+            }              
         }
-               
+                        
+        public void ArchiveInventory(string firstName, string lastName, string invPath, string savePath)
+        {
+            if (m_scenes.Count > 0)
+            {
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                
+                if (userInfo != null)
+                    new InventoryArchiveWriteRequest(this, userInfo, invPath, savePath).Execute();
+            }            
+        }
+              
         public void DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream)
         {
             if (m_scenes.Count > 0)
@@ -125,18 +148,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }            
-        }        
-
-        public void ArchiveInventory(string firstName, string lastName, string invPath, Stream saveStream)
-        {
-            if (m_scenes.Count > 0)
-            {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-
-                if (userInfo != null)
-                    new InventoryArchiveWriteRequest(this, userInfo, invPath, saveStream).Execute();
-            }              
-        }
+        }         
         
         public void DearchiveInventory(string firstName, string lastName, string invPath, string loadPath)
         {
@@ -151,18 +163,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     UpdateClientWithLoadedNodes(userInfo, request.Execute());
                 }
             }                
-        }
-                
-        public void ArchiveInventory(string firstName, string lastName, string invPath, string savePath)
-        {
-            if (m_scenes.Count > 0)
-            {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-                
-                if (userInfo != null)
-                    new InventoryArchiveWriteRequest(this, userInfo, invPath, savePath).Execute();
-            }            
-        }                
+        }           
         
         /// <summary>
         /// Load inventory from an inventory file archive
