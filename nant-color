@@ -1,5 +1,4 @@
-#!/usr/bin/ruby
-
+#!/usr/bin/env ruby
 
 def main
     IO.popen("nant #{ARGV.join(' ')}") { |pipe|
