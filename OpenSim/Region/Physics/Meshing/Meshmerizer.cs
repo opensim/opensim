@@ -386,7 +386,6 @@ namespace OpenSim.Region.Physics.Meshing
                 coords = primMesh.coords;
                 faces = primMesh.faces;
 
-                mesh.primMesh = primMesh;
 
             }
 
