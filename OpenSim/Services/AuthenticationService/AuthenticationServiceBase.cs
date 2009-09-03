@@ -27,10 +27,11 @@
 
 using System;
 using OpenMetaverse;
-using OpenSim.Services.Interfaces;
 using log4net;
 using Nini.Config;
 using System.Reflection;
+using OpenSim.Services.Base;
+using OpenSim.Data;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -40,34 +41,64 @@ namespace OpenSim.Services.AuthenticationService
     // or any other components that need 
     // verifiable identification.
     //
-    public class PasswordAuthenticationService :
-            AuthenticationServiceBase, IAuthenticationService
+    public class AuthenticationServiceBase : ServiceBase
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
  
-        public PasswordAuthenticationService(IConfigSource config) :
-                base(config)
+        protected IAuthenticationData m_Database;
+
+        public AuthenticationServiceBase(IConfigSource config) : base(config)
         {
+            string dllName = String.Empty;
+            string connString = String.Empty;
+
+            //
+            // Try reading the [AuthenticationService] section first, if it exists
+            //
+            IConfig authConfig = config.Configs["AuthenticationService"];
+            if (authConfig != null)
+            {
+                dllName = authConfig.GetString("StorageProvider", dllName);
+                connString = authConfig.GetString("ConnectionString", connString);
+            }
+
+            //
+            // Try reading the [DatabaseService] section, if it exists
+            //
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                if (dllName == String.Empty)
+                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                if (connString == String.Empty)
+                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
+            //
+            // We tried, but this doesn't exist. We can't proceed.
+            //
+            if (dllName.Equals(String.Empty))
+                throw new Exception("No StorageProvider configured");
+
+            m_Database = LoadPlugin<IAuthenticationData>(dllName,
+                    new Object[] {connString});
+            if (m_Database == null)
+                throw new Exception("Could not find a storage interface in the given module");
         }
 
-        public string Authenticate(UUID principalID, string password)
-        {
-            return String.Empty;
-        }
-
-        public byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key)
+        public virtual byte[] GetPublicKey()
         {
             return new byte[0];
         }
 
-        public bool Verify(UUID principalID, string token)
+        public virtual bool Release(UUID principalID, string token)
         {
             return false;
         }
 
-        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
+        public virtual bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
         {
             return false;
         }

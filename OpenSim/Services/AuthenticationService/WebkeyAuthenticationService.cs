@@ -27,6 +27,10 @@
 
 using System;
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
+using log4net;
+using Nini.Config;
+using System.Reflection;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -36,11 +40,16 @@ namespace OpenSim.Services.AuthenticationService
     // or any other components that need 
     // verifiable identification.
     //
-    public class WebkeyAuthenticationService
+    public class WebkeyAuthenticationService :
+            AuthenticationServiceBase, IAuthenticationService
     {
-        public byte[] GetPublicKey()
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+ 
+        public WebkeyAuthenticationService(IConfigSource config) :
+                base(config)
         {
-            return new byte[0];
         }
 
         public string Authenticate(UUID principalID, string password)
@@ -59,16 +68,6 @@ namespace OpenSim.Services.AuthenticationService
         }
 
         public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return false;
-        }
-
-        public bool Release(UUID principalID, string token)
-        {
-            return false;
-        }
-
-        public bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
         {
             return false;
         }
