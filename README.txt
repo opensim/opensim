@@ -1,7 +1,7 @@
 Welcome to OpenSim!
 
 Version 0.6.x
-
+ 
 == OVERVIEW ==
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
@@ -89,5 +89,4 @@ OpenSim, as well as how to report bugs, and participate in the OpenSim
 project can always be found at http://opensimulator.org.
 
 Thanks for trying OpenSim, we hope it is a pleasant experience.
-
 

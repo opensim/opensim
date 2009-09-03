@@ -461,6 +461,8 @@ namespace OpenSim.Services.Connectors
 
         private void MoveItemsCompleted(IAsyncResult iar)
         {
+            MoveItemsDelegate d = (MoveItemsDelegate)iar.AsyncState;
+            d.EndInvoke(iar);
         }
 
         public bool MoveItems(string userID, List<InventoryItemBase> items, UUID sessionID)

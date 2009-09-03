@@ -1169,5 +1169,27 @@ namespace OpenSim.Framework
 
             return found.ToArray();
         }
+
+        #region FireAndForget Threading Pattern
+
+        public static void FireAndForget(System.Threading.WaitCallback callback)
+        {
+            callback.BeginInvoke(null, EndFireAndForget, callback);
+        }
+
+        public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
+        {
+            callback.BeginInvoke(obj, EndFireAndForget, callback);
+        }
+
+        private static void EndFireAndForget(IAsyncResult ar)
+        {
+            System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
+
+            callback.EndInvoke(ar);
+            ar.AsyncWaitHandle.Close();
+        }
+
+        #endregion FireAndForget Threading Pattern
     }
 }

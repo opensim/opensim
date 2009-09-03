@@ -199,6 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
 
+            /*
             if (!m_userInfo.HasReceivedInventory)
             {
                 // If the region server has access to the user admin service (by which users are created),
@@ -220,13 +221,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_userInfo.FetchInventory();
                 }
             }
+            */
 
             bool foundStar = false;
 
             // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
             // itself (possibly at a small loss in efficiency).
             string[] components
-                = m_invPath.Split(new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
+                = m_invPath.Split(
+                    new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
 
             int maxComponentIndex = components.Length - 1;
 

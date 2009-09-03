@@ -1,4 +1,14 @@
-NANT = $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
+# hey, emacs! this is a -*- makefile -*-
+#
+# OpenSim makefile
+#
+
+RUBY    = $(strip $(shell which ruby 2>/dev/null))
+ifeq ($(RUBY),)
+NANT    = nant
+else
+NANT	= $(shell if test "$$EMACS" = "t" ; then echo "nant"; else echo "./nant-color"; fi)
+endif
 
 all: prebuild
 	# @export PATH=/usr/local/bin:$(PATH)
@@ -14,7 +24,7 @@ prebuild:
 
 clean:
 	# @export PATH=/usr/local/bin:$(PATH)
-	${NANT} clean
+	-${NANT} clean
 
 test: prebuild
 	${NANT} test

@@ -457,6 +457,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         void SendInventoryComplete(IAsyncResult iar)
         {
+            SendInventoryDelegate d = (SendInventoryDelegate)iar.AsyncState;
+            d.EndInvoke(iar);
         }
 
         /// <summary>
@@ -622,6 +624,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void PurgeFolderCompleted(IAsyncResult iar)
         {
+            PurgeFolderDelegate d = (PurgeFolderDelegate)iar.AsyncState;
+            d.EndInvoke(iar);
         }
     }
 }

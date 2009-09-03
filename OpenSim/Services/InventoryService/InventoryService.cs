@@ -232,7 +232,7 @@ namespace OpenSim.Services.InventoryService
                 m_log.WarnFormat("[INVENTORY SERVICE]: User {0} inventory not available", userID);
             }
 
-            callback.BeginInvoke(folders, items, null, null);
+            Util.FireAndForget(delegate { callback(folders, items); });
         }
 
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)

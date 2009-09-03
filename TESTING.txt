@@ -135,3 +135,4 @@ nunit-console2 OpenSim.Framework.Tests.dll (on linux)
 nunit-console OpenSim.Framework.Tests.dll (on windows)
 
 For more information on testing contact the autor of this testing readme: Daedius Moskvitch ( daedius @@@@ daedius com)
+

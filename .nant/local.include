@@ -34,51 +34,55 @@
   <setenv name="MONO_THREADS_PER_CPU" value="100" />
 
   <!-- Unit Test Assembly -->
+  <!-- if you want to add more unit tests it's important that you add
+  the assembly here as an exec, and you add the fail clause later.
+  This lets all the unit tests run and tells you if they fail at the
+  end, instead of stopping short -->
   <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.tests">
     <arg value="./bin/OpenSim.Framework.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
     <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
     <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.coremodules.tests">
     <arg value="./bin/OpenSim.Region.CoreModules.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.framework.tests">
     <arg value="./bin/OpenSim.Region.Framework.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.sqlite.tests">
     <arg value="./bin/OpenSim.Data.SQLite.Tests.dll" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
+  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.data.mysql.tests">
     <arg value="./bin/OpenSim.Data.MySQL.Tests.dll" />
   </exec>
 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.sqlite.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
 
 </target>
 

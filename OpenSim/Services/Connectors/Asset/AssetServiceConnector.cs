@@ -177,7 +177,7 @@ namespace OpenSim.Services.Connectors
             }
             else
             {
-                handler.BeginInvoke(id, sender, asset, null, null);
+                Util.FireAndForget(delegate { handler(id, sender, asset); });
             }
 
             return true;
