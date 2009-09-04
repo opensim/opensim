@@ -45,6 +45,9 @@ namespace OpenSim.Data.MySQL
                 : base(connectionString)
         {
             m_Realm = realm;
+
+            Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
+            m.Update();
         }
 
         public AuthenticationData Get(UUID principalID)

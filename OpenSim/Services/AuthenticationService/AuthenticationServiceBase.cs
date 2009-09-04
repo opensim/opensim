@@ -53,7 +53,7 @@ namespace OpenSim.Services.AuthenticationService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = String.Empty;
+            string realm = "auth";
 
             //
             // Try reading the [AuthenticationService] section first, if it exists
