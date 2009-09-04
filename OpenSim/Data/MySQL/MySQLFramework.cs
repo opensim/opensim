@@ -70,6 +70,7 @@ namespace OpenSim.Data.MySQL
                     }
                     catch (MySqlException e)
                     {
+Console.WriteLine(e.ToString());
                         if (errorSeen)
                             throw;
 
@@ -88,6 +89,13 @@ namespace OpenSim.Data.MySQL
 
                             cmd.Connection = m_Connection;
                         }
+                        else
+                            throw;
+                    }
+                    catch (Exception e)
+                    {
+Console.WriteLine(e.ToString());
+                        return 0;
                     }
                 }
             }

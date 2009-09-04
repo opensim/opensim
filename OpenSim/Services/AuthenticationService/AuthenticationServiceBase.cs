@@ -53,6 +53,7 @@ namespace OpenSim.Services.AuthenticationService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
+            string realm = String.Empty;
 
             //
             // Try reading the [AuthenticationService] section first, if it exists
@@ -62,6 +63,7 @@ namespace OpenSim.Services.AuthenticationService
             {
                 dllName = authConfig.GetString("StorageProvider", dllName);
                 connString = authConfig.GetString("ConnectionString", connString);
+                realm = authConfig.GetString("Realm", realm);
             }
 
             //
@@ -79,11 +81,11 @@ namespace OpenSim.Services.AuthenticationService
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName.Equals(String.Empty))
+            if (dllName == String.Empty || realm == String.Empty)
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IAuthenticationData>(dllName,
-                    new Object[] {connString});
+                    new Object[] {connString, realm});
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
         }

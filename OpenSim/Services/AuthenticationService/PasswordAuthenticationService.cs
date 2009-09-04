@@ -26,11 +26,15 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Services.Interfaces;
 using log4net;
 using Nini.Config;
 using System.Reflection;
+using OpenSim.Data;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Services.AuthenticationService
 {
