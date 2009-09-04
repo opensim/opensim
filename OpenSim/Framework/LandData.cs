@@ -27,6 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Serialization;
+
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -36,6 +39,11 @@ namespace OpenSim.Framework
     /// </summary>
     public class LandData
     {
+        // use only one serializer to give the runtime a chance to
+        // optimize it (it won't do that if you use a new instance
+        // every time)
+        private static XmlSerializer serializer = new XmlSerializer(typeof (LandData));
+        
         private Vector3 _AABBMax = new Vector3();
         private Vector3 _AABBMin = new Vector3();
         private int _area = 0;
@@ -86,6 +94,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Upper corner of the AABB for the parcel
         /// </summary>
+        [XmlIgnore]
         public Vector3 AABBMax {
             get {
                 return _AABBMax;
@@ -97,6 +106,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Lower corner of the AABB for the parcel
         /// </summary>
+        [XmlIgnore]
         public Vector3 AABBMin {
             get {
                 return _AABBMin;
@@ -205,6 +215,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of SceneObjectPart that are owned by a Group
         /// </summary>
+        [XmlIgnore]
         public int GroupPrims {
             get {
                 return _groupPrims;
@@ -363,6 +374,7 @@ namespace OpenSim.Framework
         /// Number of SceneObjectPart that are owned by users who do not own the parcel
         /// and don't have the 'group.  These are elegable for AutoReturn collection
         /// </summary>
+        [XmlIgnore]
         public int OtherPrims {
             get {
                 return _otherPrims;
@@ -388,6 +400,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of SceneObjectPart that are owned by the owner of the parcel
         /// </summary>
+        [XmlIgnore]
         public int OwnerPrims {
             get {
                 return _ownerPrims;
@@ -448,6 +461,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of SceneObjectPart that are currently selected by avatar
         /// </summary>
+        [XmlIgnore]
         public int SelectedPrims {
             get {
                 return _selectedPrims;
@@ -460,6 +474,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of meters^2 in the Simulator
         /// </summary>
+        [XmlIgnore]
         public int SimwideArea {
             get {
                 return _simwideArea;
@@ -472,6 +487,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Number of SceneObjectPart in the Simulator
         /// </summary>
+        [XmlIgnore]
         public int SimwidePrims {
             get {
                 return _simwidePrims;
@@ -606,6 +622,23 @@ namespace OpenSim.Framework
             }
 
             return landData;
+        }
+
+        public void ToXml(XmlWriter xmlWriter)
+        {
+            serializer.Serialize(xmlWriter, this);
+        }
+
+        /// <summary>
+        /// Restore a LandData object from the serialized xml representation.
+        /// </summary>
+        /// <param name="xmlReader"></param>
+        /// <returns></returns>
+        public static LandData FromXml(XmlReader xmlReader)
+        {
+            LandData land = (LandData)serializer.Deserialize(xmlReader);
+
+            return land;
         }
     }
 }

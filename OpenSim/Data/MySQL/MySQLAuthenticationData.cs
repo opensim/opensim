@@ -39,11 +39,15 @@ namespace OpenSim.Data.MySQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames = null;
+        private int m_LastExpire = 0;
 
         public MySqlAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
         {
             m_Realm = realm;
+
+            Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
+            m.Update();
         }
 
         public AuthenticationData Get(UUID principalID)
@@ -152,6 +156,57 @@ namespace OpenSim.Data.MySQL
                 return true;
 
             return false;
+        }
+
+        public bool SetToken(UUID principalID, string token, int lifetime)
+        {
+            if (System.Environment.TickCount - m_LastExpire > 30000)
+                DoExpire();
+
+            MySqlCommand cmd = new MySqlCommand("insert into tokens (UUID, token, validity) values (?principalID, ?token, date_add(now(), interval ?lifetime minute))");
+            cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?token", token);
+            cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+
+            if (ExecuteNonQuery(cmd) > 0)
+            {
+                cmd.Dispose();
+                return true;
+            }
+
+            cmd.Dispose();
+            return false;
+        }
+
+        public bool CheckToken(UUID principalID, string token, int lifetime)
+        {
+            if (System.Environment.TickCount - m_LastExpire > 30000)
+                DoExpire();
+
+            MySqlCommand cmd = new MySqlCommand("update tokens set validity = date_add(now(), interval ?lifetime minute) where UUID = ?principalID and token = ?token and validity > now()");
+            cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?token", token);
+            cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+
+            if (ExecuteNonQuery(cmd) > 0)
+            {
+                cmd.Dispose();
+                return true;
+            }
+
+            cmd.Dispose();
+
+            return false;
+        }
+
+        private void DoExpire()
+        {
+            MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()");
+            ExecuteNonQuery(cmd);
+
+            cmd.Dispose();
+
+            m_LastExpire = System.Environment.TickCount;
         }
     }
 }

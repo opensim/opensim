@@ -5,6 +5,9 @@
 ; * These are the IN connectors the server uses, the in connectors
 ; * read this config file and load the needed OUT and database connectors
 ; *
+; * Add "OpenSim.Server.Handlers.dll:AuthenticationServiceConnector" to
+; * enable the experimental authentication service
+; *
 [Startup]
 ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector"
 
@@ -45,3 +48,15 @@ ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=gr
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
 LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
+
+; * This is the new style authentication service. Currently, only MySQL
+; * is implemented. "Realm" is the table that is used for user lookup.
+; * By setting it to "users", you can use the old style users table
+; * as an authentication source.
+; *
+[AuthenticationService]
+AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+StorageProvider = "OpenSim.Data.MySQL.dll"
+ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+; Realm = "auth"
+

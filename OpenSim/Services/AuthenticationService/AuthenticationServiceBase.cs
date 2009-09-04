@@ -53,7 +53,7 @@ namespace OpenSim.Services.AuthenticationService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = String.Empty;
+            string realm = "auth";
 
             //
             // Try reading the [AuthenticationService] section first, if it exists
@@ -95,14 +95,34 @@ namespace OpenSim.Services.AuthenticationService
             return new byte[0];
         }
 
-        public virtual bool Release(UUID principalID, string token)
+        public bool Verify(UUID principalID, string token, int lifetime)
+        {
+            return m_Database.CheckToken(principalID, token, lifetime);
+        }
+
+        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
         {
             return false;
+        }
+
+        public virtual bool Release(UUID principalID, string token)
+        {
+            return m_Database.CheckToken(principalID, token, 0);
         }
 
         public virtual bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
         {
             return false;
+        }
+
+        protected string GetToken(UUID principalID, int lifetime)
+        {
+            UUID token = UUID.Random();
+
+            if (m_Database.SetToken(principalID, token.ToString(), lifetime))
+                return token.ToString();
+
+            return String.Empty;
         }
     }
 }

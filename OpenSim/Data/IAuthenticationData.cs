@@ -48,5 +48,9 @@ namespace OpenSim.Data
         bool Store(AuthenticationData data);
 
         bool SetDataItem(UUID principalID, string item, string value);
+
+        bool SetToken(UUID principalID, string token, int lifetime);
+
+        bool CheckToken(UUID principalID, string token, int lifetime);
     }
 }

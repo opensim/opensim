@@ -52,7 +52,7 @@ namespace OpenSim.Services.AuthenticationService
         {
         }
 
-        public string Authenticate(UUID principalID, string password)
+        public string Authenticate(UUID principalID, string password, int lifetime)
         {
             return String.Empty;
         }
@@ -60,16 +60,6 @@ namespace OpenSim.Services.AuthenticationService
         public byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key)
         {
             return new byte[0];
-        }
-
-        public bool Verify(UUID principalID, string token)
-        {
-            return false;
-        }
-
-        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return false;
         }
     }
 }

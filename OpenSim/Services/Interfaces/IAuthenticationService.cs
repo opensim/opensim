@@ -70,7 +70,7 @@ namespace OpenSim.Services.Interfaces
         // the public key of the peer, which the connector must have
         // obtained using a remote GetPublicKey call.
         //
-        string Authenticate(UUID principalID, string password);
+        string Authenticate(UUID principalID, string password, int lifetime);
         byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ namespace OpenSim.Services.Interfaces
         // must be used to refresh. Unencrypted verification is still
         // performed, but doesn't refresh token lifetime.
         //
-        bool Verify(UUID principalID, string token);
+        bool Verify(UUID principalID, string token, int lifetime);
         bool VerifyEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////

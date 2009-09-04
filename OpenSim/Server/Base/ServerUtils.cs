@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Text;
+using System.Collections.Generic;
 using log4net;
 using OpenSim.Framework;
 
@@ -155,6 +156,32 @@ namespace OpenSim.Server.Base
                 m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e);
                 return null;
             }
+        }
+
+        public static Dictionary<string, string> ParseQueryString(string query)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            string[] terms = query.Split(new char[] {'&'});
+
+            if (terms.Length == 0)
+                return result;
+
+            foreach (string t in terms)
+            {
+                string[] elems = t.Split(new char[] {'='});
+                if (elems.Length == 0)
+                    continue;
+
+                string name = System.Web.HttpUtility.UrlDecode(elems[0]);
+                string value = String.Empty;
+
+                if (elems.Length > 1)
+                    value = System.Web.HttpUtility.UrlDecode(elems[1]);
+
+                result[name] = value;
+            }
+
+            return result;
         }
     }
 }
