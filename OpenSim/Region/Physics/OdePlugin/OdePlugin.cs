@@ -1564,12 +1564,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_parentScene = pScene;
             
         }
-// Recovered for use by fly height. Kitto Flora
+        
+        // Recovered for use by fly height. Kitto Flora
         public float GetTerrainHeightAtXY(float x, float y)
         {
 
-            int offsetX = ((int) (x/256)) * 256;
-            int offsetY = ((int) (y/256)) * 256;
+            int offsetX = ((int)(x / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
+            int offsetY = ((int)(y / (int)Constants.RegionSize)) * (int)Constants.RegionSize;
 
             IntPtr heightFieldGeom = IntPtr.Zero;
 
