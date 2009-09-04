@@ -55,6 +55,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
     [TestFixture]
     public class InventoryArchiverTests
     {
+        protected ManualResetEvent mre = new ManualResetEvent(false);
+        
         private void InventoryReceived(UUID userId)
         {
             lock (this)
@@ -64,12 +66,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         }
         
         private void SaveCompleted(
-            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+            Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
+            Exception reportedException)
         {
-            lock (this)
-            {
-                Monitor.PulseAll(this);
-            }
+            mre.Set();
         }        
 
         /// <summary>
@@ -152,11 +152,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
 
-            lock (this)
-            {
-                archiverModule.ArchiveInventory(userFirstName, userLastName, "Objects", archiveWriteStream);
-                Monitor.Wait(this, 60000);
-            }
+            mre.Reset();
+            archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "Objects", archiveWriteStream);
+            mre.WaitOne();
 
             byte[] archive = archiveWriteStream.ToArray();
             MemoryStream archiveReadStream = new MemoryStream(archive);

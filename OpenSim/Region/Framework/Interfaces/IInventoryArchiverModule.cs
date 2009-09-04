@@ -34,13 +34,14 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <summary>
     /// Used for the OnInventoryArchiveSaved event.
     /// </summary>
+    /// <param name="id">Request id</param>
     /// <param name="succeeded">true if the save succeeded, false otherwise</param>
     /// <param name="userInfo">The user for whom the save was conducted</param>
     /// <param name="invPath">The inventory path saved</param>
     /// <param name="savePath">The stream to which the archive was saved</param>
     /// <param name="reportedException">Contains the exception generated if the save did not succeed</param>
     public delegate void InventoryArchiveSaved(
-        bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException);
+        Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException);
     
     public interface IInventoryArchiverModule       
     {
@@ -61,10 +62,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Archive a user's inventory folder to the given stream
         /// </summary>
+        /// <param name="id">ID representing this request.  This will later be returned in the save event</param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="invPath">The inventory path from which the inventory should be saved.</param>
-        /// <param name="saveStream">The stream to which the inventory archive will be saved</param>        
-        void ArchiveInventory(string firstName, string lastName, string invPath, Stream saveStream);     
+        /// <param name="saveStream">The stream to which the inventory archive will be saved</param>
+        void ArchiveInventory(Guid id, string firstName, string lastName, string invPath, Stream saveStream);     
     }
 }
