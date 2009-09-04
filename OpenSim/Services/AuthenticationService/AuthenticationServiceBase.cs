@@ -97,7 +97,7 @@ namespace OpenSim.Services.AuthenticationService
 
         public bool Verify(UUID principalID, string token, int lifetime)
         {
-            return false;
+            return m_Database.CheckToken(principalID, token, lifetime);
         }
 
         public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
@@ -107,7 +107,7 @@ namespace OpenSim.Services.AuthenticationService
 
         public virtual bool Release(UUID principalID, string token)
         {
-            return false;
+            return m_Database.CheckToken(principalID, token, 0);
         }
 
         public virtual bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
@@ -117,7 +117,12 @@ namespace OpenSim.Services.AuthenticationService
 
         protected string GetToken(UUID principalID, int lifetime)
         {
-            return "OK";
+            UUID token = UUID.Random();
+
+            if (m_Database.SetToken(principalID, token.ToString(), lifetime))
+                return token.ToString();
+
+            return String.Empty;
         }
     }
 }
