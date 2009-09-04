@@ -671,55 +671,55 @@ namespace OpenSim.Region.CoreModules.World.Land
 
 
 
-            BigRegion.RegionScene.Permissions.OnBypassPermissions += BigRegion.PermissionModule.BypassPermissions;
-            BigRegion.RegionScene.Permissions.OnSetBypassPermissions += BigRegion.PermissionModule.SetBypassPermissions;
-            BigRegion.RegionScene.Permissions.OnPropagatePermissions += BigRegion.PermissionModule.PropagatePermissions;
-            BigRegion.RegionScene.Permissions.OnGenerateClientFlags += BigRegion.PermissionModule.GenerateClientFlags;
-            BigRegion.RegionScene.Permissions.OnAbandonParcel += BigRegion.PermissionModule.CanAbandonParcel;
-            BigRegion.RegionScene.Permissions.OnReclaimParcel += BigRegion.PermissionModule.CanReclaimParcel;
-            BigRegion.RegionScene.Permissions.OnDeedParcel += BigRegion.PermissionModule.CanDeedParcel;
-            BigRegion.RegionScene.Permissions.OnDeedObject += BigRegion.PermissionModule.CanDeedObject;
-            BigRegion.RegionScene.Permissions.OnIsGod += BigRegion.PermissionModule.IsGod;
-            BigRegion.RegionScene.Permissions.OnDuplicateObject += BigRegion.PermissionModule.CanDuplicateObject;
-            BigRegion.RegionScene.Permissions.OnDeleteObject += BigRegion.PermissionModule.CanDeleteObject; //MAYBE FULLY IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnEditObject += BigRegion.PermissionModule.CanEditObject; //MAYBE FULLY IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnEditParcel += BigRegion.PermissionModule.CanEditParcel; //MAYBE FULLY IMPLEMENTED            
-            BigRegion.RegionScene.Permissions.OnInstantMessage += BigRegion.PermissionModule.CanInstantMessage;
-            BigRegion.RegionScene.Permissions.OnInventoryTransfer += BigRegion.PermissionModule.CanInventoryTransfer; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnIssueEstateCommand += BigRegion.PermissionModule.CanIssueEstateCommand; //FULLY IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnMoveObject += BigRegion.PermissionModule.CanMoveObject; //MAYBE FULLY IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnObjectEntry += BigRegion.PermissionModule.CanObjectEntry;
-            BigRegion.RegionScene.Permissions.OnReturnObject += BigRegion.PermissionModule.CanReturnObject; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnRezObject += BigRegion.PermissionModule.CanRezObject; //MAYBE FULLY IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnRunConsoleCommand += BigRegion.PermissionModule.CanRunConsoleCommand;
-            BigRegion.RegionScene.Permissions.OnRunScript += BigRegion.PermissionModule.CanRunScript; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnCompileScript += BigRegion.PermissionModule.CanCompileScript;
-            BigRegion.RegionScene.Permissions.OnSellParcel += BigRegion.PermissionModule.CanSellParcel;
-            BigRegion.RegionScene.Permissions.OnTakeObject += BigRegion.PermissionModule.CanTakeObject;
-            BigRegion.RegionScene.Permissions.OnTakeCopyObject += BigRegion.PermissionModule.CanTakeCopyObject;
-            BigRegion.RegionScene.Permissions.OnTerraformLand += BigRegion.PermissionModule.CanTerraformLand;
-            BigRegion.RegionScene.Permissions.OnLinkObject += BigRegion.PermissionModule.CanLinkObject; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnDelinkObject += BigRegion.PermissionModule.CanDelinkObject; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnBuyLand += BigRegion.PermissionModule.CanBuyLand; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnBypassPermissions += BigRegion.PermissionModule.BypassPermissions;
+            VirtualRegion.Permissions.OnSetBypassPermissions += BigRegion.PermissionModule.SetBypassPermissions;
+            VirtualRegion.Permissions.OnPropagatePermissions += BigRegion.PermissionModule.PropagatePermissions;
+            VirtualRegion.Permissions.OnGenerateClientFlags += BigRegion.PermissionModule.GenerateClientFlags;
+            VirtualRegion.Permissions.OnAbandonParcel += BigRegion.PermissionModule.CanAbandonParcel;
+            VirtualRegion.Permissions.OnReclaimParcel += BigRegion.PermissionModule.CanReclaimParcel;
+            VirtualRegion.Permissions.OnDeedParcel += BigRegion.PermissionModule.CanDeedParcel;
+            VirtualRegion.Permissions.OnDeedObject += BigRegion.PermissionModule.CanDeedObject;
+            VirtualRegion.Permissions.OnIsGod += BigRegion.PermissionModule.IsGod;
+            VirtualRegion.Permissions.OnDuplicateObject += BigRegion.PermissionModule.CanDuplicateObject;
+            VirtualRegion.Permissions.OnDeleteObject += BigRegion.PermissionModule.CanDeleteObject; //MAYBE FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnEditObject += BigRegion.PermissionModule.CanEditObject; //MAYBE FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnEditParcel += BigRegion.PermissionModule.CanEditParcel; //MAYBE FULLY IMPLEMENTED            
+            VirtualRegion.Permissions.OnInstantMessage += BigRegion.PermissionModule.CanInstantMessage;
+            VirtualRegion.Permissions.OnInventoryTransfer += BigRegion.PermissionModule.CanInventoryTransfer; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnIssueEstateCommand += BigRegion.PermissionModule.CanIssueEstateCommand; //FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnMoveObject += BigRegion.PermissionModule.CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnObjectEntry += BigRegion.PermissionModule.CanObjectEntry;
+            VirtualRegion.Permissions.OnReturnObject += BigRegion.PermissionModule.CanReturnObject; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnRezObject += BigRegion.PermissionModule.CanRezObject; //MAYBE FULLY IMPLEMENTED
+            VirtualRegion.Permissions.OnRunConsoleCommand += BigRegion.PermissionModule.CanRunConsoleCommand;
+            VirtualRegion.Permissions.OnRunScript += BigRegion.PermissionModule.CanRunScript; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnCompileScript += BigRegion.PermissionModule.CanCompileScript;
+            VirtualRegion.Permissions.OnSellParcel += BigRegion.PermissionModule.CanSellParcel;
+            VirtualRegion.Permissions.OnTakeObject += BigRegion.PermissionModule.CanTakeObject;
+            VirtualRegion.Permissions.OnTakeCopyObject += BigRegion.PermissionModule.CanTakeCopyObject;
+            VirtualRegion.Permissions.OnTerraformLand += BigRegion.PermissionModule.CanTerraformLand;
+            VirtualRegion.Permissions.OnLinkObject += BigRegion.PermissionModule.CanLinkObject; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnDelinkObject += BigRegion.PermissionModule.CanDelinkObject; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnBuyLand += BigRegion.PermissionModule.CanBuyLand; //NOT YET IMPLEMENTED
 
-            BigRegion.RegionScene.Permissions.OnViewNotecard += BigRegion.PermissionModule.CanViewNotecard; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnViewScript += BigRegion.PermissionModule.CanViewScript; //NOT YET IMPLEMENTED                       
-            BigRegion.RegionScene.Permissions.OnEditNotecard += BigRegion.PermissionModule.CanEditNotecard; //NOT YET IMPLEMENTED            
-            BigRegion.RegionScene.Permissions.OnEditScript += BigRegion.PermissionModule.CanEditScript; //NOT YET IMPLEMENTED            
+            VirtualRegion.Permissions.OnViewNotecard += BigRegion.PermissionModule.CanViewNotecard; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnViewScript += BigRegion.PermissionModule.CanViewScript; //NOT YET IMPLEMENTED                       
+            VirtualRegion.Permissions.OnEditNotecard += BigRegion.PermissionModule.CanEditNotecard; //NOT YET IMPLEMENTED            
+            VirtualRegion.Permissions.OnEditScript += BigRegion.PermissionModule.CanEditScript; //NOT YET IMPLEMENTED            
 
-            BigRegion.RegionScene.Permissions.OnCreateObjectInventory += BigRegion.PermissionModule.CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
-            BigRegion.RegionScene.Permissions.OnEditObjectInventory += BigRegion.PermissionModule.CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED            
-            BigRegion.RegionScene.Permissions.OnCopyObjectInventory += BigRegion.PermissionModule.CanCopyObjectInventory; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnDeleteObjectInventory += BigRegion.PermissionModule.CanDeleteObjectInventory; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnResetScript += BigRegion.PermissionModule.CanResetScript;
+            VirtualRegion.Permissions.OnCreateObjectInventory += BigRegion.PermissionModule.CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            VirtualRegion.Permissions.OnEditObjectInventory += BigRegion.PermissionModule.CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED            
+            VirtualRegion.Permissions.OnCopyObjectInventory += BigRegion.PermissionModule.CanCopyObjectInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnDeleteObjectInventory += BigRegion.PermissionModule.CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnResetScript += BigRegion.PermissionModule.CanResetScript;
 
-            BigRegion.RegionScene.Permissions.OnCreateUserInventory += BigRegion.PermissionModule.CanCreateUserInventory; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnCopyUserInventory += BigRegion.PermissionModule.CanCopyUserInventory; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnEditUserInventory += BigRegion.PermissionModule.CanEditUserInventory; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnDeleteUserInventory += BigRegion.PermissionModule.CanDeleteUserInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnCreateUserInventory += BigRegion.PermissionModule.CanCreateUserInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnCopyUserInventory += BigRegion.PermissionModule.CanCopyUserInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnEditUserInventory += BigRegion.PermissionModule.CanEditUserInventory; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnDeleteUserInventory += BigRegion.PermissionModule.CanDeleteUserInventory; //NOT YET IMPLEMENTED
 
-            BigRegion.RegionScene.Permissions.OnTeleport += BigRegion.PermissionModule.CanTeleport; //NOT YET IMPLEMENTED
-            BigRegion.RegionScene.Permissions.OnUseObjectReturn += BigRegion.PermissionModule.CanUseObjectReturn; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnTeleport += BigRegion.PermissionModule.CanTeleport; //NOT YET IMPLEMENTED
+            VirtualRegion.Permissions.OnUseObjectReturn += BigRegion.PermissionModule.CanUseObjectReturn; //NOT YET IMPLEMENTED
         }
     }
     public class RegionConnections
