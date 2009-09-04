@@ -1590,10 +1590,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         x = x - offsetX;
                         y = y - offsetY;
 
-                        index = (int)((int)y * (int)Constants.RegionSize + (int)x);
+                        index = (int)((int)x * ((int)Constants.RegionSize + 2) + (int)y);
 
                         if (index < TerrainHeightFieldHeights[heightFieldGeom].Length)
-                            return (float)TerrainHeightFieldHeights[heightFieldGeom][(int)y * (int)Constants.RegionSize + (int)x];
+                        {
+                            //m_log.DebugFormat("x{0} y{1} = {2}", x, y, (float)TerrainHeightFieldHeights[heightFieldGeom][index]);
+                            return (float)TerrainHeightFieldHeights[heightFieldGeom][index];
+                        }
+                            
                         else
                             return 0f;
                     }
@@ -3366,7 +3370,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             const float thickness = 0.2f;
             const int wrap = 0;
 
-            int regionsize = (int) Constants.RegionSize;
+            int regionsize = (int) Constants.RegionSize + 2;
             //Double resolution
             //if (((int)Constants.RegionSize) == 256)
             //    heightMap = ResizeTerrain512Interpolation(heightMap);
@@ -3377,19 +3381,25 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             float hfmin = 2000;
             float hfmax = -2000;
-            for (int x = 0; x < heightmapWidthSamples; x++)
-            {
-                for (int y = 0; y < heightmapHeightSamples; y++)
+            
+                for (int x = 0; x < heightmapWidthSamples; x++)
                 {
-                    int xx = Util.Clip(x - 1, 0, regionsize - 1);
-                    int yy = Util.Clip(y - 1, 0, regionsize - 1);
-
-                    float val = heightMap[yy * regionsize + xx];
-                    _heightmap[x * heightmapHeightSamples + y] = val;
-                    hfmin = (val < hfmin) ? val : hfmin;
-                    hfmax = (val > hfmax) ? val : hfmax;
+                    for (int y = 0; y < heightmapHeightSamples; y++)
+                    {
+                        int xx = Util.Clip(x - 1, 0, regionsize - 1);
+                        int yy = Util.Clip(y - 1, 0, regionsize - 1);
+                        
+                        
+                        float val= heightMap[yy * (int)Constants.RegionSize + xx];
+                         _heightmap[x * ((int)Constants.RegionSize + 2) + y] = val;
+                        
+                        hfmin = (val < hfmin) ? val : hfmin;
+                        hfmax = (val > hfmax) ? val : hfmax;
+                    }
                 }
-            }
+                
+            
+            
 
             lock (OdeLock)
             {
@@ -3409,8 +3419,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 }
                 IntPtr HeightmapData = d.GeomHeightfieldDataCreate();
-                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth, heightmapHeight,
-                                                 (int)heightmapWidthSamples, (int)heightmapHeightSamples, scale,
+                d.GeomHeightfieldDataBuildSingle(HeightmapData, _heightmap, 0, heightmapWidth + 1, heightmapHeight + 1,
+                                                 (int)heightmapWidthSamples + 1, (int)heightmapHeightSamples + 1, scale,
                                                  offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, hfmin - 1, hfmax + 1);
                 GroundGeom = d.CreateHeightfield(space, HeightmapData, 1);
