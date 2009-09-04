@@ -95,6 +95,16 @@ namespace OpenSim.Services.AuthenticationService
             return new byte[0];
         }
 
+        public bool Verify(UUID principalID, string token, int lifetime)
+        {
+            return false;
+        }
+
+        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
+        {
+            return false;
+        }
+
         public virtual bool Release(UUID principalID, string token)
         {
             return false;
@@ -103,6 +113,11 @@ namespace OpenSim.Services.AuthenticationService
         public virtual bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
         {
             return false;
+        }
+
+        protected string GetToken(UUID principalID, int lifetime)
+        {
+            return "OK";
         }
     }
 }

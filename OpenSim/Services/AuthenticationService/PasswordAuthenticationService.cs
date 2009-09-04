@@ -56,24 +56,30 @@ namespace OpenSim.Services.AuthenticationService
         {
         }
 
-        public string Authenticate(UUID principalID, string password)
+        public string Authenticate(UUID principalID, string password, int lifetime)
         {
+            AuthenticationData data = m_Database.Get(principalID);
+            
+            if (!data.Data.ContainsKey("passwordHash") ||
+                !data.Data.ContainsKey("passwordSalt"))
+            {
+                return String.Empty;
+            }
+
+            string hashed = Util.Md5Hash(Util.Md5Hash(password) + ":" +
+                    data.Data["passwordSalt"].ToString());
+
+            if (data.Data["passwordHash"].ToString() == hashed)
+            {
+                return GetToken(principalID, lifetime);
+            }
+
             return String.Empty;
         }
 
         public byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key)
         {
             return new byte[0];
-        }
-
-        public bool Verify(UUID principalID, string token)
-        {
-            return false;
-        }
-
-        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return false;
         }
     }
 }
