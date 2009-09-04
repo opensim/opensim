@@ -495,8 +495,15 @@ namespace OpenSim.Region.CoreModules.World.Land
                     rdata.RegionScene = scene;
                     regionConnections.RegionLandChannel = scene.LandChannel;
 
-                    LargeLandChannel lnd = new LargeLandChannel(rdata,scene.LandChannel,regionConnections.ConnectedRegions);
+                    RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata,scene.LandChannel,regionConnections.ConnectedRegions);
                     scene.LandChannel = lnd;
+                    lock (m_regions)
+                    {
+                        foreach (RegionData r in regionConnections.ConnectedRegions)
+                        {
+                            ForwardPermissionRequests(regionConnections, r.RegionScene);
+                        }
+                    }
                     
                     m_regions.Add(scene.RegionInfo.originRegionID,regionConnections);
                 }
@@ -656,6 +663,64 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             return new RegionData();
         }
+
+        public void ForwardPermissionRequests(RegionConnections BigRegion, Scene VirtualRegion)
+        {
+            if (BigRegion.PermissionModule == null)
+                BigRegion.PermissionModule = new RegionCombinerPermissionModule(BigRegion.RegionScene);
+
+
+
+            BigRegion.RegionScene.Permissions.OnBypassPermissions += BigRegion.PermissionModule.BypassPermissions;
+            BigRegion.RegionScene.Permissions.OnSetBypassPermissions += BigRegion.PermissionModule.SetBypassPermissions;
+            BigRegion.RegionScene.Permissions.OnPropagatePermissions += BigRegion.PermissionModule.PropagatePermissions;
+            BigRegion.RegionScene.Permissions.OnGenerateClientFlags += BigRegion.PermissionModule.GenerateClientFlags;
+            BigRegion.RegionScene.Permissions.OnAbandonParcel += BigRegion.PermissionModule.CanAbandonParcel;
+            BigRegion.RegionScene.Permissions.OnReclaimParcel += BigRegion.PermissionModule.CanReclaimParcel;
+            BigRegion.RegionScene.Permissions.OnDeedParcel += BigRegion.PermissionModule.CanDeedParcel;
+            BigRegion.RegionScene.Permissions.OnDeedObject += BigRegion.PermissionModule.CanDeedObject;
+            BigRegion.RegionScene.Permissions.OnIsGod += BigRegion.PermissionModule.IsGod;
+            BigRegion.RegionScene.Permissions.OnDuplicateObject += BigRegion.PermissionModule.CanDuplicateObject;
+            BigRegion.RegionScene.Permissions.OnDeleteObject += BigRegion.PermissionModule.CanDeleteObject; //MAYBE FULLY IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnEditObject += BigRegion.PermissionModule.CanEditObject; //MAYBE FULLY IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnEditParcel += BigRegion.PermissionModule.CanEditParcel; //MAYBE FULLY IMPLEMENTED            
+            BigRegion.RegionScene.Permissions.OnInstantMessage += BigRegion.PermissionModule.CanInstantMessage;
+            BigRegion.RegionScene.Permissions.OnInventoryTransfer += BigRegion.PermissionModule.CanInventoryTransfer; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnIssueEstateCommand += BigRegion.PermissionModule.CanIssueEstateCommand; //FULLY IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnMoveObject += BigRegion.PermissionModule.CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnObjectEntry += BigRegion.PermissionModule.CanObjectEntry;
+            BigRegion.RegionScene.Permissions.OnReturnObject += BigRegion.PermissionModule.CanReturnObject; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnRezObject += BigRegion.PermissionModule.CanRezObject; //MAYBE FULLY IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnRunConsoleCommand += BigRegion.PermissionModule.CanRunConsoleCommand;
+            BigRegion.RegionScene.Permissions.OnRunScript += BigRegion.PermissionModule.CanRunScript; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnCompileScript += BigRegion.PermissionModule.CanCompileScript;
+            BigRegion.RegionScene.Permissions.OnSellParcel += BigRegion.PermissionModule.CanSellParcel;
+            BigRegion.RegionScene.Permissions.OnTakeObject += BigRegion.PermissionModule.CanTakeObject;
+            BigRegion.RegionScene.Permissions.OnTakeCopyObject += BigRegion.PermissionModule.CanTakeCopyObject;
+            BigRegion.RegionScene.Permissions.OnTerraformLand += BigRegion.PermissionModule.CanTerraformLand;
+            BigRegion.RegionScene.Permissions.OnLinkObject += BigRegion.PermissionModule.CanLinkObject; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnDelinkObject += BigRegion.PermissionModule.CanDelinkObject; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnBuyLand += BigRegion.PermissionModule.CanBuyLand; //NOT YET IMPLEMENTED
+
+            BigRegion.RegionScene.Permissions.OnViewNotecard += BigRegion.PermissionModule.CanViewNotecard; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnViewScript += BigRegion.PermissionModule.CanViewScript; //NOT YET IMPLEMENTED                       
+            BigRegion.RegionScene.Permissions.OnEditNotecard += BigRegion.PermissionModule.CanEditNotecard; //NOT YET IMPLEMENTED            
+            BigRegion.RegionScene.Permissions.OnEditScript += BigRegion.PermissionModule.CanEditScript; //NOT YET IMPLEMENTED            
+
+            BigRegion.RegionScene.Permissions.OnCreateObjectInventory += BigRegion.PermissionModule.CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            BigRegion.RegionScene.Permissions.OnEditObjectInventory += BigRegion.PermissionModule.CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED            
+            BigRegion.RegionScene.Permissions.OnCopyObjectInventory += BigRegion.PermissionModule.CanCopyObjectInventory; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnDeleteObjectInventory += BigRegion.PermissionModule.CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnResetScript += BigRegion.PermissionModule.CanResetScript;
+
+            BigRegion.RegionScene.Permissions.OnCreateUserInventory += BigRegion.PermissionModule.CanCreateUserInventory; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnCopyUserInventory += BigRegion.PermissionModule.CanCopyUserInventory; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnEditUserInventory += BigRegion.PermissionModule.CanEditUserInventory; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnDeleteUserInventory += BigRegion.PermissionModule.CanDeleteUserInventory; //NOT YET IMPLEMENTED
+
+            BigRegion.RegionScene.Permissions.OnTeleport += BigRegion.PermissionModule.CanTeleport; //NOT YET IMPLEMENTED
+            BigRegion.RegionScene.Permissions.OnUseObjectReturn += BigRegion.PermissionModule.CanUseObjectReturn; //NOT YET IMPLEMENTED
+        }
     }
     public class RegionConnections
     {
@@ -667,6 +732,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public int XEnd;
         public int YEnd;
         public List<RegionData> ConnectedRegions;
+        public RegionCombinerPermissionModule PermissionModule;
         public void UpdateExtents(Vector3 extents)
         {
             XEnd = (int)extents.X;
@@ -683,7 +749,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         
     }
 
-    public class LargeLandChannel : ILandChannel
+    public class RegionCombinerLargeLandChannel : ILandChannel
     {
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -693,7 +759,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         #region ILandChannel Members
 
-        public LargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,List<RegionData> regionConnections)
+        public RegionCombinerLargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,List<RegionData> regionConnections)
         {
             RegData = regData;
             RootRegionLandChannel = rootRegionLandChannel;
@@ -810,5 +876,239 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         #endregion
+    }
+
+    public class RegionCombinerPermissionModule
+    {
+        private Scene m_rootScene;
+        public RegionCombinerPermissionModule(Scene RootScene)
+        {
+            m_rootScene = RootScene;
+        }
+
+        public bool BypassPermissions()
+        {
+            return m_rootScene.Permissions.BypassPermissions();
+        }
+
+        public void SetBypassPermissions(bool value)
+        {
+            m_rootScene.Permissions.SetBypassPermissions(value);
+        }
+
+        public bool PropagatePermissions()
+        {
+            return m_rootScene.Permissions.PropagatePermissions();
+        }
+
+        public uint GenerateClientFlags(UUID userid, UUID objectidid)
+        {
+            return m_rootScene.Permissions.GenerateClientFlags(userid,objectidid);
+        }
+
+        public bool CanAbandonParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanAbandonParcel(user,parcel);
+        }
+
+        public bool CanReclaimParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanReclaimParcel(user, parcel);
+        }
+
+        public bool CanDeedParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanDeedParcel(user, parcel);
+        }
+
+        public bool CanDeedObject(UUID user, UUID @group, Scene scene)
+        {
+            return m_rootScene.Permissions.CanDeedObject(user,@group);
+        }
+
+        public bool IsGod(UUID user, Scene requestfromscene)
+        {
+            return m_rootScene.Permissions.IsGod(user);
+        }
+
+        public bool CanDuplicateObject(int objectcount, UUID objectid, UUID owner, Scene scene, Vector3 objectposition)
+        {
+            return m_rootScene.Permissions.CanDuplicateObject(objectcount, objectid, owner, objectposition);
+        }
+
+        public bool CanDeleteObject(UUID objectid, UUID deleter, Scene scene)
+        {
+            return m_rootScene.Permissions.CanDeleteObject(objectid, deleter);
+        }
+
+        public bool CanEditObject(UUID objectid, UUID editorid, Scene scene)
+        {
+            return m_rootScene.Permissions.CanEditObject(objectid, editorid);
+        }
+
+        public bool CanEditParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanEditParcel(user, parcel);
+        }
+
+        public bool CanInstantMessage(UUID user, UUID target, Scene startscene)
+        {
+            return m_rootScene.Permissions.CanInstantMessage(user, target);
+        }
+
+        public bool CanInventoryTransfer(UUID user, UUID target, Scene startscene)
+        {
+            return m_rootScene.Permissions.CanInventoryTransfer(user, target);
+        }
+
+        public bool CanIssueEstateCommand(UUID user, Scene requestfromscene, bool ownercommand)
+        {
+            return m_rootScene.Permissions.CanIssueEstateCommand(user, ownercommand);
+        }
+
+        public bool CanMoveObject(UUID objectid, UUID moverid, Scene scene)
+        {
+            return m_rootScene.Permissions.CanMoveObject(objectid, moverid);
+        }
+
+        public bool CanObjectEntry(UUID objectid, bool enteringregion, Vector3 newpoint, Scene scene)
+        {
+            return m_rootScene.Permissions.CanObjectEntry(objectid, enteringregion, newpoint);
+        }
+
+        public bool CanReturnObject(UUID objectid, UUID returnerid, Scene scene)
+        {
+            return m_rootScene.Permissions.CanReturnObject(objectid, returnerid);
+        }
+
+        public bool CanRezObject(int objectcount, UUID owner, Vector3 objectposition, Scene scene)
+        {
+            return m_rootScene.Permissions.CanRezObject(objectcount, owner, objectposition);
+        }
+
+        public bool CanRunConsoleCommand(UUID user, Scene requestfromscene)
+        {
+            return m_rootScene.Permissions.CanRunConsoleCommand(user);
+        }
+
+        public bool CanRunScript(UUID script, UUID objectid, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanRunScript(script, objectid, user);
+        }
+
+        public bool CanCompileScript(UUID owneruuid, int scripttype, Scene scene)
+        {
+            return m_rootScene.Permissions.CanCompileScript(owneruuid, scripttype);
+        }
+
+        public bool CanSellParcel(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanSellParcel(user, parcel);
+        }
+
+        public bool CanTakeObject(UUID objectid, UUID stealer, Scene scene)
+        {
+            return m_rootScene.Permissions.CanTakeObject(objectid, stealer);
+        }
+
+        public bool CanTakeCopyObject(UUID objectid, UUID userid, Scene inscene)
+        {
+            return m_rootScene.Permissions.CanTakeObject(objectid, userid);
+        }
+
+        public bool CanTerraformLand(UUID user, Vector3 position, Scene requestfromscene)
+        {
+            return m_rootScene.Permissions.CanTerraformLand(user, position);
+        }
+
+        public bool CanLinkObject(UUID user, UUID objectid)
+        {
+            return m_rootScene.Permissions.CanLinkObject(user, objectid);
+        }
+
+        public bool CanDelinkObject(UUID user, UUID objectid)
+        {
+            return m_rootScene.Permissions.CanDelinkObject(user, objectid);
+        }
+
+        public bool CanBuyLand(UUID user, ILandObject parcel, Scene scene)
+        {
+            return m_rootScene.Permissions.CanBuyLand(user, parcel);
+        }
+
+        public bool CanViewNotecard(UUID script, UUID objectid, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanViewNotecard(script, objectid, user);
+        }
+
+        public bool CanViewScript(UUID script, UUID objectid, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanViewScript(script, objectid, user);
+        }
+
+        public bool CanEditNotecard(UUID notecard, UUID objectid, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanEditNotecard(notecard, objectid, user);
+        }
+
+        public bool CanEditScript(UUID script, UUID objectid, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanEditScript(script, objectid, user);
+        }
+
+        public bool CanCreateObjectInventory(int invtype, UUID objectid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanCreateObjectInventory(invtype, objectid, userid);
+        }
+
+        public bool CanEditObjectInventory(UUID objectid, UUID editorid, Scene scene)
+        {
+            return m_rootScene.Permissions.CanEditObjectInventory(objectid, editorid);
+        }
+
+        public bool CanCopyObjectInventory(UUID itemid, UUID objectid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanCopyObjectInventory(itemid, objectid, userid);
+        }
+
+        public bool CanDeleteObjectInventory(UUID itemid, UUID objectid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanDeleteObjectInventory(itemid, objectid, userid);
+        }
+
+        public bool CanResetScript(UUID prim, UUID script, UUID user, Scene scene)
+        {
+            return m_rootScene.Permissions.CanResetScript(prim, script, user);
+        }
+
+        public bool CanCreateUserInventory(int invtype, UUID userid)
+        {
+            return m_rootScene.Permissions.CanCreateUserInventory(invtype, userid);
+        }
+
+        public bool CanCopyUserInventory(UUID itemid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanCopyUserInventory(itemid, userid);
+        }
+
+        public bool CanEditUserInventory(UUID itemid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanEditUserInventory(itemid, userid);
+        }
+
+        public bool CanDeleteUserInventory(UUID itemid, UUID userid)
+        {
+            return m_rootScene.Permissions.CanDeleteUserInventory(itemid, userid);
+        }
+
+        public bool CanTeleport(UUID userid, Scene scene)
+        {
+            return m_rootScene.Permissions.CanTeleport(userid);
+        }
+
+        public bool CanUseObjectReturn(ILandObject landdata, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene)
+        {
+            return m_rootScene.Permissions.CanUseObjectReturn(landdata, type, client, retlist);
+        }
     }
 }
