@@ -36,7 +36,7 @@ namespace OpenSim.Server.Handlers.Authentication
 {
     public class AuthenticationServiceConnector : ServiceConnector
     {
-        //private IAuthenticationService m_AuthenticationService;
+        private IAuthenticationService m_AuthenticationService;
 
         public AuthenticationServiceConnector(IConfigSource config, IHttpServer server) :
                 base(config, server)
@@ -51,8 +51,8 @@ namespace OpenSim.Server.Handlers.Authentication
             if (authenticationService == String.Empty)
                 throw new Exception("No AuthenticationService in config file");
 
-            //Object[] args = new Object[] { config };
-            //m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
+            Object[] args = new Object[] { config };
+            m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
 
             //server.AddStreamHandler(new AuthenticationServerGetHandler(m_AuthenticationService));
         }

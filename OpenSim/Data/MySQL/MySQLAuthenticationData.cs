@@ -38,7 +38,7 @@ namespace OpenSim.Data.MySQL
     public class MySqlAuthenticationData : MySqlFramework, IAuthenticationData
     {
         private string m_Realm;
-        private DataTable m_SchemaTable = null;
+        private List<string> m_ColumnNames = null;
 
         public MySqlAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
@@ -63,15 +63,21 @@ namespace OpenSim.Data.MySQL
             {
                 ret.PrincipalID = principalID;
 
-                if (m_SchemaTable == null)
-                    m_SchemaTable = result.GetSchemaTable();
-
-                foreach (DataColumn c in m_SchemaTable.Columns)
+                if (m_ColumnNames == null)
                 {
-                    if (c.ColumnName == "UUID")
+                    m_ColumnNames = new List<string>();
+
+                    DataTable schemaTable = result.GetSchemaTable();
+                    foreach (DataRow row in schemaTable.Rows)
+                        m_ColumnNames.Add(row["ColumnName"].ToString());
+                }
+
+                foreach (string s in m_ColumnNames)
+                {
+                    if (s == "UUID")
                         continue;
 
-                    ret.Data[c.ColumnName] = result[c.ColumnName].ToString();
+                    ret.Data[s] = result[s].ToString();
                 }
 
                 result.Close();
@@ -105,21 +111,23 @@ namespace OpenSim.Data.MySQL
 
                 first = false;
 
-                cmd.Parameters.AddWithValue(field, data.Data[field]);
+                cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
             }
 
             update += " where UUID = ?principalID";
 
             cmd.CommandText = update;
-            cmd.Parameters.AddWithValue("UUID", data.PrincipalID.ToString());
+            cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
 
             if (ExecuteNonQuery(cmd) < 1)
             {
                 string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ( ?UUID, ?" + String.Join(", ?", fields) + ")";
+                        "`) values ( ?principalID, ?" + String.Join(", ?", fields) + ")";
 
-                if (ExecuteNonQuery(cmd) < 0)
+                cmd.CommandText = insert;
+
+                if (ExecuteNonQuery(cmd) < 1)
                 {
                     cmd.Dispose();
                     return false;
@@ -137,8 +145,11 @@ namespace OpenSim.Data.MySQL
                     "` set `" + item + "` = ?" + item + " where UUID = ?UUID");
 
 
-            cmd.Parameters.AddWithValue(item, value);
-            cmd.Parameters.AddWithValue("UUID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?"+item, value);
+            cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
+
+            if (ExecuteNonQuery(cmd) > 0)
+                return true;
 
             return false;
         }
