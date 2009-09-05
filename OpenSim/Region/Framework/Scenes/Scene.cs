@@ -2365,14 +2365,40 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnNewClient(client);
         }
 
+        
+
         /// <summary>
         /// Register for events from the client
         /// </summary>
         /// <param name="client">The IClientAPI of the connected client</param>
-        protected virtual void SubscribeToClientEvents(IClientAPI client)
+        public virtual void SubscribeToClientEvents(IClientAPI client)
+        {
+            SubscribeToClientTerrainEvents(client);
+            SubscribeToClientPrimEvents(client);
+            SubscribeToClientPrimRezEvents(client);
+            SubscribeToClientInventoryEvents(client);
+            SubscribeToClientAttachmentEvents(client);
+            SubscribeToClientTeleportEvents(client);
+            SubscribeToClientScriptEvents(client);
+            SubscribeToClientParcelEvents(client);
+            SubscribeToClientGridEvents(client);
+            SubscribeToClientGodEvents(client);
+
+            SubscribeToClientNetworkEvents(client);
+            
+
+            // EventManager.TriggerOnNewClient(client);
+        }
+
+        public virtual void SubscribeToClientTerrainEvents(IClientAPI client)
         {
             client.OnRegionHandShakeReply += SendLayerData;
-            client.OnAddPrim += AddNewPrim;
+            client.OnUnackedTerrain += TerrainUnAcked;
+        }
+        
+        public virtual void SubscribeToClientPrimEvents(IClientAPI client)
+        {
+            
             client.OnUpdatePrimGroupPosition += m_sceneGraph.UpdatePrimPosition;
             client.OnUpdatePrimSinglePosition += m_sceneGraph.UpdatePrimSinglePosition;
             client.OnUpdatePrimGroupRotation += m_sceneGraph.UpdatePrimRotation;
@@ -2384,8 +2410,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdateExtraParams += m_sceneGraph.UpdateExtraParam;
             client.OnUpdatePrimShape += m_sceneGraph.UpdatePrimShape;
             client.OnUpdatePrimTexture += m_sceneGraph.UpdatePrimTexture;
-            client.OnTeleportLocationRequest += RequestTeleportLocation;
-            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnObjectRequest += RequestPrim;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
@@ -2393,15 +2417,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnSpinStart += m_sceneGraph.SpinStart;
             client.OnSpinUpdate += m_sceneGraph.SpinObject;
             client.OnDeRezObject += DeRezObject;
-            client.OnRezObject += RezObject;
-            client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
-            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;
-            client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
-            client.OnObjectAttach += m_sceneGraph.AttachObject;
-            client.OnObjectDetach += m_sceneGraph.DetachObject;
-            client.OnObjectDrop += m_sceneGraph.DropObject;
-            client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
-            client.OnObjectDescription += m_sceneGraph.PrimDescription;
+            
             client.OnObjectName += m_sceneGraph.PrimName;
             client.OnObjectClickAction += m_sceneGraph.PrimClickAction;
             client.OnObjectMaterial += m_sceneGraph.PrimMaterial;
@@ -2412,7 +2428,24 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnUpdatePrimFlags += m_sceneGraph.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_sceneGraph.RequestObjectPropertiesFamily;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
+            client.OnGrabObject += ProcessObjectGrab;
+            client.OnDeGrabObject += ProcessObjectDeGrab;
+            client.OnUndo += m_sceneGraph.HandleUndo;
+            client.OnObjectDescription += m_sceneGraph.PrimDescription;
+            client.OnObjectDrop += m_sceneGraph.DropObject;
+            client.OnObjectSaleInfo += ObjectSaleInfo;
+            client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
+            client.OnObjectOwner += ObjectOwner;
+        }
 
+        public virtual void SubscribeToClientPrimRezEvents(IClientAPI client)
+        {
+            client.OnAddPrim += AddNewPrim;
+            client.OnRezObject += RezObject;
+        }
+
+        public virtual void SubscribeToClientInventoryEvents(IClientAPI client)
+        {
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += HandleUpdateInventoryFolder;
@@ -2430,35 +2463,216 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRemoveTaskItem += RemoveTaskInventory;
             client.OnUpdateTaskInventory += UpdateTaskInventory;
             client.OnMoveTaskItem += ClientMoveTaskInventoryItem;
+        }
 
-            client.OnGrabObject += ProcessObjectGrab;
-            client.OnDeGrabObject += ProcessObjectDeGrab;
-            client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
-            client.OnParcelBuy += ProcessParcelBuy;
-            client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
-            client.OnObjectIncludeInSearch += m_sceneGraph.MakeObjectSearchable;
+        public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
+        {
+            client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
+            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;
+            client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
+            client.OnObjectAttach += m_sceneGraph.AttachObject;
+            client.OnObjectDetach += m_sceneGraph.DetachObject;
+        }
+
+        public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
+        {
+            client.OnTeleportLocationRequest += RequestTeleportLocation;
+            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnTeleportHomeRequest += TeleportClientHome;
-            client.OnSetStartLocationRequest += SetHomeRezPoint;
-            client.OnUndo += m_sceneGraph.HandleUndo;
-            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
-            client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
-            client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
-            client.OnObjectSaleInfo += ObjectSaleInfo;
+        }
+
+        public virtual void SubscribeToClientScriptEvents(IClientAPI client)
+        {
             client.OnScriptReset += ProcessScriptReset;
             client.OnGetScriptRunning += GetScriptRunning;
             client.OnSetScriptRunning += SetScriptRunning;
-            client.OnRegionHandleRequest += RegionHandleRequest;
-            client.OnUnackedTerrain += TerrainUnAcked;
-            client.OnObjectOwner += ObjectOwner;
+        }
 
+        public virtual void SubscribeToClientParcelEvents(IClientAPI client)
+        {
+            client.OnObjectGroupRequest += m_sceneGraph.HandleObjectGroupUpdate;
+            client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
+            client.OnParcelSetOtherCleanTime += LandChannel.SetParcelOtherCleanTime;
+            client.OnParcelBuy += ProcessParcelBuy;
+        }
+
+        public virtual void SubscribeToClientGridEvents(IClientAPI client)
+        {
+            client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
+            client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
+            client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
+            client.OnSetStartLocationRequest += SetHomeRezPoint;
+            client.OnRegionHandleRequest += RegionHandleRequest;
+        }
+
+        public virtual void SubscribeToClientGodEvents(IClientAPI client)
+        {
             IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
             client.OnGodKickUser += godsModule.KickUser;
             client.OnRequestGodlikePowers += godsModule.RequestGodlikePowers;
+        }
 
+        public virtual void SubscribeToClientNetworkEvents(IClientAPI client)
+        {
             client.OnNetworkStatsUpdate += StatsReporter.AddPacketsStats;
+        }
+
+        protected virtual void UnsubscribeToClientEvents(IClientAPI client)
+        {
+            
+        }
+
+        /// <summary>
+        /// Register for events from the client
+        /// </summary>
+        /// <param name="client">The IClientAPI of the connected client</param>
+        public virtual void UnSubscribeToClientEvents(IClientAPI client)
+        {
+            UnSubscribeToClientTerrainEvents(client);
+            UnSubscribeToClientPrimEvents(client);
+            UnSubscribeToClientPrimRezEvents(client);
+            UnSubscribeToClientInventoryEvents(client);
+            UnSubscribeToClientAttachmentEvents(client);
+            UnSubscribeToClientTeleportEvents(client);
+            UnSubscribeToClientScriptEvents(client);
+            UnSubscribeToClientParcelEvents(client);
+            UnSubscribeToClientGridEvents(client);
+            UnSubscribeToClientGodEvents(client);
+
+            UnSubscribeToClientNetworkEvents(client);
+
 
             // EventManager.TriggerOnNewClient(client);
         }
+
+        public virtual void UnSubscribeToClientTerrainEvents(IClientAPI client)
+        {
+            client.OnRegionHandShakeReply -= SendLayerData;
+            client.OnUnackedTerrain -= TerrainUnAcked;
+        }
+
+        public virtual void UnSubscribeToClientPrimEvents(IClientAPI client)
+        {
+            client.OnUpdatePrimGroupPosition -= m_sceneGraph.UpdatePrimPosition;
+            client.OnUpdatePrimSinglePosition -= m_sceneGraph.UpdatePrimSinglePosition;
+            client.OnUpdatePrimGroupRotation -= m_sceneGraph.UpdatePrimRotation;
+            client.OnUpdatePrimGroupMouseRotation -= m_sceneGraph.UpdatePrimRotation;
+            client.OnUpdatePrimSingleRotation -= m_sceneGraph.UpdatePrimSingleRotation;
+            client.OnUpdatePrimSingleRotationPosition -= m_sceneGraph.UpdatePrimSingleRotationPosition;
+            client.OnUpdatePrimScale -= m_sceneGraph.UpdatePrimScale;
+            client.OnUpdatePrimGroupScale -= m_sceneGraph.UpdatePrimGroupScale;
+            client.OnUpdateExtraParams -= m_sceneGraph.UpdateExtraParam;
+            client.OnUpdatePrimShape -= m_sceneGraph.UpdatePrimShape;
+            client.OnUpdatePrimTexture -= m_sceneGraph.UpdatePrimTexture;
+            client.OnObjectRequest -= RequestPrim;
+            client.OnObjectSelect -= SelectPrim;
+            client.OnObjectDeselect -= DeselectPrim;
+            client.OnGrabUpdate -= m_sceneGraph.MoveObject;
+            client.OnSpinStart -= m_sceneGraph.SpinStart;
+            client.OnSpinUpdate -= m_sceneGraph.SpinObject;
+            client.OnDeRezObject -= DeRezObject;
+            client.OnObjectName -= m_sceneGraph.PrimName;
+            client.OnObjectClickAction -= m_sceneGraph.PrimClickAction;
+            client.OnObjectMaterial -= m_sceneGraph.PrimMaterial;
+            client.OnLinkObjects -= m_sceneGraph.LinkObjects;
+            client.OnDelinkObjects -= m_sceneGraph.DelinkObjects;
+            client.OnObjectDuplicate -= m_sceneGraph.DuplicateObject;
+            client.OnObjectDuplicateOnRay -= doObjectDuplicateOnRay;
+            client.OnUpdatePrimFlags -= m_sceneGraph.UpdatePrimFlags;
+            client.OnRequestObjectPropertiesFamily -= m_sceneGraph.RequestObjectPropertiesFamily;
+            client.OnObjectPermissions -= HandleObjectPermissionsUpdate;
+            client.OnGrabObject -= ProcessObjectGrab;
+            client.OnDeGrabObject -= ProcessObjectDeGrab;
+            client.OnUndo -= m_sceneGraph.HandleUndo;
+            client.OnObjectDescription -= m_sceneGraph.PrimDescription;
+            client.OnObjectDrop -= m_sceneGraph.DropObject;
+            client.OnObjectSaleInfo -= ObjectSaleInfo;
+            client.OnObjectIncludeInSearch -= m_sceneGraph.MakeObjectSearchable;
+            client.OnObjectOwner -= ObjectOwner;
+        }
+
+        public virtual void UnSubscribeToClientPrimRezEvents(IClientAPI client)
+        {
+            client.OnAddPrim -= AddNewPrim;
+            client.OnRezObject -= RezObject;
+        }
+
+
+        public virtual void UnSubscribeToClientInventoryEvents(IClientAPI client)
+        {
+            client.OnCreateNewInventoryItem -= CreateNewInventoryItem;
+            client.OnCreateNewInventoryFolder -= HandleCreateInventoryFolder;
+            client.OnUpdateInventoryFolder -= HandleUpdateInventoryFolder;
+            client.OnMoveInventoryFolder -= HandleMoveInventoryFolder; // 2; //!!
+            client.OnFetchInventoryDescendents -= HandleFetchInventoryDescendents;
+            client.OnPurgeInventoryDescendents -= HandlePurgeInventoryDescendents; // 2; //!!
+            client.OnFetchInventory -= HandleFetchInventory;
+            client.OnUpdateInventoryItem -= UpdateInventoryItemAsset;
+            client.OnCopyInventoryItem -= CopyInventoryItem;
+            client.OnMoveInventoryItem -= MoveInventoryItem;
+            client.OnRemoveInventoryItem -= RemoveInventoryItem;
+            client.OnRemoveInventoryFolder -= RemoveInventoryFolder;
+            client.OnRezScript -= RezScript;
+            client.OnRequestTaskInventory -= RequestTaskInventory;
+            client.OnRemoveTaskItem -= RemoveTaskInventory;
+            client.OnUpdateTaskInventory -= UpdateTaskInventory;
+            client.OnMoveTaskItem -= ClientMoveTaskInventoryItem;
+        }
+
+        public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
+        {
+            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;
+            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;
+            client.OnDetachAttachmentIntoInv -= DetachSingleAttachmentToInv;
+            client.OnObjectAttach -= m_sceneGraph.AttachObject;
+            client.OnObjectDetach -= m_sceneGraph.DetachObject;
+        }
+
+        public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)
+        {
+            client.OnTeleportLocationRequest -= RequestTeleportLocation;
+            client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
+            client.OnTeleportHomeRequest -= TeleportClientHome;
+        }
+
+        public virtual void UnSubscribeToClientScriptEvents(IClientAPI client)
+        {
+            client.OnScriptReset -= ProcessScriptReset;
+            client.OnGetScriptRunning -= GetScriptRunning;
+            client.OnSetScriptRunning -= SetScriptRunning;
+        }
+
+        public virtual void UnSubscribeToClientParcelEvents(IClientAPI client)
+        {
+            client.OnObjectGroupRequest -= m_sceneGraph.HandleObjectGroupUpdate;
+            client.OnParcelReturnObjectsRequest -= LandChannel.ReturnObjectsInParcel;
+            client.OnParcelSetOtherCleanTime -= LandChannel.SetParcelOtherCleanTime;
+            client.OnParcelBuy -= ProcessParcelBuy;
+        }
+
+        public virtual void UnSubscribeToClientGridEvents(IClientAPI client)
+        {
+            client.OnNameFromUUIDRequest -= CommsManager.HandleUUIDNameRequest;
+            client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
+            client.OnAvatarPickerRequest -= ProcessAvatarPickerRequest;
+            client.OnSetStartLocationRequest -= SetHomeRezPoint;
+            client.OnRegionHandleRequest -= RegionHandleRequest;
+        }
+
+        public virtual void UnSubscribeToClientGodEvents(IClientAPI client)
+        {
+            IGodsModule godsModule = RequestModuleInterface<IGodsModule>();
+            client.OnGodKickUser -= godsModule.KickUser;
+            client.OnRequestGodlikePowers -= godsModule.RequestGodlikePowers;
+        }
+
+        public virtual void UnSubscribeToClientNetworkEvents(IClientAPI client)
+        {
+            client.OnNetworkStatsUpdate -= StatsReporter.AddPacketsStats;
+        }
+
+
+        
 
         /// <summary>
         /// Teleport an avatar to their home region
