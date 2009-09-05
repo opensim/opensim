@@ -514,7 +514,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     rdata.RegionScene = scene;
                     regionConnections.RegionLandChannel = scene.LandChannel;
 
-                    RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata, scene.LandChannel, regionConnections.ConnectedRegions);
+                    RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata, scene.LandChannel,
+                                                                    regionConnections.ConnectedRegions);
                     scene.LandChannel = lnd;
                     lock (m_regions)
                     {
@@ -525,12 +526,155 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
 
                     regionConnections.ClientEventForwarder = new RegionCombinerClientEventForwarder(regionConnections);
-
+                    scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
                     m_regions.Add(scene.RegionInfo.originRegionID, regionConnections);
+
                 }
 
             }
             AdjustLargeRegionBounds();
+        }
+
+        private void SetCourseLocationDelegate(ScenePresence presence)
+        {
+            presence.SetSendCourseLocationMethod(SendCourseLocationUpdates);
+        }
+
+        private void SendCourseLocationUpdates(UUID sceneId, ScenePresence presence)
+        {
+            RegionConnections connectiondata = null; 
+            lock (m_regions)
+            {
+                if (m_regions.ContainsKey(sceneId))
+                    connectiondata = m_regions[sceneId];
+                else
+                    return;
+            }
+
+            List<ScenePresence> avatars = connectiondata.RegionScene.GetAvatars();
+            List<Vector3> CoarseLocations = new List<Vector3>();
+            List<UUID> AvatarUUIDs = new List<UUID>();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                if (avatars[i].UUID != presence.UUID)
+                {
+                    if (avatars[i].ParentID != 0)
+                    {
+                        // sitting avatar
+                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(avatars[i].ParentID);
+                        if (sop != null)
+                        {
+                            CoarseLocations.Add(sop.AbsolutePosition + avatars[i].AbsolutePosition);
+                            AvatarUUIDs.Add(avatars[i].UUID);
+                        }
+                        else
+                        {
+                            // we can't find the parent..  ! arg!
+                            CoarseLocations.Add(avatars[i].AbsolutePosition);
+                            AvatarUUIDs.Add(avatars[i].UUID);
+                        }
+                    }
+                    else
+                    {
+                        CoarseLocations.Add(avatars[i].AbsolutePosition);
+                        AvatarUUIDs.Add(avatars[i].UUID);
+                    }
+                }
+            }
+            DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
+        }
+
+        private void DistributeCourseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
+                            RegionConnections connectiondata, ScenePresence rootPresence)
+        {
+            RegionData[] rdata = connectiondata.ConnectedRegions.ToArray();
+            List<IClientAPI> clients = new List<IClientAPI>();
+            Dictionary<Vector2, RegionCourseLocationStruct> updates = new Dictionary<Vector2, RegionCourseLocationStruct>();
+            
+
+            // Root Region entry
+            RegionCourseLocationStruct rootupdatedata = new RegionCourseLocationStruct();
+            rootupdatedata.Locations = new List<Vector3>();
+            rootupdatedata.Uuids = new List<UUID>();
+            rootupdatedata.Offset = Vector2.Zero;
+
+            rootupdatedata.UserAPI = rootPresence.ControllingClient;
+
+            if (rootupdatedata.UserAPI != null)
+                updates.Add(Vector2.Zero, rootupdatedata);
+
+            //Each Region needs an entry or we will end up with dead minimap dots
+            foreach (RegionData regiondata in rdata)
+            {
+                Vector2 offset = new Vector2(regiondata.Offset.X, regiondata.Offset.Y);
+                RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
+                updatedata.Locations = new List<Vector3>();
+                updatedata.Uuids = new List<UUID>();
+                updatedata.Offset = offset;
+
+                if (offset == Vector2.Zero)
+                    updatedata.UserAPI = rootPresence.ControllingClient;
+                else
+                    updatedata.UserAPI = LocateUsersChildAgentIClientAPI(offset, rootPresence.UUID, rdata);
+
+                if (updatedata.UserAPI != null)
+                    updates.Add(offset, updatedata);
+            }
+
+            // go over the locations and assign them to an IClientAPI
+            for (int i = 0; i < locations.Count;i++ )
+            //{locations[i]/(int) Constants.RegionSize;
+            {
+                Vector3 pPosition = new Vector3((int)locations[i].X / (int)Constants.RegionSize, 
+                                                (int)locations[i].Y / (int)Constants.RegionSize, locations[i].Z);
+                Vector2 offset = new Vector2(pPosition.X*(int) Constants.RegionSize,
+                                             pPosition.Y*(int) Constants.RegionSize);
+                
+                if (!updates.ContainsKey(offset))
+                {
+                    // This shouldn't happen
+                    RegionCourseLocationStruct updatedata = new RegionCourseLocationStruct();
+                    updatedata.Locations = new List<Vector3>();
+                    updatedata.Uuids = new List<UUID>();
+                    updatedata.Offset = offset;
+                    
+                    if (offset == Vector2.Zero)
+                        updatedata.UserAPI = rootPresence.ControllingClient;
+                    else 
+                        updatedata.UserAPI = LocateUsersChildAgentIClientAPI(offset, rootPresence.UUID, rdata);
+
+                    updates.Add(offset,updatedata);
+
+                }
+                
+                updates[offset].Locations.Add(locations[i]);
+                updates[offset].Uuids.Add(uuids[i]);
+
+            }
+
+            // Send out the CoarseLocationupdates from their respective client connection based on where the avatar is
+            foreach (Vector2 offset in updates.Keys)
+            {
+                if (updates[offset].UserAPI != null)
+                {
+                    updates[offset].UserAPI.SendCoarseLocationUpdate(updates[offset].Uuids,updates[offset].Locations);
+                }
+            }
+
+        }
+
+        private IClientAPI LocateUsersChildAgentIClientAPI(Vector2 offset, UUID uUID, RegionData[] rdata)
+        {
+            IClientAPI returnclient = null;
+            foreach (RegionData r in rdata)
+            {
+                if (r.Offset.X == offset.X && r.Offset.Y == offset.Y)
+                {
+                    return r.RegionScene.SceneGraph.GetControllingClient(uUID);
+                }
+            }
+
+            return returnclient;
         }
 
         public void PostInitialise()
@@ -538,6 +682,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             
         }
         
+        
+
         public void UnCombineRegion(RegionData rdata)
         {
             lock (m_regions)
@@ -758,6 +904,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         public Vector3 Offset;
         
     }
+    struct RegionCourseLocationStruct
+    {
+        public List<Vector3> Locations;
+        public List<UUID> Uuids;
+        public IClientAPI UserAPI;
+        public Vector2 Offset;
+    }
 
     public class RegionCombinerLargeLandChannel : ILandChannel
     {
@@ -769,7 +922,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         
         #region ILandChannel Members
 
-        public RegionCombinerLargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,List<RegionData> regionConnections)
+        public RegionCombinerLargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,
+            List<RegionData> regionConnections)
         {
             RegData = regData;
             RootRegionLandChannel = rootRegionLandChannel;
@@ -1128,7 +1282,8 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         private Scene m_rootScene;
         private Dictionary<UUID, Scene> m_virtScene = new Dictionary<UUID, Scene>();
-        private Dictionary<UUID,RegionCombinerModuleIndividualForwarder> m_forwarders = new Dictionary<UUID, RegionCombinerModuleIndividualForwarder>();
+        private Dictionary<UUID,RegionCombinerModuleIndividualForwarder> m_forwarders = new Dictionary<UUID, 
+            RegionCombinerModuleIndividualForwarder>();
         public RegionCombinerClientEventForwarder(RegionConnections rootScene)
         {
             m_rootScene = rootScene.RegionScene;
@@ -1222,7 +1377,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
 
-        private void LocalRezObject(IClientAPI remoteclient, UUID itemid, Vector3 rayend, Vector3 raystart, UUID raytargetid, byte bypassraycast, bool rayendisintersection, bool rezselected, bool removeitem, UUID fromtaskid)
+        private void LocalRezObject(IClientAPI remoteclient, UUID itemid, Vector3 rayend, Vector3 raystart, 
+            UUID raytargetid, byte bypassraycast, bool rayendisintersection, bool rezselected, bool removeitem, 
+            UUID fromtaskid)
         {     
             int differenceX = (int)m_virtScene.RegionInfo.RegionLocX - (int)m_rootScene.RegionInfo.RegionLocX;
             int differenceY = (int)m_virtScene.RegionInfo.RegionLocY - (int)m_rootScene.RegionInfo.RegionLocY;
@@ -1236,7 +1393,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         }
 
-        private void LocalAddNewPrim(UUID ownerid, UUID groupid, Vector3 rayend, Quaternion rot, PrimitiveBaseShape shape, byte bypassraycast, Vector3 raystart, UUID raytargetid, byte rayendisintersection)
+        private void LocalAddNewPrim(UUID ownerid, UUID groupid, Vector3 rayend, Quaternion rot, 
+            PrimitiveBaseShape shape, byte bypassraycast, Vector3 raystart, UUID raytargetid, 
+            byte rayendisintersection)
         {
             int differenceX = (int)m_virtScene.RegionInfo.RegionLocX - (int)m_rootScene.RegionInfo.RegionLocX;
             int differenceY = (int)m_virtScene.RegionInfo.RegionLocY - (int)m_rootScene.RegionInfo.RegionLocY;

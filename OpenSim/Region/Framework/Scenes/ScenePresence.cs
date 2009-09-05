@@ -62,6 +62,8 @@ namespace OpenSim.Region.Framework.Scenes
         public ScriptControlled eventControls;
     }
 
+    public delegate void SendCourseLocationsMethod(UUID scene, ScenePresence presence);
+
     public class ScenePresence : EntityBase
     {
 //        ~ScenePresence()
@@ -87,12 +89,15 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
 
+        
+
         private bool m_updateflag;
         private byte m_movementflag;
         private readonly List<NewForce> m_forcesList = new List<NewForce>();
         private short m_updateCount;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID = UUID.Zero;
+        private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
         private bool m_startAnimationSet;
 
@@ -616,6 +621,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
         {
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_regionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
@@ -2458,6 +2464,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendCoarseLocations()
         {
+            SendCourseLocationsMethod d = m_sendCourseLocationsMethod;
+            if (d != null)
+            {
+                d.Invoke(m_scene.RegionInfo.originRegionID, this);
+            }
+        }
+
+        public void SetSendCourseLocationMethod(SendCourseLocationsMethod d)
+        {
+            if (d != null)
+                m_sendCourseLocationsMethod = d;
+        }
+
+        public void SendCoarseLocationsDefault(UUID sceneId, ScenePresence p)
+        {
             m_perfMonMS = Environment.TickCount;
 
             List<Vector3> CoarseLocations = new List<Vector3>();
@@ -3302,6 +3323,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.GetBytes();
+            
         }
 
         public class NewForce
@@ -3431,6 +3453,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.GetBytes();
             }
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
         }
 
