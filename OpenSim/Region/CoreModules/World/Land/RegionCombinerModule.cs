@@ -32,6 +32,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -71,6 +72,18 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void AddRegion(Scene scene)
         {
            
+            
+            
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+           
+                
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
             if (!enabledYN)
                 return;
 
@@ -295,8 +308,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                         m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
                                           conn.RegionScene.RegionInfo.RegionName,
                                           regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
-                        
-                        
+
+
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
 
@@ -325,9 +338,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                         //
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
-                        
+
                         conn.RegionScene.BordersLocked = false;
                         scene.BordersLocked = false;
+                        if (conn.ClientEventForwarder != null)
+                            conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
                         connectedYN = true;
                         break;
                     }
@@ -367,7 +382,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
                                          regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
-                        conn.RegionScene.PhysicsScene.Combine(null,Vector3.Zero,extents);
+                        conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
                         lock (conn.RegionScene.NorthBorders)
@@ -386,7 +401,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         scene.BordersLocked = false;
                         conn.RegionScene.BordersLocked = false;
-
+                        if (conn.ClientEventForwarder != null)
+                            conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
                         connectedYN = true;
                         break;
                     }
@@ -424,52 +440,52 @@ namespace OpenSim.Region.CoreModules.World.Land
                         m_log.DebugFormat("Scene: {0} to the NorthEast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
                                          regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
-                        
+
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
                         lock (conn.RegionScene.NorthBorders)
-                        if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
-                        {
-                            //compound border
-                            // already locked above
-                            conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                            if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
+                            {
+                                //compound border
+                                // already locked above
+                                conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
-                            lock (conn.RegionScene.EastBorders)
-                                conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            lock (conn.RegionScene.WestBorders)
-                                conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                lock (conn.RegionScene.EastBorders)
+                                    conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                lock (conn.RegionScene.WestBorders)
+                                    conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
-                            
 
-                        }
+
+                            }
                         lock (scene.SouthBorders)
                             scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
-                        
+
                         lock (conn.RegionScene.EastBorders)
-                        if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
-                        {
+                            if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
+                            {
 
-                            conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                            lock (conn.RegionScene.NorthBorders)
-                                conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            lock (conn.RegionScene.SouthBorders)
-                                conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                                lock (conn.RegionScene.NorthBorders)
+                                    conn.RegionScene.NorthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                lock (conn.RegionScene.SouthBorders)
+                                    conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
-                            
-                        }
+
+                            }
 
                         lock (scene.WestBorders)
                             scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
-/*  
-                        else
-                        {
-                            conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
-                            conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
-                        }
-*/
-                        
+                        /*  
+                                                else
+                                                {
+                                                    conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;
+                                                    conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                                    conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
+                                                    scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                                                }
+                        */
+
 
                         // Reset Terrain..  since terrain normally loads first.
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
@@ -477,6 +493,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
                         scene.BordersLocked = false;
                         conn.RegionScene.BordersLocked = false;
+
+                        if (conn.ClientEventForwarder != null)
+                            conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
 
                         connectedYN = true;
 
@@ -495,7 +514,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     rdata.RegionScene = scene;
                     regionConnections.RegionLandChannel = scene.LandChannel;
 
-                    RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata,scene.LandChannel,regionConnections.ConnectedRegions);
+                    RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata, scene.LandChannel, regionConnections.ConnectedRegions);
                     scene.LandChannel = lnd;
                     lock (m_regions)
                     {
@@ -504,24 +523,14 @@ namespace OpenSim.Region.CoreModules.World.Land
                             ForwardPermissionRequests(regionConnections, r.RegionScene);
                         }
                     }
-                    
-                    m_regions.Add(scene.RegionInfo.originRegionID,regionConnections);
+
+                    regionConnections.ClientEventForwarder = new RegionCombinerClientEventForwarder(regionConnections);
+
+                    m_regions.Add(scene.RegionInfo.originRegionID, regionConnections);
                 }
-                    
+
             }
             AdjustLargeRegionBounds();
-            
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-           
-                
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            
         }
 
         public void PostInitialise()
@@ -733,6 +742,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public int YEnd;
         public List<RegionData> ConnectedRegions;
         public RegionCombinerPermissionModule PermissionModule;
+        public RegionCombinerClientEventForwarder ClientEventForwarder;
         public void UpdateExtents(Vector3 extents)
         {
             XEnd = (int)extents.X;
@@ -790,7 +800,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 int offsetX = (x / (int)Constants.RegionSize);
-                int offsetY = (x / (int)Constants.RegionSize);
+                int offsetY = (y / (int)Constants.RegionSize);
                 offsetX *= (int)Constants.RegionSize;
                 offsetY *= (int)Constants.RegionSize;
 
@@ -823,7 +833,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             else
             {
                 int offsetX = (int)(x/(int) Constants.RegionSize);
-                int offsetY = (int)(x/(int) Constants.RegionSize);
+                int offsetY = (int)(y/(int) Constants.RegionSize);
                 offsetX *= (int) Constants.RegionSize;
                 offsetY *= (int) Constants.RegionSize;
 
@@ -886,6 +896,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_rootScene = RootScene;
         }
 
+        #region Permission Override
         public bool BypassPermissions()
         {
             return m_rootScene.Permissions.BypassPermissions();
@@ -1109,6 +1120,133 @@ namespace OpenSim.Region.CoreModules.World.Land
         public bool CanUseObjectReturn(ILandObject landdata, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene)
         {
             return m_rootScene.Permissions.CanUseObjectReturn(landdata, type, client, retlist);
+        }
+        #endregion
+    }
+
+    public class RegionCombinerClientEventForwarder
+    {
+        private Scene m_rootScene;
+        private Dictionary<UUID, Scene> m_virtScene = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID,RegionCombinerModuleIndividualForwarder> m_forwarders = new Dictionary<UUID, RegionCombinerModuleIndividualForwarder>();
+        public RegionCombinerClientEventForwarder(RegionConnections rootScene)
+        {
+            m_rootScene = rootScene.RegionScene;
+
+            
+        }
+
+        public void AddSceneToEventForwarding( Scene virtualScene )
+        {
+            lock (m_virtScene)
+            {
+                if (m_virtScene.ContainsKey(virtualScene.RegionInfo.originRegionID))
+                {
+                    m_virtScene[virtualScene.RegionInfo.originRegionID] = virtualScene;
+                }
+                else
+                {
+                    m_virtScene.Add(virtualScene.RegionInfo.originRegionID, virtualScene);
+                }
+            }
+            
+            lock (m_forwarders)
+            {
+                // TODO: Fix this to unregister if this happens
+                if (m_forwarders.ContainsKey(virtualScene.RegionInfo.originRegionID))
+                    m_forwarders.Remove(virtualScene.RegionInfo.originRegionID);
+
+                RegionCombinerModuleIndividualForwarder forwarder =
+                    new RegionCombinerModuleIndividualForwarder(m_rootScene, virtualScene);
+                m_forwarders.Add(virtualScene.RegionInfo.originRegionID, forwarder);
+
+                virtualScene.EventManager.OnNewClient += forwarder.ClientConnect;
+                virtualScene.EventManager.OnClientClosed += forwarder.ClientClosed;
+            }
+        }
+
+        public void RemoveSceneFromEventForwarding (Scene virtualScene)
+        {
+            lock (m_forwarders)
+            {
+                RegionCombinerModuleIndividualForwarder forwarder = m_forwarders[virtualScene.RegionInfo.originRegionID];
+                virtualScene.EventManager.OnNewClient -= forwarder.ClientConnect;
+                virtualScene.EventManager.OnClientClosed -= forwarder.ClientClosed;
+                m_forwarders.Remove(virtualScene.RegionInfo.originRegionID);
+            }
+            lock (m_virtScene)
+            {
+                if (m_virtScene.ContainsKey(virtualScene.RegionInfo.originRegionID))
+                {
+                    m_virtScene.Remove(virtualScene.RegionInfo.originRegionID);
+                }
+            }
+        }
+    }
+
+    public class RegionCombinerModuleIndividualForwarder
+    {
+        private Scene m_rootScene;
+        private Scene m_virtScene;
+        public RegionCombinerModuleIndividualForwarder(Scene rootScene, Scene virtScene)
+        {
+            m_rootScene = rootScene;
+            m_virtScene = virtScene;
+        }
+
+        public void ClientConnect(IClientAPI client)
+        {
+
+            m_virtScene.UnSubscribeToClientPrimEvents(client);
+            m_virtScene.UnSubscribeToClientPrimRezEvents(client);
+            m_virtScene.UnSubscribeToClientInventoryEvents(client);
+            m_virtScene.UnSubscribeToClientAttachmentEvents(client);
+            m_virtScene.UnSubscribeToClientTeleportEvents(client);
+            m_virtScene.UnSubscribeToClientScriptEvents(client);
+            m_virtScene.UnSubscribeToClientGodEvents(client);
+            m_virtScene.UnSubscribeToClientNetworkEvents(client);
+
+            m_rootScene.SubscribeToClientPrimEvents(client);
+            client.OnAddPrim += LocalAddNewPrim;
+            client.OnRezObject += LocalRezObject;
+            m_rootScene.SubscribeToClientInventoryEvents(client);
+            m_rootScene.SubscribeToClientAttachmentEvents(client);
+            m_rootScene.SubscribeToClientTeleportEvents(client);
+            m_rootScene.SubscribeToClientScriptEvents(client);
+            m_rootScene.SubscribeToClientGodEvents(client);
+            m_rootScene.SubscribeToClientNetworkEvents(client);
+        }
+        public void ClientClosed(UUID clientid, Scene scene)
+        {
+
+        }
+
+
+        private void LocalRezObject(IClientAPI remoteclient, UUID itemid, Vector3 rayend, Vector3 raystart, UUID raytargetid, byte bypassraycast, bool rayendisintersection, bool rezselected, bool removeitem, UUID fromtaskid)
+        {     
+            int differenceX = (int)m_virtScene.RegionInfo.RegionLocX - (int)m_rootScene.RegionInfo.RegionLocX;
+            int differenceY = (int)m_virtScene.RegionInfo.RegionLocY - (int)m_rootScene.RegionInfo.RegionLocY;
+            rayend.X += differenceX * (int)Constants.RegionSize;
+            rayend.Y += differenceY * (int)Constants.RegionSize;
+            raystart.X += differenceX * (int)Constants.RegionSize;
+            raystart.Y += differenceY * (int)Constants.RegionSize;
+
+            m_rootScene.RezObject(remoteclient, itemid, rayend, raystart, raytargetid, bypassraycast,
+                                  rayendisintersection, rezselected, removeitem, fromtaskid);
+
+        }
+
+        private void LocalAddNewPrim(UUID ownerid, UUID groupid, Vector3 rayend, Quaternion rot, PrimitiveBaseShape shape, byte bypassraycast, Vector3 raystart, UUID raytargetid, byte rayendisintersection)
+        {
+            int differenceX = (int)m_virtScene.RegionInfo.RegionLocX - (int)m_rootScene.RegionInfo.RegionLocX;
+            int differenceY = (int)m_virtScene.RegionInfo.RegionLocY - (int)m_rootScene.RegionInfo.RegionLocY;
+            rayend.X += differenceX * (int)Constants.RegionSize;
+            rayend.Y += differenceY * (int)Constants.RegionSize;
+            raystart.X += differenceX * (int)Constants.RegionSize;
+            raystart.Y += differenceY * (int)Constants.RegionSize;
+            m_rootScene.AddNewPrim(ownerid, groupid, rayend, rot, shape, bypassraycast, raystart, raytargetid,
+                                   rayendisintersection);
+
         }
     }
 }
