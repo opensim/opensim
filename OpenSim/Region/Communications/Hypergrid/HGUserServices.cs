@@ -311,7 +311,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             return m_commsManager.NetworkServersInfo.UserURL;
         }
 
-        private bool IsForeignUser(UUID userID, out string userServerURL)
+        public bool IsForeignUser(UUID userID, out string userServerURL)
         {
             userServerURL = string.Empty;
             CachedUserInfo uinfo = m_commsManager.UserProfileCacheService.GetUserDetails(userID);

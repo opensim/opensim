@@ -34,6 +34,7 @@ using System.Text.RegularExpressions;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Services;
@@ -115,6 +116,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
                     httpServer.AddXmlRPCHandler("hg_login", m_loginService.XmlRpcLoginMethod);
                     httpServer.AddXmlRPCHandler("check_auth_session", m_loginService.XmlRPCCheckAuthSession, false);
+                    httpServer.AddXmlRPCHandler("get_avatar_appearance", XmlRPCGetAvatarAppearance);
+                    httpServer.AddXmlRPCHandler("update_avatar_appearance", XmlRPCUpdateAvatarAppearance);
 
                 }
             }
@@ -256,5 +259,64 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             scene = null;
             return false;
         }
+
+        public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            AvatarAppearance appearance;
+            Hashtable responseData;
+            if (requestData.Contains("owner"))
+            {
+                appearance = m_firstScene.CommsManager.AvatarService.GetUserAppearance(new UUID((string)requestData["owner"]));
+                if (appearance == null)
+                {
+                    responseData = new Hashtable();
+                    responseData["error_type"] = "no appearance";
+                    responseData["error_desc"] = "There was no appearance found for this avatar";
+                }
+                else
+                {
+                    responseData = appearance.ToHashTable();
+                }
+            }
+            else
+            {
+                responseData = new Hashtable();
+                responseData["error_type"] = "unknown_avatar";
+                responseData["error_desc"] = "The avatar appearance requested is not in the database";
+            }
+
+            response.Value = responseData;
+            return response;
+        }
+
+        public XmlRpcResponse XmlRPCUpdateAvatarAppearance(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData;
+            if (requestData.Contains("owner"))
+            {
+                AvatarAppearance appearance = new AvatarAppearance(requestData);
+                
+                // TODO: Sometime in the future we may have a database layer that is capable of updating appearance when
+                // the TextureEntry is null. When that happens, this check can be removed
+                if (appearance.Texture != null)
+                    m_firstScene.CommsManager.AvatarService.UpdateUserAppearance(new UUID((string)requestData["owner"]), appearance);
+
+                responseData = new Hashtable();
+                responseData["returnString"] = "TRUE";
+            }
+            else
+            {
+                responseData = new Hashtable();
+                responseData["error_type"] = "unknown_avatar";
+                responseData["error_desc"] = "The avatar appearance requested is not in the database";
+            }
+            response.Value = responseData;
+            return response;
+        }
     }
+
 }

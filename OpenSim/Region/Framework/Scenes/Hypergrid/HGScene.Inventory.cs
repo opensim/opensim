@@ -113,26 +113,26 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                                                    UUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                                    bool RezSelected, bool RemoveItem, UUID fromTaskID, bool attachment)
         {
-            //m_log.DebugFormat("[HGScene] RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
+            m_log.DebugFormat("[HGScene] RezObject itemID={0} fromTaskID={1}", itemID, fromTaskID);
 
-            if (fromTaskID.Equals(UUID.Zero))
+            //if (fromTaskID.Equals(UUID.Zero))
+            //{
+            InventoryItemBase item = new InventoryItemBase(itemID);
+            item.Owner = remoteClient.AgentId;
+            item = InventoryService.GetItem(item);
+            //if (item == null)
+            //{ // Fetch the item
+            //    item = new InventoryItemBase();
+            //    item.Owner = remoteClient.AgentId;
+            //    item.ID = itemID;
+            //    item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
+            //}
+            if (item != null)
             {
-                InventoryItemBase item = new InventoryItemBase(itemID);
-                item.Owner = remoteClient.AgentId;
-                item = InventoryService.GetItem(item);
-                //if (item == null)
-                //{ // Fetch the item
-                //    item = new InventoryItemBase();
-                //    item.Owner = remoteClient.AgentId;
-                //    item.ID = itemID;
-                //    item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
-                //}
-                if (item != null)
-                {
-                    m_assMapper.Get(item.AssetID, remoteClient.AgentId);
+                m_assMapper.Get(item.AssetID, remoteClient.AgentId);
 
-                }
             }
+            //}
 
             // OK, we're done fetching. Pass it up to the default RezObject
             return base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection, 

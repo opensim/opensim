@@ -25,45 +25,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 using log4net;
+using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Communications.Hypergrid
 {
-    public class HGCommunicationsGridMode : CommunicationsManager // CommunicationsOGS1
+    public class HGUserDataPlugin : OGS1UserDataPlugin
     {
-        IHyperlink m_osw = null;
-        public IHyperlink HGServices
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        HGUserServices m_UserServices;
+
+        public HGUserDataPlugin() 
         {
-            get { return m_osw; }
         }
 
-        public HGCommunicationsGridMode(
-            NetworkServersInfo serversInfo,
-            SceneManager sman, LibraryRootFolder libraryRootFolder)
-            : base(serversInfo, libraryRootFolder)
+        public HGUserDataPlugin(CommunicationsManager commsManager, HGUserServices userServices)
         {
-            // From constructor at CommunicationsOGS1
-            HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, sman, m_userProfileCacheService);
-            m_gridService = gridInterComms;
-            m_osw = gridInterComms;
-
-            HGUserServices userServices = new HGUserServices(this);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.
-            userServices.AddPlugin(new TemporaryUserProfilePlugin());
-            userServices.AddPlugin(new HGUserDataPlugin(this, userServices));            
-            
-            m_userService = userServices;
-            m_messageService = userServices;
-            m_avatarService = userServices;           
+            m_log.DebugFormat("[HG USER SERVICES]: {0} initialized", Name);
+            m_commsManager = commsManager;
+            m_UserServices = userServices;
         }
+
+        protected override string GetUserServerURL(UUID userID)
+        {
+            string url = string.Empty;
+            if (m_UserServices.IsForeignUser(userID, out url))
+                return url;
+            return m_commsManager.NetworkServersInfo.UserURL;
+        }
+
     }
 }

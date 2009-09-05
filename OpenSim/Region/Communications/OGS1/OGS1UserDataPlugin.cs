@@ -48,6 +48,10 @@ namespace OpenSim.Region.Communications.OGS1
 
         protected CommunicationsManager m_commsManager;
 
+        public OGS1UserDataPlugin()
+        {
+        }
+
         public OGS1UserDataPlugin(CommunicationsManager commsManager)
         {
             m_log.DebugFormat("[OGS1 USER SERVICES]: {0} initialized", Name);
@@ -603,7 +607,7 @@ namespace OpenSim.Region.Communications.OGS1
                     {
                         if ((string)respData["returnString"] == "TRUE")
                         {
-
+                            m_log.DebugFormat("[OGS1 USER SERVICES]: Updated user appearance in {0}", GetUserServerURL(user));
                         }
                         else
                         {
@@ -622,8 +626,8 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                m_log.Warn("[OGS1 USER SERVICES]: Error when trying to update Avatar's appearance: " +
-                           e.Message);
+                m_log.WarnFormat("[OGS1 USER SERVICES]: Error when trying to update Avatar's appearance in {0}: {1}",
+                           GetUserServerURL(user), e.Message);
                 // Return Empty list (no friends)
             }
         }
