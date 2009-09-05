@@ -60,6 +60,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected UuidGatherer m_assetGatherer;
 
         /// <value>
+        /// ID of this request
+        /// </value>
+        protected Guid m_id;
+
+        /// <value>
         /// Used to collect the uuids of the assets that we need to save into the archive
         /// </value>
         protected Dictionary<UUID, int> m_assetUuids = new Dictionary<UUID, int>();
@@ -78,8 +83,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
+            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
             : this(
+                id,
                 module,
                 userInfo,
                 invPath,
@@ -91,8 +97,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
+            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
         {
+            m_id = id;
             m_module = module;
             m_userInfo = userInfo;
             m_invPath = invPath;
@@ -116,7 +123,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 succeeded = false;
             }
 
-            m_module.TriggerInventoryArchiveSaved(succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
+            m_module.TriggerInventoryArchiveSaved(
+                m_id, succeeded, m_userInfo, m_invPath, m_saveStream, reportedException);
         }
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
@@ -199,7 +207,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
 
-            /*
             if (!m_userInfo.HasReceivedInventory)
             {
                 // If the region server has access to the user admin service (by which users are created),
@@ -221,7 +228,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_userInfo.FetchInventory();
                 }
             }
-            */
 
             bool foundStar = false;
 
@@ -274,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     // We couldn't find the path indicated 
                     m_saveStream.Close();
                     m_module.TriggerInventoryArchiveSaved(
-                        false, m_userInfo, m_invPath, m_saveStream,
+                        m_id, false, m_userInfo, m_invPath, m_saveStream,
                         new Exception(string.Format("Could not find inventory entry at path {0}", m_invPath)));
                     return;
                 }

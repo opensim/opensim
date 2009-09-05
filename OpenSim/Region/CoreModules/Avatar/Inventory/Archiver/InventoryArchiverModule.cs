@@ -57,7 +57,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory_iar.tar.gz";               
+        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory_iar.tar.gz";
+
+        /// <value>
+        /// Pending save completions initiated from the console
+        /// </value>
+        protected List<Guid> m_pendingConsoleSaves = new List<Guid>();
         
         /// <value>
         /// All scenes that this module knows about
@@ -106,32 +111,33 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Trigger the inventory archive saved event.
         /// </summary>
         protected internal void TriggerInventoryArchiveSaved(
-            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+            Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
+            Exception reportedException)
         {
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
             if (handlerInventoryArchiveSaved != null)
-                handlerInventoryArchiveSaved(succeeded, userInfo, invPath, saveStream, reportedException);
+                handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
         }       
 
-        public void ArchiveInventory(string firstName, string lastName, string invPath, Stream saveStream)
+        public void ArchiveInventory(Guid id, string firstName, string lastName, string invPath, Stream saveStream)
         {
             if (m_scenes.Count > 0)
             {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(this, userInfo, invPath, saveStream).Execute();
+                    new InventoryArchiveWriteRequest(id, this, userInfo, invPath, saveStream).Execute();
             }              
         }
                         
-        public void ArchiveInventory(string firstName, string lastName, string invPath, string savePath)
+        public void ArchiveInventory(Guid id, string firstName, string lastName, string invPath, string savePath)
         {
             if (m_scenes.Count > 0)
             {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
                 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(this, userInfo, invPath, savePath).Execute();
+                    new InventoryArchiveWriteRequest(id, this, userInfo, invPath, savePath).Execute();
             }            
         }
               
@@ -215,13 +221,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_log.InfoFormat(
                 "[INVENTORY ARCHIVER]: Saving archive {0} from inventory path {1} for {2} {3}",
                 savePath, invPath, firstName, lastName);
-            
-            ArchiveInventory(firstName, lastName, invPath, savePath);                      
-        }
+
+            Guid id = Guid.NewGuid();
+            ArchiveInventory(id, firstName, lastName, invPath, savePath);
+
+            lock (m_pendingConsoleSaves)
+                m_pendingConsoleSaves.Add(id);
+        }        
         
         private void SaveInvConsoleCommandCompleted(
-            bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException)
+            Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
+            Exception reportedException)
         {
+            lock (m_pendingConsoleSaves)
+            {
+                if (m_pendingConsoleSaves.Contains(id))
+                    m_pendingConsoleSaves.Remove(id);
+                else
+                    return;
+            }
+            
             if (succeeded)
             {
                 m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0}", userInfo.UserProfile.Name);
