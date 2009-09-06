@@ -76,10 +76,5 @@ namespace OpenSim.Services.AuthenticationService
 
             return String.Empty;
         }
-
-        public byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return new byte[0];
-        }
     }
 }

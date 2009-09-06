@@ -39,39 +39,12 @@ namespace OpenSim.Services.Interfaces
     public interface IAuthenticationService
     {
         //////////////////////////////////////////////////////
-        // PKI Zone!
-        //
-        // HG2 authentication works by using a cryptographic
-        // exchange.
-        // This method must provide a public key, the other
-        // crypto methods must understand hoow to deal with
-        // messages encrypted to it.
-        //
-        // If the public key is of zero length, you will
-        // get NO encryption and NO security.
-        //
-        // For non-HG installations, this is not relevant
-        //
-        // Implementors who are not using PKI can treat the
-        // cyphertext as a string and provide a zero-length
-        // key. Encryptionless implementations will not
-        // interoperate with implementations using encryption.
-        // If one side uses encryption, both must do so.
-        //
-        byte[] GetPublicKey();
-
-        //////////////////////////////////////////////////////
         // Authentication
         //
         // These methods will return a token, which can be used to access
         // various services.
         //
-        // The encrypted versions take the received cyphertext and
-        // the public key of the peer, which the connector must have
-        // obtained using a remote GetPublicKey call.
-        //
         string Authenticate(UUID principalID, string password, int lifetime);
-        byte[] AuthenticateEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////
         // Verification
@@ -81,12 +54,7 @@ namespace OpenSim.Services.Interfaces
         // Tokens expire after 30 minutes and can be refreshed by
         // re-verifying.
         //
-        // If encrypted authentication was used, encrypted verification
-        // must be used to refresh. Unencrypted verification is still
-        // performed, but doesn't refresh token lifetime.
-        //
         bool Verify(UUID principalID, string token, int lifetime);
-        bool VerifyEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////
         // Teardown
@@ -95,11 +63,7 @@ namespace OpenSim.Services.Interfaces
         // invalidates it and it can not subsequently be used
         // or refreshed.
         //
-        // Tokens created by encrypted authentication must
-        // be returned by encrypted release calls;
-        //
         bool Release(UUID principalID, string token);
-        bool ReleaseEncrypted(byte[] cyphertext, byte[] key);
 
         //////////////////////////////////////////////////////
         // Grid

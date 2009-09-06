@@ -220,7 +220,7 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
         private int m_LastLogin = 0;
-        private Thread HeartbeatThread;
+        private Thread HeartbeatThread = null;
         private volatile bool shuttingdown = false;
 
         private int m_lastUpdate = Environment.TickCount;
@@ -876,6 +876,13 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Enabled = true;
             //m_heartbeatTimer.Interval = (int)(m_timespan * 1000);
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
+            if (HeartbeatThread != null)
+            {
+                ThreadTracker.Remove(HeartbeatThread);
+                HeartbeatThread.Abort();
+                HeartbeatThread = null;
+            }
+            m_lastUpdate = Environment.TickCount;
             HeartbeatThread = new Thread(new ParameterizedThreadStart(Heartbeat));
             HeartbeatThread.SetApartmentState(ApartmentState.MTA);
             HeartbeatThread.Name = string.Format("Heartbeat for region {0}", RegionInfo.RegionName);
@@ -912,9 +919,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="e"></param>
         private void Heartbeat(object sender)
         {
-            Update();
+            try
+            {
+                Update();
 
-            m_lastUpdate = Environment.TickCount;
+                m_lastUpdate = Environment.TickCount;
+            }
+            catch (ThreadAbortException)
+            {
+            }
         }
 
         /// <summary>
@@ -2307,6 +2320,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
+            CheckHeartbeat();
             SubscribeToClientEvents(client);
             ScenePresence presence;
 
@@ -2831,6 +2845,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client)
         {
+            CheckHeartbeat();
             AvatarAppearance appearance = null;
             GetAvatarAppearance(client, out appearance);
 
@@ -2873,6 +2888,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="agentID"></param>
         public override void RemoveClient(UUID agentID)
         {
+            CheckHeartbeat();
             bool childagentYN = false;
             ScenePresence avatar = GetScenePresence(agentID);
             if (avatar != null)
@@ -4374,6 +4390,8 @@ namespace OpenSim.Region.Framework.Scenes
             else
                 return health;
 
+            CheckHeartbeat();
+
             return health;
         }
 
@@ -4558,6 +4576,12 @@ namespace OpenSim.Region.Framework.Scenes
             float ydiff = y - (float)((int)y);
 
             return (((vsn.X * xdiff) + (vsn.Y * ydiff)) / (-1 * vsn.Z)) + p0.Z;
+        }
+
+        private void CheckHeartbeat()
+        {
+            if (System.Environment.TickCount - m_lastUpdate > 2000)
+                StartTimer();
         }
     }
 }
