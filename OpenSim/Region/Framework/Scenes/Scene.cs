@@ -225,6 +225,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_lastUpdate = Environment.TickCount;
         private int m_maxPrimsPerFrame = 200;
+        private bool m_firstHeartbeat = true;
 
         private object m_deleting_scene_object = new object();
 
@@ -924,6 +925,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Update();
 
                 m_lastUpdate = Environment.TickCount;
+                m_firstHeartbeat = false;
             }
             catch (ThreadAbortException)
             {
@@ -4580,6 +4582,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void CheckHeartbeat()
         {
+            if (m_firstHeartbeat)
+                return;
+
             if (System.Environment.TickCount - m_lastUpdate > 2000)
                 StartTimer();
         }
