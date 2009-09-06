@@ -126,7 +126,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(id, this, userInfo, invPath, saveStream).Execute();
+                    new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream).Execute();
             }              
         }
                         
@@ -137,7 +137,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
                 
                 if (userInfo != null)
-                    new InventoryArchiveWriteRequest(id, this, userInfo, invPath, savePath).Execute();
+                    new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath).Execute();
             }            
         }
               

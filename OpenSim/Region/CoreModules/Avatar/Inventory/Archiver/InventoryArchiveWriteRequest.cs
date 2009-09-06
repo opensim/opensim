@@ -39,6 +39,7 @@ using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
 
@@ -58,6 +59,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private string m_invPath;        
         protected TarArchiveWriter m_archiveWriter;
         protected UuidGatherer m_assetGatherer;
+
+        /// <value>
+        /// We only use this to request modules
+        /// </value>
+        protected Scene m_scene;
 
         /// <value>
         /// ID of this request
@@ -83,10 +89,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
+            Guid id, InventoryArchiverModule module, Scene scene, 
+            CachedUserInfo userInfo, string invPath, string savePath)
             : this(
                 id,
                 module,
+                scene,
                 userInfo,
                 invPath,
                 new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress))
@@ -97,10 +105,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
+            Guid id, InventoryArchiverModule module, Scene scene, 
+            CachedUserInfo userInfo, string invPath, Stream saveStream)
         {
             m_id = id;
             m_module = module;
+            m_scene = scene;
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_saveStream = saveStream;
@@ -135,7 +145,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
             InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
-            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_module.CommsManager);
+            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.CommsManager);
 
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
             m_archiveWriter.WriteFile(filename, serialization);
@@ -222,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
                 // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == m_module.CommsManager.UserAdminService)
+                if (null == m_scene.CommsManager.UserAdminService)
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
@@ -313,7 +323,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             SaveUsers();
             new AssetsRequest(
                 new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 
-                m_module.AssetService, ReceivedAllAssets).Execute();
+                m_scene.AssetService, ReceivedAllAssets).Execute();
         }
 
         /// <summary>
@@ -327,7 +337,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 // Record the creator of this item
                 CachedUserInfo creator 
-                    = m_module.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
+                    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
 
                 if (creator != null)
                 {
