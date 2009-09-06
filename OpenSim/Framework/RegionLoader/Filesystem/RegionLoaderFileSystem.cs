@@ -78,7 +78,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
 
                 foreach (IConfig config in source.Configs)
                 {
-                    m_log.Info("[REGIONLOADERFILESYSTEM]: Creating RegionInfo for " + config.Name);
+                    //m_log.Info("[REGIONLOADERFILESYSTEM]: Creating RegionInfo for " + config.Name);
                     RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
                     regionInfos.Add(regionInfo);
                     i++;
