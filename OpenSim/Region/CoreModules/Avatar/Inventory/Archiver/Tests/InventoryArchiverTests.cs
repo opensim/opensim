@@ -136,8 +136,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
             InventoryFolderBase objsFolder 
-                = InventoryArchiveUtils.FindFolderByPath(
-                    scene.InventoryService, scene.InventoryService.GetRootFolder(userId), "Objects");
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -267,10 +266,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
-            //InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
             InventoryItemBase foundItem 
-                = InventoryArchiveUtils.FindItemByPath(
-                    scene.InventoryService, scene.InventoryService.GetRootFolder(userInfo.UserProfile.ID), itemName);
+                = InventoryArchiveUtils.FindItemByPath( scene.InventoryService, userInfo.UserProfile.ID, itemName);
+            
             Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
             Assert.That(
                 foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 

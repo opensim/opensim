@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 
@@ -38,6 +39,39 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     public static class InventoryArchiveUtils
     {
         public static readonly string PATH_DELIMITER = "/";
+
+        /// <summary>
+        /// Find a folder given a PATH_DELIMITER delimited path starting from a user's root folder
+        /// </summary>        
+        ///
+        /// This method does not handle paths that contain multiple delimitors
+        ///
+        /// FIXME: We do not yet handle situations where folders have the same name.  We could handle this by some
+        /// XPath like expression
+        ///
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        ///
+        /// <param name="inventoryService">
+        /// Inventory service to query
+        /// </param>
+        /// <param name="userId">
+        /// User id to search
+        /// </param>
+        /// <param name="path">
+        /// The path to the required folder.  
+        /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
+        /// </param>
+        /// <returns>null if the folder is not found</returns>
+        public static InventoryFolderBase FindFolderByPath(
+            IInventoryService inventoryService, UUID userId, string path)
+        {
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+
+            if (null == rootFolder)
+                return null;
+
+            return FindFolderByPath(inventoryService, rootFolder, path);
+        }        
         
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from this folder
@@ -91,6 +125,38 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // We didn't find a folder with the right name
             return null;
         }
+
+        /// <summary>
+        /// Find an item given a PATH_DELIMITOR delimited path starting from the user's root folder.
+        ///
+        /// This method does not handle paths that contain multiple delimitors
+        ///
+        /// FIXME: We do not yet handle situations where folders or items have the same name.  We could handle this by some
+        /// XPath like expression
+        ///
+        /// FIXME: Delimitors which occur in names themselves are not currently escapable.
+        /// </summary>
+        /// 
+        /// <param name="inventoryService">
+        /// Inventory service to query
+        /// </param>
+        /// <param name="userId">
+        /// The user to search
+        /// </param>
+        /// <param name="path">
+        /// The path to the required item.
+        /// </param>
+        /// <returns>null if the item is not found</returns>
+        public static InventoryItemBase FindItemByPath(
+            IInventoryService inventoryService, UUID userId, string path)
+        {
+            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
+
+            if (null == rootFolder)
+                return null;
+
+            return FindItemByPath(inventoryService, rootFolder, path);
+        }        
         
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
