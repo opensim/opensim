@@ -3140,11 +3140,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!agent.child)
             {
-                if (agent.startpos.X > (int)Constants.RegionSize - 1)
-                    agent.startpos.X = (int)Constants.RegionSize - 1;
+                if (TestBorderCross(agent.startpos,Cardinals.E))
+                {
+                    Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.E);
+                    agent.startpos.X = crossedBorder.BorderLine.Z - 1;
+                }
 
-                if (agent.startpos.Y > (int)Constants.RegionSize - 1)
-                    agent.startpos.Y = (int)Constants.RegionSize - 1;
+                if (TestBorderCross(agent.startpos, Cardinals.N))
+                {
+                    Border crossedBorder = GetCrossedBorder(agent.startpos, Cardinals.N);
+                    agent.startpos.Y = crossedBorder.BorderLine.Z - 1;
+                }
 
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
