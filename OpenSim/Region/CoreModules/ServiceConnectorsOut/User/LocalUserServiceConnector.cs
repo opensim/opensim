@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IUserAccountDataService m_UserService;
+        private IUserAccountService m_UserService;
 
         private bool m_Enabled = false;
 
@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 
                     Object[] args = new Object[] { source };
                     m_UserService =
-                            ServerUtils.LoadPlugin<IUserAccountDataService>(serviceDll,
+                            ServerUtils.LoadPlugin<IUserAccountService>(serviceDll,
                             args);
 
                     if (m_UserService == null)
@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserAccountDataService>(m_UserService);
+            scene.RegisterModuleInterface<IUserAccountService>(m_UserService);
         }
 
         public void RemoveRegion(Scene scene)

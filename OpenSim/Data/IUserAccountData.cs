@@ -26,51 +26,30 @@
  */
 
 using System;
-using System.Reflection;
-using Nini.Config;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
 using System.Collections.Generic;
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Services.UserAccountService
+namespace OpenSim.Data
 {
-    public class UserAccountService : UserAccountServiceBase, IUserAccountService
+    public class UserAccountData
     {
-        public UserAccountService(IConfigSource config) : base(config)
-        {
-        }
+        public UUID PrincipalID;
+        public UUID ScopeID;
+        public Dictionary<string, object> Data;
+    }
 
-        public UserAccount GetUserAccount(UUID scopeID, string firstName,
-                string lastName)
-        {
-            return null;
-        }
+    /// <summary>
+    /// An interface for connecting to the authentication datastore
+    /// </summary>
+    public interface IUserAccountData
+    {
+        UserAccountData Get(UUID principalID, UUID ScopeID);
 
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
-        {
-            return null;
-        }
+        List<UserAccountData> Query(UUID principalID, UUID ScopeID, string query);
 
-        public bool SetHomePosition(UserAccount data, UUID regionID, UUID regionSecret)
-        {
-            return false;
-        }
+        bool Store(UserAccountData data);
 
-        public bool SetUserAccount(UserAccount data, UUID principalID, string token)
-        {
-            return false;
-        }
-
-        public bool CreateUserAccount(UserAccount data, UUID principalID, string token)
-        {
-            return false;
-        }
-
-        public List<UserAccount> GetUserAccount(UUID scopeID,
-                string query)
-        {
-            return null;
-        }
+        bool SetDataItem(UUID principalID, string item, string value);
     }
 }
