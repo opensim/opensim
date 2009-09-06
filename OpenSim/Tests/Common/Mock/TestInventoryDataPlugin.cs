@@ -84,7 +84,17 @@ namespace OpenSim.Tests.Common.Mock
 
         public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            m_log.DebugFormat("[MOCK INV DB]: Getting items in folder {0}", folderID);
+            
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+
+            foreach (InventoryItemBase item in m_items.Values)
+            {
+                if (item.Folder == folderID)
+                    items.Add(item);
+            }
+            
+            return items;
         }
 
         public List<InventoryFolderBase> getUserRootFolders(UUID user) { return null; }
