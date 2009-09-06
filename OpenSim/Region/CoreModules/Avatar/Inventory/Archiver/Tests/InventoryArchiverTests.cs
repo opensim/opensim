@@ -412,7 +412,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 
-            new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
+            new InventoryArchiveReadRequest(scene, userInfo, null, (Stream)null)
                 .ReplicateArchivePathToUserInventory(
                     itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
 

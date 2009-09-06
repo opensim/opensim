@@ -39,7 +39,6 @@ using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
-using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
 
@@ -114,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_saveStream = saveStream;
-            m_assetGatherer = new UuidGatherer(m_module.AssetService);
+            m_assetGatherer = new UuidGatherer(m_scene.AssetService);
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)

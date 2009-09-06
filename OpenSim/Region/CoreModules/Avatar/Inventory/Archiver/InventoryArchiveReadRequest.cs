@@ -42,6 +42,7 @@ using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Archiver;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
@@ -56,31 +57,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private string m_invPath;
 
         /// <value>
+        /// We only use this to request modules
+        /// </value>
+        protected Scene m_scene;        
+
+        /// <value>
         /// The stream from which the inventory archive will be loaded.
         /// </value>
         private Stream m_loadStream;
 
-        protected CommunicationsManager m_commsManager;
-        protected IAssetService m_assetService;
-
         public InventoryArchiveReadRequest(
-            CachedUserInfo userInfo, string invPath, string loadPath, CommunicationsManager commsManager, IAssetService assetService)
+            Scene scene, CachedUserInfo userInfo, string invPath, string loadPath)
             : this(
+                scene,
                 userInfo,
                 invPath,
-                new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress),
-                commsManager, assetService)
+                new GZipStream(new FileStream(loadPath, FileMode.Open), CompressionMode.Decompress))
         {
         }
 
         public InventoryArchiveReadRequest(
-            CachedUserInfo userInfo, string invPath, Stream loadStream, CommunicationsManager commsManager, IAssetService assetService)
+            Scene scene, CachedUserInfo userInfo, string invPath, Stream loadStream)
         {
+            m_scene = scene;
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_loadStream = loadStream;
-            m_commsManager = commsManager;
-            m_assetService = assetService;
         }
 
         /// <summary>
@@ -106,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
                 // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == m_commsManager.UserAdminService)
+                if (null == m_scene.CommsManager.UserAdminService)
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
@@ -167,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         // Don't use the item ID that's in the file
                         item.ID = UUID.Random();
 
-                        UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_commsManager); 
+                        UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
                         if (UUID.Zero != ospResolvedId)
                             item.CreatorIdAsUuid = ospResolvedId;
                         
@@ -371,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 asset.Type = assetType;
                 asset.Data = data;
 
-                m_assetService.Store(asset);
+                m_scene.AssetService.Store(asset);
 
                 return true;
             }
