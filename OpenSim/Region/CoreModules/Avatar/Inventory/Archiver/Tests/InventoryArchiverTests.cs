@@ -267,7 +267,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
             InventoryItemBase foundItem 
-                = InventoryArchiveUtils.FindItemByPath( scene.InventoryService, userInfo.UserProfile.ID, itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
             
             Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
             Assert.That(
@@ -378,9 +378,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Monitor.Wait(this, 60000);
             }
             
-            Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
+            //Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
             
-            Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
+            Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
             string folder1Name = "a";
@@ -398,16 +398,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     "{0}{1}/{2}/{3}", 
                     ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
 
-            Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
+            //Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 
             new InventoryArchiveReadRequest(scene, userInfo, null, (Stream)null)
                 .ReplicateArchivePathToUserInventory(
-                    itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
+                    itemArchivePath, false, scene.InventoryService.GetRootFolder(userInfo.UserProfile.ID), 
+                    foldersCreated, nodesLoaded);
 
-            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
-            InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            //Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
+            //InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            InventoryFolderBase folder1 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userInfo.UserProfile.ID, "a");
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-            InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
+            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
             Assert.That(folder2, Is.Not.Null, "Could not find folder b");
         }
     }
