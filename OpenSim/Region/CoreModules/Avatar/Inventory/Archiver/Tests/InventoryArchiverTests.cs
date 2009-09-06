@@ -93,11 +93,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            CachedUserInfo userInfo;
 
             lock (this)
             {
-                userInfo = UserProfileTestUtils.CreateUserWithInventory(
+                UserProfileTestUtils.CreateUserWithInventory(
                     cm, userFirstName, userLastName, userId, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
@@ -136,23 +135,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = "My Little Dog";
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
-            InventoryFolderImpl objsFolder = userInfo.RootFolder.FindFolderByPath("Objects");
-            //InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
-            Console.WriteLine("here2");
-            /*
-            IInventoryService inventoryService = scene.InventoryService;
-            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
-            InventoryCollection rootContents = inventoryService.GetFolderContent(userId, rootFolder.ID);
-            */
-            /*
-            InventoryFolderBase objsFolder = null;
-            foreach (InventoryFolderBase folder in rootContents.Folders)
-                if (folder.Name == "Objects")
-                    objsFolder = folder;
-            */
+            InventoryFolderBase objsFolder 
+                = InventoryArchiveUtils.FindFolderByPath(
+                    scene.InventoryService, scene.InventoryService.GetRootFolder(userId), "Objects");
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
-            userInfo.AddItem(item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
