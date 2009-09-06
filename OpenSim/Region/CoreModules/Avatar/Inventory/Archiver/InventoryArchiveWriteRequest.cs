@@ -207,6 +207,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderImpl inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
 
+            // XXX: Very temporarily, drop and refetch inventory to make sure we have any newly created items in cache
+            // This will disappear very soon once we stop using the old cached inventory.
+            /*
+            m_userInfo.DropInventory();
+            m_userInfo.FetchInventory();
+            */
+
             if (!m_userInfo.HasReceivedInventory)
             {
                 // If the region server has access to the user admin service (by which users are created),

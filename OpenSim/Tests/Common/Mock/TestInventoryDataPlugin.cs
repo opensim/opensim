@@ -154,7 +154,13 @@ namespace OpenSim.Tests.Common.Mock
                 m_folders.Remove(folderId);
         }
 
-        public void addInventoryItem(InventoryItemBase item) { m_items[item.ID] = item; }
+        public void addInventoryItem(InventoryItemBase item) 
+        {
+            m_log.DebugFormat(
+                "[MOCK INV DB]: Adding inventory item {0} {1} in {2}", item.Name, item.ID, item.Folder);
+            
+            m_items[item.ID] = item;
+        }
         
         public void updateInventoryItem(InventoryItemBase item) { addInventoryItem(item); }
         
