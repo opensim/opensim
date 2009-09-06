@@ -90,29 +90,14 @@ namespace OpenSim.Services.AuthenticationService
                 throw new Exception("Could not find a storage interface in the given module");
         }
 
-        public virtual byte[] GetPublicKey()
-        {
-            return new byte[0];
-        }
-
         public bool Verify(UUID principalID, string token, int lifetime)
         {
             return m_Database.CheckToken(principalID, token, lifetime);
         }
 
-        public bool VerifyEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return false;
-        }
-
         public virtual bool Release(UUID principalID, string token)
         {
             return m_Database.CheckToken(principalID, token, 0);
-        }
-
-        public virtual bool ReleaseEncrypted(byte[] cyphertext, byte[] key)
-        {
-            return false;
         }
 
         protected string GetToken(UUID principalID, int lifetime)

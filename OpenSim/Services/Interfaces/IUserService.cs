@@ -30,13 +30,13 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
-    public class UserAccountData
+    public class UserAccount
     {
-        public UserAccountData()
+        public UserAccount()
         {
         }
 
-        public UserAccountData(UUID userID, UUID homeRegionID, float homePositionX,
+        public UserAccount(UUID userID, UUID homeRegionID, float homePositionX,
                 float homePositionY, float homePositionZ, float homeLookAtX,
                 float homeLookAtY, float homeLookAtZ)
         {
@@ -78,41 +78,26 @@ namespace OpenSim.Services.Interfaces
 
     };
 
-    public class UserAccountDataMessage
+    public interface IUserAccountService
     {
-        public UserAccountData Data;
-
-        // Set to the region's ID and secret when updating home location
-        //
-        public UUID RegionID;
-        public UUID RegionSecret;
-
-        // Set to the auth info of the user requesting creation/update
-        //
-        public UUID PrincipalID;
-        public UUID SessionID;
-    };
-
-    public interface IUserAccountDataService
-    {
-        UserAccountData GetUserAccountData(UUID scopeID, UUID userID);
-        UserAccountData GetUserAccountData(UUID scopeID, string FirstName, string LastName);
+        UserAccount GetUserAccount(UUID scopeID, UUID userID);
+        UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName);
         // Returns the list of avatars that matches both the search
         // criterion and the scope ID passed
         //
-        List<UserAccountData> GetUserAccountData(UUID scopeID, string query);
+        List<UserAccount> GetUserAccount(UUID scopeID, string query);
 
 
         // This will set only the home region portion of the data!
         // Can't be used to set god level, flags, type or change the name!
         //
-        bool SetHomePosition(UserAccountData data, UUID RegionID, UUID RegionSecret);
+        bool SetHomePosition(UserAccount data, UUID RegionID, UUID RegionSecret);
 
         // Update all updatable fields
         //
-        bool SetUserAccountData(UserAccountData data, UUID PrincipalID, UUID SessionID);
+        bool SetUserAccount(UserAccount data, UUID PrincipalID, string token);
         
         // Creates a user data record
-        bool CreateUserAccountData(UserAccountData data, UUID PrincipalID, UUID SessionID);
+        bool CreateUserAccount(UserAccount data, UUID PrincipalID, string token);
     }
 }

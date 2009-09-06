@@ -37,7 +37,7 @@ using OpenSim.Services.Connectors;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 {
     public class RemoteUserServicesConnector : UserServicesConnector,
-            ISharedRegionModule, IUserAccountDataService
+            ISharedRegionModule, IUserAccountService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserAccountDataService>(this);
+            scene.RegisterModuleInterface<IUserAccountService>(this);
         }
 
         public void RemoveRegion(Scene scene)

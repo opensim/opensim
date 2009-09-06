@@ -112,7 +112,7 @@ namespace OpenSim.Region.Communications.OGS1
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
 
-                XmlRpcResponse resp = req.Send(GetUserServerURL(userId), 6000);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 6000);
                 Hashtable respData = (Hashtable)resp.Value;
                 if (respData.Contains("error_type"))
                 {
