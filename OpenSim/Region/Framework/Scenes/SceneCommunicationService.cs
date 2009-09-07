@@ -407,6 +407,24 @@ namespace OpenSim.Region.Framework.Scenes
             //blah.Port = region.RemotingPort;
         }
 
+        public List<SimpleRegionInfo> RequestNeighbors(Scene pScene, uint pRegionLocX, uint pRegionLocY)
+        {
+            Border[] northBorders = pScene.NorthBorders.ToArray();
+            Border[] southBorders = pScene.SouthBorders.ToArray();
+            Border[] eastBorders = pScene.EastBorders.ToArray();
+            Border[] westBorders = pScene.WestBorders.ToArray();
+
+            // Legacy one region.  Provided for simplicity while testing the all inclusive method in the else statement.
+            if (northBorders.Length <= 1 && southBorders.Length <= 1 && eastBorders.Length <= 1 && westBorders.Length <= 1)
+            {
+                return m_commsProvider.GridService.RequestNeighbours(pRegionLocX, pRegionLocY);
+            }
+            else
+            {
+                return m_commsProvider.GridService.RequestNeighbours(pRegionLocX, pRegionLocY);
+            }
+        }
+
         /// <summary>
         /// This informs all neighboring regions about agent "avatar".
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
@@ -429,7 +447,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_regionInfo != null)
             {
                 neighbours =
-                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+                RequestNeighbors(avatar.Scene,m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             }
             else
             {
