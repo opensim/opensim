@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
         /// </summary>
-        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory_iar.tar.gz";
+        protected const string DEFAULT_INV_BACKUP_FILENAME = "user-inventory.iar";
 
         /// <value>
         /// Pending save completions initiated from the console
