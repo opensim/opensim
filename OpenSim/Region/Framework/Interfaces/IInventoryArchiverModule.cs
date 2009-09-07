@@ -56,8 +56,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
         /// <param name="invPath">The inventory path in which to place the loaded folders and items</param>
-        /// <param name="loadStream">The stream from which the inventory archive will be loaded</param>        
-        void DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream);
+        /// <param name="loadStream">The stream from which the inventory archive will be loaded</param>
+        /// <returns>true if the first stage of the operation succeeded, false otherwise</returns>
+        bool DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream);
 
         /// <summary>
         /// Archive a user's inventory folder to the given stream
@@ -67,6 +68,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="lastName"></param>
         /// <param name="invPath">The inventory path from which the inventory should be saved.</param>
         /// <param name="saveStream">The stream to which the inventory archive will be saved</param>
-        void ArchiveInventory(Guid id, string firstName, string lastName, string invPath, Stream saveStream);     
+        /// <returns>true if the first stage of the operation succeeded, false otherwise</returns>
+        bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, Stream saveStream);     
     }
 }

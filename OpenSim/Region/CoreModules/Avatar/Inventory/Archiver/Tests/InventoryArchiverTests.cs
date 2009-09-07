@@ -83,7 +83,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
             log4net.Config.XmlConfigurator.Configure();
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
 
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
@@ -100,9 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     cm, userFirstName, userLastName, userId, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
-
-            Console.WriteLine("here");
-
+            
             // Create asset
             SceneObjectGroup object1;
             SceneObjectPart part1;
@@ -248,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
@@ -318,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene();
