@@ -35,39 +35,39 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.UserAccountService
 {
-    public class UserAccountService : UserAccountServiceBase, IUserAccountDataService
+    public class UserAccountService : UserAccountServiceBase, IUserAccountService
     {
         public UserAccountService(IConfigSource config) : base(config)
         {
         }
 
-        public UserAccountData GetUserAccountData(UUID scopeID, string firstName,
+        public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
             return null;
         }
 
-        public UserAccountData GetUserAccountData(UUID scopeID, UUID userID)
+        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
             return null;
         }
 
-        public bool SetHomePosition(UserAccountData data, UUID regionID, UUID regionSecret)
+        public bool SetHomePosition(UserAccount data, UUID regionID, UUID regionSecret)
         {
             return false;
         }
 
-        public bool SetUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
+        public bool SetUserAccount(UserAccount data, UUID principalID, string token)
         {
             return false;
         }
 
-        public bool CreateUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
+        public bool CreateUserAccount(UserAccount data, UUID principalID, string token)
         {
             return false;
         }
 
-        public List<UserAccountData> GetUserAccountData(UUID scopeID,
+        public List<UserAccount> GetUserAccount(UUID scopeID,
                 string query)
         {
             return null;

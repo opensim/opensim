@@ -26,55 +26,47 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using OpenMetaverse;
-using OpenSim.Services.Interfaces;
-using log4net;
-using Nini.Config;
+using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
+using log4net;
+using Nwc.XmlRpc;
+using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Clients;
+using OpenSim.Region.Communications.OGS1;
 
-namespace OpenSim.Services.AuthenticationService
+namespace OpenSim.Region.Communications.Hypergrid
 {
-    // Generic Authentication service used for identifying
-    // and authenticating principals.
-    // Principals may be clients acting on users' behalf,
-    // or any other components that need 
-    // verifiable identification.
-    //
-    public class PasswordAuthenticationService :
-            AuthenticationServiceBase, IAuthenticationService
+    public class HGUserDataPlugin : OGS1UserDataPlugin
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
- 
-        public PasswordAuthenticationService(IConfigSource config) :
-                base(config)
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        HGUserServices m_UserServices;
+
+        public HGUserDataPlugin() 
         {
         }
 
-        public string Authenticate(UUID principalID, string password, int lifetime)
+        public HGUserDataPlugin(CommunicationsManager commsManager, HGUserServices userServices)
         {
-            AuthenticationData data = m_Database.Get(principalID);
-            
-            if (!data.Data.ContainsKey("passwordHash") ||
-                !data.Data.ContainsKey("passwordSalt"))
-            {
-                return String.Empty;
-            }
-
-            string hashed = Util.Md5Hash(Util.Md5Hash(password) + ":" +
-                    data.Data["passwordSalt"].ToString());
-
-            if (data.Data["passwordHash"].ToString() == hashed)
-            {
-                return GetToken(principalID, lifetime);
-            }
-
-            return String.Empty;
+            m_log.DebugFormat("[HG USER SERVICES]: {0} initialized", Name);
+            m_commsManager = commsManager;
+            m_UserServices = userServices;
         }
+
+        protected override string GetUserServerURL(UUID userID)
+        {
+            string url = string.Empty;
+            if (m_UserServices.IsForeignUser(userID, out url))
+                return url;
+            return m_commsManager.NetworkServersInfo.UserURL;
+        }
+
     }
 }

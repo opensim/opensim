@@ -28,53 +28,28 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Services.Interfaces;
-using log4net;
-using Nini.Config;
-using System.Reflection;
-using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
-namespace OpenSim.Services.AuthenticationService
+namespace OpenSim.Data
 {
-    // Generic Authentication service used for identifying
-    // and authenticating principals.
-    // Principals may be clients acting on users' behalf,
-    // or any other components that need 
-    // verifiable identification.
-    //
-    public class PasswordAuthenticationService :
-            AuthenticationServiceBase, IAuthenticationService
+    public class UserAccountData
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
- 
-        public PasswordAuthenticationService(IConfigSource config) :
-                base(config)
-        {
-        }
+        public UUID PrincipalID;
+        public UUID ScopeID;
+        public Dictionary<string, object> Data;
+    }
 
-        public string Authenticate(UUID principalID, string password, int lifetime)
-        {
-            AuthenticationData data = m_Database.Get(principalID);
-            
-            if (!data.Data.ContainsKey("passwordHash") ||
-                !data.Data.ContainsKey("passwordSalt"))
-            {
-                return String.Empty;
-            }
+    /// <summary>
+    /// An interface for connecting to the authentication datastore
+    /// </summary>
+    public interface IUserAccountData
+    {
+        UserAccountData Get(UUID principalID, UUID ScopeID);
 
-            string hashed = Util.Md5Hash(Util.Md5Hash(password) + ":" +
-                    data.Data["passwordSalt"].ToString());
+        List<UserAccountData> Query(UUID principalID, UUID ScopeID, string query);
 
-            if (data.Data["passwordHash"].ToString() == hashed)
-            {
-                return GetToken(principalID, lifetime);
-            }
+        bool Store(UserAccountData data);
 
-            return String.Empty;
-        }
+        bool SetDataItem(UUID principalID, string item, string value);
     }
 }

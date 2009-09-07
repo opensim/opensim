@@ -367,6 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
             string reason = String.Empty;
 
             //bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, a);
+            
             bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, out reason);
 
             if (regionAccepted && newAgent)
@@ -384,7 +385,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     eq.EnableSimulator(reg.RegionHandle, endPoint, avatar.UUID);
                     eq.EstablishAgentCommunication(avatar.UUID, endPoint, capsPath);
-                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1} in region {2}", 
+                    m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1} in region {2}",
                                       capsPath, avatar.UUID, avatar.Scene.RegionInfo.RegionName);
                 }
                 else
@@ -394,7 +395,9 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_log.Info("[INTERGRID]: Completed inform client about neighbour " + endPoint.ToString());
+                
             }
+            
         }
 
         public void RequestNeighbors(RegionInfo region)
@@ -405,6 +408,65 @@ namespace OpenSim.Region.Framework.Scenes
 
             //blah.Address = region.RemotingAddress;
             //blah.Port = region.RemotingPort;
+        }
+
+        public List<SimpleRegionInfo> RequestNeighbors(Scene pScene, uint pRegionLocX, uint pRegionLocY)
+        {
+            Border[] northBorders = pScene.NorthBorders.ToArray();
+            Border[] southBorders = pScene.SouthBorders.ToArray();
+            Border[] eastBorders = pScene.EastBorders.ToArray();
+            Border[] westBorders = pScene.WestBorders.ToArray();
+
+            // Legacy one region.  Provided for simplicity while testing the all inclusive method in the else statement.
+            if (northBorders.Length <= 1 && southBorders.Length <= 1 && eastBorders.Length <= 1 && westBorders.Length <= 1)
+            {
+                return m_commsProvider.GridService.RequestNeighbours(pRegionLocX, pRegionLocY);
+            }
+            else
+            {
+                Vector2 extent = Vector2.Zero;
+                for (int i=0;i<eastBorders.Length;i++)
+                {
+                    extent.X = (eastBorders[i].BorderLine.Z > extent.X) ? eastBorders[i].BorderLine.Z : extent.X;
+                }
+                for (int i=0;i<northBorders.Length;i++)
+                {
+                    extent.Y = (northBorders[i].BorderLine.Z > extent.Y) ? northBorders[i].BorderLine.Z : extent.Y;
+                }
+
+                List<SimpleRegionInfo> neighbourList = new List<SimpleRegionInfo>();
+
+                // Loss of fraction on purpose
+                extent.X = ((int)extent.X / (int)Constants.RegionSize) + 1;
+                extent.Y = ((int)extent.Y / (int)Constants.RegionSize) + 1;
+
+                int startX = (int) pRegionLocX - 1;
+                int startY = (int) pRegionLocY - 1;
+
+                int endX = (int) pRegionLocX + (int)extent.X + 1;
+                int endY = (int) pRegionLocY + (int)extent.Y + 1;
+
+                for (int i=startX;i<endX;i++)
+                {
+                    for (int j=startY;j<endY;j++)
+                    {
+                        // Skip CurrentRegion
+                        if (i == (int)pRegionLocX && j == (int)pRegionLocY)
+                            continue;
+
+                        ulong regionHandle = Util.UIntsToLong((uint)(i * Constants.RegionSize),
+                                                              (uint)(j * Constants.RegionSize));
+                        RegionInfo neighborreg = m_commsProvider.GridService.RequestNeighbourInfo(regionHandle);
+                        if (neighborreg != null)
+                        {
+                            neighbourList.Add(neighborreg);
+                        }
+                    }
+                }
+                return neighbourList;
+                //SimpleRegionInfo regionData = m_commsProvider.GridService.RequestNeighbourInfo()
+                //return m_commsProvider.GridService.RequestNeighbours(pRegionLocX, pRegionLocY);
+            }
         }
 
         /// <summary>
@@ -429,7 +491,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_regionInfo != null)
             {
                 neighbours =
-                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+                RequestNeighbors(avatar.Scene,m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             }
             else
             {
@@ -535,6 +597,16 @@ namespace OpenSim.Region.Framework.Scenes
                         d.BeginInvoke(avatar, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
                                       InformClientOfNeighbourCompleted,
                                       d);
+                    }
+                    
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        m_log.ErrorFormat(
+                           "[REGIONINFO]: Neighbour Regions response included the current region in the neighbor list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                           neighbour.ExternalHostName,
+                           neighbour.RegionHandle,
+                           neighbour.RegionLocX,
+                           neighbour.RegionLocY);
                     }
                     catch (Exception e)
                     {

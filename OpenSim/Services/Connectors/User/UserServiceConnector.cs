@@ -39,7 +39,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class UserServicesConnector : IUserAccountDataService
+    public class UserServicesConnector : IUserAccountService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -81,153 +81,34 @@ namespace OpenSim.Services.Connectors
             m_ServerURI = serviceURI;
         }
 
-        public UserAccountData GetUserAccountData(UUID scopeID, string firstName, string lastName)
+        public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
-            string uri = m_ServerURI + "/users/";
-            UserAccountData data = new UserAccountData();
-            data.FirstName = firstName;
-            data.LastName = lastName;
-            data.ScopeID = scopeID;
-            data.UserID = UUID.Zero;
-
-            try
-            {
-                data = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountData, UserAccountData>("POST", uri, data);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return null;
-            }
-
-            if (data.UserID == UUID.Zero)
-                return null;
-
-            return data;
+            return null;
         }
 
-        public UserAccountData GetUserAccountData(UUID scopeID, UUID userID)
+        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            string uri = m_ServerURI + "/users/";
-            UserAccountData data = new UserAccountData();
-            data.FirstName = String.Empty;
-            data.LastName = String.Empty;
-            data.ScopeID = scopeID;
-            data.UserID = userID;
-
-            try
-            {
-                data = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountData, UserAccountData>("POST", uri, data);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return null;
-            }
-
-            if (data.UserID == UUID.Zero)
-                return null;
-
-            return data;
+            return null;
         }
 
-        public bool SetHomePosition(UserAccountData data, UUID regionID, UUID regionSecret)
+        public bool SetHomePosition(UserAccount data, UUID regionID, UUID regionSecret)
         {
-            string uri = m_ServerURI + "/user/";
-            bool result = false;
-
-            UserAccountDataMessage msg = new UserAccountDataMessage();
-
-            msg.Data = data;
-            msg.RegionID = regionID;
-            msg.RegionSecret = regionSecret;
-
-            try
-            {
-                result = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return false;
-            }
-
-            return result;
+            return false;
         }
 
-        public bool SetUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
+        public bool SetUserAccount(UserAccount data, UUID principalID, string token)
         {
-            string uri = m_ServerURI + "/user/";
-            bool result = false;
-
-            UserAccountDataMessage msg = new UserAccountDataMessage();
-
-            msg.Data = data;
-            msg.PrincipalID = principalID;
-            msg.SessionID = sessionID;
-
-            try
-            {
-                result = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return false;
-            }
-
-            return result;
+            return false;
         }
 
-        public bool CreateUserAccountData(UserAccountData data, UUID principalID, UUID sessionID)
+        public bool CreateUserAccount(UserAccount data, UUID principalID, string token)
         {
-            string uri = m_ServerURI + "/newuser/";
-            bool result = false;
-
-            UserAccountDataMessage msg = new UserAccountDataMessage();
-
-            msg.Data = data;
-            msg.PrincipalID = principalID;
-            msg.SessionID = sessionID;
-
-            try
-            {
-                result = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountDataMessage, bool>("POST", uri, msg);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return false;
-            }
-
-            return result;
+            return false;
         }
 
-        public List<UserAccountData> GetUserAccountData(UUID scopeID, string query)
+        public List<UserAccount> GetUserAccount(UUID scopeID, string query)
         {
-            string uri = m_ServerURI + "/userlist/";
-            UserAccountData data = new UserAccountData();
-            data.FirstName = query;
-            data.ScopeID = scopeID;
-            List<UserAccountData> result;
-
-            try
-            {
-                result = SynchronousRestObjectRequester.
-                        MakeRequest<UserAccountData, List<UserAccountData>>("POST", uri, data);
-            }
-            catch (Exception e)
-            {
-                m_log.WarnFormat("[USER CONNECTOR]: Unable to send request to user server. Reason: {1}", e.Message);
-                return null;
-            }
-
-            return result;
+            return null;
         }
     }
 }

@@ -60,3 +60,13 @@ StorageProvider = "OpenSim.Data.MySQL.dll"
 ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
 ; Realm = "auth"
 
+; * This is the new style user service.
+; * "Realm" is the table that is used for user lookup.
+; * It defaults to "users", which uses the legacy tables
+; *
+[UserAccountService]
+AuthenticationServiceModule = "OpenSim.Services.UserService.dll:UserAccountService"
+StorageProvider = "OpenSim.Data.MySQL.dll"
+ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+; Realm = "users"
+
