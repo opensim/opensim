@@ -1620,7 +1620,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             UUID assetID = UUID.Zero;
 
+            Vector3 inventoryStoredPosition = new Vector3
+                        (((objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
+                              ? 250
+                              : objectGroup.AbsolutePosition.X)
+                         ,
+                         (objectGroup.AbsolutePosition.X > (int)Constants.RegionSize)
+                             ? 250
+                             : objectGroup.AbsolutePosition.X,
+                         objectGroup.AbsolutePosition.Z);
+
+            Vector3 originalPosition = objectGroup.AbsolutePosition;
+
+            objectGroup.AbsolutePosition = inventoryStoredPosition;
+
             string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(objectGroup);
+
+            objectGroup.AbsolutePosition = originalPosition;
 
             // Get the user info of the item destination
             //
@@ -1683,6 +1699,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     // Deleting someone else's item
                     //
+                    
+
                     if (remoteClient == null ||
                         objectGroup.OwnerID != remoteClient.AgentId)
                     {
@@ -1857,8 +1875,24 @@ namespace OpenSim.Region.Framework.Scenes
             itemID = UUID.Zero;
             if (grp != null)
             {
+                Vector3 inventoryStoredPosition = new Vector3
+                       (((grp.AbsolutePosition.X > (int)Constants.RegionSize)
+                             ? 250
+                             : grp.AbsolutePosition.X)
+                        ,
+                        (grp.AbsolutePosition.X > (int)Constants.RegionSize)
+                            ? 250
+                            : grp.AbsolutePosition.X,
+                        grp.AbsolutePosition.Z);
+
+                Vector3 originalPosition = grp.AbsolutePosition;
+
+                grp.AbsolutePosition = inventoryStoredPosition;
+
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(grp);
-              
+
+                grp.AbsolutePosition = originalPosition;
+
                 AssetBase asset = CreateAsset(
                     grp.GetPartName(grp.LocalId),
                     grp.GetPartDescription(grp.LocalId),

@@ -4256,7 +4256,24 @@ namespace OpenSim.Region.Framework.Scenes
                 break;
 
             case 2: // Sell a copy
+
+
+                Vector3 inventoryStoredPosition = new Vector3
+                       (((group.AbsolutePosition.X > (int)Constants.RegionSize)
+                             ? 250
+                             : group.AbsolutePosition.X)
+                        ,
+                        (group.AbsolutePosition.X > (int)Constants.RegionSize)
+                            ? 250
+                            : group.AbsolutePosition.X,
+                        group.AbsolutePosition.Z);
+
+                Vector3 originalPosition = group.AbsolutePosition;
+
+                group.AbsolutePosition = inventoryStoredPosition;
+
                 string sceneObjectXml = SceneObjectSerializer.ToOriginalXmlFormat(group);
+                group.AbsolutePosition = originalPosition;
 
                 uint perms=group.GetEffectivePermissions();
 
