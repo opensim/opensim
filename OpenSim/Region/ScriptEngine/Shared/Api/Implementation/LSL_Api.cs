@@ -476,9 +476,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // normalize an angle between -PI and PI (-180 to +180 degrees)
         protected double NormalizeAngle(double angle)
         {
-            angle = angle % (Math.PI * 2);
-            // if (angle < 0) angle = angle + Math.PI * 2;
-            return angle;
+            if (angle > -Math.PI && angle < Math.PI)
+                return angle;
+
+            int numPis = (int)(Math.PI / angle);
+            double remainder = angle - Math.PI * numPis;
+            if (numPis % 2 == 1)
+                return Math.PI - angle;
+            return remainder;
         }
 
         // Old implementation of llRot2Euler, now normalized
