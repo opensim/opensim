@@ -84,6 +84,14 @@ namespace OpenSim.Framework
             Owner = owner;
         }
 
+        public InventoryFolderBase(UUID id, string name, UUID owner, UUID parent)
+        {
+            ID = id;
+            Name = name;
+            Owner = owner;
+            ParentID = parent;           
+        }
+
         public InventoryFolderBase(UUID id, string name, UUID owner, short type, UUID parent, ushort version)
         {
             ID = id;

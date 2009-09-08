@@ -195,7 +195,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(gotObject1File, Is.True, "No item1 file in archive");
 //            Assert.That(gotObject2File, Is.True, "No object2 file in archive");
 
-            // TODO: Test presence of more files and contents of files.
+            // TODO: Test presence of more files and contents of files.            
         }
         
         /// <summary>
@@ -257,24 +257,43 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
-            InventoryItemBase foundItem 
+            InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
             
-            Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
             Assert.That(
-                foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 
+                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
                 "Loaded item non-uuid creator doesn't match original");
             Assert.That(
-                foundItem.CreatorIdAsUuid, Is.EqualTo(userItemCreatorUuid), 
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(userItemCreatorUuid), 
                 "Loaded item uuid creator doesn't match original");
-            Assert.That(foundItem.Owner, Is.EqualTo(userUuid),
+            Assert.That(foundItem1.Owner, Is.EqualTo(userUuid),
                 "Loaded item owner doesn't match inventory reciever");
+
+            // Now try loading to a root child folder            
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xA");
+            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", archiveReadStream);
+
+            InventoryItemBase foundItem2
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + itemName);
+            Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
+
+            // Now try loading to a more deeply nested folder
+            UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC");
+            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", archiveReadStream);
+
+            InventoryItemBase foundItem3
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
+            Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");                        
         }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// no account exists with the creator name
         /// </summary>
+        /// Disabled since temporary profiles have not yet been implemented.
         //[Test]
         public void TestLoadIarV0_1TempProfiles()
         {   

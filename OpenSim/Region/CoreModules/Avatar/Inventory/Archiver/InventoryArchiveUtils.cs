@@ -106,8 +106,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (path == PATH_DELIMITER)
                 return startFolder;
 
-            InventoryFolderBase foundFolder = null;
-
             string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
             InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
@@ -116,7 +114,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 if (folder.Name == components[0])
                 {
                     if (components.Length > 1)
-                        return FindFolderByPath(inventoryService, foundFolder, components[1]);
+                        return FindFolderByPath(inventoryService, folder, components[1]);
                     else
                         return folder;
                 }
