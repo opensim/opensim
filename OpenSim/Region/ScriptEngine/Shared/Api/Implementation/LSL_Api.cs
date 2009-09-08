@@ -9477,8 +9477,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                System.Text.ASCIIEncoding enc =
-                    new System.Text.ASCIIEncoding();
+                System.Text.UTF8Encoding enc =
+                    new System.Text.UTF8Encoding();
                 string data = enc.GetString(a.Data);
                 //m_log.Debug(data);
                 NotecardCache.Cache(id, data);
@@ -9539,8 +9539,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                System.Text.ASCIIEncoding enc =
-                    new System.Text.ASCIIEncoding();
+                System.Text.UTF8Encoding enc =
+                    new System.Text.UTF8Encoding();
                 string data = enc.GetString(a.Data);
                 //m_log.Debug(data);
                 NotecardCache.Cache(id, data);
