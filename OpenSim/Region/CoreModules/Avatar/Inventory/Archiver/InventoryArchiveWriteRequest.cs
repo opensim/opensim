@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void SaveInvItem(InventoryItemBase inventoryItem, string path)
         {
-            string filename = string.Format("{0}{1}_{2}.xml", path, inventoryItem.Name, inventoryItem.ID);            
+            string filename = path + CreateArchiveItemName(inventoryItem);
 
             // Record the creator of this item for user record purposes (which might go away soon)
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
@@ -162,12 +162,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (saveThisFolderItself)
             {
-                path +=
-                    string.Format(
-                        "{0}{1}{2}/",
-                        inventoryFolder.Name,
-                        ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
-                        inventoryFolder.ID);
+                path += CreateArchiveFolderName(inventoryFolder);
 
                 // We need to make sure that we record empty folders            
                 m_archiveWriter.WriteDir(path);
@@ -355,6 +350,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_log.WarnFormat("[INVENTORY ARCHIVER]: Failed to get creator profile for {0}", creatorId);
                 }
             }
+        }
+
+        /// <summary>
+        /// Create the archive name for a particular folder.
+        /// </summary>
+        ///
+        /// These names are prepended with an inventory folder's UUID so that more than one folder can have the
+        /// same name
+        /// 
+        /// <param name="folder"></param>
+        /// <returns></returns>
+        public static string CreateArchiveFolderName(InventoryFolderBase folder)
+        {
+            return CreateArchiveFolderName(folder.Name, folder.ID);          
+        }        
+
+        /// <summary>
+        /// Create the archive name for a particular item.
+        /// </summary>
+        ///
+        /// These names are prepended with an inventory item's UUID so that more than one item can have the
+        /// same name
+        /// 
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public static string CreateArchiveItemName(InventoryItemBase item)
+        {
+            return CreateArchiveItemName(item.Name, item.ID);          
+        }
+
+        /// <summary>
+        /// Create an archive folder name given its constituent components
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static string CreateArchiveFolderName(string name, UUID id)
+        {
+            return string.Format(
+                "{0}{1}{2}/",
+                name,
+                ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
+                id);            
+        }
+
+        /// <summary>
+        /// Create an archive item name given its constituent components
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>        
+        public static string CreateArchiveItemName(string name, UUID id)
+        {
+            return string.Format(
+                "{0}{1}{2}.xml",
+                name,
+                ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
+                id);            
         }
     }
 }

@@ -153,19 +153,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             //bool gotControlFile = false;
             bool gotObject1File = false;
             //bool gotObject2File = false;
+            string expectedObject1FileName = InventoryArchiveWriteRequest.CreateArchiveItemName(item1);
             string expectedObject1FilePath = string.Format(
-                "{0}{1}/{2}_{3}.xml",
+                "{0}{1}{2}",
                 ArchiveConstants.INVENTORY_PATH,
-                string.Format(
-                    "Objects{0}{1}", ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, objsFolder.ID),
-                item1.Name,
-                item1Id);
-
-//            string expectedObject2FileName = string.Format(
-//                "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-//                part2.Name,
-//                Math.Round(part2.GroupPosition.X), Math.Round(part2.GroupPosition.Y), Math.Round(part2.GroupPosition.Z),
-//                part2.UUID);
+                InventoryArchiveWriteRequest.CreateArchiveFolderName(objsFolder),                                  
+                expectedObject1FileName);
 
             string filePath;
             TarArchiveReader.TarEntryType tarEntryType;
@@ -187,7 +180,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //
 //                    if (fileName.StartsWith(part1.Name))
 //                    {
-                        Assert.That(filePath, Is.EqualTo(expectedObject1FilePath));
+                        Assert.That(expectedObject1FilePath, Is.EqualTo(filePath));
                         gotObject1File = true;
 //                    }
 //                    else if (fileName.StartsWith(part2.Name))
@@ -385,16 +378,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string folder2Name = "b";
             string itemName = "c.lsl";
             
-            string folder1ArchiveName 
-                = string.Format(
-                    "{0}{1}{2}", folder1Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
-            string folder2ArchiveName
-                = string.Format(
-                    "{0}{1}{2}", folder2Name, ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR, UUID.Random());
+            string folder1ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder1Name, UUID.Random());
+            string folder2ArchiveName = InventoryArchiveWriteRequest.CreateArchiveFolderName(folder2Name, UUID.Random());
+            string itemArchiveName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            
             string itemArchivePath
                 = string.Format(
-                    "{0}{1}/{2}/{3}", 
-                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
+                    "{0}{1}{2}{3}", 
+                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);            
 
             //Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 
