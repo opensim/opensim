@@ -476,9 +476,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         // normalize an angle between -PI and PI (-180 to +180 degrees)
         protected double NormalizeAngle(double angle)
         {
-            angle = angle % (Math.PI * 2);
-            // if (angle < 0) angle = angle + Math.PI * 2;
-            return angle;
+            if (angle > -Math.PI && angle < Math.PI)
+                return angle;
+
+            int numPis = (int)(Math.PI / angle);
+            double remainder = angle - Math.PI * numPis;
+            if (numPis % 2 == 1)
+                return Math.PI - angle;
+            return remainder;
         }
 
         // Old implementation of llRot2Euler, now normalized
@@ -497,9 +502,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                              NormalizeAngle(Math.Atan2(n, Math.Sqrt(p))),
                                              NormalizeAngle(Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s))));
             else if (n > 0)
-                return new LSL_Vector(0.0, Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
+                return new LSL_Vector(0.0, Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
             else
-                return new LSL_Vector(0.0, -Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
+                return new LSL_Vector(0.0, -Math.PI * 0.5, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
         }
 
         /* From wiki:
@@ -553,12 +558,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             double x,y,z,s;
 
-            double c1 = Math.Cos(v.x/2.0);
-            double c2 = Math.Cos(v.y/2.0);
-            double c3 = Math.Cos(v.z/2.0);
-            double s1 = Math.Sin(v.x/2.0);
-            double s2 = Math.Sin(v.y/2.0);
-            double s3 = Math.Sin(v.z/2.0);
+            double c1 = Math.Cos(v.x * 0.5);
+            double c2 = Math.Cos(v.y * 0.5);
+            double c3 = Math.Cos(v.z * 0.5);
+            double s1 = Math.Sin(v.x * 0.5);
+            double s2 = Math.Sin(v.y * 0.5);
+            double s3 = Math.Sin(v.z * 0.5);
 
             x = s1*c2*c3+c1*s2*s3;
             y = c1*s2*c3-s1*c2*s3;
