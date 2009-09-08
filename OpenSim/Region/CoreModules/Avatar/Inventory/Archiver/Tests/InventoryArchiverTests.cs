@@ -77,13 +77,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// </summary>
         // Commenting for now! The mock inventory service needs more beef, at least for
         // GetFolderForType
-        //[Test]
+        [Test]
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
             log4net.Config.XmlConfigurator.Configure();
 
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
 
             Scene scene = SceneSetupHelpers.SetupScene("Inventory");
             SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
@@ -93,7 +93,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userFirstName = "Jock";
             string userLastName = "Stirrup";
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
-            // CachedUserInfo userInfo;
 
             lock (this)
             {
@@ -101,9 +100,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     cm, userFirstName, userLastName, userId, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
-
-            Console.WriteLine("here");
-
+            
             // Create asset
             SceneObjectGroup object1;
             SceneObjectPart part1;
@@ -136,16 +133,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             item1.Name = "My Little Dog";
             item1.AssetID = asset1.FullID;
             item1.ID = item1Id;
-            //userInfo.RootFolder.FindFolderByPath("Objects").ID;
-            //InventoryFolderBase objsFolder = scene.InventoryService.GetFolderForType(userId, AssetType.Object);
-            Console.WriteLine("here2");
-            IInventoryService inventoryService = scene.InventoryService;
-            InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
-            InventoryCollection rootContents = inventoryService.GetFolderContent(userId, rootFolder.ID);
-            InventoryFolderBase objsFolder = null;
-            foreach (InventoryFolderBase folder in rootContents.Folders)
-                if (folder.Name == "Objects")
-                    objsFolder = folder;
+            InventoryFolderBase objsFolder 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
             scene.AddInventoryItem(userId, item1);
 
@@ -155,7 +144,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             mre.Reset();
             archiverModule.ArchiveInventory(
                 Guid.NewGuid(), userFirstName, userLastName, "Objects", archiveWriteStream);
-            mre.WaitOne();
+            mre.WaitOne(60000, false);
 
             byte[] archive = archiveWriteStream.ToArray();
             MemoryStream archiveReadStream = new MemoryStream(archive);
@@ -257,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
@@ -275,7 +264,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
-            InventoryItemBase foundItem = userInfo.RootFolder.FindItemByPath(itemName);
+            InventoryItemBase foundItem 
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
+            
             Assert.That(foundItem, Is.Not.Null, "Didn't find loaded item");
             Assert.That(
                 foundItem.CreatorId, Is.EqualTo(item1.CreatorId), 
@@ -325,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
             SerialiserModule serialiserModule = new SerialiserModule();
-            InventoryArchiverModule archiverModule = new InventoryArchiverModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
             // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
             Scene scene = SceneSetupHelpers.SetupScene();
@@ -385,9 +376,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Monitor.Wait(this, 60000);
             }
             
-            Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
+            //Console.WriteLine("userInfo.RootFolder 1: {0}", userInfo.RootFolder);
             
-            Dictionary <string, InventoryFolderImpl> foldersCreated = new Dictionary<string, InventoryFolderImpl>();
+            Dictionary <string, InventoryFolderBase> foldersCreated = new Dictionary<string, InventoryFolderBase>();
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
             
             string folder1Name = "a";
@@ -405,16 +396,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                     "{0}{1}/{2}/{3}", 
                     ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemName);            
 
-            Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
+            //Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 
-            new InventoryArchiveReadRequest(userInfo, null, (Stream)null, null, null)
+            new InventoryArchiveReadRequest(scene, userInfo, null, (Stream)null)
                 .ReplicateArchivePathToUserInventory(
-                    itemArchivePath, false, userInfo.RootFolder, foldersCreated, nodesLoaded);
+                    itemArchivePath, false, scene.InventoryService.GetRootFolder(userInfo.UserProfile.ID), 
+                    foldersCreated, nodesLoaded);
 
-            Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
-            InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            //Console.WriteLine("userInfo.RootFolder 3: {0}", userInfo.RootFolder);
+            //InventoryFolderImpl folder1 = userInfo.RootFolder.FindFolderByPath("a");
+            InventoryFolderBase folder1 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userInfo.UserProfile.ID, "a");
             Assert.That(folder1, Is.Not.Null, "Could not find folder a");
-            InventoryFolderImpl folder2 = folder1.FindFolderByPath("b");            
+            InventoryFolderBase folder2 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, folder1, "b");
             Assert.That(folder2, Is.Not.Null, "Could not find folder b");
         }
     }

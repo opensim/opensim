@@ -58,14 +58,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void Initialise(IConfigSource source)
         {
-            m_log.Info("[ARCHIVER] Initialising");
+            //m_log.Debug("[ARCHIVER] Initialising");
         }
 
         public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IRegionArchiverModule>(this);
-            m_log.InfoFormat("[ARCHIVER]: Enabled for region {0}", scene.RegionInfo.RegionName);
+            //m_log.DebugFormat("[ARCHIVER]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
         public void RegionLoaded(Scene scene)

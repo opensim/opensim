@@ -260,7 +260,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     Path.GetFileNameWithoutExtension(assembly),
                     "SecondLife.Script");
 
-                ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+                //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+                RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);                
 //                lease.Register(this);
             }
             catch (Exception)

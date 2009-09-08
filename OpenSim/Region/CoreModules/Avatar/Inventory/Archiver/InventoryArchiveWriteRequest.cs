@@ -60,6 +60,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected UuidGatherer m_assetGatherer;
 
         /// <value>
+        /// We only use this to request modules
+        /// </value>
+        protected Scene m_scene;
+
+        /// <value>
         /// ID of this request
         /// </value>
         protected Guid m_id;
@@ -83,10 +88,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, string savePath)
+            Guid id, InventoryArchiverModule module, Scene scene, 
+            CachedUserInfo userInfo, string invPath, string savePath)
             : this(
                 id,
                 module,
+                scene,
                 userInfo,
                 invPath,
                 new GZipStream(new FileStream(savePath, FileMode.Create), CompressionMode.Compress))
@@ -97,14 +104,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Constructor
         /// </summary>
         public InventoryArchiveWriteRequest(
-            Guid id, InventoryArchiverModule module, CachedUserInfo userInfo, string invPath, Stream saveStream)
+            Guid id, InventoryArchiverModule module, Scene scene, 
+            CachedUserInfo userInfo, string invPath, Stream saveStream)
         {
             m_id = id;
             m_module = module;
+            m_scene = scene;
             m_userInfo = userInfo;
             m_invPath = invPath;
             m_saveStream = saveStream;
-            m_assetGatherer = new UuidGatherer(m_module.AssetService);
+            m_assetGatherer = new UuidGatherer(m_scene.AssetService);
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
@@ -135,7 +144,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
             InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
-            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_module.CommsManager);
+            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.CommsManager);
 
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
             m_archiveWriter.WriteFile(filename, serialization);
@@ -149,7 +158,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="inventoryFolder">The inventory folder to save</param>
         /// <param name="path">The path to which the folder should be saved</param>
         /// <param name="saveThisFolderItself">If true, save this folder itself.  If false, only saves contents</param>
-        protected void SaveInvFolder(InventoryFolderImpl inventoryFolder, string path, bool saveThisFolderItself)
+        protected void SaveInvFolder(InventoryFolderBase inventoryFolder, string path, bool saveThisFolderItself)
         {
             if (saveThisFolderItself)
             {
@@ -164,15 +173,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_archiveWriter.WriteDir(path);
             }
 
-            List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
-            List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
+            InventoryCollection contents 
+                = m_scene.InventoryService.GetFolderContent(inventoryFolder.Owner, inventoryFolder.ID);
+            //List<InventoryFolderImpl> childFolders = inventoryFolder.RequestListOfFolderImpls();
+            //List<InventoryItemBase> items = inventoryFolder.RequestListOfItems();
 
             /*
             Dictionary identicalFolderNames = new Dictionary<string, int>();
 
             foreach (InventoryFolderImpl folder in inventories)
             {
-
                 if (!identicalFolderNames.ContainsKey(folder.Name))
                     identicalFolderNames[folder.Name] = 0;
                 else
@@ -188,12 +198,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             */
 
-            foreach (InventoryFolderImpl childFolder in childFolders)
+            foreach (InventoryFolderBase childFolder in contents.Folders)
             {
                 SaveInvFolder(childFolder, path, true);
             }
 
-            foreach (InventoryItemBase item in items)
+            foreach (InventoryItemBase item in contents.Items)
             {
                 SaveInvItem(item, path);
             }
@@ -204,9 +214,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public void Execute()
         {
-            InventoryFolderImpl inventoryFolder = null;
+            InventoryFolderBase inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
+            InventoryFolderBase rootFolder = m_scene.InventoryService.GetRootFolder(m_userInfo.UserProfile.ID);
 
+            // XXX: Very temporarily, drop and refetch inventory to make sure we have any newly created items in cache
+            // This will disappear very soon once we stop using the old cached inventory.
+            /*
+            m_userInfo.DropInventory();
+            m_userInfo.FetchInventory();
+            */
+
+            /*
             if (!m_userInfo.HasReceivedInventory)
             {
                 // If the region server has access to the user admin service (by which users are created),
@@ -215,7 +234,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //
                 // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
                 // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == m_module.CommsManager.UserAdminService)
+                if (null == m_scene.CommsManager.UserAdminService)
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
@@ -228,11 +247,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     m_userInfo.FetchInventory();
                 }
             }
+            */
 
             bool foundStar = false;
 
-            // Eliminate double slashes and any leading / on the path.  This might be better done within InventoryFolderImpl
-            // itself (possibly at a small loss in efficiency).
+            // Eliminate double slashes and any leading / on the path.
             string[] components
                 = m_invPath.Split(
                     new string[] { InventoryFolderImpl.PATH_DELIMITER }, StringSplitOptions.RemoveEmptyEntries);
@@ -257,18 +276,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Therefore if we still start with a / after the split, then we need the root folder
             if (m_invPath.Length == 0)
             {
-                inventoryFolder = m_userInfo.RootFolder;
+                inventoryFolder = rootFolder;
             }
             else
             {
                 m_invPath = m_invPath.Remove(m_invPath.LastIndexOf(InventoryFolderImpl.PATH_DELIMITER));
-                inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
+                inventoryFolder 
+                    = InventoryArchiveUtils.FindFolderByPath(m_scene.InventoryService, rootFolder, m_invPath);
+                //inventoryFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
             }
 
             // The path may point to an item instead
             if (inventoryFolder == null)
             {
-                inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
+                inventoryItem = InventoryArchiveUtils.FindItemByPath(m_scene.InventoryService, rootFolder, m_invPath);
+                //inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
 
             m_archiveWriter = new TarArchiveWriter(m_saveStream);
@@ -306,7 +328,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             SaveUsers();
             new AssetsRequest(
                 new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 
-                m_module.AssetService, ReceivedAllAssets).Execute();
+                m_scene.AssetService, ReceivedAllAssets).Execute();
         }
 
         /// <summary>
@@ -320,7 +342,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 // Record the creator of this item
                 CachedUserInfo creator 
-                    = m_module.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
+                    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
 
                 if (creator != null)
                 {
