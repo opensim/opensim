@@ -177,6 +177,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
                         if (UUID.Zero != ospResolvedId)
                             item.CreatorIdAsUuid = ospResolvedId;
+                        else
+                            item.CreatorIdAsUuid = m_userInfo.UserProfile.ID;
                         
                         item.Owner = m_userInfo.UserProfile.ID;
 

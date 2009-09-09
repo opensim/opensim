@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         public void TestSaveIarV0_1()
         {
             TestHelper.InMethod();
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
 
@@ -202,12 +202,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
         /// an account exists with the creator name.
         /// </summary>
+        ///
+        /// This test also does some deeper probing of loading into nested inventory structures
         [Test]
         public void TestLoadIarV0_1ExistingUsers()
         {   
             TestHelper.InMethod();
             
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             string userFirstName = "Mr";
             string userLastName = "Tiddles";
@@ -288,6 +290,77 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
             Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");                        
         }
+
+        /// <summary>
+        /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
+        /// embedded creators do not exist in the system
+        /// </summary>
+        ///
+        /// This may possibly one day get overtaken by the as yet incomplete temporary profiles feature 
+        /// (as tested in the a later commented out test)
+        [Test]
+        public void TestLoadIarV0_1AbsentUsers()
+        {   
+            TestHelper.InMethod();
+            
+            log4net.Config.XmlConfigurator.Configure();
+            
+            string userFirstName = "Charlie";
+            string userLastName = "Chan";
+            UUID userUuid = UUID.Parse("00000000-0000-0000-0000-000000000999");
+            string userItemCreatorFirstName = "Bat";
+            string userItemCreatorLastName = "Man";
+            //UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000008888");
+            
+            string itemName = "b.lsl";
+            string archiveItemName
+                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());            
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+
+            InventoryItemBase item1 = new InventoryItemBase();
+            item1.Name = itemName;
+            item1.AssetID = UUID.Random();
+            item1.GroupID = UUID.Random();
+            item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
+            //item1.CreatorId = userUuid.ToString();
+            //item1.CreatorId = "00000000-0000-0000-0000-000000000444";
+            item1.Owner = UUID.Zero;
+            
+            string item1FileName 
+                = string.Format("{0}{1}", ArchiveConstants.INVENTORY_PATH, archiveItemName);
+            tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
+            tar.Close();
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
+            SerialiserModule serialiserModule = new SerialiserModule();
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+            
+            // Annoyingly, we have to set up a scene even though inventory loading has nothing to do with a scene
+            Scene scene = SceneSetupHelpers.SetupScene("inventory");
+            IUserAdminService userAdminService = scene.CommsManager.UserAdminService;
+            
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);
+            userAdminService.AddUser(
+                userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
+            
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
+
+            CachedUserInfo userInfo 
+                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
+
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
+            
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
+//            Assert.That(
+//                foundItem1.CreatorId, Is.EqualTo(userUuid), 
+//                "Loaded item non-uuid creator doesn't match that of the loading user");
+            Assert.That(
+                foundItem1.CreatorIdAsUuid, Is.EqualTo(userUuid), 
+                "Loaded item uuid creator doesn't match that of the loading user");                  
+        }        
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
@@ -376,7 +449,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         {
             TestHelper.InMethod();
 
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             Scene scene = SceneSetupHelpers.SetupScene("inventory");
             CommunicationsManager commsManager = scene.CommsManager;
