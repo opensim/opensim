@@ -38,13 +38,21 @@ bin/config-include/CenomeCache.ini
 bin/config-include/FlotsamCache.ini
 bin/config-include/GridCommon.ini
 bin/config-include/StandaloneCommon.ini
+bin/OpenSim.Grid.AssetInventoryServer.log
+bin/OpenSim.Grid.AssetServer.log
+bin/OpenSim.Grid.GridServer.log
+bin/OpenSim.Grid.InventoryServer.log
+bin/OpenSim.Grid.MessagingServer.log
+bin/OpenSim.Grid.UserServer.log
+bin/OpenSim.log
+bin/crashes/
 Examples/*.dll
 OpenSim.build
 OpenSim.sln
 OpenSim.suo
 Prebuild/Prebuild.build
 Prebuild/Prebuild.sln
-bin/OpenSim.log
+TestResult.xml
 cov/*
 OpenSim/OpenSim.userprefs
 OpenSim/OpenSim.usertasks
@@ -53,3 +61,4 @@ TAGS
 Makefile.local
 bin/.version
 compile.bat
+
