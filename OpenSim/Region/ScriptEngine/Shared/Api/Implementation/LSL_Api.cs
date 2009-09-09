@@ -9477,8 +9477,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
                 }
 
-                System.Text.ASCIIEncoding enc =
-                    new System.Text.ASCIIEncoding();
+                System.Text.UTF8Encoding enc =
+                    new System.Text.UTF8Encoding();
                 string data = enc.GetString(a.Data);
                 //m_log.Debug(data);
                 NotecardCache.Cache(id, data);
@@ -9524,29 +9524,28 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (NotecardCache.IsCached(assetID))
             {
-                AsyncCommands.
-                DataserverPlugin.DataserverReply(assetID.ToString(),
-                NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
+                AsyncCommands.DataserverPlugin.DataserverReply(assetID.ToString(),
+                                                               NotecardCache.GetLine(assetID, line, m_notecardLineReadCharsMax));
                 ConditionalScriptSleep(100);
                 return tid.ToString();
             }
 
             WithNotecard(assetID, delegate (UUID id, AssetBase a)
-            {
-                if (a == null || a.Type != 7)
-                {
-                    ShoutError("Notecard '" + name + "' could not be found.");
-                    return;
-                }
+                         {
+                             if (a == null || a.Type != 7)
+                             {
+                                 ShoutError("Notecard '" + name + "' could not be found.");
+                                 return;
+                             }
 
-                System.Text.ASCIIEncoding enc =
-                    new System.Text.ASCIIEncoding();
-                string data = enc.GetString(a.Data);
-                //m_log.Debug(data);
-                NotecardCache.Cache(id, data);
-                AsyncCommands.DataserverPlugin.DataserverReply(id.ToString(),
-                                                               NotecardCache.GetLine(id, line, m_notecardLineReadCharsMax));
-            });
+                             System.Text.UTF8Encoding enc =
+                                 new System.Text.UTF8Encoding();
+                             string data = enc.GetString(a.Data);
+                             //m_log.Debug(data);
+                             NotecardCache.Cache(id, data);
+                             AsyncCommands.DataserverPlugin.DataserverReply(id.ToString(),
+                                                                            NotecardCache.GetLine(id, line, m_notecardLineReadCharsMax));
+                         });
 
             ConditionalScriptSleep(100);
             return tid.ToString();
