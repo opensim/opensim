@@ -384,7 +384,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 System.Timers.Timer shutdownTimer = new System.Timers.Timer(timeout); // Wait before firing
                 shutdownTimer.AutoReset = false;
                 shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
-                shutdownTimer.Start();
+                lock (shutdownTimer)
+                {
+                    shutdownTimer.Start();
+                }
 
                 responseData["success"] = true;
             }

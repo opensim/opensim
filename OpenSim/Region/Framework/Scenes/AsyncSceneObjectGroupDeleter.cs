@@ -78,7 +78,8 @@ namespace OpenSim.Region.Framework.Scenes
                 bool permissionToDelete)
         {
             if (Enabled)
-                m_inventoryTicker.Stop();
+                lock (m_inventoryTicker)
+                    m_inventoryTicker.Stop();
 
             lock (m_inventoryDeletes)
             {
@@ -93,7 +94,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             if (Enabled)
-                m_inventoryTicker.Start();
+                lock (m_inventoryTicker)
+                    m_inventoryTicker.Start();
         
             // Visually remove it, even if it isnt really gone yet.  This means that if we crash before the object
             // has gone to inventory, it will reappear in the region again on restart instead of being lost.
