@@ -3488,7 +3488,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (geom == localGround)
                         {
-                            localHeightfield = TerrainHeightFieldHeights[geom];
+                            //localHeightfield = TerrainHeightFieldHeights[geom];
                             proceed = true;
                         }
                         else
@@ -3510,7 +3510,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // memory corruption
                             if (TerrainHeightFieldHeights.ContainsKey(g))
                             {
-                                float[] removingHeightField = TerrainHeightFieldHeights[g];
+                                //float[] removingHeightField = TerrainHeightFieldHeights[g];
                                 TerrainHeightFieldHeights.Remove(g);
 
                                 if (RegionTerrain.ContainsKey(g))
@@ -3519,27 +3519,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
 
                                 d.GeomDestroy(g);
-                                removingHeightField = new float[0];
-                                
-
-                                
-                            }
-                            
+                                //removingHeightField = new float[0];
+                            }                            
                         }
-
                     }
                     else
                     {
                         m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
-
                     }
-
-                }
-                
+                }                
             }
-        }
-
-        
+        }       
 
         public override void SetWaterLevel(float baseheight)
         {

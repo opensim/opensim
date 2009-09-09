@@ -153,7 +153,9 @@ namespace OpenSim.Framework.Communications.Osp
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             if (userInfo != null)
                 return userInfo.UserProfile.ID;
-                        
+
+            // XXX: Disable temporary user profile creation for now as implementation is incomplete - justincc
+            /*
             UserProfileData tempUserProfile = new UserProfileData();
             tempUserProfile.FirstName = firstName;
             tempUserProfile.SurName = lastName;
@@ -164,6 +166,9 @@ namespace OpenSim.Framework.Communications.Osp
             commsManager.UserService.AddTemporaryUserProfile(tempUserProfile);
             
             return tempUserProfile.ID;
+            */
+
+            return UUID.Zero;
         }
     }
 }

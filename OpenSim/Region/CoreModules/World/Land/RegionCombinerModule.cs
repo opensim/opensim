@@ -588,10 +588,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                             RegionConnections connectiondata, ScenePresence rootPresence)
         {
             RegionData[] rdata = connectiondata.ConnectedRegions.ToArray();
-            List<IClientAPI> clients = new List<IClientAPI>();
+            //List<IClientAPI> clients = new List<IClientAPI>();
             Dictionary<Vector2, RegionCourseLocationStruct> updates = new Dictionary<Vector2, RegionCourseLocationStruct>();
             
-
             // Root Region entry
             RegionCourseLocationStruct rootupdatedata = new RegionCourseLocationStruct();
             rootupdatedata.Locations = new List<Vector3>();

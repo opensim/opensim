@@ -177,6 +177,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
                         if (UUID.Zero != ospResolvedId)
                             item.CreatorIdAsUuid = ospResolvedId;
+                        else
+                            item.CreatorIdAsUuid = m_userInfo.UserProfile.ID;
                         
                         item.Owner = m_userInfo.UserProfile.ID;
 
@@ -206,7 +208,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// Replicate the inventory paths in the archive to the user's inventory as necessary.
         /// </summary>
-        /// <param name="fsPath"></param>
+        /// <param name="archivePath">The item archive path to replicate</param>
         /// <param name="isDir">Is the path we're dealing with a directory?</param>
         /// <param name="rootDestinationFolder">The root folder for the inventory load</param>
         /// <param name="foldersCreated">
@@ -218,49 +220,51 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </param>
         /// <returns>The last user inventory folder created or found for the archive path</returns>
         public InventoryFolderBase ReplicateArchivePathToUserInventory(
-            string fsPath, 
+            string archivePath, 
             bool isDir, 
             InventoryFolderBase rootDestFolder, 
             Dictionary <string, InventoryFolderBase> foldersCreated,
             List<InventoryNodeBase> nodesLoaded)
         {
-            fsPath = fsPath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
+            archivePath = archivePath.Substring(ArchiveConstants.INVENTORY_PATH.Length);
 
             // Remove the file portion if we aren't already dealing with a directory path
             if (!isDir)
-                fsPath = fsPath.Remove(fsPath.LastIndexOf("/") + 1);
+                archivePath = archivePath.Remove(archivePath.LastIndexOf("/") + 1);
 
-            string originalFsPath = fsPath;
+            string originalArchivePath = archivePath;
 
-            m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading to folder {0}", fsPath);
+            m_log.DebugFormat(
+                "[INVENTORY ARCHIVER]: Loading to folder {0} {1}", rootDestFolder.Name, rootDestFolder.ID);
 
             InventoryFolderBase destFolder = null;
 
             // XXX: Nasty way of dealing with a path that has no directory component
-            if (fsPath.Length > 0)
+            if (archivePath.Length > 0)
             {
-                while (null == destFolder && fsPath.Length > 0)
+                while (null == destFolder && archivePath.Length > 0)
                 {
-                    if (foldersCreated.ContainsKey(fsPath))
+                    if (foldersCreated.ContainsKey(archivePath))
                     {
-                        m_log.DebugFormat("[INVENTORY ARCHIVER]: Found previously created fs path {0}", fsPath);
-                        destFolder = foldersCreated[fsPath];
+                        m_log.DebugFormat(
+                            "[INVENTORY ARCHIVER]: Found previously created folder from archive path {0}", archivePath);
+                        destFolder = foldersCreated[archivePath];
                     }
                     else
                     {
                         // Don't include the last slash
-                        int penultimateSlashIndex = fsPath.LastIndexOf("/", fsPath.Length - 2);
+                        int penultimateSlashIndex = archivePath.LastIndexOf("/", archivePath.Length - 2);
 
                         if (penultimateSlashIndex >= 0)
                         {
-                            fsPath = fsPath.Remove(penultimateSlashIndex + 1);
+                            archivePath = archivePath.Remove(penultimateSlashIndex + 1);
                         }
                         else
                         {
                             m_log.DebugFormat(
-                                "[INVENTORY ARCHIVER]: Found no previously created fs path for {0}",
-                                originalFsPath);
-                            fsPath = string.Empty;
+                                "[INVENTORY ARCHIVER]: Found no previously created folder for archive path {0}",
+                                originalArchivePath);
+                            archivePath = string.Empty;
                             destFolder = rootDestFolder;
                         }
                     }
@@ -271,14 +275,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 destFolder = rootDestFolder;
             }
 
-            string fsPathSectionToCreate = originalFsPath.Substring(fsPath.Length);
+            string archivePathSectionToCreate = originalArchivePath.Substring(archivePath.Length);
             string[] rawDirsToCreate
-                = fsPathSectionToCreate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                = archivePathSectionToCreate.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             int i = 0;
 
             while (i < rawDirsToCreate.Length)
             {
-                m_log.DebugFormat("[INVENTORY ARCHIVER]: Creating folder {0}", rawDirsToCreate[i]);
+                m_log.DebugFormat("[INVENTORY ARCHIVER]: Loading archived folder {0}", rawDirsToCreate[i]);
 
                 int identicalNameIdentifierIndex
                     = rawDirsToCreate[i].LastIndexOf(
@@ -305,9 +309,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    foundFolder.Name, foundFolder.ID);
 
                 // Record that we have now created this folder
-                fsPath += rawDirsToCreate[i] + "/";
-                m_log.DebugFormat("[INVENTORY ARCHIVER]: Recording creation of fs path {0}", fsPath);
-                foldersCreated[fsPath] = destFolder;
+                archivePath += rawDirsToCreate[i] + "/";
+                m_log.DebugFormat("[INVENTORY ARCHIVER]: Loaded archive path {0}", archivePath);
+                foldersCreated[archivePath] = destFolder;
 
                 if (0 == i)
                     nodesLoaded.Add(destFolder);

@@ -1042,6 +1042,14 @@ namespace OpenSim
             uint regX = 1000;
             uint regY = 1000;
 
+            IConfig standalone;
+            if ((standalone = m_config.Source.Configs["StandAlone"]) != null)
+            {
+                regX = (uint)standalone.GetInt("default_location_x", (int)regX);
+                regY = (uint)standalone.GetInt("default_location_y", (int)regY);
+            }
+
+
             if (cmdparams.Length < 3)
                 firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
             else firstName = cmdparams[2];
