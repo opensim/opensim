@@ -42,10 +42,11 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string Name { get
+        public string Name
         {
-            return "RegionCombinerModule";
-        } }
+            get { return "RegionCombinerModule"; }
+        }
+
         public Type ReplaceableInterface
         {
             get { return null; }
@@ -57,29 +58,21 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void Initialise(IConfigSource source)
         {
-         
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
             //enabledYN = true;
-           
         }
 
         public void Close()
         {
-            
         }
 
         public void AddRegion(Scene scene)
         {
-           
-            
-            
         }
 
         public void RemoveRegion(Scene scene)
         {
-           
-                
         }
 
         public void RegionLoaded(Scene scene)
@@ -304,11 +297,9 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         conn.UpdateExtents(extents);
 
-
                         m_log.DebugFormat("Scene: {0} to the west of Scene{1} Offset: {2}. Extents:{3}",
                                           conn.RegionScene.RegionInfo.RegionName,
                                           regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
-
 
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
@@ -347,8 +338,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         break;
                     }
 
-
-
                     // If we're one region over x +y
                     //xyx
                     //xxx
@@ -369,7 +358,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         extents.X = conn.XEnd;
                         conn.UpdateExtents(extents);
 
-
                         scene.BordersLocked = true;
                         conn.RegionScene.BordersLocked = true;
 
@@ -382,6 +370,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         m_log.DebugFormat("Scene: {0} to the northeast of Scene{1} Offset: {2}. Extents:{3}",
                                          conn.RegionScene.RegionInfo.RegionName,
                                          regionConnections.RegionScene.RegionInfo.RegionName, offset, extents);
+
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
@@ -444,6 +433,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
                         lock (conn.RegionScene.NorthBorders)
+                        {
                             if (conn.RegionScene.NorthBorders.Count == 1)// &&  2)
                             {
                                 //compound border
@@ -454,14 +444,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     conn.RegionScene.EastBorders[0].BorderLine.Y += (int)Constants.RegionSize;
                                 lock (conn.RegionScene.WestBorders)
                                     conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
-
-
-
                             }
+                        }
                         lock (scene.SouthBorders)
                             scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
 
                         lock (conn.RegionScene.EastBorders)
+                        {
                             if (conn.RegionScene.EastBorders.Count == 1)// && conn.RegionScene.EastBorders.Count == 2)
                             {
 
@@ -473,7 +462,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
 
                             }
-
+                        }
+                        
                         lock (scene.WestBorders)
                             scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
                         /*  
@@ -503,9 +493,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                         break;
                     }
-
-
                 }
+
                 if (!connectedYN)
                 {
                     RegionData rdata = new RegionData();
@@ -528,9 +517,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     regionConnections.ClientEventForwarder = new RegionCombinerClientEventForwarder(regionConnections);
                     scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
                     m_regions.Add(scene.RegionInfo.originRegionID, regionConnections);
-
                 }
-
             }
             AdjustLargeRegionBounds();
         }
@@ -585,7 +572,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         private void DistributeCourseLocationUpdates(List<Vector3> locations, List<UUID> uuids, 
-                            RegionConnections connectiondata, ScenePresence rootPresence)
+                                                     RegionConnections connectiondata, ScenePresence rootPresence)
         {
             RegionData[] rdata = connectiondata.ConnectedRegions.ToArray();
             //List<IClientAPI> clients = new List<IClientAPI>();
@@ -621,7 +608,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
 
             // go over the locations and assign them to an IClientAPI
-            for (int i = 0; i < locations.Count;i++ )
+            for (int i = 0; i < locations.Count; i++)
             //{locations[i]/(int) Constants.RegionSize;
             {
                 Vector3 pPosition = new Vector3((int)locations[i].X / (int)Constants.RegionSize, 
@@ -643,12 +630,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                         updatedata.UserAPI = LocateUsersChildAgentIClientAPI(offset, rootPresence.UUID, rdata);
 
                     updates.Add(offset,updatedata);
-
                 }
                 
                 updates[offset].Locations.Add(locations[i]);
                 updates[offset].Uuids.Add(uuids[i]);
-
             }
 
             // Send out the CoarseLocationupdates from their respective client connection based on where the avatar is
@@ -659,7 +644,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                     updates[offset].UserAPI.SendCoarseLocationUpdate(updates[offset].Uuids,updates[offset].Locations);
                 }
             }
-
         }
 
         private IClientAPI LocateUsersChildAgentIClientAPI(Vector2 offset, UUID uUID, RegionData[] rdata)
@@ -678,11 +662,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void PostInitialise()
         {
-            
         }
         
-        
-
         public void UnCombineRegion(RegionData rdata)
         {
             lock (m_regions)
@@ -706,6 +687,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
             }
         }
+
         // Create a set of infinite borders around the whole aabb of the combined island.
         private void AdjustLargeRegionBounds()
         {
@@ -719,12 +701,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (rdata.Offset.X > offset.X) offset.X = rdata.Offset.X;
                         if (rdata.Offset.Y > offset.Y) offset.Y = rdata.Offset.Y;
-
                     }
 
                     lock (rconn.RegionScene.NorthBorders)
                     {
-                        
                         Border northBorder = null;
                         
                         if (!TryGetInfiniteBorder(rconn.RegionScene.NorthBorders, out northBorder))
@@ -736,7 +716,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         northBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue,
                                                              offset.Y + (int) Constants.RegionSize); //<---
                         northBorder.CrossDirection = Cardinals.N;
-                        
                     }
 
                     lock (rconn.RegionScene.SouthBorders)
@@ -749,7 +728,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                         southBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
                         southBorder.CrossDirection = Cardinals.S;
-                        
                     }
 
                     lock (rconn.RegionScene.EastBorders)
@@ -763,7 +741,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                         eastBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, offset.X + (int)Constants.RegionSize);
                         //<---
                         eastBorder.CrossDirection = Cardinals.E;
-                        
                     }
 
                     lock (rconn.RegionScene.WestBorders)
@@ -777,10 +754,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         }
                         westBorder.BorderLine = new Vector3(float.MinValue, float.MaxValue, 0); //--->
                         westBorder.CrossDirection = Cardinals.W;
-                        
                     }
-
-
 
                     rconn.RegionScene.BordersLocked = false;
                 }
@@ -823,8 +797,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (BigRegion.PermissionModule == null)
                 BigRegion.PermissionModule = new RegionCombinerPermissionModule(BigRegion.RegionScene);
 
-
-
             VirtualRegion.Permissions.OnBypassPermissions += BigRegion.PermissionModule.BypassPermissions;
             VirtualRegion.Permissions.OnSetBypassPermissions += BigRegion.PermissionModule.SetBypassPermissions;
             VirtualRegion.Permissions.OnPropagatePermissions += BigRegion.PermissionModule.PropagatePermissions;
@@ -855,27 +827,24 @@ namespace OpenSim.Region.CoreModules.World.Land
             VirtualRegion.Permissions.OnLinkObject += BigRegion.PermissionModule.CanLinkObject; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnDelinkObject += BigRegion.PermissionModule.CanDelinkObject; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnBuyLand += BigRegion.PermissionModule.CanBuyLand; //NOT YET IMPLEMENTED
-
             VirtualRegion.Permissions.OnViewNotecard += BigRegion.PermissionModule.CanViewNotecard; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnViewScript += BigRegion.PermissionModule.CanViewScript; //NOT YET IMPLEMENTED                       
             VirtualRegion.Permissions.OnEditNotecard += BigRegion.PermissionModule.CanEditNotecard; //NOT YET IMPLEMENTED            
             VirtualRegion.Permissions.OnEditScript += BigRegion.PermissionModule.CanEditScript; //NOT YET IMPLEMENTED            
-
             VirtualRegion.Permissions.OnCreateObjectInventory += BigRegion.PermissionModule.CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
             VirtualRegion.Permissions.OnEditObjectInventory += BigRegion.PermissionModule.CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED            
             VirtualRegion.Permissions.OnCopyObjectInventory += BigRegion.PermissionModule.CanCopyObjectInventory; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnDeleteObjectInventory += BigRegion.PermissionModule.CanDeleteObjectInventory; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnResetScript += BigRegion.PermissionModule.CanResetScript;
-
             VirtualRegion.Permissions.OnCreateUserInventory += BigRegion.PermissionModule.CanCreateUserInventory; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnCopyUserInventory += BigRegion.PermissionModule.CanCopyUserInventory; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnEditUserInventory += BigRegion.PermissionModule.CanEditUserInventory; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnDeleteUserInventory += BigRegion.PermissionModule.CanDeleteUserInventory; //NOT YET IMPLEMENTED
-
             VirtualRegion.Permissions.OnTeleport += BigRegion.PermissionModule.CanTeleport; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnUseObjectReturn += BigRegion.PermissionModule.CanUseObjectReturn; //NOT YET IMPLEMENTED
         }
     }
+
     public class RegionConnections
     {
         public UUID RegionId;
@@ -893,7 +862,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             XEnd = (int)extents.X;
             YEnd = (int)extents.Y;
         }
-
     }
 
     public class RegionData
@@ -901,8 +869,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         public UUID RegionId;
         public Scene RegionScene;
         public Vector3 Offset;
-        
     }
+
     struct RegionCourseLocationStruct
     {
         public List<Vector3> Locations;
@@ -922,7 +890,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         #region ILandChannel Members
 
         public RegionCombinerLargeLandChannel(RegionData regData, ILandChannel rootRegionLandChannel,
-            List<RegionData> regionConnections)
+                                              List<RegionData> regionConnections)
         {
             RegData = regData;
             RootRegionLandChannel = rootRegionLandChannel;
@@ -937,9 +905,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public List<ILandObject> AllParcels()
         {
-
             return RootRegionLandChannel.AllParcels();
-
         }
 
         public ILandObject GetLandObject(int x, int y)
@@ -1044,12 +1010,14 @@ namespace OpenSim.Region.CoreModules.World.Land
     public class RegionCombinerPermissionModule
     {
         private Scene m_rootScene;
+
         public RegionCombinerPermissionModule(Scene RootScene)
         {
             m_rootScene = RootScene;
         }
 
         #region Permission Override
+
         public bool BypassPermissions()
         {
             return m_rootScene.Permissions.BypassPermissions();
@@ -1274,6 +1242,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             return m_rootScene.Permissions.CanUseObjectReturn(landdata, type, client, retlist);
         }
+
         #endregion
     }
 
@@ -1283,14 +1252,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         private Dictionary<UUID, Scene> m_virtScene = new Dictionary<UUID, Scene>();
         private Dictionary<UUID,RegionCombinerModuleIndividualForwarder> m_forwarders = new Dictionary<UUID, 
             RegionCombinerModuleIndividualForwarder>();
+
         public RegionCombinerClientEventForwarder(RegionConnections rootScene)
         {
             m_rootScene = rootScene.RegionScene;
-
-            
         }
 
-        public void AddSceneToEventForwarding( Scene virtualScene )
+        public void AddSceneToEventForwarding(Scene virtualScene)
         {
             lock (m_virtScene)
             {
@@ -1342,6 +1310,7 @@ namespace OpenSim.Region.CoreModules.World.Land
     {
         private Scene m_rootScene;
         private Scene m_virtScene;
+
         public RegionCombinerModuleIndividualForwarder(Scene rootScene, Scene virtScene)
         {
             m_rootScene = rootScene;
@@ -1350,7 +1319,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void ClientConnect(IClientAPI client)
         {
-
             m_virtScene.UnSubscribeToClientPrimEvents(client);
             m_virtScene.UnSubscribeToClientPrimRezEvents(client);
             m_virtScene.UnSubscribeToClientInventoryEvents(client);
@@ -1370,11 +1338,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_rootScene.SubscribeToClientGodEvents(client);
             m_rootScene.SubscribeToClientNetworkEvents(client);
         }
+
         public void ClientClosed(UUID clientid, Scene scene)
         {
-
         }
-
 
         private void LocalRezObject(IClientAPI remoteclient, UUID itemid, Vector3 rayend, Vector3 raystart, 
             UUID raytargetid, byte bypassraycast, bool rayendisintersection, bool rezselected, bool removeitem, 
@@ -1389,7 +1356,6 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             m_rootScene.RezObject(remoteclient, itemid, rayend, raystart, raytargetid, bypassraycast,
                                   rayendisintersection, rezselected, removeitem, fromtaskid);
-
         }
 
         private void LocalAddNewPrim(UUID ownerid, UUID groupid, Vector3 rayend, Quaternion rot, 
@@ -1404,7 +1370,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             raystart.Y += differenceY * (int)Constants.RegionSize;
             m_rootScene.AddNewPrim(ownerid, groupid, rayend, rot, shape, bypassraycast, raystart, raytargetid,
                                    rayendisintersection);
-
         }
     }
 }
