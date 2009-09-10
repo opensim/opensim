@@ -46,6 +46,7 @@ namespace OpenSim.Services.Connectors
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = String.Empty;
+        private bool m_ResponseOnFailure = true;
        
         public AuthorizationServicesConnector()
         {
@@ -66,7 +67,7 @@ namespace OpenSim.Services.Connectors
             IConfig authorizationConfig = source.Configs["AuthorizationService"];
             if (authorizationConfig == null)
             {
-                m_log.Error("[AUTHORIZATION CONNECTOR]: AuthorizationService missing from OpanSim.ini");
+                m_log.Error("[AUTHORIZATION CONNECTOR]: AuthorizationService missing from OpenSim.ini");
                 throw new Exception("Authorization connector init error");
             }
 
@@ -75,16 +76,43 @@ namespace OpenSim.Services.Connectors
 
             if (serviceURI == String.Empty)
             {
-                m_log.Error("[AUTHORIZATION CONNECTOR]: No Server URI named in section AssetService");
+                m_log.Error("[AUTHORIZATION CONNECTOR]: No Server URI named in section AuthorizationService");
                 throw new Exception("Authorization connector init error");
             }
             m_ServerURI = serviceURI;
+            
+            // this dictates what happens if the remote service fails, if the service fails and the value is true
+            // the user is authorized for the region.
+            bool responseOnFailure = authorizationConfig.GetBoolean("ResponseOnFailure",true);
+                    
+            m_ResponseOnFailure = responseOnFailure;
         }
 
         public bool isAuthorizedForRegion(UserProfileData user, RegionInfo region)
         {
-            // call remote service
-            return true;   
+            // this should be a remote call to the authorization server specified in the AuthorizationServerURI
+            m_log.Info("[AUTHORIZATION CONNECTOR]: isAuthorizedForRegion is not yet implemented. Returning true, the user is authorized ");
+            
+            string uri = m_ServerURI + "?uuid="+user.ID + "&firstname="+user.FirstName+"&lastname="+user.SurName+"&region="+region.RegionName+"&regionid="+region.RegionID+"&email="+user.Email;
+            
+            string result = string.Empty;
+            
+            try
+            {
+                result = SynchronousRestObjectRequester.
+                        MakeRequest<UserProfileData, string>("POST", uri, user);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} {1} for region {2} error thrown during comms with remote server. Reason: {3}", user.FirstName,user.SurName,region.RegionName, e.Message);
+                return m_ResponseOnFailure;
+            }
+            
+            m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}",result);
+            if(result.Contains("success"))
+                return true;
+            else 
+                return false;   
         }      
 
     }

@@ -55,16 +55,41 @@ namespace OpenSim.Server.Handlers.Authorization
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            byte[] result = new byte[0];
+            // always return success for now, this is just stub functionality
+            return SuccessResult();
+        }
+        
+        private byte[] SuccessResult()
+        {
+            XmlDocument doc = new XmlDocument();
 
-            string[] p = SplitParams(path);
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
 
-            if (p.Length == 0)
-                return result;
+            doc.AppendChild(xmlnode);
 
-            // Process web request
+            XmlElement rootElement = doc.CreateElement("", "Authorization",
+                    "");
 
-            return result;
+            doc.AppendChild(rootElement);
+
+            XmlElement result = doc.CreateElement("", "Result", "");
+            result.AppendChild(doc.CreateTextNode("success"));
+
+            rootElement.AppendChild(result);
+
+            return DocToBytes(doc);
+        }
+        
+        private byte[] DocToBytes(XmlDocument doc)
+        {
+            MemoryStream ms = new MemoryStream();
+            XmlTextWriter xw = new XmlTextWriter(ms, null);
+            xw.Formatting = Formatting.Indented;
+            doc.WriteTo(xw);
+            xw.Flush();
+
+            return ms.GetBuffer();
         }
     }
 }

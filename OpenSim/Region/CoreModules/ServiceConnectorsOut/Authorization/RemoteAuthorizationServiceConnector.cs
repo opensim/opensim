@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
                     base.Initialise(source);
 
-                    m_log.Info("[AUTHORIZATION CONNECTOR]: Remote assets enabled");
+                    m_log.Info("[AUTHORIZATION CONNECTOR]: Remote authorization enabled");
                 }
             }
         }
