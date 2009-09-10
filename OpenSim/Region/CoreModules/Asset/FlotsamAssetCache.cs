@@ -167,7 +167,10 @@ namespace Flotsam.RegionModules.AssetCache
                     }
                     else
                     {
-                        m_CachCleanTimer.Enabled = false;
+                        lock (m_CachCleanTimer)
+                        {
+                            m_CachCleanTimer.Enabled = false;
+                        }
                     }
 
                     m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", 1);
