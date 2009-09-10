@@ -160,11 +160,17 @@ namespace Flotsam.RegionModules.AssetCache
                         m_CachCleanTimer.AutoReset = true;
                         m_CachCleanTimer.Elapsed += CleanupExpiredFiles;
                         m_CachCleanTimer.Enabled = true;
-                        m_CachCleanTimer.Start();
+                        lock (m_CachCleanTimer)
+                        {
+                            m_CachCleanTimer.Start();
+                        }
                     }
                     else
                     {
-                        m_CachCleanTimer.Enabled = false;
+                        lock (m_CachCleanTimer)
+                        {
+                            m_CachCleanTimer.Enabled = false;
+                        }
                     }
 
                     m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", 1);

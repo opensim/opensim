@@ -3762,6 +3762,8 @@ if (m_shape != null) {
                     lPos = AbsolutePosition;
             }
 
+            // Causes this thread to dig into the Client Thread Data.
+            // Remember your locking here!
             remoteClient.SendPrimTerseUpdate(m_regionHandle,
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,

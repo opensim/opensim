@@ -58,7 +58,8 @@ namespace OpenSim.Grid.MessagingServer.Modules
             m_messageCore = messageCore;
 
             reconnectTimer.Elapsed += registerWithUserServer;
-            reconnectTimer.Start();
+            lock (reconnectTimer)
+                reconnectTimer.Start();
         }
 
         public void Initialise()

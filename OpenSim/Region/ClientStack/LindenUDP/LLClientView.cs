@@ -581,6 +581,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void CloseCleanup(bool shutdownCircuit)
         {
+
+            
             m_scene.RemoveClient(AgentId);
 
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
@@ -592,12 +594,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Thread.Sleep(2000);
 
-            // Shut down timers
-            if (m_clientPingTimer.Enabled) m_clientPingTimer.Stop();
-            if (m_avatarTerseUpdateTimer.Enabled) m_avatarTerseUpdateTimer.Stop();
-            if (m_primTerseUpdateTimer.Enabled) m_primTerseUpdateTimer.Stop();
-            if (m_primFullUpdateTimer.Enabled) m_primFullUpdateTimer.Stop();
-            if (m_textureRequestTimer.Enabled) m_textureRequestTimer.Stop();
+            // Shut down timers. Thread Context of this method is murky.   Lock all timers
+            if (m_clientPingTimer.Enabled)
+                lock (m_clientPingTimer)
+                    m_clientPingTimer.Stop();
+            if (m_avatarTerseUpdateTimer.Enabled)
+                lock (m_avatarTerseUpdateTimer)
+                    m_avatarTerseUpdateTimer.Stop();
+            if (m_primTerseUpdateTimer.Enabled)
+                lock (m_primTerseUpdateTimer)
+                    m_primTerseUpdateTimer.Stop();
+            if (m_primFullUpdateTimer.Enabled)
+                lock (m_primFullUpdateTimer)
+                    m_primFullUpdateTimer.Stop();
+            if (m_textureRequestTimer.Enabled)
+                lock (m_textureRequestTimer)
+                    m_textureRequestTimer.Stop();
 
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
@@ -676,12 +688,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Stop()
         {
-            // Shut down timers
-            if (m_clientPingTimer.Enabled) m_clientPingTimer.Stop();
-            if (m_avatarTerseUpdateTimer.Enabled) m_avatarTerseUpdateTimer.Stop();
-            if (m_primTerseUpdateTimer.Enabled) m_primTerseUpdateTimer.Stop();
-            if (m_primFullUpdateTimer.Enabled) m_primFullUpdateTimer.Stop();
-            if (m_textureRequestTimer.Enabled) m_textureRequestTimer.Stop();
+            // Shut down timers.  Thread Context is Murky, lock all timers!
+            if (m_clientPingTimer.Enabled)
+                lock (m_clientPingTimer)
+                    m_clientPingTimer.Stop();
+
+            if (m_avatarTerseUpdateTimer.Enabled)
+                lock (m_avatarTerseUpdateTimer)
+                    m_avatarTerseUpdateTimer.Stop();
+
+            if (m_primTerseUpdateTimer.Enabled)
+                lock (m_primTerseUpdateTimer)
+                    m_primTerseUpdateTimer.Stop();
+
+            if (m_primFullUpdateTimer.Enabled)
+                lock (m_primFullUpdateTimer)
+                    m_primFullUpdateTimer.Stop();
+
+            if (m_textureRequestTimer.Enabled)
+                lock (m_textureRequestTimer)
+                    m_textureRequestTimer.Stop();
         }
 
         public void Restart()
@@ -2907,7 +2933,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else if (m_avatarTerseUpdates.Count == 1)
                 {
-                    m_avatarTerseUpdateTimer.Start();                
+                    lock (m_avatarTerseUpdateTimer)
+                        m_avatarTerseUpdateTimer.Start();                
                 }
             }
         }
@@ -2957,7 +2984,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(terse, ThrottleOutPacketType.Task);
 
                 if (m_avatarTerseUpdates.Count == 0)
-                    m_avatarTerseUpdateTimer.Stop();
+                {
+                    lock (m_avatarTerseUpdateTimer)
+                        m_avatarTerseUpdateTimer.Stop();
+                }
             }
         }
 
@@ -3138,7 +3168,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_imageManager.ProcessImageQueue(m_textureSendLimit, 
                                                      m_textureDataLimit))
                 {
-                    m_textureRequestTimer.Start();
+                    lock (m_textureRequestTimer)
+                        m_textureRequestTimer.Start();
                 }
             }
         }
@@ -3149,7 +3180,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
                 {
-                    m_primFullUpdateTimer.Stop();
+                    lock (m_primFullUpdateTimer)
+                        m_primFullUpdateTimer.Stop();
 
                     return;
                 }
@@ -3196,7 +3228,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
 
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
-                    m_primFullUpdateTimer.Stop();
+                    lock (m_primFullUpdateTimer)
+                        m_primFullUpdateTimer.Stop();
             }
         }
 
@@ -3234,7 +3267,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (m_primTerseUpdates.Count == 0)
                 {
-                    m_primTerseUpdateTimer.Stop();
+                    lock (m_primTerseUpdateTimer)
+                        m_primTerseUpdateTimer.Stop();
 
                     return;
                 }
@@ -3284,7 +3318,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
 
                 if (m_primTerseUpdates.Count == 0)
-                    m_primTerseUpdateTimer.Stop();
+                    lock (m_primTerseUpdateTimer)
+                        m_primTerseUpdateTimer.Stop();
             }
         }
 
@@ -6586,7 +6621,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (m_imageManager != null)
                             {
                                 m_imageManager.EnqueueReq(args);
-                                m_textureRequestTimer.Start();
+                                lock (m_textureRequestTimer)
+                                    m_textureRequestTimer.Start();
                             }
                         }
                     }

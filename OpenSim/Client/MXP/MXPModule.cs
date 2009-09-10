@@ -81,7 +81,8 @@ namespace OpenSim.Client.MXP
                 m_ticker.AutoReset = false;
                 m_ticker.Elapsed += ticker_Elapsed;
 
-                m_ticker.Start();
+                lock (m_ticker)
+                    m_ticker.Start();
 
                 m_log.Info("[MXP ClientStack] MXP Enabled and Listening");
             }
@@ -99,13 +100,17 @@ namespace OpenSim.Client.MXP
             }
 
             if (!m_shutdown)
-                m_ticker.Start();
+            {
+                lock (m_ticker)
+                    m_ticker.Start();
+            }
         }
 
         public void Close()
         {
             m_shutdown = true;
-            m_ticker.Stop();
+            lock (m_ticker)
+                m_ticker.Stop();
         }
 
         public string Name

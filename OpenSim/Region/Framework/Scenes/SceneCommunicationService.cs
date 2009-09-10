@@ -443,8 +443,8 @@ namespace OpenSim.Region.Framework.Scenes
                 int startX = (int) pRegionLocX - 1;
                 int startY = (int) pRegionLocY - 1;
 
-                int endX = (int) pRegionLocX + (int)extent.X + 1;
-                int endY = (int) pRegionLocY + (int)extent.Y + 1;
+                int endX = (int) pRegionLocX + (int)extent.X;
+                int endY = (int) pRegionLocY + (int)extent.Y;
 
                 for (int i=startX;i<endX;i++)
                 {

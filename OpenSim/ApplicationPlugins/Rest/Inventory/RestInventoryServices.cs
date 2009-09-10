@@ -2177,13 +2177,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 watchDog.Interval  = interval;
                 watchDog.AutoReset = false;
                 watchDog.Enabled   = true;
-                watchDog.Start();
+                lock (watchDog)
+                    watchDog.Start();
+                
             }
 
             internal void stopWD()
             {
                 Rest.Log.DebugFormat("{0} Reset watchdog", MsgId);
-                watchDog.Stop();
+                lock (watchDog)
+                    watchDog.Stop();
             }
 
             /// <summary>
