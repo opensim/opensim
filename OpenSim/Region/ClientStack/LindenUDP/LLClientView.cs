@@ -3168,7 +3168,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (m_imageManager.ProcessImageQueue(m_textureSendLimit, 
                                                      m_textureDataLimit))
                 {
-                    lock(m_textureRequestTimer)
+                    lock (m_textureRequestTimer)
                         m_textureRequestTimer.Start();
                 }
             }
