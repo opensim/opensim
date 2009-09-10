@@ -219,8 +219,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             
             string itemName = "b.lsl";
-            string archiveItemName
-                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());            
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
@@ -313,8 +312,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             //UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000008888");
             
             string itemName = "b.lsl";
-            string archiveItemName
-                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());            
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
@@ -381,8 +379,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string user2LastName = "Mitty";
             
             string itemName = "b.lsl";
-            string archiveItemName
-                = string.Format("{0}{1}{2}", itemName, "_", UUID.Random());            
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
