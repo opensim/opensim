@@ -25,37 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using Nini.Config;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Server.Handlers.Base;
-
-namespace OpenSim.Server.Handlers.Authorization
+namespace OpenSim.Framework
 {
-    public class AuthorizationServerConnector : ServiceConnector
+    public class AuthorizationResponse
     {
-        private IAuthorizationService m_AuthorizationService;
+        private bool m_isAuthorized;
+        private string m_message;
 
-        public AuthorizationServerConnector(IConfigSource config, IHttpServer server) :
-                base(config, server)
+        public AuthorizationResponse()
         {
-            IConfig serverConfig = config.Configs["AuthorizationService"];
-            if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+        }
 
-            string authorizationService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
-
-            if (authorizationService == String.Empty)
-                throw new Exception("No AuthorizationService in config file");
-
-            Object[] args = new Object[] { config };
-            m_AuthorizationService =
-                    ServerUtils.LoadPlugin<IAuthorizationService>(authorizationService, args);
-
-            server.AddStreamHandler(new AuthorizationServerPostHandler(m_AuthorizationService));
+        public AuthorizationResponse(bool isAuthorized,string message)
+        {
+            m_isAuthorized = isAuthorized;
+            m_message = message;
+            
+        }
+        
+        public bool IsAuthorized
+        {
+            get { return m_isAuthorized; }
+            set { m_isAuthorized = value; }
+        }
+        
+        public string Message
+        {
+            get { return m_message; }
+            set { m_message = value; }
         }
     }
 }

@@ -28,8 +28,8 @@
 using Nini.Config;
 using log4net;
 using System;
-using System.IO;
 using System.Reflection;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -42,54 +42,29 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Authorization
 {
-    public class AuthorizationServerGetHandler : BaseStreamHandler
+    public class AuthorizationServerPostHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private IAuthorizationService m_AuthorizationService;
 
-        public AuthorizationServerGetHandler(IAuthorizationService service) :
-                base("GET", "/authorization")
+        public AuthorizationServerPostHandler(IAuthorizationService service) :
+                base("POST", "/authorization")
         {
+            m_AuthorizationService = service;
         }
 
         public override byte[] Handle(string path, Stream request,
                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            // always return success for now, this is just stub functionality
-            return SuccessResult();
-        }
-        
-        private byte[] SuccessResult()
-        {
-            XmlDocument doc = new XmlDocument();
+            XmlSerializer xs = new XmlSerializer(typeof (AuthorizationRequest));
+            AuthorizationRequest Authorization = (AuthorizationRequest) xs.Deserialize(request);
 
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
+            AuthorizationResponse result = new AuthorizationResponse(true,Authorization.FirstName + " " + Authorization.SurName + " has been authorized");
 
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "Authorization",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "Result", "");
-            result.AppendChild(doc.CreateTextNode("success"));
-
-            rootElement.AppendChild(result);
-
-            return DocToBytes(doc);
-        }
-        
-        private byte[] DocToBytes(XmlDocument doc)
-        {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
-            return ms.GetBuffer();
+            xs = new XmlSerializer(typeof(AuthorizationResponse));
+            return ServerUtils.SerializeResult(xs, result);
+            
         }
     }
 }

@@ -90,26 +90,27 @@ namespace OpenSim.Services.Connectors
 
         public bool isAuthorizedForRegion(UserProfileData user, RegionInfo region)
         {
-            // this should be a remote call to the authorization server specified in the AuthorizationServerURI
-            m_log.Info("[AUTHORIZATION CONNECTOR]: isAuthorizedForRegion is not yet implemented. Returning true, the user is authorized ");
+            // do a remote call to the authorization server specified in the AuthorizationServerURI
+            m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: isAuthorizedForRegion checking {0} {1} at remote server {2}",user.FirstName,user.SurName, m_ServerURI);
             
-            string uri = m_ServerURI + "?uuid="+user.ID + "&firstname="+user.FirstName+"&lastname="+user.SurName+"&region="+region.RegionName+"&regionid="+region.RegionID+"&email="+user.Email;
+            string uri = m_ServerURI;
             
-            string result = string.Empty;
+            AuthorizationRequest req = new AuthorizationRequest(user.ID.ToString(),user.FirstName,user.SurName,user.Email,region.RegionName,region.RegionID.ToString());
             
+            AuthorizationResponse response;
             try
             {
-                result = SynchronousRestObjectRequester.
-                        MakeRequest<UserProfileData, string>("POST", uri, user);
+                response = SynchronousRestObjectRequester.MakeRequest<AuthorizationRequest, AuthorizationResponse>("POST", uri, req);
             }
             catch (Exception e)
             {
                 m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} {1} for region {2} error thrown during comms with remote server. Reason: {3}", user.FirstName,user.SurName,region.RegionName, e.Message);
+                m_log.WarnFormat("Inner Exception is {0}",e.InnerException);
                 return m_ResponseOnFailure;
             }
             
-            m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}",result);
-            if(result.Contains("success"))
+            m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}",response.Message);
+            if(response.IsAuthorized)
                 return true;
             else 
                 return false;   
