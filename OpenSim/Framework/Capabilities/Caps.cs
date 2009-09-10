@@ -502,7 +502,7 @@ namespace OpenSim.Framework.Capabilities
             llsdFolder.folder_id = invFolder.ID;
             llsdFolder.parent_id = invFolder.ParentID;
             llsdFolder.name = invFolder.Name;
-            if (invFolder.Type == -1)
+            if (invFolder.Type < 0 || invFolder.Type >= TaskInventoryItem.Types.Length)
                 llsdFolder.type = "-1";
             else
                 llsdFolder.type = TaskInventoryItem.Types[invFolder.Type];
