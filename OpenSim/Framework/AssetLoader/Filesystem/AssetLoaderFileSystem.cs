@@ -70,7 +70,6 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             long numBytes = fInfo.Length;
             if (fInfo.Exists)
             {
-
                 FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
                 byte[] idata = new byte[numBytes];
                 BinaryReader br = new BinaryReader(fStream);
@@ -85,7 +84,6 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                 m_log.ErrorFormat("[ASSETS]: file: [{0}] not found !", path);
             }
         }
-
 
         public void ForEachDefaultXmlAsset(string assetSetFilename, Action<AssetBase> action)
         {

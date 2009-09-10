@@ -294,7 +294,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 destFolder 
                     = new InventoryFolderBase(
                         newFolderId, newFolderName, m_userInfo.UserProfile.ID, 
-                        (short)AssetType.Folder, destFolder.ID, 0);
+                        (short)AssetType.Folder, destFolder.ID, 1);
                 m_scene.InventoryService.AddFolder(destFolder);               
                 
 //                UUID newFolderId = UUID.Random();

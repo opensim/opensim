@@ -1293,7 +1293,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (IOException e)
             {
-
                 m_log.Warn("[TERRAIN]: Scene.cs: LoadWorldMap() - Failed with exception " + e.ToString() + " Regenerating");
                 
                 // Non standard region size.    If there's an old terrain in the database, it might read past the buffer
