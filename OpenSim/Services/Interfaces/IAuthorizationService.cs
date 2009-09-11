@@ -43,4 +43,102 @@ namespace OpenSim.Services.Interfaces
         bool IsAuthorizedForRegion(string userID, string regionID);
 
     }
+    
+    public class AuthorizationRequest
+    {
+        private string m_userID;
+        private string m_firstname;
+        private string m_surname;
+        private string m_email;
+        private string m_regionName;
+        private string m_regionID;
+
+        public AuthorizationRequest()
+        {
+        }
+
+        public AuthorizationRequest(string ID, string RegionID)
+        {
+            m_userID = ID;
+            m_regionID = RegionID;
+        }
+        
+        public AuthorizationRequest(string ID,string FirstName, string SurName, string Email, string RegionName, string RegionID)
+        {
+            m_userID = ID;
+            m_firstname = FirstName;
+            m_surname = SurName;
+            m_email = Email;
+            m_regionName = RegionName;
+            m_regionID = RegionID;
+        }
+        
+        public string ID
+        {
+            get { return m_userID; }
+            set { m_userID = value; }
+        }
+        
+        public string FirstName
+        {
+            get { return m_firstname; }
+            set { m_firstname = value; }
+        }
+        
+        public string SurName
+        {
+            get { return m_surname; }
+            set { m_surname = value; }
+        }
+        
+        public string Email
+        {
+            get { return m_email; }
+            set { m_email = value; }
+        }
+        
+        public string RegionName
+        {
+            get { return m_regionName; }
+            set { m_regionName = value; }
+        }
+                        
+        public string RegionID
+        {
+            get { return m_regionID; }
+            set { m_regionID = value; }
+        }
+        
+        
+        
+    }
+    
+    public class AuthorizationResponse
+    {
+        private bool m_isAuthorized;
+        private string m_message;
+
+        public AuthorizationResponse()
+        {
+        }
+
+        public AuthorizationResponse(bool isAuthorized, string message)
+        {
+            m_isAuthorized = isAuthorized;
+            m_message = message;
+            
+        }
+        
+        public bool IsAuthorized
+        {
+            get { return m_isAuthorized; }
+            set { m_isAuthorized = value; }
+        }
+        
+        public string Message
+        {
+            get { return m_message; }
+            set { m_message = value; }
+        }
+    }
 }
