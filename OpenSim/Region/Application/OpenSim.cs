@@ -423,14 +423,16 @@ namespace OpenSim
             {
                 m_log.Info("[COMMANDFILE]: Running " + fileName);
 
-                StreamReader readFile = File.OpenText(fileName);
-                string currentCommand;
-                while ((currentCommand = readFile.ReadLine()) != null)
+                using (StreamReader readFile = File.OpenText(fileName))
                 {
-                    if (currentCommand != String.Empty)
+                    string currentCommand;
+                    while ((currentCommand = readFile.ReadLine()) != null)
                     {
-                        m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
-                        m_console.RunCommand(currentCommand);
+                        if (currentCommand != String.Empty)
+                        {
+                            m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
+                            m_console.RunCommand(currentCommand);
+                        }
                     }
                 }
             }
