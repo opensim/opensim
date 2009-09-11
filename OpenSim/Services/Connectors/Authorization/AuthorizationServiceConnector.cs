@@ -39,7 +39,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
-    public class AuthorizationServicesConnector : IAuthorizationService
+    public class AuthorizationServicesConnector 
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -88,14 +88,14 @@ namespace OpenSim.Services.Connectors
             m_ResponseOnFailure = responseOnFailure;
         }
 
-        public bool IsAuthorizedForRegion(string userID, string regionID)
+        public bool IsAuthorizedForRegion(string userID,string firstname, string surname, string email, string regionName, string regionID)
         {
             // do a remote call to the authorization server specified in the AuthorizationServerURI
             m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} at remote server {1}", userID, m_ServerURI);
             
             string uri = m_ServerURI;
             
-            AuthorizationRequest req = new AuthorizationRequest(userID, regionID);
+            AuthorizationRequest req = new AuthorizationRequest(userID, firstname, surname, email, regionName, regionID);
             
             AuthorizationResponse response;
             try
@@ -105,7 +105,6 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} for region {1} error thrown during comms with remote server. Reason: {2}", userID, regionID, e.Message);
-                m_log.WarnFormat("Inner Exception is {0}",e.InnerException);
                 return m_ResponseOnFailure;
             }
             

@@ -35,6 +35,7 @@ using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 {
@@ -46,6 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+        private List<Scene> m_scenes = new List<Scene>();
 
         public Type ReplaceableInterface 
         {
@@ -68,7 +70,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                     IConfig authorizationConfig = source.Configs["AuthorizationService"];
                     if (authorizationConfig == null)
                     {
-                        m_log.Error("[AUTHORIZATION CONNECTOR]: AuthorizationService missing from OpenSim.ini");
+                        m_log.Error("[REMOTE AUTHORIZATION CONNECTOR]: AuthorizationService missing from OpenSim.ini");
                         return;
                     }
 
@@ -76,7 +78,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
                     base.Initialise(source);
 
-                    m_log.Info("[AUTHORIZATION CONNECTOR]: Remote authorization enabled");
+                    m_log.Info("[REMOTE AUTHORIZATION CONNECTOR]: Remote authorization enabled");
                 }
             }
         }
@@ -94,7 +96,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IAuthorizationService>(this);
+            if (!m_scenes.Contains(scene))
+            {
+                m_scenes.Add(scene);
+                scene.RegisterModuleInterface<IAuthorizationService>(this);
+            }
+            
         }
 
         public void RemoveRegion(Scene scene)
@@ -106,8 +113,42 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             if (!m_Enabled)
                 return;
 
-            m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: Enabled remote authorization for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[REMOTE AUTHORIZATION CONNECTOR]: Enabled remote authorization for region {0}", scene.RegionInfo.RegionName);
 
+        }
+        
+        public bool IsAuthorizedForRegion(string userID, string regionID)
+        {
+            m_log.InfoFormat("[REMOTE AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} for region {1}", userID, regionID);
+            
+            bool isAuthorized = true;
+            
+            // get the scene this call is being made for
+            Scene scene = null;
+            lock (m_scenes)
+            {
+                foreach (Scene nextScene in m_scenes)
+                {
+                    if (nextScene.RegionInfo.RegionID.ToString() == regionID)
+                    {
+                        scene = nextScene;
+                    }
+                }
+            }
+            
+            if(scene!=null)
+            {
+                UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(new UUID(userID));
+                isAuthorized = IsAuthorizedForRegion(userID, profile.FirstName, profile.SurName,profile.Email,scene.RegionInfo.RegionName,regionID);
+            }
+            else
+            {
+                m_log.ErrorFormat("[REMOTE AUTHORIZATION CONNECTOR] IsAuthorizedForRegion, can't find scene to match region id of {0} ",regionID);
+            }   
+            
+            
+            return isAuthorized;
+            
         }
     }
 }

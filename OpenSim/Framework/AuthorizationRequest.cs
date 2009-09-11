@@ -46,12 +46,46 @@ namespace OpenSim.Framework
             m_regionID = RegionID;
         }
         
+        public AuthorizationRequest(string ID,string FirstName, string SurName, string Email, string RegionName, string RegionID)
+        {
+            m_userID = ID;
+            m_firstname = FirstName;
+            m_surname = SurName;
+            m_email = Email;
+            m_regionName = RegionName;
+            m_regionID = RegionID;
+        }
+        
         public string ID
         {
             get { return m_userID; }
             set { m_userID = value; }
         }
-                
+        
+        public string FirstName
+        {
+            get { return m_firstname; }
+            set { m_firstname = value; }
+        }
+        
+        public string SurName
+        {
+            get { return m_surname; }
+            set { m_surname = value; }
+        }
+        
+        public string Email
+        {
+            get { return m_email; }
+            set { m_email = value; }
+        }
+        
+        public string RegionName
+        {
+            get { return m_regionName; }
+            set { m_regionName = value; }
+        }
+                        
         public string RegionID
         {
             get { return m_regionID; }
