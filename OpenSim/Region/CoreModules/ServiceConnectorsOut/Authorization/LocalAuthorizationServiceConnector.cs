@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AuthorizationServices", "");
+                string name = moduleConfig.GetString("AuthorizationServices", string.Empty);
                 if (name == Name)
                 {
                     IConfig authorizationConfig = source.Configs["AuthorizationService"];
@@ -132,9 +132,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
            
         }
 
-        public bool isAuthorizedForRegion(UserProfileData user, RegionInfo region)
+        public bool IsAuthorizedForRegion(string userID, string regionID)
         {
-            return m_AuthorizationService.isAuthorizedForRegion( user, region);   
+            return m_AuthorizationService.IsAuthorizedForRegion(userID, regionID);   
         }
 
     }

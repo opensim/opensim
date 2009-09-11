@@ -36,7 +36,7 @@ namespace OpenSim.Framework
         {
         }
 
-        public AuthorizationResponse(bool isAuthorized,string message)
+        public AuthorizationResponse(bool isAuthorized, string message)
         {
             m_isAuthorized = isAuthorized;
             m_message = message;

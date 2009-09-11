@@ -3250,12 +3250,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (!m_strictAccessControl) return true;
             if (Permissions.IsGod(agent.AgentID)) return true;
-            
-            UserProfileData userProfile = CommsManager.UserService.GetUserProfile(agent.AgentID);
-            
-            if(AuthorizationService!=null)
+                      
+            if (AuthorizationService != null)
             {
-				if(!AuthorizationService.isAuthorizedForRegion(userProfile,RegionInfo))
+				if(!AuthorizationService.IsAuthorizedForRegion(agent.AgentID.ToString(), RegionInfo.RegionID.ToString()))
 				{
 					m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
                                 	agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);

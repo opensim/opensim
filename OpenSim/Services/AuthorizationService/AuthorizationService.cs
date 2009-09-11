@@ -48,7 +48,7 @@ namespace OpenSim.Services.AuthorizationService
                 m_log.Info("[AUTHORIZATION CONNECTOR]: Local Authorization service enabled");
         }
 
-        public bool isAuthorizedForRegion(UserProfileData user, RegionInfo region)
+        public bool IsAuthorizedForRegion(string userID, string regionID)
         {
             return true;
         }
