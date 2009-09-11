@@ -166,6 +166,7 @@ namespace OpenSim.Grid.UserServer.Modules
             // Account information
             responseData["firstname"] = profile.FirstName;
             responseData["lastname"] = profile.SurName;
+            responseData["email"] = profile.Email;
             responseData["uuid"] = profile.ID.ToString();
             // Server Information
             responseData["server_inventory"] = profile.UserInventoryURI;
