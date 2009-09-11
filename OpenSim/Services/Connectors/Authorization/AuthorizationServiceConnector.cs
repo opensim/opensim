@@ -88,7 +88,7 @@ namespace OpenSim.Services.Connectors
             m_ResponseOnFailure = responseOnFailure;
         }
 
-        public bool IsAuthorizedForRegion(string userID,string firstname, string surname, string email, string regionName, string regionID)
+        public bool IsAuthorizedForRegion(string userID, string firstname, string surname, string email, string regionName, string regionID)
         {
             // do a remote call to the authorization server specified in the AuthorizationServerURI
             m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} at remote server {1}", userID, m_ServerURI);
