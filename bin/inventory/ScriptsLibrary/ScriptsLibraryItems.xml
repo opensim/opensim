@@ -525,7 +525,7 @@
     <Key Name="inventoryID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
     <Key Name="assetID" Value="81305ee4-8caa-9e0a-69a4-76ed57df0c8f" />
     <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853" />
-    <Key Name="description" Value="A text board that records what you say - contributed by Justin Clarke Casey" />
+    <Key Name="description" Value="A text board that records what you say - contributed by Justin Clark-Casey" />
     <Key Name="name" Value="GrafittiBoard" />
     <Key Name="assetType" Value="10" />
     <Key Name="inventoryType" Value="10" />
