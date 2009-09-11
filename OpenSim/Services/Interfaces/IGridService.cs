@@ -55,15 +55,11 @@ namespace OpenSim.Services.Interfaces
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        List<SimpleRegionInfo> RequestNeighbours(UUID scopeID, uint x, uint y);
+        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, uint x, uint y);
 
-        RegionInfo RequestNeighbourInfo(UUID regionID);
+        SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID);
 
-        RegionInfo RequestClosestRegion(UUID scopeID, string regionName);
-
-        List<MapBlockData> RequestNeighbourMapBlocks(UUID scopeID, int minX, int minY, int maxX, int maxY);
-        // not complete yet, only contains the fields needed for ParcelInfoReqeust
-        LandData RequestLandData(UUID scopeID, ulong regionHandle, uint x, uint y);
+        SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName);
 
         /// <summary>
         /// Get information about regions starting with the provided name. 
@@ -78,6 +74,15 @@ namespace OpenSim.Services.Interfaces
         /// A list of <see cref="RegionInfo"/>s of regions with matching name. If the
         /// grid-server couldn't be contacted or returned an error, return null. 
         /// </returns>
-        List<RegionInfo> RequestNamedRegions(UUID scopeID, string name, int maxNumber);
+        List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber);
+
+
+        // Not sure about these two (diva)
+
+        List<MapBlockData> RequestNeighbourMapBlocks(UUID scopeID, int minX, int minY, int maxX, int maxY);
+        // not complete yet, only contains the fields needed for ParcelInfoReqeust
+        LandData RequestLandData(UUID scopeID, ulong regionHandle, uint x, uint y);
+
+
     }
 }
