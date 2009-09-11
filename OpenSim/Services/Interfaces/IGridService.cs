@@ -79,10 +79,6 @@ namespace OpenSim.Services.Interfaces
 
         // Not sure about these two (diva)
 
-        List<MapBlockData> RequestNeighbourMapBlocks(UUID scopeID, int minX, int minY, int maxX, int maxY);
-        // not complete yet, only contains the fields needed for ParcelInfoReqeust
-        LandData RequestLandData(UUID scopeID, ulong regionHandle, uint x, uint y);
-
 
     }
 }
