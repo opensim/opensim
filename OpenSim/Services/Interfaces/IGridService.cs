@@ -59,7 +59,7 @@ namespace OpenSim.Services.Interfaces
 
         SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID);
 
-        SimpleRegionInfo GetRegionByHandle(UUID scopeID, ulong regionHandle);
+        SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y);
         
         SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName);
 
