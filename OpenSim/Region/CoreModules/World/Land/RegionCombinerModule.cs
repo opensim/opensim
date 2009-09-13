@@ -80,9 +80,15 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!enabledYN)
                 return;
 
+            /* For testing on a single instance
+            if (scene.RegionInfo.RegionLocX == 1004 && scene.RegionInfo.RegionLocY == 1000)
+                return;
+            */
+
             lock (m_startingScenes)
                 m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);
 
+            // Give each region a standard set of non-infinite borders
             Border northBorder = new Border();
             northBorder.BorderLine = new Vector3(0, (int)Constants.RegionSize, (int)Constants.RegionSize);  //<---
             northBorder.CrossDirection = Cardinals.N;
@@ -103,6 +109,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             westBorder.CrossDirection = Cardinals.W;
             scene.WestBorders[0] = westBorder;
 
+
+
             RegionConnections regionConnections = new RegionConnections();
             regionConnections.ConnectedRegions = new List<RegionData>();
             regionConnections.RegionScene = scene;
@@ -112,6 +120,8 @@ namespace OpenSim.Region.CoreModules.World.Land
             regionConnections.Y = scene.RegionInfo.RegionLocY;
             regionConnections.XEnd = (int)Constants.RegionSize;
             regionConnections.YEnd = (int)Constants.RegionSize;
+
+
             lock (m_regions)
             {
                 bool connectedYN = false;
@@ -280,6 +290,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     //xxx
                     //xxy
                     //xxx
+
                     if ((((int)conn.X * (int)Constants.RegionSize) + conn.XEnd
                         >= (regionConnections.X * (int)Constants.RegionSize))
                         && (((int)conn.Y * (int)Constants.RegionSize)
@@ -310,9 +321,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                         ConnectedRegion.RegionScene = scene;
                         conn.ConnectedRegions.Add(ConnectedRegion);
 
+                        // Inform root region Physics about the extents of this region
                         conn.RegionScene.PhysicsScene.Combine(null, Vector3.Zero, extents);
+
+                        // Inform Child region that it needs to forward it's terrain to the root region
                         scene.PhysicsScene.Combine(conn.RegionScene.PhysicsScene, offset, Vector3.Zero);
 
+                        // Extend the borders as appropriate
                         lock (conn.RegionScene.EastBorders)
                             conn.RegionScene.EastBorders[0].BorderLine.Z += (int)Constants.RegionSize;
 
@@ -323,15 +338,24 @@ namespace OpenSim.Region.CoreModules.World.Land
                             conn.RegionScene.SouthBorders[0].BorderLine.Y += (int)Constants.RegionSize;
 
                         lock (scene.WestBorders)
-                            scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
+                        {
+                            scene.WestBorders[0].BorderLine.Z += (int) Constants.RegionSize; //auto teleport West
 
-                        // Reset Terrain..  since terrain normally loads first.
-                        //
+                            // Trigger auto teleport to root region
+                            scene.WestBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
+                            scene.WestBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                        }
+
+                        // Reset Terrain..  since terrain loads before we get here, we need to load 
+                        // it again so it loads in the root region
+                        
                         scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
-                        //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
-
+                        
+                        // Unlock borders
                         conn.RegionScene.BordersLocked = false;
                         scene.BordersLocked = false;
+
+                        // Create a client event forwarder and add this region's events to the root region.
                         if (conn.ClientEventForwarder != null)
                             conn.ClientEventForwarder.AddSceneToEventForwarding(scene);
                         connectedYN = true;
@@ -381,7 +405,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                         lock (conn.RegionScene.WestBorders)
                             conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
                         lock (scene.SouthBorders)
-                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                        {
+                            scene.SouthBorders[0].BorderLine.Z += (int) Constants.RegionSize; //auto teleport south
+                            scene.SouthBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
+                            scene.SouthBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                        }
 
                         // Reset Terrain..  since terrain normally loads first.
                         //conn.RegionScene.PhysicsScene.SetTerrain(conn.RegionScene.Heightmap.GetFloatsSerialised());
@@ -446,8 +474,13 @@ namespace OpenSim.Region.CoreModules.World.Land
                                     conn.RegionScene.WestBorders[0].BorderLine.Y += (int)Constants.RegionSize;
                             }
                         }
+
                         lock (scene.SouthBorders)
-                            scene.SouthBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport south
+                        {
+                            scene.SouthBorders[0].BorderLine.Z += (int) Constants.RegionSize; //auto teleport south
+                            scene.SouthBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
+                            scene.SouthBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                        }
 
                         lock (conn.RegionScene.EastBorders)
                         {
@@ -463,9 +496,14 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                             }
                         }
-                        
+
                         lock (scene.WestBorders)
-                            scene.WestBorders[0].BorderLine.Z += (int)Constants.RegionSize; //auto teleport West
+                        {
+                            scene.WestBorders[0].BorderLine.Z += (int) Constants.RegionSize; //auto teleport West
+                            scene.WestBorders[0].TriggerRegionX = conn.RegionScene.RegionInfo.RegionLocX;
+                            scene.WestBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
+                        }
+
                         /*  
                                                 else
                                                 {
@@ -495,17 +533,21 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
+                // If !connectYN means that this region is a root region
                 if (!connectedYN)
                 {
                     RegionData rdata = new RegionData();
                     rdata.Offset = Vector3.Zero;
                     rdata.RegionId = scene.RegionInfo.originRegionID;
                     rdata.RegionScene = scene;
+                    // save it's land channel
                     regionConnections.RegionLandChannel = scene.LandChannel;
 
+                    // Substitue our landchannel
                     RegionCombinerLargeLandChannel lnd = new RegionCombinerLargeLandChannel(rdata, scene.LandChannel,
                                                                     regionConnections.ConnectedRegions);
                     scene.LandChannel = lnd;
+                    // Forward the permissions modules of each of the connected regions to the root region
                     lock (m_regions)
                     {
                         foreach (RegionData r in regionConnections.ConnectedRegions)
@@ -513,12 +555,17 @@ namespace OpenSim.Region.CoreModules.World.Land
                             ForwardPermissionRequests(regionConnections, r.RegionScene);
                         }
                     }
-
+                    // Create the root region's Client Event Forwarder
                     regionConnections.ClientEventForwarder = new RegionCombinerClientEventForwarder(regionConnections);
+
+                    // Sets up the CoarseLocationUpdate forwarder for this root region
                     scene.EventManager.OnNewPresence += SetCourseLocationDelegate;
+
+                    // Adds this root region to a dictionary of regions that are connectable
                     m_regions.Add(scene.RegionInfo.originRegionID, regionConnections);
                 }
             }
+            // Set up infinite borders around the entire AABB of the combined ConnectedRegions
             AdjustLargeRegionBounds();
         }
 
@@ -646,6 +693,13 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        /// <summary>
+        /// Locates a the Client of a particular region in an Array of RegionData based on offset
+        /// </summary>
+        /// <param name="offset"></param>
+        /// <param name="uUID"></param>
+        /// <param name="rdata"></param>
+        /// <returns>IClientAPI or null</returns>
         private IClientAPI LocateUsersChildAgentIClientAPI(Vector2 offset, UUID uUID, RegionData[] rdata)
         {
             IClientAPI returnclient = null;
@@ -664,6 +718,10 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
         }
         
+        /// <summary>
+        /// TODO:
+        /// </summary>
+        /// <param name="rdata"></param>
         public void UnCombineRegion(RegionData rdata)
         {
             lock (m_regions)
@@ -706,7 +764,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     lock (rconn.RegionScene.NorthBorders)
                     {
                         Border northBorder = null;
-                        
+                        // If we don't already have an infinite border, create one.
                         if (!TryGetInfiniteBorder(rconn.RegionScene.NorthBorders, out northBorder))
                         {
                             northBorder = new Border();
@@ -721,6 +779,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     lock (rconn.RegionScene.SouthBorders)
                     {
                         Border southBorder = null;
+                        // If we don't already have an infinite border, create one.
                         if (!TryGetInfiniteBorder(rconn.RegionScene.SouthBorders, out southBorder))
                         {
                             southBorder = new Border();
@@ -733,6 +792,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     lock (rconn.RegionScene.EastBorders)
                     {
                         Border eastBorder = null;
+                        // If we don't already have an infinite border, create one.
                         if (!TryGetInfiniteBorder(rconn.RegionScene.EastBorders, out eastBorder))
                         {
                             eastBorder = new Border();
@@ -746,6 +806,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     lock (rconn.RegionScene.WestBorders)
                     {
                         Border westBorder = null;
+                        // If we don't already have an infinite border, create one.
                         if (!TryGetInfiniteBorder(rconn.RegionScene.WestBorders, out westBorder))
                         {
                             westBorder = new Border();
@@ -761,6 +822,12 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
+        /// <summary>
+        /// Try and get an Infinite border out of a listT of borders
+        /// </summary>
+        /// <param name="borders"></param>
+        /// <param name="oborder"></param>
+        /// <returns></returns>
         public static bool TryGetInfiniteBorder(List<Border> borders, out Border oborder)
         {
             // Warning! Should be locked before getting here!
@@ -847,8 +914,19 @@ namespace OpenSim.Region.CoreModules.World.Land
 
     public class RegionConnections
     {
+        /// <summary>
+        /// Root Region ID
+        /// </summary>
         public UUID RegionId;
+
+        /// <summary>
+        /// Root Region Scene
+        /// </summary>
         public Scene RegionScene;
+
+        /// <summary>
+        /// LargeLandChannel for combined region
+        /// </summary>
         public ILandChannel RegionLandChannel;
         public uint X;
         public uint Y;
@@ -1323,7 +1401,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_virtScene.UnSubscribeToClientPrimRezEvents(client);
             m_virtScene.UnSubscribeToClientInventoryEvents(client);
             m_virtScene.UnSubscribeToClientAttachmentEvents(client);
-            m_virtScene.UnSubscribeToClientTeleportEvents(client);
+            //m_virtScene.UnSubscribeToClientTeleportEvents(client);
             m_virtScene.UnSubscribeToClientScriptEvents(client);
             m_virtScene.UnSubscribeToClientGodEvents(client);
             m_virtScene.UnSubscribeToClientNetworkEvents(client);
@@ -1333,7 +1411,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnRezObject += LocalRezObject;
             m_rootScene.SubscribeToClientInventoryEvents(client);
             m_rootScene.SubscribeToClientAttachmentEvents(client);
-            m_rootScene.SubscribeToClientTeleportEvents(client);
+            //m_rootScene.SubscribeToClientTeleportEvents(client);
             m_rootScene.SubscribeToClientScriptEvents(client);
             m_rootScene.SubscribeToClientGodEvents(client);
             m_rootScene.SubscribeToClientNetworkEvents(client);
@@ -1343,6 +1421,19 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
         }
 
+        /// <summary>
+        /// Fixes position based on the region the Rez event came in on
+        /// </summary>
+        /// <param name="remoteclient"></param>
+        /// <param name="itemid"></param>
+        /// <param name="rayend"></param>
+        /// <param name="raystart"></param>
+        /// <param name="raytargetid"></param>
+        /// <param name="bypassraycast"></param>
+        /// <param name="rayendisintersection"></param>
+        /// <param name="rezselected"></param>
+        /// <param name="removeitem"></param>
+        /// <param name="fromtaskid"></param>
         private void LocalRezObject(IClientAPI remoteclient, UUID itemid, Vector3 rayend, Vector3 raystart, 
             UUID raytargetid, byte bypassraycast, bool rayendisintersection, bool rezselected, bool removeitem, 
             UUID fromtaskid)
@@ -1357,7 +1448,18 @@ namespace OpenSim.Region.CoreModules.World.Land
             m_rootScene.RezObject(remoteclient, itemid, rayend, raystart, raytargetid, bypassraycast,
                                   rayendisintersection, rezselected, removeitem, fromtaskid);
         }
-
+        /// <summary>
+        /// Fixes position based on the region the AddPrimShape event came in on
+        /// </summary>
+        /// <param name="ownerid"></param>
+        /// <param name="groupid"></param>
+        /// <param name="rayend"></param>
+        /// <param name="rot"></param>
+        /// <param name="shape"></param>
+        /// <param name="bypassraycast"></param>
+        /// <param name="raystart"></param>
+        /// <param name="raytargetid"></param>
+        /// <param name="rayendisintersection"></param>
         private void LocalAddNewPrim(UUID ownerid, UUID groupid, Vector3 rayend, Quaternion rot, 
             PrimitiveBaseShape shape, byte bypassraycast, Vector3 raystart, UUID raytargetid, 
             byte rayendisintersection)
