@@ -92,12 +92,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 scene.AddCommand(
                     this, "load iar",
                     "load iar <first> <last> <inventory path> [<archive path>]",
-                    "Load user inventory archive.  EXPERIMENTAL, CURRENTLY DISABLED", HandleLoadInvConsoleCommand); 
+                    "Load user inventory archive.  EXPERIMENTAL", HandleLoadInvConsoleCommand); 
                 
                 scene.AddCommand(
                     this, "save iar",
                     "save iar <first> <last> <inventory path> [<archive path>]",
-                    "Save user inventory archive.  EXPERIMENTAL, CURRENTLY DISABLED", HandleSaveInvConsoleCommand);
+                    "Save user inventory archive.  EXPERIMENTAL", HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
             }
@@ -240,6 +240,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return;
             }
 
+            m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
+
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
             string invPath = cmdparams[4];
@@ -267,6 +269,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
+
+            m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
 
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
