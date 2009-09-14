@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
 
                 try
                 {
-                    m_remoteDataPort = config.Configs["Network"].GetInt("remoteDataPort", m_remoteDataPort);
+                    m_remoteDataPort = config.Configs["XMLRPC"].GetInt("XmlRpcPort", m_remoteDataPort);
                 }
                 catch (Exception)
                 {
