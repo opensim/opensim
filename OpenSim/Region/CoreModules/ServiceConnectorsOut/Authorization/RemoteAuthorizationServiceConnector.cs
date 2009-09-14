@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
                 }
             }
             
-            if(scene != null)
+            if (scene != null)
             {
                 UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(new UUID(userID));
                 isAuthorized = IsAuthorizedForRegion(userID, profile.FirstName, profile.SurName,

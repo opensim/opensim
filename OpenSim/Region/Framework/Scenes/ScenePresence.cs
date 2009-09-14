@@ -776,8 +776,20 @@ namespace OpenSim.Region.Framework.Scenes
             // before the inventory is processed in MakeRootAgent. This fixes a race condition
             // related to the handling of attachments
             //m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);            
+            if (m_scene.TestBorderCross(pos, Cardinals.E))
+            {
+                Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
+                pos.X = crossedBorder.BorderLine.Z - 1;
+            }
 
-            if (pos.X < 0 || pos.X >= (int)Constants.RegionSize || pos.Y < 0 || pos.Y >= (int)Constants.RegionSize || pos.Z < 0)
+            if (m_scene.TestBorderCross(pos, Cardinals.N))
+            {
+                Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.N);
+                pos.Y = crossedBorder.BorderLine.Z - 1;
+            }
+
+
+            if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
             {
                 Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
 
@@ -795,7 +807,11 @@ namespace OpenSim.Region.Framework.Scenes
                 localAVHeight = m_avHeight;
             }
 
-            float posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
+            float posZLimit = 0;
+
+            if (pos.X <Constants.RegionSize && pos.Y < Constants.RegionSize)
+                posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
+            
             float newPosZ = posZLimit + localAVHeight / 2;
             if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {
@@ -877,6 +893,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
+            
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
         }
 
@@ -904,7 +921,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool isFlying = false;
             if (m_physicsActor != null)
                 isFlying = m_physicsActor.Flying;
-
+            
             RemoveFromPhysicalScene();
             Velocity = new Vector3(0, 0, 0);
             AbsolutePosition = pos;
@@ -2412,7 +2429,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
-                CheckForBorderCrossing();
+                if (m_parentID == 0 && m_physicsActor != null || m_parentID != 0) // Check that we have a physics actor or we're sitting on something
+                    CheckForBorderCrossing();
                 CheckForSignificantMovement(); // sends update to the modules.
             }
         }

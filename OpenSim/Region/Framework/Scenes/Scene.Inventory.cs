@@ -1136,7 +1136,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             UUID newFolderID = UUID.Random();
 
-            InventoryFolderBase newFolder = new InventoryFolderBase(newFolderID, category, destID, 0xff, rootFolder.ID, rootFolder.Version);
+            InventoryFolderBase newFolder = new InventoryFolderBase(newFolderID, category, destID, -1, rootFolder.ID, rootFolder.Version);
             InventoryService.AddFolder(newFolder);
 
             foreach (UUID itemID in items)
