@@ -1412,10 +1412,25 @@ namespace OpenSim.Region.Framework.Scenes
             d.BeginInvoke(agent, newpos, neighbourx, neighboury, isFlying, CrossAgentToNewRegionCompleted, d);
         }
 
-        public void InformClientToInitateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
+        public delegate void InformClientToInitateTeleportToLocationDelegate(ScenePresence agent, uint regionX, uint regionY,
+                                                                    Vector3 position,
+                                                                    Scene initiatingScene);
+
+        public void InformClientToInitateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, 
+            Scene initiatingScene)
         {
-            Util.FireAndForget(delegate
-            {
+
+            // This assumes that we know what our neighbors are.
+            
+                InformClientToInitateTeleportToLocationDelegate d = InformClientToInitiateTeleportToLocationAsync;
+                        d.BeginInvoke(agent,regionX,regionY,position,initiatingScene,
+                                      InformClientToInitiateTeleportToLocationCompleted,
+                                      d);
+        }
+
+        public void InformClientToInitiateTeleportToLocationAsync(ScenePresence agent, uint regionX, uint regionY, Vector3 position, 
+            Scene initiatingScene)
+        {
                 Thread.Sleep(10000);
                 IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
                 if (im != null)
@@ -1440,13 +1455,18 @@ namespace OpenSim.Region.Framework.Scenes
                     });
 
                 }
+        }
 
-            });
+        private void InformClientToInitiateTeleportToLocationCompleted(IAsyncResult iar)
+        {
+            InformClientToInitateTeleportToLocationDelegate icon =
+                (InformClientToInitateTeleportToLocationDelegate) iar.AsyncState;
+            icon.EndInvoke(iar);
         }
 
         public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying);
 
-                /// <summary>
+        /// <summary>
         /// This Closes child agents on neighboring regions
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
         /// </summary>

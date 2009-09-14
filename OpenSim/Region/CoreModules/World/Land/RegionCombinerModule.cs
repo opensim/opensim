@@ -80,10 +80,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             if (!enabledYN)
                 return;
 
-            /* For testing on a single instance
+            // For testing on a single instance
             if (scene.RegionInfo.RegionLocX == 1004 && scene.RegionInfo.RegionLocY == 1000)
                 return;
-            */
+            //
 
             lock (m_startingScenes)
                 m_startingScenes.Add(scene.RegionInfo.originRegionID, scene);

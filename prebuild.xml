@@ -1653,7 +1653,7 @@
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="IronPython.dll"/>
       <Reference name="IronMath.dll"/>
-      <Reference name="PumaCode.SvnDotNet.dll" />
+      <Reference name="PumaCode.SvnDotNet.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data" />

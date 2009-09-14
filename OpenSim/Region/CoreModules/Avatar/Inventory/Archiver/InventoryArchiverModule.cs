@@ -92,12 +92,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 scene.AddCommand(
                     this, "load iar",
                     "load iar <first> <last> <inventory path> [<archive path>]",
-                    "Load user inventory archive.  EXPERIMENTAL, CURRENTLY DISABLED", HandleLoadInvConsoleCommand); 
+                    "Load user inventory archive.  EXPERIMENTAL", HandleLoadInvConsoleCommand); 
                 
                 scene.AddCommand(
                     this, "save iar",
                     "save iar <first> <last> <inventory path> [<archive path>]",
-                    "Save user inventory archive.  EXPERIMENTAL, CURRENTLY DISABLED", HandleSaveInvConsoleCommand);
+                    "Save user inventory archive.  EXPERIMENTAL", HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
             }
@@ -233,15 +233,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleLoadInvConsoleCommand(string module, string[] cmdparams)
         {
-            return;
-
-            /*
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
                     "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> [<load file path>]");
                 return;
             }
+
+            m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
 
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
@@ -256,7 +255,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
                     loadPath, firstName, lastName);
-                    */
         }
         
         /// <summary>
@@ -265,15 +263,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            return;
-
-            /*
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
                     "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> [<save file path>]");
                 return;
             }
+
+            m_log.Info("[INVENTORY ARCHIVER]: PLEASE NOTE THAT THIS FACILITY IS EXPERIMENTAL.  BUG REPORTS WELCOME.");
 
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
@@ -289,7 +286,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             lock (m_pendingConsoleSaves)
                 m_pendingConsoleSaves.Add(id);
-                */
         }        
         
         private void SaveInvConsoleCommandCompleted(
