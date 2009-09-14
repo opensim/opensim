@@ -1170,8 +1170,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 m_clientRequestIDInfo[client.AgentId].LastUsedTMStamp = DateTime.Now;
+
+                return m_clientRequestIDInfo[client.AgentId].RequestID;
             }
-            return m_clientRequestIDInfo[client.AgentId].RequestID;
+
+            return new GroupRequestID();
         }
 
         /// <summary>
