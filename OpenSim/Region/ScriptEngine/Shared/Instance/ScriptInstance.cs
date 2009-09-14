@@ -298,14 +298,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 try
                 {
                     FileInfo fi = new FileInfo(savedState);
-                    int size=(int)fi.Length;
+                    int size = (int)fi.Length;
                     if (size < 512000)
                     {
                         using (FileStream fs = File.Open(savedState,
                                                          FileMode.Open, FileAccess.Read, FileShare.None))
                         {
-                            System.Text.ASCIIEncoding enc =
-                                new System.Text.ASCIIEncoding();
+                            System.Text.UTF8Encoding enc =
+                                new System.Text.UTF8Encoding();
 
                             Byte[] data = new Byte[size];
                             fs.Read(data, 0, size);
@@ -899,7 +899,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 try
                 {
                     FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state"));
-                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+                    System.Text.UTF8Encoding enc = new System.Text.UTF8Encoding();
                     Byte[] buf = enc.GetBytes(xml);
                     fs.Write(buf, 0, buf.Length);
                     fs.Close();
