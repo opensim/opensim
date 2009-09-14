@@ -233,9 +233,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleLoadInvConsoleCommand(string module, string[] cmdparams)
         {
-            return;
-
-            /*
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
@@ -256,7 +253,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
                     loadPath, firstName, lastName);
-                    */
         }
         
         /// <summary>
@@ -265,9 +261,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            return;
-
-            /*
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
@@ -289,7 +282,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             lock (m_pendingConsoleSaves)
                 m_pendingConsoleSaves.Add(id);
-                */
         }        
         
         private void SaveInvConsoleCommandCompleted(
