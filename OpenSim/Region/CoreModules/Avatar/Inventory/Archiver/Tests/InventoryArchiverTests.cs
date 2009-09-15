@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             mre.Reset();
             archiverModule.ArchiveInventory(
-                Guid.NewGuid(), userFirstName, userLastName, "Objects", archiveWriteStream);
+                Guid.NewGuid(), userFirstName, userLastName, "Objects", "troll", archiveWriteStream);
             mre.WaitOne(60000, false);
 
             byte[] archive = archiveWriteStream.ToArray();
@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 userItemCreatorFirstName, userItemCreatorLastName, "hampshire", 
                 String.Empty, 1000, 1000, userItemCreatorUuid);
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "troll", archiveReadStream);
 
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
@@ -274,7 +274,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // Now try loading to a root child folder            
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xA");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "troll", archiveReadStream);
 
             InventoryItemBase foundItem2
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + itemName);
@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // Now try loading to a more deeply nested folder
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "troll", archiveReadStream);
 
             InventoryItemBase foundItem3
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             userAdminService.AddUser(
                 userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "troll", archiveReadStream);
 
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
@@ -408,7 +408,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             userAdminService.AddUser(
                 userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "troll", archiveReadStream);
             
             // Check that a suitable temporary user profile has been created.
             UserProfileData user2Profile 

@@ -91,12 +91,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 
                 scene.AddCommand(
                     this, "load iar",
-                    "load iar <first> <last> <inventory path> [<archive path>]",
+                    "load iar <first> <last> <inventory path> <password> [<archive path>]",
                     "Load user inventory archive.  EXPERIMENTAL", HandleLoadInvConsoleCommand); 
                 
                 scene.AddCommand(
                     this, "save iar",
-                    "save iar <first> <last> <inventory path> [<archive path>]",
+                    "save iar <first> <last> <inventory path> <password> [<archive path>]",
                     "Save user inventory archive.  EXPERIMENTAL", HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
@@ -121,11 +121,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
         }       
 
-        public bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, Stream saveStream)
+        public bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
         {
             if (m_scenes.Count > 0)
             {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
+                    return false;
 
                 if (userInfo != null)
                 {
@@ -146,11 +149,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return false;
         }
                         
-        public bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, string savePath)
+        public bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, string pass, string savePath)
         {
             if (m_scenes.Count > 0)
             {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
+                    return false;
+
                 
                 if (userInfo != null)
                 {
@@ -171,11 +178,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return false;
         }
               
-        public bool DearchiveInventory(string firstName, string lastName, string invPath, Stream loadStream)
+        public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, Stream loadStream)
         {
             if (m_scenes.Count > 0)
             {            
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
+                    return false;
+
                         
                 if (userInfo != null)
                 {
@@ -199,11 +210,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             return false;
         }         
         
-        public bool DearchiveInventory(string firstName, string lastName, string invPath, string loadPath)
+        public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, string loadPath)
         {
             if (m_scenes.Count > 0)
             {   
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
+                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
+                    return false;
+
                 
                 if (userInfo != null)
                 {
@@ -233,10 +248,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleLoadInvConsoleCommand(string module, string[] cmdparams)
         {
-            if (cmdparams.Length < 5)
+            if (cmdparams.Length < 6)
             {
                 m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> [<load file path>]");
+                    "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <password> [<load file path>]");
                 return;
             }
 
@@ -245,13 +260,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
             string invPath = cmdparams[4];
-            string loadPath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
+            string pass = cmdparams[5];
+            string loadPath = (cmdparams.Length > 6 ? cmdparams[6] : DEFAULT_INV_BACKUP_FILENAME);
 
             m_log.InfoFormat(
                 "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
                 loadPath, invPath, firstName, lastName);
             
-            if (DearchiveInventory(firstName, lastName, invPath, loadPath))                 
+            if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath))                 
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
                     loadPath, firstName, lastName);
@@ -266,7 +282,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> [<save file path>]");
+                    "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <password> [<save file path>]");
                 return;
             }
 
@@ -275,14 +291,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string firstName = cmdparams[2];
             string lastName = cmdparams[3];
             string invPath = cmdparams[4];
-            string savePath = (cmdparams.Length > 5 ? cmdparams[5] : DEFAULT_INV_BACKUP_FILENAME);
+            string pass = cmdparams[5];
+            string savePath = (cmdparams.Length > 6 ? cmdparams[6] : DEFAULT_INV_BACKUP_FILENAME);
 
             m_log.InfoFormat(
                 "[INVENTORY ARCHIVER]: Saving archive {0} from inventory path {1} for {2} {3}",
                 savePath, invPath, firstName, lastName);
 
             Guid id = Guid.NewGuid();
-            ArchiveInventory(id, firstName, lastName, invPath, savePath);
+            ArchiveInventory(id, firstName, lastName, invPath, pass, savePath);
 
             lock (m_pendingConsoleSaves)
                 m_pendingConsoleSaves.Add(id);
@@ -373,8 +390,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             foreach (Scene scene in m_scenes.Values)
             {
-                if (scene.GetScenePresence(userId) != null)
+                ScenePresence p;
+                if ((p = scene.GetScenePresence(userId)) != null)
+                {
+                    p.ControllingClient.SendAgentAlertMessage("Inventory operation has been started", false);
                     return true;
+                }
             }
 
             return false;
