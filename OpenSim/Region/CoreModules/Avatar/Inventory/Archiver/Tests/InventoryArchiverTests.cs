@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 userItemCreatorFirstName, userItemCreatorLastName, "hampshire", 
                 String.Empty, 1000, 1000, userItemCreatorUuid);
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "troll", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "meowfood", archiveReadStream);
 
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             userAdminService.AddUser(
                 userFirstName, userLastName, "meowfood", String.Empty, 1000, 1000, userUuid);
             
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "troll", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "/", "meowfood", archiveReadStream);
 
             CachedUserInfo userInfo 
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
