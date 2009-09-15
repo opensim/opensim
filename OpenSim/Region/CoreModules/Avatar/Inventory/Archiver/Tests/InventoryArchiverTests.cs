@@ -274,7 +274,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // Now try loading to a root child folder            
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xA");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "troll", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + itemName);
@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             // Now try loading to a more deeply nested folder
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC");
             archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
-            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "troll", archiveReadStream);
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
