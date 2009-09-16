@@ -5041,6 +5041,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     }
                 }
             }
+            else
+            {
+                result.Add(src.Data[start]);
+            }
 
             return result;
         }
