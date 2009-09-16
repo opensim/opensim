@@ -1191,6 +1191,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             foreach (GroupMembershipData membership in data)
             {
+                if (remoteClient.AgentId != dataForAgentID)
+                {
+                    if (!membership.ListInProfile)
+                    {
+                        // If we're sending group info to remoteclient about another agent, 
+                        // filter out groups the other agent doesn't want to share.
+                        continue;
+                    }
+                }
+
                 OSDMap GroupDataMap = new OSDMap(6);
                 OSDMap NewGroupDataMap = new OSDMap(1);
 
@@ -1290,6 +1300,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 membershipArray = membershipData.FindAll(showInProfile).ToArray();
             } else {
                 membershipArray = membershipData.ToArray();
+            }
+
+            if (m_debugEnabled)
+            {
+                m_log.InfoFormat("[GROUPS]: Sending group membership information for {0} to {1}", dataForAgentID, remoteClient.AgentId);
+                foreach (GroupMembershipData membership in membershipArray)
+                {
+                    m_log.InfoFormat("[GROUPS]: {0} :: {1} - {2}", dataForAgentID, membership.GroupName, membership.GroupTitle);
+                }
             }
 
             SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
