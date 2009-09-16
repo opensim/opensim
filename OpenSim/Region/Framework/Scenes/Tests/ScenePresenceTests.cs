@@ -407,9 +407,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sop.Shape.State = 1;
             sop.OwnerID = agent;
 
-            SceneObjectGroup sog = new SceneObjectGroup();
+            SceneObjectGroup sog = new SceneObjectGroup(sop);
             sog.SetScene(scene);
-            sog.SetRootPart(sop);
 
             return sog;
         }

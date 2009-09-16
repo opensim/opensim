@@ -65,8 +65,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
 
-            SceneObjectGroup sceneObject = new SceneObjectGroup();            
-
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
             xmlData = xmlData.Replace("</UUID>", "</Guid>");
@@ -88,17 +86,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 parts = doc.GetElementsByTagName("RootPart");
 
                 if (parts.Count == 0)
-                {
                     throw new Exception("Invalid Xml format - no root part");
-                }
-                else
-                {
-                    sr = new StringReader(parts[0].InnerXml);
-                    reader = new XmlTextReader(sr);
-                    sceneObject.SetRootPart(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
-                    reader.Close();
-                    sr.Close();
-                }
+
+                sr = new StringReader(parts[0].InnerXml);
+                reader = new XmlTextReader(sr);
+                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(fromUserInventoryItemID, reader));
+                reader.Close();
+                sr.Close();
 
                 parts = doc.GetElementsByTagName("Part");
 
@@ -119,16 +113,15 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Script state may, or may not, exist. Not having any, is NOT
                 // ever a problem.
                 sceneObject.LoadScriptState(doc);
+
+                return sceneObject;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat(
                     "[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
+                return null;
             }
-
-            //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-
-            return sceneObject;
         }      
 
         /// <summary>
@@ -194,8 +187,6 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         {
             //m_log.DebugFormat("[SOG]: Starting deserialization of SOG");
             //int time = System.Environment.TickCount;
-
-            SceneObjectGroup sceneObject = new SceneObjectGroup();
             
             // libomv.types changes UUID to Guid
             xmlData = xmlData.Replace("<UUID>", "<Guid>");
@@ -212,21 +203,23 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
                 XmlNodeList parts = doc.GetElementsByTagName("SceneObjectPart");
 
-                // Process the root part first
-                if (parts.Count > 0)
+                if (parts.Count == 0)
                 {
-                    StringReader      sr = new StringReader(parts[0].OuterXml);
-                    XmlTextReader reader = new XmlTextReader(sr);
-                    sceneObject.SetRootPart(SceneObjectPart.FromXml(reader));
-                    reader.Close();
-                    sr.Close();
+                    m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed: No SceneObjectPart nodes. xml was " + xmlData);
+                    return null;
                 }
+
+                StringReader sr = new StringReader(parts[0].OuterXml);
+                XmlTextReader reader = new XmlTextReader(sr);
+                SceneObjectGroup sceneObject = new SceneObjectGroup(SceneObjectPart.FromXml(reader));
+                reader.Close();
+                sr.Close();
 
                 // Then deal with the rest
                 for (int i = 1; i < parts.Count; i++)
                 {
-                    StringReader      sr = new StringReader(parts[i].OuterXml);
-                    XmlTextReader reader = new XmlTextReader(sr);
+                    sr = new StringReader(parts[i].OuterXml);
+                    reader = new XmlTextReader(sr);
                     SceneObjectPart part = SceneObjectPart.FromXml(reader);
                     sceneObject.AddPart(part);
                     part.StoreUndoState();
@@ -238,15 +231,13 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // ever a problem.
 
                 sceneObject.LoadScriptState(doc);
+                return sceneObject;
             }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[SERIALIZER]: Deserialization of xml failed with {0}.  xml was {1}", e, xmlData);
+                return null;
             }
-
-            //m_log.DebugFormat("[SERIALIZER]: Finished deserialization of SOG {0}, {1}ms", Name, System.Environment.TickCount - time);
-
-            return sceneObject;
         }         
 
         /// <summary>

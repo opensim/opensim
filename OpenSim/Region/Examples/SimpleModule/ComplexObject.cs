@@ -73,10 +73,6 @@ namespace OpenSim.Region.Examples.SimpleModule
             base.UpdateMovement();
         }
 
-        public ComplexObject()
-        {
-        }
-
         public ComplexObject(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)
             : base(ownerID, pos, PrimitiveBaseShape.Default)
         {

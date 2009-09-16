@@ -178,24 +178,37 @@ namespace OpenSim.Data.NHibernate
 
         private SceneObjectGroup LoadObject(UUID uuid, UUID region)
         {
-            SceneObjectGroup group = new SceneObjectGroup();
-
             ICriteria criteria = manager.GetSession().CreateCriteria(typeof(SceneObjectPart));
             criteria.Add(Expression.Eq("RegionID", region));
             criteria.Add(Expression.Eq("ParentUUID", uuid));
             criteria.AddOrder(Order.Asc("ParentID"));
 
-            foreach (SceneObjectPart p in criteria.List())
+            IList<SceneObjectPart> parts = criteria.List<SceneObjectPart>();
+
+            SceneObjectGroup group = null;
+
+            // Find the root part
+            for (int i = 0; i < parts.Count; i++)
             {
-                // root part
-                if (p.UUID == uuid)
+                if (parts[i].UUID == uuid)
                 {
-                    group.SetRootPart(p);
+                    group = new SceneObjectGroup(parts[i]);
+                    break;
                 }
-                else
+            }
+
+            // Add the children parts
+            if (group != null)
+            {
+                for (int i = 0; i < parts.Count; i++)
                 {
-                    group.AddPart(p);
+                    if (parts[i].UUID != uuid)
+                        group.AddPart(parts[i]);
                 }
+            }
+            else
+            {
+                m_log.Error("[NHIBERNATE]: LoadObject() Attempted to load a SceneObjectGroup with no root SceneObjectPart ");
             }
 
             return group;
@@ -237,8 +250,7 @@ namespace OpenSim.Data.NHibernate
                 // root part
                 if (p.UUID == p.ParentUUID)
                 {
-                    SceneObjectGroup group = new SceneObjectGroup();
-                    group.SetRootPart(p);
+                    SceneObjectGroup group = new SceneObjectGroup(p);
                     SOG.Add(p.ParentUUID, group);
                 }
                 else

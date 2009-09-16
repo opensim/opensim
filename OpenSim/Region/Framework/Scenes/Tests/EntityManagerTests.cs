@@ -128,7 +128,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
         private SceneObjectGroup NewSOG()
         {
-            SceneObjectGroup sog = new SceneObjectGroup();
             SceneObjectPart sop = new SceneObjectPart(UUID.Random(), PrimitiveBaseShape.Default, Vector3.Zero, Quaternion.Identity, Vector3.Zero);
             sop.Name = RandomName();
             sop.Description = sop.Name;
@@ -136,9 +135,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             sop.SitName = RandomName();
             sop.TouchName = RandomName();
             sop.ObjectFlags |= (uint)PrimFlags.Phantom;
-            
-            sog.SetRootPart(sop);
 
+            SceneObjectGroup sog = new SceneObjectGroup(sop);
             scene.AddNewSceneObject(sog, false);
             
             return sog;

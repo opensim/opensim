@@ -416,7 +416,6 @@ namespace OpenSim.Data.SQLite
                         
                         if (uuid == objID) //is new SceneObjectGroup ?
                         {
-                            SceneObjectGroup group = new SceneObjectGroup();
                             prim = buildPrim(primRow);
                             DataRow shapeRow = shapes.Rows.Find(prim.UUID.ToString());
                             if (shapeRow != null)
@@ -430,7 +429,7 @@ namespace OpenSim.Data.SQLite
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             
-                            group.SetRootPart(prim);
+                            SceneObjectGroup group = new SceneObjectGroup(prim);
                             createdObjects.Add(group.UUID, group);
                             retvals.Add(group);
                             LoadItems(prim);
