@@ -204,9 +204,22 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_parts.Count; }
         }
 
-        public Quaternion GroupRotation
+        public override Quaternion Rotation
         {
             get { return m_rootPart.RotationOffset; }
+            set { m_rootPart.RotationOffset = value; }
+        }
+
+        public override Vector3 Scale
+        {
+            get { return m_rootPart.Scale; }
+            set { m_rootPart.Scale = value; }
+        }
+
+        public override Vector3 Velocity
+        {
+            get { return m_rootPart.Velocity; }
+            set { m_rootPart.Velocity = value; }
         }
 
         public UUID GroupID
@@ -523,7 +536,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Temporary commented to stop compiler warning
                     //Vector3 partPosition =
                     //    new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
-                    Quaternion parentrotation = GroupRotation;
+                    Quaternion parentrotation = Rotation;
 
                     // Telling the prim to raytrace.
                     //EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
@@ -1866,14 +1879,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 checkAtTargets();
 
-                if (UsePhysics && ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1)))
+                Quaternion rot = Rotation;
+
+                if (UsePhysics &&
+                      ((Math.Abs(lastPhysGroupRot.W - rot.W) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.X - rot.X) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.Y - rot.Y) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.Z - rot.Z) > 0.1f)))
                 {
                     m_rootPart.UpdateFlag = 1;
 
-                    lastPhysGroupRot = GroupRotation;
+                    lastPhysGroupRot = rot;
                 }
 
                 foreach (SceneObjectPart part in m_parts.Values)

@@ -2296,8 +2296,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 "to avatar {0} at position {1}",
                                 sp.UUID.ToString(), grp.AbsolutePosition);
                         AttachObject(sp.ControllingClient,
-                                grp.LocalId, (uint)0,
-                                grp.GroupRotation,
+                                grp.LocalId, 0,
+                                grp.Rotation,
                                 grp.AbsolutePosition, false);
                         RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                         grp.SendGroupFullUpdate();
