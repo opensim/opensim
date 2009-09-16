@@ -281,7 +281,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void OnRequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            GroupMembershipData[] avatarGroups = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), avatarID).ToArray();
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            //GroupMembershipData[] avatarGroups = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), avatarID).ToArray();
+            GroupMembershipData[] avatarGroups = GetProfileListedGroupMemberships(remoteClient, avatarID);
             remoteClient.SendAvatarGroupsReply(avatarID, avatarGroups);
         }
 
@@ -1287,10 +1290,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // to the core Groups Stub
             remoteClient.SendGroupMembership(new GroupMembershipData[0]);
 
-            List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), dataForAgentID);
+            GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, dataForAgentID);
+            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
+            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
+
+        }
+
+        /// <summary>
+        /// Get a list of groups memberships for the agent that are marked "ListInProfile"
+        /// </summary>
+        /// <param name="dataForAgentID"></param>
+        /// <returns></returns>
+        private GroupMembershipData[] GetProfileListedGroupMemberships(IClientAPI requestingClient, UUID dataForAgentID)
+        {
+            List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(requestingClient), dataForAgentID);
             GroupMembershipData[] membershipArray;
 
-            if (remoteClient.AgentId != dataForAgentID)
+            if (requestingClient.AgentId != dataForAgentID)
             {
                 Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
                 {
@@ -1298,22 +1314,22 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 };
 
                 membershipArray = membershipData.FindAll(showInProfile).ToArray();
-            } else {
+            }
+            else
+            {
                 membershipArray = membershipData.ToArray();
             }
 
             if (m_debugEnabled)
             {
-                m_log.InfoFormat("[GROUPS]: Sending group membership information for {0} to {1}", dataForAgentID, remoteClient.AgentId);
+                m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
                 foreach (GroupMembershipData membership in membershipArray)
                 {
                     m_log.InfoFormat("[GROUPS]: {0} :: {1} - {2}", dataForAgentID, membership.GroupName, membership.GroupTitle);
                 }
             }
 
-            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
-            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
-
+            return membershipArray;
         }
 
         private void SendAgentDataUpdate(IClientAPI remoteClient, UUID dataForAgentID, UUID activeGroupID, string activeGroupName, ulong activeGroupPowers, string activeGroupTitle)
