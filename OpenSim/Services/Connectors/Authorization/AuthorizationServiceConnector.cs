@@ -88,7 +88,7 @@ namespace OpenSim.Services.Connectors
             m_ResponseOnFailure = responseOnFailure;
         }
 
-        public bool IsAuthorizedForRegion(string userID, string firstname, string surname, string email, string regionName, string regionID)
+        public bool IsAuthorizedForRegion(string userID, string firstname, string surname, string email, string regionName, string regionID, out string message)
         {
             // do a remote call to the authorization server specified in the AuthorizationServerURI
             m_log.InfoFormat("[AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} at remote server {1}", userID, m_ServerURI);
@@ -105,10 +105,12 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} for region {1} error thrown during comms with remote server. Reason: {2}", userID, regionID, e.Message);
+                message="";
                 return m_ResponseOnFailure;
             }
             
             m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}", response.Message);
+            message = response.Message;
             
             return response.IsAuthorized;
         }      

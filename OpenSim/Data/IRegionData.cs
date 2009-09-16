@@ -25,49 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using Nini.Config;
-using log4net;
 using System;
-using System.Reflection;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
+using System.Collections.Generic;
+using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Server.Handlers.Authorization
+namespace OpenSim.Data
 {
-    public class AuthorizationServerPostHandler : BaseStreamHandler
+    public class RegionData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public UUID RegionID;
+        public UUID ScopeID;
+        public string RegionName;
+        public int posX;
+        public int posY;
+        public Dictionary<string, object> Data;
+    }
 
-        private IAuthorizationService m_AuthorizationService;
+    /// <summary>
+    /// An interface for connecting to the authentication datastore
+    /// </summary>
+    public interface IRegionData
+    {
+        RegionData Get(UUID regionID, UUID ScopeID);
+        RegionData Get(string regionName, UUID ScopeID);
+        RegionData Get(int x, int y, UUID ScopeID);
+        List<RegionData> Get(int xStart, int yStart, int xEnd, int yEnd, UUID ScopeID);
 
-        public AuthorizationServerPostHandler(IAuthorizationService service) :
-                base("POST", "/authorization")
-        {
-            m_AuthorizationService = service;
-        }
+        bool Store(RegionData data);
 
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            XmlSerializer xs = new XmlSerializer(typeof (AuthorizationRequest));
-            AuthorizationRequest Authorization = (AuthorizationRequest) xs.Deserialize(request);
+        bool SetDataItem(UUID principalID, string item, string value);
 
-            string message = String.Empty;
-            bool authorized = m_AuthorizationService.IsAuthorizedForRegion(Authorization.ID, Authorization.RegionID,out message);
-
-            AuthorizationResponse result = new AuthorizationResponse(authorized, Authorization.ID + " has been authorized");
-
-            xs = new XmlSerializer(typeof(AuthorizationResponse));
-            return ServerUtils.SerializeResult(xs, result);
-            
-        }
+        bool Delete(UUID regionID);
     }
 }

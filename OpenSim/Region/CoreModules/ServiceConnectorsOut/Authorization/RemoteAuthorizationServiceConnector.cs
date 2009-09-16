@@ -117,11 +117,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
         }
         
-        public bool IsAuthorizedForRegion(string userID, string regionID)
+        public bool IsAuthorizedForRegion(string userID, string regionID, out string message)
         {
             m_log.InfoFormat("[REMOTE AUTHORIZATION CONNECTOR]: IsAuthorizedForRegion checking {0} for region {1}", userID, regionID);
             
             bool isAuthorized = true;
+            message = String.Empty;
             
             // get the scene this call is being made for
             Scene scene = null;
@@ -140,7 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             {
                 UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(new UUID(userID));
                 isAuthorized = IsAuthorizedForRegion(userID, profile.FirstName, profile.SurName,
-                    profile.Email, scene.RegionInfo.RegionName, regionID);
+                    profile.Email, scene.RegionInfo.RegionName, regionID, out message);
             }
             else
             {
