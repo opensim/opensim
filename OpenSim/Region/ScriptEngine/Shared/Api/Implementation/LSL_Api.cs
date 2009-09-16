@@ -81,10 +81,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected float m_MinTimerInterval = 0.5f;
 
         protected DateTime m_timer = DateTime.Now;
-        protected bool m_waitingForScriptAnswer=false;
-        protected bool m_automaticLinkPermission=false;
+        protected bool m_waitingForScriptAnswer = false;
+        protected bool m_automaticLinkPermission = false;
         protected IMessageTransferModule m_TransferModule = null;
         protected int m_notecardLineReadCharsMax = 255;
+        protected int m_scriptConsoleChannel = 0;
+        protected bool m_scriptConsoleChannelEnabled = false;
         protected IUrlModule m_UrlModule = null;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
@@ -94,21 +96,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            m_ScriptDelayFactor =
-                m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor =
-                m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
-            m_MinTimerInterval =
-                m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
-            m_automaticLinkPermission =
-                m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
-            m_notecardLineReadCharsMax =
-                m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
+            m_ScriptDelayFactor = m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_MinTimerInterval = m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
+            m_automaticLinkPermission = m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
+            m_scriptConsoleChannel = m_ScriptEngine.Config.GetInt("ScriptConsoleChannel", 0);
+            m_scriptConsoleChannelEnabled = (m_scriptConsoleChannel != 0);
+            m_notecardLineReadCharsMax = m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
 
-            m_TransferModule =
-                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_TransferModule = m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             if (m_UrlModule != null)
             {
@@ -565,10 +563,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             double s2 = Math.Sin(v.y * 0.5);
             double s3 = Math.Sin(v.z * 0.5);
 
-            x = s1*c2*c3+c1*s2*s3;
-            y = c1*s2*c3-s1*c2*s3;
-            z = s1*s2*c3+c1*c2*s3;
-            s = c1*c2*c3-s1*s2*s3;
+            x = s1 * c2 * c3 + c1 * s2 * s3;
+            y = c1 * s2 * c3 - s1 * c2 * s3;
+            z = s1 * s2 * c3 + c1 * c2 * s3;
+            s = c1 * c2 * c3 - s1 * s2 * s3;
 
             return new LSL_Rotation(x, y, z, s);
         }
@@ -742,14 +740,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if (text.Length > 1023)
-                text = text.Substring(0, 1023);
+            if (m_scriptConsoleChannelEnabled && (channelID == m_scriptConsoleChannel))
+            {
+                Console.WriteLine(text);
+            }
+            else
+            {
+                if (text.Length > 1023)
+                    text = text.Substring(0, 1023);
 
-            World.SimChat(Utils.StringToBytes(text),
-                          ChatTypeEnum.Say, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
+                World.SimChat(Utils.StringToBytes(text),
+                              ChatTypeEnum.Say, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
-            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
+                IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+                wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
+            }
         }
 
         public void llShout(int channelID, string text)
@@ -6316,11 +6321,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
                 if (xmlRpcRouter != null)
-                    xmlRpcRouter.RegisterNewReceiver(m_ScriptEngine.ScriptModule, channelID, m_host.UUID, m_itemID, "http://"+System.Environment.MachineName+":"+xmlrpcMod.Port.ToString()+"/");
-                object[] resobj = new object[] { new LSL_Integer(1), new LSL_String(channelID.ToString()), new LSL_String(UUID.Zero.ToString()), new LSL_String(String.Empty), new LSL_Integer(0), new LSL_String(String.Empty) };
-                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams(
-                        "remote_data", resobj,
-                        new DetectParams[0]));
+                    xmlRpcRouter.RegisterNewReceiver(m_ScriptEngine.ScriptModule, channelID, m_host.UUID, 
+                                                     m_itemID, String.Format("http://{0}:{1}/", System.Environment.MachineName, 
+                                                                             xmlrpcMod.Port.ToString()));
+                object[] resobj = new object[] 
+                    { 
+                        new LSL_Integer(1), 
+                        new LSL_String(channelID.ToString()), 
+                        new LSL_String(UUID.Zero.ToString()), 
+                        new LSL_String(String.Empty), 
+                        new LSL_Integer(0), 
+                        new LSL_String(String.Empty) 
+                    };
+                m_ScriptEngine.PostScriptEvent(m_itemID, new EventParams("remote_data", resobj,
+                                                                         new DetectParams[0]));
             }
             ConditionalScriptSleep(1000);
         }
@@ -6352,7 +6366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llMD5String(string src, int nonce)
         {
             m_host.AddScriptLPS(1);
-            return Util.Md5Hash(src + ":" + nonce.ToString());
+            return Util.Md5Hash(String.Format("{0}:{1}", src, nonce.ToString()));
         }
 
         public LSL_String llSHA1String(string src)
@@ -6729,12 +6743,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // try to let this work as in SL...
                         if (part.ParentID == 0)
                         {
-                            // special case: If we are root, rotate complete SOG to new rotation
+                            // special case: If we are root, rotate
+                            // complete SOG to new rotation
                             SetRot(part, Rot2Quaternion(q));
                         }
                         else
                         {
-                            // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
+                            // we are a child. The rotation values
+                            // will be set to the one of root modified
+                            // by rot, as in SL. Don't ask.
                             SceneObjectGroup group = part.ParentGroup;
                             if (group != null) // a bit paranoid, maybe
                             {
@@ -6840,7 +6857,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 0);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, 
+                                                        revolutions, radiusoffset, skew, 0);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_TUBE:
@@ -6859,7 +6877,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 1);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, 
+                                                        revolutions, radiusoffset, skew, 1);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_RING:
@@ -6878,7 +6897,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 radiusoffset = (float)rules.GetLSLFloatItem(idx++);
                                 skew = (float)rules.GetLSLFloatItem(idx++);
                                 part.Shape.PathCurve = (byte)Extrusion.Curve1;
-                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 3);
+                                SetPrimitiveShapeParams(part, face, v, hollow, twist, holesize, topshear, profilecut, taper_b, 
+                                                        revolutions, radiusoffset, skew, 3);
                                 break;
 
                             case (int)ScriptBaseClass.PRIM_TYPE_SCULPT:
@@ -7125,7 +7145,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetRootPosition()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y, m_host.ParentGroup.AbsolutePosition.Z);
+            return new LSL_Vector(m_host.ParentGroup.AbsolutePosition.X, m_host.ParentGroup.AbsolutePosition.Y, 
+                                  m_host.ParentGroup.AbsolutePosition.Z);
         }
 
         /// <summary>
@@ -7763,39 +7784,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             //      -1 == invalid
             //       0 == padding
 
-            if ((digit=c2itable[str[0]])<=0)
+            if ((digit = c2itable[str[0]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit<<26;
 
-            if ((digit=c2itable[str[1]])<=0)
+            if ((digit = c2itable[str[1]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit<<20;
 
-            if ((digit=c2itable[str[2]])<=0)
+            if ((digit = c2itable[str[2]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit<<14;
 
-            if ((digit=c2itable[str[3]])<=0)
+            if ((digit = c2itable[str[3]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit<<8;
 
-            if ((digit=c2itable[str[4]])<=0)
+            if ((digit = c2itable[str[4]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit<<2;
 
-            if ((digit=c2itable[str[5]])<=0)
+            if ((digit = c2itable[str[5]]) <= 0)
             {
-                return digit<0?(int)0:number;
+                return digit < 0 ? (int)0 : number;
             }
             number += --digit>>4;
 
@@ -7913,7 +7934,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (active[j])
                     {
                         // scan all of the markers
-                        if ((offset[j] = src.IndexOf(separray[j].ToString(),beginning)) == -1)
+                        if ((offset[j] = src.IndexOf(separray[j].ToString(), beginning)) == -1)
                         {
                             // not present at all
                             active[j] = false;
