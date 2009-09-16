@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
                 {
                     sceneObjectsLoadedCount++;
-                    sceneObject.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 0);
+                    sceneObject.CreateScriptInstances(0, false, m_scene.DefaultScriptEngine, 0);
                 }
             }
 
