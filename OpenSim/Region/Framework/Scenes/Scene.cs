@@ -994,9 +994,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Loop it
                     if (m_frame == Int32.MaxValue)
-                        m_frame = 0;
-
-                    
+                        m_frame = 0;                   
 
                     otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
@@ -1016,7 +1014,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         m_sceneGraph.UpdateEntities();
                     }
-
 
                     // run through entities that have scheduled themselves for
                     // updates looking for updates(faster)

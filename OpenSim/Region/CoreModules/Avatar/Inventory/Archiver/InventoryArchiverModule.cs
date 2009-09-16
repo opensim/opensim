@@ -125,10 +125,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
-                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
-                    return false;
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
 
                 if (userInfo != null)
                 {
@@ -153,11 +150,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
-                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
-                    return false;
-
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
                 
                 if (userInfo != null)
                 {
@@ -182,11 +175,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {            
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
-                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
-                    return false;
-
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
                         
                 if (userInfo != null)
                 {
@@ -214,11 +203,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {   
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName);
-                string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
-                if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
-                    return false;
-
+                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
                 
                 if (userInfo != null)
                 {
@@ -251,7 +236,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (cmdparams.Length < 6)
             {
                 m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <password> [<load file path>]");
+                    "[INVENTORY ARCHIVER]: usage is load iar <first name> <last name> <inventory path> <user password> [<load file path>]");
                 return;
             }
 
@@ -282,7 +267,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (cmdparams.Length < 5)
             {
                 m_log.Error(
-                    "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <password> [<save file path>]");
+                    "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <user password> [<save file path>]");
                 return;
             }
 
@@ -334,14 +319,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
+        /// <param name="pass">User password</param>
         /// <returns></returns>
-        protected CachedUserInfo GetUserInfo(string firstName, string lastName)
+        protected CachedUserInfo GetUserInfo(string firstName, string lastName, string pass)
         {
             CachedUserInfo userInfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             if (null == userInfo)
             {
                 m_log.ErrorFormat(
                     "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1}", 
+                    firstName, lastName);
+                return null;
+            }
+
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+            if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
                     firstName, lastName);
                 return null;
             }
