@@ -305,8 +305,8 @@ namespace OpenSim
                 config.Set("region_info_source", "filesystem");
 
                 config.Set("gridmode", false);
-                config.Set("physics", "basicphysics");
-                config.Set("meshing", "ZeroMesher");
+                config.Set("physics", "OpenDynamicsEngine");
+                config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
                 config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", false);

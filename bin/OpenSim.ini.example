@@ -134,19 +134,24 @@
     ; if you would like to allow prims to be physical and move by physics with the physical checkbox in the client set this to true.
     physical_prim = true
 
-    ; Select a mesher here. ZeroMesher is safe and fast.
-    ; ZeroMesher also means that the physics engine models the physics of prims
-    ; sticking to the basic shapes the engine does support. Usually this is only a box.
-    ; Meshmerizer gives a better handling of complex prims by using triangle meshes.
-    ; Note that only ODE physics currently deals with meshed prims in a satisfactory way
+    ; Select a mesher here.
     ;
-    meshing = ZeroMesher
-    ;meshing = Meshmerizer
+    ; Meshmerizer properly handles complex prims by using triangle meshes.
+    ; Note that only the ODE physics engine currently deals with meshed prims in a satisfactory way
+    ;
+    ; ZeroMesher is faster but leaves the physics engine to model the mesh using the basic shapes that it supports
+    ; Usually this is only a box
+
+    meshing = Meshmerizer
+    ;meshing = ZeroMesher
 
     ; Choose one of the physics engines below
-    physics = basicphysics
+    ; OpenDynamicsEngine is by some distance the most developed physics engine
+    ; basicphysics effectively does not model physics at all, making all objects phantom
+
+    physics = OpenDynamicsEngine
+    ;physics = basicphysics
     ;physics = POS
-    ;physics = OpenDynamicsEngine
     ;physics = modified_BulletX
 
     ; ##

@@ -994,9 +994,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Loop it
                     if (m_frame == Int32.MaxValue)
-                        m_frame = 0;
-
-                    
+                        m_frame = 0;                   
 
                     otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
@@ -1016,7 +1014,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                         m_sceneGraph.UpdateEntities();
                     }
-
 
                     // run through entities that have scheduled themselves for
                     // updates looking for updates(faster)
@@ -3253,10 +3250,11 @@ namespace OpenSim.Region.Framework.Scenes
                       
             if (AuthorizationService != null)
             {
-                if (!AuthorizationService.IsAuthorizedForRegion(agent.AgentID.ToString(), RegionInfo.RegionID.ToString()))
+                if (!AuthorizationService.IsAuthorizedForRegion(agent.AgentID.ToString(), RegionInfo.RegionID.ToString(),out reason))
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
+                    //reason = String.Format("You are not currently on the access list for {0}",RegionInfo.RegionName);
                     return false;    
                 }
             }
