@@ -1277,10 +1277,23 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // to the core Groups Stub
             remoteClient.SendGroupMembership(new GroupMembershipData[0]);
 
-            GroupMembershipData[] membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), dataForAgentID).ToArray();
+            List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), dataForAgentID);
+            GroupMembershipData[] membershipArray;
 
-            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipData);
-            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipData);
+            if (remoteClient.AgentId != dataForAgentID)
+            {
+                Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
+                {
+                    return membership.ListInProfile;
+                };
+
+                membershipArray = membershipData.FindAll(showInProfile).ToArray();
+            } else {
+                membershipArray = membershipData.ToArray();
+            }
+
+            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
+            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
 
         }
 
