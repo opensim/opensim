@@ -40,7 +40,7 @@ namespace OpenSim.Services.Interfaces
         // This method returns a simple true false indicating 
         // whether or not a user has access to the region
         //
-        bool IsAuthorizedForRegion(string userID, string regionID);
+        bool IsAuthorizedForRegion(string userID, string regionID, out string message);
 
     }
     

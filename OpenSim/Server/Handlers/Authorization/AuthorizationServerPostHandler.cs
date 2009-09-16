@@ -60,7 +60,8 @@ namespace OpenSim.Server.Handlers.Authorization
             XmlSerializer xs = new XmlSerializer(typeof (AuthorizationRequest));
             AuthorizationRequest Authorization = (AuthorizationRequest) xs.Deserialize(request);
 
-            bool authorized = m_AuthorizationService.IsAuthorizedForRegion(Authorization.ID, Authorization.RegionID);
+            string message = String.Empty;
+            bool authorized = m_AuthorizationService.IsAuthorizedForRegion(Authorization.ID, Authorization.RegionID,out message);
 
             AuthorizationResponse result = new AuthorizationResponse(authorized, Authorization.ID + " has been authorized");
 
