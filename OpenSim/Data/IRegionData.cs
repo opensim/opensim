@@ -48,7 +48,7 @@ namespace OpenSim.Data
     public interface IRegionData
     {
         RegionData Get(UUID regionID, UUID ScopeID);
-        RegionData Get(string regionName, UUID ScopeID);
+        List<RegionData> Get(string regionName, UUID ScopeID);
         RegionData Get(int x, int y, UUID ScopeID);
         List<RegionData> Get(int xStart, int yStart, int xEnd, int yEnd, UUID ScopeID);
 
