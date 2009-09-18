@@ -264,7 +264,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            if (cmdparams.Length < 5)
+            if (cmdparams.Length < 6)
             {
                 m_log.Error(
                     "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <user password> [<save file path>]");
