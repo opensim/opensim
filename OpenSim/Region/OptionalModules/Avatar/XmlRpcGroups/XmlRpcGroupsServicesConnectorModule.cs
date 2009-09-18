@@ -855,8 +855,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             IList parameters = new ArrayList();
             parameters.Add(param);
 
-            ConfigurableKeepAliveXmlRpcRequest req;
-            req = new ConfigurableKeepAliveXmlRpcRequest(function, parameters, m_disableKeepAlive);
+            XmlRpcRequest req;
+            if (!m_disableKeepAlive)
+            {
+                req = new XmlRpcRequest(function, parameters);
+            }
+            else
+            {
+                // This seems to solve a major problem on some windows servers
+                req = new NoKeepAliveXmlRpcRequest(function, parameters);
+            }
 
             XmlRpcResponse resp = null;
 
@@ -866,16 +874,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             }
             catch (Exception e)
             {
-                
-
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
 
-                foreach( string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine },StringSplitOptions.None))
-                {
-                    m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
-                }
-
+                                
                 foreach (string key in param.Keys)
                 {
                     m_log.WarnFormat("[XMLRPCGROUPDATA]: {0} :: {1}", key, param[key].ToString());
@@ -959,24 +961,20 @@ namespace Nwc.XmlRpc
     using System.Reflection;
 
     /// <summary>Class supporting the request side of an XML-RPC transaction.</summary>
-    public class ConfigurableKeepAliveXmlRpcRequest : XmlRpcRequest
+    public class NoKeepAliveXmlRpcRequest : XmlRpcRequest
     {
         private Encoding _encoding = new ASCIIEncoding();
         private XmlRpcRequestSerializer _serializer = new XmlRpcRequestSerializer();
         private XmlRpcResponseDeserializer _deserializer = new XmlRpcResponseDeserializer();
-        private bool _disableKeepAlive = true;
-
-        public string RequestResponse = String.Empty;
 
         /// <summary>Instantiate an <c>XmlRpcRequest</c> for a specified method and parameters.</summary>
         /// <param name="methodName"><c>String</c> designating the <i>object.method</i> on the server the request
         /// should be directed to.</param>
         /// <param name="parameters"><c>ArrayList</c> of XML-RPC type parameters to invoke the request with.</param>
-        public ConfigurableKeepAliveXmlRpcRequest(String methodName, IList parameters, bool disableKeepAlive)
+        public NoKeepAliveXmlRpcRequest(String methodName, IList parameters)
         {
             MethodName = methodName;
             _params = parameters;
-            _disableKeepAlive = disableKeepAlive;
         }
 
         /// <summary>Send the request to the server.</summary>
@@ -991,7 +989,7 @@ namespace Nwc.XmlRpc
             request.Method = "POST";
             request.ContentType = "text/xml";
             request.AllowWriteStreamBuffering = true;
-            request.KeepAlive = !_disableKeepAlive;
+            request.KeepAlive = false;
 
             Stream stream = request.GetRequestStream();
             XmlTextWriter xml = new XmlTextWriter(stream, _encoding);
@@ -1002,17 +1000,7 @@ namespace Nwc.XmlRpc
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             StreamReader input = new StreamReader(response.GetResponseStream());
 
-            string inputXml = input.ReadToEnd();
-            XmlRpcResponse resp;
-            try
-            {
-                resp = (XmlRpcResponse)_deserializer.Deserialize(inputXml);
-            }
-            catch (Exception e)
-            {
-                RequestResponse = inputXml;
-                throw e;
-            }
+            XmlRpcResponse resp = (XmlRpcResponse)_deserializer.Deserialize(input);
             input.Close();
             response.Close();
             return resp;
