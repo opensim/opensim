@@ -183,6 +183,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetParcelMediaURL(url);
         }
+        
+        public void osSetParcelSIPAddress(string SIPAddress)
+        {
+            m_OSSL_Functions.osSetParcelSIPAddress(SIPAddress);
+        }
 
         public void osSetPrimFloatOnWater(int floatYN)
         {

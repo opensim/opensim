@@ -1164,6 +1164,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             land.SetMediaUrl(url);
         }
+        
+        public void osSetParcelSIPAddress(string SIPAddress)
+        {
+            // What actually is the difference to the LL function?
+            //
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
+
+            m_host.AddScriptLPS(1);
+            
+
+            ILandObject land
+                = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.landData.OwnerID != m_host.ObjectOwner)
+            {
+                OSSLError("osSetParcelSIPAddress: Sorry, you need to own the land to use this function");
+                return;
+            }
+            
+            // get the voice module
+            IVoiceModule voiceModule = World.RequestModuleInterface<IVoiceModule>();
+            
+            if (voiceModule != null) 
+                voiceModule.setLandSIPAddress(SIPAddress,land.landData.GlobalID);
+            else
+                OSSLError("osSetParcelSIPAddress: No voice module enabled for this land");
+            
+            
+        }
 
         public string osGetScriptEngineName()
         {
