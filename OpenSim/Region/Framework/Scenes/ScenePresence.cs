@@ -2269,7 +2269,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         //Record the time we enter this state so we know whether to "land" or not
                         m_animPersistUntil = DateTime.Now.Ticks;
-                        return "FALLDOWN";
+                        return "FALLDOWN"; // this falling animation is invoked too frequently when capsule tilt correction is used - why?
                     }
                 }
             }
