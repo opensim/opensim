@@ -281,7 +281,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
         private void OnRequestAvatarProperties(IClientAPI remoteClient, UUID avatarID)
         {
-            GroupMembershipData[] avatarGroups = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), avatarID).ToArray();
+            if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
+
+            //GroupMembershipData[] avatarGroups = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), avatarID).ToArray();
+            GroupMembershipData[] avatarGroups = GetProfileListedGroupMemberships(remoteClient, avatarID);
             remoteClient.SendAvatarGroupsReply(avatarID, avatarGroups);
         }
 
@@ -485,6 +488,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         bucket[18] = 0; //dunno
                     }
 
+                    
                     m_groupData.AddGroupNotice(GetClientGroupRequestID(remoteClient), GroupID, NoticeID, im.fromAgentName, Subject, Message, bucket);
                     if (OnNewGroupNotice != null)
                     {
@@ -494,7 +498,20 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     // Send notice out to everyone that wants notices
                     foreach (GroupMembersData member in m_groupData.GetGroupMembers(GetClientGroupRequestID(remoteClient), GroupID))
                     {
-                        if (member.AcceptNotices)
+                         if (m_debugEnabled)
+                        {
+                            UserProfileData targetUserProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(member.AgentID);
+                            if (targetUserProfile != null)
+                            {
+                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, targetUserProfile.Name, member.AcceptNotices);
+                            }
+                            else
+                            {
+                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, member.AgentID, member.AcceptNotices);
+                            }
+                        }
+
+                       if (member.AcceptNotices)
                         {
                             // Build notice IIM
                             GridInstantMessage msg = CreateGroupNoticeIM(UUID.Zero, NoticeID, (byte)OpenMetaverse.InstantMessageDialog.GroupNotice);
@@ -614,13 +631,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             List<GroupMembersData> data = m_groupData.GetGroupMembers(GetClientGroupRequestID(remoteClient), groupID);
-            if (m_debugEnabled)
-            {
-                foreach (GroupMembersData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: {0} {1}", member.AgentID, member.Title);
-                }
-            }
 
             return data;
 
@@ -632,14 +642,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             List<GroupRolesData> data = m_groupData.GetGroupRoles(GetClientGroupRequestID(remoteClient), groupID);
 
-            if (m_debugEnabled)
-            {
-                foreach (GroupRolesData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: {0} {1}", member.Title, member.Members);
-                }
-            }
-
             return data;
 
         }
@@ -650,14 +652,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             List<GroupRoleMembersData> data = m_groupData.GetGroupRoleMembers(GetClientGroupRequestID(remoteClient), groupID);
 
-            if (m_debugEnabled)
-            {
-                foreach (GroupRoleMembersData member in data)
-                {
-                    m_log.DebugFormat("[GROUPS]: Av: {0}  Role: {1}", member.MemberID, member.RoleID);
-                }
-            }
-            
             return data;
 
 
@@ -808,7 +802,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            // TODO: Security Checks?
+            // Security Checks are handled in the Groups Service.
 
             GroupRequestID grID = GetClientGroupRequestID(remoteClient);
 
@@ -825,6 +819,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 case OpenMetaverse.GroupRoleUpdate.UpdateAll:
                 case OpenMetaverse.GroupRoleUpdate.UpdateData:
                 case OpenMetaverse.GroupRoleUpdate.UpdatePowers:
+                    if (m_debugEnabled)
+                    {
+                        GroupPowers gp = (GroupPowers)powers;
+                        m_log.DebugFormat("[GROUPS]: Role ({0}) updated with Powers ({1}) ({2})", name, powers.ToString(), gp.ToString());
+                    }
                     m_groupData.UpdateGroupRole(grID, groupID, roleID, name, description, title, powers);
                     break;
 
@@ -1195,6 +1194,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             foreach (GroupMembershipData membership in data)
             {
+                if (remoteClient.AgentId != dataForAgentID)
+                {
+                    if (!membership.ListInProfile)
+                    {
+                        // If we're sending group info to remoteclient about another agent, 
+                        // filter out groups the other agent doesn't want to share.
+                        continue;
+                    }
+                }
+
                 OSDMap GroupDataMap = new OSDMap(6);
                 OSDMap NewGroupDataMap = new OSDMap(1);
 
@@ -1281,11 +1290,46 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             // to the core Groups Stub
             remoteClient.SendGroupMembership(new GroupMembershipData[0]);
 
-            GroupMembershipData[] membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(remoteClient), dataForAgentID).ToArray();
+            GroupMembershipData[] membershipArray = GetProfileListedGroupMemberships(remoteClient, dataForAgentID);
+            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipArray);
+            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipArray);
 
-            SendGroupMembershipInfoViaCaps(remoteClient, dataForAgentID, membershipData);
-            remoteClient.SendAvatarGroupsReply(dataForAgentID, membershipData);
+        }
 
+        /// <summary>
+        /// Get a list of groups memberships for the agent that are marked "ListInProfile"
+        /// </summary>
+        /// <param name="dataForAgentID"></param>
+        /// <returns></returns>
+        private GroupMembershipData[] GetProfileListedGroupMemberships(IClientAPI requestingClient, UUID dataForAgentID)
+        {
+            List<GroupMembershipData> membershipData = m_groupData.GetAgentGroupMemberships(GetClientGroupRequestID(requestingClient), dataForAgentID);
+            GroupMembershipData[] membershipArray;
+
+            if (requestingClient.AgentId != dataForAgentID)
+            {
+                Predicate<GroupMembershipData> showInProfile = delegate(GroupMembershipData membership)
+                {
+                    return membership.ListInProfile;
+                };
+
+                membershipArray = membershipData.FindAll(showInProfile).ToArray();
+            }
+            else
+            {
+                membershipArray = membershipData.ToArray();
+            }
+
+            if (m_debugEnabled)
+            {
+                m_log.InfoFormat("[GROUPS]: Get group membership information for {0} requested by {1}", dataForAgentID, requestingClient.AgentId);
+                foreach (GroupMembershipData membership in membershipArray)
+                {
+                    m_log.InfoFormat("[GROUPS]: {0} :: {1} - {2}", dataForAgentID, membership.GroupName, membership.GroupTitle);
+                }
+            }
+
+            return membershipArray;
         }
 
         private void SendAgentDataUpdate(IClientAPI remoteClient, UUID dataForAgentID, UUID activeGroupID, string activeGroupName, ulong activeGroupPowers, string activeGroupTitle)

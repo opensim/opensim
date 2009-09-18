@@ -75,6 +75,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         bool osConsoleCommand(string Command);
         void osSetParcelMediaURL(string url);
         void osSetPrimFloatOnWater(int floatYN);
+        void osSetParcelSIPAddress(string SIPAddress);
 
         // Avatar Info Commands
         string osGetAgentIP(string agent);

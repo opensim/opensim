@@ -250,16 +250,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override Vector3 AbsolutePosition
         {
-            get
-            {
-                if (m_rootPart == null)
-                {
-                    throw new NullReferenceException(
-                        string.Format("[SCENE OBJECT GROUP]: Object {0} has no root part.", m_uuid));
-                }
-
-                return m_rootPart.GroupPosition;
-            }
+            get { return m_rootPart.GroupPosition; }
             set
             {
                 Vector3 val = value;
@@ -291,41 +282,19 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override uint LocalId
         {
-            get
-            {
-                if (m_rootPart == null)
-                {
-                    m_log.Error("[SCENE OBJECT GROUP]: Unable to find the rootpart for a LocalId Request!");
-                    return 0;
-                }
-
-                return m_rootPart.LocalId;
-            }
+            get { return m_rootPart.LocalId; }
             set { m_rootPart.LocalId = value; }
         }
 
         public override UUID UUID
         {
-            get {
-                if (m_rootPart == null)
-                {
-                    m_log.Error("Got a null rootpart while requesting UUID. Called from: ", new Exception());
-                    return UUID.Zero;
-                }
-                else return m_rootPart.UUID;
-            }
+            get { return m_rootPart.UUID; }
             set { m_rootPart.UUID = value; }
         }
 
         public UUID OwnerID
         {
-            get
-            {
-                if (m_rootPart == null)
-                    return UUID.Zero;
-
-                return m_rootPart.OwnerID;
-            }
+            get { return m_rootPart.OwnerID; }
             set { m_rootPart.OwnerID = value; }
         }
 
@@ -366,7 +335,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_isSelected = value;
                 // Tell physics engine that group is selected
-                if (m_rootPart != null && m_rootPart.PhysActor != null)
+                if (m_rootPart.PhysActor != null)
                 {
                     m_rootPart.PhysActor.Selected = value;
                     // Pass it on to the children.
@@ -399,13 +368,6 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructors
 
         /// <summary>
-        /// Constructor
-        /// </summary>
-        public SceneObjectGroup()
-        {
-        }
-
-        /// <summary>
         /// This constructor creates a SceneObjectGroup using a pre-existing SceneObjectPart.
         /// The original SceneObjectPart will be used rather than a copy, preserving
         /// its existing localID and UUID.
@@ -419,9 +381,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// Constructor.  This object is added to the scene later via AttachToScene()
         /// </summary>
         public SceneObjectGroup(UUID ownerID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
-        {
-            Vector3 rootOffset = new Vector3(0, 0, 0);   
-            SetRootPart(new SceneObjectPart(ownerID, shape, pos, rot, rootOffset));
+        { 
+            SetRootPart(new SceneObjectPart(ownerID, shape, pos, rot, Vector3.Zero));
         }
 
         /// <summary>
@@ -462,11 +423,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public UUID GetFromItemID()
         {
-            if (m_rootPart != null)
-            {
-                return m_rootPart.FromItemID;
-            }
-            return UUID.Zero;
+            return m_rootPart.FromItemID;
         }
 
         /// <summary>
@@ -958,11 +915,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public byte GetAttachmentPoint()
         {
-            if (m_rootPart != null)
-            {
-                return m_rootPart.Shape.State;
-            }
-            return (byte)0;
+            return m_rootPart.Shape.State;
         }
 
         public void ClearPartAttachmentData()
@@ -1071,7 +1024,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="part"></param>
         public void SetRootPart(SceneObjectPart part)
-        {            
+        {
+            if (part == null)
+                throw new ArgumentNullException("Cannot give SceneObjectGroup a null root SceneObjectPart");
+
             part.SetParent(this);
             m_rootPart = part;
             if (!IsAttachment)
@@ -1224,7 +1180,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (!silent)
                         {
-                            if (m_rootPart != null && part == m_rootPart)
+                            if (part == m_rootPart)
                                 avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                         }
                     }
@@ -1447,7 +1403,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
-            if (m_rootPart != null && m_rootPart.UUID == part.UUID)
+            if (m_rootPart.UUID == part.UUID)
             {
                 if (IsAttachment)
                 {
@@ -1879,12 +1835,6 @@ namespace OpenSim.Region.Framework.Scenes
             // A more fundamental overhaul of the update mechanism is required to eliminate all
             // the race conditions.
             if (m_isDeleted)
-                return;
-
-            // This is what happens when an orphanced link set child prim's
-            // group was queued when it was linked
-            //
-            if (m_rootPart == null)
                 return;
 
             // Even temporary objects take part in physics (e.g. temp-on-rez bullets)
@@ -3129,26 +3079,22 @@ namespace OpenSim.Region.Framework.Scenes
             int yaxis = 4;
             int zaxis = 8;
 
-            if (m_rootPart != null)
+            setX = ((axis & xaxis) != 0) ? true : false;
+            setY = ((axis & yaxis) != 0) ? true : false;
+            setZ = ((axis & zaxis) != 0) ? true : false;
+
+            float setval = (rotate10 > 0) ? 1f : 0f;
+
+            if (setX)
+                m_rootPart.RotationAxis.X = setval;
+            if (setY)
+                m_rootPart.RotationAxis.Y = setval;
+            if (setZ)
+                m_rootPart.RotationAxis.Z = setval;
+
+            if (setX || setY || setZ)
             {
-                setX = ((axis & xaxis) != 0) ? true : false;
-                setY = ((axis & yaxis) != 0) ? true : false;
-                setZ = ((axis & zaxis) != 0) ? true : false;
-
-                float setval = (rotate10 > 0) ? 1f : 0f;
-
-                if (setX)
-                    m_rootPart.RotationAxis.X = setval;
-                if (setY)
-                    m_rootPart.RotationAxis.Y = setval;
-                if (setZ)
-                    m_rootPart.RotationAxis.Z = setval;
-
-                if (setX || setY || setZ)
-                {
-                    m_rootPart.SetPhysicsAxisRotation();
-                }
-
+                m_rootPart.SetPhysicsAxisRotation();
             }
         }
 
