@@ -255,5 +255,47 @@ namespace OpenSim.Server.Base
                 parent.AppendChild(elem);
             }
         }
+
+        public static Dictionary<string, object> ParseXmlResponse(string data)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            XmlDocument doc = new XmlDocument();
+
+            doc.LoadXml(data);
+            
+            XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
+
+            if (rootL.Count != 1)
+                return ret;
+
+            XmlNode rootNode = rootL[0];
+
+            ret = ParseElement(rootNode);
+
+            return ret;
+        }
+
+        private static Dictionary<string, object> ParseElement(XmlNode element)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            XmlNodeList partL = element.ChildNodes;
+
+            foreach (XmlNode part in partL)
+            {
+                XmlNode type = part.Attributes.GetNamedItem("Type");
+                if (type == null || type.Value != "List")
+                {
+                    ret[part.Name] = part.InnerText;
+                }
+                else
+                {
+                    ret[part.Name] = ParseElement(part);
+                }
+            }
+
+            return ret;
+        }
     }
 }

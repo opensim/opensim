@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
+using OpenSim.Server.Base;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
@@ -83,6 +84,17 @@ namespace OpenSim.Services.Connectors
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
+            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            sendData["LIFETIME"] = lifetime.ToString();
+            sendData["PRINCIPAL"] = principalID.ToString();
+            sendData["PASSWORD"] = password;
+
+            sendData["METHOD"] = "authenticate";
+
+            string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                    m_ServerURI + "/auth/plain",
+                    ServerUtils.BuildQueryString(sendData));
+
             return String.Empty;
         }
 
