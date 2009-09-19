@@ -39,7 +39,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionInfos"> </param>
         /// <returns></returns>
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
-        bool RegisterRegion(UUID scopeID, RegionInfo regionInfos);
+        bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfos);
 
         /// <summary>
         /// Deregister a region with the grid service.
@@ -50,15 +50,22 @@ namespace OpenSim.Services.Interfaces
         bool DeregisterRegion(UUID regionID);   
 
         /// <summary>
-        /// Get information about the regions neighbouring the given co-ordinates.
+        /// Get information about the regions neighbouring the given co-ordinates (in meters).
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, uint x, uint y);
+        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, int x, int y);
 
         SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID);
 
+        /// <summary>
+        /// Get the region at the given position (in meters)
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y);
         
         SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName);
@@ -78,9 +85,7 @@ namespace OpenSim.Services.Interfaces
         /// </returns>
         List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber);
 
-
-        // Not sure about these two (diva)
-
+        List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
     }
 }
