@@ -183,5 +183,77 @@ namespace OpenSim.Server.Base
 
             return result;
         }
+
+        public static string BuildQueryString(Dictionary<string, string> data)
+        {
+            string qstring = String.Empty;
+
+            foreach(KeyValuePair<string, string> kvp in data)
+            {
+                string part;
+                if (kvp.Value != String.Empty)
+                {
+                    part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
+                            "=" + System.Web.HttpUtility.UrlEncode(kvp.Value);
+                }
+                else
+                {
+                    part = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                }
+
+                if (qstring != String.Empty)
+                    qstring += "&";
+
+                qstring += part;
+            }
+
+            return qstring;
+        }
+
+        public static string BuildXmlResponse(Dictionary<string, object> data)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            doc.AppendChild(xmlnode);
+
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
+                    "");
+
+            doc.AppendChild(rootElement);
+
+            BuildXmlData(rootElement, data);
+
+            return doc.InnerXml;
+        }
+
+        private static void BuildXmlData(XmlElement parent, Dictionary<string, object> data)
+        {
+            foreach (KeyValuePair<string, object> kvp in data)
+            {
+                XmlElement elem = parent.OwnerDocument.CreateElement("",
+                        kvp.Key, "");
+
+                if (kvp.Value is Dictionary<string, object>)
+                {
+                    XmlAttribute type = parent.OwnerDocument.CreateAttribute("",
+                        "type", "");
+                    type.Value = "List";
+
+                    elem.Attributes.Append(type);
+
+                    BuildXmlData(elem, (Dictionary<string, object>)kvp.Value);
+                }
+                else
+                {
+                    elem.AppendChild(parent.OwnerDocument.CreateTextNode(
+                            kvp.Value.ToString()));
+                }
+
+                parent.AppendChild(elem);
+            }
+        }
     }
 }
