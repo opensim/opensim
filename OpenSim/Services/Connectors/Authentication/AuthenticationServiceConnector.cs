@@ -106,12 +106,45 @@ namespace OpenSim.Services.Connectors
 
         public bool Verify(UUID principalID, string token, int lifetime)
         {
-            return false;
+            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            sendData["LIFETIME"] = lifetime.ToString();
+            sendData["PRINCIPAL"] = principalID.ToString();
+            sendData["TOKEN"] = token;
+
+            sendData["METHOD"] = "verify";
+
+            string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                    m_ServerURI + "/auth/plain",
+                    ServerUtils.BuildQueryString(sendData));
+
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
+                    reply);
+
+            if (replyData["Result"].ToString() != "Success")
+                return false;
+
+            return true;
         }
 
         public bool Release(UUID principalID, string token)
         {
-            return false;
+            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            sendData["PRINCIPAL"] = principalID.ToString();
+            sendData["TOKEN"] = token;
+
+            sendData["METHOD"] = "release";
+
+            string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                    m_ServerURI + "/auth/plain",
+                    ServerUtils.BuildQueryString(sendData));
+
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
+                    reply);
+
+            if (replyData["Result"].ToString() != "Success")
+                return false;
+
+            return true;
         }
     }
 }
