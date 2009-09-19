@@ -47,17 +47,6 @@ namespace OpenSim.Services.GridService
             string realm = "regions";
 
             //
-            // Try reading the [AssetService] section first, if it exists
-            //
-            IConfig gridConfig = config.Configs["GridService"];
-            if (gridConfig != null)
-            {
-                dllName = gridConfig.GetString("StorageProvider", dllName);
-                connString = gridConfig.GetString("ConnectionString", connString);
-                realm = gridConfig.GetString("Realm", realm);
-            }
-
-            //
             // Try reading the [DatabaseService] section, if it exists
             //
             IConfig dbConfig = config.Configs["DatabaseService"];
@@ -67,6 +56,17 @@ namespace OpenSim.Services.GridService
                     dllName = dbConfig.GetString("StorageProvider", String.Empty);
                 if (connString == String.Empty)
                     connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
+            //
+            // [GridService] section overrides [DatabaseService], if it exists
+            //
+            IConfig gridConfig = config.Configs["GridService"];
+            if (gridConfig != null)
+            {
+                dllName = gridConfig.GetString("StorageProvider", dllName);
+                connString = gridConfig.GetString("ConnectionString", connString);
+                realm = gridConfig.GetString("Realm", realm);
             }
 
             //
