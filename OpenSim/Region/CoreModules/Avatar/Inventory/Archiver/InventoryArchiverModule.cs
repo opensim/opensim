@@ -264,7 +264,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="cmdparams"></param>
         protected void HandleSaveInvConsoleCommand(string module, string[] cmdparams)
         {
-            if (cmdparams.Length < 5)
+            if (cmdparams.Length < 6)
             {
                 m_log.Error(
                     "[INVENTORY ARCHIVER]: usage is save iar <first name> <last name> <inventory path> <user password> [<save file path>]");
@@ -324,6 +324,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         protected CachedUserInfo GetUserInfo(string firstName, string lastName, string pass)
         {
             CachedUserInfo userInfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
+            //m_aScene.CommsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userInfo)
             {
                 m_log.ErrorFormat(
@@ -333,6 +334,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
+
+            if (userInfo.UserProfile.PasswordHash == null || userInfo.UserProfile.PasswordHash == String.Empty)
+            {
+                m_log.ErrorFormat(
+                    "[INVENTORY ARCHIVER]: Sorry, the grid mode service is not providing password hash details for the check.  This will be fixed in an OpenSim git revision soon");
+
+                return null;
+            }
+
+//            m_log.DebugFormat(
+//                "[INVENTORY ARCHIVER]: received salt {0}, hash {1}, supplied hash {2}", 
+//                userInfo.UserProfile.PasswordSalt, userInfo.UserProfile.PasswordHash, md5PasswdHash);
+            
             if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
             {
                 m_log.ErrorFormat(

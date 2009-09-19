@@ -322,9 +322,8 @@ namespace OpenSim.Data.Tests
             // This is necessary or object will not be inserted in DB            
             sop.ObjectFlags = 0;
 
-            SceneObjectGroup sog = new SceneObjectGroup();
+            SceneObjectGroup sog = new SceneObjectGroup(sop);
             sog.SetScene(scene); // Reguired by nhibernate database module.
-            sog.SetRootPart(sop);
             
             // Inserts group in DB
             db.StoreObject(sog,region3);
@@ -1003,9 +1002,8 @@ namespace OpenSim.Data.Tests
             sop.UUID = uuid;
             sop.Shape = PrimitiveBaseShape.Default;
 
-            SceneObjectGroup sog = new SceneObjectGroup();
+            SceneObjectGroup sog = new SceneObjectGroup(sop);
             sog.SetScene(scene);
-            sog.SetRootPart(sop); 
 
             return sog;
         }

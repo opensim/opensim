@@ -66,7 +66,6 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
 
         private void CreatePointEntity(Scene scene, UUID uuid, Vector3 groupPos)
         {
-            SceneObjectGroup x = new SceneObjectGroup();
             SceneObjectPart y = new SceneObjectPart();
 
             //Initialize part
@@ -93,8 +92,8 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             y.TrimPermissions();
 
             //Initialize group and add part as root part
+            SceneObjectGroup x = new SceneObjectGroup(y);
             x.SetScene(scene);
-            x.SetRootPart(y);
             x.RegionHandle = scene.RegionInfo.RegionHandle;
             x.SetScene(scene);
 
