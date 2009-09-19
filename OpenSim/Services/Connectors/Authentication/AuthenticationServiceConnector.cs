@@ -95,7 +95,13 @@ namespace OpenSim.Services.Connectors
                     m_ServerURI + "/auth/plain",
                     ServerUtils.BuildQueryString(sendData));
 
-            return String.Empty;
+            Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(
+                    reply);
+
+            if (replyData["Result"].ToString() != "Success")
+                return String.Empty;
+
+            return replyData["Token"].ToString();
         }
 
         public bool Verify(UUID principalID, string token, int lifetime)
