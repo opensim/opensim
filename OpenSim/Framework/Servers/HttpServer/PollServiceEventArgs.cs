@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public delegate Hashtable GetEventsMethod(UUID pId, string request);
 
-    public delegate Hashtable NoEventsMethod();
+    public delegate Hashtable NoEventsMethod(UUID pId);
 
     public class PollServiceEventArgs : EventArgs
     {

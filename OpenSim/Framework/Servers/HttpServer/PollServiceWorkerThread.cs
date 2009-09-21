@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if ((Environment.TickCount - req.RequestTime) > m_timeout)
                         {
-                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(),
+                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.PollServiceArgs.Id),
                                                      new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                         }
                         else
