@@ -100,11 +100,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 PollServiceHttpRequest req = m_request.Dequeue();
                 try
                 {
-                    if (req.PollServiceArgs.HasEvents(req.PollServiceArgs.Id))
+                    if (req.PollServiceArgs.HasEvents(req.RequestID, req.PollServiceArgs.Id))
                     {
                         StreamReader str = new StreamReader(req.Request.Body);
 
-                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.PollServiceArgs.Id, str.ReadToEnd());
+                        Hashtable responsedata = req.PollServiceArgs.GetEvents(req.RequestID, req.PollServiceArgs.Id, str.ReadToEnd());
                         m_server.DoHTTPGruntWork(responsedata,
                                                  new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                     }
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if ((Environment.TickCount - req.RequestTime) > m_timeout)
                         {
-                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.PollServiceArgs.Id),
+                            m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id),
                                                      new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request),req.HttpContext));
                         }
                         else

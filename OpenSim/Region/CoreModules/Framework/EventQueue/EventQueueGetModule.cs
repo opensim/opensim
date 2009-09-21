@@ -326,7 +326,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             }
         }
 
-        public bool HasEvents(UUID agentID)
+        public bool HasEvents(UUID requestID, UUID agentID)
         {
             // Don't use this, because of race conditions at agent closing time
             //Queue<OSD> queue = TryGetQueue(agentID);
@@ -343,14 +343,14 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             return false;
         }
 
-        public Hashtable GetEvents(UUID pAgentId, string request)
+        public Hashtable GetEvents(UUID requestID, UUID pAgentId, string request)
         {
             Queue<OSD> queue = TryGetQueue(pAgentId);
             OSD element;
             lock (queue)
             {
                 if (queue.Count == 0)
-                    return NoEvents(pAgentId);
+                    return NoEvents(requestID, pAgentId);
                 element = queue.Dequeue(); // 15s timeout
             }
 
@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
         }
 
-        public Hashtable NoEvents(UUID agentID)
+        public Hashtable NoEvents(UUID requestID, UUID agentID)
         {
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 502;

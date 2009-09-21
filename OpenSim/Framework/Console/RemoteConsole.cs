@@ -370,7 +370,7 @@ namespace OpenSim.Framework.Console
             }
         }
 
-        private bool HasEvents(UUID sessionID)
+        private bool HasEvents(UUID RequestID, UUID sessionID)
         {
             ConsoleConnection c = null;
 
@@ -386,19 +386,19 @@ namespace OpenSim.Framework.Console
             return false;
         }
 
-        private Hashtable GetEvents(UUID sessionID, string request)
+        private Hashtable GetEvents(UUID RequestID, UUID sessionID, string request)
         {
             ConsoleConnection c = null;
 
             lock (m_Connections)
             {
                 if (!m_Connections.ContainsKey(sessionID))
-                    return NoEvents(UUID.Zero);
+                    return NoEvents(RequestID, UUID.Zero);
                 c = m_Connections[sessionID];
             }
             c.last = System.Environment.TickCount;
             if (c.lastLineSeen >= m_LineNumber)
-                return NoEvents(UUID.Zero);
+                return NoEvents(RequestID, UUID.Zero);
 
             Hashtable result = new Hashtable();
 
@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Console
             return result;
         }
 
-        private Hashtable NoEvents(UUID id)
+        private Hashtable NoEvents(UUID RequestID, UUID id)
         {
             Hashtable result = new Hashtable();
 
