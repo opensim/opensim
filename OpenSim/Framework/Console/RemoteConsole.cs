@@ -393,12 +393,12 @@ namespace OpenSim.Framework.Console
             lock (m_Connections)
             {
                 if (!m_Connections.ContainsKey(sessionID))
-                    return NoEvents();
+                    return NoEvents(UUID.Zero);
                 c = m_Connections[sessionID];
             }
             c.last = System.Environment.TickCount;
             if (c.lastLineSeen >= m_LineNumber)
-                return NoEvents();
+                return NoEvents(UUID.Zero);
 
             Hashtable result = new Hashtable();
 
@@ -440,7 +440,7 @@ namespace OpenSim.Framework.Console
             return result;
         }
 
-        private Hashtable NoEvents()
+        private Hashtable NoEvents(UUID id)
         {
             Hashtable result = new Hashtable();
 

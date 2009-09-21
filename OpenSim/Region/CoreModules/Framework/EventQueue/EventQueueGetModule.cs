@@ -350,7 +350,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             lock (queue)
             {
                 if (queue.Count == 0)
-                    return NoEvents();
+                    return NoEvents(pAgentId);
                 element = queue.Dequeue(); // 15s timeout
             }
 
@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
         }
 
-        public Hashtable NoEvents()
+        public Hashtable NoEvents(UUID agentID)
         {
             Hashtable responsedata = new Hashtable();
             responsedata["int_response_code"] = 502;
