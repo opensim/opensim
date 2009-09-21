@@ -197,7 +197,7 @@ namespace OpenSim.Framework.Console
 
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
-            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpCloseSession,
+            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpPoll,
                     new PollServiceEventArgs(HasEvents, GetEvents, NoEvents,
                     sessionID));
 
@@ -228,6 +228,11 @@ namespace OpenSim.Framework.Console
             reply["content_type"] = "text/xml";
 
             return reply;
+        }
+
+        private Hashtable HandleHttpPoll(Hashtable request)
+        {
+            return new Hashtable();
         }
 
         private Hashtable HandleHttpCloseSession(Hashtable request)
