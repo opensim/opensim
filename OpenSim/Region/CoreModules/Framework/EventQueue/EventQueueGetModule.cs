@@ -316,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
-                capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePath2, new PollServiceEventArgs(HasEvents, GetEvents, NoEvents, agentID));
+                capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(HasEvents, GetEvents, NoEvents, agentID));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)
@@ -489,6 +489,11 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             //m_log.DebugFormat("[EVENTQUEUE]: sending response for {0} in region {1}: {2}", agentID, m_scene.RegionInfo.RegionName, responsedata["str_response_string"]);
 
             return responsedata;
+        }
+
+        public Hashtable EventQueuePoll(Hashtable request)
+        {
+            return new Hashtable();
         }
 
         public Hashtable EventQueuePath2(Hashtable request)

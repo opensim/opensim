@@ -260,7 +260,9 @@ namespace OpenSim.Framework.Servers.HttpServer
             PollServiceEventArgs psEvArgs;
             if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
             {
+                OSHttpRequest req = new OSHttpRequest(context, request);
                 
+                HandleRequest(req, null);
                 m_PollServiceManager.Enqueue(new PollServiceHttpRequest(psEvArgs, context, request));
                 //DoHTTPGruntWork(psEvArgs.NoEvents(),new OSHttpResponse(new HttpResponse(context, request)));
             }
@@ -332,19 +334,26 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
                 //m_log.Debug("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
-                IHttpAgentHandler agentHandler;
 
-                if (TryGetAgentHandler(request, response, out agentHandler))
+                // If the response is null, then we're not going to respond here. This case
+                // triggers when we're at the head of a HTTP poll
+                //
+                if (response != null)
                 {
-                    if (HandleAgentRequest(agentHandler, request, response))
-                    {
-                        return;
-                    }
-                }
+                    IHttpAgentHandler agentHandler;
 
+                    if (TryGetAgentHandler(request, response, out agentHandler))
+                    {
+                        if (HandleAgentRequest(agentHandler, request, response))
+                        {
+                            return;
+                        }
+                    }
+
+                    //response.KeepAlive = true;
+                    response.SendChunked = false;
+                }
                 IRequestHandler requestHandler;
-                //response.KeepAlive = true;
-                response.SendChunked = false;
 
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
@@ -357,7 +366,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer = null;
 
-                    response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
+                    if (response != null)
+                        response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
+
 
                     if (requestHandler is IStreamedRequestHandler)
                     {
@@ -411,7 +422,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                             //m_log.Warn("[HTTP]: " + requestBody);
 
                         }
-                        DoHTTPGruntWork(HTTPRequestHandler.Handle(path, keysvals), response);
+                        // If we're not responding, we dont' care about the reply
+                        //
+                        if (response == null)
+                            HTTPRequestHandler.Handle(path, keysvals);
+                        else
+                            DoHTTPGruntWork(HTTPRequestHandler.Handle(path, keysvals), response);
                         return;
                     }
                     else
@@ -425,6 +441,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                             buffer = memoryStream.ToArray();
                         }
                     }
+
+                    // The handler has run and we're not yet ready to respond, bail
+                    //
+                    if (response == null)
+                        return;
 
                     request.InputStream.Close();
                     
