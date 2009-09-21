@@ -417,6 +417,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         //                        }
 
                         keysvals.Add("requestbody", requestBody);
+                        keysvals.Add("headers",headervals);
                         if (keysvals.Contains("method"))
                         {
                             //m_log.Warn("[HTTP]: Contains Method");
