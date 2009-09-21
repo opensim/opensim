@@ -88,13 +88,18 @@ namespace OpenSim.Services.GridService
             return m_Database.Delete(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, int x, int y)
+        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            List<RegionData> rdatas = m_Database.Get(x - 1, y - 1, x + 1, y + 1, scopeID);
             List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
-            foreach (RegionData rdata in rdatas)
-                rinfos.Add(RegionData2RegionInfo(rdata));
+            RegionData region = m_Database.Get(regionID, scopeID);
+            if (region != null)
+            {
+                // Not really? Maybe?
+                List<RegionData> rdatas = m_Database.Get(region.posX - 1, region.posY - 1, region.posX + 1, region.posY + 1, scopeID);
+                foreach (RegionData rdata in rdatas)
+                    rinfos.Add(RegionData2RegionInfo(rdata));
 
+            }
             return rinfos;
         }
 
@@ -164,67 +169,19 @@ namespace OpenSim.Services.GridService
             rdata.posX = (int)rinfo.RegionLocX;
             rdata.posY = (int)rinfo.RegionLocY;
             rdata.RegionID = rinfo.RegionID;
+            rdata.Data = rinfo.ToKeyValuePairs();
             //rdata.RegionName = rinfo.RegionName;
-            rdata.Data["external_ip_address"] = rinfo.ExternalEndPoint.Address.ToString();
-            rdata.Data["external_port"] = rinfo.ExternalEndPoint.Port.ToString();
-            rdata.Data["external_host_name"] = rinfo.ExternalHostName;
-            rdata.Data["http_port"] = rinfo.HttpPort.ToString();
-            rdata.Data["internal_ip_address"] = rinfo.InternalEndPoint.Address.ToString();
-            rdata.Data["internal_port"] = rinfo.InternalEndPoint.Port.ToString();
-            rdata.Data["alternate_ports"] = rinfo.m_allow_alternate_ports.ToString();
-            rdata.Data["server_uri"] = rinfo.ServerURI;
 
             return rdata;
         }
 
         protected SimpleRegionInfo RegionData2RegionInfo(RegionData rdata)
         {
-            SimpleRegionInfo rinfo = new SimpleRegionInfo();
+            SimpleRegionInfo rinfo = new SimpleRegionInfo(rdata.Data);
             rinfo.RegionLocX = (uint)rdata.posX;
             rinfo.RegionLocY = (uint)rdata.posY;
             rinfo.RegionID = rdata.RegionID;
             //rinfo.RegionName = rdata.RegionName;
-
-            // Now for the variable data
-            if ((rdata.Data["external_ip_address"] != null) && (rdata.Data["external_port"] != null))
-            {
-                int port = 0;
-                Int32.TryParse((string)rdata.Data["external_port"], out port);
-                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)rdata.Data["external_ip_address"]), port);
-                rinfo.ExternalEndPoint = ep;
-            }
-            else
-                rinfo.ExternalEndPoint = new IPEndPoint(new IPAddress(0), 0);
-
-            if (rdata.Data["external_host_name"] != null)
-                rinfo.ExternalHostName = (string)rdata.Data["external_host_name"] ;
-
-            if (rdata.Data["http_port"] != null)
-            {
-                UInt32 port = 0;
-                UInt32.TryParse((string)rdata.Data["http_port"], out port);
-                rinfo.HttpPort = port;
-            }
-
-            if ((rdata.Data["internal_ip_address"] != null) && (rdata.Data["internal_port"] != null))
-            {
-                int port = 0;
-                Int32.TryParse((string)rdata.Data["internal_port"], out port);
-                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)rdata.Data["internal_ip_address"]), port);
-                rinfo.InternalEndPoint = ep;
-            }
-            else
-                rinfo.InternalEndPoint = new IPEndPoint(new IPAddress(0), 0);
-
-            if (rdata.Data["alternate_ports"] != null)
-            {
-                bool alts = false;
-                Boolean.TryParse((string)rdata.Data["alternate_ports"], out alts);
-                rinfo.m_allow_alternate_ports = alts;
-            }
-
-            if (rdata.Data["server_uri"] != null)
-                rinfo.ServerURI = (string)rdata.Data["server_uri"];
 
             return rinfo;
         }

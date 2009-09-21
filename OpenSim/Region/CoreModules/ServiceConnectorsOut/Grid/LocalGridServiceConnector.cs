@@ -140,9 +140,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.DeregisterRegion(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, int x, int y)
+        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            return m_GridService.GetNeighbours(scopeID, x, y);
+            return m_GridService.GetNeighbours(scopeID, regionID);
         }
 
         public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)

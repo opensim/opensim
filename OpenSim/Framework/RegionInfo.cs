@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml;
@@ -196,6 +197,67 @@ namespace OpenSim.Framework
         public int getInternalEndPointPort()
         {
             return m_internalEndPoint.Port;
+        }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> kvp = new Dictionary<string, object>();
+            kvp["uuid"] = RegionID.ToString();
+            kvp["locX"] = RegionLocX.ToString();
+            kvp["locY"] = RegionLocY.ToString();
+            kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
+            kvp["external_port"] = ExternalEndPoint.Port.ToString();
+            kvp["external_host_name"] = ExternalHostName;
+            kvp["http_port"] = HttpPort.ToString();
+            kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
+            kvp["internal_port"] = InternalEndPoint.Port.ToString();
+            kvp["alternate_ports"] = m_allow_alternate_ports.ToString();
+            kvp["server_uri"] = ServerURI;
+
+            return kvp;
+        }
+
+        public SimpleRegionInfo(Dictionary<string, object> kvp)
+        {
+            if ((kvp["external_ip_address"] != null) && (kvp["external_port"] != null))
+            {
+                int port = 0;
+                Int32.TryParse((string)kvp["external_port"], out port);
+                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["external_ip_address"]), port);
+                ExternalEndPoint = ep;
+            }
+            else
+                ExternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+
+            if (kvp["external_host_name"] != null)
+                ExternalHostName = (string)kvp["external_host_name"];
+
+            if (kvp["http_port"] != null)
+            {
+                UInt32 port = 0;
+                UInt32.TryParse((string)kvp["http_port"], out port);
+                HttpPort = port;
+            }
+
+            if ((kvp["internal_ip_address"] != null) && (kvp["internal_port"] != null))
+            {
+                int port = 0;
+                Int32.TryParse((string)kvp["internal_port"], out port);
+                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["internal_ip_address"]), port);
+                InternalEndPoint = ep;
+            }
+            else
+                InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+
+            if (kvp["alternate_ports"] != null)
+            {
+                bool alts = false;
+                Boolean.TryParse((string)kvp["alternate_ports"], out alts);
+                m_allow_alternate_ports = alts;
+            }
+
+            if (kvp["server_uri"] != null)
+                ServerURI = (string)kvp["server_uri"];
         }
     }
 

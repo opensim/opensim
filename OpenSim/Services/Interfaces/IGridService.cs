@@ -55,7 +55,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, int x, int y);
+        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID);
 
         SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID);
 
