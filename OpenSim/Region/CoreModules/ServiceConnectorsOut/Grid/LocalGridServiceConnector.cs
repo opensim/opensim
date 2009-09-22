@@ -50,6 +50,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool m_Enabled = false;
 
+        public LocalGridServicesConnector(IConfigSource source)
+        {
+            InitialiseService(source);
+        }
+
         #region ISharedRegionModule
 
         public Type ReplaceableInterface 
@@ -70,35 +75,40 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
                 {
-                    IConfig assetConfig = source.Configs["GridService"];
-                    if (assetConfig == null)
-                    {
-                        m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
-                        return;
-                    }
-
-                    string serviceDll = assetConfig.GetString("LocalServiceModule",
-                            String.Empty);
-
-                    if (serviceDll == String.Empty)
-                    {
-                        m_log.Error("[GRID CONNECTOR]: No LocalServiceModule named in section GridService");
-                        return;
-                    }
-
-                    Object[] args = new Object[] { source };
-                    m_GridService =
-                            ServerUtils.LoadPlugin<IGridService>(serviceDll,
-                            args);
-
-                    if (m_GridService == null)
-                    {
-                        m_log.Error("[GRID CONNECTOR]: Can't load asset service");
-                        return;
-                    }
+                    InitialiseService(source);
                     m_Enabled = true;
-                    m_log.Info("[GRID CONNECTOR]: Local grid connector enabled");
+                    m_log.Info("[LOCAL GRID CONNECTOR]: Local grid connector enabled");
                 }
+            }
+        }
+
+        private void InitialiseService(IConfigSource source)
+        {
+            IConfig assetConfig = source.Configs["GridService"];
+            if (assetConfig == null)
+            {
+                m_log.Error("[LOCAL GRID CONNECTOR]: GridService missing from OpenSim.ini");
+                return;
+            }
+
+            string serviceDll = assetConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (serviceDll == String.Empty)
+            {
+                m_log.Error("[LOCAL GRID CONNECTOR]: No LocalServiceModule named in section GridService");
+                return;
+            }
+
+            Object[] args = new Object[] { source };
+            m_GridService =
+                    ServerUtils.LoadPlugin<IGridService>(serviceDll,
+                    args);
+
+            if (m_GridService == null)
+            {
+                m_log.Error("[LOCAL GRID CONNECTOR]: Can't load asset service");
+                return;
             }
         }
 

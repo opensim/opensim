@@ -47,6 +47,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool m_Enabled = false;
 
+        public RemoteGridServicesConnector(IConfigSource source)
+        {
+            InitialiseService(source);
+        }
+
+        #region ISharedRegionmodule
+
         public Type ReplaceableInterface 
         {
             get { return null; }
@@ -65,20 +72,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
                 {
-                    IConfig gridConfig = source.Configs["GridService"];
-                    if (gridConfig == null)
-                    {
-                        m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
-                        return;
-                    }
-
+                    InitialiseService(source);
                     m_Enabled = true;
-
-                    base.Initialise(source);
-
-                    m_log.Info("[GRID CONNECTOR]: Remote grid enabled");
+                    m_log.Info("[REMOTE GRID CONNECTOR]: Remote grid enabled");
                 }
             }
+        }
+
+        private void InitialiseService(IConfigSource source)
+        {
+            IConfig gridConfig = source.Configs["GridService"];
+            if (gridConfig == null)
+            {
+                m_log.Error("[REMOTE GRID CONNECTOR]: GridService missing from OpenSim.ini");
+                return;
+            }
+
+            base.Initialise(source);
         }
 
         public void PostInitialise()
@@ -104,5 +114,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void RegionLoaded(Scene scene)
         {
         }
+
+        #endregion
     }
 }
