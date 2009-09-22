@@ -260,11 +260,11 @@ namespace OpenSim.Framework.Servers.HttpServer
             PollServiceEventArgs psEvArgs;
             if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
             {
-                OSHttpRequest req = new OSHttpRequest(context, request);
+//                OSHttpRequest req = new OSHttpRequest(context, request);
                 
                 PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-                req.Headers["X-PollServiceID"] = psreq.RequestID.ToString();
-                HandleRequest(req, null);
+//                req.Headers["X-PollServiceID"] = psreq.RequestID.ToString();
+//                HandleRequest(req, null);
                 m_PollServiceManager.Enqueue(psreq);
                 //DoHTTPGruntWork(psEvArgs.NoEvents(),new OSHttpResponse(new HttpResponse(context, request)));
             }
