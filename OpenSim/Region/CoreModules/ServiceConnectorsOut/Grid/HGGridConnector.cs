@@ -63,6 +63,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         // This is key-ed on agent ID
         protected Dictionary<UUID, SimpleRegionInfo> m_knownRegions = new Dictionary<UUID, SimpleRegionInfo>();
 
+        protected Dictionary<UUID, ulong> m_HyperlinkHandles = new Dictionary<UUID, ulong>();
+
         #region ISharedRegionModule
 
         public Type ReplaceableInterface
@@ -160,10 +162,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (regionInfo.RegionID.Equals(UUID.Zero))
             {
                 m_log.Info("[HGrid]: Linking remote region " + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort);
-                regionInfo.RegionID = m_HypergridServiceConnector.LinkRegion(regionInfo); 
+                ulong regionHandle = 0;
+                regionInfo.RegionID = m_HypergridServiceConnector.LinkRegion(regionInfo, out regionHandle); 
                 if (!regionInfo.RegionID.Equals(UUID.Zero))
                 {
-                    m_HyperlinkRegions.Add(regionInfo.RegionID, regionInfo);
+                    AddHyperlinkRegion(regionInfo, regionHandle);
                     m_log.Info("[HGrid]: Successfully linked to region_uuid " + regionInfo.RegionID);
 
                     // Try get the map image
@@ -186,15 +189,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             // Try the hyperlink collection
             if (m_HyperlinkRegions.ContainsKey(regionID))
             {
-                m_HyperlinkRegions.Remove(regionID);
+                RemoveHyperlinkRegion(regionID);
                 return true;
             }
             // Try the foreign users home collection
-            if (m_knownRegions.ContainsKey(regionID))
-            {
-                m_knownRegions.Remove(regionID);
-                return true;
-            }
+
+            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+                if (r.RegionID == regionID)
+                {
+                    RemoveHyperlinkHomeRegion(regionID);
+                    return true;
+                }
+
             // Finally, try the normal route
             return m_GridServiceConnector.DeregisterRegion(regionID);
         }
@@ -213,8 +219,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return m_HyperlinkRegions[regionID];
             
             // Try the foreign users home collection
-            if (m_knownRegions.ContainsKey(regionID))
-                return m_knownRegions[regionID];
+            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+                if (r.RegionID == regionID)
+                    return m_knownRegions[regionID];
 
             // Finally, try the normal route
             return m_GridServiceConnector.GetRegionByUUID(scopeID, regionID);
@@ -249,20 +256,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (region != null)
                 return region;
 
-            // !!! Commenting until region name exists
-            //// Try the hyperlink collection
-            //foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
-            //{
-            //    if (r.RegionName == regionName)
-            //        return r;
-            //}
+            // Try the hyperlink collection
+            foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+            {
+                if (r.RegionName == regionName)
+                    return r;
+            }
 
-            //// Try the foreign users home collection
-            //foreach (SimpleRegionInfo r in m_knownRegions.Values)
-            //{
-            //    if (r.RegionName == regionName) 
-            //        return r;
-            //}
+            // Try the foreign users home collection
+            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+            {
+                if (r.RegionName == regionName)
+                    return r;
+            }
             return null;
         }
 
@@ -299,6 +305,35 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #endregion
 
+        private void AddHyperlinkRegion(SimpleRegionInfo regionInfo, ulong regionHandle)
+        {
+            m_HyperlinkRegions.Add(regionInfo.RegionID, regionInfo);
+            m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
+        }
+
+        private void RemoveHyperlinkRegion(UUID regionID)
+        {
+            m_HyperlinkRegions.Remove(regionID);
+            m_HyperlinkHandles.Remove(regionID);
+        }
+
+        private void AddHyperlinkHomeRegion(UUID userID, SimpleRegionInfo regionInfo, ulong regionHandle)
+        {
+            m_knownRegions.Add(userID, regionInfo);
+            m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
+        }
+
+        private void RemoveHyperlinkHomeRegion(UUID regionID)
+        {
+            foreach (KeyValuePair<UUID, SimpleRegionInfo> kvp in m_knownRegions)
+            {
+                if (kvp.Value.RegionID == regionID)
+                {
+                    m_knownRegions.Remove(kvp.Key);
+                }
+            }
+            m_HyperlinkHandles.Remove(regionID);
+        }
 
     }
 }

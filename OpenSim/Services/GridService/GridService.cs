@@ -179,7 +179,7 @@ namespace OpenSim.Services.GridService
             rdata.posY = (int)rinfo.RegionLocY;
             rdata.RegionID = rinfo.RegionID;
             rdata.Data = rinfo.ToKeyValuePairs();
-            //rdata.RegionName = rinfo.RegionName;
+            rdata.RegionName = rinfo.RegionName;
 
             return rdata;
         }
@@ -190,7 +190,7 @@ namespace OpenSim.Services.GridService
             rinfo.RegionLocX = (uint)rdata.posX;
             rinfo.RegionLocY = (uint)rdata.posY;
             rinfo.RegionID = rdata.RegionID;
-            //rinfo.RegionName = rdata.RegionName;
+            rinfo.RegionName = rdata.RegionName;
 
             return rinfo;
         }

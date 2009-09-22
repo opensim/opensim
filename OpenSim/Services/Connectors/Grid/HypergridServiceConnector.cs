@@ -54,67 +54,63 @@ namespace OpenSim.Services.Connectors.Grid
             m_AssetService = assService;
         }
 
-        public UUID LinkRegion(SimpleRegionInfo info)
+        public UUID LinkRegion(SimpleRegionInfo info, out ulong realHandle)
         {
             UUID uuid = UUID.Zero;
+            realHandle = 0;
 
-            //Hashtable hash = new Hashtable();
-            //hash["region_name"] = info.RegionName;
+            Hashtable hash = new Hashtable();
+            hash["region_name"] = info.RegionName;
 
-            //IList paramList = new ArrayList();
-            //paramList.Add(hash);
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
 
-            //XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
-            //string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
-            //m_log.Debug("[HGrid]: Linking to " + uri);
-            //XmlRpcResponse response = request.Send(uri, 10000);
-            //if (response.IsFault)
-            //{
-            //    m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);
-            //}
-            //else
-            //{
-            //    hash = (Hashtable)response.Value;
-            //    //foreach (Object o in hash)
-            //    //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
-            //    try
-            //    {
-            //        UUID.TryParse((string)hash["uuid"], out uuid);
-            //        info.RegionID = uuid;
-            //        if ((string)hash["handle"] != null)
-            //        {
-            //            info.regionSecret = (string)hash["handle"];
-            //            //m_log.Debug(">> HERE: " + info.regionSecret);
-            //        }
-            //        if (hash["region_image"] != null)
-            //        {
-            //            UUID img = UUID.Zero;
-            //            UUID.TryParse((string)hash["region_image"], out img);
-            //            info.RegionSettings.TerrainImageID = img;
-            //        }
-            //        if (hash["region_name"] != null)
-            //        {
-            //            info.RegionName = (string)hash["region_name"];
-            //            //m_log.Debug(">> " + info.RegionName);
-            //        }
-            //        if (hash["internal_port"] != null)
-            //        {
-            //            int port = Convert.ToInt32((string)hash["internal_port"]);
-            //            info.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
-            //            //m_log.Debug(">> " + info.InternalEndPoint.ToString());
-            //        }
-            //        if (hash["remoting_port"] != null)
-            //        {
-            //            info.RemotingPort = Convert.ToUInt32(hash["remoting_port"]);
-            //            //m_log.Debug(">> " + info.RemotingPort);
-            //        }
+            XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
+            string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
+            m_log.Debug("[HGrid]: Linking to " + uri);
+            XmlRpcResponse response = request.Send(uri, 10000);
+            if (response.IsFault)
+            {
+                m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);
+            }
+            else
+            {
+                hash = (Hashtable)response.Value;
+                //foreach (Object o in hash)
+                //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+                try
+                {
+                    UUID.TryParse((string)hash["uuid"], out uuid);
+                    info.RegionID = uuid;
+                    if ((string)hash["handle"] != null)
+                    {
+                        realHandle = Convert.ToUInt64((string)hash["handle"]);
+                        m_log.Debug(">> HERE, realHandle: " + realHandle);
+                    }
+                    //if (hash["region_image"] != null)
+                    //{
+                    //    UUID img = UUID.Zero;
+                    //    UUID.TryParse((string)hash["region_image"], out img);
+                    //    info.RegionSettings.TerrainImageID = img;
+                    //}
+                    if (hash["region_name"] != null)
+                    {
+                        info.RegionName = (string)hash["region_name"];
+                        //m_log.Debug(">> " + info.RegionName);
+                    }
+                    if (hash["internal_port"] != null)
+                    {
+                        int port = Convert.ToInt32((string)hash["internal_port"]);
+                        info.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+                        //m_log.Debug(">> " + info.InternalEndPoint.ToString());
+                    }
 
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        m_log.Error("[HGrid]: Got exception while parsing hyperlink response " + e.StackTrace);
-            //    }
-            //}
+                }
+                catch (Exception e)
+                {
+                    m_log.Error("[HGrid]: Got exception while parsing hyperlink response " + e.StackTrace);
+                }
+            }
             return uuid;
         }
 
