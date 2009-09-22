@@ -95,7 +95,9 @@ namespace OpenSim.Services.GridService
             if (region != null)
             {
                 // Not really? Maybe?
-                List<RegionData> rdatas = m_Database.Get(region.posX - 1, region.posY - 1, region.posX + 1, region.posY + 1, scopeID);
+                List<RegionData> rdatas = m_Database.Get(region.posX - (int)Constants.RegionSize, region.posY - (int)Constants.RegionSize, 
+                    region.posX + (int)Constants.RegionSize, region.posY + (int)Constants.RegionSize, scopeID);
+
                 foreach (RegionData rdata in rdatas)
                     rinfos.Add(RegionData2RegionInfo(rdata));
 
@@ -114,7 +116,9 @@ namespace OpenSim.Services.GridService
 
         public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
         {
-            RegionData rdata = m_Database.Get(x, y, scopeID);
+            int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
+            int snapY = (int)(y / Constants.RegionSize) * (int)Constants.RegionSize;
+            RegionData rdata = m_Database.Get(snapX, snapY, scopeID);
             if (rdata != null)
                 return RegionData2RegionInfo(rdata);
 
@@ -151,7 +155,12 @@ namespace OpenSim.Services.GridService
 
         public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
-            List<RegionData> rdatas = m_Database.Get(xmin, ymin, xmax, ymax, scopeID);
+            int xminSnap = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
+            int xmaxSnap = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
+            int yminSnap = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
+            int ymaxSnap = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
+
+            List<RegionData> rdatas = m_Database.Get(xminSnap, yminSnap, xmaxSnap, ymaxSnap, scopeID);
             List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
             foreach (RegionData rdata in rdatas)
                 rinfos.Add(RegionData2RegionInfo(rdata));
