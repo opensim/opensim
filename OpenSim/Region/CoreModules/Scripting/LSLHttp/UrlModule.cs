@@ -55,14 +55,19 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public UUID requestID;
         public Dictionary<string, string> headers;
         public string body;
+        public int responseCode;
+        public string responseBody;
         public ManualResetEvent ev;
+        public bool requestDone;
+        public int startTime;
+        public string uri;
     }
 
     public class UrlModule : ISharedRegionModule, IUrlModule
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, UrlData> m_RequestMap =
                 new Dictionary<UUID, UrlData>();
@@ -70,13 +75,21 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         private Dictionary<string, UrlData> m_UrlMap =
                 new Dictionary<string, UrlData>();
 
+
         private int m_TotalUrls = 100;
 
         private IHttpServer m_HttpServer = null;
 
+        private string m_ExternalHostNameForLSL = "";
+
         public Type ReplaceableInterface 
         {
             get { return null; }
+        }
+
+        private Hashtable HandleHttpPoll(Hashtable request)
+        {
+            return new Hashtable();
         }
 
         public string Name
@@ -86,6 +99,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void Initialise(IConfigSource config)
         {
+            m_ExternalHostNameForLSL = config.Configs["Network"].GetString("ExternalHostNameForLSL", System.Environment.MachineName);
         }
 
         public void PostInitialise()
@@ -117,7 +131,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public void Close()
         {
         }
-
         public UUID RequestURL(IScriptModule engine, SceneObjectPart host, UUID itemID)
         {
             UUID urlcode = UUID.Random();
@@ -129,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                     return urlcode;
                 }
-                string url = "http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+"/lslhttp/"+urlcode.ToString()+"/";
+                string url = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + "/lslhttp/" + urlcode.ToString() + "/";
 
                 UrlData urlData = new UrlData();
                 urlData.hostID = host.UUID;
@@ -139,9 +152,14 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 urlData.urlcode = urlcode;
                 urlData.requests = new Dictionary<UUID, RequestData>();
 
+                
                 m_UrlMap[url] = urlData;
-
-                m_HttpServer.AddHTTPHandler("/lslhttp/"+urlcode.ToString()+"/", HttpRequestHandler);
+                
+                string uri = "/lslhttp/" + urlcode.ToString() + "/";
+               
+                m_HttpServer.AddPollServiceHTTPHandler(uri,HandleHttpPoll,
+                        new PollServiceEventArgs(HttpRequestHandler,HasEvents, GetEvents, NoEvents,
+                            urlcode));
 
                 engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url });
             }
@@ -165,7 +183,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 UrlData data;
 
                 if (!m_UrlMap.TryGetValue(url, out data))
+                {
                     return;
+                }
 
                 foreach (UUID req in data.requests.Keys)
                     m_RequestMap.Remove(req);
@@ -174,13 +194,37 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 m_UrlMap.Remove(url);
             }
         }
-
+        
         public void HttpResponse(UUID request, int status, string body)
         {
+            if (m_RequestMap.ContainsKey(request))
+            {
+                UrlData urlData = m_RequestMap[request];
+                RequestData requestData=urlData.requests[request];
+                urlData.requests[request].responseCode = status;
+                urlData.requests[request].responseBody = body;
+                //urlData.requests[request].ev.Set();
+                urlData.requests[request].requestDone=true;
+            }
+            else
+            {
+                m_log.Info("[HttpRequestHandler] There is no http-in request with id " + request.ToString());
+            }
         }
 
-        public string GetHttpHeader(UUID request, string header)
+        public string GetHttpHeader(UUID requestId, string header)
         {
+            if (m_RequestMap.ContainsKey(requestId))
+            {
+                UrlData urlData=m_RequestMap[requestId];
+                string value;
+                if (urlData.requests[requestId].headers.TryGetValue(header,out value))
+                    return value;
+            }
+            else
+            {
+                m_log.Warn("[HttpRequestHandler] There was no http-in request with id " + requestId);
+            }
             return String.Empty;
         }
 
@@ -233,25 +277,213 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
         }
 
+
         private void RemoveUrl(UrlData data)
         {
             m_HttpServer.RemoveHTTPHandler("", "/lslhttp/"+data.urlcode.ToString()+"/");
         }
 
-        private Hashtable HttpRequestHandler(Hashtable request)
+        private Hashtable NoEvents(UUID requestID, UUID sessionID)
         {
-            string uri = request["uri"].ToString();
-            //A solution to this ugly mess would be to use only the /lslhttp/<UUID>/ part of the URI as the key.
-            UrlData url = m_UrlMap["http://"+System.Environment.MachineName+":"+m_HttpServer.Port.ToString()+uri]; 
-            
-            //UUID.Random() below is a hack! Eventually we will do HTTP requests and responses properly.
-            url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { UUID.Random().ToString(), request["http-method"].ToString(), request["body"].ToString() });
-
             Hashtable response = new Hashtable();
-            response["int_response_code"] = 200;
-            response["str_response_string"] = "This is a generic response as OpenSim does not yet support proper responses. Your request has been passed to the object.";
+            UrlData url;
+            lock (m_RequestMap)
+            {
+                if (!m_RequestMap.ContainsKey(requestID))
+                    return response;
+                url = m_RequestMap[requestID];
+            }
+
+            if (System.Environment.TickCount - url.requests[requestID].startTime > 25000)
+            {
+                response["int_response_code"] = 500;
+                response["str_response_string"] = "Script timeout";
+                response["content_type"] = "text/plain";
+                response["keepalive"] = false;
+                response["reusecontext"] = false;
+
+                //remove from map
+                lock (url)
+                {
+                    url.requests.Remove(requestID);
+                    m_RequestMap.Remove(requestID);
+                }
+
+                return response;
+            }
+
+            
+            return response;
+        }
+
+        private bool HasEvents(UUID requestID, UUID sessionID)
+        {
+            UrlData url=null;
+            
+            lock (m_RequestMap)
+            {
+                if (!m_RequestMap.ContainsKey(requestID))
+                {
+                    return false;
+                }
+                url = m_RequestMap[requestID];
+                if (!url.requests.ContainsKey(requestID))
+                {
+                    return false;
+                }
+            }
+
+            if (System.Environment.TickCount-url.requests[requestID].startTime>25000)
+            {
+                return true;
+            }
+
+            if (url.requests[requestID].requestDone)
+                return true;
+            else
+                return false;
+
+        }
+        private Hashtable GetEvents(UUID requestID, UUID sessionID, string request)
+        {
+            UrlData url = null;
+            RequestData requestData = null;
+
+            lock (m_RequestMap)
+            {
+                if (!m_RequestMap.ContainsKey(requestID))
+                    return NoEvents(requestID,sessionID);
+                url = m_RequestMap[requestID];
+                requestData = url.requests[requestID];
+            }
+
+            if (!requestData.requestDone)
+                return NoEvents(requestID,sessionID);
+            
+            Hashtable response = new Hashtable();
+
+            if (System.Environment.TickCount - requestData.startTime > 25000)
+            {
+                response["int_response_code"] = 500;
+                response["str_response_string"] = "Script timeout";
+                response["content_type"] = "text/plain";
+                response["keepalive"] = false;
+                response["reusecontext"] = false;
+                return response;
+            }
+            //put response
+            response["int_response_code"] = requestData.responseCode;
+            response["str_response_string"] = requestData.responseBody;
+            response["content_type"] = "text/plain";
+            response["keepalive"] = false;
+            response["reusecontext"] = false;
+            
+            //remove from map
+            lock (url)
+            {
+                url.requests.Remove(requestID);
+                m_RequestMap.Remove(requestID);
+            }
 
             return response;
+        }
+        public void HttpRequestHandler(UUID requestID, Hashtable request)
+        {
+            lock (request)
+            {
+                string uri = request["uri"].ToString();
+                
+                try
+                {
+                    Hashtable headers = (Hashtable)request["headers"];
+                    
+                    string uri_full = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
+
+                    int pos1 = uri.IndexOf("/");// /lslhttp
+                    int pos2 = uri.IndexOf("/", pos1 + 1);// /lslhttp/
+                    int pos3 = uri.IndexOf("/", pos2 + 1);// /lslhttp/<UUID>/
+                    string uri_tmp = uri.Substring(0, pos3 + 1);
+                    //HTTP server code doesn't provide us with QueryStrings
+                    string pathInfo;
+                    string queryString;
+                    queryString = "";
+
+                    pathInfo = uri.Substring(pos3);
+
+                    UrlData url = m_UrlMap["http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri_tmp];
+
+                    //for llGetHttpHeader support we need to store original URI here
+                    //to make x-path-info / x-query-string / x-script-url / x-remote-ip headers 
+                    //as per http://wiki.secondlife.com/wiki/LlGetHTTPHeader
+
+                    RequestData requestData = new RequestData();
+                    requestData.requestID = requestID;
+                    requestData.requestDone = false;
+                    requestData.startTime = System.Environment.TickCount;
+                    requestData.uri = uri;
+                    if (requestData.headers == null)
+                        requestData.headers = new Dictionary<string, string>();
+
+                    foreach (DictionaryEntry header in headers)
+                    {
+                        string key = (string)header.Key;
+                        string value = (string)header.Value;
+                        requestData.headers.Add(key, value);
+                    }
+                    foreach (DictionaryEntry de in request)
+                    {
+                        if (de.Key.ToString() == "querystringkeys")
+                        {
+                            System.String[] keys = (System.String[])de.Value;
+                            foreach (String key in keys)
+                            {
+                                if (request.ContainsKey(key))
+                                {
+                                    string val = (String)request[key];
+                                    queryString = queryString + key + "=" + val + "&";
+                                }
+                            }
+                            if (queryString.Length > 1)
+                                queryString = queryString.Substring(0, queryString.Length - 1);
+
+                        }
+
+                    }
+
+                    //if this machine is behind DNAT/port forwarding, currently this is being
+                    //set to address of port forwarding router
+                    requestData.headers["x-remote-ip"] = requestData.headers["remote_addr"];
+                    requestData.headers["x-path-info"] = pathInfo;
+                    requestData.headers["x-query-string"] = queryString;
+                    requestData.headers["x-script-url"] = url.url;
+
+                    requestData.ev = new ManualResetEvent(false);
+                    lock (url.requests)
+                    {
+                        url.requests.Add(requestID, requestData);
+                    }
+                    lock (m_RequestMap)
+                    {
+                        //add to request map
+                        m_RequestMap.Add(requestID, url);
+                    }
+
+                    url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { requestID.ToString(), request["http-method"].ToString(), request["body"].ToString() });
+
+                    //send initial response?
+                    Hashtable response = new Hashtable();
+
+                    return;
+
+                }
+                catch (Exception we)
+                {
+                    //Hashtable response = new Hashtable();
+                    m_log.Warn("[HttpRequestHandler]: http-in request failed");
+                    m_log.Warn(we.Message);
+                    m_log.Warn(we.StackTrace);
+                }
+            }
         }
 
         private void OnScriptReset(uint localID, UUID itemID)

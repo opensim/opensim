@@ -316,7 +316,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
             
             // This will persist this beyond the expiry of the caps handlers
             MainServer.Instance.AddPollServiceHTTPHandler(
-                capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(HasEvents, GetEvents, NoEvents, agentID));
+                capsBase + EventQueueGetUUID.ToString() + "/", EventQueuePoll, new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents, agentID));
 
             Random rnd = new Random(Environment.TickCount);
             lock (m_ids)

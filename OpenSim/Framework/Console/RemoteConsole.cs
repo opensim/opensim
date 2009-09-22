@@ -198,7 +198,7 @@ namespace OpenSim.Framework.Console
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
             m_Server.AddPollServiceHTTPHandler(uri, HandleHttpPoll,
-                    new PollServiceEventArgs(HasEvents, GetEvents, NoEvents,
+                    new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents,
                     sessionID));
 
             XmlDocument xmldoc = new XmlDocument();

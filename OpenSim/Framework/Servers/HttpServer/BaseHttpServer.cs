@@ -256,17 +256,51 @@ namespace OpenSim.Framework.Servers.HttpServer
             IHttpClientContext context = (IHttpClientContext)source;
             IHttpRequest request = args.Request;
             
-
             PollServiceEventArgs psEvArgs;
+
             if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
             {
-                OSHttpRequest req = new OSHttpRequest(context, request);
-                
                 PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-                req.Headers["X-PollServiceID"] = psreq.RequestID.ToString();
-                HandleRequest(req, null);
+
+                if (psEvArgs.Request != null)
+                {
+                    OSHttpRequest req = new OSHttpRequest(context, request);
+                    
+                    Stream requestStream = req.InputStream;
+
+                    Encoding encoding = Encoding.UTF8;
+                    StreamReader reader = new StreamReader(requestStream, encoding);
+
+                    string requestBody = reader.ReadToEnd();
+
+                    Hashtable keysvals = new Hashtable();
+                    Hashtable headervals = new Hashtable();
+
+                    string[] querystringkeys = req.QueryString.AllKeys;
+                    string[] rHeaders = req.Headers.AllKeys;
+
+                    keysvals.Add("body", requestBody);
+                    keysvals.Add("uri", req.RawUrl);
+                    keysvals.Add("content-type", req.ContentType);
+                    keysvals.Add("http-method", req.HttpMethod);
+
+                    foreach (string queryname in querystringkeys)
+                    {
+                        keysvals.Add(queryname, req.QueryString[queryname]);
+                    }
+
+                    foreach (string headername in rHeaders)
+                    {
+                        headervals[headername] = req.Headers[headername];
+                    }
+
+                    keysvals.Add("headers",headervals);
+                    keysvals.Add("querystringkeys", querystringkeys);
+
+                    psEvArgs.Request(psreq.RequestID, keysvals);
+                }
+
                 m_PollServiceManager.Enqueue(psreq);
-                //DoHTTPGruntWork(psEvArgs.NoEvents(),new OSHttpResponse(new HttpResponse(context, request)));
             }
             else
             {
@@ -279,48 +313,16 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             OSHttpRequest req = new OSHttpRequest(context, request);
             OSHttpResponse resp = new OSHttpResponse(new HttpResponse(context, request),context);
-            //resp.KeepAlive = req.KeepAlive;
-            //m_log.Info("[Debug BASE HTTP SERVER]: Got Request");
-            //HttpServerContextObj objstate= new HttpServerContextObj(req,resp);
-            //ThreadPool.QueueUserWorkItem(new WaitCallback(ConvertIHttpClientContextToOSHttp), (object)objstate);
             HandleRequest(req, resp);
         }
 
         public void ConvertIHttpClientContextToOSHttp(object stateinfo)
         {
             HttpServerContextObj objstate = (HttpServerContextObj)stateinfo;
-            //OSHttpRequest request = new OSHttpRequest(objstate.context,objstate.req);
-            //OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(objstate.context, objstate.req));
 
             OSHttpRequest request = objstate.oreq;
             OSHttpResponse resp = objstate.oresp;
-            //OSHttpResponse resp = new OSHttpResponse(new HttpServer.HttpResponse(objstate.context, objstate.req));
 
-            /*
-            request.AcceptTypes = objstate.req.AcceptTypes;
-            request.ContentLength = (long)objstate.req.ContentLength;
-            request.Headers = objstate.req.Headers;
-            request.HttpMethod = objstate.req.Method;
-            request.InputStream = objstate.req.Body;
-            foreach (string str in request.Headers)
-            {
-                if (str.ToLower().Contains("content-type: "))
-                {
-                    request.ContentType = str.Substring(13, str.Length - 13);
-                    break;
-                }
-            }
-            //request.KeepAlive = objstate.req.
-            foreach (HttpServer.HttpInput httpinput in objstate.req.QueryString)
-            {
-                request.QueryString.Add(httpinput.Name, httpinput[httpinput.Name]);
-            }
-            
-            //request.Query = objstate.req.//objstate.req.QueryString;
-            //foreach (
-            //request.QueryString = objstate.req.QueryString;
-
-             */
             HandleRequest(request,resp);           
         }
 
@@ -337,24 +339,19 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //  handled
                 //m_log.Debug("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
 
-                // If the response is null, then we're not going to respond here. This case
-                // triggers when we're at the head of a HTTP poll
-                //
-                if (response != null)
+                IHttpAgentHandler agentHandler;
+
+                if (TryGetAgentHandler(request, response, out agentHandler))
                 {
-                    IHttpAgentHandler agentHandler;
-
-                    if (TryGetAgentHandler(request, response, out agentHandler))
+                    if (HandleAgentRequest(agentHandler, request, response))
                     {
-                        if (HandleAgentRequest(agentHandler, request, response))
-                        {
-                            return;
-                        }
+                        return;
                     }
-
-                    //response.KeepAlive = true;
-                    response.SendChunked = false;
                 }
+
+                //response.KeepAlive = true;
+                response.SendChunked = false;
+
                 IRequestHandler requestHandler;
 
                 string path = request.RawUrl;
@@ -368,8 +365,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer = null;
 
-                    if (response != null)
-                        response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
+                    response.ContentType = requestHandler.ContentType; // Lets do this defaulting before in case handler has varying content type.
 
 
                     if (requestHandler is IStreamedRequestHandler)
@@ -425,12 +421,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             //m_log.Warn("[HTTP]: " + requestBody);
 
                         }
-                        // If we're not responding, we dont' care about the reply
-                        //
-                        if (response == null)
-                            HTTPRequestHandler.Handle(path, keysvals);
-                        else
-                            DoHTTPGruntWork(HTTPRequestHandler.Handle(path, keysvals), response);
+                        DoHTTPGruntWork(HTTPRequestHandler.Handle(path, keysvals), response);
                         return;
                     }
                     else
@@ -444,11 +435,6 @@ namespace OpenSim.Framework.Servers.HttpServer
                             buffer = memoryStream.ToArray();
                         }
                     }
-
-                    // The handler has run and we're not yet ready to respond, bail
-                    //
-                    if (response == null)
-                        return;
 
                     request.InputStream.Close();
                     

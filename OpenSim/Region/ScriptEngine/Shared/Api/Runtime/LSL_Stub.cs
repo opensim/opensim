@@ -864,9 +864,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_LSL_Functions.llHTTPRequest(url, parameters, body);
         }
 
-        public void llHTTPResponse(string url, int status, string body)
+        public void llHTTPResponse(LSL_Key id, int status, string body)
         {
-            m_LSL_Functions.llHTTPResponse(url, status, body);
+            m_LSL_Functions.llHTTPResponse(id, status, body);
         }
 
         public LSL_String llInsertString(string dst, int position, string src)
