@@ -7838,8 +7838,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetHTTPHeader(LSL_Key request_id, string header)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetHTTPHeader");
-            return String.Empty;
+             
+           if (m_UrlModule != null)
+               return m_UrlModule.GetHttpHeader(new UUID(request_id), header);
+           return String.Empty;
         }
 
 
@@ -9117,13 +9119,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
 
-        public void llHTTPResponse(string url, int status, string body)
+        public void llHTTPResponse(LSL_Key id, int status, string body)
         {
             // Partial implementation: support for parameter flags needed
             //   see http://wiki.secondlife.com/wiki/llHTTPResponse
 
             m_host.AddScriptLPS(1);
-            NotImplemented("llHTTPResponse");
+
+            if (m_UrlModule != null)
+                m_UrlModule.HttpResponse(new UUID(id), status,body);
         }
 
         public void llResetLandBanList()

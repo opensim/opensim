@@ -44,9 +44,9 @@ namespace OpenSim.Framework.Servers.HttpServer
         public NoEventsMethod NoEvents;
         public RequestMethod Request;
         public UUID Id;
-        public PollServiceEventArgs(RequestMethod Request, HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,UUID pId)
+        public PollServiceEventArgs(RequestMethod pRequest, HasEventsMethod pHasEvents, GetEventsMethod pGetEvents, NoEventsMethod pNoEvents,UUID pId)
         {
-            Request = Request;
+            Request = pRequest;
             HasEvents = pHasEvents;
             GetEvents = pGetEvents;
             NoEvents = pNoEvents;
