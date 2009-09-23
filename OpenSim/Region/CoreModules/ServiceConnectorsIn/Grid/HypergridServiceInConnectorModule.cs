@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
                 m_Enabled = moduleConfig.GetBoolean("HypergridServiceInConnector", false);
                 if (m_Enabled)
                 {
-                    m_log.Info("[INVENTORY IN CONNECTOR]: Hypergrid Service In Connector enabled");
+                    m_log.Info("[HGGRID IN CONNECTOR]: Hypergrid Service In Connector enabled");
                 }
 
             }

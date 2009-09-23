@@ -51,6 +51,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private IGridService m_LocalGridService;
 
+        public RemoteGridServicesConnector()
+        {
+        }
+
         public RemoteGridServicesConnector(IConfigSource source)
         {
             InitialiseServices(source);

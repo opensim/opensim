@@ -50,6 +50,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool m_Enabled = false;
 
+        public LocalGridServicesConnector()
+        {
+        }
+
         public LocalGridServicesConnector(IConfigSource source)
         {
             InitialiseService(source);

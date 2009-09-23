@@ -156,18 +156,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Initialized)
             {
                 m_HypergridServiceConnector = new HypergridServiceConnector(scene.AssetService);
+                HGCommands hgCommands = new HGCommands(this, scene);
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-region",
+                    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                    "Link a hypergrid region", hgCommands.RunCommand);
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "unlinkk-region",
+                    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+                    "Unlink a hypergrid region", hgCommands.RunCommand);
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-mapping", "link-mapping [<x> <y>] <cr>",
+                    "Set local coordinate to map HG regions to", hgCommands.RunCommand);
                 m_Initialized = true;
             }
 
-            HGCommands hgCommands = new HGCommands(this, scene);
-            scene.AddCommand("HG", "link-region",
-                "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
-                "Link a hypergrid region", hgCommands.RunCommand);
-            scene.AddCommand("HG", "unlink-region",
-                "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
-                "Unlink a hypergrid region", hgCommands.RunCommand);
-            scene.AddCommand("HG", "link-mapping", "link-mapping [<x> <y>] <cr>",
-                "Set local coordinate to map HG regions to", hgCommands.RunCommand);
+
+            //scene.AddCommand("HGGridServicesConnector", "linkk-region",
+            //    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+            //    "Link a hypergrid region", hgCommands.RunCommand);
+            //scene.AddCommand("HGGridServicesConnector", "unlinkk-region",
+            //    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+            //    "Unlink a hypergrid region", hgCommands.RunCommand);
+            //scene.AddCommand("HGGridServicesConnector", "linkk-mapping", "link-mapping [<x> <y>] <cr>",
+            //    "Set local coordinate to map HG regions to", hgCommands.RunCommand);
 
         }
 
@@ -407,6 +416,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return null;
         }
 
+        // From the map search and secondlife://blah
         public SimpleRegionInfo TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
         {
             uint xloc = (uint)(random.Next(0, Int16.MaxValue));
