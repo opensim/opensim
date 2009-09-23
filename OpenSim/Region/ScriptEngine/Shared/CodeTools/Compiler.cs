@@ -542,11 +542,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     break;
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
-                    lock (CScodeProvider)
+                    bool complete = false;
+                    bool retried  = false;
+                    do
                     {
-                        results = CScodeProvider.CompileAssemblyFromSource(
-                                parameters, Script);
+						lock (CScodeProvider)
+						{
+							results = CScodeProvider.CompileAssemblyFromSource(
+								parameters, Script);
+						}
+                        // Deal with an occasional segv in the compiler.
+                        // Rarely, if ever, occurs twice in succession.
+                        // Line # == 0 and no file name are indications that
+                        // this is a native stack trace rather than a normal
+                        // error log.
+                        if (results.Errors.Count > 0)
+                        {
+                            if (!retried && (results.Errors[0].FileName == null || results.Errors[0].FileName == String.Empty) &&
+                                results.Errors[0].Line == 0)
+                            {
+                                // System.Console.WriteLine("retrying failed compilation");
+                                retried = true;
+                            }
+                            else
+                            {
+                                complete = true;
+                            }
+                        }
+                        else
+                        {
+                            complete = true;
+                        }
                     }
+                    while(!complete);
                     break;
                 case enumCompileType.js:
                     results = JScodeProvider.CompileAssemblyFromSource(
@@ -567,17 +595,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             // WARNINGS AND ERRORS
             //
-            int display = 5;
+            bool hadErrors = false;
+            string errtext = String.Empty;
+
             if (results.Errors.Count > 0)
             {
-                string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    // Show 5 errors max
-                    //
-                    if (display <= 0)
-                        break;
-                    display--;
 
                     string severity = "Error";
                     if (CompErr.IsWarning)
@@ -587,36 +611,51 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                     KeyValuePair<int, int> lslPos;
 
-                    lslPos = FindErrorPosition(CompErr.Line, CompErr.Column);
+                    // Show 5 errors max, but check entire list for errors
 
-                    string text = CompErr.ErrorText;
+                    if (severity == "Error")
+                    {
+						lslPos = FindErrorPosition(CompErr.Line, CompErr.Column);
+						string text = CompErr.ErrorText;
 
-                    // Use LSL type names
-                    if (lang == enumCompileType.lsl)
-                        text = ReplaceTypes(CompErr.ErrorText);
+						// Use LSL type names
+						if (lang == enumCompileType.lsl)
+							text = ReplaceTypes(CompErr.ErrorText);
 
-                    // The Second Life viewer's script editor begins
-                    // countingn lines and columns at 0, so we subtract 1.
-                    errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
-                            lslPos.Key - 1, lslPos.Value - 1,
-                            CompErr.ErrorNumber, text, severity);
+						// The Second Life viewer's script editor begins
+						// countingn lines and columns at 0, so we subtract 1.
+						errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
+								lslPos.Key - 1, lslPos.Value - 1,
+								CompErr.ErrorNumber, text, severity);
+                        hadErrors = true;
+                    }
                 }
-                
+            }
+
+            if (hadErrors)
+            {
+                throw new Exception(errtext);
+            }
+
+            //  On today's highly asynchronous systems, the result of
+            //  the compile may not be immediately apparent. Wait a 
+            //  reasonable amount of time before giving up on it.
+
+            if (!File.Exists(OutFile))
+            {
+                for (int i=0; i<20 && !File.Exists(OutFile); i++)
+                {
+                    System.Threading.Thread.Sleep(250);
+                }
+                // One final chance...
                 if (!File.Exists(OutFile))
                 {
+                    errtext = String.Empty;
+                    errtext += "No compile error. But not able to locate compiled file.";
                     throw new Exception(errtext);
                 }
             }
 
-            //
-            // NO ERRORS, BUT NO COMPILED FILE
-            //
-            if (!File.Exists(OutFile))
-            {
-                string errtext = String.Empty;
-                errtext += "No compile error. But not able to locate compiled file.";
-                throw new Exception(errtext);
-            }
 //            m_log.DebugFormat("[Compiler] Compiled new assembly "+
 //                    "for {0}", asset);
 
@@ -629,7 +668,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             if (fi == null)
             {
-                string errtext = String.Empty;
+                errtext = String.Empty;
                 errtext += "No compile error. But not able to stat file.";
                 throw new Exception(errtext);
             }
@@ -644,7 +683,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
             catch (Exception)
             {
-                string errtext = String.Empty;
+                errtext = String.Empty;
                 errtext += "No compile error. But not able to open file.";
                 throw new Exception(errtext);
             }
