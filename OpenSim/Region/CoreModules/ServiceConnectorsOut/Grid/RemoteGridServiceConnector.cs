@@ -30,6 +30,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
+using OpenMetaverse;
+
 using OpenSim.Framework;
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
@@ -47,9 +49,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private bool m_Enabled = false;
 
+        private IGridService m_LocalGridService;
+
         public RemoteGridServicesConnector(IConfigSource source)
         {
-            InitialiseService(source);
+            InitialiseServices(source);
         }
 
         #region ISharedRegionmodule
@@ -72,14 +76,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 string name = moduleConfig.GetString("GridServices", "");
                 if (name == Name)
                 {
-                    InitialiseService(source);
+                    InitialiseServices(source);
                     m_Enabled = true;
                     m_log.Info("[REMOTE GRID CONNECTOR]: Remote grid enabled");
                 }
             }
         }
 
-        private void InitialiseService(IConfigSource source)
+        private void InitialiseServices(IConfigSource source)
         {
             IConfig gridConfig = source.Configs["GridService"];
             if (gridConfig == null)
@@ -89,6 +93,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
 
             base.Initialise(source);
+
+            m_LocalGridService = new LocalGridServicesConnector(source);
         }
 
         public void PostInitialise()
@@ -114,6 +120,58 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public void RegionLoaded(Scene scene)
         {
         }
+
+        #endregion
+
+        #region IGridService
+
+        public override bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        {
+            if (m_LocalGridService.RegisterRegion(scopeID, regionInfo))
+                return base.RegisterRegion(scopeID, regionInfo);
+
+            return false;
+        }
+
+        public override bool DeregisterRegion(UUID regionID)
+        {
+            if (m_LocalGridService.DeregisterRegion(regionID))
+                return base.DeregisterRegion(regionID);
+
+            return false;
+        }
+
+        // Let's not override GetNeighbours -- let's get them all from the grid server
+
+        public override SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        {
+            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByUUID(scopeID, regionID);
+            if (rinfo == null)
+                rinfo = base.GetRegionByUUID(scopeID, regionID);
+
+            return rinfo;
+        }
+
+        public override SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        {
+            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
+            if (rinfo == null)
+                rinfo = base.GetRegionByPosition(scopeID, x, y);
+
+            return rinfo;
+        }
+
+        public override SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        {
+            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
+            if (rinfo == null)
+                rinfo = base.GetRegionByName(scopeID, regionName);
+
+            return rinfo;
+        }
+
+        // Let's not override GetRegionsByName -- let's get them all from the grid server
+        // Let's not override GetRegionRange -- let's get them all from the grid server
 
         #endregion
     }

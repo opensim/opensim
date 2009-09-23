@@ -108,6 +108,7 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo(RegionInfo ConvertFrom)
         {
+            m_regionName = ConvertFrom.RegionName;
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;

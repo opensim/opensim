@@ -85,7 +85,7 @@ namespace OpenSim.Services.Connectors
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        public virtual bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
         {
             Dictionary<string, object> rinfo = regionInfo.ToKeyValuePairs();
             Dictionary<string, string> sendData = new Dictionary<string,string>();
@@ -108,7 +108,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public bool DeregisterRegion(UUID regionID)
+        public virtual bool DeregisterRegion(UUID regionID)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -128,7 +128,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public virtual List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -166,7 +166,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public virtual SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -197,7 +197,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public virtual SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -229,7 +229,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public virtual SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -260,7 +260,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public virtual List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -299,7 +299,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public virtual List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 

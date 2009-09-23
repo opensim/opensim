@@ -27,14 +27,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
+using System.Xml;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Services.Connectors.Grid;
+using OpenSim.Framework.Console;
 
 using OpenMetaverse;
 using log4net;
@@ -94,7 +98,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
 
                     InitialiseConnectorModule(source);
-
+                    
                     m_Enabled = true;
                     m_log.Info("[HGGRID CONNECTOR]: HG grid enabled");
                 }
@@ -137,6 +141,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             scene.RegisterModuleInterface<IGridService>(this);
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -145,11 +150,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void RegionLoaded(Scene scene)
         {
-            if (m_Enabled && !m_Initialized)
+            if (!m_Enabled)
+                return;
+
+            if (!m_Initialized)
             {
                 m_HypergridServiceConnector = new HypergridServiceConnector(scene.AssetService);
                 m_Initialized = true;
             }
+
+            HGCommands hgCommands = new HGCommands(this, scene);
+            scene.AddCommand("HG", "link-region",
+                "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                "Link a hypergrid region", hgCommands.RunCommand);
+            scene.AddCommand("HG", "unlink-region",
+                "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+                "Unlink a hypergrid region", hgCommands.RunCommand);
+            scene.AddCommand("HG", "link-mapping", "link-mapping [<x> <y>] <cr>",
+                "Set local coordinate to map HG regions to", hgCommands.RunCommand);
+
         }
 
         #endregion
@@ -305,6 +324,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #endregion
 
+        #region Auxiliary
+
         private void AddHyperlinkRegion(SimpleRegionInfo regionInfo, ulong regionHandle)
         {
             m_HyperlinkRegions.Add(regionInfo.RegionID, regionInfo);
@@ -334,6 +355,194 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             m_HyperlinkHandles.Remove(regionID);
         }
+        #endregion
+
+        #region Hyperlinks
+
+        private static Random random = new Random();
+
+        public SimpleRegionInfo TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, uint xloc, uint yloc)
+        {
+            string host = "127.0.0.1";
+            string portstr;
+            string regionName = "";
+            uint port = 9000;
+            string[] parts = mapName.Split(new char[] { ':' });
+            if (parts.Length >= 1)
+            {
+                host = parts[0];
+            }
+            if (parts.Length >= 2)
+            {
+                portstr = parts[1];
+                if (!UInt32.TryParse(portstr, out port))
+                    regionName = parts[1];
+            }
+            // always take the last one
+            if (parts.Length >= 3)
+            {
+                regionName = parts[2];
+            }
+
+            // Sanity check. Don't ever link to this sim.
+            IPAddress ipaddr = null;
+            try
+            {
+                ipaddr = Util.GetHostFromDNS(host);
+            }
+            catch { }
+
+            if ((ipaddr != null) &&
+                !((m_scene.RegionInfo.ExternalEndPoint.Address.Equals(ipaddr)) && (m_scene.RegionInfo.HttpPort == port)))
+            {
+                SimpleRegionInfo regInfo;
+                bool success = TryCreateLink(m_scene, client, xloc, yloc, regionName, port, host, out regInfo);
+                if (success)
+                {
+                    regInfo.RegionName = mapName;
+                    return regInfo;
+                }
+            }
+
+            return null;
+        }
+
+        public SimpleRegionInfo TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
+        {
+            uint xloc = (uint)(random.Next(0, Int16.MaxValue));
+            return TryLinkRegionToCoords(m_scene, client, mapName, xloc, 0);
+        }
+
+        public bool TryCreateLink(Scene m_scene, IClientAPI client, uint xloc, uint yloc,
+            string externalRegionName, uint externalPort, string externalHostName, out SimpleRegionInfo regInfo)
+        {
+            m_log.DebugFormat("[HGrid]: Link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
+
+            regInfo = new SimpleRegionInfo();
+            regInfo.RegionName = externalRegionName;
+            regInfo.HttpPort = externalPort;
+            regInfo.ExternalHostName = externalHostName;
+            regInfo.RegionLocX = xloc;
+            regInfo.RegionLocY = yloc;
+
+            try
+            {
+                regInfo.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)0);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid]: Wrong format for link-region: " + e.Message);
+                return false;
+            }
+
+            // Finally, link it
+            try
+            {
+                RegisterRegion(UUID.Zero, regInfo);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid]: Unable to link region: " + e.Message);
+                return false;
+            }
+
+            uint x, y;
+            if (!Check4096(m_scene, regInfo, out x, out y))
+            {
+                DeregisterRegion(regInfo.RegionID);
+                if (client != null)
+                    client.SendAlertMessage("Region is too far (" + x + ", " + y + ")");
+                m_log.Info("[HGrid]: Unable to link, region is too far (" + x + ", " + y + ")");
+                return false;
+            }
+
+            if (!CheckCoords(m_scene.RegionInfo.RegionLocX, m_scene.RegionInfo.RegionLocY, x, y))
+            {
+                DeregisterRegion(regInfo.RegionID);
+                if (client != null)
+                    client.SendAlertMessage("Region has incompatible coordinates (" + x + ", " + y + ")");
+                m_log.Info("[HGrid]: Unable to link, region has incompatible coordinates (" + x + ", " + y + ")");
+                return false;
+            }
+
+            m_log.Debug("[HGrid]: link region succeeded");
+            return true;
+        }
+
+        public bool TryUnlinkRegion(Scene m_scene, string mapName)
+        {
+            SimpleRegionInfo regInfo = null;
+            if (mapName.Contains(":"))
+            {
+                string host = "127.0.0.1";
+                //string portstr;
+                //string regionName = "";
+                uint port = 9000;
+                string[] parts = mapName.Split(new char[] { ':' });
+                if (parts.Length >= 1)
+                {
+                    host = parts[0];
+                }
+                //                if (parts.Length >= 2)
+                //                {
+                //                    portstr = parts[1];
+                //                    if (!UInt32.TryParse(portstr, out port))
+                //                        regionName = parts[1];
+                //                }
+                // always take the last one
+                //                if (parts.Length >= 3)
+                //                {
+                //                    regionName = parts[2];
+                //                }
+                foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+                    if (host.Equals(r.ExternalHostName) && (port == r.HttpPort))
+                        regInfo = r;
+            }
+            else
+            {
+                foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+                    if (r.RegionName.Equals(mapName))
+                        regInfo = r;
+            }
+            if (regInfo != null)
+            {
+                return DeregisterRegion(regInfo.RegionID);
+            }
+            else
+            {
+                m_log.InfoFormat("[HGrid]: Region {0} not found", mapName);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Cope with this viewer limitation.
+        /// </summary>
+        /// <param name="regInfo"></param>
+        /// <returns></returns>
+        public bool Check4096(Scene m_scene, SimpleRegionInfo regInfo, out uint x, out uint y)
+        {
+            ulong realHandle = m_HyperlinkHandles[regInfo.RegionID];
+            Utils.LongToUInts(realHandle, out x, out y);
+            x = x / Constants.RegionSize;
+            y = y / Constants.RegionSize;
+
+            if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - (int)x) >= 4096) ||
+                (Math.Abs((int)m_scene.RegionInfo.RegionLocY - (int)y) >= 4096))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool CheckCoords(uint thisx, uint thisy, uint x, uint y)
+        {
+            if ((thisx == x) && (thisy == y))
+                return false;
+            return true;
+        }
+
+        #endregion
 
     }
 }
