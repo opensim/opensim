@@ -1664,6 +1664,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             enablesimpacket.SimulatorInfo.IP += (uint)byteIP[1] << 8;
             enablesimpacket.SimulatorInfo.IP += (uint)byteIP[0];
             enablesimpacket.SimulatorInfo.Port = neighbourPort;
+
+            enablesimpacket.Header.Reliable = true; // ESP's should be reliable.
+
             OutPacket(enablesimpacket, ThrottleOutPacketType.Task);
         }
 
