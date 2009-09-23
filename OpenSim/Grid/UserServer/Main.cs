@@ -260,8 +260,6 @@ namespace OpenSim.Grid.UserServer
             m_userManager.PostInitialise();
             m_avatarAppearanceModule.PostInitialise();
             m_friendsModule.PostInitialise();
-
-            m_avatarAppearanceModule.PostInitialise();
         }
 
         protected virtual void RegisterHttpHandlers()
@@ -276,8 +274,6 @@ namespace OpenSim.Grid.UserServer
             m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
             m_messagesService.RegisterHandlers(m_httpServer);
             m_gridInfoService.RegisterHandlers(m_httpServer);
-
-            m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
         }
 
         public override void ShutdownSpecific()
