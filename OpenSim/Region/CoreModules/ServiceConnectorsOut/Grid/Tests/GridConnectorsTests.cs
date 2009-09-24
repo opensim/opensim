@@ -116,7 +116,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             List<GridRegion> results = m_LocalConnector.GetNeighbours(UUID.Zero, new UUID(1));
             Assert.IsNotNull(results, "Retrieved neighbours list is null");
             Assert.That(results.Count, Is.EqualTo(1), "Retrieved neighbour collection is greater than expected");
-            Assert.That(results[0].RegionID, Is.EqualTo(new UUID(2)));
+            Assert.That(results[0].RegionID, Is.EqualTo(new UUID(2)), "Retrieved region's UUID does not match");
+
+            results = m_LocalConnector.GetRegionsByName(UUID.Zero, "Test", 10);
+            Assert.IsNotNull(results, "Retrieved GetRegionsByName list is null");
+            Assert.That(results.Count, Is.EqualTo(3), "Retrieved neighbour collection is less than expected");
+
+            results = m_LocalConnector.GetRegionRange(UUID.Zero, 900 * (int)Constants.RegionSize, 1002 * (int)Constants.RegionSize,
+                900 * (int)Constants.RegionSize, 1100 * (int)Constants.RegionSize);
+            Assert.IsNotNull(results, "Retrieved GetRegionRange list is null");
+            Assert.That(results.Count, Is.EqualTo(2), "Retrieved neighbour collection is not the number expected");
         }
     }
 }
