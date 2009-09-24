@@ -33,6 +33,7 @@ using System.Drawing;
 using System.Net;
 using System.Reflection;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using OpenSim.Framework;
 
@@ -54,7 +55,7 @@ namespace OpenSim.Services.Connectors.Grid
             m_AssetService = assService;
         }
 
-        public UUID LinkRegion(SimpleRegionInfo info, out ulong realHandle)
+        public UUID LinkRegion(GridRegion info, out ulong realHandle)
         {
             UUID uuid = UUID.Zero;
             realHandle = 0;
@@ -114,7 +115,7 @@ namespace OpenSim.Services.Connectors.Grid
             return uuid;
         }
 
-        public void GetMapImage(SimpleRegionInfo info)
+        public void GetMapImage(GridRegion info)
         {
             try
             {

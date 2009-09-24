@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
 using OpenMetaverse;
 
@@ -85,7 +86,7 @@ namespace OpenSim.Services.Connectors
 
         #region IGridService
 
-        public virtual bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        public virtual bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             Dictionary<string, object> rinfo = regionInfo.ToKeyValuePairs();
             Dictionary<string, string> sendData = new Dictionary<string,string>();
@@ -128,7 +129,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public virtual List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public virtual List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -143,7 +144,7 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             if (replyData != null)
             {
                 Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
@@ -151,7 +152,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (r is Dictionary<string, object>)
                     {
-                        SimpleRegionInfo rinfo = new SimpleRegionInfo((Dictionary<string, object>)r);
+                        GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
                         rinfos.Add(rinfo);
                     }
                     else
@@ -166,7 +167,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public virtual SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public virtual GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -181,11 +182,11 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            SimpleRegionInfo rinfo = null;
+            GridRegion rinfo = null;
             if ((replyData != null) && (replyData["result"] != null))
             {
                 if (replyData["result"] is Dictionary<string, object>)
-                    rinfo = new SimpleRegionInfo((Dictionary<string, object>)replyData["result"]);
+                    rinfo = new GridRegion((Dictionary<string, object>)replyData["result"]);
                 else
                     m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByUUID {0}, {1} received invalid response",
                         scopeID, regionID);
@@ -197,7 +198,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public virtual GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -213,11 +214,11 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            SimpleRegionInfo rinfo = null;
+            GridRegion rinfo = null;
             if ((replyData != null) && (replyData["result"] != null))
             {
                 if (replyData["result"] is Dictionary<string, object>)
-                    rinfo = new SimpleRegionInfo((Dictionary<string, object>)replyData["result"]);
+                    rinfo = new GridRegion((Dictionary<string, object>)replyData["result"]);
                 else
                     m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition {0}, {1}-{2} received invalid response",
                         scopeID, x, y);
@@ -229,7 +230,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public virtual GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -244,11 +245,11 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            SimpleRegionInfo rinfo = null;
+            GridRegion rinfo = null;
             if ((replyData != null) && (replyData["result"] != null))
             {
                 if (replyData["result"] is Dictionary<string, object>)
-                    rinfo = new SimpleRegionInfo((Dictionary<string, object>)replyData["result"]);
+                    rinfo = new GridRegion((Dictionary<string, object>)replyData["result"]);
                 else
                     m_log.DebugFormat("[GRID CONNECTOR]: GetRegionByPosition {0}, {1} received invalid response",
                         scopeID, regionName);
@@ -260,7 +261,7 @@ namespace OpenSim.Services.Connectors
             return rinfo;
         }
 
-        public virtual List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public virtual List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -276,7 +277,7 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             if (replyData != null)
             {
                 Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
@@ -284,7 +285,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (r is Dictionary<string, object>)
                     {
-                        SimpleRegionInfo rinfo = new SimpleRegionInfo((Dictionary<string, object>)r);
+                        GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
                         rinfos.Add(rinfo);
                     }
                     else
@@ -299,7 +300,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public virtual List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public virtual List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             Dictionary<string, string> sendData = new Dictionary<string, string>();
 
@@ -317,7 +318,7 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             if (replyData != null)
             {
                 Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
@@ -325,7 +326,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (r is Dictionary<string, object>)
                     {
-                        SimpleRegionInfo rinfo = new SimpleRegionInfo((Dictionary<string, object>)r);
+                        GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
                         rinfos.Add(rinfo);
                     }
                     else

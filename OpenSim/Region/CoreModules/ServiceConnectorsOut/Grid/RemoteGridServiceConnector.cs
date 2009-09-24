@@ -37,6 +37,7 @@ using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
@@ -129,7 +130,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public override bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        public override bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             if (m_LocalGridService.RegisterRegion(scopeID, regionInfo))
                 return base.RegisterRegion(scopeID, regionInfo);
@@ -147,27 +148,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         // Let's not override GetNeighbours -- let's get them all from the grid server
 
-        public override SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public override GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
-            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByUUID(scopeID, regionID);
+            GridRegion rinfo = m_LocalGridService.GetRegionByUUID(scopeID, regionID);
             if (rinfo == null)
                 rinfo = base.GetRegionByUUID(scopeID, regionID);
 
             return rinfo;
         }
 
-        public override SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public override GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
-            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
+            GridRegion rinfo = m_LocalGridService.GetRegionByPosition(scopeID, x, y);
             if (rinfo == null)
                 rinfo = base.GetRegionByPosition(scopeID, x, y);
 
             return rinfo;
         }
 
-        public override SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public override GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
-            SimpleRegionInfo rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
+            GridRegion rinfo = m_LocalGridService.GetRegionByName(scopeID, regionName);
             if (rinfo == null)
                 rinfo = base.GetRegionByName(scopeID, regionName);
 

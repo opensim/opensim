@@ -36,6 +36,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
 using OpenSim.Services.Connectors.Grid;
 using OpenSim.Framework.Console;
@@ -59,13 +60,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private HypergridServiceConnector m_HypergridServiceConnector;
 
         // Hyperlink regions are hyperlinks on the map
-        protected Dictionary<UUID, SimpleRegionInfo> m_HyperlinkRegions = new Dictionary<UUID, SimpleRegionInfo>();
+        protected Dictionary<UUID, GridRegion> m_HyperlinkRegions = new Dictionary<UUID, GridRegion>();
 
         // Known regions are home regions of visiting foreign users.
         // They are not on the map as static hyperlinks. They are dynamic hyperlinks, they go away when
         // the visitor goes away. They are mapped to X=0 on the map.
         // This is key-ed on agent ID
-        protected Dictionary<UUID, SimpleRegionInfo> m_knownRegions = new Dictionary<UUID, SimpleRegionInfo>();
+        protected Dictionary<UUID, GridRegion> m_knownRegions = new Dictionary<UUID, GridRegion>();
 
         protected Dictionary<UUID, ulong> m_HyperlinkHandles = new Dictionary<UUID, ulong>();
 
@@ -184,7 +185,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        public bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             // Region doesn't exist here. Trying to link remote region
             if (regionInfo.RegionID.Equals(UUID.Zero))
@@ -222,7 +223,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
             // Try the foreign users home collection
 
-            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+            foreach (GridRegion r in m_knownRegions.Values)
                 if (r.RegionID == regionID)
                 {
                     RemoveHyperlinkHomeRegion(regionID);
@@ -233,21 +234,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridServiceConnector.DeregisterRegion(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
             // No serving neighbours on hyperliked regions.
             // Just the regular regions.
             return m_GridServiceConnector.GetNeighbours(scopeID, regionID);
         }
 
-        public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             // Try the hyperlink collection
             if (m_HyperlinkRegions.ContainsKey(regionID))
                 return m_HyperlinkRegions[regionID];
             
             // Try the foreign users home collection
-            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+            foreach (GridRegion r in m_knownRegions.Values)
                 if (r.RegionID == regionID)
                     return m_knownRegions[regionID];
 
@@ -255,19 +256,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridServiceConnector.GetRegionByUUID(scopeID, regionID);
         }
 
-        public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             int snapX = (int) (x / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapY = (int) (y / Constants.RegionSize) * (int)Constants.RegionSize;
             // Try the hyperlink collection
-            foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
             {
                 if ((r.RegionLocX == snapX) && (r.RegionLocY == snapY))
                     return r;
             }
 
             // Try the foreign users home collection
-            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+            foreach (GridRegion r in m_knownRegions.Values)
             {
                 if ((r.RegionLocX == snapX) && (r.RegionLocY == snapY))
                     return r;
@@ -277,22 +278,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridServiceConnector.GetRegionByPosition(scopeID, x, y);
         }
 
-        public SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             // Try normal grid first
-            SimpleRegionInfo region = m_GridServiceConnector.GetRegionByName(scopeID, regionName);
+            GridRegion region = m_GridServiceConnector.GetRegionByName(scopeID, regionName);
             if (region != null)
                 return region;
 
             // Try the hyperlink collection
-            foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
             {
                 if (r.RegionName == regionName)
                     return r;
             }
 
             // Try the foreign users home collection
-            foreach (SimpleRegionInfo r in m_knownRegions.Values)
+            foreach (GridRegion r in m_knownRegions.Values)
             {
                 if (r.RegionName == regionName)
                     return r;
@@ -300,9 +301,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return null;
         }
 
-        public List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
 
             // Commenting until regionname exists
             //foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
@@ -313,15 +314,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfos;
         }
 
-        public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             int snapXmin = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmin = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmax = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
 
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
-            foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+            List<GridRegion> rinfos = new List<GridRegion>();
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
                 if ((r.RegionLocX > snapXmin) && (r.RegionLocX < snapYmax) &&
                     (r.RegionLocY > snapYmin) && (r.RegionLocY < snapYmax))
                     rinfos.Add(r);
@@ -335,7 +336,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region Auxiliary
 
-        private void AddHyperlinkRegion(SimpleRegionInfo regionInfo, ulong regionHandle)
+        private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
             m_HyperlinkRegions.Add(regionInfo.RegionID, regionInfo);
             m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
@@ -347,7 +348,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             m_HyperlinkHandles.Remove(regionID);
         }
 
-        private void AddHyperlinkHomeRegion(UUID userID, SimpleRegionInfo regionInfo, ulong regionHandle)
+        private void AddHyperlinkHomeRegion(UUID userID, GridRegion regionInfo, ulong regionHandle)
         {
             m_knownRegions.Add(userID, regionInfo);
             m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
@@ -355,7 +356,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void RemoveHyperlinkHomeRegion(UUID regionID)
         {
-            foreach (KeyValuePair<UUID, SimpleRegionInfo> kvp in m_knownRegions)
+            foreach (KeyValuePair<UUID, GridRegion> kvp in m_knownRegions)
             {
                 if (kvp.Value.RegionID == regionID)
                 {
@@ -370,7 +371,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private static Random random = new Random();
 
-        public SimpleRegionInfo TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, uint xloc, uint yloc)
+        public GridRegion TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, int xloc, int yloc)
         {
             string host = "127.0.0.1";
             string portstr;
@@ -404,7 +405,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if ((ipaddr != null) &&
                 !((m_scene.RegionInfo.ExternalEndPoint.Address.Equals(ipaddr)) && (m_scene.RegionInfo.HttpPort == port)))
             {
-                SimpleRegionInfo regInfo;
+                GridRegion regInfo;
                 bool success = TryCreateLink(m_scene, client, xloc, yloc, regionName, port, host, out regInfo);
                 if (success)
                 {
@@ -417,18 +418,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
 
         // From the map search and secondlife://blah
-        public SimpleRegionInfo TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
+        public GridRegion TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
         {
-            uint xloc = (uint)(random.Next(0, Int16.MaxValue));
+            int xloc = random.Next(0, Int16.MaxValue);
             return TryLinkRegionToCoords(m_scene, client, mapName, xloc, 0);
         }
 
-        public bool TryCreateLink(Scene m_scene, IClientAPI client, uint xloc, uint yloc,
-            string externalRegionName, uint externalPort, string externalHostName, out SimpleRegionInfo regInfo)
+        public bool TryCreateLink(Scene m_scene, IClientAPI client, int xloc, int yloc,
+            string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo)
         {
             m_log.DebugFormat("[HGrid]: Link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
 
-            regInfo = new SimpleRegionInfo();
+            regInfo = new GridRegion();
             regInfo.RegionName = externalRegionName;
             regInfo.HttpPort = externalPort;
             regInfo.ExternalHostName = externalHostName;
@@ -456,7 +457,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return false;
             }
 
-            uint x, y;
+            int x, y;
             if (!Check4096(m_scene, regInfo, out x, out y))
             {
                 DeregisterRegion(regInfo.RegionID);
@@ -481,7 +482,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public bool TryUnlinkRegion(Scene m_scene, string mapName)
         {
-            SimpleRegionInfo regInfo = null;
+            GridRegion regInfo = null;
             if (mapName.Contains(":"))
             {
                 string host = "127.0.0.1";
@@ -504,13 +505,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 //                {
                 //                    regionName = parts[2];
                 //                }
-                foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+                foreach (GridRegion r in m_HyperlinkRegions.Values)
                     if (host.Equals(r.ExternalHostName) && (port == r.HttpPort))
                         regInfo = r;
             }
             else
             {
-                foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
+                foreach (GridRegion r in m_HyperlinkRegions.Values)
                     if (r.RegionName.Equals(mapName))
                         regInfo = r;
             }
@@ -530,22 +531,23 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         /// </summary>
         /// <param name="regInfo"></param>
         /// <returns></returns>
-        public bool Check4096(Scene m_scene, SimpleRegionInfo regInfo, out uint x, out uint y)
+        public bool Check4096(Scene m_scene, GridRegion regInfo, out int x, out int y)
         {
             ulong realHandle = m_HyperlinkHandles[regInfo.RegionID];
-            Utils.LongToUInts(realHandle, out x, out y);
-            x = x / Constants.RegionSize;
-            y = y / Constants.RegionSize;
+            uint ux = 0, uy = 0;
+            Utils.LongToUInts(realHandle, out ux, out uy);
+            x = (int)(ux / Constants.RegionSize);
+            y = (int)(uy / Constants.RegionSize);
 
-            if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - (int)x) >= 4096) ||
-                (Math.Abs((int)m_scene.RegionInfo.RegionLocY - (int)y) >= 4096))
+            if ((Math.Abs((int)(m_scene.RegionInfo.RegionLocX / Constants.RegionSize) - x) >= 4096) ||
+                (Math.Abs((int)(m_scene.RegionInfo.RegionLocY / Constants.RegionSize) - y) >= 4096))
             {
                 return false;
             }
             return true;
         }
 
-        public bool CheckCoords(uint thisx, uint thisy, uint x, uint y)
+        public bool CheckCoords(uint thisx, uint thisy, int x, int y)
         {
             if ((thisx == x) && (thisy == y))
                 return false;

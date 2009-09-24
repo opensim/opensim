@@ -37,6 +37,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
@@ -121,12 +122,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (cmdparams[2].Contains(":"))
                 {
                     // New format
-                    uint xloc, yloc;
+                    int xloc, yloc;
                     string mapName;
                     try
                     {
-                        xloc = Convert.ToUInt32(cmdparams[0]);
-                        yloc = Convert.ToUInt32(cmdparams[1]);
+                        xloc = Convert.ToInt32(cmdparams[0]);
+                        yloc = Convert.ToInt32(cmdparams[1]);
                         mapName = cmdparams[2];
                         if (cmdparams.Length > 3)
                             for (int i = 3; i < cmdparams.Length; i++)
@@ -143,19 +144,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         return;
                     }
 
+                    // Convert cell coordinates given by the user to meters
+                    xloc = xloc * (int)Constants.RegionSize;
+                    yloc = yloc * (int)Constants.RegionSize;
                     m_HGGridConnector.TryLinkRegionToCoords(m_scene, null, mapName, xloc, yloc);
                 }
                 else
                 {
                     // old format
-                    SimpleRegionInfo regInfo;
-                    uint xloc, yloc;
+                    GridRegion regInfo;
+                    int xloc, yloc;
                     uint externalPort;
                     string externalHostName;
                     try
                     {
-                        xloc = Convert.ToUInt32(cmdparams[0]);
-                        yloc = Convert.ToUInt32(cmdparams[1]);
+                        xloc = Convert.ToInt32(cmdparams[0]);
+                        yloc = Convert.ToInt32(cmdparams[1]);
                         externalPort = Convert.ToUInt32(cmdparams[3]);
                         externalHostName = cmdparams[2];
                         //internalPort = Convert.ToUInt32(cmdparams[4]);
@@ -168,7 +172,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                         return;
                     }
 
-                    //if (TryCreateLink(xloc, yloc, externalPort, externalHostName, out regInfo))
+                    // Convert cell coordinates given by the user to meters
+                    xloc = xloc * (int)Constants.RegionSize;
+                    yloc = yloc * (int)Constants.RegionSize;
                     if (m_HGGridConnector.TryCreateLink(m_scene, null, xloc, yloc, "", externalPort, externalHostName, out regInfo))
                     {
                         if (cmdparams.Length >= 5)
@@ -245,14 +251,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void ReadLinkFromConfig(IConfig config)
         {
-            SimpleRegionInfo regInfo;
-            uint xloc, yloc;
+            GridRegion regInfo;
+            int xloc, yloc;
             uint externalPort;
             string externalHostName;
             uint realXLoc, realYLoc;
 
-            xloc = Convert.ToUInt32(config.GetString("xloc", "0"));
-            yloc = Convert.ToUInt32(config.GetString("yloc", "0"));
+            xloc = Convert.ToInt32(config.GetString("xloc", "0"));
+            yloc = Convert.ToInt32(config.GetString("yloc", "0"));
             externalPort = Convert.ToUInt32(config.GetString("externalPort", "0"));
             externalHostName = config.GetString("externalHostName", "");
             realXLoc = Convert.ToUInt32(config.GetString("real-xloc", "0"));
@@ -260,14 +266,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if (m_enableAutoMapping)
             {
-                xloc = (uint)((xloc % 100) + m_autoMappingX);
-                yloc = (uint)((yloc % 100) + m_autoMappingY);
+                xloc = (int)((xloc % 100) + m_autoMappingX);
+                yloc = (int)((yloc % 100) + m_autoMappingY);
             }
 
             if (((realXLoc == 0) && (realYLoc == 0)) ||
                 (((realXLoc - xloc < 3896) || (xloc - realXLoc < 3896)) &&
                  ((realYLoc - yloc < 3896) || (yloc - realYLoc < 3896))))
             {
+                xloc = xloc * (int)Constants.RegionSize;
+                yloc = yloc * (int)Constants.RegionSize;
                 if (
                     m_HGGridConnector.TryCreateLink(m_scene, null, xloc, yloc, "", externalPort,
                                               externalHostName, out regInfo))

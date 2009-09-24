@@ -35,6 +35,7 @@ using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
@@ -56,6 +57,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public LocalGridServicesConnector(IConfigSource source)
         {
+            m_log.Debug("[LOCAL GRID CONNECTOR]: LocalGridServicesConnector instantiated");
             InitialiseService(source);
         }
 
@@ -111,7 +113,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if (m_GridService == null)
             {
-                m_log.Error("[LOCAL GRID CONNECTOR]: Can't load asset service");
+                m_log.Error("[LOCAL GRID CONNECTOR]: Can't load grid service");
                 return;
             }
         }
@@ -144,7 +146,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfo)
+        public bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             return m_GridService.RegisterRegion(scopeID, regionInfo);
         }
@@ -154,32 +156,32 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.DeregisterRegion(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
             return m_GridService.GetNeighbours(scopeID, regionID);
         }
 
-        public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             return m_GridService.GetRegionByUUID(scopeID, regionID);
         }
 
-        public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             return m_GridService.GetRegionByPosition(scopeID, x, y);
         }
 
-        public SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             return m_GridService.GetRegionByName(scopeID, regionName);
         }
 
-        public List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             return m_GridService.GetRegionsByName(scopeID, name, maxNumber);
         }
 
-        public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             return m_GridService.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
         }

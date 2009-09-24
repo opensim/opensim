@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 
 namespace OpenSim.Services.GridService
@@ -48,6 +49,7 @@ namespace OpenSim.Services.GridService
         public GridService(IConfigSource config)
             : base(config)
         {
+            m_log.DebugFormat("[GRID SERVICE]: Starting...");
             MainConsole.Instance.Commands.AddCommand("kfs", false,
                     "show digest",
                     "show digest <ID>",
@@ -62,7 +64,7 @@ namespace OpenSim.Services.GridService
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfos)
+        public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
             if (m_Database.Get(regionInfos.RegionID, scopeID) != null)
             {
@@ -88,9 +90,9 @@ namespace OpenSim.Services.GridService
             return m_Database.Delete(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             RegionData region = m_Database.Get(regionID, scopeID);
             if (region != null)
             {
@@ -105,7 +107,7 @@ namespace OpenSim.Services.GridService
             return rinfos;
         }
 
-        public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             RegionData rdata = m_Database.Get(regionID, scopeID);
             if (rdata != null)
@@ -114,7 +116,7 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
             int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapY = (int)(y / Constants.RegionSize) * (int)Constants.RegionSize;
@@ -125,7 +127,7 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             List<RegionData> rdatas = m_Database.Get(regionName + "%", scopeID);
             if ((rdatas != null) && (rdatas.Count > 0))
@@ -134,12 +136,12 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             List<RegionData> rdatas = m_Database.Get("%" + name + "%", scopeID);
 
             int count = 0;
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
 
             if (rdatas != null)
             {
@@ -153,7 +155,7 @@ namespace OpenSim.Services.GridService
             return rinfos;
         }
 
-        public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             int xminSnap = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
             int xmaxSnap = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
@@ -161,7 +163,7 @@ namespace OpenSim.Services.GridService
             int ymaxSnap = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
 
             List<RegionData> rdatas = m_Database.Get(xminSnap, yminSnap, xmaxSnap, ymaxSnap, scopeID);
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             foreach (RegionData rdata in rdatas)
                 rinfos.Add(RegionData2RegionInfo(rdata));
 
@@ -172,7 +174,7 @@ namespace OpenSim.Services.GridService
 
         #region Data structure conversions
 
-        protected RegionData RegionInfo2RegionData(SimpleRegionInfo rinfo)
+        protected RegionData RegionInfo2RegionData(GridRegion rinfo)
         {
             RegionData rdata = new RegionData();
             rdata.posX = (int)rinfo.RegionLocX;
@@ -184,11 +186,11 @@ namespace OpenSim.Services.GridService
             return rdata;
         }
 
-        protected SimpleRegionInfo RegionData2RegionInfo(RegionData rdata)
+        protected GridRegion RegionData2RegionInfo(RegionData rdata)
         {
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(rdata.Data);
-            rinfo.RegionLocX = (uint)rdata.posX;
-            rinfo.RegionLocY = (uint)rdata.posY;
+            GridRegion rinfo = new GridRegion(rdata.Data);
+            rinfo.RegionLocX = rdata.posX;
+            rinfo.RegionLocY = rdata.posY;
             rinfo.RegionID = rdata.RegionID;
             rinfo.RegionName = rdata.RegionName;
 
