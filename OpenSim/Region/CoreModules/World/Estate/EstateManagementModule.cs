@@ -33,7 +33,6 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
@@ -47,7 +46,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private Scene m_scene;
 
-        private EstateTerrainXferHandler TerrainUploader = null;
+        private EstateTerrainXferHandler TerrainUploader;
 
         #region Packet Data Responders
 
@@ -668,7 +667,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 LookupUUID(uuidNameLookupList);
         }
 
-        private void LookupUUIDSCompleted(IAsyncResult iar)
+        private static void LookupUUIDSCompleted(IAsyncResult iar)
         {
             LookupUUIDS icon = (LookupUUIDS)iar.AsyncState;
             icon.EndInvoke(iar);
@@ -683,7 +682,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         }
         private void LookupUUIDsAsync(List<UUID> uuidLst)
         {
-            UUID[] uuidarr = new UUID[0];
+            UUID[] uuidarr;
 
             lock (uuidLst)
             {
@@ -707,7 +706,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             for (int i = 0; i < avatars.Count; i++)
             {
-                HandleRegionInfoRequest(avatars[i].ControllingClient); ;
+                HandleRegionInfoRequest(avatars[i].ControllingClient);
             }
         }
 
@@ -768,7 +767,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
             {
                 m_scene.RegionInfo.EstateSettings.UseGlobalTime = false;
-                m_scene.RegionInfo.EstateSettings.SunPosition = (double)(parms2 - 0x1800)/1024.0;
+                m_scene.RegionInfo.EstateSettings.SunPosition = (parms2 - 0x1800)/1024.0;
             }
 
             if ((parms1 & 0x00000010) != 0)
@@ -828,8 +827,58 @@ namespace OpenSim.Region.CoreModules.World.Estate
             m_scene.RegisterModuleInterface<IEstateModule>(this);
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
             m_scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
+
+            m_scene.AddCommand(this, "set terrain texture",
+                               "set terrain texture <number> <uuid> [<x>] [<y>]",
+                               "Sets the terrain <number> to <uuid>, if <x> or <y> are specified, it will only " +
+                               "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
+                               " that coordinate.",
+                               consoleSetTerrainTexture);
+
+            m_scene.AddCommand(this, "set terrain heights",
+                               "set terrain heights <corner> <min> <max> [<x>] [<y>]",
+                               "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
+                               "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
+                               " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
+                               consoleSetTerrainTexture);
         }
 
+        #region Console Commands
+
+        public void consoleSetTerrainTexture(string module, string[] args)
+        {
+            string num = args[3];
+            string uuid = args[4];
+            int x = (args.Length > 5 ? int.Parse(args[5]) : -1);
+            int y = (args.Length > 6 ? int.Parse(args[6]) : -1);
+
+            if (x != -1 && m_scene.RegionInfo.RegionLocX != x)
+            {
+                if (y != -1 && m_scene.RegionInfo.RegionLocY != y)
+                {
+                    setEstateTerrainBaseTexture(null, int.Parse(num), UUID.Parse(uuid));
+                }
+            }
+         }
+ 
+        public void consoleSetTerrainHeights(string module, string[] args)
+        {
+            string num = args[3];
+            string min = args[4];
+            string max = args[5];
+            int x = (args.Length > 6 ? int.Parse(args[6]) : -1);
+            int y = (args.Length > 7 ? int.Parse(args[7]) : -1);
+
+            if (x != -1 && m_scene.RegionInfo.RegionLocX != x)
+            {
+                if (y != -1 && m_scene.RegionInfo.RegionLocY != y)
+                {
+                    setEstateTerrainTextureHeights(null, int.Parse(num), float.Parse(min), float.Parse(max));
+                }
+            }
+        }
+
+        #endregion
 
         public void PostInitialise()
         {
