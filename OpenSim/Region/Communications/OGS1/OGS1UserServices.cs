@@ -144,16 +144,25 @@ namespace OpenSim.Region.Communications.OGS1
 
         public override bool AuthenticateUserByPassword(UUID userID, string password)
         {
-            try
+            Hashtable param = new Hashtable();
+            param["user_uuid"] = userID.ToString();
+            param["password"] = password;
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("authenticate_user_by_password", parameters);
+            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);                
+
+            // Temporary measure to deal with older services
+            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)                
+            //if ((string)respData["fault_code"] != null && (string)respData["fault_code"] == 
             {
-                Hashtable param = new Hashtable();
-                param["user_uuid"] = userID.ToString();
-                param["password"] = password;
-                IList parameters = new ArrayList();
-                parameters.Add(param);
-                XmlRpcRequest req = new XmlRpcRequest("authenticate_user_by_password", parameters);
-                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
-                Hashtable respData = (Hashtable)resp.Value;
+                throw new Exception(
+                    String.Format(
+                        "XMLRPC method 'authenticate_user_by_password' not yet implemented by user service at {0}",
+                        m_commsManager.NetworkServersInfo.UserURL));
+            }
+
+            Hashtable respData = (Hashtable)resp.Value;
 
 //                foreach (object key in respData.Keys)
 //                {                   
@@ -164,23 +173,14 @@ namespace OpenSim.Region.Communications.OGS1
 //                    "[OGS1 USER SERVICES]: AuthenticatedUserByPassword response for {0} is [{1}]", 
 //                    userID, respData["auth_user"]);
 
-                if ((string)respData["auth_user"] == "TRUE")
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch (Exception e)
+            if ((string)respData["auth_user"] == "TRUE")
             {
-                m_log.ErrorFormat(
-                    "[OGS1 USER SERVICES]: Error when trying to authenticate user by password from remote user server: {0}",
-                    e);
-
+                return true;
+            }
+            else
+            {
                 return false;
-            }            
+            }           
         }
     }
 }

@@ -333,16 +333,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
             }
 
-            if (m_aScene.CommsManager.UserService.AuthenticateUserByPassword(userInfo.UserProfile.ID, pass))
-            {
-                return userInfo;
+            try
+            {    
+                if (m_aScene.CommsManager.UserService.AuthenticateUserByPassword(userInfo.UserProfile.ID, pass))
+                {
+                    return userInfo;
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
+                        firstName, lastName);                    
+                    return null;
+                }
             }
-            else
+            catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
-                    firstName, lastName);
-                
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not authenticate password, {0}", e.Message);
                 return null;
             }
         }
@@ -364,9 +371,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {        
                     foreach (InventoryNodeBase node in loadedNodes)
                     {
-                        m_log.DebugFormat(
-                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
-                            user.Name, node.Name);
+//                        m_log.DebugFormat(
+//                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
+//                            user.Name, node.Name);
                         
                         user.ControllingClient.SendBulkUpdateInventory(node);
                     }
