@@ -154,6 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     break;
             }
             m_scene.RegionInfo.RegionSettings.Save();
+            sendRegionInfoPacketToAll();
         }
 
         public void setEstateTerrainTextureHeights(IClientAPI client, int corner, float lowValue, float highValue)
@@ -178,6 +179,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     break;
             }
             m_scene.RegionInfo.RegionSettings.Save();
+            sendRegionInfoPacketToAll();
         }
 
         private void handleCommitEstateTerrainTextureRequest(IClientAPI remoteClient)
