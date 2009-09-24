@@ -263,6 +263,7 @@ namespace OpenSim.Services.Interfaces
             kvp["uuid"] = RegionID.ToString();
             kvp["locX"] = RegionLocX.ToString();
             kvp["locY"] = RegionLocY.ToString();
+            kvp["name"] = RegionName;
             kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
             kvp["external_port"] = ExternalEndPoint.Port.ToString();
             kvp["external_host_name"] = ExternalHostName;
@@ -285,6 +286,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp["locY"] != null)
                 RegionLocY = Convert.ToInt32((string)kvp["locY"]);
+
+            if (kvp["name"] != null)
+                RegionName = (string)kvp["name"];
 
             if ((kvp["external_ip_address"] != null) && (kvp["external_port"] != null))
             {

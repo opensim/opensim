@@ -35,21 +35,21 @@ namespace OpenSim.Tests.Clients.GridClient
             GridRegion r2 = CreateRegion("Test Region 2", 1001, 1000);
             GridRegion r3 = CreateRegion("Test Region 3", 1005, 1000);
 
-            Console.WriteLine("[GRID CLIENT]: Registering region 1"); 
+            Console.WriteLine("[GRID CLIENT]: *** Registering region 1"); 
             bool success = m_Connector.RegisterRegion(UUID.Zero, r1);
             if (success)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 1");
             else
                 Console.WriteLine("[GRID CLIENT]: region 1 failed to register");
 
-            Console.WriteLine("[GRID CLIENT]: Registering region 2");
+            Console.WriteLine("[GRID CLIENT]: *** Registering region 2");
             success = m_Connector.RegisterRegion(UUID.Zero, r2);
             if (success)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 2");
             else
                 Console.WriteLine("[GRID CLIENT]: region 2 failed to register");
 
-            Console.WriteLine("[GRID CLIENT]: Registering region 3");
+            Console.WriteLine("[GRID CLIENT]: *** Registering region 3");
             success = m_Connector.RegisterRegion(UUID.Zero, r3);
             if (success)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 3");
@@ -57,20 +57,20 @@ namespace OpenSim.Tests.Clients.GridClient
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to register");
 
 
-            Console.WriteLine("[GRID CLIENT]: Deregistering region 3");
+            Console.WriteLine("[GRID CLIENT]: *** Deregistering region 3");
             success = m_Connector.DeregisterRegion(r3.RegionID);
             if (success)
                 Console.WriteLine("[GRID CLIENT]: Successfully deregistered region 3");
             else
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to deregister");
-            Console.WriteLine("[GRID CLIENT]: Registering region 3 again");
+            Console.WriteLine("[GRID CLIENT]: *** Registering region 3 again");
             success = m_Connector.RegisterRegion(UUID.Zero, r3);
             if (success)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 3");
             else
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to register");
 
-            Console.WriteLine("[GRID CLIENT]: GetNeighbours of region 1");
+            Console.WriteLine("[GRID CLIENT]: *** GetNeighbours of region 1");
             List<GridRegion> regions = m_Connector.GetNeighbours(UUID.Zero, r1.RegionID);
             if (regions == null)
                 Console.WriteLine("[GRID CLIENT]: GetNeighbours of region 1 failed");
@@ -84,6 +84,58 @@ namespace OpenSim.Tests.Clients.GridClient
             else
                 Console.WriteLine("[GRID CLIENT]: GetNeighbours of region 1 returned 0 neighbours");
 
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionByUUID of region 2 (this should succeed)");
+            GridRegion region = m_Connector.GetRegionByUUID(UUID.Zero, r2.RegionID);
+            if (region == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionByUUID returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionByUUID returned region " + region.RegionName);
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionByUUID of non-existent region (this should fail)");
+            region = m_Connector.GetRegionByUUID(UUID.Zero, UUID.Random());
+            if (region == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionByUUID returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionByUUID returned region " + region.RegionName);
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionByName of region 3 (this should succeed)");
+            region = m_Connector.GetRegionByName(UUID.Zero, r3.RegionName);
+            if (region == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionByName returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionByName returned region " + region.RegionName);
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionByName of non-existent region (this should fail)");
+            region = m_Connector.GetRegionByName(UUID.Zero, "Foo");
+            if (region == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionByName returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionByName returned region " + region.RegionName);
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionsByName (this should return 3 regions)");
+            regions = m_Connector.GetRegionsByName(UUID.Zero, "Test", 10);
+            if (regions == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionsByName returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionsByName returned " + regions.Count + " regions");
+
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionRange (this should return 2 regions)");
+            regions = m_Connector.GetRegionRange(UUID.Zero, 
+                900 * (int)Constants.RegionSize, 1002 * (int) Constants.RegionSize,
+                900 * (int)Constants.RegionSize, 1002 * (int) Constants.RegionSize);
+            if (regions == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionRange returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionRange returned " + regions.Count + " regions");
+            Console.WriteLine("[GRID CLIENT]: *** GetRegionRange (this should return 0 regions)");
+            regions = m_Connector.GetRegionRange(UUID.Zero,
+                900 * (int)Constants.RegionSize, 950 * (int)Constants.RegionSize,
+                900 * (int)Constants.RegionSize, 950 * (int)Constants.RegionSize);
+            if (regions == null)
+                Console.WriteLine("[GRID CLIENT]: GetRegionRange returned null");
+            else
+                Console.WriteLine("[GRID CLIENT]: GetRegionRange returned " + regions.Count + " regions");
 
         }
 
