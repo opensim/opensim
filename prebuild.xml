@@ -3592,6 +3592,7 @@
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
+        <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
