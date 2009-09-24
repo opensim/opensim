@@ -1205,6 +1205,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
+      <Reference name="System.Drawing"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -3591,6 +3592,7 @@
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
+        <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 

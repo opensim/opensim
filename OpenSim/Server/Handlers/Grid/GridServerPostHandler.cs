@@ -38,6 +38,7 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenMetaverse;
@@ -117,7 +118,7 @@ namespace OpenSim.Server.Handlers.Grid
             Dictionary<string, object> rinfoData = new Dictionary<string, object>();
             foreach (KeyValuePair<string, string> kvp in request)
                 rinfoData[kvp.Key] = kvp.Value;
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(rinfoData);
+            GridRegion rinfo = new GridRegion(rinfoData);
 
             bool result = m_GridService.RegisterRegion(scopeID, rinfo);
 
@@ -158,11 +159,11 @@ namespace OpenSim.Server.Handlers.Grid
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
 
-            List<SimpleRegionInfo> rinfos = m_GridService.GetNeighbours(scopeID, regionID);
+            List<GridRegion> rinfos = m_GridService.GetNeighbours(scopeID, regionID);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             int i = 0;
-            foreach (SimpleRegionInfo rinfo in rinfos)
+            foreach (GridRegion rinfo in rinfos)
             {
                 Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
                 result["region" + i] = rinfoDict;
