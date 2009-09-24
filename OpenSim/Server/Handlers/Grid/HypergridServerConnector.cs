@@ -53,7 +53,7 @@ namespace OpenSim.Server.Handlers.Grid
         public HypergridServiceInConnector(IConfigSource config, IHttpServer server) :
                 base(config, server)
         {
-            server.AddXmlRPCHandler("link_region", LinkRegionRequest, false);
+            server.AddXmlRPCHandler("linkk_region", LinkRegionRequest, false);
         }
 
         /// <summary>

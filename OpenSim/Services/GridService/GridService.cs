@@ -71,7 +71,9 @@ namespace OpenSim.Services.GridService
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} already registered in scope {1}.", regionInfos.RegionID, scopeID);
                 return false;
             }
-            if (m_Database.Get((int)regionInfos.RegionLocX, (int)regionInfos.RegionLocY, scopeID) != null)
+            // This needs better sanity testing. What if regionInfo is registering in
+            // overlapping coords?
+            if (m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID) != null)
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);

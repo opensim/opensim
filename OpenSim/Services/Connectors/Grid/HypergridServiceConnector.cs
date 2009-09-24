@@ -66,7 +66,7 @@ namespace OpenSim.Services.Connectors.Grid
             IList paramList = new ArrayList();
             paramList.Add(hash);
 
-            XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
+            XmlRpcRequest request = new XmlRpcRequest("linkk_region", paramList);
             string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
             m_log.Debug("[HGrid]: Linking to " + uri);
             XmlRpcResponse response = request.Send(uri, 10000);
