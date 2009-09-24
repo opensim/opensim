@@ -140,6 +140,47 @@ namespace OpenSim.Region.Communications.OGS1
         {
             m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID);
             return AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
-        }  
+        }
+
+        public override bool AuthenticateUserByPassword(UUID userID, string password)
+        {
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["user_uuid"] = userID.ToString();
+                param["password"] = password;
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("authenticate_user_by_password", parameters);
+                XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
+                Hashtable respData = (Hashtable)resp.Value;
+
+//                foreach (object key in respData.Keys)
+//                {                   
+//                    Console.WriteLine("respData {0}, {1}", key, respData[key]);
+//                }
+
+//                m_log.DebugFormat(
+//                    "[OGS1 USER SERVICES]: AuthenticatedUserByPassword response for {0} is [{1}]", 
+//                    userID, respData["auth_user"]);
+
+                if ((string)respData["auth_user"] == "TRUE")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[OGS1 USER SERVICES]: Error when trying to authenticate user by password from remote user server: {0}",
+                    e);
+
+                return false;
+            }            
+        }
     }
 }

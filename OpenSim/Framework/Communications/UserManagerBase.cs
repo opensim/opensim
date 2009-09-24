@@ -44,7 +44,8 @@ namespace OpenSim.Framework.Communications
     /// <summary>
     /// Base class for user management (create, read, etc)
     /// </summary>
-    public abstract class UserManagerBase : IUserService, IUserAdminService, IAvatarService, IMessagingService, IAuthentication
+    public abstract class UserManagerBase 
+        : IUserService, IUserAdminService, IAvatarService, IMessagingService, IAuthentication
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -93,9 +94,9 @@ namespace OpenSim.Framework.Communications
         public void AddPlugin(string provider, string connect)
         {
             m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IUserDataPlugin>(provider, connect));
-        }
+        }       
 
-        #region UserProfile
+        #region UserProfile        
         
         public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
         {
@@ -891,7 +892,10 @@ namespace OpenSim.Framework.Communications
 
             if (userProfile != null && userProfile.CurrentAgent != null)
             {
-                m_log.DebugFormat("[USER AUTH]: Verifying session {0} for {1}; current  session {2}", sessionID, userID, userProfile.CurrentAgent.SessionID);
+                m_log.DebugFormat(
+                    "[USER AUTH]: Verifying session {0} for {1}; current  session {2}", 
+                    sessionID, userID, userProfile.CurrentAgent.SessionID);
+                
                 if (userProfile.CurrentAgent.SessionID == sessionID)
                 {
                     return true;
@@ -900,6 +904,26 @@ namespace OpenSim.Framework.Communications
             
             return false;
         }
+
+        public virtual bool AuthenticateUserByPassword(UUID userID, string password)
+        {
+//            m_log.DebugFormat("[USER AUTH]: Authenticating user {0} given password {1}", userID, password);
+            
+            UserProfileData userProfile = GetUserProfile(userID);
+
+            if (null == userProfile)
+                return false;
+      
+            string md5PasswordHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + userProfile.PasswordSalt);
+
+//            m_log.DebugFormat(
+//                "[USER AUTH]: Submitted hash {0}, stored hash {1}", md5PasswordHash, userProfile.PasswordHash);
+    
+            if (md5PasswordHash == userProfile.PasswordHash)
+                return true;
+            else
+                return false;         
+        }          
 
         #endregion
     }
