@@ -68,9 +68,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 base.Initialise(openSim);
                 if (!IsEnabled)
                 {
-                    m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
+                    //m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
                     return;
                 }
+                
                 m_log.InfoFormat("{0} REST region plugin enabled", MsgID);
 
                 // add REST method handlers
