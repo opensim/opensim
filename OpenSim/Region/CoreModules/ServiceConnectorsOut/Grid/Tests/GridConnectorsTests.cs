@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             GridRegion r2 = new GridRegion();
             r2.RegionName = "Test Region 2";
             r2.RegionID = new UUID(2);
-            r2.RegionLocX = 1000 * (int)Constants.RegionSize + 1;
+            r2.RegionLocX = 1001 * (int)Constants.RegionSize;
             r2.RegionLocY = 1000 * (int)Constants.RegionSize;
             r2.ExternalHostName = "127.0.0.1";
             r2.HttpPort = 9002;
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             GridRegion r3 = new GridRegion();
             r3.RegionName = "Test Region 3";
             r3.RegionID = new UUID(3);
-            r3.RegionLocX = 1000 * (int)Constants.RegionSize + 5;
+            r3.RegionLocX = 1005 * (int)Constants.RegionSize;
             r3.RegionLocY = 1000 * (int)Constants.RegionSize;
             r3.ExternalHostName = "127.0.0.1";
             r3.HttpPort = 9003;

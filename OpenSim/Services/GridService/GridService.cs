@@ -101,7 +101,8 @@ namespace OpenSim.Services.GridService
                     region.posX + (int)Constants.RegionSize, region.posY + (int)Constants.RegionSize, scopeID);
 
                 foreach (RegionData rdata in rdatas)
-                    rinfos.Add(RegionData2RegionInfo(rdata));
+                    if (rdata.RegionID != regionID)
+                        rinfos.Add(RegionData2RegionInfo(rdata));
 
             }
             return rinfos;
