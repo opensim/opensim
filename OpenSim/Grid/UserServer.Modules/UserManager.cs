@@ -109,7 +109,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", XmlRPCGetAvatarPickerAvatar);
 
             // Used by IAR module to do password checks
-            //m_httpServer.AddXmlRPCHandler("authenticate_user_by_password", XmlRPCAuthenticateUserMethodPassword);
+            m_httpServer.AddXmlRPCHandler("authenticate_user_by_password", XmlRPCAuthenticateUserMethodPassword);
 
             m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID);

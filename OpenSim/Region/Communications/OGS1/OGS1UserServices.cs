@@ -153,8 +153,7 @@ namespace OpenSim.Region.Communications.OGS1
             XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);                
 
             // Temporary measure to deal with older services
-            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)                
-            //if ((string)respData["fault_code"] != null && (string)respData["fault_code"] == 
+            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)       
             {
                 throw new Exception(
                     String.Format(
@@ -163,15 +162,6 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             Hashtable respData = (Hashtable)resp.Value;
-
-//                foreach (object key in respData.Keys)
-//                {                   
-//                    Console.WriteLine("respData {0}, {1}", key, respData[key]);
-//                }
-
-//                m_log.DebugFormat(
-//                    "[OGS1 USER SERVICES]: AuthenticatedUserByPassword response for {0} is [{1}]", 
-//                    userID, respData["auth_user"]);
 
             if ((string)respData["auth_user"] == "TRUE")
             {
