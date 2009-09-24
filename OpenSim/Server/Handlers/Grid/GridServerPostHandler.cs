@@ -63,6 +63,7 @@ namespace OpenSim.Server.Handlers.Grid
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
+            body = body.Trim();
             
             Dictionary<string, string> request =
                     ServerUtils.ParseQueryString(body);
@@ -98,10 +99,10 @@ namespace OpenSim.Server.Handlers.Grid
                 case "get_region_range":
                     return GetRegionRange(request);
 
-                default:
-                    m_log.DebugFormat("[GRID HANDLER]: unknown method request {0}", method);
-                    return FailureResult();
             }
+
+            m_log.DebugFormat("[GRID HANDLER XXX]: unknown method {0} request {1}", method.Length, method);
+            return FailureResult();
 
         }
 
@@ -155,11 +156,12 @@ namespace OpenSim.Server.Handlers.Grid
 
             UUID regionID = UUID.Zero;
             if (request["REGIONID"] != null)
-                UUID.TryParse(request["REGIONID"], out scopeID);
+                UUID.TryParse(request["REGIONID"], out regionID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
 
             List<GridRegion> rinfos = m_GridService.GetNeighbours(scopeID, regionID);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
             int i = 0;
@@ -171,6 +173,7 @@ namespace OpenSim.Server.Handlers.Grid
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
 

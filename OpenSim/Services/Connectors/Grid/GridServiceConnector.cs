@@ -97,9 +97,11 @@ namespace OpenSim.Services.Connectors
 
             sendData["METHOD"] = "register";
 
+            string reqString = ServerUtils.BuildQueryString(sendData);
+            m_log.DebugFormat("[GRID CONNECTOR]: queryString = {0}", reqString);
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/grid",
-                    ServerUtils.BuildQueryString(sendData));
+                    reqString);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -138,9 +140,10 @@ namespace OpenSim.Services.Connectors
 
             sendData["METHOD"] = "get_neighbours";
 
+            string reqString = ServerUtils.BuildQueryString(sendData);
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/grid",
-                    ServerUtils.BuildQueryString(sendData));
+                    reqString);
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -148,6 +151,7 @@ namespace OpenSim.Services.Connectors
             if (replyData != null)
             {
                 Dictionary<string, object>.ValueCollection rinfosList = replyData.Values;
+                m_log.DebugFormat("[GRID CONNECTOR]: get neighbours returned {0} elements", rinfosList.Count);
                 foreach (object r in rinfosList)
                 {
                     if (r is Dictionary<string, object>)
@@ -156,8 +160,8 @@ namespace OpenSim.Services.Connectors
                         rinfos.Add(rinfo);
                     }
                     else
-                        m_log.DebugFormat("[GRID CONNECTOR]: GetNeighbours {0}, {1} received invalid response",
-                            scopeID, regionID);
+                        m_log.DebugFormat("[GRID CONNECTOR]: GetNeighbours {0}, {1} received invalid response type {2}",
+                            scopeID, regionID, r.GetType());
                 }
             }
             else

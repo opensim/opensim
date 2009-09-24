@@ -277,6 +277,15 @@ namespace OpenSim.Services.Interfaces
 
         public GridRegion(Dictionary<string, object> kvp)
         {
+            if (kvp["uuid"] != null)
+                RegionID = new UUID((string)kvp["uuid"]);
+
+            if (kvp["locX"] != null)
+                RegionLocX = Convert.ToInt32((string)kvp["locX"]);
+
+            if (kvp["locY"] != null)
+                RegionLocY = Convert.ToInt32((string)kvp["locY"]);
+
             if ((kvp["external_ip_address"] != null) && (kvp["external_port"] != null))
             {
                 int port = 0;
