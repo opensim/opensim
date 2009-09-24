@@ -840,7 +840,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                "Sets the terrain texture heights on corner #<corner> to <min>/<max>, if <x> or <y> are specified, it will only " +
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
-                               consoleSetTerrainTexture);
+                               consoleSetTerrainHeights);
         }
 
         #region Console Commands
