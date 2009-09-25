@@ -204,7 +204,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempAngularVelocity2 = new btVector3(0, 0, 0);
             tempInertia1 = new btVector3(0, 0, 0);
             tempInertia2 = new btVector3(0, 0, 0);
-            tempOrientation1 = new btQuaternion(0,0,0,1);
+            tempOrientation1 = new btQuaternion(0, 0, 0, 1);
             tempOrientation2 = new btQuaternion(0, 0, 0, 1);
             _parent_scene = parent_scene;
             tempTransform1 = new btTransform(_parent_scene.QuatIdentity, _parent_scene.VectorZero);
@@ -216,10 +216,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempMotionState2 = new btDefaultMotionState(_parent_scene.TransZero);
             tempMotionState3 = new btDefaultMotionState(_parent_scene.TransZero);
 
-            
+
             AxisLockLinearLow = new btVector3(-1 * (int)Constants.RegionSize, -1 * (int)Constants.RegionSize, -1 * (int)Constants.RegionSize);
-            int regionsize = (int) Constants.RegionSize;
-            
+            int regionsize = (int)Constants.RegionSize;
+
             if (regionsize == 256)
                 regionsize = 512;
 
@@ -611,7 +611,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             DisableAxisMotor();
             DisposeOfBody();
             SetCollisionShape(null);
-           
+
             if (tempMotionState3 != null && tempMotionState3.Handle != IntPtr.Zero)
             {
                 tempMotionState3.Dispose();
@@ -677,8 +677,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 tempInertia2.Dispose();
                 tempInertia1 = null;
             }
-            
-            
+
+
             if (tempAngularVelocity2 != null && tempAngularVelocity2.Handle != IntPtr.Zero)
             {
                 tempAngularVelocity2.Dispose();
@@ -802,7 +802,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 changesize(timestep);
             }
 
-        //
+            //
 
             if (m_taintshape)
             {
@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             else
                 SetBody(0);
             changeSelectedStatus(timestep);
-            
+
             resetCollisionAccounting();
             m_taintPhysics = m_isphysical;
         }
@@ -1012,7 +1012,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             if (_parent_scene.needsMeshing(_pbs))
             {
-                ProcessGeomCreationAsTriMesh(PhysicsVector.Zero,Quaternion.Identity);
+                ProcessGeomCreationAsTriMesh(PhysicsVector.Zero, Quaternion.Identity);
                 // createmesh returns null when it doesn't mesh.
                 CreateGeom(IntPtr.Zero, _mesh);
             }
@@ -1038,32 +1038,32 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 meshlod = _parent_scene.MeshSculptphysicalLOD;
 
             IMesh mesh = _parent_scene.mesher.CreateMesh(SOPName, _pbs, _size, meshlod, IsPhysical);
-            if (!positionOffset.IsIdentical(PhysicsVector.Zero,0.001f) || orientation != Quaternion.Identity)
+            if (!positionOffset.IsIdentical(PhysicsVector.Zero, 0.001f) || orientation != Quaternion.Identity)
             {
-                
-                    float[] xyz = new float[3];
-                    xyz[0] = positionOffset.X;
-                    xyz[1] = positionOffset.Y;
-                    xyz[2] = positionOffset.Z;
 
-                    Matrix4 m4 = Matrix4.CreateFromQuaternion(orientation);
+                float[] xyz = new float[3];
+                xyz[0] = positionOffset.X;
+                xyz[1] = positionOffset.Y;
+                xyz[2] = positionOffset.Z;
 
-                    float[,] matrix = new float[3,3];
+                Matrix4 m4 = Matrix4.CreateFromQuaternion(orientation);
 
-                    matrix[0, 0] = m4.M11;
-                    matrix[0, 1] = m4.M12;
-                    matrix[0, 2] = m4.M13;
-                    matrix[1, 0] = m4.M21;
-                    matrix[1, 1] = m4.M22;
-                    matrix[1, 2] = m4.M23;
-                    matrix[2, 0] = m4.M31;
-                    matrix[2, 1] = m4.M32;
-                    matrix[2, 2] = m4.M33;
+                float[,] matrix = new float[3, 3];
 
-                    
-                    mesh.TransformLinear(matrix, xyz);
-                    
-                
+                matrix[0, 0] = m4.M11;
+                matrix[0, 1] = m4.M12;
+                matrix[0, 2] = m4.M13;
+                matrix[1, 0] = m4.M21;
+                matrix[1, 1] = m4.M22;
+                matrix[1, 2] = m4.M23;
+                matrix[2, 0] = m4.M31;
+                matrix[2, 1] = m4.M32;
+                matrix[2, 2] = m4.M33;
+
+
+                mesh.TransformLinear(matrix, xyz);
+
+
 
             }
 
@@ -1088,12 +1088,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             SetCollisionShape(null);
             // Construction of new prim
             ProcessGeomCreation();
-            
+
             if (IsPhysical)
                 SetBody(Mass);
             else
                 SetBody(0);
-            
+
             m_taintsize = _size;
 
         }
@@ -1136,7 +1136,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 //prim_geom = IntPtr.Zero;
                 m_log.Error("[PHYSICS]: PrimGeom dead");
             }
-            
+
             // we don't need to do space calculation because the client sends a position update also.
             if (_size.X <= 0) _size.X = 0.01f;
             if (_size.Y <= 0) _size.Y = 0.01f;
@@ -1153,8 +1153,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 tempTransform1.Dispose();
             tempTransform1 = new btTransform(tempOrientation1, tempPosition1);
 
-            
-            
+
+
 
             //d.GeomBoxSetLengths(prim_geom, _size.X, _size.Y, _size.Z);
             if (IsPhysical)
@@ -1162,7 +1162,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 SetBody(Mass);
                 // Re creates body on size.
                 // EnableBody also does setMass()
-               
+
             }
             else
             {
@@ -1179,7 +1179,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
             }
             resetCollisionAccounting();
-            
+
             m_taintshape = false;
         }
 
@@ -1291,7 +1291,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 Body.setCollisionFlags((int)ContactFlags.CF_NO_CONTACT_RESPONSE);
                 disableBodySoft();
-                
+
             }
             else
             {
@@ -1299,7 +1299,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 enableBodySoft();
             }
             m_isSelected = m_taintselected;
-            
+
         }
 
         private void changevelocity(float timestep)
@@ -1368,7 +1368,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             _parent = m_taintparent;
 
             m_taintPhysics = m_isphysical;
-            
+
         }
 
         private void changefloatonwater(float timestep)
@@ -1627,7 +1627,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (m_zeroPosition == null)
                     m_zeroPosition = new PhysicsVector(0, 0, 0);
-                 m_zeroPosition.setValues(_position.X,_position.Y,_position.Z);
+                m_zeroPosition.setValues(_position.X, _position.Y, _position.Z);
                 return;
             }
         }
@@ -1981,7 +1981,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 //_mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD, IsPhysical);
                 _mesh = p_mesh;
                 setMesh(_parent_scene, _mesh);
-                
+
             }
             else
             {
@@ -1994,15 +1994,15 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                             //SetGeom to a Regular Sphere
                             if (tempSize1 == null)
                                 tempSize1 = new btVector3(0, 0, 0);
-                            tempSize1.setValue(_size.X * 0.5f,_size.Y * 0.5f, _size.Z * 0.5f);
-                            SetCollisionShape(new btSphereShape(_size.X*0.5f));
+                            tempSize1.setValue(_size.X * 0.5f, _size.Y * 0.5f, _size.Z * 0.5f);
+                            SetCollisionShape(new btSphereShape(_size.X * 0.5f));
                         }
                         else
                         {
                             // uses halfextents
                             if (tempSize1 == null)
                                 tempSize1 = new btVector3(0, 0, 0);
-                            tempSize1.setValue(_size.X*0.5f, _size.Y*0.5f, _size.Z*0.5f);
+                            tempSize1.setValue(_size.X * 0.5f, _size.Y * 0.5f, _size.Z * 0.5f);
                             SetCollisionShape(new btBoxShape(tempSize1));
                         }
                     }
@@ -2052,14 +2052,24 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 }
             }
 
+            //IMesh oldMesh = primMesh;
+
+            //primMesh = mesh;
+
+            //float[] vertexList = primMesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
+            //int[] indexList = primMesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
+            ////Array.Reverse(indexList);
+            //primMesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+
             IMesh oldMesh = primMesh;
 
             primMesh = mesh;
-            
-            float[] vertexList = primMesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
-            int[] indexList = primMesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
+
+            float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
+            int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
             //Array.Reverse(indexList);
-            primMesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+            mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+
 
             int VertexCount = vertexList.GetLength(0) / 3;
             int IndexCount = indexList.GetLength(0);
@@ -2068,17 +2078,17 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 btshapeArray.Dispose();
             //Array.Reverse(indexList);
             btshapeArray = new btTriangleIndexVertexArray(IndexCount / 3, indexList, (3 * sizeof(int)),
-                                                                                     VertexCount, vertexList, 3*sizeof (float));
+                                                                                     VertexCount, vertexList, 3 * sizeof(float));
             SetCollisionShape(new btGImpactMeshShape(btshapeArray));
             //((btGImpactMeshShape) prim_geom).updateBound();
-            ((btGImpactMeshShape)prim_geom).setLocalScaling(new btVector3(1,1, 1));
+            ((btGImpactMeshShape)prim_geom).setLocalScaling(new btVector3(1, 1, 1));
             ((btGImpactMeshShape)prim_geom).updateBound();
             _parent_scene.SetUsingGImpact();
-            if (oldMesh != null)
-            {
-                oldMesh.releasePinned();
-                oldMesh = null;
-            }
+            //if (oldMesh != null)
+            //{
+            //    oldMesh.releasePinned();
+            //    oldMesh = null;
+            //}
 
         }
 
@@ -2102,7 +2112,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
              */
             prim_geom = shape;
-           
+
             //Body.set
         }
 
@@ -2143,8 +2153,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                 if (prim_geom is btGImpactMeshShape)
                 {
-                    ((btGImpactMeshShape) prim_geom).setLocalScaling(new btVector3(1, 1, 1));
-                    ((btGImpactMeshShape) prim_geom).updateBound();
+                    ((btGImpactMeshShape)prim_geom).setLocalScaling(new btVector3(1, 1, 1));
+                    ((btGImpactMeshShape)prim_geom).updateBound();
                 }
                 //Body.setCollisionFlags(Body.getCollisionFlags() | (int)ContactFlags.CF_CUSTOM_MATERIAL_CALLBACK);
                 //Body.setUserPointer((IntPtr) (int)m_localID);
@@ -2159,7 +2169,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     {
                         if (chld == null)
                             continue;
-                        
+
                         // if (chld.NeedsMeshing())
                         //     hasTrimesh = true;
                     }
@@ -2167,40 +2177,40 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                 //if (hasTrimesh)
                 //{
-                    ProcessGeomCreationAsTriMesh(PhysicsVector.Zero, Quaternion.Identity);
-                    // createmesh returns null when it doesn't mesh.
-                    
-                    /*
-                    if (_mesh is Mesh)
-                    {
-                    }
-                    else
-                    {
-                        m_log.Warn("[PHYSICS]: Can't link a OpenSim.Region.Physics.Meshing.Mesh object");
-                        return;
-                    }
-                    */
+                ProcessGeomCreationAsTriMesh(PhysicsVector.Zero, Quaternion.Identity);
+                // createmesh returns null when it doesn't mesh.
 
-                    
-                    
-                    foreach (BulletDotNETPrim chld in childrenPrim)
-                    {
-                        if (chld == null)
-                            continue;
-                        PhysicsVector offset = chld.Position - Position;
-                        Vector3 pos = new Vector3(offset.X, offset.Y, offset.Z);
-                        pos *= Quaternion.Inverse(Orientation);
-                        //pos *= Orientation;
-                        offset.setValues(pos.X, pos.Y, pos.Z);
-                        chld.ProcessGeomCreationAsTriMesh(offset, chld.Orientation);
-                        
-                            _mesh.Append(chld._mesh);
-                        
+                /*
+                if (_mesh is Mesh)
+                {
+                }
+                else
+                {
+                    m_log.Warn("[PHYSICS]: Can't link a OpenSim.Region.Physics.Meshing.Mesh object");
+                    return;
+                }
+                */
 
-                    }
-                    setMesh(_parent_scene, _mesh);
-                
-            //}
+
+
+                foreach (BulletDotNETPrim chld in childrenPrim)
+                {
+                    if (chld == null)
+                        continue;
+                    PhysicsVector offset = chld.Position - Position;
+                    Vector3 pos = new Vector3(offset.X, offset.Y, offset.Z);
+                    pos *= Quaternion.Inverse(Orientation);
+                    //pos *= Orientation;
+                    offset.setValues(pos.X, pos.Y, pos.Z);
+                    chld.ProcessGeomCreationAsTriMesh(offset, chld.Orientation);
+
+                    _mesh.Append(chld._mesh);
+
+
+                }
+                setMesh(_parent_scene, _mesh);
+
+                //}
 
                 if (tempMotionState1 != null && tempMotionState1.Handle != IntPtr.Zero)
                     tempMotionState1.Dispose();
@@ -2238,7 +2248,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     ((btGImpactMeshShape)prim_geom).updateBound();
                 }
                 _parent_scene.AddPrimToScene(this);
-                
+
             }
 
             if (IsPhysical)
@@ -2252,7 +2262,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 if (Body.Handle != IntPtr.Zero)
                 {
                     DisableAxisMotor();
-                    _parent_scene.removeFromWorld(this,Body);
+                    _parent_scene.removeFromWorld(this, Body);
                     Body.Dispose();
                 }
                 Body = null;
@@ -2305,7 +2315,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 return;
 
 
-            
+
             lock (childrenPrim)
             {
                 if (!childrenPrim.Contains(prm))
@@ -2313,8 +2323,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     childrenPrim.Add(prm);
                 }
             }
-           
-            
+
+
         }
 
         public void disableBody()
@@ -2386,7 +2396,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 Body.clearForces();
                 Body.forceActivationState(0);
-                
+
             }
 
         }
@@ -2400,7 +2410,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     Body.clearForces();
                     Body.forceActivationState(4);
                     forceenable = true;
-                    
+
                 }
                 m_disabled = false;
             }
@@ -2415,7 +2425,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     SetBody(Mass);
                 else
                     SetBody(0);
-                
+
                 // TODO: Set Collision Category Bits and Flags
                 // TODO: Set Auto Disable data
 
@@ -2587,10 +2597,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                         _velocity.Y = tempLinearVelocity1.getY();
                         _velocity.Z = tempLinearVelocity1.getZ();
 
-                        _acceleration = ((_velocity - m_lastVelocity)/0.1f);
-                        _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X/0.1f,
-                                                          _velocity.Y - m_lastVelocity.Y/0.1f,
-                                                          _velocity.Z - m_lastVelocity.Z/0.1f);
+                        _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
+                        _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X / 0.1f,
+                                                          _velocity.Y - m_lastVelocity.Y / 0.1f,
+                                                          _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
 
                         if (_velocity.IsIdentical(pv, 0.5f))
@@ -2669,7 +2679,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             if (AxisLockAngleHigh != null && AxisLockAngleHigh.Handle != IntPtr.Zero)
                 AxisLockAngleHigh.Dispose();
 
-           
+
 
             m_aMotor = new btGeneric6DofConstraint(Body, _parent_scene.TerrainBody, _parent_scene.TransZero,
                                                    _parent_scene.TransZero, false);
@@ -2683,7 +2693,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_aMotor.setLinearUpperLimit(AxisLockLinearHigh);
             _parent_scene.getBulletWorld().addConstraint((btTypedConstraint)m_aMotor);
             //m_aMotor.
-            
+
 
         }
         internal void DisableAxisMotor()
@@ -2698,4 +2708,4 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
     }
 }
-                    
+
