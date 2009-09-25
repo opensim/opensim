@@ -494,6 +494,18 @@ namespace PrimMesher
                 vert.Z += z;
                 this.coords[i] = vert;
             }
+
+            if (this.viewerFaces != null)
+            {
+                int numViewerFaces = this.viewerFaces.Count;
+
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.AddPos(x, y, z);
+                    this.viewerFaces[i] = v;
+                }
+            }
         }
 
         /// <summary>
@@ -556,7 +568,7 @@ namespace PrimMesher
             if (path == null)
                 return;
             String fileName = name + "_" + title + ".raw";
-            String completePath = Path.Combine(path, fileName);
+            String completePath = System.IO.Path.Combine(path, fileName);
             StreamWriter sw = new StreamWriter(completePath);
 
             for (int i = 0; i < this.faces.Count; i++)
