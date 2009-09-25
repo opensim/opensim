@@ -64,7 +64,9 @@ namespace OpenSim.Server.Handlers.Grid
             string body = sr.ReadToEnd();
             sr.Close();
             body = body.Trim();
-            
+
+            //m_log.DebugFormat("[XXX]: query String: {0}", body);
+
             Dictionary<string, string> request =
                     ServerUtils.ParseQueryString(body);
 
@@ -101,7 +103,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             }
 
-            m_log.DebugFormat("[GRID HANDLER XXX]: unknown method {0} request {1}", method.Length, method);
+            m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
             return FailureResult();
 
         }
@@ -320,26 +322,27 @@ namespace OpenSim.Server.Handlers.Grid
 
         byte[] GetRegionRange(Dictionary<string, string> request)
         {
+            //m_log.DebugFormat("[GRID HANDLER]: GetRegionRange");
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
+            if (request.ContainsKey("SCOPEID"))
                 UUID.TryParse(request["SCOPEID"], out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region range");
 
             int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
-            if (request["XMIN"] != null)
+            if (request.ContainsKey("XMIN"))
                 Int32.TryParse(request["XMIN"], out xmin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMIN in request to get region range");
-            if (request["XMAX"] != null)
+            if (request.ContainsKey("XMAX"))
                 Int32.TryParse(request["XMAX"], out xmax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMAX in request to get region range");
-            if (request["YMIN"] != null)
+            if (request.ContainsKey("YMIN"))
                 Int32.TryParse(request["YMIN"], out ymin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMIN in request to get region range");
-            if (request["YMAX"] != null)
+            if (request.ContainsKey("YMAX"))
                 Int32.TryParse(request["YMAX"], out ymax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMAX in request to get region range");
