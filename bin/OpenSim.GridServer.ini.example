@@ -1,0 +1,35 @@
+; * The startup section lists all the connectors to start up in this server
+; * instance. This may be only one, or it may be the entire server suite.
+; * Multiple connectors should be seaprated by commas.
+; *
+; * These are the IN connectors the server uses, the in connectors
+; * read this config file and load the needed OUT and database connectors
+; *
+; *
+[Startup]
+	ServiceConnectors = "OpenSim.Server.Handlers.dll:GridServiceConnector"
+
+; * This is common for all services, it's the network setup for the entire
+; * server instance
+; *
+[Network]
+	port = 8002
+
+; * The following are for the remote console
+; * They have no effect for the local or basic console types
+; * Leave commented to diable logins to the console
+;ConsoleUser = Test
+;ConsolePass = secret
+
+; * As an example, the below configuration precisely mimicks the legacy
+; * asset server. It is read by the asset IN connector (defined above)
+; * and it then loads the OUT connector (a local database module). That,
+; * in turn, reads the asset loader and database connection information
+; *
+[GridService]
+	LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
+	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+	;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
+	;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
+	Realm = "regions"
+

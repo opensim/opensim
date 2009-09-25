@@ -263,72 +263,47 @@ namespace OpenSim.Services.Interfaces
             kvp["uuid"] = RegionID.ToString();
             kvp["locX"] = RegionLocX.ToString();
             kvp["locY"] = RegionLocY.ToString();
-            kvp["name"] = RegionName;
-            kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
-            kvp["external_port"] = ExternalEndPoint.Port.ToString();
-            kvp["external_host_name"] = ExternalHostName;
-            kvp["http_port"] = HttpPort.ToString();
-            kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
-            kvp["internal_port"] = InternalEndPoint.Port.ToString();
-            kvp["alternate_ports"] = m_allow_alternate_ports.ToString();
-            kvp["server_uri"] = ServerURI;
+            kvp["regionName"] = RegionName;
+            kvp["serverIP"] = ExternalHostName; //ExternalEndPoint.Address.ToString();
+            kvp["serverHttpPort"] = HttpPort.ToString();
+            kvp["serverURI"] = ServerURI;
 
             return kvp;
         }
 
         public GridRegion(Dictionary<string, object> kvp)
         {
-            if (kvp["uuid"] != null)
+            if (kvp.ContainsKey("uuid"))
                 RegionID = new UUID((string)kvp["uuid"]);
 
-            if (kvp["locX"] != null)
+            if (kvp.ContainsKey("locX"))
                 RegionLocX = Convert.ToInt32((string)kvp["locX"]);
 
-            if (kvp["locY"] != null)
+            if (kvp.ContainsKey("locY"))
                 RegionLocY = Convert.ToInt32((string)kvp["locY"]);
 
-            if (kvp["name"] != null)
-                RegionName = (string)kvp["name"];
+            if (kvp.ContainsKey("regionName"))
+                RegionName = (string)kvp["regionName"];
 
-            if ((kvp["external_ip_address"] != null) && (kvp["external_port"] != null))
+            if (kvp.ContainsKey("serverIP"))
             {
                 int port = 0;
-                Int32.TryParse((string)kvp["external_port"], out port);
-                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["external_ip_address"]), port);
-                ExternalEndPoint = ep;
+                //Int32.TryParse((string)kvp["serverPort"], out port);
+                //IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["serverIP"]), port);
+                ExternalHostName = (string)kvp["serverIP"];
             }
             else
-                ExternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
+                ExternalHostName = "127.0.0.1";
 
-            if (kvp["external_host_name"] != null)
-                ExternalHostName = (string)kvp["external_host_name"];
-
-            if (kvp["http_port"] != null)
+            if (kvp.ContainsKey("serverHttpPort"))
             {
                 UInt32 port = 0;
-                UInt32.TryParse((string)kvp["http_port"], out port);
+                UInt32.TryParse((string)kvp["serverHttpPort"], out port);
                 HttpPort = port;
             }
 
-            if ((kvp["internal_ip_address"] != null) && (kvp["internal_port"] != null))
-            {
-                int port = 0;
-                Int32.TryParse((string)kvp["internal_port"], out port);
-                IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["internal_ip_address"]), port);
-                InternalEndPoint = ep;
-            }
-            else
-                InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
-
-            if (kvp["alternate_ports"] != null)
-            {
-                bool alts = false;
-                Boolean.TryParse((string)kvp["alternate_ports"], out alts);
-                m_allow_alternate_ports = alts;
-            }
-
-            if (kvp["server_uri"] != null)
-                ServerURI = (string)kvp["server_uri"];
+            if (kvp.ContainsKey("serverURI"))
+                ServerURI = (string)kvp["serverURI"];
         }
     }
 

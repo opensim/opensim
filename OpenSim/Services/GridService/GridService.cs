@@ -183,9 +183,9 @@ namespace OpenSim.Services.GridService
             rdata.posX = (int)rinfo.RegionLocX;
             rdata.posY = (int)rinfo.RegionLocY;
             rdata.RegionID = rinfo.RegionID;
-            rdata.Data = rinfo.ToKeyValuePairs();
             rdata.RegionName = rinfo.RegionName;
-
+            rdata.Data = rinfo.ToKeyValuePairs();
+            rdata.Data["regionHandle"] = Utils.UIntsToLong((uint)rdata.posX, (uint)rdata.posY);
             return rdata;
         }
 
@@ -196,6 +196,7 @@ namespace OpenSim.Services.GridService
             rinfo.RegionLocY = rdata.posY;
             rinfo.RegionID = rdata.RegionID;
             rinfo.RegionName = rdata.RegionName;
+            rinfo.ScopeID = rdata.ScopeID;
 
             return rinfo;
         }
