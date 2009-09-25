@@ -43,9 +43,9 @@ namespace OpenSim.Services.AuthenticationService
     //
     public class AuthenticationServiceBase : ServiceBase
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
  
         protected IAuthenticationData m_Database;
 

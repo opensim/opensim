@@ -44,7 +44,7 @@ namespace OpenSim.Server.Handlers.Authorization
 {
     public class AuthorizationServerPostHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAuthorizationService m_AuthorizationService;
 

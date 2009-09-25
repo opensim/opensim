@@ -43,9 +43,9 @@ namespace OpenSim.Services.AuthenticationService
     public class WebkeyAuthenticationService :
             AuthenticationServiceBase, IAuthenticationService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
  
         public WebkeyAuthenticationService(IConfigSource config) :
                 base(config)
