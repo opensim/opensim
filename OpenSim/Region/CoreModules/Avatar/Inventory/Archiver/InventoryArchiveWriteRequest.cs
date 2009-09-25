@@ -324,7 +324,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
             }
 
-            SaveUsers();
+            // Don't put all this profile information into the archive right now.
+            //SaveUsers();
+            
             new AssetsRequest(
                 new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 
                 m_scene.AssetService, ReceivedAllAssets).Execute();
