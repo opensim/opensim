@@ -1170,7 +1170,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private bool IsOutsideRegion(Scene s, Vector3 pos)
+        protected bool IsOutsideRegion(Scene s, Vector3 pos)
         {
             
             if (s.TestBorderCross(pos,Cardinals.N))
