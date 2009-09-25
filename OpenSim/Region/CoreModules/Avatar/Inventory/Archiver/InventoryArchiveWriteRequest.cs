@@ -118,6 +118,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
         {
+            // We're almost done.  Just need to write out the control file now
+            m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
+            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
+            
             Exception reportedException = null;
             bool succeeded = true;
 
@@ -409,5 +413,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
                 id);            
         }
+
+        /// <summary>
+        /// Create the control file for a 0.1 version archive
+        /// </summary>
+        /// <returns></returns>
+        public static string Create0p1ControlFile()
+        {
+            StringWriter sw = new StringWriter();
+            XmlTextWriter xtw = new XmlTextWriter(sw);
+            xtw.Formatting = Formatting.Indented;
+            xtw.WriteStartDocument();
+            xtw.WriteStartElement("archive");
+            xtw.WriteAttributeString("major_version", "0");
+            xtw.WriteAttributeString("minor_version", "1");
+            xtw.WriteEndElement();
+
+            xtw.Flush();
+            xtw.Close();
+
+            String s = sw.ToString();
+            sw.Close();
+
+            return s;
+        }        
     }
 }
