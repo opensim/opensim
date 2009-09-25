@@ -137,6 +137,26 @@ namespace OpenSim.Tests.Clients.GridClient
             else
                 Console.WriteLine("[GRID CLIENT]: GetRegionRange returned " + regions.Count + " regions");
 
+            // Deregister them all
+            Console.WriteLine("[GRID CLIENT]: *** Deregistering region 1");
+            success = m_Connector.DeregisterRegion(r1.RegionID);
+            if (success)
+                Console.WriteLine("[GRID CLIENT]: Successfully deregistered region 1");
+            else
+                Console.WriteLine("[GRID CLIENT]: region 1 failed to deregister");
+            Console.WriteLine("[GRID CLIENT]: *** Deregistering region 2");
+            success = m_Connector.DeregisterRegion(r2.RegionID);
+            if (success)
+                Console.WriteLine("[GRID CLIENT]: Successfully deregistered region 2");
+            else
+                Console.WriteLine("[GRID CLIENT]: region 2 failed to deregister");
+            Console.WriteLine("[GRID CLIENT]: *** Deregistering region 3");
+            success = m_Connector.DeregisterRegion(r3.RegionID);
+            if (success)
+                Console.WriteLine("[GRID CLIENT]: Successfully deregistered region 3");
+            else
+                Console.WriteLine("[GRID CLIENT]: region 3 failed to deregister");
+
         }
 
         private static GridRegion CreateRegion(string name, uint xcell, uint ycell)
