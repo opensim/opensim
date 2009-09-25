@@ -82,7 +82,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
-        private IMesh primMesh = null;
 
 
         private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
@@ -814,14 +813,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            IMesh oldMesh = primMesh;
+            float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
+            int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
 
-            primMesh = mesh;
-
-            float[] vertexList = primMesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
-            int[] indexList = primMesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
-
-            primMesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+            mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
 
             int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
@@ -845,12 +840,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_log.Error("[PHYSICS]: MESH LOCKED");
                 return;
-            }
-
-            if (oldMesh != null)
-            {
-                oldMesh.releasePinned();
-                oldMesh = null;
             }
 
            // if (IsPhysical && Body == (IntPtr) 0)

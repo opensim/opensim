@@ -77,7 +77,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
             List<RegionData> ret = RunCommand(cmd);
-            if (ret == null)
+            if (ret.Count == 0)
                 return null;
 
             return ret[0];
@@ -95,7 +95,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
             List<RegionData> ret = RunCommand(cmd);
-            if (ret == null)
+            if (ret.Count == 0)
                 return null;
 
             return ret[0];
@@ -170,10 +170,7 @@ namespace OpenSim.Data.MySQL
             result.Close();
             CloseReaderCommand(cmd);
 
-            if (retList.Count > 0)
-                return retList;
-
-            return null;
+            return retList;
         }
 
         public bool Store(RegionData data)
@@ -182,12 +179,6 @@ namespace OpenSim.Data.MySQL
                 data.Data.Remove("uuid");
             if (data.Data.ContainsKey("ScopeID"))
                 data.Data.Remove("ScopeID");
-            if (data.Data.ContainsKey("regionName"))
-                data.Data.Remove("regionName");
-            if (data.Data.ContainsKey("posX"))
-                data.Data.Remove("posX");
-            if (data.Data.ContainsKey("posY"))
-                data.Data.Remove("posY");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 

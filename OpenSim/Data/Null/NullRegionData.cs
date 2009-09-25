@@ -101,10 +101,7 @@ namespace OpenSim.Data.Null
                     ret.Add(r);
             }
 
-            if (ret.Count > 0)
-                return ret;
-
-            return null;
+            return ret;
         }
 
         public bool Store(RegionData data)

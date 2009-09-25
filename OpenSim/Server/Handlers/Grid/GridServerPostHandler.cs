@@ -63,7 +63,10 @@ namespace OpenSim.Server.Handlers.Grid
             StreamReader sr = new StreamReader(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
-            
+            body = body.Trim();
+
+            //m_log.DebugFormat("[XXX]: query String: {0}", body);
+
             Dictionary<string, string> request =
                     ServerUtils.ParseQueryString(body);
 
@@ -98,10 +101,10 @@ namespace OpenSim.Server.Handlers.Grid
                 case "get_region_range":
                     return GetRegionRange(request);
 
-                default:
-                    m_log.DebugFormat("[GRID HANDLER]: unknown method request {0}", method);
-                    return FailureResult();
             }
+
+            m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
+            return FailureResult();
 
         }
 
@@ -155,22 +158,29 @@ namespace OpenSim.Server.Handlers.Grid
 
             UUID regionID = UUID.Zero;
             if (request["REGIONID"] != null)
-                UUID.TryParse(request["REGIONID"], out scopeID);
+                UUID.TryParse(request["REGIONID"], out regionID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
 
             List<GridRegion> rinfos = m_GridService.GetNeighbours(scopeID, regionID);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            int i = 0;
-            foreach (GridRegion rinfo in rinfos)
+            if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
+                result["result"] = "null";
+            else
             {
-                Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
-                result["region" + i] = rinfoDict;
-                i++;
+                int i = 0;
+                foreach (GridRegion rinfo in rinfos)
+                {
+                    Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
+                    result["region" + i] = rinfoDict;
+                    i++;
+                }
             }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
 
@@ -178,32 +188,185 @@ namespace OpenSim.Server.Handlers.Grid
 
         byte[] GetRegionByUUID(Dictionary<string, string> request)
         {
-            // TODO
-            return new byte[0];
+            UUID scopeID = UUID.Zero;
+            if (request["SCOPEID"] != null)
+                UUID.TryParse(request["SCOPEID"], out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get neighbours");
+
+            UUID regionID = UUID.Zero;
+            if (request["REGIONID"] != null)
+                UUID.TryParse(request["REGIONID"], out regionID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
+
+            GridRegion rinfo = m_GridService.GetRegionByUUID(scopeID, regionID);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (rinfo == null)
+                result["result"] = "null";
+            else
+                result["result"] = rinfo.ToKeyValuePairs();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionByPosition(Dictionary<string, string> request)
         {
-            // TODO
-            return new byte[0];
+            UUID scopeID = UUID.Zero;
+            if (request["SCOPEID"] != null)
+                UUID.TryParse(request["SCOPEID"], out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region by position");
+
+            int x = 0, y = 0;
+            if (request["X"] != null)
+                Int32.TryParse(request["X"], out x);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no X in request to get region by position");
+            if (request["Y"] != null)
+                Int32.TryParse(request["Y"], out y);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no Y in request to get region by position");
+
+            GridRegion rinfo = m_GridService.GetRegionByPosition(scopeID, x, y);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (rinfo == null)
+                result["result"] = "null";
+            else
+                result["result"] = rinfo.ToKeyValuePairs();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionByName(Dictionary<string, string> request)
         {
-            // TODO
-            return new byte[0];
+            UUID scopeID = UUID.Zero;
+            if (request["SCOPEID"] != null)
+                UUID.TryParse(request["SCOPEID"], out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region by name");
+
+            string regionName = string.Empty;
+            if (request["NAME"] != null)
+                regionName = request["NAME"];
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no name in request to get region by name");
+
+            GridRegion rinfo = m_GridService.GetRegionByName(scopeID, regionName);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if (rinfo == null)
+                result["result"] = "null";
+            else
+                result["result"] = rinfo.ToKeyValuePairs();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionsByName(Dictionary<string, string> request)
         {
-            // TODO
-            return new byte[0];
+            UUID scopeID = UUID.Zero;
+            if (request["SCOPEID"] != null)
+                UUID.TryParse(request["SCOPEID"], out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get regions by name");
+
+            string regionName = string.Empty;
+            if (request["NAME"] != null)
+                regionName = request["NAME"];
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no NAME in request to get regions by name");
+
+            int max = 0;
+            if (request["MAX"] != null)
+                Int32.TryParse(request["MAX"], out max);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no MAX in request to get regions by name");
+
+            List<GridRegion> rinfos = m_GridService.GetRegionsByName(scopeID, regionName, max);
+            //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridRegion rinfo in rinfos)
+                {
+                    Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
+                    result["region" + i] = rinfoDict;
+                    i++;
+                }
+            }
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         byte[] GetRegionRange(Dictionary<string, string> request)
         {
-            // TODO
-            return new byte[0];
+            //m_log.DebugFormat("[GRID HANDLER]: GetRegionRange");
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"], out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region range");
+
+            int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
+            if (request.ContainsKey("XMIN"))
+                Int32.TryParse(request["XMIN"], out xmin);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no XMIN in request to get region range");
+            if (request.ContainsKey("XMAX"))
+                Int32.TryParse(request["XMAX"], out xmax);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no XMAX in request to get region range");
+            if (request.ContainsKey("YMIN"))
+                Int32.TryParse(request["YMIN"], out ymin);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no YMIN in request to get region range");
+            if (request.ContainsKey("YMAX"))
+                Int32.TryParse(request["YMAX"], out ymax);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no YMAX in request to get region range");
+
+
+            List<GridRegion> rinfos = m_GridService.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
+                result["result"] = "null";
+            else
+            {
+                int i = 0;
+                foreach (GridRegion rinfo in rinfos)
+                {
+                    Dictionary<string, object> rinfoDict = rinfo.ToKeyValuePairs();
+                    result["region" + i] = rinfoDict;
+                    i++;
+                }
+            }
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
         }
 
         #endregion

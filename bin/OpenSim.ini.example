@@ -1311,7 +1311,7 @@
     ;NoticesEnabled   = true
 
     ; This makes the Groups modules very chatty on the console.
-    ;DebugEnabled     = true
+    DebugEnabled     = false
 
     ; Specify which messaging module to use for groups messaging and if it's enabled
     ;MessagingModule = GroupsMessagingModule

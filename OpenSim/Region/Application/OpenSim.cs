@@ -557,7 +557,7 @@ namespace OpenSim
         /// <param name="cmd"></param>
         private void HandleLoginStatus(string module, string[] cmd)
         {
-            if (m_commsManager.GridService.RegionLoginsEnabled == false)
+            if (m_sceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled == false)
 
                 m_log.Info("[ Login ]  Login are disabled ");
             else

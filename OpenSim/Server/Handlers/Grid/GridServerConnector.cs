@@ -45,7 +45,7 @@ namespace OpenSim.Server.Handlers.Grid
             if (serverConfig == null)
                 throw new Exception("No section 'Server' in config file");
 
-            string gridService = serverConfig.GetString("GridServiceModule",
+            string gridService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
             if (gridService == String.Empty)

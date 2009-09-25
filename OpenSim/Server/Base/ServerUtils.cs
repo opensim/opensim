@@ -258,6 +258,8 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseXmlResponse(string data)
         {
+            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
+
             Dictionary<string, object> ret = new Dictionary<string, object>();
 
             XmlDocument doc = new XmlDocument();
@@ -284,7 +286,7 @@ namespace OpenSim.Server.Base
 
             foreach (XmlNode part in partL)
             {
-                XmlNode type = part.Attributes.GetNamedItem("Type");
+                XmlNode type = part.Attributes.GetNamedItem("type");
                 if (type == null || type.Value != "List")
                 {
                     ret[part.Name] = part.InnerText;

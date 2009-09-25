@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             {
                 if (m_firstScene != null)
                 {
-                    return m_firstScene.CommsManager.GridService.RegionLoginsEnabled;
+                    return m_firstScene.SceneGridService.RegionLoginsEnabled;
                 }
                 else
                 {
