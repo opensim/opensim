@@ -267,6 +267,7 @@ namespace OpenSim.Services.Interfaces
             kvp["serverIP"] = ExternalHostName; //ExternalEndPoint.Address.ToString();
             kvp["serverHttpPort"] = HttpPort.ToString();
             kvp["serverURI"] = ServerURI;
+            kvp["serverPort"] = InternalEndPoint.Port.ToString();
 
             return kvp;
         }
@@ -287,13 +288,20 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("serverIP"))
             {
-                int port = 0;
+                //int port = 0;
                 //Int32.TryParse((string)kvp["serverPort"], out port);
                 //IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["serverIP"]), port);
                 ExternalHostName = (string)kvp["serverIP"];
             }
             else
                 ExternalHostName = "127.0.0.1";
+
+            if (kvp.ContainsKey("serverPort"))
+            {
+                Int32 port = 0;
+                Int32.TryParse((string)kvp["serverPort"], out port);
+                InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+            }
 
             if (kvp.ContainsKey("serverHttpPort"))
             {

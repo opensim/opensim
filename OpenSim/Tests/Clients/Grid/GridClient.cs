@@ -137,6 +137,9 @@ namespace OpenSim.Tests.Clients.GridClient
             else
                 Console.WriteLine("[GRID CLIENT]: GetRegionRange returned " + regions.Count + " regions");
 
+            Console.Write("Proceed to deregister? Press enter...");
+            Console.ReadLine();
+
             // Deregister them all
             Console.WriteLine("[GRID CLIENT]: *** Deregistering region 1");
             success = m_Connector.DeregisterRegion(r1.RegionID);
@@ -166,7 +169,7 @@ namespace OpenSim.Tests.Clients.GridClient
             region.RegionID = UUID.Random();
             region.ExternalHostName = "127.0.0.1";
             region.HttpPort = 9000;
-            region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
+            region.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 9000);
           
             return region;
         }
