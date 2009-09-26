@@ -567,6 +567,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             foreach (GridRegion r in m_HyperlinkRegions.Values)
                 if (r.RegionHandle == handle)
                     return r;
+            foreach (GridRegion r in m_knownRegions.Values)
+                if (r.RegionHandle == handle)
+                    return r;
             return null;
         }
 
@@ -575,7 +578,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             foreach (GridRegion r in m_HyperlinkRegions.Values)
                 if ((r.RegionHandle == handle) && (m_HyperlinkHandles.ContainsKey(r.RegionID)))
                     return m_HyperlinkHandles[r.RegionID];
-            return 0;
+            return handle;
         }
 
         #endregion

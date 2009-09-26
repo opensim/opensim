@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
@@ -59,6 +60,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected CommunicationsManager m_commsManager;
 
         protected RegionToRegionClient m_regionClient;
+
+        protected IHyperlinkService m_hyperlinkService;
 
         protected bool m_safemode;
         protected IPAddress m_thisIP;
@@ -135,7 +138,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             m_localBackend = new LocalInterregionComms();
             m_commsManager = scene.CommsManager;
             m_aScene = scene;
-            m_regionClient = new RegionToRegionClient(m_aScene);
+            m_hyperlinkService = m_aScene.RequestModuleInterface<IHyperlinkService>();
+            m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }
 
@@ -789,16 +793,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected class RegionToRegionClient : RegionClient
         {
             Scene m_aScene = null;
+            IHyperlinkService m_hyperlinkService;
 
-            public RegionToRegionClient(Scene s)
+            public RegionToRegionClient(Scene s, IHyperlinkService hyperService)
             {
                 m_aScene = s;
+                m_hyperlinkService = hyperService;
             }
 
             public override ulong GetRegionHandle(ulong handle)
             {
                 if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(handle);
+                {
+                    if (m_hyperlinkService != null)
+                        return m_hyperlinkService.FindRegionHandle(handle);
+                }
 
                 return handle;
             }
@@ -806,8 +815,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             public override bool IsHyperlink(ulong handle)
             {
                 if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.IsHyperlinkRegion(handle);
-
+                {
+                    if ((m_hyperlinkService != null) && (m_hyperlinkService.GetHyperlinkRegion(handle) != null))
+                        return true;
+                }
                 return false;
             }
 
