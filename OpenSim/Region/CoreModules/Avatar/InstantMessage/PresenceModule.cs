@@ -330,6 +330,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void NotifyMessageServerOfStartup(Scene scene)
         {
+            if (m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL == string.Empty)
+                return;
+
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["RegionUUID"] = scene.RegionInfo.RegionID.ToString();
             ArrayList SendParams = new ArrayList();
@@ -353,6 +356,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void NotifyMessageServerOfShutdown(Scene scene)
         {
+            if (m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL == string.Empty)
+                return;
+            
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["RegionUUID"] = scene.RegionInfo.RegionID.ToString();
             ArrayList SendParams = new ArrayList();
@@ -376,6 +382,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void NotifyMessageServerOfAgentLocation(UUID agentID, UUID region, ulong regionHandle)
         {
+            if (m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL == string.Empty)
+                return;
+
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["AgentID"] = agentID.ToString();
             xmlrpcdata["RegionUUID"] = region.ToString();
@@ -401,6 +410,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void NotifyMessageServerOfAgentLeaving(UUID agentID, UUID region, ulong regionHandle)
         {
+            if (m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL == string.Empty)
+                return;
+
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["AgentID"] = agentID.ToString();
             xmlrpcdata["RegionUUID"] = region.ToString();

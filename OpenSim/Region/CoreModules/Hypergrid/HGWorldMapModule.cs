@@ -62,8 +62,8 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         {
             List<MapBlockData> mapBlocks = new List<MapBlockData>();
             List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
-                (minX - 4) * (int)Constants.RegionSize, (minY - 4) * (int)Constants.RegionSize,
-                (maxX + 4) * (int)Constants.RegionSize, (maxY + 4) * (int)Constants.RegionSize);
+                (minX - 4) * (int)Constants.RegionSize, (maxX + 4) * (int)Constants.RegionSize, 
+                (minY - 4) * (int)Constants.RegionSize, (maxY + 4) * (int)Constants.RegionSize);
 
             foreach (GridRegion r in regions)
             {

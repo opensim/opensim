@@ -371,15 +371,10 @@ namespace OpenSim.Region.Framework.Scenes
             string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
                   + "/CAPS/" + a.CapsPath + "0000/";
 
-            m_log.DebugFormat("[XXX] CAPS = {0}", capsPath);
-            m_log.DebugFormat("[XXX] ExternalEndPoint = {0}", endPoint.ToString());
-
             string reason = String.Empty;
 
-            //bool regionAccepted = m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, a);
-            
+           
             bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, out reason);
-            m_log.DebugFormat("[XXX] Here 1 {0}", regionAccepted);
 
             if (regionAccepted && newAgent)
             {
@@ -394,7 +389,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     #endregion
 
-                    m_log.DebugFormat("[XXX] HERE 2");
                     eq.EnableSimulator(reg.RegionHandle, endPoint, avatar.UUID);
                     eq.EstablishAgentCommunication(avatar.UUID, endPoint, capsPath);
                     m_log.DebugFormat("[CAPS]: Sending new CAPS seed url {0} to client {1} in region {2}",
