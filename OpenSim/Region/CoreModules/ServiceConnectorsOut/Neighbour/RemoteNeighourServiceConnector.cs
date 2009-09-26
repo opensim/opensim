@@ -118,7 +118,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
             if (!m_Enabled)
                 return;
 
-            m_MapService = scene.CommsManager.GridService;
             m_LocalService.AddRegion(scene);
             scene.RegisterModuleInterface<INeighbourService>(this);
         }
@@ -133,6 +132,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour
         {
             if (!m_Enabled)
                 return;
+
+            m_GridService = scene.GridService;
 
             m_log.InfoFormat("[NEIGHBOUR CONNECTOR]: Enabled remote neighbours for region {0}", scene.RegionInfo.RegionName);
 

@@ -47,7 +47,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
-    public class HGGridConnector : ISharedRegionModule, IGridService
+    public class HGGridConnector : ISharedRegionModule, IGridService, IHyperlinkService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -142,6 +142,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 return;
 
             scene.RegisterModuleInterface<IGridService>(this);
+            scene.RegisterModuleInterface<IHyperlinkService>(this);
 
         }
 
@@ -367,9 +368,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
         #endregion
 
-        #region Hyperlinks
+        #region IHyperlinkService
 
         private static Random random = new Random();
+
 
         public GridRegion TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, int xloc, int yloc)
         {
@@ -416,6 +418,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             return null;
         }
+
 
         // From the map search and secondlife://blah
         public GridRegion TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
@@ -552,6 +555,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if ((thisx == x) && (thisy == y))
                 return false;
             return true;
+        }
+
+        public GridRegion TryLinkRegion(IClientAPI client, string regionDescriptor)
+        {
+            return TryLinkRegion((Scene)client.Scene, client, regionDescriptor);
+        }
+
+        public GridRegion GetHyperlinkRegion(ulong handle)
+        {
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
+                if (r.RegionHandle == handle)
+                    return r;
+            return null;
+        }
+
+        public ulong FindRegionHandle(ulong handle)
+        {
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
+                if ((r.RegionHandle == handle) && (m_HyperlinkHandles.ContainsKey(r.RegionID)))
+                    return m_HyperlinkHandles[r.RegionID];
+            return 0;
         }
 
         #endregion

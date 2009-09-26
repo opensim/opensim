@@ -49,6 +49,7 @@ using OpenSim.Region.Framework.Scenes.Serialization;
 using OpenSim.Region.Physics.Manager;
 using Timer=System.Timers.Timer;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -190,6 +191,26 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 return m_InventoryService;
+            }
+        }
+
+        protected IGridService m_GridService = null;
+
+        public IGridService GridService
+        {
+            get
+            {
+                if (m_GridService == null)
+                {
+                    m_GridService = RequestModuleInterface<IGridService>();
+
+                    if (m_GridService == null)
+                    {
+                        throw new Exception("No IGridService available. This could happen if the config_include folder doesn't exist or if the OpenSim.ini [Architecture] section isn't set.  Please also check that you have the correct version of your inventory service dll.  Sometimes old versions of this dll will still exist.  Do a clean checkout and re-create the opensim.ini from the opensim.ini.example.");
+                    }
+                }
+
+                return m_GridService;
             }
         }
 
@@ -1336,24 +1357,31 @@ namespace OpenSim.Region.Framework.Scenes
             RegisterCommsEvents();
 
             // These two 'commands' *must be* next to each other or sim rebooting fails.
-            m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
+            //m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
+
+            GridRegion region = new GridRegion(RegionInfo);
+            bool success = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+            if (!success)
+                throw new Exception("Can't register with grid");
+
+            m_sceneGridService.SetScene(this);
             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
 
-            Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
+            //Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
 
-            if (dGridSettings.ContainsKey("allow_forceful_banlines"))
-            {
-                if (dGridSettings["allow_forceful_banlines"] != "TRUE")
-                {
-                    m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
-                    EventManager.TriggerSetAllowForcefulBan(false);
-                }
-                else
-                {
-                    m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
-                    EventManager.TriggerSetAllowForcefulBan(true);
-                }
-            }
+            //if (dGridSettings.ContainsKey("allow_forceful_banlines"))
+            //{
+            //    if (dGridSettings["allow_forceful_banlines"] != "TRUE")
+            //    {
+            //        m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
+            //        EventManager.TriggerSetAllowForcefulBan(false);
+            //    }
+            //    else
+            //    {
+            //        m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
+            //        EventManager.TriggerSetAllowForcefulBan(true);
+            //    }
+            //}
         }
 
         /// <summary>
@@ -2717,10 +2745,12 @@ namespace OpenSim.Region.Framework.Scenes
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
             if (UserProfile != null)
             {
-                RegionInfo regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegionID);
+                GridRegion regionInfo = GridService.GetRegionByUUID(UUID.Zero, UserProfile.HomeRegionID);
                 if (regionInfo == null)
                 {
-                    regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
+                    uint x = 0, y = 0;
+                    Utils.LongToUInts(UserProfile.HomeRegion, out x, out y);
+                    regionInfo = GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                     if (regionInfo != null) // home region can be away temporarily, too
                     {
                         UserProfile.HomeRegionID = regionInfo.RegionID;
@@ -3111,7 +3141,11 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_interregionCommsIn != null)
                 m_interregionCommsIn.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
 
+            // this does nothing; should be removed
             m_sceneGridService.Close();
+
+            if (!GridService.DeregisterRegion(m_regInfo.RegionID))
+                m_log.WarnFormat("[SCENE]: Deregister from grid failed for region {0}", m_regInfo.RegionName);
         }
 
         /// <summary>
@@ -3557,30 +3591,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Requests information about this region from gridcomms
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <returns></returns>
-        public RegionInfo RequestNeighbouringRegionInfo(ulong regionHandle)
-        {
-            return m_sceneGridService.RequestNeighbouringRegionInfo(regionHandle);
-        }
-
-        /// <summary>
-        /// Requests textures for map from minimum region to maximum region in world cordinates
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="minX"></param>
-        /// <param name="minY"></param>
-        /// <param name="maxX"></param>
-        /// <param name="maxY"></param>
-        public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
-        {
-            m_log.DebugFormat("[MAPBLOCK]: {0}-{1}, {2}-{3}", minX, minY, maxX, maxY);
-            m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxY);
-        }
-
-        /// <summary>
         /// Tries to teleport agent to other region.
         /// </summary>
         /// <param name="remoteClient"></param>
@@ -3591,7 +3601,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, string regionName, Vector3 position,
                                             Vector3 lookat, uint teleportFlags)
         {
-            RegionInfo regionInfo = m_sceneGridService.RequestClosestRegion(regionName);
+            GridRegion regionInfo = GridService.GetRegionByName(UUID.Zero, regionName);
             if (regionInfo == null)
             {
                 // can't find the region: Tell viewer and abort
@@ -3680,7 +3690,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="position"></param>
         public void RequestTeleportLandmark(IClientAPI remoteClient, UUID regionID, Vector3 position)
         {
-            RegionInfo info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+            GridRegion info = GridService.GetRegionByUUID(UUID.Zero, regionID);
 
             if (info == null)
             {
@@ -3864,10 +3874,6 @@ namespace OpenSim.Region.Framework.Scenes
             return LandChannel.GetLandObject((int)x, (int)y).landData;
         }
 
-        public RegionInfo RequestClosestRegion(string name)
-        {
-            return m_sceneGridService.RequestClosestRegion(name);
-        }
 
         #endregion
 
@@ -4178,14 +4184,18 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void RegionHandleRequest(IClientAPI client, UUID regionID)
         {
-            RegionInfo info;
+            ulong handle = 0;
             if (regionID == RegionInfo.RegionID)
-                info = RegionInfo;
+                handle = RegionInfo.RegionHandle;
             else
-                info = CommsManager.GridService.RequestNeighbourInfo(regionID);
+            {
+                GridRegion r = GridService.GetRegionByUUID(UUID.Zero, regionID);
+                if (r != null)
+                    handle = r.RegionHandle;
+            }
 
-            if (info != null)
-                client.SendRegionHandle(regionID, info.RegionHandle);
+            if (handle != 0)
+                client.SendRegionHandle(regionID, handle);
         }
 
         public void TerrainUnAcked(IClientAPI client, int patchX, int patchY)

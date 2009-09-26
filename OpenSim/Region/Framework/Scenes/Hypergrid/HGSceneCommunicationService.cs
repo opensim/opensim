@@ -38,6 +38,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {
@@ -106,7 +107,10 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             }
             else
             {
-                RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion reg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y); 
+
                 if (reg != null)
                 {
 

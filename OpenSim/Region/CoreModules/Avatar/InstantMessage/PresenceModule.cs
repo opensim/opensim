@@ -35,6 +35,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
@@ -171,7 +172,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             {
                                 // TODO this is the old messaging-server protocol; only the regionHandle is available.
                                 // Fetch region-info to get the id
-                                RegionInfo regionInfo = m_initialScene.RequestNeighbouringRegionInfo(info.regionHandle);
+                                uint x = 0, y = 0;
+                                Utils.LongToUInts(info.regionHandle, out x, out y);
+                                GridRegion regionInfo = m_initialScene.GridService.GetRegionByPosition(m_initialScene.RegionInfo.ScopeID,
+                                    (int)x, (int)y);
                                 regionID = regionInfo.RegionID;
                             }
                             result[indices[i]] = new PresenceInfo(uuids[i], regionID);

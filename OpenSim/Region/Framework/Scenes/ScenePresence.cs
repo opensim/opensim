@@ -36,6 +36,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -2934,8 +2935,9 @@ namespace OpenSim.Region.Framework.Scenes
             else if (dir > 3 && dir < 7) // Heading Sout
                 neighboury--;
 
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-            SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
+            int x = (int)(neighbourx * Constants.RegionSize);
+            int y = (int)(neighboury * Constants.RegionSize);
+            GridRegion neighbourRegion = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, x, y);
 
             if (neighbourRegion == null)
             {

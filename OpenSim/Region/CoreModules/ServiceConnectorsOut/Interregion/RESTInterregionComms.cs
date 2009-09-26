@@ -42,6 +42,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 {
@@ -161,7 +162,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     m_regionClient.SendUserInformation(regInfo, aCircuit);
@@ -183,7 +186,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
@@ -204,7 +209,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
@@ -225,7 +232,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoRetrieveRootAgentCall(regInfo, id, out agent);
@@ -257,7 +266,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoCloseAgentCall(regInfo, id);
@@ -284,7 +295,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoCreateObjectCall(
@@ -798,13 +811,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 return false;
             }
 
-            public override void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
+            public override void SendUserInformation(GridRegion regInfo, AgentCircuitData aCircuit)
             {
                 try
                 {
                     if (m_aScene.SceneGridService is HGSceneCommunicationService)
                     {
-                        ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
+                        // big hack for now
+                        RegionInfo r = new RegionInfo();
+                        r.ExternalHostName = regInfo.ExternalHostName;
+                        r.HttpPort = regInfo.HttpPort;
+                        r.RegionID = regInfo.RegionID;
+                        r.RegionLocX = (uint)regInfo.RegionLocX;
+                        r.RegionLocY = (uint)regInfo.RegionLocY;
+                        ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(r, aCircuit);
                     }
                 }
                 catch // Bad cast

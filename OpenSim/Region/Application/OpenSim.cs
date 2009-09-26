@@ -755,11 +755,6 @@ namespace OpenSim
                     }
                     break;
 
-                case "link-region":
-                case "unlink-region":
-                case "link-mapping":
-                    HGCommands.RunHGCommand(command, cmdparams, m_sceneManager.CurrentOrFirstScene);
-                    break;
             }
         }
 

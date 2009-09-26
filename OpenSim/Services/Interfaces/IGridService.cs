@@ -122,9 +122,6 @@ namespace OpenSim.Services.Interfaces
         }
         protected string m_regionName = String.Empty;
 
-        protected bool Allow_Alternate_Ports;
-        public bool m_allow_alternate_ports;
-
         protected string m_externalHostName;
 
         protected IPEndPoint m_internalEndPoint;
@@ -145,6 +142,10 @@ namespace OpenSim.Services.Interfaces
 
         public UUID RegionID = UUID.Zero;
         public UUID ScopeID = UUID.Zero;
+
+        public UUID TerrainImage = UUID.Zero;
+        public byte Access;
+        public int  Maturity;
 
         public GridRegion()
         {
@@ -183,9 +184,11 @@ namespace OpenSim.Services.Interfaces
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_httpPort = ConvertFrom.HttpPort;
-            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
-            RegionID = UUID.Zero;
+            RegionID = ConvertFrom.RegionID;
             ServerURI = ConvertFrom.ServerURI;
+            TerrainImage = ConvertFrom.RegionSettings.TerrainImageID;
+            Access = ConvertFrom.AccessLevel;
+            Maturity = ConvertFrom.RegionSettings.Maturity;
         }
 
 
@@ -268,7 +271,9 @@ namespace OpenSim.Services.Interfaces
             kvp["serverHttpPort"] = HttpPort.ToString();
             kvp["serverURI"] = ServerURI;
             kvp["serverPort"] = InternalEndPoint.Port.ToString();
-
+            kvp["regionMapTexture"] = TerrainImage.ToString();
+            kvp["access"] = Access.ToString();
+            // Maturity doesn't seem to exist in the DB
             return kvp;
         }
 
@@ -312,6 +317,16 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("serverURI"))
                 ServerURI = (string)kvp["serverURI"];
+
+            if (kvp.ContainsKey("regionMapTexture"))
+            {
+                UUID.TryParse((string)kvp["regionMapTexture"], out TerrainImage);
+            }
+
+            if (kvp.ContainsKey("access"))
+            {
+                Access = Byte.Parse((string)kvp["access"]); ;
+            }
         }
     }
 
