@@ -159,27 +159,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 m_HypergridServiceConnector = new HypergridServiceConnector(scene.AssetService);
                 HGCommands hgCommands = new HGCommands(this, scene);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-region",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "link-region",
                     "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
                     "Link a hypergrid region", hgCommands.RunCommand);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "unlinkk-region",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "unlink-region",
                     "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
                     "Unlink a hypergrid region", hgCommands.RunCommand);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-mapping", "link-mapping [<x> <y>] <cr>",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
                     "Set local coordinate to map HG regions to", hgCommands.RunCommand);
                 m_Initialized = true;
             }
-
-
-            //scene.AddCommand("HGGridServicesConnector", "linkk-region",
-            //    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
-            //    "Link a hypergrid region", hgCommands.RunCommand);
-            //scene.AddCommand("HGGridServicesConnector", "unlinkk-region",
-            //    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
-            //    "Unlink a hypergrid region", hgCommands.RunCommand);
-            //scene.AddCommand("HGGridServicesConnector", "linkk-mapping", "link-mapping [<x> <y>] <cr>",
-            //    "Set local coordinate to map HG regions to", hgCommands.RunCommand);
-
         }
 
         #endregion
@@ -450,15 +439,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
 
             // Finally, link it
-            try
-            {
-                RegisterRegion(UUID.Zero, regInfo);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid]: Unable to link region: " + e.Message);
-                return false;
-            }
+                if (!RegisterRegion(UUID.Zero, regInfo))
+                {
+                    m_log.Warn("[HGrid]: Unable to link region");
+                    return false;
+                }
 
             int x, y;
             if (!Check4096(m_scene, regInfo, out x, out y))

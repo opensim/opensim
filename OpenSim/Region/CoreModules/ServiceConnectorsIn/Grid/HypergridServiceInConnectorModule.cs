@@ -37,6 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 using OpenSim.Server.Handlers.Grid;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
 {
@@ -106,7 +107,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
                     //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);
             }
 
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(scene.RegionInfo);
+            GridRegion rinfo = new GridRegion(scene.RegionInfo);
             m_HypergridHandler.AddRegion(rinfo);
         }
 
@@ -115,7 +116,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
             if (!m_Enabled)
                 return;
 
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(scene.RegionInfo);
+            GridRegion rinfo = new GridRegion(scene.RegionInfo);
             m_HypergridHandler.RemoveRegion(rinfo);
         }
 

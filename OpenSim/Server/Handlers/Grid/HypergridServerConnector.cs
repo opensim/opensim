@@ -36,6 +36,7 @@ using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using log4net;
 using Nwc.XmlRpc;
@@ -48,12 +49,12 @@ namespace OpenSim.Server.Handlers.Grid
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<SimpleRegionInfo> m_RegionsOnSim = new List<SimpleRegionInfo>();
+        private List<GridRegion> m_RegionsOnSim = new List<GridRegion>();
 
         public HypergridServiceInConnector(IConfigSource config, IHttpServer server) :
                 base(config, server)
         {
-            server.AddXmlRPCHandler("linkk_region", LinkRegionRequest, false);
+            server.AddXmlRPCHandler("link_region", LinkRegionRequest, false);
         }
 
         /// <summary>
@@ -70,8 +71,8 @@ namespace OpenSim.Server.Handlers.Grid
 
             m_log.DebugFormat("[HGrid]: Hyperlink request");
 
-            SimpleRegionInfo regInfo = null;
-            foreach (SimpleRegionInfo r in m_RegionsOnSim)
+            GridRegion regInfo = null;
+            foreach (GridRegion r in m_RegionsOnSim)
             {
                 if ((r.RegionName != null) && (name != null) && (r.RegionName.ToLower() == name.ToLower()))
                 {
@@ -85,9 +86,9 @@ namespace OpenSim.Server.Handlers.Grid
 
             Hashtable hash = new Hashtable();
             hash["uuid"] = regInfo.RegionID.ToString();
+            m_log.Debug(">> Here " + regInfo.RegionID);
             hash["handle"] = regInfo.RegionHandle.ToString();
-            //m_log.Debug(">> Here " + regInfo.RegionHandle);
-            //hash["region_image"] = regInfo.RegionSettings.TerrainImageID.ToString();
+            hash["region_image"] = regInfo.TerrainImage.ToString();
             hash["region_name"] = regInfo.RegionName;
             hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
             //m_log.Debug(">> Here: " + regInfo.InternalEndPoint.Port);
@@ -98,12 +99,12 @@ namespace OpenSim.Server.Handlers.Grid
             return response;
         }
 
-        public void AddRegion(SimpleRegionInfo rinfo)
+        public void AddRegion(GridRegion rinfo)
         {
             m_RegionsOnSim.Add(rinfo);
         }
 
-        public void RemoveRegion(SimpleRegionInfo rinfo)
+        public void RemoveRegion(GridRegion rinfo)
         {
             if (m_RegionsOnSim.Contains(rinfo))
                 m_RegionsOnSim.Remove(rinfo);
