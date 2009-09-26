@@ -47,8 +47,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // This maps between inventory server urls and inventory server clients
-        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
-
+//        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
 
         private Scene m_scene;
         #endregion
@@ -72,13 +71,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return null;
         }
 
-        private string UserInventoryURL(UUID userID)
-        {
-            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null)
-                return (uinfo.UserProfile.UserInventoryURI == "") ? null : uinfo.UserProfile.UserInventoryURI;
-            return null;
-        }
+//        private string UserInventoryURL(UUID userID)
+//        {
+//            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+//            if (uinfo != null)
+//                return (uinfo.UserProfile.UserInventoryURI == "") ? null : uinfo.UserProfile.UserInventoryURI;
+//            return null;
+//        }
 
         private bool IsLocalUser(UUID userID)
         {
