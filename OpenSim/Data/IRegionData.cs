@@ -39,6 +39,8 @@ namespace OpenSim.Data
         public string RegionName;
         public int posX;
         public int posY;
+        public int sizeX;
+        public int sizeY;
         public Dictionary<string, object> Data;
     }
 
