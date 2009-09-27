@@ -191,6 +191,20 @@ namespace OpenSim.Services.Interfaces
             Maturity = ConvertFrom.RegionSettings.Maturity;
         }
 
+        public GridRegion(GridRegion ConvertFrom)
+        {
+            m_regionName = ConvertFrom.RegionName;
+            m_regionLocX = ConvertFrom.RegionLocX;
+            m_regionLocY = ConvertFrom.RegionLocY;
+            m_internalEndPoint = ConvertFrom.InternalEndPoint;
+            m_externalHostName = ConvertFrom.ExternalHostName;
+            m_httpPort = ConvertFrom.HttpPort;
+            RegionID = ConvertFrom.RegionID;
+            ServerURI = ConvertFrom.ServerURI;
+            TerrainImage = ConvertFrom.TerrainImage;
+            Access = ConvertFrom.Access;
+            Maturity = ConvertFrom.Maturity;
+        }
 
         /// <value>
         /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.

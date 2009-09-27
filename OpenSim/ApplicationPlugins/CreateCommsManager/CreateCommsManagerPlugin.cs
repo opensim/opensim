@@ -144,7 +144,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 // We are in grid mode
                 InitialiseHGGridServices(libraryRootFolder);
             }
-            HGCommands.HGServices = HGServices;
         }
 
         protected void InitialiseStandardServices(LibraryRootFolder libraryRootFolder)

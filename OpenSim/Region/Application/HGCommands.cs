@@ -43,12 +43,11 @@ namespace OpenSim
     public class HGCommands
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public static IHyperlink HGServices = null;
 
         public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, CommunicationsManager m_commsManager,
             StorageManager storageManager, ModuleLoader m_moduleLoader, ConfigSettings m_configSettings, OpenSimConfigSource m_config, string m_version)
         {
-            HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager, HGServices);
+            HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager);
 
             return
                 new HGScene(

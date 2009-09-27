@@ -824,29 +824,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
             public override void SendUserInformation(GridRegion regInfo, AgentCircuitData aCircuit)
             {
-                try
-                {
-                    if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    {
-                        // big hack for now
-                        RegionInfo r = new RegionInfo();
-                        r.ExternalHostName = regInfo.ExternalHostName;
-                        r.HttpPort = regInfo.HttpPort;
-                        r.RegionID = regInfo.RegionID;
-                        r.RegionLocX = (uint)regInfo.RegionLocX;
-                        r.RegionLocY = (uint)regInfo.RegionLocY;
-                        ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(r, aCircuit);
-                    }
-                }
-                catch // Bad cast
-                { }
+                if (m_hyperlinkService != null)
+                    m_hyperlinkService.SendUserInformation(regInfo, aCircuit);
 
             }
 
             public override void AdjustUserInformation(AgentCircuitData aCircuit)
             {
-                if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.AdjustUserInformation(aCircuit);
+                if (m_hyperlinkService != null)
+                    m_hyperlinkService.AdjustUserInformation(aCircuit);
             }
         }
 

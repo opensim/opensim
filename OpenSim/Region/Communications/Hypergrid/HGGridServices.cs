@@ -596,16 +596,16 @@ namespace OpenSim.Region.Communications.Hypergrid
                 //m_log.Debug("  >> " + loginParams["region_uuid"] + " <<");
                 //m_log.Debug("  --------- ---------------- -------");
 
-                string serverURI = "";
-                if (u.UserProfile is ForeignUserProfileData)
-                    serverURI = HGNetworkServersInfo.ServerURI(((ForeignUserProfileData)u.UserProfile).UserServerURI);
-                loginParams["userserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalUserServerURI : serverURI;
+                //string serverURI = "";
+                //if (u.UserProfile is ForeignUserProfileData)
+                //    serverURI = Util.ServerURI(((ForeignUserProfileData)u.UserProfile).UserServerURI);
+                //loginParams["userserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalUserServerURI : serverURI;
 
-                serverURI = HGNetworkServersInfo.ServerURI(u.UserProfile.UserAssetURI);
-                loginParams["assetserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalAssetServerURI : serverURI;
+                //serverURI = HGNetworkServersInfo.ServerURI(u.UserProfile.UserAssetURI);
+                //loginParams["assetserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalAssetServerURI : serverURI;
 
-                serverURI = HGNetworkServersInfo.ServerURI(u.UserProfile.UserInventoryURI);
-                loginParams["inventoryserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalInventoryServerURI : serverURI;
+                //serverURI = HGNetworkServersInfo.ServerURI(u.UserProfile.UserInventoryURI);
+                //loginParams["inventoryserver_id"] = (serverURI == "") || (serverURI == null) ? HGNetworkServersInfo.Singleton.LocalInventoryServerURI : serverURI;
 
                 loginParams["root_folder_id"] = u.UserProfile.RootInventoryFolderID;
 
@@ -949,33 +949,35 @@ namespace OpenSim.Region.Communications.Hypergrid
 
         protected bool IsComingHome(ForeignUserProfileData userData)
         {
-            return (userData.UserServerURI == HGNetworkServersInfo.Singleton.LocalUserServerURI);
+            return false; //(userData.UserServerURI == HGNetworkServersInfo.Singleton.LocalUserServerURI);
         }
 
         protected bool IsGoingHome(CachedUserInfo uinfo, RegionInfo rinfo)
         {
-            if (uinfo.UserProfile == null)
-                return false;
+            return false;
+            //if (uinfo.UserProfile == null)
+            //    return false;
 
-            string userUserServerURI = String.Empty;
-            if (uinfo.UserProfile is ForeignUserProfileData)
-            {
-                userUserServerURI = HGNetworkServersInfo.ServerURI(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
-            }
+            //string userUserServerURI = String.Empty;
+            //if (uinfo.UserProfile is ForeignUserProfileData)
+            //{
+            //    userUserServerURI = HGNetworkServersInfo.ServerURI(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
+            //}
 
-            return ((uinfo.UserProfile.HomeRegionID == rinfo.RegionID) &&
-                    (userUserServerURI != HGNetworkServersInfo.Singleton.LocalUserServerURI));
+            //return ((uinfo.UserProfile.HomeRegionID == rinfo.RegionID) &&
+            //        (userUserServerURI != HGNetworkServersInfo.Singleton.LocalUserServerURI));
         }
 
         protected bool IsLocalUser(CachedUserInfo uinfo)
         {
-            if (uinfo == null)
-                return true;
+            return true;
+            //if (uinfo == null)
+            //    return true;
 
-            if (uinfo.UserProfile is ForeignUserProfileData)
-                return HGNetworkServersInfo.Singleton.IsLocalUser(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
-            else
-                return true;
+            //if (uinfo.UserProfile is ForeignUserProfileData)
+            //    return HGNetworkServersInfo.Singleton.IsLocalUser(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
+            //else
+            //    return true;
 
         }
 
