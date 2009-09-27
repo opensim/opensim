@@ -40,21 +40,12 @@ namespace OpenSim.Region.Communications.Hypergrid
 {
     public class HGCommunicationsGridMode : CommunicationsManager // CommunicationsOGS1
     {
-        IHyperlink m_osw = null;
-        public IHyperlink HGServices
-        {
-            get { return m_osw; }
-        }
 
         public HGCommunicationsGridMode(
             NetworkServersInfo serversInfo,
             SceneManager sman, LibraryRootFolder libraryRootFolder)
             : base(serversInfo, libraryRootFolder)
         {
-            // From constructor at CommunicationsOGS1
-            HGGridServices gridInterComms = new HGGridServicesGridMode(serversInfo, sman, m_userProfileCacheService);
-            m_gridService = gridInterComms;
-            m_osw = gridInterComms;
 
             HGUserServices userServices = new HGUserServices(this);
             // This plugin arrangement could eventually be configurable rather than hardcoded here.

@@ -187,18 +187,11 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
         {    
-            HGGridServicesStandalone gridService 
-                = new HGGridServicesStandalone(
-                    m_openSim.NetServersInfo, m_httpServer, m_openSim.SceneManager);                         
-
             m_commsManager 
                 = new HGCommunicationsStandalone(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, 
-                    gridService, 
                     libraryRootFolder, false);                        
             
-            HGServices = gridService;
-
             CreateGridInfoService();
         }
 
@@ -208,8 +201,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
                 = new HGCommunicationsGridMode(
                     m_openSim.NetServersInfo,
                     m_openSim.SceneManager, libraryRootFolder);
-
-            HGServices = ((HGCommunicationsGridMode) m_commsManager).HGServices;
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
             m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));
