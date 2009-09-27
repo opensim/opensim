@@ -611,6 +611,9 @@ namespace OpenSim.Region.Framework.Scenes
                 int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
                 if (resultX <= 1 && resultY <= 1)
                 {
+                    // Let the grid service module know, so this can be cached
+                    m_eventManager.TriggerOnRegionUp(otherRegion);
+
                     RegionInfo regInfo = new RegionInfo(xcell, ycell, otherRegion.InternalEndPoint, otherRegion.ExternalHostName);
                     regInfo.RegionID = otherRegion.RegionID;
                     regInfo.RegionName = otherRegion.RegionName;
@@ -641,6 +644,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // This shouldn't happen too often anymore.
                         m_log.Error("[SCENE]: Couldn't inform client of regionup because we got a null reference exception");
                     }
+
                 }
                 else
                 {

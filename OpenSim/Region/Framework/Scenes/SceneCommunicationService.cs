@@ -455,14 +455,12 @@ namespace OpenSim.Region.Framework.Scenes
             // So we're temporarily going back to the old method of grabbing it from the Grid Server Every time :/
             if (m_regionInfo != null)
             {
-                neighbours =
-                RequestNeighbours(avatar.Scene,m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+                neighbours = RequestNeighbours(avatar.Scene,m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             }
             else
             {
                 m_log.Debug("[ENABLENEIGHBOURCHILDAGENTS]: m_regionInfo was null in EnableNeighbourChildAgents, is this a NPC?");
             }
-            
 
             /// We need to find the difference between the new regions where there are no child agents
             /// and the regions where there are already child agents. We only send notification to the former.
