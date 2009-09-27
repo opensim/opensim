@@ -216,6 +216,7 @@ namespace OpenSim.Data.MySQL
 
             cmd.CommandText = update;
             cmd.Parameters.AddWithValue("?regionID", data.RegionID.ToString());
+            cmd.Parameters.AddWithValue("?regionName", data.RegionName);
             cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
             cmd.Parameters.AddWithValue("?posX", data.posX.ToString());
             cmd.Parameters.AddWithValue("?posY", data.posY.ToString());
@@ -224,9 +225,9 @@ namespace OpenSim.Data.MySQL
 
             if (ExecuteNonQuery(cmd) < 1)
             {
-                string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `" +
+                string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?" + String.Join(", ?", fields) + ")";
+                        "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + String.Join(", ?", fields) + ")";
 
                 cmd.CommandText = insert;
 
