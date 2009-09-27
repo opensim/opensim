@@ -13,7 +13,7 @@
 ; * server instance
 ; *
 [Network]
-	port = 8002
+	port = 8001
 
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
