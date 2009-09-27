@@ -39,8 +39,6 @@ namespace OpenSim.Region.Communications.OGS1
             LibraryRootFolder libraryRootFolder)
             : base(serversInfo, libraryRootFolder)
         {
-            OGS1GridServices gridInterComms = new OGS1GridServices(serversInfo);
-            m_gridService = gridInterComms;
 
             // This plugin arrangement could eventually be configurable rather than hardcoded here.           
             OGS1UserServices userServices = new OGS1UserServices(this);
