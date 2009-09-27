@@ -191,6 +191,10 @@ namespace OpenSim.Data.MySQL
                 data.Data.Remove("sizeX");
             if (data.Data.ContainsKey("sizeY"))
                 data.Data.Remove("sizeY");
+            if (data.Data.ContainsKey("locX"))
+                data.Data.Remove("locX");
+            if (data.Data.ContainsKey("locY"))
+                data.Data.Remove("locY");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
