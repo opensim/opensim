@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 
 namespace OpenSim.Services.GridService
@@ -48,32 +49,27 @@ namespace OpenSim.Services.GridService
         public GridService(IConfigSource config)
             : base(config)
         {
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "show digest",
-                    "show digest <ID>",
-                    "Show asset digest", HandleShowDigest);
-
-            MainConsole.Instance.Commands.AddCommand("kfs", false,
-                    "delete asset",
-                    "delete asset <ID>",
-                    "Delete asset from database", HandleDeleteAsset);
-
+            m_log.DebugFormat("[GRID SERVICE]: Starting...");
         }
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfos)
+        public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
-            if (m_Database.Get(regionInfos.RegionID, scopeID) != null)
-            {
-                m_log.WarnFormat("[GRID SERVICE]: Region {0} already registered in scope {1}.", regionInfos.RegionID, scopeID);
-                return false;
-            }
-            if (m_Database.Get((int)regionInfos.RegionLocX, (int)regionInfos.RegionLocY, scopeID) != null)
+            // This needs better sanity testing. What if regionInfo is registering in
+            // overlapping coords?
+            RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+            if ((region != null) && (region.RegionID != regionInfos.RegionID))
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
                 return false;
+            }
+            if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
+                ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
+            {
+                // Region reregistering in other coordinates. Delete the old entry
+                m_Database.Delete(regionInfos.RegionID);
             }
 
             // Everything is ok, let's register
@@ -88,22 +84,25 @@ namespace OpenSim.Services.GridService
             return m_Database.Delete(regionID);
         }
 
-        public List<SimpleRegionInfo> GetNeighbours(UUID scopeID, UUID regionID)
+        public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
             RegionData region = m_Database.Get(regionID, scopeID);
             if (region != null)
             {
                 // Not really? Maybe?
-                List<RegionData> rdatas = m_Database.Get(region.posX - 1, region.posY - 1, region.posX + 1, region.posY + 1, scopeID);
+                List<RegionData> rdatas = m_Database.Get(region.posX - (int)Constants.RegionSize, region.posY - (int)Constants.RegionSize, 
+                    region.posX + (int)Constants.RegionSize, region.posY + (int)Constants.RegionSize, scopeID);
+
                 foreach (RegionData rdata in rdatas)
-                    rinfos.Add(RegionData2RegionInfo(rdata));
+                    if (rdata.RegionID != regionID)
+                        rinfos.Add(RegionData2RegionInfo(rdata));
 
             }
             return rinfos;
         }
 
-        public SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID)
+        public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
             RegionData rdata = m_Database.Get(regionID, scopeID);
             if (rdata != null)
@@ -112,16 +111,18 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y)
+        public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
-            RegionData rdata = m_Database.Get(x, y, scopeID);
+            int snapX = (int)(x / Constants.RegionSize) * (int)Constants.RegionSize;
+            int snapY = (int)(y / Constants.RegionSize) * (int)Constants.RegionSize;
+            RegionData rdata = m_Database.Get(snapX, snapY, scopeID);
             if (rdata != null)
                 return RegionData2RegionInfo(rdata);
 
             return null;
         }
 
-        public SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName)
+        public GridRegion GetRegionByName(UUID scopeID, string regionName)
         {
             List<RegionData> rdatas = m_Database.Get(regionName + "%", scopeID);
             if ((rdatas != null) && (rdatas.Count > 0))
@@ -130,12 +131,12 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        public List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
             List<RegionData> rdatas = m_Database.Get("%" + name + "%", scopeID);
 
             int count = 0;
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            List<GridRegion> rinfos = new List<GridRegion>();
 
             if (rdatas != null)
             {
@@ -149,10 +150,15 @@ namespace OpenSim.Services.GridService
             return rinfos;
         }
 
-        public List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
+        public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
-            List<RegionData> rdatas = m_Database.Get(xmin, ymin, xmax, ymax, scopeID);
-            List<SimpleRegionInfo> rinfos = new List<SimpleRegionInfo>();
+            int xminSnap = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
+            int xmaxSnap = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
+            int yminSnap = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
+            int ymaxSnap = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
+
+            List<RegionData> rdatas = m_Database.Get(xminSnap, yminSnap, xmaxSnap, ymaxSnap, scopeID);
+            List<GridRegion> rinfos = new List<GridRegion>();
             foreach (RegionData rdata in rdatas)
                 rinfos.Add(RegionData2RegionInfo(rdata));
 
@@ -163,92 +169,31 @@ namespace OpenSim.Services.GridService
 
         #region Data structure conversions
 
-        protected RegionData RegionInfo2RegionData(SimpleRegionInfo rinfo)
+        protected RegionData RegionInfo2RegionData(GridRegion rinfo)
         {
             RegionData rdata = new RegionData();
             rdata.posX = (int)rinfo.RegionLocX;
             rdata.posY = (int)rinfo.RegionLocY;
             rdata.RegionID = rinfo.RegionID;
+            rdata.RegionName = rinfo.RegionName;
             rdata.Data = rinfo.ToKeyValuePairs();
-            //rdata.RegionName = rinfo.RegionName;
-
+            rdata.Data["regionHandle"] = Utils.UIntsToLong((uint)rdata.posX, (uint)rdata.posY);
             return rdata;
         }
 
-        protected SimpleRegionInfo RegionData2RegionInfo(RegionData rdata)
+        protected GridRegion RegionData2RegionInfo(RegionData rdata)
         {
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(rdata.Data);
-            rinfo.RegionLocX = (uint)rdata.posX;
-            rinfo.RegionLocY = (uint)rdata.posY;
+            GridRegion rinfo = new GridRegion(rdata.Data);
+            rinfo.RegionLocX = rdata.posX;
+            rinfo.RegionLocY = rdata.posY;
             rinfo.RegionID = rdata.RegionID;
-            //rinfo.RegionName = rdata.RegionName;
+            rinfo.RegionName = rdata.RegionName;
+            rinfo.ScopeID = rdata.ScopeID;
 
             return rinfo;
         }
 
         #endregion 
 
-        void HandleShowDigest(string module, string[] args)
-        {
-            //if (args.Length < 3)
-            //{
-            //    MainConsole.Instance.Output("Syntax: show digest <ID>");
-            //    return;
-            //}
-
-            //AssetBase asset = Get(args[2]);
-
-            //if (asset == null || asset.Data.Length == 0)
-            //{   
-            //    MainConsole.Instance.Output("Asset not found");
-            //    return;
-            //}
-
-            //int i;
-
-            //MainConsole.Instance.Output(String.Format("Name: {0}", asset.Name));
-            //MainConsole.Instance.Output(String.Format("Description: {0}", asset.Description));
-            //MainConsole.Instance.Output(String.Format("Type: {0}", asset.Type));
-            //MainConsole.Instance.Output(String.Format("Content-type: {0}", asset.Metadata.ContentType));
-
-            //for (i = 0 ; i < 5 ; i++)
-            //{
-            //    int off = i * 16;
-            //    if (asset.Data.Length <= off)
-            //        break;
-            //    int len = 16;
-            //    if (asset.Data.Length < off + len)
-            //        len = asset.Data.Length - off;
-
-            //    byte[] line = new byte[len];
-            //    Array.Copy(asset.Data, off, line, 0, len);
-
-            //    string text = BitConverter.ToString(line);
-            //    MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
-            //}
-        }
-
-        void HandleDeleteAsset(string module, string[] args)
-        {
-            //if (args.Length < 3)
-            //{
-            //    MainConsole.Instance.Output("Syntax: delete asset <ID>");
-            //    return;
-            //}
-
-            //AssetBase asset = Get(args[2]);
-
-            //if (asset == null || asset.Data.Length == 0)
-            //    MainConsole.Instance.Output("Asset not found");
-            //    return;
-            //}
-
-            //Delete(args[2]);
-
-            ////MainConsole.Instance.Output("Asset deleted");
-            //// TODO: Implement this
-
-            //MainConsole.Instance.Output("Asset deletion not supported by database");
-        }
     }
 }

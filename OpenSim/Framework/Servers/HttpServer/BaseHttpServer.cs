@@ -736,8 +736,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                     else
                     {
                         xmlRpcResponse = new XmlRpcResponse();
+                        
                         // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
-                        xmlRpcResponse.SetFault(-32601, String.Format("Requested method [{0}] not found", methodName));
+                        xmlRpcResponse.SetFault(
+                            XmlRpcErrorCodes.SERVER_ERROR_METHOD, 
+                            String.Format("Requested method [{0}] not found", methodName));
                     }
 
                     responseString = XmlRpcResponseSerializer.Singleton.Serialize(xmlRpcResponse);
@@ -757,6 +760,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     response.SendChunked = false;
                     response.ContentLength64 = buf.Length;
                     response.ContentEncoding = Encoding.UTF8;
+                    
                     try
                     {
                         response.OutputStream.Write(buf, 0, buf.Length);

@@ -209,9 +209,9 @@ namespace OpenSim
             }
 
             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
-            if ((m_commsManager != null) && (m_commsManager.GridService != null))
+            if ((SceneManager.CurrentOrFirstScene != null) && (SceneManager.CurrentOrFirstScene.SceneGridService != null))
             {
-                m_commsManager.GridService.RegionLoginsEnabled = true;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
             }
 
             AddPluginCommands();
@@ -299,12 +299,12 @@ namespace OpenSim
             if (LoginEnabled)
             {
                 m_log.Info("[LOGIN]: Login is now enabled.");
-                m_commsManager.GridService.RegionLoginsEnabled = true;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
             }
             else
             {
                 m_log.Info("[LOGIN]: Login is now disabled.");
-                m_commsManager.GridService.RegionLoginsEnabled = false;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = false;
             }
         }
 

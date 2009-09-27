@@ -39,7 +39,7 @@ namespace OpenSim.Data.MySQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames = null;
-        private int m_LastExpire = 0;
+//        private int m_LastExpire = 0;
 
         public MySqlRegionData(string connectionString, string realm)
                 : base(connectionString)
@@ -77,7 +77,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
             List<RegionData> ret = RunCommand(cmd);
-            if (ret == null)
+            if (ret.Count == 0)
                 return null;
 
             return ret[0];
@@ -95,7 +95,7 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
             List<RegionData> ret = RunCommand(cmd);
-            if (ret == null)
+            if (ret.Count == 0)
                 return null;
 
             return ret[0];
@@ -172,10 +172,7 @@ namespace OpenSim.Data.MySQL
             result.Close();
             CloseReaderCommand(cmd);
 
-            if (retList.Count > 0)
-                return retList;
-
-            return null;
+            return retList;
         }
 
         public bool Store(RegionData data)

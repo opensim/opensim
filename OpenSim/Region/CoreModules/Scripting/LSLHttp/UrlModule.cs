@@ -200,11 +200,10 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             if (m_RequestMap.ContainsKey(request))
             {
                 UrlData urlData = m_RequestMap[request];
-                RequestData requestData=urlData.requests[request];
                 urlData.requests[request].responseCode = status;
                 urlData.requests[request].responseBody = body;
                 //urlData.requests[request].ev.Set();
-                urlData.requests[request].requestDone=true;
+                urlData.requests[request].requestDone =true;
             }
             else
             {
@@ -397,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 {
                     Hashtable headers = (Hashtable)request["headers"];
                     
-                    string uri_full = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
+//                    string uri_full = "http://" + m_ExternalHostNameForLSL + ":" + m_HttpServer.Port.ToString() + uri;// "/lslhttp/" + urlcode.ToString() + "/";
 
                     int pos1 = uri.IndexOf("/");// /lslhttp
                     int pos2 = uri.IndexOf("/", pos1 + 1);// /lslhttp/
@@ -471,7 +470,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { requestID.ToString(), request["http-method"].ToString(), request["body"].ToString() });
 
                     //send initial response?
-                    Hashtable response = new Hashtable();
+//                    Hashtable response = new Hashtable();
 
                     return;
 

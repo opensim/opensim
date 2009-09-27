@@ -64,6 +64,13 @@ namespace OpenSim.Framework
         }
         protected string m_serverURI;
 
+        public string RegionName
+        {
+            get { return m_regionName; }
+            set { m_regionName = value; }
+        }
+        protected string m_regionName = String.Empty;
+
         protected bool Allow_Alternate_Ports;
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
@@ -101,6 +108,7 @@ namespace OpenSim.Framework
 
         public SimpleRegionInfo(RegionInfo ConvertFrom)
         {
+            m_regionName = ConvertFrom.RegionName;
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
@@ -284,7 +292,6 @@ namespace OpenSim.Framework
         public UUID originRegionID = UUID.Zero;
         public string proxyUrl = "";
         public int ProxyOffset = 0;
-        public string RegionName = String.Empty;
         public string regionSecret = UUID.Random().ToString();
         
         public string osSecret;

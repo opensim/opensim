@@ -108,6 +108,9 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer.AddXmlRPCHandler("get_user_by_uuid", XmlRPCGetUserMethodUUID);
             m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", XmlRPCGetAvatarPickerAvatar);
 
+            // Used by IAR module to do password checks
+            m_httpServer.AddXmlRPCHandler("authenticate_user_by_password", XmlRPCAuthenticateUserMethodPassword);
+
             m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID);
             m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", XmlRPCGetAgentMethodUUID);
@@ -203,6 +206,57 @@ namespace OpenSim.Grid.UserServer.Modules
 
         #region XMLRPC User Methods
 
+        /// <summary>
+        /// Authenticate a user using their password
+        /// </summary>
+        /// <param name="request">Must contain values for "user_uuid" and "password" keys</param>
+        /// <param name="remoteClient"></param>
+        /// <returns></returns>
+        public XmlRpcResponse XmlRPCAuthenticateUserMethodPassword(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+//            m_log.DebugFormat("[USER MANAGER]: Received authenticated user by password request from {0}", remoteClient);
+            
+            Hashtable requestData = (Hashtable)request.Params[0];
+            string userUuidRaw = (string)requestData["user_uuid"];
+            string password = (string)requestData["password"];
+
+            if (null == userUuidRaw)
+                return Util.CreateUnknownUserErrorResponse();
+
+            UUID userUuid;
+            if (!UUID.TryParse(userUuidRaw, out userUuid))
+                return Util.CreateUnknownUserErrorResponse();
+
+            UserProfileData userProfile = m_userDataBaseService.GetUserProfile(userUuid);
+            if (null == userProfile)
+                return Util.CreateUnknownUserErrorResponse();            
+
+            string authed;
+            
+            if (null == password)
+            {
+                authed = "FALSE";
+            }
+            else
+            {
+                if (m_userDataBaseService.AuthenticateUserByPassword(userUuid, password))
+                    authed = "TRUE";
+                else
+                    authed = "FALSE";
+            }
+
+//            m_log.DebugFormat(
+//                "[USER MANAGER]: Authentication by password result from {0} for {1} is {2}",
+//                remoteClient, userUuid, authed);
+
+            XmlRpcResponse response = new XmlRpcResponse();            
+            Hashtable responseData = new Hashtable();            
+            responseData["auth_user"] = authed;
+            response.Value = responseData;
+            
+            return response;            
+        }
+
         public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             // XmlRpcResponse response = new XmlRpcResponse();
@@ -246,10 +300,10 @@ namespace OpenSim.Grid.UserServer.Modules
                     m_userDataBaseService.CommitAgent(ref userProfile);
                     //setUserProfile(userProfile);
 
-
                     returnstring = "TRUE";
                 }
             }
+                
             responseData.Add("returnString", returnstring);
             response.Value = responseData;
             return response;

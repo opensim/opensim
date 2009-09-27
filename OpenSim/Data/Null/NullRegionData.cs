@@ -40,6 +40,7 @@ namespace OpenSim.Data.Null
 
         public NullRegionData(string connectionString, string realm)
         {
+            //Console.WriteLine("[XXX] NullRegionData constructor");
         }
 
         public List<RegionData> Get(string regionName, UUID scopeID)
@@ -100,10 +101,7 @@ namespace OpenSim.Data.Null
                     ret.Add(r);
             }
 
-            if (ret.Count > 0)
-                return ret;
-
-            return null;
+            return ret;
         }
 
         public bool Store(RegionData data)

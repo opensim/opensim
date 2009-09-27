@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="pass">User password</param>
         /// <returns></returns>
         protected CachedUserInfo GetUserInfo(string firstName, string lastName, string pass)
-        {
+        {            
             CachedUserInfo userInfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             //m_aScene.CommsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userInfo)
@@ -333,29 +333,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
             }
 
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(pass) + ":" + userInfo.UserProfile.PasswordSalt);
-
-            if (userInfo.UserProfile.PasswordHash == null || userInfo.UserProfile.PasswordHash == String.Empty)
+            try
+            {    
+                if (m_aScene.CommsManager.UserService.AuthenticateUserByPassword(userInfo.UserProfile.ID, pass))
+                {
+                    return userInfo;
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
+                        firstName, lastName);                    
+                    return null;
+                }
+            }
+            catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Sorry, the grid mode service is not providing password hash details for the check.  This will be fixed in an OpenSim git revision soon");
-
+                m_log.ErrorFormat("[INVENTORY ARCHIVER]: Could not authenticate password, {0}", e.Message);
                 return null;
             }
-
-//            m_log.DebugFormat(
-//                "[INVENTORY ARCHIVER]: received salt {0}, hash {1}, supplied hash {2}", 
-//                userInfo.UserProfile.PasswordSalt, userInfo.UserProfile.PasswordHash, md5PasswdHash);
-            
-            if (userInfo.UserProfile.PasswordHash != md5PasswdHash)
-            {
-                m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
-                    firstName, lastName);
-                return null;
-            }
-            
-            return userInfo;
         }
         
         /// <summary>
@@ -375,9 +371,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {        
                     foreach (InventoryNodeBase node in loadedNodes)
                     {
-                        m_log.DebugFormat(
-                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
-                            user.Name, node.Name);
+//                        m_log.DebugFormat(
+//                            "[INVENTORY ARCHIVER]: Notifying {0} of loaded inventory node {1}", 
+//                            user.Name, node.Name);
                         
                         user.ControllingClient.SendBulkUpdateInventory(node);
                     }

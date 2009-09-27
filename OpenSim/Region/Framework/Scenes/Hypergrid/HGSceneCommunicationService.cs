@@ -77,7 +77,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             if (regionHandle == m_regionInfo.RegionHandle)
             {
                 // Teleport within the same region
-                if (position.X < 0 || position.X > Constants.RegionSize || position.Y < 0 || position.Y > Constants.RegionSize || position.Z < 0)
+                if (IsOutsideRegion(avatar.Scene, position) || position.Z < 0)
                 {
                     Vector3 emergencyPos = new Vector3(128, 128, 128);
 
@@ -89,7 +89,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                 // TODO: Get proper AVG Height
                 float localAVHeight = 1.56f;
                 
-                float posZLimit = (float)avatar.Scene.Heightmap[(int)position.X, (int)position.Y];
+                float posZLimit = 22;
+
+                if (position.X > 0 && position.X <= (int)Constants.RegionSize && position.Y > 0 && position.Y <= (int)Constants.RegionSize)
+                {
+                    posZLimit = (float) avatar.Scene.Heightmap[(int) position.X, (int) position.Y];
+                }
+
                 float newPosZ = posZLimit + localAVHeight;
                 if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
                 {

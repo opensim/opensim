@@ -45,11 +45,11 @@ namespace OpenSim.Server.Handlers.Grid
             if (serverConfig == null)
                 throw new Exception("No section 'Server' in config file");
 
-            string gridService = serverConfig.GetString("GridServiceModule",
+            string gridService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
             if (gridService == String.Empty)
-                throw new Exception("No AuthenticationService in config file");
+                throw new Exception("No GridService in config file");
 
             Object[] args = new Object[] { config };
             m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
