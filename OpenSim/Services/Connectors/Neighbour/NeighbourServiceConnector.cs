@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             m_GridService = gridServices;
         }
 
-        public virtual bool HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        public virtual GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
             uint x = 0, y = 0;
             Utils.LongToUInts(regionHandle, out x, out y);
@@ -76,11 +76,11 @@ namespace OpenSim.Services.Connectors
                 // Don't remote-call this instance; that's a startup hickup
                 !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
             {
-                return DoHelloNeighbourCall(regInfo, thisRegion);
+                DoHelloNeighbourCall(regInfo, thisRegion);
             }
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
-            return false;
+            return regInfo;
         }
 
         public bool DoHelloNeighbourCall(GridRegion region, RegionInfo thisRegion)

@@ -93,10 +93,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public event PrimCrossing OnPrimCrossingIntoRegion;
 
-        /// <summary>
-        /// A New Region is up and available
-        /// </summary>
-        public event RegionUp OnRegionUp;
+        ///// <summary>
+        ///// A New Region is up and available
+        ///// </summary>
+        //public event RegionUp OnRegionUp;
 
         /// <summary>
         /// We have a child agent for this avatar and we're getting a status update about it
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Framework.Scenes
         private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
         private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
-        private RegionUp handlerRegionUp = null; // OnRegionUp;
+        //private RegionUp handlerRegionUp = null; // OnRegionUp;
         private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
         //private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
         private LogOffUser handlerLogOffUser = null;
@@ -236,22 +236,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 handlerLogOffUser(AgentID, RegionSecret, message);
             }
-        }
-
-        /// <summary>
-        /// A New Region is now available.  Inform the scene that there is a new region available.
-        /// </summary>
-        /// <param name="region">Information about the new region that is available</param>
-        /// <returns>True if the event was handled</returns>
-        protected bool newRegionUp(RegionInfo region)
-        {
-            handlerRegionUp = OnRegionUp;
-            if (handlerRegionUp != null)
-            {
-                //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: newRegionUp Fired for User:" + region.RegionName);
-                handlerRegionUp(region);
-            }
-            return true;
         }
 
         /// <summary>
@@ -647,31 +631,23 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="regionhandle"></param>
         private void InformNeighboursThatRegionIsUpAsync(INeighbourService neighbourService, RegionInfo region, ulong regionhandle)
         {
-            m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
-            //RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
+            uint x = 0, y = 0;
+            Utils.LongToUInts(regionhandle, out x, out y);
 
-            //bool regionAccepted =
-            //    m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region), regionhandle);
-
-            //bool regionAccepted = m_interregionCommsOut.SendHelloNeighbour(regionhandle, region);
-            bool regionAccepted = false;
+            GridRegion neighbour = null;
             if (neighbourService != null)
-                regionAccepted = neighbourService.HelloNeighbour(regionhandle, region);
+                neighbour = neighbourService.HelloNeighbour(regionhandle, region);
             else
                 m_log.DebugFormat("[SCS]: No neighbour service provided for informing neigbhours of this region");
 
-            if (regionAccepted)
+            if (neighbour != null)
             {
-                m_log.Info("[INTERGRID]: Completed informing neighbors that I'm here");
-                handlerRegionUp = OnRegionUp;
-
-                // yes, we're notifying ourselves.
-                if (handlerRegionUp != null)
-                    handlerRegionUp(region);
+                m_log.DebugFormat("[INTERGRID]: Successfully informed neighbour {0}-{1} that I'm here", x / Constants.RegionSize, y / Constants.RegionSize);
+                m_scene.EventManager.TriggerOnRegionUp(neighbour);
             }
             else
             {
-                m_log.Warn("[INTERGRID]: Failed to inform neighbors that I'm here.");
+                m_log.WarnFormat("[INTERGRID]: Failed to inform neighbour {0}-{1} that I'm here.", x / Constants.RegionSize, y / Constants.RegionSize);
             }
         }
 
@@ -680,22 +656,33 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: Sending InterRegion Notification that region is up " + region.RegionName);
 
+            for (int x = (int)region.RegionLocX - 1; x <= region.RegionLocX + 1; x++)
+                for (int y = (int)region.RegionLocY - 1; y <= region.RegionLocY + 1; y++)
+                    if (!((x == region.RegionLocX) && (y == region.RegionLocY))) // skip this region
+                    {
+                        ulong handle = Utils.UIntsToLong((uint)x * Constants.RegionSize, (uint)y * Constants.RegionSize);
+                        InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
 
-            List<GridRegion> neighbours = new List<GridRegion>();
-            // This stays uncached because we don't already know about our neighbors at this point.
+                        d.BeginInvoke(neighbourService, region, handle,
+                                      InformNeighborsThatRegionisUpCompleted,
+                                      d);
+                    }
 
-            neighbours = m_scene.GridService.GetNeighbours(m_regionInfo.ScopeID, m_regionInfo.RegionID);
-            if (neighbours != null)
-            {
-                for (int i = 0; i < neighbours.Count; i++)
-                {
-                    InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
+            //List<GridRegion> neighbours = new List<GridRegion>();
+            //// This stays uncached because we don't already know about our neighbors at this point.
 
-                    d.BeginInvoke(neighbourService, region, neighbours[i].RegionHandle,
-                                  InformNeighborsThatRegionisUpCompleted,
-                                  d);
-                }
-            }
+            //neighbours = m_scene.GridService.GetNeighbours(m_regionInfo.ScopeID, m_regionInfo.RegionID);
+            //if (neighbours != null)
+            //{
+            //    for (int i = 0; i < neighbours.Count; i++)
+            //    {
+            //        InformNeighbourThatRegionUpDelegate d = InformNeighboursThatRegionIsUpAsync;
+
+            //        d.BeginInvoke(neighbourService, region, neighbours[i].RegionHandle,
+            //                      InformNeighborsThatRegionisUpCompleted,
+            //                      d);
+            //    }
+            //}
 
             //bool val = m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region));
         }

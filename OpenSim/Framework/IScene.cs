@@ -74,7 +74,7 @@ namespace OpenSim.Framework
         void CloseAllAgents(uint circuitcode);
 
         void Restart(int seconds);
-        bool OtherRegionUp(RegionInfo thisRegion);
+        //RegionInfo OtherRegionUp(RegionInfo thisRegion);
 
         string GetSimulatorVersion();
 

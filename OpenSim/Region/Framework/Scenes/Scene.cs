@@ -587,10 +587,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Another region is up. Gets called from Grid Comms:
-        /// (OGS1 -> LocalBackEnd -> RegionListened -> SceneCommunicationService)
-        /// We have to tell all our ScenePresences about it, and add it to the
-        /// neighbor list.
+        /// Another region is up. 
         ///
         /// We only add it to the neighbor list if it's within 1 region from here.
         /// Agents may have draw distance values that cross two regions though, so
@@ -599,47 +596,27 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="otherRegion">RegionInfo handle for the new region.</param>
         /// <returns>True after all operations complete, throws exceptions otherwise.</returns>
-        public override bool OtherRegionUp(RegionInfo otherRegion)
+        public override void OtherRegionUp(GridRegion otherRegion)
         {
-            m_log.InfoFormat("[SCENE]: Region {0} up in coords {1}-{2}", otherRegion.RegionName, otherRegion.RegionLocX, otherRegion.RegionLocY);
+            uint xcell = (uint)((int)otherRegion.RegionLocX / (int)Constants.RegionSize);
+            uint ycell = (uint)((int)otherRegion.RegionLocY / (int)Constants.RegionSize);
+            m_log.InfoFormat("[SCENE]: (on region {0}): Region {1} up in coords {2}-{3}", 
+                RegionInfo.RegionName, otherRegion.RegionName, xcell, ycell);
 
             if (RegionInfo.RegionHandle != otherRegion.RegionHandle)
             {
-                for (int i = 0; i < m_neighbours.Count; i++)
-                {
-                    // The purpose of this loop is to re-update the known neighbors
-                    // when another region comes up on top of another one.
-                    // The latest region in that location ends up in the
-                    // 'known neighbors list'
-                    // Additionally, the commFailTF property gets reset to false.
-                    if (m_neighbours[i].RegionHandle == otherRegion.RegionHandle)
-                    {
-                        lock (m_neighbours)
-                        {
-                            m_neighbours[i] = otherRegion;
-
-                        }
-                    }
-                }
-
-                // If the value isn't in the neighbours, add it.
-                // If the RegionInfo isn't exact but is for the same XY World location,
-                // then the above loop will fix that.
-
-                if (!(CheckNeighborRegion(otherRegion)))
-                {
-                    lock (m_neighbours)
-                    {
-                        m_neighbours.Add(otherRegion);
-                        //m_log.Info("[UP]: " + otherRegion.RegionHandle.ToString());
-                    }
-                }
 
                 // If these are cast to INT because long + negative values + abs returns invalid data
-                int resultX = Math.Abs((int)otherRegion.RegionLocX - (int)RegionInfo.RegionLocX);
-                int resultY = Math.Abs((int)otherRegion.RegionLocY - (int)RegionInfo.RegionLocY);
+                int resultX = Math.Abs((int)xcell - (int)RegionInfo.RegionLocX);
+                int resultY = Math.Abs((int)ycell - (int)RegionInfo.RegionLocY);
                 if (resultX <= 1 && resultY <= 1)
                 {
+                    RegionInfo regInfo = new RegionInfo(xcell, ycell, otherRegion.InternalEndPoint, otherRegion.ExternalHostName);
+                    regInfo.RegionID = otherRegion.RegionID;
+                    regInfo.RegionName = otherRegion.RegionName;
+                    regInfo.ScopeID = otherRegion.ScopeID;
+                    regInfo.ExternalHostName = otherRegion.ExternalHostName;
+
                     try
                     {
                         ForEachScenePresence(delegate(ScenePresence agent)
@@ -653,7 +630,7 @@ namespace OpenSim.Region.Framework.Scenes
                                                      List<ulong> old = new List<ulong>();
                                                      old.Add(otherRegion.RegionHandle);
                                                      agent.DropOldNeighbours(old);
-                                                     InformClientOfNeighbor(agent, otherRegion);
+                                                     InformClientOfNeighbor(agent, regInfo);
                                                  }
                                              }
                             );
@@ -672,7 +649,6 @@ namespace OpenSim.Region.Framework.Scenes
                                otherRegion.RegionLocY.ToString() + ")");
                 }
             }
-            return true;
         }
 
         public void AddNeighborRegion(RegionInfo region)
@@ -704,9 +680,10 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         // Alias IncomingHelloNeighbour OtherRegionUp, for now
-        public bool IncomingHelloNeighbour(RegionInfo neighbour)
+        public GridRegion IncomingHelloNeighbour(RegionInfo neighbour)
         {
-            return OtherRegionUp(neighbour);
+            OtherRegionUp(new GridRegion(neighbour));
+            return new GridRegion(RegionInfo);
         }
 
         /// <summary>
@@ -3104,7 +3081,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.OnExpectUser += HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion += AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
-            m_sceneGridService.OnRegionUp += OtherRegionUp;
+            //m_eventManager.OnRegionUp += OtherRegionUp;
             //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
@@ -3132,7 +3109,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
-            m_sceneGridService.OnRegionUp -= OtherRegionUp;
+            //m_eventManager.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= HandleNewUserConnection;
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;

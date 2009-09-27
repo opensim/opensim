@@ -28,11 +28,12 @@
 using System;
 using OpenSim.Framework;
 using OpenMetaverse;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Services.Interfaces
 {
     public interface INeighbourService
     {
-        bool HelloNeighbour(ulong regionHandle, RegionInfo thisRegion);
+        GridRegion HelloNeighbour(ulong regionHandle, RegionInfo otherRegion);
     }
 }
