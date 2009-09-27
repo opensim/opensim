@@ -53,8 +53,6 @@ namespace OpenSim.Region.Communications.Local
             m_avatarService = lus;
             m_messageService = lus;
 
-            m_gridService = new LocalBackEndServices();
-
             //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);                      
         }
     }
