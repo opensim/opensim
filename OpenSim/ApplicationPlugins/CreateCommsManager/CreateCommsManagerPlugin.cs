@@ -69,7 +69,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         protected CommunicationsManager m_commsManager;
         protected GridInfoService m_gridInfoService;
-        protected IHyperlink HGServices = null;
 
         protected IRegionCreator m_regionCreator;
 
