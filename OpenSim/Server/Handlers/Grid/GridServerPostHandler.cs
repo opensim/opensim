@@ -133,7 +133,7 @@ namespace OpenSim.Server.Handlers.Grid
             if ((versionNumberMin > ProtocolVersions.ServerProtocolVersionMax && versionNumberMax < ProtocolVersions.ServerProtocolVersionMax))
             {
                 // Can't do, there is no overlap in the acceptable ranges
-                FailureResult();
+                return FailureResult();
             }
 
             Dictionary<string, object> rinfoData = new Dictionary<string, object>();
