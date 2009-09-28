@@ -171,7 +171,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         }
 
-        private ulong GetMeshKey( PrimitiveBaseShape pbs, PhysicsVector size, float lod )
+        private ulong GetMeshKey(PrimitiveBaseShape pbs, PhysicsVector size, float lod)
         {
             ulong hash = 5381;
 

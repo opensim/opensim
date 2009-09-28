@@ -871,7 +871,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: An error has occured while attempting to access the XmlRpcGroups server method: {0}", function);
                 m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", e.ToString());
 
-                foreach( string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine },StringSplitOptions.None))
+                foreach (string ResponseLine in req.RequestResponse.Split(new string[] { Environment.NewLine },StringSplitOptions.None))
                 {
                     m_log.ErrorFormat("[XMLRPCGROUPDATA]: {0} ", ResponseLine);
                 }

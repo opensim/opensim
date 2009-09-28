@@ -149,7 +149,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public float[] getVertexListAsFloatLocked()
         {
-            if( pinnedVirtexes.IsAllocated )
+            if (pinnedVirtexes.IsAllocated)
                 return (float[])(pinnedVirtexes.Target);
             float[] result;
 

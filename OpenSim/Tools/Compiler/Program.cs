@@ -37,19 +37,19 @@ namespace OpenSim.Tools.LSL.Compiler
     class Program
     {
         private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
-		private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
+        private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
 
         static void Main(string[] args)
         {
-			 string source = null;
+             string source = null;
 
-             if(args.Length == 0)
+             if (args.Length == 0)
              {
                  Console.WriteLine("No input file specified");
                  Environment.Exit(1);
              }
 
-             if(!File.Exists(args[0]))
+             if (!File.Exists(args[0]))
              {
                  Console.WriteLine("Input file does not exist");
                  Environment.Exit(1);
@@ -136,11 +136,7 @@ namespace OpenSim.Tools.LSL.Compiler
                 string errtext = String.Empty;
                 foreach (CompilerError CompErr in results.Errors)
                 {
-                    string severity = "Error";
-                    if ( CompErr.IsWarning )
-                    {
-                        severity = "Warning";
-                    }
+                    string severity = CompErr.IsWarning ? "Warning" : "Error";
 
                     KeyValuePair<int, int> lslPos;
 
@@ -153,8 +149,8 @@ namespace OpenSim.Tools.LSL.Compiler
                     // The Second Life viewer's script editor begins
                     // countingn lines and columns at 0, so we subtract 1.
                     errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
-                            lslPos.Key - 1, lslPos.Value - 1,
-                            CompErr.ErrorNumber, text, severity);
+                                             lslPos.Key - 1, lslPos.Value - 1,
+                                             CompErr.ErrorNumber, text, severity);
                 }
                 
                 disp = "Completed with errors";
@@ -237,20 +233,20 @@ namespace OpenSim.Tools.LSL.Compiler
         private static string ReplaceTypes(string message)
         {
             message = message.Replace(
-                    "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString",
-                    "string");
+                "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString",
+                "string");
 
             message = message.Replace(
-                    "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger",
-                    "integer");
+                "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger",
+                "integer");
 
             message = message.Replace(
-                    "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat",
-                    "float");
+                "OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat",
+                "float");
 
             message = message.Replace(
-                    "OpenSim.Region.ScriptEngine.Shared.LSL_Types.list",
-                    "list");
+                "OpenSim.Region.ScriptEngine.Shared.LSL_Types.list",
+                "list");
 
             return message;
         }
@@ -263,7 +259,7 @@ namespace OpenSim.Tools.LSL.Compiler
         private class kvpSorter : IComparer<KeyValuePair<int,int>>
         {
             public int Compare(KeyValuePair<int,int> a,
-                    KeyValuePair<int,int> b)
+                               KeyValuePair<int,int> b)
             {
                 return a.Key.CompareTo(b.Key);
             }
