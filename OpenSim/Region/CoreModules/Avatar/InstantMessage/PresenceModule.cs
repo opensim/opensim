@@ -330,9 +330,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void NotifyMessageServerOfStartup(Scene scene)
         {
-            if (m_Scenes[0].CommsManager.NetworkServersInfo.MessagingURL == string.Empty)
-                return;
-
             Hashtable xmlrpcdata = new Hashtable();
             xmlrpcdata["RegionUUID"] = scene.RegionInfo.RegionID.ToString();
             ArrayList SendParams = new ArrayList();
