@@ -146,6 +146,7 @@ namespace OpenSim.Services.Interfaces
         public UUID TerrainImage = UUID.Zero;
         public byte Access;
         public int  Maturity;
+        public string RegionSecret;
 
         public GridRegion()
         {
@@ -189,6 +190,7 @@ namespace OpenSim.Services.Interfaces
             TerrainImage = ConvertFrom.RegionSettings.TerrainImageID;
             Access = ConvertFrom.AccessLevel;
             Maturity = ConvertFrom.RegionSettings.Maturity;
+            RegionSecret = ConvertFrom.regionSecret;
         }
 
         public GridRegion(GridRegion ConvertFrom)
@@ -204,6 +206,7 @@ namespace OpenSim.Services.Interfaces
             TerrainImage = ConvertFrom.TerrainImage;
             Access = ConvertFrom.Access;
             Maturity = ConvertFrom.Maturity;
+            RegionSecret = ConvertFrom.RegionSecret;
         }
 
         /// <value>
@@ -287,6 +290,7 @@ namespace OpenSim.Services.Interfaces
             kvp["serverPort"] = InternalEndPoint.Port.ToString();
             kvp["regionMapTexture"] = TerrainImage.ToString();
             kvp["access"] = Access.ToString();
+            kvp["regionSecret"] = RegionSecret;
             // Maturity doesn't seem to exist in the DB
             return kvp;
         }
@@ -333,14 +337,14 @@ namespace OpenSim.Services.Interfaces
                 ServerURI = (string)kvp["serverURI"];
 
             if (kvp.ContainsKey("regionMapTexture"))
-            {
                 UUID.TryParse((string)kvp["regionMapTexture"], out TerrainImage);
-            }
 
             if (kvp.ContainsKey("access"))
-            {
-                Access = Byte.Parse((string)kvp["access"]); ;
-            }
+                Access = Byte.Parse((string)kvp["access"]);
+
+            if (kvp.ContainsKey("regionSecret"))
+                RegionSecret =(string)kvp["regionSecret"];
+
         }
     }
 
