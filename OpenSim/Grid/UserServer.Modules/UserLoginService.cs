@@ -240,7 +240,7 @@ namespace OpenSim.Grid.UserServer.Modules
             rinfo.RegionLocY = (uint)(gregion.RegionLocY / Constants.RegionSize);
             rinfo.RegionName = gregion.RegionName;
             rinfo.ScopeID = gregion.ScopeID;
-            rinfo.ServerURI = "http://" + gregion.ExternalHostName + ":" + gregion.HttpPort.ToString();
+            rinfo.ServerURI = gregion.ServerURI;
 
             return rinfo;
         }
