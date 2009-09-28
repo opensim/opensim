@@ -32,6 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using Caps=OpenSim.Framework.Capabilities.Caps;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -305,6 +306,9 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
         public event Attach OnAttach;
 
+        public delegate void RegionUp(GridRegion region);
+        public event RegionUp OnRegionUp;
+
         public class MoneyTransferArgs : EventArgs
         {
             public UUID sender;
@@ -446,6 +450,7 @@ namespace OpenSim.Region.Framework.Scenes
         private EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = null;
 
         private Attach handlerOnAttach = null;
+        private RegionUp handlerOnRegionUp = null;
 
         public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
         {
@@ -1035,5 +1040,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerSetRootAgentScene != null)
                 handlerSetRootAgentScene(agentID, scene);
         }
+
+        public void TriggerOnRegionUp(GridRegion otherRegion)
+        {
+            handlerOnRegionUp = OnRegionUp;
+            if (handlerOnRegionUp != null)
+                handlerOnRegionUp(otherRegion);
+        }
+
     }
 }

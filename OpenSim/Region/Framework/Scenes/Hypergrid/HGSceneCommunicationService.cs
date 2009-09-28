@@ -38,6 +38,8 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {
@@ -45,11 +47,19 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public readonly IHyperlink m_hg;
-
-        public HGSceneCommunicationService(CommunicationsManager commsMan, IHyperlink hg) : base(commsMan)
+        private IHyperlinkService m_hg;
+        IHyperlinkService HyperlinkService
         {
-            m_hg = hg;
+            get
+            {
+                if (m_hg == null)
+                    m_hg = m_scene.RequestModuleInterface<IHyperlinkService>();
+                return m_hg;
+            }
+        }
+
+        public HGSceneCommunicationService(CommunicationsManager commsMan) : base(commsMan)
+        {
         }
 
 
@@ -112,7 +122,10 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             }
             else
             {
-                RegionInfo reg = RequestNeighbouringRegionInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion reg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y); 
+
                 if (reg != null)
                 {
 
@@ -125,13 +138,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     /// Hypergrid mod start
                     /// 
                     ///
-                    bool isHyperLink = m_hg.IsHyperlinkRegion(reg.RegionHandle);
+                    bool isHyperLink = (HyperlinkService.GetHyperlinkRegion(reg.RegionHandle) != null);
                     bool isHomeUser = true;
                     ulong realHandle = regionHandle;
                     CachedUserInfo uinfo = m_commsProvider.UserProfileCacheService.GetUserDetails(avatar.UUID);
                     if (uinfo != null)
                     {
-                        isHomeUser = HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile);
+                        isHomeUser = HyperlinkService.IsLocalUser(uinfo.UserProfile.ID);
                         realHandle = m_hg.FindRegionHandle(regionHandle);
                         m_log.Debug("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
                     }

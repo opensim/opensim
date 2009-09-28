@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,14 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Framework.Communications
+namespace OpenSim.Server.Base
 {
-    public interface IHyperlink
+    public class ProtocolVersions
     {
-        bool IsHyperlinkRegion(ulong handle);
-        RegionInfo GetHyperlinkRegion(ulong handle);
-        ulong FindRegionHandle(ulong handle);
-        bool SendUserInformation(RegionInfo region, AgentCircuitData aCircuit);
-        void AdjustUserInformation(AgentCircuitData aCircuit);
+        /// <value>
+        /// This is the external protocol versions.  It is separate from the OpenSimulator project version.  
+        /// 
+        /// These version numbers should be increased by 1 every time a code
+        /// change in the Service.Connectors and Server.Handlers, espectively, 
+        /// makes the previous OpenSimulator revision incompatible
+        /// with the new revision. 
+        /// 
+        /// Changes which are compatible with an older revision (e.g. older revisions experience degraded functionality
+        /// but not outright failure) do not need a version number increment.
+        /// 
+        /// Having this version number allows the grid service to reject connections from regions running a version
+        /// of the code that is too old. 
+        ///   
+        /// </value>
+        
+        // The range of acceptable servers for client-side connectors
+        public readonly static int ClientProtocolVersionMin = 0;
+        public readonly static int ClientProtocolVersionMax = 0;
+
+        // The range of acceptable clients in server-side handlers
+        public readonly static int ServerProtocolVersionMin = 0;
+        public readonly static int ServerProtocolVersionMax = 0;
     }
 }

@@ -44,7 +44,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             ConfigSettings configSettings,                          
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
-            HGGridServices gridService, 
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)
             : base(serversInfo, libraryRootFolder)
@@ -64,8 +63,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             m_avatarService = hgUserService;
             m_messageService = hgUserService;
             
-            gridService.UserProfileCache = m_userProfileCacheService;
-            m_gridService = gridService;                        
         }
     }
 }

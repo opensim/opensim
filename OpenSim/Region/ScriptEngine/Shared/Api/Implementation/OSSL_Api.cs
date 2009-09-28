@@ -48,6 +48,8 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using System.Text.RegularExpressions;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
@@ -599,17 +601,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (regionName.Contains(".") && regionName.Contains(":"))
                         {
                             // Try to link the region
-                            RegionInfo regInfo = HGHyperlink.TryLinkRegion(World,
-                                                               presence.ControllingClient,
-                                                               regionName);
-                            // Get the region name
-                            if (regInfo != null)
+                            IHyperlinkService hyperService = World.RequestModuleInterface<IHyperlinkService>();
+                            if (hyperService != null)
                             {
-                                regionName = regInfo.RegionName;
-                            }
-                            else
-                            {
-                                // Might need to ping the client here in case of failure??
+                                GridRegion regInfo = hyperService.TryLinkRegion(presence.ControllingClient,
+                                                                                regionName);
+                                // Get the region name
+                                if (regInfo != null)
+                                {
+                                    regionName = regInfo.RegionName;
+                                }
+                                else
+                                {
+                                    // Might need to ping the client here in case of failure??
+                                }
                             }
                         }
                         presence.ControllingClient.SendTeleportLocationStart();

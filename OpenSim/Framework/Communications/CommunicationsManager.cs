@@ -59,11 +59,6 @@ namespace OpenSim.Framework.Communications
         }
         protected IMessagingService m_messageService;
 
-        public IGridServices GridService
-        {
-            get { return m_gridService; }
-        }
-        protected IGridServices m_gridService;
 
         public UserProfileCacheService UserProfileCacheService
         {

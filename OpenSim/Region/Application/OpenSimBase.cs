@@ -399,7 +399,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
+                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e.StackTrace);
 
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention

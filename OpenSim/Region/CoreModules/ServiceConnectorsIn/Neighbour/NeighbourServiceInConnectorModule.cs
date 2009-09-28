@@ -121,7 +121,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
 
         #region INeighbourService
 
-        public bool HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        public GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
             m_log.DebugFormat("[NEIGHBOUR IN CONNECTOR]: HelloNeighbour from {0}, to {1}. Count = {2}",
                 thisRegion.RegionName, regionHandle, m_Scenes.Count);
@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
                 }
             }
             m_log.DebugFormat("[NEIGHBOUR IN CONNECTOR]: region handle {0} not found", regionHandle);
-            return false;
+            return null;
         }
 
         #endregion INeighbourService

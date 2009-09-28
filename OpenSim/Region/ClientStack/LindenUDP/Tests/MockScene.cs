@@ -28,6 +28,7 @@
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 {
@@ -58,7 +59,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         
         public override void RemoveClient(UUID agentID) {}
         public override void CloseAllAgents(uint circuitcode) {}
-        public override bool OtherRegionUp(RegionInfo thisRegion) { return false; }
+        public override void OtherRegionUp(GridRegion otherRegion) {  }
             
         /// <summary>
         /// Doesn't really matter what the call is - we're using this to test that a packet has actually been received

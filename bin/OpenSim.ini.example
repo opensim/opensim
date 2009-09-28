@@ -326,7 +326,7 @@
 
     ; The MessagingServer is a companion of the UserServer. It uses
     ; user_send_key and user_recv_key, too
-    messaging_server_url = "http://127.0.0.1:8006"
+    ;messaging_server_url = "http://127.0.0.1:8006"
 
     ; What is reported as the "X-Secondlife-Shard"
     ; Defaults to the user server url if not set

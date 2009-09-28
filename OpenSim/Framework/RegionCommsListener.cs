@@ -47,7 +47,6 @@ namespace OpenSim.Framework
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser
         private UpdateNeighbours handlerNeighboursUpdate = null; // OnNeighboursUpdate;
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
-        private RegionUp handlerRegionUp = null; // OnRegionUp;
         private LogOffUser handlerLogOffUser = null;
         private GetLandData handlerGetLandData = null;
 
@@ -62,7 +61,6 @@ namespace OpenSim.Framework
         public event AcknowledgeAgentCross OnAcknowledgeAgentCrossed;
         public event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         public event CloseAgentConnection OnCloseAgentConnection;
-        public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event LogOffUser OnLogOffUser;
         public event GetLandData OnGetLandData;
@@ -103,17 +101,6 @@ namespace OpenSim.Framework
             if (handlerExpectPrim != null)
             {
                 handlerExpectPrim(primID, objData, XMLMethod);
-                return true;
-            }
-            return false;
-        }
-
-        public virtual bool TriggerRegionUp(RegionInfo region)
-        {
-            handlerRegionUp = OnRegionUp;
-            if (handlerRegionUp != null)
-            {
-                handlerRegionUp(region);
                 return true;
             }
             return false;

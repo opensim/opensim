@@ -48,6 +48,7 @@ using OpenSim.Region.Framework.Scenes;
 using Caps=OpenSim.Framework.Capabilities.Caps;
 using OSDArray=OpenMetaverse.StructuredData.OSDArray;
 using OSDMap=OpenMetaverse.StructuredData.OSDMap;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
@@ -232,10 +233,20 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 }
                 if (lookup)
                 {
-                    List<MapBlockData> mapBlocks;
+                    List<MapBlockData> mapBlocks = new List<MapBlockData>(); ;
 
-                    mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks((int)m_scene.RegionInfo.RegionLocX - 8, (int)m_scene.RegionInfo.RegionLocY - 8, (int)m_scene.RegionInfo.RegionLocX + 8, (int)m_scene.RegionInfo.RegionLocY + 8);
-                    avatarPresence.ControllingClient.SendMapBlock(mapBlocks,0);
+                    List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                        (int)(m_scene.RegionInfo.RegionLocX - 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocX + 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocY - 8) * (int)Constants.RegionSize,
+                        (int)(m_scene.RegionInfo.RegionLocY + 8) * (int)Constants.RegionSize);
+                    foreach (GridRegion r in regions)
+                    {
+                        MapBlockData block = new MapBlockData();
+                        MapBlockFromGridRegion(block, r);
+                        mapBlocks.Add(block);
+                    }
+                    avatarPresence.ControllingClient.SendMapBlock(mapBlocks, 0);
 
                     lock (cachedMapBlocks)
                         cachedMapBlocks = mapBlocks;
@@ -579,7 +590,9 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             if (httpserver.Length == 0)
             {
-                RegionInfo mreg = m_scene.SceneGridService.RequestNeighbouringRegionInfo(regionhandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionhandle, out x, out y);
+                GridRegion mreg = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y); 
 
                 if (mreg != null)
                 {
@@ -719,15 +732,25 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 List<MapBlockData> response = new List<MapBlockData>();
 
-                // this should return one mapblock at most. But make sure: Look whether the one we requested is in there
-                List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX, minY, maxX, maxY);
-                if (mapBlocks != null)
+                // this should return one mapblock at most. 
+                // (diva note: why?? in that case we should GetRegionByPosition)
+                // But make sure: Look whether the one we requested is in there
+                List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                    minX * (int)Constants.RegionSize, 
+                    maxX * (int)Constants.RegionSize, 
+                    minY * (int)Constants.RegionSize, 
+                    maxY * (int)Constants.RegionSize);
+
+                if (regions != null)
                 {
-                    foreach (MapBlockData block in mapBlocks)
+                    foreach (GridRegion r in regions)
                     {
-                        if (block.X == minX && block.Y == minY)
+                        if ((r.RegionLocX == minX * (int)Constants.RegionSize) && 
+                            (r.RegionLocY == minY * (int)Constants.RegionSize))
                         {
                             // found it => add it to response
+                            MapBlockData block = new MapBlockData();
+                            MapBlockFromGridRegion(block, r);
                             response.Add(block);
                             break;
                         }
@@ -754,8 +777,28 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         protected virtual void GetAndSendBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
-            List<MapBlockData> mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, maxX + 4, maxY + 4);
+            List<MapBlockData> mapBlocks = new List<MapBlockData>();
+            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                (minX - 4) * (int)Constants.RegionSize, 
+                (maxX + 4) * (int)Constants.RegionSize,
+                (minY - 4) * (int)Constants.RegionSize,
+                (maxY + 4) * (int)Constants.RegionSize);
+            foreach (GridRegion r in regions)
+            {
+                MapBlockData block = new MapBlockData();
+                MapBlockFromGridRegion(block, r);
+                mapBlocks.Add(block);
+            }
             remoteClient.SendMapBlock(mapBlocks, flag);
+        }
+
+        protected void MapBlockFromGridRegion(MapBlockData block, GridRegion r)
+        {
+            block.Access = r.Access;
+            block.MapImageId = r.TerrainImage;
+            block.Name = r.RegionName;
+            block.X = (ushort)(r.RegionLocX / Constants.RegionSize);
+            block.Y = (ushort)(r.RegionLocY / Constants.RegionSize);
         }
 
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
@@ -874,31 +917,34 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             m_log.InfoFormat(
                 "[WORLD MAP]: Exporting world map for {0} to {1}", m_scene.RegionInfo.RegionName, exportPath);
 
-            List<MapBlockData> mapBlocks =
-                m_scene.CommsManager.GridService.RequestNeighbourMapBlocks(
-                    (int)(m_scene.RegionInfo.RegionLocX - 9),
-                    (int)(m_scene.RegionInfo.RegionLocY - 9),
-                    (int)(m_scene.RegionInfo.RegionLocX + 9),
-                    (int)(m_scene.RegionInfo.RegionLocY + 9));
+            List<MapBlockData> mapBlocks = new List<MapBlockData>();
+            List<GridRegion> regions = m_scene.GridService.GetRegionRange(m_scene.RegionInfo.ScopeID,
+                    (int)(m_scene.RegionInfo.RegionLocX - 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.RegionLocX + 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.RegionLocY - 9) * (int)Constants.RegionSize,
+                    (int)(m_scene.RegionInfo.RegionLocY + 9) * (int)Constants.RegionSize);
             List<AssetBase> textures = new List<AssetBase>();
             List<Image> bitImages = new List<Image>();
 
-            foreach (MapBlockData mapBlock in mapBlocks)
+            foreach (GridRegion r in regions)
             {
+                MapBlockData mapBlock = new MapBlockData();
+                MapBlockFromGridRegion(mapBlock, r);
                 AssetBase texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
 
                 if (texAsset != null)
                 {
                     textures.Add(texAsset);
                 }
-                else
-                {
-                    texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
-                    if (texAsset != null)
-                    {
-                        textures.Add(texAsset);
-                    }
-                }
+                //else
+                //{
+                //    // WHAT?!? This doesn't seem right. Commenting (diva)
+                //    texAsset = m_scene.AssetService.Get(mapBlock.MapImageId.ToString());
+                //    if (texAsset != null)
+                //    {
+                //        textures.Add(texAsset);
+                //    }
+                //}
             }
 
             foreach (AssetBase asset in textures)

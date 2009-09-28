@@ -36,6 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -227,7 +228,7 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
         
-        public abstract bool OtherRegionUp(RegionInfo thisRegion);
+        public abstract void OtherRegionUp(GridRegion otherRegion);
 
         public virtual string GetSimulatorVersion()
         {

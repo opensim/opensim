@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
@@ -108,7 +109,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong,Scene>();
         private IMessageTransferModule m_TransferModule = null;
 
-        private IGridServices m_gridServices = null;
+        private IGridService m_gridServices = null;
 
         #region IRegionModule Members
 
@@ -142,7 +143,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (m_scenes.Count > 0)
             {
                 m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
-                m_gridServices = m_initialScene.CommsManager.GridService;
+                m_gridServices = m_initialScene.GridService;
             }
             if (m_TransferModule == null)
                 m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
@@ -171,7 +172,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             List<UUID> tpdAway = new List<UUID>();
 
             // destRegionHandle is a region on another server
-            RegionInfo info = m_gridServices.RequestNeighbourInfo(destRegionHandle);
+            uint x = 0, y = 0;
+            Utils.LongToUInts(destRegionHandle, out x, out y);
+            GridRegion info = m_gridServices.GetRegionByPosition(m_initialScene.RegionInfo.ScopeID, (int)x, (int)y);
             if (info != null)
             {
                 string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
@@ -223,7 +226,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public bool TriggerTerminateFriend(ulong destRegionHandle, UUID agentID, UUID exFriendID)
         {
             // destRegionHandle is a region on another server
-            RegionInfo info = m_gridServices.RequestNeighbourInfo(destRegionHandle);
+            uint x = 0, y = 0;
+            Utils.LongToUInts(destRegionHandle, out x, out y);
+            GridRegion info = m_gridServices.GetRegionByPosition(m_initialScene.RegionInfo.ScopeID, (int)x, (int)y);
             if (info == null)
             {
                 m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}", destRegionHandle);

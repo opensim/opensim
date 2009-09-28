@@ -25,36 +25,25 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Reflection;
-using log4net;
-using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Communications.OGS1;
-using OpenSim.Region.Framework.Scenes;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace OpenSim.Region.Communications.Hypergrid
+using OpenMetaverse;
+
+namespace OpenSim.Services.Interfaces
 {
-    public class HGCommunicationsGridMode : CommunicationsManager // CommunicationsOGS1
+    public interface IHyperlinkService
     {
+        GridRegion TryLinkRegion(IClientAPI client, string regionDescriptor); 
+        GridRegion GetHyperlinkRegion(ulong handle);
+        ulong FindRegionHandle(ulong handle);
 
-        public HGCommunicationsGridMode(
-            NetworkServersInfo serversInfo,
-            SceneManager sman, LibraryRootFolder libraryRootFolder)
-            : base(serversInfo, libraryRootFolder)
-        {
+        bool SendUserInformation(GridRegion region, AgentCircuitData aCircuit);
+        void AdjustUserInformation(AgentCircuitData aCircuit);
 
-            HGUserServices userServices = new HGUserServices(this);
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.
-            userServices.AddPlugin(new TemporaryUserProfilePlugin());
-            userServices.AddPlugin(new HGUserDataPlugin(this, userServices));            
-            
-            m_userService = userServices;
-            m_messageService = userServices;
-            m_avatarService = userServices;           
-        }
+        bool CheckUserAtEntry(UUID userID, UUID sessionID, out bool comingHome);
+        void AcceptUser(ForeignUserProfileData user, GridRegion home);
+
+        bool IsLocalUser(UUID userID);
     }
 }

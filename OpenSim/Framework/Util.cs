@@ -1203,6 +1203,32 @@ namespace OpenSim.Framework
             return found.ToArray();
         }
 
+        public static string ServerURI(string uri)
+        {
+            if (uri == string.Empty)
+                return string.Empty;
+
+            // Get rid of eventual slashes at the end
+            uri = uri.TrimEnd('/');
+
+            IPAddress ipaddr1 = null;
+            string port1 = "";
+            try
+            {
+                ipaddr1 = Util.GetHostFromURL(uri);
+            }
+            catch { }
+
+            try
+            {
+                port1 = uri.Split(new char[] { ':' })[2];
+            }
+            catch { }
+
+            // We tried our best to convert the domain names to IP addresses
+            return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
+        }
+
         #region FireAndForget Threading Pattern
 
         public static void FireAndForget(System.Threading.WaitCallback callback)

@@ -41,6 +41,8 @@ using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 namespace OpenSim.Services.Connectors
 {
     public class NeighbourServicesConnector : INeighbourService
@@ -49,37 +51,39 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IGridServices m_MapService = null;
+        protected IGridService m_GridService = null;
 
         public NeighbourServicesConnector()
         {
         }
 
-        public NeighbourServicesConnector(IGridServices gridServices)
+        public NeighbourServicesConnector(IGridService gridServices)
         {
             Initialise(gridServices);
         }
 
-        public virtual void Initialise(IGridServices gridServices)
+        public virtual void Initialise(IGridService gridServices)
         {
-            m_MapService = gridServices;
+            m_GridService = gridServices;
         }
 
-        public virtual bool HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
+        public virtual GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
-            RegionInfo regInfo = m_MapService.RequestNeighbourInfo(regionHandle);
+            uint x = 0, y = 0;
+            Utils.LongToUInts(regionHandle, out x, out y);
+            GridRegion regInfo = m_GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
             if ((regInfo != null) &&
                 // Don't remote-call this instance; that's a startup hickup
                 !((regInfo.ExternalHostName == thisRegion.ExternalHostName) && (regInfo.HttpPort == thisRegion.HttpPort)))
             {
-                return DoHelloNeighbourCall(regInfo, thisRegion);
+                DoHelloNeighbourCall(regInfo, thisRegion);
             }
             //else
             //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
-            return false;
+            return regInfo;
         }
 
-        public bool DoHelloNeighbourCall(RegionInfo region, RegionInfo thisRegion)
+        public bool DoHelloNeighbourCall(GridRegion region, RegionInfo thisRegion)
         {
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/region/" + thisRegion.RegionID + "/";
             //m_log.Debug("   >>> DoHelloNeighbourCall <<< " + uri);
