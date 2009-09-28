@@ -443,7 +443,7 @@ namespace OpenSim.Server.Handlers.Grid
             doc.WriteTo(xw);
             xw.Flush();
 
-            return ms.GetBuffer();
+            return ms.ToArray();
         }
 
         #endregion
