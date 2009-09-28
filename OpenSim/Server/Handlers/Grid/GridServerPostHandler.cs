@@ -118,6 +118,24 @@ namespace OpenSim.Server.Handlers.Grid
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to register region");
 
+            int versionNumberMin = 0, versionNumberMax = 0;
+            if (request.ContainsKey("VERSIONMIN"))
+                Int32.TryParse(request["VERSIONMIN"], out versionNumberMin);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no minimum protocol version in request to register region");
+
+            if (request.ContainsKey("VERSIONMAX"))
+                Int32.TryParse(request["VERSIONMAX"], out versionNumberMax);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no maximum protocol version in request to register region");
+
+            // Check the protocol version
+            if ((versionNumberMin > ProtocolVersions.ServerProtocolVersionMax && versionNumberMax < ProtocolVersions.ServerProtocolVersionMax))
+            {
+                // Can't do, there is no overlap in the acceptable ranges
+                FailureResult();
+            }
+
             Dictionary<string, object> rinfoData = new Dictionary<string, object>();
             foreach (KeyValuePair<string, string> kvp in request)
                 rinfoData[kvp.Key] = kvp.Value;

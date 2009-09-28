@@ -94,7 +94,8 @@ namespace OpenSim.Services.Connectors
                 sendData[kvp.Key] = (string)kvp.Value;
 
             sendData["SCOPEID"] = scopeID.ToString();
-
+            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
             sendData["METHOD"] = "register";
 
             string reqString = ServerUtils.BuildQueryString(sendData);
