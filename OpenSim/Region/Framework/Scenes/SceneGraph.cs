@@ -1134,6 +1134,23 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected internal void ForEachSOG(Action<SceneObjectGroup> action)
+        {
+            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
+            foreach (SceneObjectGroup obj in objlist)
+            {
+                try
+                {
+                    action(obj);
+                }
+                catch (Exception e)
+                {
+                    // Catch it and move on. This includes situations where splist has inconsistent info
+                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachSOG: ", e.Message);
+                }
+            }
+        }
+        
         #endregion
 
         #region Client Event handlers
