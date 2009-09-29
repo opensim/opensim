@@ -260,12 +260,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         
         public void PostInitialise()
         {
-            if(m_pluginEnabled)
+            if (m_pluginEnabled)
             {
-	            m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
-	            
-	            // register the voice interface for this module, so the script engine can call us
-	            m_scene.RegisterModuleInterface<IVoiceModule>(this);
+                m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
+                
+                // register the voice interface for this module, so the script engine can call us
+                m_scene.RegisterModuleInterface<IVoiceModule>(this);
             }
         }
 
@@ -811,7 +811,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             
             lock (m_ParcelAddress)
             {
-                if (m_ParcelAddress.ContainsKey( land.GlobalID.ToString() ))
+                if (m_ParcelAddress.ContainsKey(land.GlobalID.ToString()))
                 {
                     m_log.DebugFormat("[FreeSwitchVoice]: parcel id {0}: using sip address {1}", 
                                       land.GlobalID, m_ParcelAddress[land.GlobalID.ToString()]);

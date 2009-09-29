@@ -188,7 +188,7 @@ namespace OpenSim.Server.Base
         {
             string qstring = String.Empty;
 
-            foreach(KeyValuePair<string, string> kvp in data)
+            foreach (KeyValuePair<string, string> kvp in data)
             {
                 string part;
                 if (kvp.Value != String.Empty)
