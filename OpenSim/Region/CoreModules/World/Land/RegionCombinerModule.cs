@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
@@ -61,7 +62,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             IConfig myConfig = source.Configs["Startup"];
             enabledYN = myConfig.GetBoolean("CombineContiguousRegions", false);
             //enabledYN = true;
-        }
+            if (enabledYN)
+                MainConsole.Instance.Commands.AddCommand("RegionCombinerModule", false, "fix-phantoms",
+                    "Fix phantom objects", "Fixes phantom objects after an import to megaregions", FixPhantoms);
+            }
 
         public void Close()
         {
@@ -910,5 +914,20 @@ namespace OpenSim.Region.CoreModules.World.Land
             VirtualRegion.Permissions.OnTeleport += BigRegion.PermissionModule.CanTeleport; //NOT YET IMPLEMENTED
             VirtualRegion.Permissions.OnUseObjectReturn += BigRegion.PermissionModule.CanUseObjectReturn; //NOT YET IMPLEMENTED
         }
+
+        #region console commands
+        public void FixPhantoms(string module, string[] cmdparams)
+        {
+        List<Scene> scenes = new List<Scene>(m_startingScenes.Values);
+            foreach (Scene s in scenes)
+            {
+                s.ForEachSOG(delegate(SceneObjectGroup e)
+                {
+                    e.AbsolutePosition = e.AbsolutePosition;
+                }
+                );
+            }
+        }
+        #endregion
     }
 }

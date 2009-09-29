@@ -4141,6 +4141,11 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGraph.ForEachClient(action);
         }
 
+        public void ForEachSOG(Action<SceneObjectGroup> action)
+        {
+            m_sceneGraph.ForEachSOG(action);
+        }
+
         /// <summary>
         /// Returns a list of the entities in the scene.  This is a new list so operations perform on the list itself
         /// will not affect the original list of objects in the scene.
