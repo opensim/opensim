@@ -554,8 +554,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             x = (int)(ux / Constants.RegionSize);
             y = (int)(uy / Constants.RegionSize);
 
-            if ((Math.Abs((int)(m_scene.RegionInfo.RegionLocX / Constants.RegionSize) - x) >= 4096) ||
-                (Math.Abs((int)(m_scene.RegionInfo.RegionLocY / Constants.RegionSize) - y) >= 4096))
+            if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - x) >= 4096) ||
+                (Math.Abs((int)m_scene.RegionInfo.RegionLocY - y) >= 4096))
             {
                 return false;
             }
