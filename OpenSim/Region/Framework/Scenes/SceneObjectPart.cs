@@ -3455,6 +3455,7 @@ if (m_shape != null) {
                         RotationOffset,
                         UsePhysics);
 
+                    pa = PhysActor;
                     if (pa != null)
                     {
                         pa.LocalID = LocalId;
@@ -3513,7 +3514,6 @@ if (m_shape != null) {
                     AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
                     this.VolumeDetectActive = true;
                 }
-
             }
             else
             {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
