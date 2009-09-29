@@ -4999,6 +4999,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (end > src.Length)
                 end = src.Length;
 
+            if (stride == 0)
+                stride = 1;
+
             //  There may be one or two ranges to be considered
 
             if (start != end)
@@ -5025,9 +5028,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //  A negative stride reverses the direction of the
                 //  scan producing an inverted list as a result.
 
-                if (stride == 0)
-                    stride = 1;
-
                 if (stride > 0)
                 {
                     for (int i = 0; i < src.Length; i += stride)
@@ -5051,7 +5051,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                result.Add(src.Data[start]);
+                if (start%stride == 0)
+                {
+                    result.Add(src.Data[start]);
+                }
             }
 
             return result;
