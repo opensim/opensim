@@ -41,7 +41,7 @@ namespace OpenSim.Server.Base
     {
         // Logger
         //
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
+        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
 
         // The http server instance
         //
@@ -55,8 +55,14 @@ namespace OpenSim.Server.Base
             get { return m_HttpServer; }
         }
 
+        public uint DefaultPort
+        {
+            get { return m_Port; }
+        }
+
         public IHttpServer GetHttpServer(uint port)
         {
+            m_Log.InfoFormat("[SERVER]: Requested port {0}", port);
             if (port == m_Port)
                 return HttpServer;
 
@@ -64,6 +70,8 @@ namespace OpenSim.Server.Base
                 return m_Servers[port];
 
             m_Servers[port] = new BaseHttpServer(port);
+            m_Servers[port].Start();
+
             return m_Servers[port];
         }
 

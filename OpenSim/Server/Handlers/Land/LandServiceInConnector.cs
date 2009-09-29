@@ -46,7 +46,7 @@ namespace OpenSim.Server.Handlers.Land
         // TODO : private IAuthenticationService m_AuthenticationService;
 
         public LandServiceInConnector(IConfigSource source, IHttpServer server, ILandService service, IScene scene) :
-                base(source, server)
+                base(source, server, String.Empty)
         {
             m_LandService = service;
             if (m_LandService == null)

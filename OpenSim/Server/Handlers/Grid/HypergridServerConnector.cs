@@ -54,7 +54,7 @@ namespace OpenSim.Server.Handlers.Grid
         private IHyperlinkService m_HyperlinkService;
 
         public HypergridServiceInConnector(IConfigSource config, IHttpServer server, IHyperlinkService hyperService) :
-                base(config, server)
+                base(config, server, String.Empty)
         {
             m_HyperlinkService = hyperService;
             server.AddXmlRPCHandler("link_region", LinkRegionRequest, false);
