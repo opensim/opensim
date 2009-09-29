@@ -61,6 +61,7 @@ namespace OpenSim.Server
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
             string[] conns = connList.Split(new char[] {',', ' '});
 
+            int i = 0;
             foreach (string c in conns)
             {
                 if (c == String.Empty)
@@ -100,11 +101,14 @@ namespace OpenSim.Server
                 IServiceConnector connector = null;
                 try
                 {
-                    Object[] modargs = new Object[] { m_Server.Config, server,
+                    Object[] modargs = null;
+                    if (configName != string.Empty)
+                    {
+                        modargs = new Object[] { m_Server.Config, server,
                             configName };
-                    connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
-                            modargs);
-
+                        connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                                modargs);
+                    }
                     if (connector == null)
                     {
                         modargs = new Object[] { m_Server.Config, server };
