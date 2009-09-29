@@ -69,7 +69,17 @@ namespace OpenSim.Services.Connectors.Grid
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
             string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
             m_log.Debug("[HGrid]: Linking to " + uri);
-            XmlRpcResponse response = request.Send(uri, 10000);
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(uri, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[HGrid]: Exception " + e.Message);
+                return uuid;
+            }
+
             if (response.IsFault)
             {
                 m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);

@@ -279,9 +279,8 @@ namespace OpenSim.Grid.UserServer.Modules
                 //response.SeedCapability = serverURI + CapsUtil.GetCapsSeedPath(capsPath);
 
                 // Take off trailing / so that the caps path isn't //CAPS/someUUID
-                if (regionInfo.httpServerURI.EndsWith("/"))
-                    regionInfo.httpServerURI = regionInfo.httpServerURI.Substring(0, regionInfo.httpServerURI.Length - 1);
-                response.SeedCapability = regionInfo.httpServerURI + CapsUtil.GetCapsSeedPath(capsPath);
+                string uri = regionInfo.httpServerURI.Trim(new char[] { '/' });
+                response.SeedCapability = uri + CapsUtil.GetCapsSeedPath(capsPath);
 
 
                 // Notify the target of an incoming user
