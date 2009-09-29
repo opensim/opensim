@@ -37,13 +37,17 @@ namespace OpenSim.Server.Handlers.Asset
     public class AssetServiceConnector : ServiceConnector
     {
         private IAssetService m_AssetService;
+        private string m_ConfigName = "AssetService";
 
-        public AssetServiceConnector(IConfigSource config, IHttpServer server) :
-                base(config, server)
+        public AssetServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            IConfig serverConfig = config.Configs["AssetService"];
+            if (configName != String.Empty)
+                m_ConfigName = configName;
+
+            IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
 
             string assetService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
@@ -55,7 +59,6 @@ namespace OpenSim.Server.Handlers.Asset
             m_AssetService =
                     ServerUtils.LoadPlugin<IAssetService>(assetService, args);
 
-            //System.Console.WriteLine("XXXXXXXXXXXXXXXXXXX m_AssetSetvice == null? " + ((m_AssetService == null) ? "yes" : "no"));
             server.AddStreamHandler(new AssetServerGetHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerPostHandler(m_AssetService));
             server.AddStreamHandler(new AssetServerDeleteHandler(m_AssetService));

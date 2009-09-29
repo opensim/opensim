@@ -51,7 +51,7 @@ namespace OpenSim.Server.Handlers.Grid
         private List<SimpleRegionInfo> m_RegionsOnSim = new List<SimpleRegionInfo>();
 
         public HypergridServiceInConnector(IConfigSource config, IHttpServer server) :
-                base(config, server)
+                base(config, server, String.Empty)
         {
             server.AddXmlRPCHandler("linkk_region", LinkRegionRequest, false);
         }

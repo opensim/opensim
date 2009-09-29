@@ -39,7 +39,7 @@ namespace OpenSim.Server.Handlers.Base
 
     public class ServiceConnector : IServiceConnector
     {
-        public ServiceConnector(IConfigSource config, IHttpServer server)
+        public ServiceConnector(IConfigSource config, IHttpServer server, string configName)
         {
         }
     }

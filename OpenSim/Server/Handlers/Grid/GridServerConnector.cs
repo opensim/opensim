@@ -37,19 +37,20 @@ namespace OpenSim.Server.Handlers.Grid
     public class GridServiceConnector : ServiceConnector
     {
         private IGridService m_GridService;
+        private string m_ConfigName = "GridService";
 
-        public GridServiceConnector(IConfigSource config, IHttpServer server) :
-                base(config, server)
+        public GridServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            IConfig serverConfig = config.Configs["GridService"];
+            IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
             string gridService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
             if (gridService == String.Empty)
-                throw new Exception("No GridService in config file");
+                throw new Exception("No LocalServiceModule in config file");
 
             Object[] args = new Object[] { config };
             m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);

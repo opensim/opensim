@@ -141,7 +141,9 @@ namespace OpenSim.Server.Base
                             }
                             catch (Exception e)
                             {
-                                m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                if (!(e is System.MissingMethodException))
+                                    m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                return null;
                             }
 
                             return plug;

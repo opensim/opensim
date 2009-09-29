@@ -96,29 +96,23 @@ namespace OpenSim.Server
                 if (port != 0)
                     server = m_Server.GetHttpServer(port);
 
-                m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
+                if (port != m_Server.DefaultPort)
+                    m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, port);
+                else
+                    m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
 
                 IServiceConnector connector = null;
-                try
+
+                Object[] modargs = new Object[] { m_Server.Config, server,
+                    configName };
+                connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                        modargs);
+                if (connector == null)
                 {
-                    Object[] modargs = null;
-                    if (configName != string.Empty)
-                    {
-                        modargs = new Object[] { m_Server.Config, server,
-                            configName };
-                        connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
-                                modargs);
-                    }
-                    if (connector == null)
-                    {
-                        modargs = new Object[] { m_Server.Config, server };
-                        connector =
-                                ServerUtils.LoadPlugin<IServiceConnector>(conn,
-                                modargs);
-                    }
-                }
-                catch (Exception)
-                {
+                    modargs = new Object[] { m_Server.Config, server };
+                    connector =
+                            ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                            modargs);
                 }
 
                 if (connector != null)
