@@ -1379,7 +1379,6 @@
 [J2KDecoder]
 ;CacheDir = "./j2kDecodeCache"
 ; Time in minutes before cached decodes expire. Set to 0 for no expiration. Default is 720 minutes.
-
 ;CacheTimeout = 720
 
 ;;
