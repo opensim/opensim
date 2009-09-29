@@ -149,7 +149,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     m_log.ErrorFormat("[LOCAL GRID CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
                 else
                     m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
-
             }
         }
 
@@ -184,7 +183,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             if (m_LocalCache.ContainsKey(regionID))
             {
-                return m_LocalCache[regionID].GetNeighbours();
+                List<GridRegion> neighbours = m_LocalCache[regionID].GetNeighbours();
+                if (neighbours.Count == 0)
+                    // try the DB
+                    neighbours = m_GridService.GetNeighbours(scopeID, regionID);
+                return neighbours;
             }
             else
             {

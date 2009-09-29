@@ -78,6 +78,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             r1.ExternalHostName = "127.0.0.1";
             r1.HttpPort = 9001;
             r1.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
+            Scene s = new Scene(new RegionInfo());
+            s.RegionInfo.RegionID = r1.RegionID;
+            m_LocalConnector.AddRegion(s);
+            
 
             GridRegion r2 = new GridRegion();
             r2.RegionName = "Test Region 2";
@@ -87,6 +91,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             r2.ExternalHostName = "127.0.0.1";
             r2.HttpPort = 9002;
             r2.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
+            s = new Scene(new RegionInfo());
+            s.RegionInfo.RegionID = r1.RegionID;
+            m_LocalConnector.AddRegion(s);
 
             GridRegion r3 = new GridRegion();
             r3.RegionName = "Test Region 3";
@@ -96,6 +103,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             r3.ExternalHostName = "127.0.0.1";
             r3.HttpPort = 9003;
             r3.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
+            s = new Scene(new RegionInfo());
+            s.RegionInfo.RegionID = r1.RegionID;
+            m_LocalConnector.AddRegion(s);
 
             m_LocalConnector.RegisterRegion(UUID.Zero, r1);
             GridRegion result = m_LocalConnector.GetRegionByName(UUID.Zero, "Test");
