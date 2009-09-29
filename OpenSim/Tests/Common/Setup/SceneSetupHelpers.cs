@@ -249,21 +249,24 @@ namespace OpenSim.Tests.Common.Setup
 
         private static void StartGridService(Scene testScene, bool real)
         {
-            ISharedRegionModule gridService = new LocalGridServicesConnector();
             IConfigSource config = new IniConfigSource();
             config.AddConfig("Modules");
             config.AddConfig("GridService");
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
+            config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
             if (real)
                 config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            if (m_gridService == null)
+            {
+                ISharedRegionModule gridService = new LocalGridServicesConnector();
+                gridService.Initialise(config);
+                m_gridService = gridService;
+            }
             //else
             //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
-            config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
-            gridService.Initialise(config);
-            gridService.AddRegion(testScene);
-            gridService.RegionLoaded(testScene);
-            testScene.AddRegionModule(gridService.Name, gridService);
-            m_gridService = gridService;
+            m_gridService.AddRegion(testScene);
+            m_gridService.RegionLoaded(testScene);
+            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
         }
 
 

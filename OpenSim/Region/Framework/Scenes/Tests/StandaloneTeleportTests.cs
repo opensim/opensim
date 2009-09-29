@@ -118,13 +118,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // shared module
             ISharedRegionModule interregionComms = new RESTInterregionComms();
 
-            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm, "grid");
-            SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
-            sceneA.RegisterRegionWithGrid();
 
             Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm, "grid");
             SceneSetupHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
             sceneB.RegisterRegionWithGrid();
+
+            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm, "grid");
+            SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
+            sceneA.RegisterRegionWithGrid();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
             TestClient client = SceneSetupHelpers.AddRootAgent(sceneA, agentId);
