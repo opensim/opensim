@@ -201,7 +201,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llGroundRepel(double height, int water, double tau);
         LSL_Vector llGroundSlope(LSL_Vector offset);
         LSL_String llHTTPRequest(string url, LSL_List parameters, string body);
-              void llHTTPResponse(string url, int status, string body);
+              void llHTTPResponse(LSL_Key id, int status, string body);
         LSL_String llInsertString(string dst, int position, string src);
               void llInstantMessage(string user, string message);
         LSL_String llIntegerToBase64(int number);

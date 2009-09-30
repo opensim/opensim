@@ -27,6 +27,7 @@
 
 using System;
 using HttpServer;
+using OpenMetaverse;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -37,12 +38,14 @@ namespace OpenSim.Framework.Servers.HttpServer
         public readonly IHttpClientContext HttpContext;
         public readonly IHttpRequest Request;
         public readonly int RequestTime;
+        public readonly UUID RequestID;
         public PollServiceHttpRequest(PollServiceEventArgs pPollServiceArgs, IHttpClientContext pHttpContext, IHttpRequest pRequest)
         {
             PollServiceArgs = pPollServiceArgs;
             HttpContext = pHttpContext;
             Request = pRequest;
             RequestTime = System.Environment.TickCount;
+            RequestID = UUID.Random();
         }
     }
 }

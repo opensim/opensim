@@ -39,7 +39,7 @@ namespace OpenSim.Data.MySQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames = null;
-        private int m_LastExpire = 0;
+//        private int m_LastExpire = 0;
 
         public MySqlUserAccountData(string connectionString, string realm)
                 : base(connectionString)

@@ -140,6 +140,37 @@ namespace OpenSim.Region.Communications.OGS1
         {
             m_log.DebugFormat("[OGS1 USER SERVICES]: Verifying user session for " + userID);
             return AuthClient.VerifySession(GetUserServerURL(userID), userID, sessionID);
-        }  
+        }
+
+        public override bool AuthenticateUserByPassword(UUID userID, string password)
+        {
+            Hashtable param = new Hashtable();
+            param["user_uuid"] = userID.ToString();
+            param["password"] = password;
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("authenticate_user_by_password", parameters);
+            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);                
+
+            // Temporary measure to deal with older services
+            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)       
+            {
+                throw new Exception(
+                    String.Format(
+                        "XMLRPC method 'authenticate_user_by_password' not yet implemented by user service at {0}",
+                        m_commsManager.NetworkServersInfo.UserURL));
+            }
+
+            Hashtable respData = (Hashtable)resp.Value;
+
+            if ((string)respData["auth_user"] == "TRUE")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }           
+        }
     }
 }

@@ -25,8 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
+using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using OpenSim.Framework;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
@@ -39,7 +42,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionInfos"> </param>
         /// <returns></returns>
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
-        bool RegisterRegion(UUID scopeID, SimpleRegionInfo regionInfos);
+        bool RegisterRegion(UUID scopeID, GridRegion regionInfos);
 
         /// <summary>
         /// Deregister a region with the grid service.
@@ -55,9 +58,9 @@ namespace OpenSim.Services.Interfaces
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        List<SimpleRegionInfo> GetNeighbours(UUID scopeID, int x, int y);
+        List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID);
 
-        SimpleRegionInfo GetRegionByUUID(UUID scopeID, UUID regionID);
+        GridRegion GetRegionByUUID(UUID scopeID, UUID regionID);
 
         /// <summary>
         /// Get the region at the given position (in meters)
@@ -66,9 +69,9 @@ namespace OpenSim.Services.Interfaces
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <returns></returns>
-        SimpleRegionInfo GetRegionByPosition(UUID scopeID, int x, int y);
-        
-        SimpleRegionInfo GetRegionByName(UUID scopeID, string regionName);
+        GridRegion GetRegionByPosition(UUID scopeID, int x, int y);
+
+        GridRegion GetRegionByName(UUID scopeID, string regionName);
 
         /// <summary>
         /// Get information about regions starting with the provided name. 
@@ -83,9 +86,233 @@ namespace OpenSim.Services.Interfaces
         /// A list of <see cref="RegionInfo"/>s of regions with matching name. If the
         /// grid-server couldn't be contacted or returned an error, return null. 
         /// </returns>
-        List<SimpleRegionInfo> GetRegionsByName(UUID scopeID, string name, int maxNumber);
+        List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber);
 
-        List<SimpleRegionInfo> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
+        List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
     }
+
+    public class GridRegion
+    {
+
+        /// <summary>
+        /// The port by which http communication occurs with the region 
+        /// </summary>
+        public uint HttpPort
+        {
+            get { return m_httpPort; }
+            set { m_httpPort = value; }
+        }
+        protected uint m_httpPort;
+
+        /// <summary>
+        /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
+        /// </summary>
+        public string ServerURI
+        {
+            get { return m_serverURI; }
+            set { m_serverURI = value; }
+        }
+        protected string m_serverURI;
+
+        public string RegionName
+        {
+            get { return m_regionName; }
+            set { m_regionName = value; }
+        }
+        protected string m_regionName = String.Empty;
+
+        protected bool Allow_Alternate_Ports;
+        public bool m_allow_alternate_ports;
+
+        protected string m_externalHostName;
+
+        protected IPEndPoint m_internalEndPoint;
+
+        public int RegionLocX
+        {
+            get { return m_regionLocX; }
+            set { m_regionLocX = value; }
+        }
+        protected int m_regionLocX;
+
+        public int RegionLocY
+        {
+            get { return m_regionLocY; }
+            set { m_regionLocY = value; }
+        }
+        protected int m_regionLocY;
+
+        public UUID RegionID = UUID.Zero;
+        public UUID ScopeID = UUID.Zero;
+
+        public GridRegion()
+        {
+        }
+
+        public GridRegion(int regionLocX, int regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        {
+            m_regionLocX = regionLocX;
+            m_regionLocY = regionLocY;
+
+            m_internalEndPoint = internalEndPoint;
+            m_externalHostName = externalUri;
+        }
+
+        public GridRegion(int regionLocX, int regionLocY, string externalUri, uint port)
+        {
+            m_regionLocX = regionLocX;
+            m_regionLocY = regionLocY;
+
+            m_externalHostName = externalUri;
+
+            m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int)port);
+        }
+
+        public GridRegion(uint xcell, uint ycell)
+        {
+            m_regionLocX = (int)(xcell * Constants.RegionSize);
+            m_regionLocY = (int)(ycell * Constants.RegionSize);
+        }
+
+        public GridRegion(RegionInfo ConvertFrom)
+        {
+            m_regionName = ConvertFrom.RegionName;
+            m_regionLocX = (int)(ConvertFrom.RegionLocX * Constants.RegionSize);
+            m_regionLocY = (int)(ConvertFrom.RegionLocY * Constants.RegionSize);
+            m_internalEndPoint = ConvertFrom.InternalEndPoint;
+            m_externalHostName = ConvertFrom.ExternalHostName;
+            m_httpPort = ConvertFrom.HttpPort;
+            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
+            RegionID = UUID.Zero;
+            ServerURI = ConvertFrom.ServerURI;
+        }
+
+
+        /// <value>
+        /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
+        ///
+        /// XXX Isn't this really doing too much to be a simple getter, rather than an explict method?
+        /// </value>
+        public IPEndPoint ExternalEndPoint
+        {
+            get
+            {
+                // Old one defaults to IPv6
+                //return new IPEndPoint(Dns.GetHostAddresses(m_externalHostName)[0], m_internalEndPoint.Port);
+
+                IPAddress ia = null;
+                // If it is already an IP, don't resolve it - just return directly
+                if (IPAddress.TryParse(m_externalHostName, out ia))
+                    return new IPEndPoint(ia, m_internalEndPoint.Port);
+
+                // Reset for next check
+                ia = null;
+                try
+                {
+                    foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
+                    {
+                        if (ia == null)
+                            ia = Adr;
+
+                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ia = Adr;
+                            break;
+                        }
+                    }
+                }
+                catch (SocketException e)
+                {
+                    throw new Exception(
+                        "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
+                        e + "' attached to this exception", e);
+                }
+
+                return new IPEndPoint(ia, m_internalEndPoint.Port);
+            }
+
+            set { m_externalHostName = value.ToString(); }
+        }
+
+        public string ExternalHostName
+        {
+            get { return m_externalHostName; }
+            set { m_externalHostName = value; }
+        }
+
+        public IPEndPoint InternalEndPoint
+        {
+            get { return m_internalEndPoint; }
+            set { m_internalEndPoint = value; }
+        }
+
+        public ulong RegionHandle
+        {
+            get { return Util.UIntsToLong((uint)RegionLocX, (uint)RegionLocY); }
+        }
+
+        public int getInternalEndPointPort()
+        {
+            return m_internalEndPoint.Port;
+        }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> kvp = new Dictionary<string, object>();
+            kvp["uuid"] = RegionID.ToString();
+            kvp["locX"] = RegionLocX.ToString();
+            kvp["locY"] = RegionLocY.ToString();
+            kvp["regionName"] = RegionName;
+            kvp["serverIP"] = ExternalHostName; //ExternalEndPoint.Address.ToString();
+            kvp["serverHttpPort"] = HttpPort.ToString();
+            kvp["serverURI"] = ServerURI;
+            kvp["serverPort"] = InternalEndPoint.Port.ToString();
+
+            return kvp;
+        }
+
+        public GridRegion(Dictionary<string, object> kvp)
+        {
+            if (kvp.ContainsKey("uuid"))
+                RegionID = new UUID((string)kvp["uuid"]);
+
+            if (kvp.ContainsKey("locX"))
+                RegionLocX = Convert.ToInt32((string)kvp["locX"]);
+
+            if (kvp.ContainsKey("locY"))
+                RegionLocY = Convert.ToInt32((string)kvp["locY"]);
+
+            if (kvp.ContainsKey("regionName"))
+                RegionName = (string)kvp["regionName"];
+
+            if (kvp.ContainsKey("serverIP"))
+            {
+                //int port = 0;
+                //Int32.TryParse((string)kvp["serverPort"], out port);
+                //IPEndPoint ep = new IPEndPoint(IPAddress.Parse((string)kvp["serverIP"]), port);
+                ExternalHostName = (string)kvp["serverIP"];
+            }
+            else
+                ExternalHostName = "127.0.0.1";
+
+            if (kvp.ContainsKey("serverPort"))
+            {
+                Int32 port = 0;
+                Int32.TryParse((string)kvp["serverPort"], out port);
+                InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
+            }
+
+            if (kvp.ContainsKey("serverHttpPort"))
+            {
+                UInt32 port = 0;
+                UInt32.TryParse((string)kvp["serverHttpPort"], out port);
+                HttpPort = port;
+            }
+
+            if (kvp.ContainsKey("serverURI"))
+                ServerURI = (string)kvp["serverURI"];
+        }
+    }
+
 }

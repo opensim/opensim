@@ -63,6 +63,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected List<UUID> m_agentsInTransit;
 
+        public bool RegionLoginsEnabled
+        {
+            get { return m_regionLoginsEnabled; }
+            set { m_regionLoginsEnabled = value; }
+        }
+        private bool m_regionLoginsEnabled = false;
+
         /// <summary>
         /// An agent is crossing into this region
         /// </summary>
@@ -1163,7 +1170,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private bool IsOutsideRegion(Scene s, Vector3 pos)
+        protected bool IsOutsideRegion(Scene s, Vector3 pos)
         {
             
             if (s.TestBorderCross(pos,Cardinals.N))

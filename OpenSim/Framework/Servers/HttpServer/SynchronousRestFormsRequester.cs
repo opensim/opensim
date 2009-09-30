@@ -56,14 +56,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 request.ContentType = "text/www-form-urlencoded";
 
                 MemoryStream buffer = new MemoryStream();
-
+                int length = 0;
                 using (StreamWriter writer = new StreamWriter(buffer))
                 {
                     writer.WriteLine(obj);
                     writer.Flush();
+                    length = (int)buffer.Length;
                 }
 
-                int length = (int) buffer.Length;
                 request.ContentLength = length;
 
                 Stream requestStream = request.GetRequestStream();

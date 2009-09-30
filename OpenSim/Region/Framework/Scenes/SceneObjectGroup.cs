@@ -245,6 +245,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private bool IsAttachmentCheckFull()
+        {
+            return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
+        }
+        
         /// <summary>
         /// The absolute position of this scene object in the scene
         /// </summary>
@@ -257,7 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if ((m_scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || m_scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
                     || m_scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || m_scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
-                    && !IsAttachment)
+                    && !IsAttachmentCheckFull())
                 {                                       
                     m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }

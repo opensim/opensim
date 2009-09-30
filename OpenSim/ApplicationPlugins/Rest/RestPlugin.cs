@@ -216,7 +216,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
                 if (!_config.GetBoolean("enabled", false))
                 {
-                    m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
+                    //m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
                     return;
                 }
 

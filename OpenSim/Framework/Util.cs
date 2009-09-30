@@ -70,6 +70,39 @@ namespace OpenSim.Framework
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
         
+        /// <summary>
+        /// Linear interpolates B<->C using percent A
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static double lerp(double a, double b, double c)
+        {
+            return (b*a) + (c*(1 - a));
+        }
+
+        /// <summary>
+        /// Bilinear Interpolate, see Lerp but for 2D using 'percents' X & Y.
+        /// Layout:
+        ///     A B
+        ///     C D
+        /// A<->C = Y
+        /// C<->D = X
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
+        /// <param name="d"></param>
+        /// <returns></returns>
+        public static double lerp2D(double x, double y, double a, double b, double c, double d)
+        {
+            return lerp(y, lerp(x, a, b), lerp(x, c, d));
+        }
+
+
         /// <value>
         /// Well known UUID for the blank texture used in the Linden SL viewer version 1.20 (and hopefully onwards) 
         /// </value>
