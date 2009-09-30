@@ -789,7 +789,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
-        }        
+        }
 
         public void SendViewerTime(int phase)
         {

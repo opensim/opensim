@@ -47,9 +47,9 @@ namespace OpenSim.Services.AuthenticationService
     public class PasswordAuthenticationService :
             AuthenticationServiceBase, IAuthenticationService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
  
         public PasswordAuthenticationService(IConfigSource config) :
                 base(config)

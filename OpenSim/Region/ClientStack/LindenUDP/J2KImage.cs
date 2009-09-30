@@ -127,7 +127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                m_asset = asset;              
+                m_asset = asset;
             }
             RunUpdate();
         }
@@ -198,7 +198,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 try 
                 { 
                     Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, (int)cFirstPacketSize);
-                    client.SendImageFirstPart(TexturePacketCount(), m_requestedUUID, (uint)m_asset.Data.Length, firstImageData, 2);                
+                    client.SendImageFirstPart(TexturePacketCount(), m_requestedUUID, (uint)m_asset.Data.Length, firstImageData, 2);
                 }
                 catch (Exception)
                 {

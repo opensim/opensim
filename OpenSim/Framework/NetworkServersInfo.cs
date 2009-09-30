@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
-        public string AssetSendKey = String.Empty;        
+        public string AssetSendKey = String.Empty;
         public string AssetURL = "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString() + "/";
 
         public string GridRecvKey = String.Empty;
@@ -102,8 +102,7 @@ namespace OpenSim.Framework
                                                                ConfigSettings.DefaultInventoryServerHttpPort.ToString());
             secureInventoryServer = config.Configs["Network"].GetBoolean("secure_inventory_server", true);
 
-            MessagingURL = config.Configs["Network"].GetString("messaging_server_url",
-                                                               "http://127.0.0.1:" + ConfigSettings.DefaultMessageServerHttpPort);
+            MessagingURL = config.Configs["Network"].GetString("messaging_server_url", string.Empty);
         }
     }
 }

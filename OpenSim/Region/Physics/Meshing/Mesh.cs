@@ -40,7 +40,6 @@ namespace OpenSim.Region.Physics.Meshing
         private List<Triangle> triangles;
         GCHandle pinnedVirtexes;
         GCHandle pinnedIndex;
-        public PrimMesh primMesh = null;
         public float[] normals;
 
         public Mesh()
@@ -63,6 +62,8 @@ namespace OpenSim.Region.Physics.Meshing
 
         public void Add(Triangle triangle)
         {
+            if (pinnedIndex.IsAllocated || pinnedVirtexes.IsAllocated)
+                throw new NotSupportedException("Attempt to Add to a pinned Mesh");
             // If a vertex of the triangle is not yet in the vertices list,
             // add it and set its index to the current index count
             if (!vertices.ContainsKey(triangle.v1))
@@ -148,40 +149,22 @@ namespace OpenSim.Region.Physics.Meshing
 
         public float[] getVertexListAsFloatLocked()
         {
+            if (pinnedVirtexes.IsAllocated)
+                return (float[])(pinnedVirtexes.Target);
             float[] result;
 
-            if (primMesh == null)
+            //m_log.WarnFormat("vertices.Count = {0}", vertices.Count);
+            result = new float[vertices.Count * 3];
+            foreach (KeyValuePair<Vertex, int> kvp in vertices)
             {
-                //m_log.WarnFormat("vertices.Count = {0}", vertices.Count);
-                result = new float[vertices.Count * 3];
-                foreach (KeyValuePair<Vertex, int> kvp in vertices)
-                {
-                    Vertex v = kvp.Key;
-                    int i = kvp.Value;
-                    //m_log.WarnFormat("kvp.Value = {0}", i);
-                    result[3 * i + 0] = v.X;
-                    result[3 * i + 1] = v.Y;
-                    result[3 * i + 2] = v.Z;
-                }
-                pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
+                Vertex v = kvp.Key;
+                int i = kvp.Value;
+                //m_log.WarnFormat("kvp.Value = {0}", i);
+                result[3 * i + 0] = v.X;
+                result[3 * i + 1] = v.Y;
+                result[3 * i + 2] = v.Z;
             }
-            else
-            {
-                int count = primMesh.coords.Count;
-                result = new float[count * 3];
-                for (int i = 0; i < count; i++)
-                {
-                    Coord c = primMesh.coords[i];
-                    {
-                        int resultIndex = 3 * i;
-                        result[resultIndex] = c.X;
-                        result[resultIndex + 1] = c.Y;
-                        result[resultIndex + 2] = c.Z;
-                    }
-
-                }
-                pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
-            }
+            pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
         }
 
@@ -189,33 +172,13 @@ namespace OpenSim.Region.Physics.Meshing
         {
             int[] result;
 
-            if (primMesh == null)
+            result = new int[triangles.Count * 3];
+            for (int i = 0; i < triangles.Count; i++)
             {
-                result = new int[triangles.Count * 3];
-                for (int i = 0; i < triangles.Count; i++)
-                {
-                    Triangle t = triangles[i];
-                    result[3 * i + 0] = vertices[t.v1];
-                    result[3 * i + 1] = vertices[t.v2];
-                    result[3 * i + 2] = vertices[t.v3];
-                }
-            }
-            else
-            {
-                int numFaces = primMesh.faces.Count;
-                result = new int[numFaces * 3];
-                for (int i = 0; i < numFaces; i++)
-                {
-                    Face f = primMesh.faces[i];
-//                    Coord c1 = primMesh.coords[f.v1];
-//                    Coord c2 = primMesh.coords[f.v2];
-//                    Coord c3 = primMesh.coords[f.v3];
-
-                    int resultIndex = i * 3;
-                    result[resultIndex] = f.v1;
-                    result[resultIndex + 1] = f.v2;
-                    result[resultIndex + 2] = f.v3;
-                }
+                Triangle t = triangles[i];
+                result[3 * i + 0] = vertices[t.v1];
+                result[3 * i + 1] = vertices[t.v2];
+                result[3 * i + 2] = vertices[t.v3];
             }
             return result;
         }
@@ -226,6 +189,9 @@ namespace OpenSim.Region.Physics.Meshing
         /// <returns></returns>
         public int[] getIndexListAsIntLocked()
         {
+            if (pinnedIndex.IsAllocated)
+                return (int[])(pinnedIndex.Target);
+        
             int[] result = getIndexListAsInt();
             pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
 
@@ -245,11 +211,13 @@ namespace OpenSim.Region.Physics.Meshing
         {
             triangles = null;
             vertices = null;
-            primMesh = null;
         }
 
         public void Append(IMesh newMesh)
         {
+            if (pinnedIndex.IsAllocated || pinnedVirtexes.IsAllocated)
+                throw new NotSupportedException("Attempt to Append to a pinned Mesh");
+        
             if (!(newMesh is Mesh))
                 return;
 
@@ -260,6 +228,9 @@ namespace OpenSim.Region.Physics.Meshing
         // Do a linear transformation of  mesh.
         public void TransformLinear(float[,] matrix, float[] offset)
         {
+            if (pinnedIndex.IsAllocated || pinnedVirtexes.IsAllocated)
+                throw new NotSupportedException("Attempt to TransformLinear a pinned Mesh");
+        
             foreach (Vertex v in vertices.Keys)
             {
                 if (v == null)

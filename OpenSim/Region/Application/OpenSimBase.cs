@@ -98,7 +98,7 @@ namespace OpenSim
 
         /// <value>
         /// The config information passed into the OpenSimulator region server.
-        /// </value>        
+        /// </value>
         public OpenSimConfigSource ConfigSource
         {
             get { return m_config; }
@@ -209,9 +209,9 @@ namespace OpenSim
             }
 
             // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
-            if ((m_commsManager != null) && (m_commsManager.GridService != null))
+            if ((SceneManager.CurrentOrFirstScene != null) && (SceneManager.CurrentOrFirstScene.SceneGridService != null))
             {
-                m_commsManager.GridService.RegionLoginsEnabled = true;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
             }
 
             AddPluginCommands();
@@ -299,12 +299,12 @@ namespace OpenSim
             if (LoginEnabled)
             {
                 m_log.Info("[LOGIN]: Login is now enabled.");
-                m_commsManager.GridService.RegionLoginsEnabled = true;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
             }
             else
             {
                 m_log.Info("[LOGIN]: Login is now disabled.");
-                m_commsManager.GridService.RegionLoginsEnabled = false;
+                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = false;
             }
         }
 
@@ -383,14 +383,14 @@ namespace OpenSim
 
             scene.SetModuleInterfaces();
 
-            // Prims have to be loaded after module configuration since some modules may be invoked during the load            
+            // Prims have to be loaded after module configuration since some modules may be invoked during the load
             scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             
             // moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(false);
             
-            // TODO : Try setting resource for region xstats here on scene            
+            // TODO : Try setting resource for region xstats here on scene
             MainServer.Instance.AddStreamHandler(new Region.Framework.Scenes.RegionStatsHandler(regionInfo)); 
             
             try
@@ -399,7 +399,7 @@ namespace OpenSim
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
+                m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e.StackTrace);
 
                 // Carrying on now causes a lot of confusion down the
                 // line - we need to get the user's attention
@@ -507,7 +507,7 @@ namespace OpenSim
         /// Remove a region from the simulator without deleting it permanently.
         /// </summary>
         /// <param name="scene"></param>
-        /// <returns></returns>   
+        /// <returns></returns>
         public void CloseRegion(Scene scene)
         {
             // only need to check this if we are not at the
@@ -526,7 +526,7 @@ namespace OpenSim
         /// Remove a region from the simulator without deleting it permanently.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>   
+        /// <returns></returns>
         public void CloseRegion(string name)
         {
             Scene target;
@@ -539,7 +539,7 @@ namespace OpenSim
         /// </summary>
         /// <param name="regionInfo"></param>
         /// <param name="clientServer"> </param>
-        /// <returns></returns>        
+        /// <returns></returns>
         protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)
         {
             return SetupScene(regionInfo, 0, null, out clientServer);
@@ -750,7 +750,7 @@ namespace OpenSim
             }
 
             public string Path
-            {   
+            {
                 // This is for the OpenSimulator instance and is the osSecret hashed
                 get { return "/" + osXStatsURI + "/"; }
             }
@@ -791,7 +791,7 @@ namespace OpenSim
             }
 
             public string Path
-            {   
+            {
                 // This is for the OpenSimulator instance and is the user provided URI 
                 get { return "/" + osUXStatsURI + "/"; }
             }

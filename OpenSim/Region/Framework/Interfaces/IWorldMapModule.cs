@@ -26,9 +26,9 @@
  */
 
 namespace OpenSim.Region.Framework.Interfaces
-{        
+{
     public interface IWorldMapModule
     {
-        void LazySaveGeneratedMaptile(byte[] data, bool temporary);        
+        void LazySaveGeneratedMaptile(byte[] data, bool temporary);
     }
 }

@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             return m_OSSL_Functions.osWindActiveModelPluginName();
         }
        
-// Not yet plugged in as available OSSL functions, so commented out        
+// Not yet plugged in as available OSSL functions, so commented out
 //        void osWindParamSet(string plugin, string param, float value)
 //        {
 //            m_OSSL_Functions.osWindParamSet(plugin, param, value);
@@ -182,6 +182,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public void osSetParcelMediaURL(string url)
         {
             m_OSSL_Functions.osSetParcelMediaURL(url);
+        }
+        
+        public void osSetParcelSIPAddress(string SIPAddress)
+        {
+            m_OSSL_Functions.osSetParcelSIPAddress(SIPAddress);
         }
 
         public void osSetPrimFloatOnWater(int floatYN)
@@ -324,7 +329,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         
         public string osGetSimulatorVersion()
         {
-           return m_OSSL_Functions.osGetSimulatorVersion();    
+           return m_OSSL_Functions.osGetSimulatorVersion();
         }
         
         public Hashtable osParseJSON(string JSON)

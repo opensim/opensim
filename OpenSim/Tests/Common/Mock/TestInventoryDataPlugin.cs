@@ -52,7 +52,7 @@ namespace OpenSim.Tests.Common.Mock
         //// <value>
         /// Inventory items
         /// </value>
-        private Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>();        
+        private Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>();
 
         /// <value>
         /// User root folders
@@ -120,7 +120,7 @@ namespace OpenSim.Tests.Common.Mock
             }
 
             return folders;
-        }        
+        }
 
         public InventoryFolderBase getInventoryFolder(UUID folderId)
         {
@@ -191,7 +191,7 @@ namespace OpenSim.Tests.Common.Mock
         public InventoryItemBase queryInventoryItem(UUID item)
         {
             return null;
-        }        
+        }
 
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID) { return null; }
     }

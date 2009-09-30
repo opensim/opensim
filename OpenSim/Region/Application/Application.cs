@@ -91,7 +91,7 @@ namespace OpenSim
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
 
-            // Check if the system is compatible with OpenSimulator.   
+            // Check if the system is compatible with OpenSimulator.
             // Ensures that the minimum system requirements are met
             m_log.Info("Performing compatibility checks... ");
             string supported = String.Empty;

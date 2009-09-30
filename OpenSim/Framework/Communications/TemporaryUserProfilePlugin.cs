@@ -33,7 +33,7 @@ using OpenMetaverse;
 using OpenSim.Data;
 
 namespace OpenSim.Framework.Communications
-{                
+{
     /// <summary>
     /// Plugin for managing temporary user profiles.  
     /// </summary>
@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Communications
         
         public string Name { get { return "TemporaryUserProfilePlugin"; } }
         public string Version { get { return "0.1"; } }
-        public void Initialise() {}       
+        public void Initialise() {}
         public void Initialise(string connect) {}
         public void Dispose() {}
         

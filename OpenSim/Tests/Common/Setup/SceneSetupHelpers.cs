@@ -44,6 +44,7 @@ using OpenSim.Region.CoreModules.Agent.Capabilities;
 using OpenSim.Region.CoreModules.Avatar.Gods;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
@@ -58,6 +59,7 @@ namespace OpenSim.Tests.Common.Setup
         // CommunicationsManager. 
         private static ISharedRegionModule m_assetService = null;
         private static ISharedRegionModule m_inventoryService = null;
+        private static ISharedRegionModule m_gridService = null;
         private static TestCommunicationsManager commsManager = null;
 
         /// <summary>
@@ -109,6 +111,7 @@ namespace OpenSim.Tests.Common.Setup
         {
             return SetupScene(name, id, x, y, cm, "");
         }
+
 
         /// <summary>
         /// Set up a scene. If it's more then one scene, use the same CommunicationsManager to link regions
@@ -176,6 +179,9 @@ namespace OpenSim.Tests.Common.Setup
                     StartInventoryService(testScene, true);
                 else
                     StartInventoryService(testScene, false);
+                if (realServices.Contains("grid"))
+                    StartGridService(testScene, true);
+
             }
             // If not, make sure the shared module gets references to this new scene
             else
@@ -240,6 +246,29 @@ namespace OpenSim.Tests.Common.Setup
             testScene.AddRegionModule(inventoryService.Name, inventoryService);
             m_inventoryService = inventoryService;
         }
+
+        private static void StartGridService(Scene testScene, bool real)
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.AddConfig("GridService");
+            config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
+            config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
+            if (real)
+                config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
+            if (m_gridService == null)
+            {
+                ISharedRegionModule gridService = new LocalGridServicesConnector();
+                gridService.Initialise(config);
+                m_gridService = gridService;
+            }
+            //else
+            //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
+            m_gridService.AddRegion(testScene);
+            m_gridService.RegionLoaded(testScene);
+            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
+        }
+
 
         /// <summary>
         /// Setup modules for a scene using their default settings.

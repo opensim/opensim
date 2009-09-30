@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes
     
                                       
     public class RegionStatsHandler : IStreamedRequestHandler
-    {        
+    {
         private string osRXStatsURI = String.Empty;
         private string osXStatsURI = String.Empty;
         //private string osSecret = String.Empty;
@@ -87,13 +87,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public string Path
-        {   
+        {
             // This is for the region and is the regionSecret hashed
             get { return "/" + osRXStatsURI + "/"; }
         }
         
         private string Report()
-        {            
+        {
             OSDMap args = new OSDMap(30);
             //int time = Util.ToUnixTime(DateTime.Now);
             args["OSStatsURI"] = OSD.FromString("http://" + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "/" + osXStatsURI + "/");

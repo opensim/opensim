@@ -497,7 +497,7 @@ namespace OpenSim
         {
             if (cmd.Length < 4)
             {
-                m_log.Error("Usage: create region <region name> <region_file.xml>");
+                m_log.Error("Usage: create region <region name> <region_file.ini>");
                 return;
             }
             if (cmd[3].EndsWith(".xml"))
@@ -524,7 +524,7 @@ namespace OpenSim
             }
             else
             {
-                m_log.Error("Usage: create region <region name> <region_file.xml>");
+                m_log.Error("Usage: create region <region name> <region_file.ini>");
                 return;
             }
         }
@@ -557,7 +557,7 @@ namespace OpenSim
         /// <param name="cmd"></param>
         private void HandleLoginStatus(string module, string[] cmd)
         {
-            if (m_commsManager.GridService.RegionLoginsEnabled == false)
+            if (m_sceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled == false)
 
                 m_log.Info("[ Login ]  Login are disabled ");
             else
@@ -755,11 +755,6 @@ namespace OpenSim
                     }
                     break;
 
-                case "link-region":
-                case "unlink-region":
-                case "link-mapping":
-                    HGCommands.RunHGCommand(command, cmdparams, m_sceneManager.CurrentOrFirstScene);
-                    break;
             }
         }
 
@@ -1250,20 +1245,20 @@ namespace OpenSim
         protected void LoadOar(string module, string[] cmdparams)
         {
             try
-            {            
+            {
                 if (cmdparams.Length > 2)
                 {
-                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);             
+                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
                 }
                 else
                 {
-                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);              
+                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
                 }
             }
             catch (Exception e)
             {
                 m_log.Error(e.Message);
-            }   
+            }
         }
 
         /// <summary>

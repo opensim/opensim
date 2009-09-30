@@ -36,6 +36,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
@@ -497,7 +498,10 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             {
                 if (upd.AgentOnline)
                 {
-                    RegionInfo reginfo = m_Scenes[0].SceneGridService.RequestNeighbouringRegionInfo(upd.Handle);
+                    uint x = 0, y = 0;
+                    Utils.LongToUInts(upd.Handle, out x, out y);
+                    GridRegion reginfo = m_Scenes[0].GridService.GetRegionByPosition(m_Scenes[0].RegionInfo.ScopeID,
+                        (int)x, (int)y);
                     if (reginfo != null)
                     {
                         Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(im);
@@ -559,7 +563,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// <param name="reginfo">RegionInfo we pull the data out of to send the request to</param>
         /// <param name="xmlrpcdata">The Instant Message data Hashtable</param>
         /// <returns>Bool if the message was successfully delivered at the other side.</returns>
-        protected virtual bool doIMSending(RegionInfo reginfo, Hashtable xmlrpcdata)
+        protected virtual bool doIMSending(GridRegion reginfo, Hashtable xmlrpcdata)
         {
 
             ArrayList SendParams = new ArrayList();

@@ -38,7 +38,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
     public class InstantMessageModule : IRegionModule
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <value>
         /// Is this module enabled?

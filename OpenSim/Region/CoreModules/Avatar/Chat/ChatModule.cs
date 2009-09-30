@@ -114,7 +114,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                     scene.EventManager.OnChatBroadcast -= OnChatBroadcast;
                     m_scenes.Remove(scene);
                 }
-            }            
+            }
         }
         
         public virtual void Close()

@@ -74,14 +74,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_scene = scene;
             m_saveStream = saveStream;
             m_requestId = requestId;
-        }        
+        }
 
         /// <summary>
         /// Archive the region requested.
         /// </summary>
         /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
         public void ArchiveRegion()
-        {            
+        {
             Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
@@ -137,7 +137,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_scene.RequestModuleInterface<IRegionSerialiserModule>(),
                     m_scene,
                     archiveWriter,
-                    m_requestId);           
+                    m_requestId);
             
             new AssetsRequest(
                 new AssetsArchiver(archiveWriter), assetUuids.Keys, 

@@ -141,7 +141,9 @@ namespace OpenSim.Server.Base
                             }
                             catch (Exception e)
                             {
-                                m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                if (!(e is System.MissingMethodException))
+                                    m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                return null;
                             }
 
                             return plug;
@@ -182,6 +184,122 @@ namespace OpenSim.Server.Base
             }
 
             return result;
+        }
+
+        public static string BuildQueryString(Dictionary<string, string> data)
+        {
+            string qstring = String.Empty;
+
+            foreach (KeyValuePair<string, string> kvp in data)
+            {
+                string part;
+                if (kvp.Value != String.Empty)
+                {
+                    part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
+                            "=" + System.Web.HttpUtility.UrlEncode(kvp.Value);
+                }
+                else
+                {
+                    part = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                }
+
+                if (qstring != String.Empty)
+                    qstring += "&";
+
+                qstring += part;
+            }
+
+            return qstring;
+        }
+
+        public static string BuildXmlResponse(Dictionary<string, object> data)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            doc.AppendChild(xmlnode);
+
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
+                    "");
+
+            doc.AppendChild(rootElement);
+
+            BuildXmlData(rootElement, data);
+
+            return doc.InnerXml;
+        }
+
+        private static void BuildXmlData(XmlElement parent, Dictionary<string, object> data)
+        {
+            foreach (KeyValuePair<string, object> kvp in data)
+            {
+                XmlElement elem = parent.OwnerDocument.CreateElement("",
+                        kvp.Key, "");
+
+                if (kvp.Value is Dictionary<string, object>)
+                {
+                    XmlAttribute type = parent.OwnerDocument.CreateAttribute("",
+                        "type", "");
+                    type.Value = "List";
+
+                    elem.Attributes.Append(type);
+
+                    BuildXmlData(elem, (Dictionary<string, object>)kvp.Value);
+                }
+                else
+                {
+                    elem.AppendChild(parent.OwnerDocument.CreateTextNode(
+                            kvp.Value.ToString()));
+                }
+
+                parent.AppendChild(elem);
+            }
+        }
+
+        public static Dictionary<string, object> ParseXmlResponse(string data)
+        {
+            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
+
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            XmlDocument doc = new XmlDocument();
+
+            doc.LoadXml(data);
+            
+            XmlNodeList rootL = doc.GetElementsByTagName("ServerResponse");
+
+            if (rootL.Count != 1)
+                return ret;
+
+            XmlNode rootNode = rootL[0];
+
+            ret = ParseElement(rootNode);
+
+            return ret;
+        }
+
+        private static Dictionary<string, object> ParseElement(XmlNode element)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            XmlNodeList partL = element.ChildNodes;
+
+            foreach (XmlNode part in partL)
+            {
+                XmlNode type = part.Attributes.GetNamedItem("type");
+                if (type == null || type.Value != "List")
+                {
+                    ret[part.Name] = part.InnerText;
+                }
+                else
+                {
+                    ret[part.Name] = ParseElement(part);
+                }
+            }
+
+            return ret;
         }
     }
 }

@@ -29,6 +29,7 @@ using System;
 using NUnit.Framework;
 using OpenMetaverse;
 using OpenSim.Framework;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
 {
@@ -65,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 throw new NotImplementedException();
             }
 
-            public override bool OtherRegionUp(RegionInfo thisRegion)
+            public override void OtherRegionUp(GridRegion otherRegion)
             {
                 throw new NotImplementedException();
             }

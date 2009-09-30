@@ -91,6 +91,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Gestures
             else 
                 m_log.ErrorFormat(
                     "[GESTURES]: Unable to find gesture to deactivate {0} for {1}", gestureId, client.Name);
-        }        
+        }
     }
 }

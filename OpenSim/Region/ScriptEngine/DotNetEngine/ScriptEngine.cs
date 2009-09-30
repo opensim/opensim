@@ -418,7 +418,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             InstanceData id = m_ScriptManager.GetScript(localID, itemID);
             if (id == null)
-                return;        
+                return;
 
             if (!id.Disabled)
                 id.Running = true;
@@ -428,7 +428,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             InstanceData id = m_ScriptManager.GetScript(localID, itemID);
             if (id == null)
-                return;        
+                return;
             
             id.Running = false;
         }
@@ -442,7 +442,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             InstanceData id = m_ScriptManager.GetScript(localID, itemID);
             if (id == null)
-                return;        
+                return;
 
             IEventQueue eq = World.RequestModuleInterface<IEventQueue>();
             if (eq == null)

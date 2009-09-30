@@ -175,7 +175,7 @@ namespace OpenSim.Data.MSSQL
                             (@id, @name, @description, @assetType, @local, 
                              @temporary, @create_time, @access_time, @data)";
             
-            string assetName = asset.Name;            
+            string assetName = asset.Name;
             if (asset.Name.Length > 64)
             {
                 assetName = asset.Name.Substring(0, 64);
@@ -223,7 +223,7 @@ namespace OpenSim.Data.MSSQL
                             local = @local, temporary = @temporary, data = @data
                            WHERE id = @keyId;";
 
-            string assetName = asset.Name;            
+            string assetName = asset.Name;
             if (asset.Name.Length > 64)
             {
                 assetName = asset.Name.Substring(0, 64);

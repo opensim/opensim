@@ -80,6 +80,21 @@ namespace OpenSim.Region.Communications.Local
                 throw new Exception("[LOCAL USER SERVICES]: Unknown master user UUID. Possible reason: UserServer is not running.");
             }
             return data;
-        }       
+        }
+
+        public override bool AuthenticateUserByPassword(UUID userID, string password)
+        {
+            UserProfileData userProfile = GetUserProfile(userID);
+
+            if (null == userProfile)
+                return false;
+      
+            string md5PasswordHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + userProfile.PasswordSalt);
+    
+            if (md5PasswordHash == userProfile.PasswordHash)
+                return true;
+            else
+                return false;
+        }
     }
 }

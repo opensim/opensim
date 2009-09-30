@@ -236,42 +236,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                // Maybe we're talking to an old inventory server. Try this other thing.
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation failed, {0} {1} (old server?). Trying GetInventory.",
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation failed, {0} {1} (old server?).",
                      e.Source, e.Message);
-
-                InventoryCollection inventory;
-                List<InventoryFolderBase> folders = null;
-                try
-                {
-                    inventory = SynchronousRestSessionObjectPoster<Guid, InventoryCollection>.BeginPostObject(
-                        "POST", m_ServerURI + "/GetInventory/", new Guid(userID), sessionID.ToString(), userID.ToString());
-                    if (inventory != null)
-                        folders = inventory.Folders;
-                }
-                catch (Exception ex)
-                {
-                    m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetInventory operation also failed, {0} {1}. Giving up.",
-                         e.Source, ex.Message);
-                    return new InventoryCollection();
-                }
-
-                if ((folders != null) && (folders.Count > 0))
-                {
-                    m_log.DebugFormat("[INVENTORY CONNECTOR]: Received entire inventory ({0} folders) for user {1}",
-                        folders.Count, userID);
-
-                    folders = folders.FindAll(delegate(InventoryFolderBase f) { return f.ParentID == folderID; });
-                    List<InventoryItemBase> items = inventory.Items;
-                    if (items != null)
-                    {
-                        items = items.FindAll(delegate(InventoryItemBase i) { return i.Folder == folderID; });
-                    }
-
-                    inventory.Items = items;
-                    inventory.Folders = folders;
-                    return inventory;
-                }
             }
 
             InventoryCollection nullCollection = new InventoryCollection();

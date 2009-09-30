@@ -55,7 +55,7 @@ namespace OpenSim.Framework
         GodTakeCopy = 5,
         Delete = 6,
         Return = 9
-    };     
+    };
 
     public interface IScene
     {
@@ -74,7 +74,7 @@ namespace OpenSim.Framework
         void CloseAllAgents(uint circuitcode);
 
         void Restart(int seconds);
-        bool OtherRegionUp(RegionInfo thisRegion);
+        //RegionInfo OtherRegionUp(RegionInfo thisRegion);
 
         string GetSimulatorVersion();
 

@@ -56,7 +56,7 @@ namespace OpenSim.Tests.Common.Mock
 
         public TestCommunicationsManager(NetworkServersInfo serversInfo)
             : base(serversInfo, null)
-        {                        
+        {
 
             LocalUserServices lus = new LocalUserServices(991, 992, this);
             lus.AddPlugin(new TemporaryUserProfilePlugin());
@@ -65,8 +65,6 @@ namespace OpenSim.Tests.Common.Mock
             m_userService = lus;
             m_userAdminService = lus;
 
-            LocalBackEndServices gs = new LocalBackEndServices();
-            m_gridService = gs;
         }
     }
 }

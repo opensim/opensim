@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Console
         /// <param name="helpParts">Parsed parts of the help string.  If empty then general help is returned.</param>
         /// <returns></returns>
         public List<string> GetHelp(string[] cmd)
-        {                  
+        {
             List<string> help = new List<string>();
             List<string> helpParts = new List<string>(cmd);
             
@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Console
         /// <param name="helpParts"></param>
         /// <returns></returns>
         private List<string> CollectHelp(List<string> helpParts)
-        {            
+        {
             string originalHelpRequest = string.Join(" ", helpParts.ToArray());
             List<string> help = new List<string>();
             
@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Console
                 if (dict[helpPart] is Dictionary<string, Object>)
                     dict = (Dictionary<string, object>)dict[helpPart]; 
                 
-                helpParts.RemoveAt(0);                                                               
+                helpParts.RemoveAt(0);
             }
         
             // There was a command for the given help string
@@ -149,7 +149,7 @@ namespace OpenSim.Framework.Console
             }
             
             return help;
-        }            
+        }
 
         private List<string> CollectHelp(Dictionary<string, object> dict)
         {
@@ -180,7 +180,7 @@ namespace OpenSim.Framework.Console
         /// <param name="longhelp"></param>
         /// <param name="fn"></param>
         public void AddCommand(string module, bool shared, string command,
-                string help, string longhelp, CommandDelegate fn)   
+                string help, string longhelp, CommandDelegate fn)
         {
             AddCommand(module, shared, command, help, longhelp,
                     String.Empty, fn);

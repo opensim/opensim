@@ -208,7 +208,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
                 m_log.ErrorFormat(
                     "[CONTENT MANAGEMENT]: Content management thread terminating with exception.  PLEASE REBOOT YOUR SIM - CONTENT MANAGEMENT WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}", 
-                    e);                                   
+                    e);
             }
         }
 

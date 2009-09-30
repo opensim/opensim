@@ -29,7 +29,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        private const string VERSION_NUMBER = "0.6.6";
+        private const string VERSION_NUMBER = "0.6.8";
         private const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
         public enum Flavour
@@ -67,8 +67,8 @@ namespace OpenSim
         /// 
         /// Having this version number allows the grid service to reject connections from regions running a version
         /// of the code that is too old. 
-        ///   
+        ///
         /// </value>
-        public readonly static int MajorInterfaceVersion = 5;
+        public readonly static int MajorInterfaceVersion = 6;
     }
 }

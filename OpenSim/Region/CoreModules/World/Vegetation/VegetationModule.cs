@@ -43,7 +43,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
         protected Scene m_scene;
         
         protected static readonly PCode[] creationCapabilities = new PCode[] { PCode.Grass, PCode.NewTree, PCode.Tree };
-        public PCode[] CreationCapabilities { get { return creationCapabilities; } }            
+        public PCode[] CreationCapabilities { get { return creationCapabilities; } }
         
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
             UUID ownerID, UUID groupID, Vector3 pos, Quaternion rot, PrimitiveBaseShape shape)
         {
             if (Array.IndexOf(creationCapabilities, (PCode)shape.PCode) < 0)
-            {    
+            {
                 m_log.DebugFormat("[VEGETATION]: PCode {0} not handled by {1}", shape.PCode, Name);
                 return null;
             }
@@ -111,6 +111,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Vegetation
                     tree.Scale = new Vector3(4, 4, 4);
                     break;
             }
-        }        
+        }
     }
 }

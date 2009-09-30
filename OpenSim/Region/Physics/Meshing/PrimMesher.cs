@@ -345,6 +345,21 @@ namespace PrimMesher
             this.v3.Z *= z;
         }
 
+        public void AddPos(float x, float y, float z)
+        {
+            this.v1.X += x;
+            this.v2.X += x;
+            this.v3.X += x;
+
+            this.v1.Y += y;
+            this.v2.Y += y;
+            this.v3.Y += y;
+
+            this.v1.Z += z;
+            this.v2.Z += z;
+            this.v3.Z += z;
+        }
+
         public void AddRot(Quat q)
         {
             this.v1 *= q;
@@ -2140,6 +2155,18 @@ namespace PrimMesher
                 vert.Y += y;
                 vert.Z += z;
                 this.coords[i] = vert;
+            }
+
+            if (this.viewerFaces != null)
+            {
+                int numViewerFaces = this.viewerFaces.Count;
+
+                for (i = 0; i < numViewerFaces; i++)
+                {
+                    ViewerFace v = this.viewerFaces[i];
+                    v.AddPos(x, y, z);
+                    this.viewerFaces[i] = v;
+                }
             }
         }
 

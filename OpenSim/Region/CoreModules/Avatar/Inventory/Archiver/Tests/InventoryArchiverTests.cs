@@ -37,7 +37,7 @@ using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
-using OpenSim.Framework.Serialization.External;    
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
@@ -70,7 +70,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Exception reportedException)
         {
             mre.Set();
-        }        
+        }
 
         /// <summary>
         /// Test saving a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet).
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string expectedObject1FilePath = string.Format(
                 "{0}{1}{2}",
                 ArchiveConstants.INVENTORY_PATH,
-                InventoryArchiveWriteRequest.CreateArchiveFolderName(objsFolder),                                  
+                InventoryArchiveWriteRequest.CreateArchiveFolderName(objsFolder),
                 expectedObject1FileName);
 
             string filePath;
@@ -195,7 +195,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(gotObject1File, Is.True, "No item1 file in archive");
 //            Assert.That(gotObject2File, Is.True, "No object2 file in archive");
 
-            // TODO: Test presence of more files and contents of files.            
+            // TODO: Test presence of more files and contents of files.
         }
         
         /// <summary>
@@ -206,7 +206,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// This test also does some deeper probing of loading into nested inventory structures
         [Test]
         public void TestLoadIarV0_1ExistingUsers()
-        {   
+        {
             TestHelper.InMethod();
             
             //log4net.Config.XmlConfigurator.Configure();
@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
             tar.Close();
 
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
@@ -271,9 +271,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem1.Owner, Is.EqualTo(userUuid),
                 "Loaded item owner doesn't match inventory reciever");
 
-            // Now try loading to a root child folder            
+            // Now try loading to a root child folder
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xA");
-            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
+            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
@@ -282,12 +282,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 
             // Now try loading to a more deeply nested folder
             UserInventoryTestUtils.CreateInventoryFolder(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC");
-            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());            
+            archiveReadStream = new MemoryStream(archiveReadStream.ToArray());
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
-            Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");                        
+            Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");
         }
 
         /// <summary>
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// (as tested in the a later commented out test)
         [Test]
         public void TestLoadIarV0_1AbsentUsers()
-        {   
+        {
             TestHelper.InMethod();
             
             log4net.Config.XmlConfigurator.Configure();
@@ -331,7 +331,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
             tar.Close();
 
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
@@ -357,8 +357,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //                "Loaded item non-uuid creator doesn't match that of the loading user");
             Assert.That(
                 foundItem1.CreatorIdAsUuid, Is.EqualTo(userUuid), 
-                "Loaded item uuid creator doesn't match that of the loading user");                  
-        }        
+                "Loaded item uuid creator doesn't match that of the loading user");
+        }
 
         /// <summary>
         /// Test loading a V0.1 OpenSim Inventory Archive (subject to change since there is no fixed format yet) where
@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         /// Disabled since temporary profiles have not yet been implemented.
         //[Test]
         public void TestLoadIarV0_1TempProfiles()
-        {   
+        {
             TestHelper.InMethod();
             
             log4net.Config.XmlConfigurator.Configure();
@@ -396,7 +396,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             tar.WriteFile(item1FileName, UserInventoryItemSerializer.Serialize(item1));
             tar.Close();
 
-            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());            
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             SerialiserModule serialiserModule = new SerialiserModule();
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
             
@@ -436,7 +436,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             Assert.That(foundItem.Owner, Is.EqualTo(userUuid));
             
             Console.WriteLine("### Successfully completed {0} ###", MethodBase.GetCurrentMethod());
-        }        
+        }
         
         /// <summary>
         /// Test replication of an archive path to the user's inventory.
@@ -474,7 +474,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string itemArchivePath
                 = string.Format(
                     "{0}{1}{2}{3}", 
-                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);            
+                    ArchiveConstants.INVENTORY_PATH, folder1ArchiveName, folder2ArchiveName, itemArchiveName);
 
             //Console.WriteLine("userInfo.RootFolder 2: {0}", userInfo.RootFolder);
 

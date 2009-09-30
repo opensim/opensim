@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Reflection;
 using OpenSim.Framework;
@@ -40,15 +41,38 @@ namespace OpenSim.Server.Base
     {
         // Logger
         //
-        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
+        private static readonly ILog m_Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType); 
 
         // The http server instance
         //
         protected BaseHttpServer m_HttpServer = null;
+        protected uint m_Port = 0;
+        protected Dictionary<uint, BaseHttpServer> m_Servers =
+            new Dictionary<uint, BaseHttpServer>();
 
         public IHttpServer HttpServer
         {
             get { return m_HttpServer; }
+        }
+
+        public uint DefaultPort
+        {
+            get { return m_Port; }
+        }
+
+        public IHttpServer GetHttpServer(uint port)
+        {
+            m_Log.InfoFormat("[SERVER]: Requested port {0}", port);
+            if (port == m_Port)
+                return HttpServer;
+
+            if (m_Servers.ContainsKey(port))
+                return m_Servers[port];
+
+            m_Servers[port] = new BaseHttpServer(port);
+            m_Servers[port].Start();
+
+            return m_Servers[port];
         }
 
         // Handle all the automagical stuff
@@ -73,6 +97,8 @@ namespace OpenSim.Server.Base
                 System.Console.WriteLine("Port number not specified or 0, server can't start");
                 Thread.CurrentThread.Abort();
             }
+
+            m_Port = port;
 
             m_HttpServer = new BaseHttpServer(port);
 

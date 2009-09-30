@@ -130,7 +130,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             foreach (object o in m_requests)
             {
                 PollServiceHttpRequest req = (PollServiceHttpRequest) o;
-                m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(), new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
+                m_server.DoHTTPGruntWork(req.PollServiceArgs.NoEvents(req.RequestID, req.PollServiceArgs.Id), new OSHttpResponse(new HttpResponse(req.HttpContext, req.Request), req.HttpContext));
             }
 
             m_requests.Clear();

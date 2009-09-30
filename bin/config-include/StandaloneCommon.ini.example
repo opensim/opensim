@@ -32,3 +32,10 @@
 [FreeswitchService]
     ;; Configuration for the freeswitch service goes here
     LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
+
+[GridService]
+    ;; For in-memory region storage (default)
+	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+    ;;--- For MySql region storage (alternative)
+ 	;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
+	;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"

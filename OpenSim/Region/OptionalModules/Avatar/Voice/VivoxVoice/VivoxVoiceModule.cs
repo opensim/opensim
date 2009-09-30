@@ -226,7 +226,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 m_log.DebugFormat("[VivoxVoice] plugin initialization failed: {0}", e.ToString());
                 return;
             }
-        }   
+        }
 
 
         // Called to indicate that the module has been added to the region
@@ -1144,7 +1144,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 // Otherwise prepare the request
                 m_log.DebugFormat("[VivoxVoice] Sending request <{0}>", requrl);
 
-                HttpWebRequest  req = (HttpWebRequest)WebRequest.Create(requrl);            
+                HttpWebRequest  req = (HttpWebRequest)WebRequest.Create(requrl);
                 HttpWebResponse rsp = null;
 
                 // We are sending just parameters, no content

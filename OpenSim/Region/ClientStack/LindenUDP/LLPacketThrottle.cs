@@ -26,7 +26,7 @@
  */
 
 namespace OpenSim.Region.ClientStack.LindenUDP
-{    
+{
     public class LLPacketThrottle
     {
         private readonly int m_maxAllowableThrottle;
@@ -105,13 +105,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public int Throttle
         {
-            get { return m_currentThrottle; }            
+            get { return m_currentThrottle; }
             set
             {
                 if (value < m_minAllowableThrottle)
                 {
                     m_currentThrottle = m_minAllowableThrottle;
-                }                
+                }
                 else if (value > m_maxAllowableThrottle)
                 {
                     m_currentThrottle = m_maxAllowableThrottle;

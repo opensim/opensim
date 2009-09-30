@@ -97,8 +97,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                    </document>", Context, Realm);
             }
              
-            return response;   
-        }    
+            return response;
+        }
     }
     
 }

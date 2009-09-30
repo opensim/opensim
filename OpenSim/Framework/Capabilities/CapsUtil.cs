@@ -28,7 +28,7 @@
 using OpenMetaverse;
 
 namespace OpenSim.Framework.Capabilities
-{    
+{
     /// <summary>
     /// Capabilities utility methods
     /// </summary>

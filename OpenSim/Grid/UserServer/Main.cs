@@ -187,13 +187,13 @@ namespace OpenSim.Grid.UserServer
         /// <param name="inventoryService"></param>
         protected virtual void StartupUserServerModules()
         {
-            m_log.Info("[STARTUP]: Establishing data connection");                        
+            m_log.Info("[STARTUP]: Establishing data connection");
             
             //we only need core components so we can request them from here
             IInterServiceInventoryServices inventoryService;
             TryGet<IInterServiceInventoryServices>(out inventoryService);
             
-            CommunicationsManager commsManager = new UserServerCommsManager(inventoryService);            
+            CommunicationsManager commsManager = new UserServerCommsManager(inventoryService);
 
             //setup database access service, for now this has to be created before the other modules.
             m_userDataBaseService = new UserDataBaseService(commsManager);
@@ -260,8 +260,6 @@ namespace OpenSim.Grid.UserServer
             m_userManager.PostInitialise();
             m_avatarAppearanceModule.PostInitialise();
             m_friendsModule.PostInitialise();
-
-            m_avatarAppearanceModule.PostInitialise();
         }
 
         protected virtual void RegisterHttpHandlers()
@@ -276,8 +274,6 @@ namespace OpenSim.Grid.UserServer
             m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
             m_messagesService.RegisterHandlers(m_httpServer);
             m_gridInfoService.RegisterHandlers(m_httpServer);
-
-            m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
         }
 
         public override void ShutdownSpecific()

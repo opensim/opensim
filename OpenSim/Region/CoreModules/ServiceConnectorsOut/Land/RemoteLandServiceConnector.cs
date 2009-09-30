@@ -37,6 +37,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 
+
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
 {
     public class RemoteLandServicesConnector :
@@ -89,7 +90,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Land
             if (!m_Enabled)
                 return;
 
-            m_MapService = scene.CommsManager.GridService;
+            m_GridService = scene.GridService;
             m_LocalService.AddRegion(scene);
             scene.RegisterModuleInterface<ILandService>(this);
         }
