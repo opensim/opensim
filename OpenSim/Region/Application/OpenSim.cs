@@ -306,10 +306,6 @@ namespace OpenSim
                                           "delete-region <name>",
                                           "Delete a region from disk", RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "predecode-j2k",
-                                          "predecode-j2k [<num threads>]>",
-                                          "Precache assets,decode j2k layerdata", RunCommand);
-
             m_console.Commands.AddCommand("region", false, "modules list",
                                           "modules list",
                                           "List modules", HandleModules);
@@ -744,22 +740,6 @@ namespace OpenSim
                     }
                     break;
 
-                case "predecode-j2k":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.CacheJ2kDecode(Convert.ToInt32(cmdparams[0]));
-                    }
-                    else
-                    {
-                        m_sceneManager.CacheJ2kDecode(1);
-                    }
-                    break;
-
-                case "link-region":
-                case "unlink-region":
-                case "link-mapping":
-                    HGCommands.RunHGCommand(command, cmdparams, m_sceneManager.CurrentOrFirstScene);
-                    break;
             }
         }
 
