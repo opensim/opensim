@@ -826,12 +826,7 @@ namespace OpenSim.Client.MXP.ClientStack
             OpenSim.Region.Framework.Scenes.Scene scene=(OpenSim.Region.Framework.Scenes.Scene)Scene;
             AvatarAppearance appearance;
             scene.GetAvatarAppearance(this,out appearance);
-            List<byte> visualParams = new List<byte>();
-            foreach (byte visualParam in appearance.VisualParams)
-            {
-                visualParams.Add(visualParam);
-            }
-            OnSetAppearance(appearance.Texture.GetBytes(), visualParams);
+            OnSetAppearance(appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
         public void Stop()

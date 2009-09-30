@@ -5272,13 +5272,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // for the client session anyway, in order to protect ourselves against bad code in plugins
                         try
                         {
-                            List<byte> visualparams = new List<byte>();
-                            foreach (AgentSetAppearancePacket.VisualParamBlock x in appear.VisualParam)
-                            {
-                                visualparams.Add(x.ParamValue);
-                            }
+                            byte[] visualparams = new byte[appear.VisualParam.Length];
+                            for (int i = 0; i < appear.VisualParam.Length; i++)
+                                visualparams[i] = appear.VisualParam[i].ParamValue;
 
-                            handlerSetAppearance(appear.ObjectData.TextureEntry, visualparams);
+                            Primitive.TextureEntry te = null;
+                            if (appear.ObjectData.TextureEntry.Length > 1)
+                                te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+
+                            handlerSetAppearance(te, visualparams);
                         }
                         catch (Exception e)
                         {

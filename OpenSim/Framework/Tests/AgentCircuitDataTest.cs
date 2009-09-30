@@ -227,8 +227,7 @@ namespace OpenSim.Framework.Tests
                 wearbyte.Add(VisualParams[i]);
             }
 
-
-            AvAppearance.SetAppearance(AvAppearance.Texture.GetBytes(), wearbyte);
+            AvAppearance.SetAppearance(AvAppearance.Texture, (byte[])VisualParams.Clone());
         }
 
         /// <summary>

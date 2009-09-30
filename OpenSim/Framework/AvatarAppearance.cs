@@ -380,13 +380,13 @@ namespace OpenSim.Framework
         /// <summary>
         /// Set up appearance textures and avatar parameters, including a height calculation
         /// </summary>
-        /// <param name="texture"></param>
-        /// <param name="visualParam"></param>
-        public virtual void SetAppearance(byte[] texture, List<byte> visualParam)
+        public virtual void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
-            Primitive.TextureEntry textureEnt = new Primitive.TextureEntry(texture, 0, texture.Length);
-            m_texture = textureEnt;
-            m_visualparams = visualParam.ToArray();
+            if (textureEntry != null)
+                m_texture = textureEntry;
+            if (visualParams != null)
+                m_visualparams = visualParams;
+
             m_avatarHeight = 1.23077f  // Shortest possible avatar height
                            + 0.516945f * (float)m_visualparams[(int)VPElement.SHAPE_HEIGHT] / 255.0f   // Body height
                            + 0.072514f * (float)m_visualparams[(int)VPElement.SHAPE_HEAD_SIZE] / 255.0f  // Head size

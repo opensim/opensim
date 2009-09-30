@@ -861,12 +861,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             Scene scene = (Scene)Scene;
             AvatarAppearance appearance;
             scene.GetAvatarAppearance(this, out appearance);
-            List<byte> visualParams = new List<byte>();
-            foreach (byte visualParam in appearance.VisualParams)
-            {
-                visualParams.Add(visualParam);
-            }
-            OnSetAppearance(appearance.Texture.GetBytes(), visualParams);
+            OnSetAppearance(appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
         public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)

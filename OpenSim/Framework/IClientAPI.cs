@@ -65,7 +65,7 @@ namespace OpenSim.Framework
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
-    public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
+    public delegate void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
