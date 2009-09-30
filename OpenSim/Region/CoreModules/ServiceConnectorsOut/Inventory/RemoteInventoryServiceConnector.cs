@@ -107,7 +107,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         public void AddRegion(Scene scene)
         {
             m_Scene = scene;
-            m_log.Debug("[XXXX] Adding scene " + m_Scene.RegionInfo.RegionName);
+            //m_log.Debug("[XXXX] Adding scene " + m_Scene.RegionInfo.RegionName);
 
             if (!m_Enabled)
                 return;
