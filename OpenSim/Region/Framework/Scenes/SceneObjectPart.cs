@@ -415,10 +415,9 @@ namespace OpenSim.Region.Framework.Scenes
             set 
             { 
                 m_name = value;
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    pa.SOPName = value;
+                    PhysActor.SOPName = value;
                 }
             }
         }
@@ -428,11 +427,10 @@ namespace OpenSim.Region.Framework.Scenes
             get { return (byte) m_material; }
             set
             {
-                PhysicsActor pa = PhysActor;
                 m_material = (Material)value;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    pa.SetMaterial((int)value);
+                    PhysActor.SetMaterial((int)value);
                 }
             }
         }
@@ -503,12 +501,11 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
-                PhysicsActor pa = PhysActor;
-                if (pa != null && _parentID == 0)
+                if (PhysActor != null && _parentID == 0)
                 {
-                    m_groupPosition.X = pa.Position.X;
-                    m_groupPosition.Y = pa.Position.Y;
-                    m_groupPosition.Z = pa.Position.Z;
+                    m_groupPosition.X = PhysActor.Position.X;
+                    m_groupPosition.Y = PhysActor.Position.Y;
+                    m_groupPosition.Z = PhysActor.Position.Z;
                 }
 
                 if (IsAttachment)
@@ -528,27 +525,26 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_groupPosition = value;
 
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
                     try
                     {
                         // Root prim actually goes at Position
                         if (_parentID == 0)
                         {
-                            pa.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                            PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
                         }
                         else
                         {
                             // To move the child prim in respect to the group position and rotation we have to calculate
                             Vector3 resultingposition = GetWorldPosition();
-                            pa.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                            PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
                             Quaternion resultingrot = GetWorldRotation();
-                            pa.Orientation = resultingrot;
+                            PhysActor.Orientation = resultingrot;
                         }
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                     catch (Exception e)
                     {
@@ -581,16 +577,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)
                 {
-                    PhysicsActor pa = PhysActor;
-                     if (_parentID != 0 && pa != null)
+                     if (_parentID != 0 && PhysActor != null)
                     {
                         Vector3 resultingposition = GetWorldPosition();
-                        pa.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                        PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
                         Quaternion resultingrot = GetWorldRotation();
-                        pa.Orientation = resultingrot;
+                        PhysActor.Orientation = resultingrot;
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
             }
@@ -600,14 +595,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                PhysicsActor pa = PhysActor;
                 // We don't want the physics engine mucking up the rotations in a linkset
-                if ((_parentID == 0) && (Shape.PCode != 9 || Shape.State == 0)  && (pa != null))
+                if ((_parentID == 0) && (Shape.PCode != 9 || Shape.State == 0)  && (PhysActor != null))
                 {
-                    if (pa.Orientation.X != 0 || pa.Orientation.Y != 0
-                        || pa.Orientation.Z != 0 || pa.Orientation.W != 0)
+                    if (PhysActor.Orientation.X != 0 || PhysActor.Orientation.Y != 0
+                        || PhysActor.Orientation.Z != 0 || PhysActor.Orientation.W != 0)
                     {
-                        m_rotationOffset = pa.Orientation;
+                        m_rotationOffset = PhysActor.Orientation;
                     }
                 }
                 
@@ -616,28 +610,27 @@ namespace OpenSim.Region.Framework.Scenes
             
             set
             {
-                PhysicsActor pa = PhysActor;
                 StoreUndoState();
                 m_rotationOffset = value;
 
-                if (pa != null)
+                if (PhysActor != null)
                 {
                     try
                     {
                         // Root prim gets value directly
                         if (_parentID == 0)
                         {
-                            pa.Orientation = value;
+                            PhysActor.Orientation = value;
                             //m_log.Info("[PART]: RO1:" + PhysActor.Orientation.ToString());
                         }
                         else
                         {
                             // Child prim we have to calculate it's world rotationwel
                             Quaternion resultingrotation = GetWorldRotation();
-                            pa.Orientation = resultingrotation;
+                            PhysActor.Orientation = resultingrotation;
                             //m_log.Info("[PART]: RO2:" + PhysActor.Orientation.ToString());
                         }
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         //}
                     }
                     catch (Exception ex)
@@ -657,14 +650,13 @@ namespace OpenSim.Region.Framework.Scenes
                 //if (PhysActor.Velocity.X != 0 || PhysActor.Velocity.Y != 0
                 //|| PhysActor.Velocity.Z != 0)
                 //{
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    if (pa.IsPhysical)
+                    if (PhysActor.IsPhysical)
                     {
-                        m_velocity.X = pa.Velocity.X;
-                        m_velocity.Y = pa.Velocity.Y;
-                        m_velocity.Z = pa.Velocity.Z;
+                        m_velocity.X = PhysActor.Velocity.X;
+                        m_velocity.Y = PhysActor.Velocity.Y;
+                        m_velocity.Z = PhysActor.Velocity.Z;
                     }
                 }
 
@@ -674,13 +666,12 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_velocity = value;
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    if (pa.IsPhysical)
+                    if (PhysActor.IsPhysical)
                     {
-                        pa.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                        PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
             }
@@ -697,10 +688,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                PhysicsActor pa = PhysActor;
-                if ((pa != null) && pa.IsPhysical)
+                if ((PhysActor != null) && PhysActor.IsPhysical)
                 {
-                    m_angularVelocity.FromBytes(pa.RotationalVelocity.GetBytes(), 0);
+                    m_angularVelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
                 }
                 return m_angularVelocity;
             }
@@ -719,11 +709,10 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_description; }
             set 
             {
-                PhysicsActor pa = PhysActor;
                 m_description = value;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    pa.SOPDescription = value;
+                    PhysActor.SOPDescription = value;
                 }
             }
         }
@@ -817,15 +806,14 @@ namespace OpenSim.Region.Framework.Scenes
 if (m_shape != null) {
                 m_shape.Scale = value;
 
-                PhysicsActor pa = PhysActor;
-                if (pa != null && m_parentGroup != null)
+                if (PhysActor != null && m_parentGroup != null)
                 {
                     if (m_parentGroup.Scene != null)
                     {
                         if (m_parentGroup.Scene.PhysicsScene != null)
                         {
-                            pa.Size = new PhysicsVector(m_shape.Scale.X, m_shape.Scale.Y, m_shape.Scale.Z);
-                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                            PhysActor.Size = new PhysicsVector(m_shape.Scale.X, m_shape.Scale.Y, m_shape.Scale.Z);
+                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         }
                     }
                 }
@@ -1355,14 +1343,13 @@ if (m_shape != null) {
                         RigidBody);
 
                     // Basic Physics returns null..  joy joy joy.
-                    PhysicsActor pa = PhysActor;
-                    if (pa != null)
+                    if (PhysActor != null)
                     {
-                        pa.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
-                        pa.SOPDescription = this.Description;
-                        pa.LocalID = LocalId;
+                        PhysActor.SOPName = this.Name; // save object name and desc into the PhysActor so ODE internals know the joint/body info
+                        PhysActor.SOPDescription = this.Description;
+                        PhysActor.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(RigidBody, true);
-                        pa.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
+                        PhysActor.SetVolumeDetect(VolumeDetectActive ? 1 : 0);
                     }
                 }
             }
@@ -1576,24 +1563,23 @@ if (m_shape != null) {
             }
             else
             {
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    if (UsePhysics != pa.IsPhysical || isNew)
+                    if (UsePhysics != PhysActor.IsPhysical || isNew)
                     {
-                        if (pa.IsPhysical) // implies UsePhysics==false for this block
+                        if (PhysActor.IsPhysical) // implies UsePhysics==false for this block
                         {
                             if (!isNew)
                                 ParentGroup.Scene.RemovePhysicalPrim(1);
 
-                            pa.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
-                            pa.OnOutOfBounds -= PhysicsOutOfBounds;
-                            pa.delink();
+                            PhysActor.OnRequestTerseUpdate -= PhysicsRequestingTerseUpdate;
+                            PhysActor.OnOutOfBounds -= PhysicsOutOfBounds;
+                            PhysActor.delink();
 
                             if (ParentGroup.Scene.PhysicsScene.SupportsNINJAJoints && (!isNew))
                             {
                                 // destroy all joints connected to this now deactivated body
-                                m_parentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(pa);
+                                m_parentGroup.Scene.PhysicsScene.RemoveAllJointsConnectedToActorThreadLocked(PhysActor);
                             }
 
                             // stop client-side interpolation of all joint proxy objects that have just been deleted
@@ -1612,7 +1598,7 @@ if (m_shape != null) {
                             //RotationalVelocity = new Vector3(0, 0, 0);
                         }
 
-                        pa.IsPhysical = UsePhysics;
+                        PhysActor.IsPhysical = UsePhysics;
 
 
                         // If we're not what we're supposed to be in the physics scene, recreate ourselves.
@@ -1626,19 +1612,19 @@ if (m_shape != null) {
                             {
                                 ParentGroup.Scene.AddPhysicalPrim(1);
 
-                                pa.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
-                                pa.OnOutOfBounds += PhysicsOutOfBounds;
+                                PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
+                                PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
                                 if (_parentID != 0 && _parentID != LocalId)
                                 {
                                     if (ParentGroup.RootPart.PhysActor != null)
                                     {
-                                        pa.link(ParentGroup.RootPart.PhysActor);
+                                        PhysActor.link(ParentGroup.RootPart.PhysActor);
                                     }
                                 }
                             }
                         }
                     }
-                    m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                    m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                 }
             }
         }
@@ -1704,10 +1690,9 @@ if (m_shape != null) {
 
         public Vector3 GetGeometricCenter()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                return new Vector3(pa.CenterOfMass.X, pa.CenterOfMass.Y, pa.CenterOfMass.Z);
+                return new Vector3(PhysActor.CenterOfMass.X, PhysActor.CenterOfMass.Y, PhysActor.CenterOfMass.Z);
             }
             else
             {
@@ -1717,10 +1702,9 @@ if (m_shape != null) {
 
         public float GetMass()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                return pa.Mass;
+                return PhysActor.Mass;
             }
             else
             {
@@ -1730,9 +1714,8 @@ if (m_shape != null) {
 
         public PhysicsVector GetForce()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
-                return pa.Force;
+            if (PhysActor != null)
+                return PhysActor.Force;
             else
                 return new PhysicsVector();
         }
@@ -2111,15 +2094,11 @@ if (m_shape != null) {
 
         public void PhysicsRequestingTerseUpdate()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                Vector3 newpos = new Vector3(pa.Position.GetBytes(), 0);
+                Vector3 newpos = new Vector3(PhysActor.Position.GetBytes(), 0);
                 
-                if (m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.N) | 
-                    m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.S) | 
-                    m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.E) | 
-                    m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
+                if (m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.N) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.S) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.E) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
                 {
                     m_parentGroup.AbsolutePosition = newpos;
                     return;
@@ -2315,15 +2294,14 @@ if (m_shape != null) {
                     if (texture != null)
                         m_shape.SculptData = texture.Data;
 
-                    PhysicsActor pa = PhysActor;
-                    if (pa != null)
+                    if (PhysActor != null)
                     {
                         // Tricks physics engine into thinking we've changed the part shape.
                         PrimitiveBaseShape m_newshape = m_shape.Copy();
-                        pa.Shape = m_newshape;
+                        PhysActor.Shape = m_newshape;
                         m_shape = m_newshape;
 
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
             }
@@ -2542,10 +2520,9 @@ if (m_shape != null) {
 
         public void SetBuoyancy(float fvalue)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.Buoyancy = fvalue;
+                PhysActor.Buoyancy = fvalue;
             }
         }
 
@@ -2561,62 +2538,56 @@ if (m_shape != null) {
 
         public void SetFloatOnWater(int floatYN)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
                 if (floatYN == 1)
                 {
-                    pa.FloatOnWater = true;
+                    PhysActor.FloatOnWater = true;
                 }
                 else
                 {
-                    pa.FloatOnWater = false;
+                    PhysActor.FloatOnWater = false;
                 }
             }
         }
 
         public void SetForce(PhysicsVector force)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.Force = force;
+                PhysActor.Force = force;
             }
         }
 
         public void SetVehicleType(int type)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.VehicleType = type;
+                PhysActor.VehicleType = type;
             }
         }
 
         public void SetVehicleFloatParam(int param, float value)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.VehicleFloatParam(param, value);
+                PhysActor.VehicleFloatParam(param, value);
             }
         }
 
         public void SetVehicleVectorParam(int param, PhysicsVector value)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.VehicleVectorParam(param, value);
+                PhysActor.VehicleVectorParam(param, value);
             }
         }
 
         public void SetVehicleRotationParam(int param, Quaternion rotation)
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.VehicleRotationParam(param, rotation);
+                PhysActor.VehicleRotationParam(param, rotation);
             }
         }
 
@@ -2644,11 +2615,10 @@ if (m_shape != null) {
 
         public void SetPhysicsAxisRotation()
         {
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.LockAngularMotion(RotationAxis);
-                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                PhysActor.LockAngularMotion(RotationAxis);
+                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             }
         }
 
@@ -3380,9 +3350,8 @@ if (m_shape != null) {
                 {
                     IsVD = false;               // Switch it of for the course of this routine
                     VolumeDetectActive = false; // and also permanently
-                    PhysicsActor pa = PhysActor;
-                    if (pa != null)
-                        pa.SetVolumeDetect(0);   // Let physics know about it too
+                    if (PhysActor != null)
+                        PhysActor.SetVolumeDetect(0);   // Let physics know about it too
                 }
                 else
                 {
@@ -3430,21 +3399,18 @@ if (m_shape != null) {
             if (IsPhantom || IsAttachment) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    m_parentGroup.Scene.PhysicsScene.RemovePrim(pa);
+                    m_parentGroup.Scene.PhysicsScene.RemovePrim(PhysActor);
                     /// that's not wholesome.  Had to make Scene public
-                    pa = null;
+                    PhysActor = null;
                 }
             }
             else // Not phantom
             {
                 RemFlag(PrimFlags.Phantom);
 
-                // This is NOT safe!!
-                PhysicsActor pa = PhysActor;
-                if (pa == null)
+                if (PhysActor == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
@@ -3455,9 +3421,9 @@ if (m_shape != null) {
                         RotationOffset,
                         UsePhysics);
 
-                    if (pa != null)
+                    if (PhysActor != null)
                     {
-                        pa.LocalID = LocalId;
+                        PhysActor.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(UsePhysics, true);
                         if (m_parentGroup != null)
                         {
@@ -3476,14 +3442,14 @@ if (m_shape != null) {
                             (CollisionSound != UUID.Zero)
                             )
                         {
-                                pa.OnCollisionUpdate += PhysicsCollision;
-                                pa.SubscribeEvents(1000);
+                                PhysActor.OnCollisionUpdate += PhysicsCollision;
+                                PhysActor.SubscribeEvents(1000);
                         }
                     }
                 }
                 else // it already has a physical representation
                 {
-                    pa.IsPhysical = UsePhysics;                    
+                    PhysActor.IsPhysical = UsePhysics;                    
 
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
                     if (m_parentGroup != null)
@@ -3506,10 +3472,9 @@ if (m_shape != null) {
                 // Defensive programming calls for a check here.
                 // Better would be throwing an exception that could be catched by a unit test as the internal 
                 // logic should make sure, this Physactor is always here.
-                PhysicsActor pa = this.PhysActor;
-                if (pa != null)
+                if (this.PhysActor != null)
                 {
-                    pa.SetVolumeDetect(1);
+                    PhysActor.SetVolumeDetect(1);
                     AddFlag(PrimFlags.Phantom); // We set this flag also if VD is active
                     this.VolumeDetectActive = true;
                 }
@@ -3517,11 +3482,10 @@ if (m_shape != null) {
             }
             else
             {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
-                // (mumbles, well, at least if you have infinte CPU powers :-) )
-                PhysicsActor pa = this.PhysActor;
-                if (pa != null)
+                // (mumbles, well, at least if you have infinte CPU powers :-))
+                if (this.PhysActor != null)
                 {
-                    pa.SetVolumeDetect(0);
+                    PhysActor.SetVolumeDetect(0);
                 }
                 this.VolumeDetectActive = false;
             }
@@ -3579,11 +3543,10 @@ if (m_shape != null) {
             m_shape.PathTaperY = shapeBlock.PathTaperY;
             m_shape.PathTwist = shapeBlock.PathTwist;
             m_shape.PathTwistBegin = shapeBlock.PathTwistBegin;
-            PhysicsActor pa = PhysActor;
-            if (pa != null)
+            if (PhysActor != null)
             {
-                pa.Shape = m_shape;
-                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(pa);
+                PhysActor.Shape = m_shape;
+                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
             }
 
             // This is what makes vehicle trailers work
@@ -3684,21 +3647,19 @@ if (m_shape != null) {
                 )
             {
                 // subscribe to physics updates.
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    pa.OnCollisionUpdate += PhysicsCollision;
-                    pa.SubscribeEvents(1000);
+                    PhysActor.OnCollisionUpdate += PhysicsCollision;
+                    PhysActor.SubscribeEvents(1000);
 
                 }
             }
             else
             {
-                PhysicsActor pa = PhysActor;
-                if (pa != null)
+                if (PhysActor != null)
                 {
-                    pa.UnSubscribeEvents();
-                    pa.OnCollisionUpdate -= PhysicsCollision;
+                    PhysActor.UnSubscribeEvents();
+                    PhysActor.OnCollisionUpdate -= PhysicsCollision;
                 }
             }
 
@@ -3801,8 +3762,6 @@ if (m_shape != null) {
                     lPos = AbsolutePosition;
             }
 
-            // Causes this thread to dig into the Client Thread Data.
-            // Remember your locking here!
             remoteClient.SendPrimTerseUpdate(m_regionHandle,
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
