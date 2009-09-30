@@ -68,9 +68,13 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public override void UpdateMovement()
         {
-            UpdateGroupRotation(GroupRotation * m_rotationDirection);
+            UpdateGroupRotationR(GroupRotation * m_rotationDirection);
 
             base.UpdateMovement();
+        }
+
+        public ComplexObject()
+        {
         }
 
         public ComplexObject(Scene scene, ulong regionHandle, UUID ownerID, uint localID, Vector3 pos)

@@ -1236,7 +1236,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdateGroupRotation(rot);
+                    group.UpdateGroupRotationR(rot);
                 }
             }
         }
@@ -1255,7 +1255,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_parentScene.Permissions.CanMoveObject(group.UUID, remoteClient.AgentId))
                 {
-                    group.UpdateGroupRotation(pos, rot);
+                    group.UpdateGroupRotationPR(pos, rot);
                 }
             }
         }
@@ -1811,7 +1811,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (rot != Quaternion.Identity)
                     {
-                        copy.UpdateGroupRotation(rot);
+                        copy.UpdateGroupRotationR(rot);
                     }
 
                     copy.CreateScriptInstances(0, false, m_parentScene.DefaultScriptEngine, 0);

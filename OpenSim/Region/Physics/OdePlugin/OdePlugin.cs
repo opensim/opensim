@@ -238,7 +238,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdeCharacter> _characters = new HashSet<OdeCharacter>();
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
-        private readonly HashSet<OdePrim> _taintedPrim = new HashSet<OdePrim>();
+        private readonly HashSet<OdePrim> _taintedPrimH = new HashSet<OdePrim>();
+        private readonly List<OdePrim> _taintedPrimL = new List<OdePrim>();
         private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
@@ -2112,6 +2113,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="prim"></param>
         public void RemovePrimThreadLocked(OdePrim prim)
         {
+//Console.WriteLine("RemovePrimThreadLocked " +  prim.m_primName);            
             lock (prim)
             {
                 remCollisionEventReporting(prim);
@@ -2559,11 +2561,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim) prim);
-                lock (_taintedPrim)
+                lock (_taintedPrimH)
                 {
-                    if (!(_taintedPrim.Contains(taintedprim)))
-                        _taintedPrim.Add(taintedprim);
-                }
+                    if (!(_taintedPrimH.Contains(taintedprim))) 
+        			{
+//Console.WriteLine("AddPhysicsActorTaint to " +  taintedprim.m_primName);       			
+                        _taintedPrimH.Add(taintedprim);					// HashSet for searching
+                        _taintedPrimL.Add(taintedprim);					// List for ordered readout
+					}
+				}
                 return;
             }
             else if (prim is OdeCharacter)
@@ -2599,7 +2605,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             float fps = 0;
             //m_log.Info(timeStep.ToString());
             step_time += timeStep;
-
+            
             // If We're loaded down by something else,
             // or debugging with the Visual Studio project on pause
             // skip a few frames to catch up gracefully.
@@ -2679,16 +2685,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 // Modify other objects in the scene.
                                 processedtaints = false;
 
-                                lock (_taintedPrim)
+                                lock (_taintedPrimL)
                                 {
-                                    foreach (OdePrim prim in _taintedPrim)
+                                    foreach (OdePrim prim in _taintedPrimL)
                                     {
+       
+                                    
                                         if (prim.m_taintremove)
                                         {
+//Console.WriteLine("Simulate calls RemovePrimThreadLocked");                                          
                                             RemovePrimThreadLocked(prim);
                                         }
                                         else
                                         {
+//Console.WriteLine("Simulate calls ProcessTaints");                                        
                                             prim.ProcessTaints(timeStep);
                                         }
                                         processedtaints = true;
@@ -2878,7 +2888,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
 
                                     if (processedtaints)
-                                        _taintedPrim.Clear();
+//Console.WriteLine("Simulate calls Clear of _taintedPrim list");                                      
+                                        _taintedPrimH.Clear();
+                                        _taintedPrimL.Clear();
                                 }
 
                                 // Move characters
@@ -3488,7 +3500,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (geom == localGround)
                         {
-                            //localHeightfield = TerrainHeightFieldHeights[geom];
+                            localHeightfield = TerrainHeightFieldHeights[geom];
                             proceed = true;
                         }
                         else
@@ -3510,7 +3522,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // memory corruption
                             if (TerrainHeightFieldHeights.ContainsKey(g))
                             {
-                                //float[] removingHeightField = TerrainHeightFieldHeights[g];
+                                float[] removingHeightField = TerrainHeightFieldHeights[g];
                                 TerrainHeightFieldHeights.Remove(g);
 
                                 if (RegionTerrain.ContainsKey(g))
@@ -3519,17 +3531,27 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 }
 
                                 d.GeomDestroy(g);
-                                //removingHeightField = new float[0];
-                            }                            
+                                removingHeightField = new float[0];
+                                
+
+                                
+                            }
+                            
                         }
+
                     }
                     else
                     {
                         m_log.Warn("[PHYSICS]: Couldn't proceed with UnCombine.  Region has inconsistant data.");
+
                     }
-                }                
+
+                }
+                
             }
-        }       
+        }
+
+        
 
         public override void SetWaterLevel(float baseheight)
         {

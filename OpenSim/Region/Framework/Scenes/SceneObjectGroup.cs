@@ -373,6 +373,13 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructors
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        public SceneObjectGroup()
+        {
+        }
+
+        /// <summary>
         /// This constructor creates a SceneObjectGroup using a pre-existing SceneObjectPart.
         /// The original SceneObjectPart will be used rather than a copy, preserving
         /// its existing localID and UUID.
@@ -2958,8 +2965,9 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         /// </summary>
         /// <param name="rot"></param>
-        public void UpdateGroupRotation(Quaternion rot)
+        public void UpdateGroupRotationR(Quaternion rot)
         {
+        
             m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
             {
@@ -2976,7 +2984,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
-        public void UpdateGroupRotation(Vector3 pos, Quaternion rot)
+        public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
             m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
@@ -3084,22 +3092,26 @@ namespace OpenSim.Region.Framework.Scenes
             int yaxis = 4;
             int zaxis = 8;
 
-            setX = ((axis & xaxis) != 0) ? true : false;
-            setY = ((axis & yaxis) != 0) ? true : false;
-            setZ = ((axis & zaxis) != 0) ? true : false;
-
-            float setval = (rotate10 > 0) ? 1f : 0f;
-
-            if (setX)
-                m_rootPart.RotationAxis.X = setval;
-            if (setY)
-                m_rootPart.RotationAxis.Y = setval;
-            if (setZ)
-                m_rootPart.RotationAxis.Z = setval;
-
-            if (setX || setY || setZ)
+            if (m_rootPart != null)
             {
-                m_rootPart.SetPhysicsAxisRotation();
+                setX = ((axis & xaxis) != 0) ? true : false;
+                setY = ((axis & yaxis) != 0) ? true : false;
+                setZ = ((axis & zaxis) != 0) ? true : false;
+
+                float setval = (rotate10 > 0) ? 1f : 0f;
+
+                if (setX)
+                    m_rootPart.RotationAxis.X = setval;
+                if (setY)
+                    m_rootPart.RotationAxis.Y = setval;
+                if (setZ)
+                    m_rootPart.RotationAxis.Z = setval;
+
+                if (setX || setY || setZ)
+                {
+                    m_rootPart.SetPhysicsAxisRotation();
+                }
+
             }
         }
 
