@@ -3485,6 +3485,7 @@ if (m_shape != null) {
             else
             {   // Remove VolumeDetect in any case. Note, it's safe to call SetVolumeDetect as often as you like
                 // (mumbles, well, at least if you have infinte CPU powers :-))
+                PhysicsActor pa = this.PhysActor;
                 if (pa != null)
                 {
                     PhysActor.SetVolumeDetect(0);
