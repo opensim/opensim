@@ -116,7 +116,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void DropAsset()
         {
-            m_log.WarnFormat("[LLIMAGE MANAGER]: Dropping texture asset {0}", m_requestedUUID);
+            //m_log.WarnFormat("[LLIMAGE MANAGER]: Dropping texture asset {0}", m_requestedUUID);
             m_asset = null;
             m_hasasset = false;
             m_asset_requested = false;
