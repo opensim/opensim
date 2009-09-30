@@ -1609,5 +1609,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
 
         #endregion
+
+        public void SendRebakeAvatarTextures(UUID textureID)
+        {
+        }
     }
 }

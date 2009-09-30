@@ -1175,5 +1175,7 @@ namespace OpenSim.Framework
         void KillEndDone();
 
         bool AddGenericPacketHandler(string MethodName, GenericMessage handler);
+
+        void SendRebakeAvatarTextures(UUID textureID);
     }
 }

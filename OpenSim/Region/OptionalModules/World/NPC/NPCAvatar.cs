@@ -1101,5 +1101,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
         #endregion
+        
+        public void SendRebakeAvatarTextures(UUID textureID)
+        {
+        }
     }
 }

@@ -1145,5 +1145,9 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         }
 
         #endregion
+
+        public void SendRebakeAvatarTextures(UUID textureID)
+        {
+        }
     }
 }
