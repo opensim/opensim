@@ -60,14 +60,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private sbyte m_discardLevel=-1;
         private uint m_packetNumber;
         private bool m_decoderequested = false;
-        private bool m_hasasset = false;
+        public bool m_hasasset = false;
         private bool m_asset_requested = false;
         private bool m_sentinfo = false;
         private uint m_stopPacket = 0;
         private const int cImagePacketSize = 1000;
         private const int cFirstPacketSize = 600;
+
         private AssetBase m_asset = null;
+        private int m_assetDataLength = 0;
+
         private LLImageManager m_image;
+
         public J2KImage(LLImageManager image)
         {
             m_image = image;
@@ -99,7 +103,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return 0;
             try
             {
-                return (ushort)(((m_asset.Data.Length - cFirstPacketSize + cImagePacketSize - 1) / cImagePacketSize) + 1);
+                return (ushort)(((m_assetDataLength - cFirstPacketSize + cImagePacketSize - 1) / cImagePacketSize) + 1);
             }
             catch (Exception)
             {
@@ -108,6 +112,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //
                 return 0;
             }
+        }
+
+        public void DropAsset()
+        {
+            m_log.WarnFormat("[LLIMAGE MANAGER]: Dropping texture asset {0}", m_requestedUUID);
+            m_asset = null;
+            m_hasasset = false;
+            m_asset_requested = false;
         }
 
         public void J2KDecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers)
@@ -127,8 +139,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                m_asset = asset;              
+                m_asset = asset; 
             }
+
+            m_assetDataLength = m_asset.Data.Length;
+
             RunUpdate();
         }
 
@@ -150,8 +165,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int LastPacketSize()
         {
             if (m_packetNumber == 1)
-                return m_asset.Data.Length;
-            int lastsize = (m_asset.Data.Length - cFirstPacketSize) % cImagePacketSize;
+                return m_assetDataLength;
+            int lastsize = (m_assetDataLength - cFirstPacketSize) % cImagePacketSize;
             //If the last packet size is zero, it's really cImagePacketSize, it sits on the boundary
             if (lastsize == 0)
             {
@@ -185,10 +200,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return true;
             }
             // Do we have less then 1 packet's worth of data?
-            else if (m_asset.Data.Length <= cFirstPacketSize)
+            else if (m_assetDataLength <= cFirstPacketSize)
             {
                 // Send only 1 packet
-                client.SendImageFirstPart(1, m_requestedUUID, (uint)m_asset.Data.Length, m_asset.Data, 2);
+                client.SendImageFirstPart(1, m_requestedUUID, (uint)m_assetDataLength, m_asset.Data, 2);
                 m_stopPacket = 0;
                 return true;
             }
@@ -198,7 +213,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 try 
                 { 
                     Buffer.BlockCopy(m_asset.Data, 0, firstImageData, 0, (int)cFirstPacketSize);
-                    client.SendImageFirstPart(TexturePacketCount(), m_requestedUUID, (uint)m_asset.Data.Length, firstImageData, 2);                
+                    client.SendImageFirstPart(TexturePacketCount(), m_requestedUUID, (uint)m_assetDataLength, firstImageData, 2);                
                 }
                 catch (Exception)
                 {
@@ -216,13 +231,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                if ((CurrentBytePosition() + cImagePacketSize) > m_asset.Data.Length)
+                if ((CurrentBytePosition() + cImagePacketSize) > m_assetDataLength)
                 {
                     imagePacketSize = LastPacketSize();
                     complete=true;
-                    if ((CurrentBytePosition() + imagePacketSize) > m_asset.Data.Length)
+                    if ((CurrentBytePosition() + imagePacketSize) > m_assetDataLength)
                     {
-                        imagePacketSize = m_asset.Data.Length - CurrentBytePosition();
+                        imagePacketSize = m_assetDataLength - CurrentBytePosition();
                         complete = true;
                     }
                 }

@@ -257,6 +257,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     J2KImage imagereq = m_imagestore[m_priorities.Values[x]];
                     if (imagereq.m_decoded == true && !imagereq.m_completedSendAtCurrentDiscardLevel)
                     {
+                        // we need to test this here now that we are dropping assets
+                        if (!imagereq.m_hasasset)
+                        {
+                            m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.m_requestedUUID);
+                            imagereq.RunUpdate();
+                            continue;
+                        }
+
                         numCollected++;
                         //SendPackets will send up to ten packets per cycle
                         if (imagereq.SendPackets(m_client, maxpack))
@@ -264,8 +272,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             //Send complete
                             if (!imagereq.m_completedSendAtCurrentDiscardLevel)
                             {
-                                imagereq.m_completedSendAtCurrentDiscardLevel = true;
+                                // I think this field imagereq.m_completedSendAtCurrentDiscardLevel
+                                // is completely redundant
+                                //imagereq.m_completedSendAtCurrentDiscardLevel = true;
+
                                 Interlocked.Decrement(ref m_outstandingtextures);
+
+                                // First and foremost, drop the reference to the asset
+                                // so that the asset doesn't stay in memory forever.
+                                // We'll Get it again from the asset service (usually cache)
+                                // if/when the client requests it again.
+                                // In order not to mess much with the current implementation
+                                // of this management code, we drop only the asset reference
+                                // but keep the image request itself.
+                                imagereq.DropAsset();
+
                                 //Re-assign priority to bottom
                                 //Remove the old priority
                                 m_priorities.Remove(imagereq.m_designatedPriorityKey);
