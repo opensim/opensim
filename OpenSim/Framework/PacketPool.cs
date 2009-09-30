@@ -234,7 +234,8 @@ namespace OpenSim.Framework
 
             lock (DataBlocks)
             {
-                DataBlocks[typeof(T)].Push(block);
+                if (DataBlocks[typeof(T)].Count < 50)
+                    DataBlocks[typeof(T)].Push(block);
             }
         }
     }
