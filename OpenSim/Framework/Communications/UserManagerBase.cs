@@ -650,15 +650,17 @@ namespace OpenSim.Framework.Communications
         public virtual UUID AddUser(
             string firstName, string lastName, string password, string email, uint regX, uint regY, UUID SetUUID)
         {
-            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + String.Empty);
 
             UserProfileData user = new UserProfileData();
+
+            user.PasswordSalt = Util.Md5Hash(UUID.Random().ToString());
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + user.PasswordSalt);
+
             user.HomeLocation = new Vector3(128, 128, 100);
             user.ID = SetUUID;
             user.FirstName = firstName;
             user.SurName = lastName;
             user.PasswordHash = md5PasswdHash;
-            user.PasswordSalt = String.Empty;
             user.Created = Util.UnixTimeSinceEpoch();
             user.HomeLookAt = new Vector3(100, 100, 100);
             user.HomeRegionX = regX;
