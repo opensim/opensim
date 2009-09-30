@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Serialization.External
     /// Serialize and deserialize region settings as an external format.
     /// </summary>
     public class UserProfileSerializer
-    {    
+    {
         public const int MAJOR_VERSION = 0;
         public const int MINOR_VERSION = 1;
         
@@ -65,6 +65,6 @@ namespace OpenSim.Framework.Serialization.External
             sw.Close();
             
             return sw.ToString();
-        }        
+        }
     }
 }

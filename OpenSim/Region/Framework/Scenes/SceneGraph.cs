@@ -845,7 +845,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence sp;
             
             lock (ScenePresences)
-            {                
+            {
                 ScenePresences.TryGetValue(agentID, out sp);
             }
 

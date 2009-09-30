@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 m_lastErrorMessage = errorMessage;
                 Console.WriteLine("About to pulse ArchiverTests on LoadCompleted");
                                 
-                Monitor.PulseAll(this);                
+                Monitor.PulseAll(this);
             }
         }
         
@@ -138,7 +138,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 archiverModule.ArchiveRegion(archiveWriteStream, requestId);
                 //AssetServerBase assetServer = (AssetServerBase)scene.CommsManager.AssetCache.AssetServer;
                 //while (assetServer.HasWaitingRequests())
-                //    assetServer.ProcessNextRequest();     
+                //    assetServer.ProcessNextRequest();
                 
                 Monitor.Wait(this, 60000);
             }
@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             // Also check that direct entries which will also have a file entry containing that directory doesn't 
             // upset load
-            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);            
+            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
 
             tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
 
@@ -251,7 +251,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             {
                 scene.EventManager.OnOarFileLoaded += LoadCompleted;
                 archiverModule.DearchiveRegion(archiveReadStream);
-            }            
+            }
             
             Assert.That(m_lastErrorMessage, Is.Null);
 
@@ -271,7 +271,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
         /// <summary>
         /// Test merging a V0.2 OpenSim Region Archive into an existing scene
-        /// </summary>        
+        /// </summary>
         //[Test]
         public void TestMergeOarV0_2()
         {

@@ -52,7 +52,7 @@ namespace OpenSim.Data.MSSQL
                 conn.Open();
                 Migration m = new Migration(conn, GetType().Assembly, "UserStore");
                 m.Update();
-            }            
+            }
         }
 
         public List<UserAccountData> Query(UUID principalID, UUID scopeID, string query)

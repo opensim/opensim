@@ -35,9 +35,9 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Tests.Common.Mock
-{        
+{
     public class TestScene : Scene
-    {        
+    {
         public TestScene(
             RegionInfo regInfo, AgentCircuitManager authen,
             CommunicationsManager commsMan, SceneCommunicationService sceneGridService, StorageManager storeManager,
@@ -60,7 +60,7 @@ namespace OpenSim.Tests.Common.Mock
         {
             reason = String.Empty;
             return true;
-        }        
+        }
             
         public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
         {

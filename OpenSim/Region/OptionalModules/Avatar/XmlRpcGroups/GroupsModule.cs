@@ -477,7 +477,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             foreach (string key in binBucketOSD.Keys)
                             {
                                 m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
-                            }                     
+                            }
                         }
    
                         // treat as if no attachment

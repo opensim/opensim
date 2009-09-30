@@ -42,7 +42,7 @@ using OpenSim.Region.Framework.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Framework.Scenes
-{       
+{
     #region Enumerations
 
     [Flags]
@@ -187,7 +187,7 @@ namespace OpenSim.Region.Framework.Scenes
         public IEntityInventory Inventory
         {
             get { return m_inventory; }
-        }       
+        }
         protected SceneObjectPartInventory m_inventory;
 
         [XmlIgnore]
@@ -309,9 +309,9 @@ namespace OpenSim.Region.Framework.Scenes
             RotationOffset = rotationOffset;
             Velocity = new Vector3(0, 0, 0);
             AngularVelocity = new Vector3(0, 0, 0);
-            Acceleration = new Vector3(0, 0, 0);          
+            Acceleration = new Vector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];            
+            m_particleSystem = new byte[0];
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -384,7 +384,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <value>
         /// Access should be via Inventory directly - this property temporarily remains for xml serialization purposes
-        /// </value>        
+        /// </value>
         public TaskInventoryDictionary TaskInventory
         {
             get { return m_inventory.Items; }
@@ -3484,7 +3484,7 @@ if (m_shape != null) {
                 }
                 else // it already has a physical representation
                 {
-                    pa.IsPhysical = UsePhysics;                    
+                    pa.IsPhysical = UsePhysics;
 
                     DoPhysicsPropertyUpdate(UsePhysics, false); // Update physical status. If it's phantom this will remove the prim
                     if (m_parentGroup != null)
@@ -3775,7 +3775,7 @@ if (m_shape != null) {
         public override string ToString()
         {
             return String.Format("{0} {1} (parent {2}))", Name, UUID, ParentGroup);
-        }        
+        }
 
         #endregion Public Methods
 
@@ -3823,11 +3823,11 @@ if (m_shape != null) {
             _everyoneMask &= _nextOwnerMask;
 
             Inventory.ApplyNextOwnerPermissions();
-        }        
+        }
 
         public bool CanBeDeleted()
         {
             return Inventory.CanBeDeleted();
         }
-    }        
+    }
 }

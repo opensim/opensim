@@ -187,13 +187,13 @@ namespace OpenSim.Grid.UserServer
         /// <param name="inventoryService"></param>
         protected virtual void StartupUserServerModules()
         {
-            m_log.Info("[STARTUP]: Establishing data connection");                        
+            m_log.Info("[STARTUP]: Establishing data connection");
             
             //we only need core components so we can request them from here
             IInterServiceInventoryServices inventoryService;
             TryGet<IInterServiceInventoryServices>(out inventoryService);
             
-            CommunicationsManager commsManager = new UserServerCommsManager(inventoryService);            
+            CommunicationsManager commsManager = new UserServerCommsManager(inventoryService);
 
             //setup database access service, for now this has to be created before the other modules.
             m_userDataBaseService = new UserDataBaseService(commsManager);

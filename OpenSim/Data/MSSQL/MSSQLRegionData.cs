@@ -146,7 +146,7 @@ namespace OpenSim.Data.MSSQL
                                     sceneObjectPart.Name, sceneObjectPart.UUID, sceneObjectPart.GroupPosition, groupID);
 
                                 sceneObjectPart.UUID = groupID;
-                            }                               
+                            }
 
                             grp = new SceneObjectGroup(sceneObjectPart);
                         }

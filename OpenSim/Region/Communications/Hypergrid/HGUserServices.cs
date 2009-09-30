@@ -87,7 +87,7 @@ namespace OpenSim.Region.Communications.Hypergrid
                 return m_localUserServices.AddUserAgent(agentdata);
 
             return base.AddUserAgent(agentdata);
-        }        
+        }
 
         public override UserAgentData GetAgentByUUID(UUID userId)
         {

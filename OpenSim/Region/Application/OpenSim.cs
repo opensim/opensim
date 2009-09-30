@@ -1245,20 +1245,20 @@ namespace OpenSim
         protected void LoadOar(string module, string[] cmdparams)
         {
             try
-            {            
+            {
                 if (cmdparams.Length > 2)
                 {
-                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);             
+                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
                 }
                 else
                 {
-                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);              
+                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
                 }
             }
             catch (Exception e)
             {
                 m_log.Error(e.Message);
-            }   
+            }
         }
 
         /// <summary>

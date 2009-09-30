@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
         {
             // Only need to run through all this if there are entries in the ban list
             if (bans.Count > 0)
-            {                
+            {
                 IClientIPEndpoint ipEndpoint;
                 if (client.TryGet(out ipEndpoint))
                 {

@@ -66,6 +66,6 @@ namespace OpenSim.Framework.Communications
         /// <param name="lastName"></param>
         /// <param name="newPassword"></param>
         /// <returns>true if the update was successful, false otherwise</returns>
-        bool ResetUserPassword(string firstName, string lastName, string newPassword);        
+        bool ResetUserPassword(string firstName, string lastName, string newPassword);
     }
 }

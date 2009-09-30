@@ -497,7 +497,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 m_log.ErrorFormat("[FRIENDS]: No user found for id {0} in OfferFriendship()", fromUserId);
             }
-        }        
+        }
 
         #region FriendRequestHandling
 
@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (im.dialog == (byte)InstantMessageDialog.FriendshipOffered) // 38
             {
-                // fromAgentName is the *destination* name (the friend we offer friendship to)                
+                // fromAgentName is the *destination* name (the friend we offer friendship to)
                 ScenePresence initiator = GetAnyPresenceFromAgentID(new UUID(im.fromAgentID));
                 im.fromAgentName = initiator != null ? initiator.Name : "(hippo)";
                 
@@ -528,13 +528,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// Invoked when a user offers a friendship.
         /// </summary>
         /// 
-        /// <param name="im"></param>    
+        /// <param name="im"></param>
         /// <param name="client"></param>
         private void FriendshipOffered(GridInstantMessage im)
         {
             // this is triggered by the initiating agent:
             // A local agent offers friendship to some possibly remote friend.
-            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).           
+            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).
 
             m_log.DebugFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
                        im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
@@ -559,7 +559,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                     }
                 );
-            }            
+            }
         }
         
         /// <summary>
@@ -570,7 +570,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void FriendshipAccepted(IClientAPI client, GridInstantMessage im)
         {
             m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);            
+              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
         }
         
         /// <summary>
@@ -602,7 +602,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 delegate(bool success) {
                     m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
                 }
-            );            
+            );
         }
 
         private void OnGridInstantMessage(GridInstantMessage msg)

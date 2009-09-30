@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// </summary>
         /// <param name="archive"></param>
         public void WriteAsset(AssetBase asset)
-        {            
+        {
             //WriteMetadata(archive);
             WriteData(asset);
         }

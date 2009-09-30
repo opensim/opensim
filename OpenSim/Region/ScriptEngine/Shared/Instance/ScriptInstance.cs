@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     "SecondLife.Script");
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);                
+                RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
 //                lease.Register(this);
             }
             catch (Exception)
@@ -430,7 +430,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
                     permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
                     permsMask = part.TaskInventory[m_ItemID].PermsMask;
-                }                                        
+                }
 
                 if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                 {
@@ -630,7 +630,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         /// <summary>
         /// Process the next event queued for this script
         /// </summary>
-        /// <returns></returns>        
+        /// <returns></returns>
         public object EventProcessor()
         {
             lock (m_Script)
@@ -925,7 +925,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         
         public override string ToString()
         {
-            return String.Format("{0} {1} on {2}", m_ScriptName, m_ItemID, m_PrimName);   
+            return String.Format("{0} {1} on {2}", m_ScriptName, m_ItemID, m_PrimName);
         }
 
         string FormatException(Exception e)

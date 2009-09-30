@@ -49,7 +49,7 @@ namespace OpenSim.Tests.Common.Mock
             if (Assets.ContainsKey(id))
                 asset = Assets[id];
             else
-                asset = null;            
+                asset = null;
             
             return asset;
         }
@@ -65,7 +65,7 @@ namespace OpenSim.Tests.Common.Mock
         }
 
         public bool Get(string id, object sender, AssetRetrieved handler)
-        {            
+        {
             handler(id, sender, Get(id));
             
             return true;

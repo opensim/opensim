@@ -128,6 +128,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         
         string GetHTTP404(string host);
 
-        string GetHTTP500();       
+        string GetHTTP500();
     }
 }

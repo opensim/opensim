@@ -470,7 +470,7 @@ namespace Flotsam.RegionModules.AssetCache
             else if (dirSize >= m_CacheWarnAt)
             {
                 m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration", dir, dirSize);
-            }            
+            }
         }
 
         private string GetFileName(string id)

@@ -57,7 +57,7 @@ namespace OpenSim.Framework
         }
 
         private static void ThreadTrackerThreadLoop()
-        {            
+        {
             try
             {
                 while (true)
@@ -70,8 +70,8 @@ namespace OpenSim.Framework
             {
                 m_log.ErrorFormat(
                     "[THREAD TRACKER]: Thread tracker cleanup thread terminating with exception.  Please report this error.  Exception is {0}", 
-                    e);                
-            }                
+                    e);
+            }
         }
 
         public static void Add(Thread thread)

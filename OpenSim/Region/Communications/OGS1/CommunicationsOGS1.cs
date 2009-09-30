@@ -40,7 +40,7 @@ namespace OpenSim.Region.Communications.OGS1
             : base(serversInfo, libraryRootFolder)
         {
 
-            // This plugin arrangement could eventually be configurable rather than hardcoded here.           
+            // This plugin arrangement could eventually be configurable rather than hardcoded here.
             OGS1UserServices userServices = new OGS1UserServices(this);
             userServices.AddPlugin(new TemporaryUserProfilePlugin());
             userServices.AddPlugin(new OGS1UserDataPlugin(this));

@@ -28,9 +28,9 @@
 using OpenSim.Framework.Communications;
 
 namespace OpenSim.Grid.UserServer
-{        
+{
     public class UserServerCommsManager : CommunicationsManager
-    {        
+    {
         public UserServerCommsManager(IInterServiceInventoryServices interServiceInventoryService)
             : base(null, null)
         {

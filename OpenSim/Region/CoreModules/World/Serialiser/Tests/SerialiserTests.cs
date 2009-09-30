@@ -238,7 +238,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
         {
             m_serialiserModule = new SerialiserModule();
             m_scene = SceneSetupHelpers.SetupScene("");
-            SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);            
+            SceneSetupHelpers.SetupSceneModules(m_scene, m_serialiserModule);
         }
 
         [Test]
@@ -299,7 +299,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     continue;
                 
                 switch (xtr.Name)
-                {                   
+                {
                     case "UUID":
                         xtr.ReadStartElement("UUID");
                         uuid = UUID.Parse(xtr.ReadElementString("Guid"));
@@ -311,7 +311,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     case "CreatorID":
                         xtr.ReadStartElement("CreatorID");
                         creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
-                        xtr.ReadEndElement();                  
+                        xtr.ReadEndElement();
                         break;
                 }
             }
@@ -325,8 +325,8 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             // TODO: More checks
             Assert.That(uuid, Is.EqualTo(rpUuid));
             Assert.That(name, Is.EqualTo(rpName));
-            Assert.That(creatorId, Is.EqualTo(rpCreatorId));           
-        }        
+            Assert.That(creatorId, Is.EqualTo(rpCreatorId));
+        }
 
         [Test]
         public void TestDeserializeXml2()
@@ -372,7 +372,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
             string xml2 = m_serialiserModule.SerializeGroupToXml2(so);
 
             XmlTextReader xtr = new XmlTextReader(new StringReader(xml2));
-            xtr.ReadStartElement("SceneObjectGroup");      
+            xtr.ReadStartElement("SceneObjectGroup");
             xtr.ReadStartElement("SceneObjectPart");
            
             UUID uuid = UUID.Zero;
@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     continue;
                 
                 switch (xtr.Name)
-                {                   
+                {
                     case "UUID":
                         xtr.ReadStartElement("UUID");
                         uuid = UUID.Parse(xtr.ReadElementString("Guid"));
@@ -397,7 +397,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser.Tests
                     case "CreatorID":
                         xtr.ReadStartElement("CreatorID");
                         creatorId = UUID.Parse(xtr.ReadElementString("Guid"));
-                        xtr.ReadEndElement();                  
+                        xtr.ReadEndElement();
                         break;
                 }
             }

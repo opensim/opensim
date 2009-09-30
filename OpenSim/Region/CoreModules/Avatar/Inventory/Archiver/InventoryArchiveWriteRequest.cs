@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         private InventoryArchiverModule m_module;
         private CachedUserInfo m_userInfo;
-        private string m_invPath;        
+        private string m_invPath;
         protected TarArchiveWriter m_archiveWriter;
         protected UuidGatherer m_assetGatherer;
 
@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 path += CreateArchiveFolderName(inventoryFolder);
 
-                // We need to make sure that we record empty folders            
+                // We need to make sure that we record empty folders
                 m_archiveWriter.WriteDir(path);
             }
 
@@ -262,7 +262,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (maxComponentIndex >= 0 && components[maxComponentIndex] == STAR_WILDCARD)
             {
                 foundStar = true;
-                maxComponentIndex--;                
+                maxComponentIndex--;
             }
 
             m_invPath = String.Empty;
@@ -369,8 +369,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string CreateArchiveFolderName(InventoryFolderBase folder)
         {
-            return CreateArchiveFolderName(folder.Name, folder.ID);          
-        }        
+            return CreateArchiveFolderName(folder.Name, folder.ID);
+        }
 
         /// <summary>
         /// Create the archive name for a particular item.
@@ -383,7 +383,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string CreateArchiveItemName(InventoryItemBase item)
         {
-            return CreateArchiveItemName(item.Name, item.ID);          
+            return CreateArchiveItemName(item.Name, item.ID);
         }
 
         /// <summary>
@@ -398,7 +398,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 "{0}{1}{2}/",
                 name,
                 ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
-                id);            
+                id);
         }
 
         /// <summary>
@@ -406,14 +406,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="name"></param>
         /// <param name="id"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public static string CreateArchiveItemName(string name, UUID id)
         {
             return string.Format(
                 "{0}{1}{2}.xml",
                 name,
                 ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR,
-                id);            
+                id);
         }
 
         /// <summary>
@@ -438,6 +438,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             sw.Close();
 
             return s;
-        }        
+        }
     }
 }

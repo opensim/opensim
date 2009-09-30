@@ -115,7 +115,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
             script.AppDomain = FreeAppDomain.CurrentAppDomain;
 
             // Create instance of script
-            ScriptAssemblies.IScript mbrt = (ScriptAssemblies.IScript)               
+            ScriptAssemblies.IScript mbrt = (ScriptAssemblies.IScript)
                 FreeAppDomain.CurrentAppDomain.CreateInstanceFromAndUnwrap(
                                script.AssemblyFileName, "ScriptAssemblies.Script");
             //, true, BindingFlags.CreateInstance, null);

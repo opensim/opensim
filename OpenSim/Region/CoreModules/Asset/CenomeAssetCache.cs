@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.Asset
     /// <para>
     /// Cache is enabled by setting "AssetCaching" configuration to value "CenomeMemoryAssetCache". 
     /// When cache is successfully enable log should have message 
-    /// "[ASSET CACHE]: Cenome asset cache enabled (MaxSize = XXX bytes, MaxCount = XXX, ExpirationTime = XXX)".    
+    /// "[ASSET CACHE]: Cenome asset cache enabled (MaxSize = XXX bytes, MaxCount = XXX, ExpirationTime = XXX)".
     /// </para>
     /// <para>
     /// Cache's size is limited by two parameters:
@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         /// <summary>
         /// Asset's default expiration time in the cache.
-        /// </summary>        
+        /// </summary>
         public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes(30.0);
 
         /// <summary>

@@ -42,7 +42,7 @@ namespace OpenSim.Server.Base
         /// 
         /// Having this version number allows the grid service to reject connections from regions running a version
         /// of the code that is too old. 
-        ///   
+        ///
         /// </value>
         
         // The range of acceptable servers for client-side connectors

@@ -90,8 +90,8 @@ namespace OpenSim.Framework.Communications
         public IUserAdminService UserAdminService
         {
             get { return m_userAdminService; }
-        }        
-        protected IUserAdminService m_userAdminService;        
+        }
+        protected IUserAdminService m_userAdminService;
 
         /// <summary>
         /// Constructor

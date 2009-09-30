@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
                         m_windSpeeds[y * 16 + x].Y *= m_strength;
                     }
                 }
-            }            
+            }
         }
 
         public Vector3 WindSpeed(float fX, float fY, float fZ)

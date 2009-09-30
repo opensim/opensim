@@ -67,7 +67,7 @@ namespace OpenSim
         /// 
         /// Having this version number allows the grid service to reject connections from regions running a version
         /// of the code that is too old. 
-        ///   
+        ///
         /// </value>
         public readonly static int MajorInterfaceVersion = 6;
     }

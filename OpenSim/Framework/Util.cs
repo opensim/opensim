@@ -54,7 +54,7 @@ namespace OpenSim.Framework
     /// </summary>
     public class Util
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);       
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
@@ -136,7 +136,7 @@ namespace OpenSim.Framework
             float dx = a.X - b.X;
             float dy = a.Y - b.Y;
             float dz = a.Z - b.Z;
-            return (dx*dx + dy*dy + dz*dz) < (amount*amount);           
+            return (dx*dx + dy*dy + dz*dz) < (amount*amount);
         }
 
         /// <summary>
@@ -975,7 +975,7 @@ namespace OpenSim.Framework
             else
             {
                 os = ReadEtcIssue();
-            }         
+            }
                       
             if (os.Length > 45)
             {

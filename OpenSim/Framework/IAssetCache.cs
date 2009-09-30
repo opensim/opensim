@@ -34,23 +34,23 @@ namespace OpenSim.Framework
 
     /// <summary>
     /// Interface to the local asset cache.  This is the mechanism through which assets can be added and requested.
-    /// </summary>    
+    /// </summary>
     public interface IAssetCache :  IPlugin
     {
         /// <value>
         /// The 'server' from which assets can be requested and to which assets are persisted.
-        /// </value>        
+        /// </value>
        
-        void Initialise(ConfigSettings cs);        
+        void Initialise(ConfigSettings cs);
 
         /// <summary>
         /// Report statistical data to the log.
-        /// </summary>        
+        /// </summary>
         void ShowState();
         
         /// <summary>
         /// Clear the asset cache.
-        /// </summary>        
+        /// </summary>
         void Clear();
         
         /// <summary>
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="assetId"></param>
         /// <param name="asset"></param>
-        /// <returns>true if the asset was in the cache, false if it was not</returns>        
+        /// <returns>true if the asset was in the cache, false if it was not</returns>
         bool TryGetCachedAsset(UUID assetID, out AssetBase asset);
         
         /// <summary>
@@ -69,7 +69,7 @@ namespace OpenSim.Framework
         /// <param name="isTexture"></param>
         /// A callback invoked when the asset has either been found or not found.
         /// If the asset was found this is called with the asset UUID and the asset data
-        /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>        
+        /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
         void GetAsset(UUID assetID, AssetRequestCallback callback, bool isTexture);
         
         /// <summary>
@@ -84,13 +84,13 @@ namespace OpenSim.Framework
         ///
         /// <param name="assetID"></param>
         /// <param name="isTexture"></param>
-        /// <returns>null if the asset could not be retrieved</returns>        
+        /// <returns>null if the asset could not be retrieved</returns>
         AssetBase GetAsset(UUID assetID, bool isTexture);
         
         /// <summary>
         /// Add an asset to both the persistent store and the cache.
         /// </summary>
-        /// <param name="asset"></param>        
+        /// <param name="asset"></param>
         void AddAsset(AssetBase asset);
         
         /// <summary>
@@ -100,14 +100,14 @@ namespace OpenSim.Framework
         /// of the asset cache.  This is needed because the osdynamic
         /// texture code grows the asset cache without bounds.  The
         /// real solution here is a much better cache archicture, but
-        /// this is a stop gap measure until we have such a thing.        
+        /// this is a stop gap measure until we have such a thing.
         void ExpireAsset(UUID assetID);
         
         /// <summary>
         /// Handle an asset request from the client.  The result will be sent back asynchronously.
         /// </summary>
         /// <param name="userInfo"></param>
-        /// <param name="transferRequest"></param>        
+        /// <param name="transferRequest"></param>
         void AddAssetRequest(IClientAPI userInfo, TransferRequestPacket transferRequest);
     }
 

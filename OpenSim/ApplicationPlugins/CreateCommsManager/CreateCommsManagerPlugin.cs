@@ -185,11 +185,11 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         }
 
         protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
-        {    
+        {
             m_commsManager 
                 = new HGCommunicationsStandalone(
                     m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, 
-                    libraryRootFolder, false);                        
+                    libraryRootFolder, false);
             
             CreateGridInfoService();
         }

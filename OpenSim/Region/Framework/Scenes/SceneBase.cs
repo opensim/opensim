@@ -92,7 +92,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// Registered classes that are capable of creating entities.
         /// </value>
-        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();                
+        protected Dictionary<PCode, IEntityCreator> m_entityCreators = new Dictionary<PCode, IEntityCreator>();
 
         /// <summary>
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
             _primAllocateMutex.ReleaseMutex();
 
             return myID;
-        }        
+        }
         
         #region Module Methods
 
@@ -473,7 +473,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Shows various details about the sim based on the parameters supplied by the console command in openSimMain.
         /// </summary>
-        /// <param name="showParams">What to show</param>        
+        /// <param name="showParams">What to show</param>
         public virtual void Show(string[] showParams)
         {
             switch (showParams[0])
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     break;
             }
-        }        
+        }
 
         public void AddCommand(object mod, string command, string shorthelp, string longhelp, CommandDelegate callback)
         {

@@ -177,9 +177,9 @@ namespace OpenSim.Framework
         }
 
         public void ViewerEffectHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args)
-        {            
+        {
             // TODO: don't create new blocks if recycling an old packet
-            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();                        
+            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
             for (int i = 0; i < args.Count; i++)
             {
                 ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();

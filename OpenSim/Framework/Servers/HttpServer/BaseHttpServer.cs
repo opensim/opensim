@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public BaseHttpServer(uint port, bool ssl) : this (port)
         {
-            m_ssl = ssl;          
+            m_ssl = ssl;
         }
 
         public BaseHttpServer(uint port, bool ssl, uint sslport, string CN) : this (port, ssl)
@@ -156,7 +156,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             lock (m_rpcHandlers)
             {
                 m_rpcHandlers[method] = handler;
-                m_rpcHandlersKeepAlive[method] = keepAlive; // default              
+                m_rpcHandlersKeepAlive[method] = keepAlive; // default
             }
             
             return true;
@@ -323,7 +323,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             OSHttpRequest request = objstate.oreq;
             OSHttpResponse resp = objstate.oresp;
 
-            HandleRequest(request,resp);           
+            HandleRequest(request,resp);
         }
 
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
@@ -712,7 +712,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     lock (m_rpcHandlers)
                     {
                         methodWasFound = m_rpcHandlers.TryGetValue(methodName, out method);
-                    }                            
+                    }
                     
                     if (methodWasFound)
                     {
@@ -931,7 +931,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (IOException e)
                 {
-                    m_log.DebugFormat("[BASE HTTP SERVER] LLSD IOException {0}.", e);                    
+                    m_log.DebugFormat("[BASE HTTP SERVER] LLSD IOException {0}.", e);
                 }
                 catch (SocketException e)
                 {
@@ -1368,7 +1368,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 bestMatch = pattern;
                         }
                     }
-                }           
+                }
 
                 if (String.IsNullOrEmpty(bestMatch))
                 {
@@ -1480,7 +1480,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     m_log.Warn("[BASE HTTP SERVER] XmlRpcRequest issue: " + e.Message);
                 }
-            }            
+            }
         }
 
         public void SendHTML404(OSHttpResponse response, string host)
@@ -1589,7 +1589,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // if you want more detailed trace information from the HttpServer
                     //m_httpListener2.UseTraceLogs = true;
                     
-                    //m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;                    
+                    //m_httpListener2.DisconnectHandler = httpServerDisconnectMonitor;
                 }
                 else
                 {
@@ -1624,7 +1624,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void httpServerDisconnectMonitor(IHttpClientContext source, SocketError err)
-        {            
+        {
             switch (err)
             {
                 case SocketError.NotSocket:
@@ -1635,7 +1635,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void httpServerException(object source, Exception exception)
-        {            
+        {
             m_log.ErrorFormat("[HTTPSERVER]: {0} had an exception {1}", source.ToString(), exception.ToString());
            /*
             if (HTTPDRunning)// && NotSocketErrors > 5)
@@ -1662,7 +1662,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             } 
             catch (NullReferenceException)
             {
-                m_log.Warn("[BASEHTTPSERVER]: Null Reference when stopping HttpServer.");    
+                m_log.Warn("[BASEHTTPSERVER]: Null Reference when stopping HttpServer.");
             }
             
         }
