@@ -497,7 +497,7 @@ namespace OpenSim
         {
             if (cmd.Length < 4)
             {
-                m_log.Error("Usage: create region <region name> <region_file.xml>");
+                m_log.Error("Usage: create region <region name> <region_file.ini>");
                 return;
             }
             if (cmd[3].EndsWith(".xml"))
@@ -524,7 +524,7 @@ namespace OpenSim
             }
             else
             {
-                m_log.Error("Usage: create region <region name> <region_file.xml>");
+                m_log.Error("Usage: create region <region name> <region_file.ini>");
                 return;
             }
         }
