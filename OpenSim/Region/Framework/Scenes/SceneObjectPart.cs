@@ -3421,9 +3421,10 @@ if (m_shape != null) {
                         RotationOffset,
                         UsePhysics);
 
-                    if (PhysActor != null)
+                    PhysicsActor pa = PhysActor;
+                    if (pa != null)
                     {
-                        PhysActor.LocalID = LocalId;
+                        pa.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(UsePhysics, true);
                         if (m_parentGroup != null)
                         {
