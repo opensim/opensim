@@ -34,8 +34,8 @@ using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
-using OpenMetaverse.Assets;
 using OpenMetaverse.Imaging;
+using CSJ2K;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -195,174 +195,58 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         {
             int DecodeTime = 0;
             DecodeTime = Environment.TickCount;
-            OpenJPEG.J2KLayerInfo[] layers = new OpenJPEG.J2KLayerInfo[0]; // Dummy result for if it fails.  Informs that there's only full quality
+            OpenJPEG.J2KLayerInfo[] layers = null;
 
-            if (!OpenJpegFail)
+            if (!fCache.TryLoadCacheForAsset(AssetId, out layers))
             {
-                if (!fCache.TryLoadCacheForAsset(AssetId, out layers))
+                try
                 {
-                    try
-                    {
+                    List<int> layerStarts = CSJ2K.J2kImage.GetLayerBoundaries(new MemoryStream(j2kdata));
 
-                        AssetTexture texture = new AssetTexture(AssetId, j2kdata);
-                        if (texture.DecodeLayerBoundaries())
+                    if (layerStarts != null && layerStarts.Count > 0)
+                    {
+                        layers = new OpenJPEG.J2KLayerInfo[layerStarts.Count];
+
+                        for (int i = 0; i < layerStarts.Count; i++)
                         {
-                            bool sane = true;
+                            OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
+                            int start = layerStarts[i];
 
-                            // Sanity check all of the layers
-                            for (int i = 0; i < texture.LayerInfo.Length; i++)
-                            {
-                                if (texture.LayerInfo[i].End > texture.AssetData.Length)
-                                {
-                                    sane = false;
-                                    break;
-                                }
-                            }
-
-                            if (sane)
-                            {
-                                layers = texture.LayerInfo;
-                                fCache.SaveFileCacheForAsset(AssetId, layers);
-                               
-
-                                    // Write out decode time
-                                    m_log.InfoFormat("[J2KDecoderModule]: {0} Decode Time: {1}", Environment.TickCount - DecodeTime,
-                                                     AssetId);
-                               
-                            }
+                            if (i == 0)
+                                layer.Start = 0;
                             else
-                            {
-                                m_log.WarnFormat(
-                                    "[J2KDecoderModule]: JPEG2000 texture decoding succeeded, but sanity check failed for {0}",
-                                    AssetId);
-                            }
-                        }
+                                layer.Start = layerStarts[i];
 
-                        else
-                        {
-                            /*
-                            Random rnd = new Random();
-                             // scramble ends for test
-                            for (int i = 0; i < texture.LayerInfo.Length; i++)
-                            {
-                                texture.LayerInfo[i].End = rnd.Next(999999);
-                            }
-                            */
-
-                            // Try to do some heuristics error correction!  Yeah.
-                            bool sane2Heuristics = true;
-
-
-                            if (texture.Image == null)
-                                sane2Heuristics = false;
-
-                            if (texture.LayerInfo == null)
-                                sane2Heuristics = false;
-
-                            if (sane2Heuristics)
-                            {
-
-
-                                if (texture.LayerInfo.Length == 0)
-                                    sane2Heuristics = false;
-                            }
-
-                            if (sane2Heuristics)
-                            {
-                                // Last layer start is less then the end of the file and last layer start is greater then 0
-                                if (texture.LayerInfo[texture.LayerInfo.Length - 1].Start < texture.AssetData.Length && texture.LayerInfo[texture.LayerInfo.Length - 1].Start > 0)
-                                {
-                                }
-                                else
-                                {
-                                    sane2Heuristics = false;
-                                }
-
-                            }
-
-                            if (sane2Heuristics)
-                            {
-                                int start = 0;
-                                
-                                // try to fix it by using consistant data in the start field
-                                for (int i = 0; i < texture.LayerInfo.Length; i++)
-                                {
-                                    if (i == 0)
-                                        start = 0;
-
-                                    if (i == texture.LayerInfo.Length - 1)
-                                        texture.LayerInfo[i].End = texture.AssetData.Length;
-                                    else
-                                        texture.LayerInfo[i].End = texture.LayerInfo[i + 1].Start - 1;
-
-                                    // in this case, the end of the next packet is less then the start of the last packet
-                                    // after we've attempted to fix it which means the start of the last packet is borked
-                                    // there's no recovery from this
-                                    if (texture.LayerInfo[i].End < start)
-                                    {
-                                        sane2Heuristics = false;
-                                        break;
-                                    }
- 
-                                    if (texture.LayerInfo[i].End < 0 || texture.LayerInfo[i].End > texture.AssetData.Length)
-                                    {
-                                        sane2Heuristics = false;
-                                        break;
-                                    }
-
-                                    if (texture.LayerInfo[i].Start < 0 || texture.LayerInfo[i].Start > texture.AssetData.Length)
-                                    {
-                                        sane2Heuristics = false;
-                                        break;
-                                    }
-
-                                    start = texture.LayerInfo[i].Start;
-                                }
-                            }
-
-                            if (sane2Heuristics)
-                            {
-                                layers = texture.LayerInfo;
-                                fCache.SaveFileCacheForAsset(AssetId, layers);
-
-
-                                // Write out decode time
-                                m_log.InfoFormat("[J2KDecoderModule]: HEURISTICS SUCCEEDED {0} Decode Time: {1}", Environment.TickCount - DecodeTime,
-                                                 AssetId);
-
-                            }
+                            if (i == layerStarts.Count - 1)
+                                layer.End = j2kdata.Length;
                             else
-                            {
-                                m_log.WarnFormat("[J2KDecoderModule]: JPEG2000 texture decoding failed for {0}.   Is this a texture?  is it J2K?", AssetId);
-                            }
+                                layer.End = layerStarts[i + 1] - 1;
+
+                            layers[i] = layer;
                         }
-                        texture = null; // dereference and dispose of ManagedImage
-                    }
-                    catch (DllNotFoundException)
-                    {
-                        m_log.Error(
-                            "[J2KDecoderModule]: OpenJpeg is not installed properly. Decoding disabled!  This will slow down texture performance!  Often times this is because of an old version of GLIBC.  You must have version 2.4 or above!");
-                        OpenJpegFail = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        m_log.WarnFormat(
-                            "[J2KDecoderModule]: JPEG2000 texture decoding threw an exception for {0}, {1}",
-                            AssetId, ex);
                     }
                 }
-               
+                catch (Exception ex)
+                {
+                    m_log.Warn("[J2KDecoderModule]: CSJ2K threw an exception decoding texture " + AssetId + ": " + ex.ToString());
+                }
+
+                if (layers.Length == 0)
+                {
+                    m_log.Warn("[J2KDecoderModule]: OpenJPEG failed to decode any layer data for texture " + AssetId + ", guessing sane defaults");
+                    // Layer decoding completely failed. Guess at sane defaults for the layer boundaries
+                    layers = CreateDefaultLayers(j2kdata.Length);
+                }
+
+                // Cache Decoded layers
+                lock (m_cacheddecode)
+                {
+                    if (m_cacheddecode.ContainsKey(AssetId))
+                        m_cacheddecode.Remove(AssetId);
+                    m_cacheddecode.Add(AssetId, layers);
+                }
             }
-
-            // Cache Decoded layers
-            lock (m_cacheddecode)
-            {
-                if (m_cacheddecode.ContainsKey(AssetId))
-                    m_cacheddecode.Remove(AssetId);
-                m_cacheddecode.Add(AssetId, layers);
-
-            }            
-
+            
             // Notify Interested Parties
             lock (m_notifyList)
             {
@@ -376,6 +260,31 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     m_notifyList.Remove(AssetId);
                 }
             }
+        }
+
+        private OpenJPEG.J2KLayerInfo[] CreateDefaultLayers(int j2kLength)
+        {
+            OpenJPEG.J2KLayerInfo[] layers = new OpenJPEG.J2KLayerInfo[5];
+            layers[0] = new OpenJPEG.J2KLayerInfo();
+
+            for (int i = 0; i < layers.Length; i++)
+            {
+                OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
+
+                if (i == 0)
+                    layer.Start = 0;
+                else
+                    layer.Start = layers[i - 1].End + 1;
+
+                // These default layer sizes are based on a small sampling of real-world texture data
+                // with extra padding thrown in for good measure. This is a worst case fallback plan
+                // and will probably not gracefully handle all real world data
+                layer.End = (int)(160d * Math.Exp(1.3d * (double)(i + 1)));
+                
+                layers[i] = layer;
+            }
+
+            return layers;
         }
         
         private void CleanCache()
@@ -418,10 +327,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         {
             m_cacheDecodeFolder = pFolder;
             m_cacheTimeout = timeout;
+
             if (!Directory.Exists(pFolder))
-            {
                 Createj2KCacheFolder(pFolder);
-            }
         }
 
         /// <summary>
@@ -447,13 +355,14 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                     stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].End - Layers[i].Start, strEnd);
                 }
+
                 fsSWCache.Write(stringResult.ToString());
                 fsSWCache.Close();
                 fsSWCache.Dispose();
                 fsCache.Dispose();
+
                 return true;
             }
-
 
             return false;
         }
@@ -475,11 +384,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 return false;
 
             if (!enabled)
-            {
                 return false;
-            }
 
-            string readResult = string.Empty;
+            string readResult = String.Empty;
 
             try
             {
@@ -493,7 +400,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 sr.Close();
                 sr.Dispose();
                 fsCachefile.Dispose();
-
             }
             catch (IOException ioe)
             {
@@ -514,7 +420,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                         "[J2KDecodeCache]: Cache Read failed. IO Exception.");
                 }
                 return false;
-
             }
             catch (UnauthorizedAccessException)
             {
@@ -541,7 +446,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 m_log.Error(
                     "[J2KDecodeCache]: Cache Read failed, not supported. Cache disabled!");
                 enabled = false;
-
                 return false;
             }
             catch (Exception e)
@@ -581,7 +485,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     Layers[i] = new OpenJPEG.J2KLayerInfo();
                     Layers[i].Start = element1;
                     Layers[i].End = element2;
-
                 }
                 else
                 {
@@ -591,9 +494,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     return false;
                 }
             }
-
-
-                
 
             return true;
         }
