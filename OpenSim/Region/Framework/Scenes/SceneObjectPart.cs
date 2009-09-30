@@ -3410,7 +3410,8 @@ if (m_shape != null) {
             {
                 RemFlag(PrimFlags.Phantom);
 
-                if (PhysActor == null)
+                PhysicsActor pa = PhysActor;
+                if (pa == null)
                 {
                     // It's not phantom anymore. So make sure the physics engine get's knowledge of it
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
@@ -3421,7 +3422,7 @@ if (m_shape != null) {
                         RotationOffset,
                         UsePhysics);
 
-                    PhysicsActor pa = PhysActor;
+                    pa = PhysActor;
                     if (pa != null)
                     {
                         pa.LocalID = LocalId;
