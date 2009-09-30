@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 J2KDecodedCallback(m_requestedUUID, new OpenJPEG.J2KLayerInfo[0]);
                             }
                             // Send it off to the jpeg decoder
-                            m_j2kDecodeModule.decode(m_requestedUUID, Data, J2KDecodedCallback);
+                            m_j2kDecodeModule.BeginDecode(m_requestedUUID, Data, J2KDecodedCallback);
 
                         }
                         else

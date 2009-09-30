@@ -30,12 +30,11 @@ using OpenMetaverse.Imaging;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    
     public delegate void DecodedCallback(UUID AssetId, OpenJPEG.J2KLayerInfo[] layers);
 
     public interface IJ2KDecoder
     {
-        void decode(UUID AssetId, byte[] assetData, DecodedCallback decodedReturn);
-        void syncdecode(UUID AssetId, byte[] j2kdata);
+        void BeginDecode(UUID assetID, byte[] j2kData, DecodedCallback callback);
+        void Decode(UUID assetID, byte[] j2kData);
     }
 }

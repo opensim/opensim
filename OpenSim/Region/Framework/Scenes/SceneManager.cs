@@ -652,7 +652,7 @@ namespace OpenSim.Region.Framework.Scenes
                 AssetBase ab = sn.AssetService.Get(arrassets[i].ToString());
                 if (ab != null && ab.Data != null)
                 {
-                    j2kdecode.syncdecode(arrassets[i], ab.Data);
+                    j2kdecode.Decode(arrassets[i], ab.Data);
                 }
             }
             ThreadTracker.Remove(thisthread);
