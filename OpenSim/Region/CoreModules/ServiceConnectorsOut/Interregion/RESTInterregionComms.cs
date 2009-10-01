@@ -42,6 +42,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 {
@@ -58,6 +60,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected CommunicationsManager m_commsManager;
 
         protected RegionToRegionClient m_regionClient;
+
+        protected IHyperlinkService m_hyperlinkService;
 
         protected bool m_safemode;
         protected IPAddress m_thisIP;
@@ -134,7 +138,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             m_localBackend = new LocalInterregionComms();
             m_commsManager = scene.CommsManager;
             m_aScene = scene;
-            m_regionClient = new RegionToRegionClient(m_aScene);
+            m_hyperlinkService = m_aScene.RequestModuleInterface<IHyperlinkService>();
+            m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }
 
@@ -161,7 +166,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     m_regionClient.SendUserInformation(regInfo, aCircuit);
@@ -183,7 +190,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
@@ -204,7 +213,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoChildAgentUpdateCall(regInfo, cAgentData);
@@ -225,7 +236,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoRetrieveRootAgentCall(regInfo, id, out agent);
@@ -257,7 +270,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoCloseAgentCall(regInfo, id);
@@ -284,7 +299,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             // else do the remote thing
             if (!m_localBackend.IsLocalRegion(regionHandle))
             {
-                RegionInfo regInfo = m_commsManager.GridService.RequestNeighbourInfo(regionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion regInfo = m_aScene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 if (regInfo != null)
                 {
                     return m_regionClient.DoCreateObjectCall(
@@ -776,16 +793,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected class RegionToRegionClient : RegionClient
         {
             Scene m_aScene = null;
+            IHyperlinkService m_hyperlinkService;
 
-            public RegionToRegionClient(Scene s)
+            public RegionToRegionClient(Scene s, IHyperlinkService hyperService)
             {
                 m_aScene = s;
+                m_hyperlinkService = hyperService;
             }
 
             public override ulong GetRegionHandle(ulong handle)
             {
                 if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.FindRegionHandle(handle);
+                {
+                    if (m_hyperlinkService != null)
+                        return m_hyperlinkService.FindRegionHandle(handle);
+                }
 
                 return handle;
             }
@@ -793,29 +815,24 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             public override bool IsHyperlink(ulong handle)
             {
                 if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    return ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.IsHyperlinkRegion(handle);
-
+                {
+                    if ((m_hyperlinkService != null) && (m_hyperlinkService.GetHyperlinkRegion(handle) != null))
+                        return true;
+                }
                 return false;
             }
 
-            public override void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
+            public override void SendUserInformation(GridRegion regInfo, AgentCircuitData aCircuit)
             {
-                try
-                {
-                    if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    {
-                        ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.SendUserInformation(regInfo, aCircuit);
-                    }
-                }
-                catch // Bad cast
-                { }
+                if (m_hyperlinkService != null)
+                    m_hyperlinkService.SendUserInformation(regInfo, aCircuit);
 
             }
 
             public override void AdjustUserInformation(AgentCircuitData aCircuit)
             {
-                if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                    ((HGSceneCommunicationService)(m_aScene.SceneGridService)).m_hg.AdjustUserInformation(aCircuit);
+                if (m_hyperlinkService != null)
+                    m_hyperlinkService.AdjustUserInformation(aCircuit);
             }
         }
 

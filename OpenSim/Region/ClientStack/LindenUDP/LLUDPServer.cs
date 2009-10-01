@@ -166,7 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier");
                 if (config.Contains("client_socket_rcvbuf_size"))
                     m_clientSocketReceiveBuffer = config.GetInt("client_socket_rcvbuf_size");
-            }   
+            }
             
             m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
             m_log.DebugFormat("[CLIENT]: client_socket_rcvbuf_size  = {0}", (m_clientSocketReceiveBuffer != 0 ? 
@@ -228,7 +228,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         m_log.Debug("[CLIENT]: " + e);
                     }
-                }    
+                }
             
             
                 if (proxyPortOffset != 0)
@@ -254,7 +254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet != null)
             {
                 if (packet.Type == PacketType.UseCircuitCode)
-                    AddNewClient((UseCircuitCodePacket)packet, epSender, epProxy);                                  
+                    AddNewClient((UseCircuitCodePacket)packet, epSender, epProxy);
                 else
                     ProcessInPacket(packet, epSender);
             }
@@ -290,7 +290,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
-            }           
+            }
         }
         
         /// <summary>
@@ -299,7 +299,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void BeginReceive()
         {
             m_socket.BeginReceiveFrom(
-                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);            
+                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // ENDLESS LOOP ON PURPOSE!
                     // Reset connection and get next UDP packet off the buffer
                     // If the UDP packet is part of the same stream, this will happen several hundreds of times before
-                    // the next set of UDP data is for a valid client.         
+                    // the next set of UDP data is for a valid client.
 
                     try
                     {
@@ -347,7 +347,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.ErrorFormat("[CLIENT]: Exception thrown during BeginReceive(): {0}", ex);
                 }
             }
-        }       
+        }
 
         /// <summary>
         /// Close a client circuit.  This is done in response to an exception on receive, and should not be called
@@ -363,12 +363,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_packetServer.CloseCircuit(circuit);
                     
-                    if (e != null)                    
+                    if (e != null)
                         m_log.ErrorFormat(
-                            "[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, reusedEpSender, e);                                    
+                            "[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, reusedEpSender, e);
                 }
             }
-        }       
+        }
         
         /// <summary>
         /// Finish the process of asynchronously receiving the next bit of raw data
@@ -410,7 +410,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_log.DebugFormat("[CLIENT]: ObjectDisposedException: Object {0} disposed.", e.ObjectName);
                 // Uhh, what object, and why? this needs better handling.
-            }      
+            }
             
             return hasReceivedOkay;
         }
@@ -422,10 +422,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="epSender"></param>
         /// <param name="epProxy"></param>
         protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
-        {            
+        {
             //Slave regions don't accept new clients
             if (m_localScene.RegionStatus != RegionStatus.SlaveScene)
-            {                
+            {
                 AuthenticateResponse sessionInfo;
                 bool isNewCircuit = false;
                 
@@ -441,8 +441,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lock (clientCircuits)
                 {
                     if (!clientCircuits.ContainsKey(epSender))
-                    {                        
-                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);                        
+                    {
+                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
                         isNewCircuit = true;
                     }
                 }
@@ -461,9 +461,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     
                     //m_log.DebugFormat(
                     //    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
-                    //    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);                    
-                }                
-            }            
+                    //    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);
+                }
+            }
             
             // Ack the UseCircuitCode packet
             PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
@@ -605,7 +605,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
                 
                 return;
-            }               
+            }
 
             lock (clientCircuits)
             {

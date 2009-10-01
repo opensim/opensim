@@ -477,7 +477,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             foreach (string key in binBucketOSD.Keys)
                             {
                                 m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
-                            }                     
+                            }
                         }
    
                         // treat as if no attachment
@@ -1261,7 +1261,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.InfoFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            // TODO: Probably isn't nessesary to update every client in every scene.  
+            // TODO: Probably isn't nessesary to update every client in every scene.
             // Need to examine client updates and do only what's nessesary.
             lock (m_sceneList)
             {

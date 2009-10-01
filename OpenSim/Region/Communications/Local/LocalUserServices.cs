@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.Local
             if (md5PasswordHash == userProfile.PasswordHash)
                 return true;
             else
-                return false;         
-        }        
+                return false;
+        }
     }
 }

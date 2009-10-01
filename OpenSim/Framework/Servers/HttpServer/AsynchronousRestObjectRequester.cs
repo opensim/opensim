@@ -168,7 +168,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         "[ASYNC REQUEST]: Request {0} {1} callback failed with exception {2}", verb, requestUrl, e);
                 }
                     
-            }, null);         
+            }, null);
         }
     }
 }

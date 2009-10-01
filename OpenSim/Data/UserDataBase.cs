@@ -43,7 +43,7 @@ namespace OpenSim.Data
         public abstract UserAgentData GetAgentByUUID(UUID user);
         public abstract UserAgentData GetAgentByName(string name);
         public abstract UserAgentData GetAgentByName(string fname, string lname);
-        public UserProfileData GetUserByUri(Uri uri) { return null; }        
+        public UserProfileData GetUserByUri(Uri uri) { return null; }
         public abstract void StoreWebLoginKey(UUID agentID, UUID webLoginKey);
         public abstract void AddNewUserProfile(UserProfileData user);
         

@@ -59,7 +59,7 @@ namespace OpenSim.Framework
                 
                 // Body
                 defaultWearables[0].ItemID  = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
-                defaultWearables[0].AssetID = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");                
+                defaultWearables[0].AssetID = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
 
                 // Skin
                 defaultWearables[1].ItemID  = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");

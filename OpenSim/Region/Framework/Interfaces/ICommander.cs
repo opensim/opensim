@@ -33,7 +33,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         /// <value>
         /// The name of this commander
-        /// </value>        
+        /// </value>
         string Name { get; }
 
         /// <value>
@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// The commands available for this commander
         /// </summary>
-        Dictionary<string, ICommand> Commands { get; }     
+        Dictionary<string, ICommand> Commands { get; }
         
         void ProcessConsoleCommand(string function, string[] args);
         void RegisterCommand(string commandName, ICommand command);

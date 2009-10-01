@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack
             get { return m_commsManager; }
             set { m_commsManager = value; }
         }
-        protected CommunicationsManager m_commsManager;        
+        protected CommunicationsManager m_commsManager;
 
         protected StorageManager m_storageManager;
         
@@ -80,15 +80,15 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// 
         /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
         /// </param>
-        /// <returns></returns>        
+        /// <returns></returns>
         protected abstract PhysicsScene GetPhysicsScene(string osSceneIdentifier);
         
         protected abstract StorageManager CreateStorageManager();
         protected abstract ClientStackManager CreateClientStackManager();
         protected abstract Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
-                                             AgentCircuitManager circuitManager);        
+                                             AgentCircuitManager circuitManager);
 
         protected override void StartupSpecific()
         {
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="meshEngine">The name of the mesh engine to use</param>
         /// <param name="config">The configuration data to pass to the physics and mesh engines</param>
         /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
         /// </param>
         /// <returns></returns>
         protected PhysicsScene GetPhysicsScene(

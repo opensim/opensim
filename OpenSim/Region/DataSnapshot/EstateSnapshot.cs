@@ -67,7 +67,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
 
             if (userInfo != null)
             {
-                UserProfileData userProfile = userInfo.UserProfile;                
+                UserProfileData userProfile = userInfo.UserProfile;
                 firstname = userProfile.FirstName;
                 lastname = userProfile.SurName;
 

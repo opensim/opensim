@@ -36,7 +36,7 @@ using OpenSim.ScriptEngine.Shared;
 namespace OpenSim.ScriptEngine.Components.DotNetEngine.Scheduler
 {
     public class BaseClassFactory
-    {        
+    {
 
 
         public static void MakeBaseClass(ScriptStructure script)

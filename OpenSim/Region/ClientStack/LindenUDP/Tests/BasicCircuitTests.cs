@@ -54,7 +54,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             catch
             {
                 // I don't care, just leave log4net off
-            }            
+            }
         }
         
         /// <summary>
@@ -63,20 +63,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <param name="scene"></param>
         /// <param name="testLLUDPServer"></param>
         /// <param name="testPacketServer"></param>
-        /// <param name="acm">Agent circuit manager used in setting up the stack</param>        
+        /// <param name="acm">Agent circuit manager used in setting up the stack</param>
         protected void SetupStack(
             IScene scene, out TestLLUDPServer testLLUDPServer, out TestLLPacketServer testPacketServer, 
             out AgentCircuitManager acm)
         {
             IConfigSource configSource = new IniConfigSource();
             ClientStackUserSettings userSettings = new ClientStackUserSettings();
-            testLLUDPServer = new TestLLUDPServer();             
+            testLLUDPServer = new TestLLUDPServer();
             acm = new AgentCircuitManager();
                                     
-            uint port = 666;            
+            uint port = 666;
             testLLUDPServer.Initialise(null, ref port, 0, false, configSource, acm);
             testPacketServer = new TestLLPacketServer(testLLUDPServer, userSettings);
-            testLLUDPServer.LocalScene = scene;            
+            testLLUDPServer.LocalScene = scene;
         }
         
         /// <summary>
@@ -124,7 +124,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 
             acm.AddNewCircuit(circuitCode, acd);
             
-            testLLUDPServer.LoadReceive(uccp, epSender);            
+            testLLUDPServer.LoadReceive(uccp, epSender);
             testLLUDPServer.ReceiveData(null);
         }
         
@@ -142,15 +142,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             onp.ObjectData = new ObjectNamePacket.ObjectDataBlock[] { odb };
             onp.Header.Zerocoded = false;
             
-            return onp;            
+            return onp;
         }
         
         /// <summary>
         /// Test adding a client to the stack
         /// </summary>
-        [Test, LongRunning]        
+        [Test, LongRunning]
         public void TestAddClient()
-        {            
+        {
             TestHelper.InMethod();
 
             uint myCircuitCode = 123456;
@@ -177,7 +177,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             EndPoint testEp = new IPEndPoint(IPAddress.Loopback, 999);
             
-            testLLUDPServer.LoadReceive(uccp, testEp);            
+            testLLUDPServer.LoadReceive(uccp, testEp);
             testLLUDPServer.ReceiveData(null);
             
             // Circuit shouildn't exist since the circuit manager doesn't know about this circuit for authentication yet
@@ -185,8 +185,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                         
             acm.AddNewCircuit(myCircuitCode, acd);
             
-            testLLUDPServer.LoadReceive(uccp, testEp);            
-            testLLUDPServer.ReceiveData(null);            
+            testLLUDPServer.LoadReceive(uccp, testEp);
+            testLLUDPServer.ReceiveData(null);
             
             // Should succeed now
             Assert.IsTrue(testLLUDPServer.HasCircuit(myCircuitCode));
@@ -196,24 +196,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// <summary>
         /// Test removing a client from the stack
         /// </summary>
-        [Test]        
+        [Test]
         public void TestRemoveClient()
         {
             TestHelper.InMethod();
 
-            uint myCircuitCode = 123457;     
+            uint myCircuitCode = 123457;
             
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);            
+            SetupStack(new MockScene(), out testLLUDPServer, out testLLPacketServer, out acm);
             AddClient(myCircuitCode, new IPEndPoint(IPAddress.Loopback, 1000), testLLUDPServer, acm);
             
-            testLLUDPServer.RemoveClientCircuit(myCircuitCode);            
+            testLLUDPServer.RemoveClientCircuit(myCircuitCode);
             Assert.IsFalse(testLLUDPServer.HasCircuit(myCircuitCode));
             
             // Check that removing a non-existant circuit doesn't have any bad effects
-            testLLUDPServer.RemoveClientCircuit(101);            
+            testLLUDPServer.RemoveClientCircuit(101);
             Assert.IsFalse(testLLUDPServer.HasCircuit(101));
         }
         
@@ -232,8 +232,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);            
-            AddClient(myCircuitCode, testEp, testLLUDPServer, acm);  
+            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
+            AddClient(myCircuitCode, testEp, testLLUDPServer, acm);
 
             byte[] data = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(1, "helloooo"), testEp);
             testLLUDPServer.ReceiveData(null);
             
-            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));  
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));
             Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(1));
         }
         
@@ -270,17 +270,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             uint circuitCodeA = 130000;
             EndPoint epA = new IPEndPoint(IPAddress.Loopback, 1300);
             UUID agentIdA   = UUID.Parse("00000000-0000-0000-0000-000000001300");
-            UUID sessionIdA = UUID.Parse("00000000-0000-0000-0000-000000002300");   
+            UUID sessionIdA = UUID.Parse("00000000-0000-0000-0000-000000002300");
             
             uint circuitCodeB = 130001;
             EndPoint epB = new IPEndPoint(IPAddress.Loopback, 1301);
             UUID agentIdB   = UUID.Parse("00000000-0000-0000-0000-000000001301");
-            UUID sessionIdB = UUID.Parse("00000000-0000-0000-0000-000000002301");            
+            UUID sessionIdB = UUID.Parse("00000000-0000-0000-0000-000000002301");
             
             TestLLUDPServer testLLUDPServer;
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
-            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);            
+            SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
             AddClient(circuitCodeA, epA, agentIdA, sessionIdA, testLLUDPServer, acm);
             AddClient(circuitCodeB, epB, agentIdB, sessionIdB, testLLUDPServer, acm);
             
@@ -292,8 +292,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             Assert.IsFalse(testLLUDPServer.HasCircuit(circuitCodeA));
          
-            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));  
-            Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(3));            
-        }        
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));
+            Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(3));
+        }
     }
 }

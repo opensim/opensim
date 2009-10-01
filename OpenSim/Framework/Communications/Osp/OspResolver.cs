@@ -33,13 +33,13 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Framework.Communications.Osp
-{    
+{
     /// <summary>
     /// Resolves OpenSim Profile Anchors (OSPA).  An OSPA is a string used to provide information for 
     /// identifying user profiles or supplying a simple name if no profile is available.
     /// </summary>
     public class OspResolver
-    {   
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public const string OSPA_PREFIX = "ospa:";
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Communications.Osp
         {
             return 
                 OSPA_PREFIX + OSPA_NAME_KEY + OSPA_PAIR_SEPARATOR + firstName + OSPA_NAME_VALUE_SEPARATOR + lastName;
-        }        
+        }
         
         /// <summary>
         /// Resolve an osp string into the most suitable internal OpenSim identifier.
@@ -89,13 +89,13 @@ namespace OpenSim.Framework.Communications.Osp
         /// is returned.
         /// </returns>
         public static UUID ResolveOspa(string ospa, CommunicationsManager commsManager)
-        {                       
+        {
             if (!ospa.StartsWith(OSPA_PREFIX))
                 return UUID.Zero;
 
             m_log.DebugFormat("[OSP RESOLVER]: Resolving {0}", ospa);
             
-            string ospaMeat = ospa.Substring(OSPA_PREFIX.Length);            
+            string ospaMeat = ospa.Substring(OSPA_PREFIX.Length);
             string[] ospaTuples = ospaMeat.Split(OSPA_TUPLE_SEPARATOR_ARRAY);
             
             foreach (string tuple in ospaTuples)
@@ -162,7 +162,7 @@ namespace OpenSim.Framework.Communications.Osp
             tempUserProfile.ID = HashName(tempUserProfile.Name);
             
             m_log.DebugFormat(
-                "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);            
+                "[OSP RESOLVER]: Adding temporary user profile for {0} {1}", tempUserProfile.Name, tempUserProfile.ID);
             commsManager.UserService.AddTemporaryUserProfile(tempUserProfile);
             
             return tempUserProfile.ID;

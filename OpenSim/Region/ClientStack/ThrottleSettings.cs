@@ -26,12 +26,12 @@
  */
 
 namespace OpenSim.Region.ClientStack
-{    
+{
     /// <summary>
     /// Represent throttle settings for a client stack.  These settings are in bytes per second
     /// </summary> 
     public class ThrottleSettings
-    {        
+    {
         /// <summary>
         /// Minimum bytes per second that the throttle can be set to.
         /// </summary>
@@ -39,13 +39,13 @@ namespace OpenSim.Region.ClientStack
         
         /// <summary>
         /// Maximum bytes per second that the throttle can be set to.
-        /// </summary>        
-        public int Max;  
+        /// </summary>
+        public int Max;
         
         /// <summary>
         /// Current bytes per second that the throttle should be set to.
-        /// </summary>        
-        public int Current;    
+        /// </summary>
+        public int Current;
               
         public ThrottleSettings(int min, int max, int current)
         {

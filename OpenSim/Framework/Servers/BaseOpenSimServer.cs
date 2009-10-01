@@ -158,7 +158,7 @@ namespace OpenSim.Framework.Servers
                         m_consoleAppender.Threshold = Level.All;
                     
                     Notice(String.Format("Console log level is {0}", m_consoleAppender.Threshold));
-                }                                          
+                }
                 
                 m_console.Commands.AddCommand("base", false, "quit",
                         "quit",
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Servers
         
         /// <summary>
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
-        /// </summary>      
+        /// </summary>
         public virtual void ShutdownSpecific() {}
         
         /// <summary>
@@ -286,7 +286,7 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public virtual void Startup()
         {
-            m_log.Info("[STARTUP]: Beginning startup processing");                        
+            m_log.Info("[STARTUP]: Beginning startup processing");
 
             EnhanceVersionInformation();
             
@@ -301,7 +301,7 @@ namespace OpenSim.Framework.Servers
 
         /// <summary>
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
-        /// </summary>      
+        /// </summary>
         public virtual void Shutdown()
         {
             ShutdownSpecific();
@@ -367,7 +367,7 @@ namespace OpenSim.Framework.Servers
         }
 
         public virtual void HandleShow(string module, string[] cmd)
-        {            
+        {
             List<string> args = new List<string>(cmd);
 
             args.RemoveAt(0);
@@ -375,7 +375,7 @@ namespace OpenSim.Framework.Servers
             string[] showParams = args.ToArray();
 
             switch (showParams[0])
-            {                       
+            {
                 case "info":
                     Notice("Version: " + m_version);
                     Notice("Startup directory: " + m_startupDirectory);

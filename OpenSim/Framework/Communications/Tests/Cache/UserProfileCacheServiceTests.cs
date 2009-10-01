@@ -133,7 +133,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             timedOut = true;
             lock (this)
-            {                   
+            {
                 UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
              }
@@ -150,7 +150,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo userInfo;
             
             lock (this)
-            {                   
+            {
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo userInfo;
 
             lock (this)
-            {                   
+            {
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
@@ -206,7 +206,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo userInfo;
 
             lock (this)
-            {                   
+            {
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
@@ -271,7 +271,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo userInfo;
 
             lock (this)
-            {                   
+            {
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }
@@ -311,7 +311,7 @@ namespace OpenSim.Framework.Communications.Tests
             CachedUserInfo userInfo;
 
             lock (this)
-            {                   
+            {
                 userInfo = UserProfileTestUtils.CreateUserWithInventory(myScene.CommsManager, InventoryReceived);
                 Monitor.Wait(this, 60000);
             }

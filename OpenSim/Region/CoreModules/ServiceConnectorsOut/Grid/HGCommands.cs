@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void RunHGCommand(string command, string[] cmdparams)
         {
-            if (command.Equals("linkk-mapping"))
+            if (command.Equals("link-mapping"))
             {
                 if (cmdparams.Length == 2)
                 {
@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     }
                 }
             }
-            else if (command.Equals("linkk-region"))
+            else if (command.Equals("link-region"))
             {
                 if (cmdparams.Length < 3)
                 {
@@ -187,7 +187,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 }
                 return;
             }
-            else if (command.Equals("unlinkk-region"))
+            else if (command.Equals("unlink-region"))
             {
                 if (cmdparams.Length < 1)
                 {

@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="friendlistowner">The agent that who's friends list is being updated</param>
         /// <param name="friend">The agent that is getting or loosing permissions</param>
         /// <param name="perms">A uint bit vector for set perms that the friend being added has; 0 = none, 1=This friend can see when they sign on, 2 = map, 4 edit objects </param>
-        void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);   
+        void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms);
 
         /// <summary>
         /// Logs off a user on the user server
@@ -128,9 +128,9 @@ namespace OpenSim.Framework.Communications
         /// 
         /// <param name="friendlistowner">The agent for whom we're retreiving the friends Data.</param>
         /// <returns>
-        /// A List of FriendListItems that contains info about the user's friends.  
+        /// A List of FriendListItems that contains info about the user's friends.
         /// Always returns a list even if the user has no friends
-        /// </returns>        
+        /// </returns>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         // This probably shouldn't be here, it belongs to IAuthentication
@@ -149,7 +149,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        bool AuthenticateUserByPassword(UUID userID, string password);        
+        bool AuthenticateUserByPassword(UUID userID, string password);
 
         // Temporary Hack until we move everything to the new service model
         void SetInventoryService(IInventoryService invService);

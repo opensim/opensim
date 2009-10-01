@@ -158,7 +158,7 @@ namespace OpenSim.Framework.Serialization.External
                         settings.Elevation2NE = double.Parse(xtr.ReadElementContentAsString());
                         break;
                 }
-            }                    
+            }
            
             xtr.ReadEndElement();
             xtr.ReadStartElement("Terrain");
@@ -200,8 +200,8 @@ namespace OpenSim.Framework.Serialization.External
             
             xtw.WriteStartElement("RegionSettings");
             
-            xtw.WriteStartElement("General");            
-            xtw.WriteElementString("AllowDamage", settings.AllowDamage.ToString());            
+            xtw.WriteStartElement("General");
+            xtw.WriteElementString("AllowDamage", settings.AllowDamage.ToString());
             xtw.WriteElementString("AllowLandResell", settings.AllowLandResell.ToString());
             xtw.WriteElementString("AllowLandJoinDivide", settings.AllowLandJoinDivide.ToString());
             xtw.WriteElementString("BlockFly", settings.BlockFly.ToString());

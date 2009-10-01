@@ -32,7 +32,7 @@ namespace OpenSim.Region.ClientStack
     /// 
     /// At the moment this is very incomplete - other tweakable settings could be added.  This is also somewhat LL client
     /// oriented right now.
-    /// </summary>    
+    /// </summary>
     public class ClientStackUserSettings
     {
         /// <summary>

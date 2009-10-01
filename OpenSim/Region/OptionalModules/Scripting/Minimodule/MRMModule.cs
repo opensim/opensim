@@ -136,7 +136,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </exception>
         /// <returns>AppDomain with a restricted security policy</returns>
         /// <remarks>Substantial portions of this function from: http://blogs.msdn.com/shawnfa/archive/2004/10/25/247379.aspx
-        /// Valid permissionSetName values are:     
+        /// Valid permissionSetName values are:
         /// * FullTrust
         /// * SkipVerification
         /// * Execution

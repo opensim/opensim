@@ -135,7 +135,7 @@ namespace OpenSim.Data.MSSQL
 
                     insertBuilder.AppendFormat("insert into '{0}' ('UUID', '", m_Realm);
                     insertBuilder.Append(String.Join("', '", fields));
-                    insertBuilder.Append("') values ( @principalID, @");
+                    insertBuilder.Append("') values (@principalID, @");
                     insertBuilder.Append(String.Join(", @", fields));
                     insertBuilder.Append(")");
 

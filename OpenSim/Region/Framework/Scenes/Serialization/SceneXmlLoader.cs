@@ -236,7 +236,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             }
 
             SavePrimListToXml2(primList, fileName);
-        }        
+        }
 
         public static void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
         {

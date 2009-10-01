@@ -413,7 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.SendInventoryItemDetails(ownerID, item);
             }
             // else shouldn't we send an alert message?
-        }    
+        }
         
         /// <summary>
         /// Tell the client about the various child items and folders contained in the requested folder.
@@ -485,7 +485,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // TODO: This code for looking in the folder for the library should be folded back into the
             // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
-            // can be handled transparently).            
+            // can be handled transparently).
             InventoryFolderImpl fold;
             if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
             {
@@ -515,7 +515,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             return contents;
 
-        }        
+        }
         
         /// <summary>
         /// Handle an inventory folder creation request from the client.
@@ -535,7 +535,7 @@ namespace OpenSim.Region.Framework.Scenes
                      "[AGENT INVENTORY]: Failed to move create folder for user {0} {1}",
                      remoteClient.Name, remoteClient.AgentId);
             }
-        }      
+        }
 
         /// <summary>
         /// Handle a client request to update the inventory folder
@@ -544,7 +544,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
         /// and needs to be changed.
-        ///  
+        ///
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
         /// <param name="type"></param>
@@ -570,7 +570,7 @@ namespace OpenSim.Region.Framework.Scenes
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
-        }        
+        }
         
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, UUID folderID, UUID parentID)
         {
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[AGENT INVENTORY]: request to move folder {0} but folder not found", folderID);
             }
-        }      
+        }
 
         /// <summary>
         /// This should delete all the items and folders in the given directory.
@@ -609,7 +609,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.WarnFormat("[AGENT INVENTORY]: Exception on purge folder for user {0}: {1}", remoteClient.AgentId, e.Message);
             }
-        }        
+        }
 
 
         private void PurgeFolderAsync(UUID userID, UUID folderID)

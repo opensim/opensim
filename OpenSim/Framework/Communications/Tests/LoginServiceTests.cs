@@ -318,7 +318,7 @@ namespace OpenSim.Framework.Communications.Tests
         {
             TestHelper.InMethod();
 
-            //Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");            
+            //Console.WriteLine("Starting T023_TestAuthenticatedLoginAlreadyLoggedIn()");
             //log4net.Config.XmlConfigurator.Configure();
             
             string error_already_logged = "You appear to be already logged in. " +

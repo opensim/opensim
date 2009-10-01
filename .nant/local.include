@@ -53,6 +53,11 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
 
+  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.framework.serialization.tests">
+    <arg value="./bin/OpenSim.Framework.Serialization.Tests.dll" />
+  </exec>
+  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.serialization.tests)==0}" /> 
+
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
   </exec>
@@ -221,6 +226,11 @@
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
     <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
+  </exec>
+
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.serialization.tests">
+    <arg value="./bin/OpenSim.Framework.Serialization.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Framework.Serialization.Tests.dll-Results.xml" />
   </exec>
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">

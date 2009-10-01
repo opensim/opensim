@@ -48,11 +48,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Tweakable user settings
         /// </summary>
-        private ClientStackUserSettings m_userSettings;        
+        private ClientStackUserSettings m_userSettings;
 
         public LLPacketServer(ILLClientStackNetworkHandler networkHandler, ClientStackUserSettings userSettings)
         {
-            m_userSettings = userSettings;            
+            m_userSettings = userSettings;
             m_networkHandler = networkHandler;
             
             m_networkHandler.RegisterPacketServer(this);
@@ -114,7 +114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             sessionInfo = circuitManager.AuthenticateSession(sessionId, agentId, circuitCode); 
 
             if (!sessionInfo.Authorised)
-                return false;  
+                return false;
             
             return true;
         }
@@ -129,7 +129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="proxyEP"></param>
         /// <returns>
         /// true if a new circuit was created, false if a circuit with the given circuit code already existed
-        /// </returns>        
+        /// </returns>
         public virtual bool AddNewClient(
             EndPoint epSender, UseCircuitCodePacket useCircuit, 
             AuthenticateResponse sessionInfo, EndPoint proxyEP)

@@ -546,11 +546,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     bool retried  = false;
                     do
                     {
-						lock (CScodeProvider)
-						{
-							results = CScodeProvider.CompileAssemblyFromSource(
-								parameters, Script);
-						}
+                        lock (CScodeProvider)
+                        {
+                            results = CScodeProvider.CompileAssemblyFromSource(
+                                parameters, Script);
+                        }
                         // Deal with an occasional segv in the compiler.
                         // Rarely, if ever, occurs twice in succession.
                         // Line # == 0 and no file name are indications that
@@ -573,20 +573,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         {
                             complete = true;
                         }
-                    }
-                    while(!complete);
+                    } while (!complete);
                     break;
                 case enumCompileType.js:
                     results = JScodeProvider.CompileAssemblyFromSource(
-                            parameters, Script);
+                        parameters, Script);
                     break;
                 case enumCompileType.yp:
                     results = YPcodeProvider.CompileAssemblyFromSource(
-                            parameters, Script);
+                        parameters, Script);
                     break;
                 default:
                     throw new Exception("Compiler is not able to recongnize "+
-                            "language type \"" + lang.ToString() + "\"");
+                                        "language type \"" + lang.ToString() + "\"");
             }
 
             // Check result
@@ -602,12 +601,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 foreach (CompilerError CompErr in results.Errors)
                 {
-
-                    string severity = "Error";
-                    if (CompErr.IsWarning)
-                    {
-                        severity = "Warning";
-                    }
+                    string severity = CompErr.IsWarning ? "Warning" : "Error";
 
                     KeyValuePair<int, int> lslPos;
 
@@ -615,18 +609,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                     if (severity == "Error")
                     {
-						lslPos = FindErrorPosition(CompErr.Line, CompErr.Column);
-						string text = CompErr.ErrorText;
+                        lslPos = FindErrorPosition(CompErr.Line, CompErr.Column);
+                        string text = CompErr.ErrorText;
 
-						// Use LSL type names
-						if (lang == enumCompileType.lsl)
-							text = ReplaceTypes(CompErr.ErrorText);
+                        // Use LSL type names
+                        if (lang == enumCompileType.lsl)
+                            text = ReplaceTypes(CompErr.ErrorText);
 
-						// The Second Life viewer's script editor begins
-						// countingn lines and columns at 0, so we subtract 1.
-						errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
-								lslPos.Key - 1, lslPos.Value - 1,
-								CompErr.ErrorNumber, text, severity);
+                        // The Second Life viewer's script editor begins
+                        // countingn lines and columns at 0, so we subtract 1.
+                        errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
+                                lslPos.Key - 1, lslPos.Value - 1,
+                                CompErr.ErrorNumber, text, severity);
                         hadErrors = true;
                     }
                 }

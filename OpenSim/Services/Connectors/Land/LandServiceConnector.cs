@@ -38,6 +38,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 using Nwc.XmlRpc;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Services.Connectors
 {
@@ -47,20 +48,20 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected IGridServices m_MapService = null;
+        protected IGridService m_GridService = null;
 
         public LandServicesConnector()
         {
         }
 
-        public LandServicesConnector(IGridServices gridServices)
+        public LandServicesConnector(IGridService gridServices)
         {
             Initialise(gridServices);
         }
 
-        public virtual void Initialise(IGridServices gridServices)
+        public virtual void Initialise(IGridService gridServices)
         {
-            m_MapService = gridServices;
+            m_GridService = gridServices;
         }
 
         public virtual LandData GetLandData(ulong regionHandle, uint x, uint y)
@@ -76,7 +77,9 @@ namespace OpenSim.Services.Connectors
 
             try
             {
-                RegionInfo info = m_MapService.RequestNeighbourInfo(regionHandle);
+                uint xpos = 0, ypos = 0;
+                Utils.LongToUInts(regionHandle, out xpos, out ypos);
+                GridRegion info = m_GridService.GetRegionByPosition(UUID.Zero, (int)xpos, (int)ypos);
                 if (info != null) // just to be sure
                 {
                     XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);

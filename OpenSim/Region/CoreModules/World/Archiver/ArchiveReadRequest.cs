@@ -110,12 +110,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 TarArchiveReader.TarEntryType entryType;
 
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
-                {                    
+                {
                     //m_log.DebugFormat(
                     //    "[ARCHIVER]: Successfully read {0} ({1} bytes)", filePath, data.Length);
                     
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType)
-                        continue;                    
+                        continue;
 
                     if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                     {
@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
             IRegionSerialiserModule serialiser = m_scene.RequestModuleInterface<IRegionSerialiserModule>();
-            int sceneObjectsLoadedCount = 0;            
+            int sceneObjectsLoadedCount = 0;
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {
@@ -499,7 +499,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             XmlParserContext context = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
 
             XmlTextReader xtr 
-                = new XmlTextReader(m_asciiEncoding.GetString(data), XmlNodeType.Document, context);            
+                = new XmlTextReader(m_asciiEncoding.GetString(data), XmlNodeType.Document, context);
 
             RegionSettings currentRegionSettings = m_scene.RegionInfo.RegionSettings;
 

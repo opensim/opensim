@@ -31,6 +31,7 @@ using System.Net;
 using System.Reflection;
 using System.Xml;
 
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -47,14 +48,18 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
-    public class HGGridConnector : ISharedRegionModule, IGridService
+    public class HGGridConnector : ISharedRegionModule, IGridService, IHyperlinkService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
+        private static string LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI;
 
         private bool m_Enabled = false;
         private bool m_Initialized = false;
+
+        private Scene m_aScene;
+        private Dictionary<ulong, Scene> m_LocalScenes = new Dictionary<ulong, Scene>();
 
         private IGridService m_GridServiceConnector;
         private HypergridServiceConnector m_HypergridServiceConnector;
@@ -130,6 +135,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void PostInitialise()
         {
+            if (m_Enabled)
+                ((ISharedRegionModule)m_GridServiceConnector).PostInitialise();
         }
 
         public void Close()
@@ -141,12 +148,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Enabled)
                 return;
 
+            m_LocalScenes[scene.RegionInfo.RegionHandle] = scene;
             scene.RegisterModuleInterface<IGridService>(this);
+            scene.RegisterModuleInterface<IHyperlinkService>(this);
+
+            ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (m_Enabled)
+            {
+                m_LocalScenes.Remove(scene.RegionInfo.RegionHandle);
+                ((ISharedRegionModule)m_GridServiceConnector).RemoveRegion(scene);
+            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -156,29 +172,28 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             if (!m_Initialized)
             {
+                m_aScene = scene;
+                LocalAssetServerURI = m_aScene.CommsManager.NetworkServersInfo.UserURL;
+                LocalInventoryServerURI = m_aScene.CommsManager.NetworkServersInfo.InventoryURL;
+                LocalUserServerURI = m_aScene.CommsManager.NetworkServersInfo.UserURL;
+
                 m_HypergridServiceConnector = new HypergridServiceConnector(scene.AssetService);
+
                 HGCommands hgCommands = new HGCommands(this, scene);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-region",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "link-region",
                     "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
                     "Link a hypergrid region", hgCommands.RunCommand);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "unlinkk-region",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "unlink-region",
                     "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
                     "Unlink a hypergrid region", hgCommands.RunCommand);
-                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "linkk-mapping", "link-mapping [<x> <y>] <cr>",
+                MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
                     "Set local coordinate to map HG regions to", hgCommands.RunCommand);
+
+                // Yikes!! Remove this as soon as user services get refactored
+                HGNetworkServersInfo.Init(LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI);
+
                 m_Initialized = true;
             }
-
-
-            //scene.AddCommand("HGGridServicesConnector", "linkk-region",
-            //    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
-            //    "Link a hypergrid region", hgCommands.RunCommand);
-            //scene.AddCommand("HGGridServicesConnector", "unlinkk-region",
-            //    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
-            //    "Unlink a hypergrid region", hgCommands.RunCommand);
-            //scene.AddCommand("HGGridServicesConnector", "linkk-mapping", "link-mapping [<x> <y>] <cr>",
-            //    "Set local coordinate to map HG regions to", hgCommands.RunCommand);
-
         }
 
         #endregion
@@ -250,7 +265,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             // Try the foreign users home collection
             foreach (GridRegion r in m_knownRegions.Values)
                 if (r.RegionID == regionID)
-                    return m_knownRegions[regionID];
+                    return r;
 
             // Finally, try the normal route
             return m_GridServiceConnector.GetRegionByUUID(scopeID, regionID);
@@ -271,7 +286,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             foreach (GridRegion r in m_knownRegions.Values)
             {
                 if ((r.RegionLocX == snapX) && (r.RegionLocY == snapY))
+                {
                     return r;
+                }
             }
 
             // Finally, try the normal route
@@ -338,8 +355,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void AddHyperlinkRegion(GridRegion regionInfo, ulong regionHandle)
         {
-            m_HyperlinkRegions.Add(regionInfo.RegionID, regionInfo);
-            m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
+            m_HyperlinkRegions[regionInfo.RegionID] = regionInfo;
+            m_HyperlinkHandles[regionInfo.RegionID] = regionHandle;
         }
 
         private void RemoveHyperlinkRegion(UUID regionID)
@@ -350,8 +367,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void AddHyperlinkHomeRegion(UUID userID, GridRegion regionInfo, ulong regionHandle)
         {
-            m_knownRegions.Add(userID, regionInfo);
-            m_HyperlinkHandles.Add(regionInfo.RegionID, regionHandle);
+            m_knownRegions[userID] = regionInfo;
+            m_HyperlinkHandles[regionInfo.RegionID] = regionHandle;
         }
 
         private void RemoveHyperlinkHomeRegion(UUID regionID)
@@ -367,9 +384,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
         #endregion
 
-        #region Hyperlinks
+        #region IHyperlinkService
 
         private static Random random = new Random();
+
 
         public GridRegion TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, int xloc, int yloc)
         {
@@ -417,10 +435,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return null;
         }
 
+
         // From the map search and secondlife://blah
         public GridRegion TryLinkRegion(Scene m_scene, IClientAPI client, string mapName)
         {
-            int xloc = random.Next(0, Int16.MaxValue);
+            int xloc = random.Next(0, Int16.MaxValue) * (int) Constants.RegionSize;
             return TryLinkRegionToCoords(m_scene, client, mapName, xloc, 0);
         }
 
@@ -447,15 +466,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
 
             // Finally, link it
-            try
-            {
-                RegisterRegion(UUID.Zero, regInfo);
-            }
-            catch (Exception e)
-            {
-                m_log.Warn("[HGrid]: Unable to link region: " + e.Message);
-                return false;
-            }
+                if (!RegisterRegion(UUID.Zero, regInfo))
+                {
+                    m_log.Warn("[HGrid]: Unable to link region");
+                    return false;
+                }
 
             int x, y;
             if (!Check4096(m_scene, regInfo, out x, out y))
@@ -539,8 +554,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             x = (int)(ux / Constants.RegionSize);
             y = (int)(uy / Constants.RegionSize);
 
-            if ((Math.Abs((int)(m_scene.RegionInfo.RegionLocX / Constants.RegionSize) - x) >= 4096) ||
-                (Math.Abs((int)(m_scene.RegionInfo.RegionLocY / Constants.RegionSize) - y) >= 4096))
+            if ((Math.Abs((int)m_scene.RegionInfo.RegionLocX - x) >= 4096) ||
+                (Math.Abs((int)m_scene.RegionInfo.RegionLocY - y) >= 4096))
             {
                 return false;
             }
@@ -554,7 +569,227 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return true;
         }
 
+        public GridRegion TryLinkRegion(IClientAPI client, string regionDescriptor)
+        {
+            return TryLinkRegion((Scene)client.Scene, client, regionDescriptor);
+        }
+
+        public GridRegion GetHyperlinkRegion(ulong handle)
+        {
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
+                if (r.RegionHandle == handle)
+                    return r;
+            foreach (GridRegion r in m_knownRegions.Values)
+                if (r.RegionHandle == handle)
+                    return r;
+            return null;
+        }
+
+        public ulong FindRegionHandle(ulong handle)
+        {
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
+                if ((r.RegionHandle == handle) && (m_HyperlinkHandles.ContainsKey(r.RegionID)))
+                    return m_HyperlinkHandles[r.RegionID];
+
+            foreach (GridRegion r in m_knownRegions.Values)
+                if ((r.RegionHandle == handle) && (m_HyperlinkHandles.ContainsKey(r.RegionID)))
+                    return m_HyperlinkHandles[r.RegionID];
+
+            return handle;
+        }
+
+        public bool SendUserInformation(GridRegion regInfo, AgentCircuitData agentData)
+        {
+            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
+
+            if ((IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null)) ||
+                (!IsLocalUser(uinfo) && !IsGoingHome(uinfo, regInfo)))
+            {
+                m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
+
+                // Set the position of the region on the remote grid
+                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regInfo.RegionHandle, out x, out y);
+                GridRegion clonedRegion = new GridRegion(regInfo);
+                clonedRegion.RegionLocX = (int)x;
+                clonedRegion.RegionLocY = (int)y;
+
+                // Get the user's home region information
+                GridRegion home = m_aScene.GridService.GetRegionByUUID(m_aScene.RegionInfo.ScopeID, uinfo.UserProfile.HomeRegionID);
+
+                // Get the user's service URLs
+                string serverURI = "";
+                if (uinfo.UserProfile is ForeignUserProfileData)
+                    serverURI = Util.ServerURI(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
+                string userServer = (serverURI == "") || (serverURI == null) ? LocalUserServerURI : serverURI;
+
+                string assetServer = Util.ServerURI(uinfo.UserProfile.UserAssetURI);
+                if ((assetServer == null) || (assetServer == ""))
+                    assetServer = LocalAssetServerURI;
+
+                string inventoryServer = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
+                if ((inventoryServer == null) || (inventoryServer == ""))
+                    inventoryServer = LocalInventoryServerURI;
+
+                if (!m_HypergridServiceConnector.InformRegionOfUser(clonedRegion, agentData, home, userServer, assetServer, inventoryServer))
+                {
+                    m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+                    return false;
+                }
+            }
+            //if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
+            //{
+            //    m_log.Info("[HGrid]: User seems to be going to foreign region.");
+            //    if (!InformRegionOfUser(regInfo, agentData))
+            //    {
+            //        m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+            //        return false;
+            //    }
+            //}
+            //else
+            //    m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
+
+            // May need to change agent's name
+            if (IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null))
+            {
+                agentData.firstname = agentData.firstname + "." + agentData.lastname;
+                agentData.lastname = "@" + LocalUserServerURI.Replace("http://", ""); ; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
+            }
+
+            return true;
+        }
+
+        public void AdjustUserInformation(AgentCircuitData agentData)
+        {
+            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
+            if ((uinfo != null) && (uinfo.UserProfile != null) &&
+                (IsLocalUser(uinfo) || !(uinfo.UserProfile is ForeignUserProfileData)))
+            {
+                //m_log.Debug("---------------> Local User!");
+                string[] parts = agentData.firstname.Split(new char[] { '.' });
+                if (parts.Length == 2)
+                {
+                    agentData.firstname = parts[0];
+                    agentData.lastname = parts[1];
+                }
+            }
+            //else
+            //    m_log.Debug("---------------> Foreign User!");
+        }
+
+        // Check if a local user exists with the same UUID as the incoming foreign user
+        public bool CheckUserAtEntry(UUID userID, UUID sessionID, out bool comingHome)
+        {
+            comingHome = false;
+            if (!m_aScene.SceneGridService.RegionLoginsEnabled)
+                return false;
+
+            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+            if (uinfo != null) 
+            {
+                // uh-oh we have a potential intruder
+                if (uinfo.SessionID != sessionID)
+                    // can't have a foreigner with a local UUID
+                    return false;
+                else
+                    // oh, so it's you! welcome back
+                    comingHome = true;
+            }
+
+            // OK, user can come in
+            return true;
+        }
+
+        public void AcceptUser(ForeignUserProfileData user, GridRegion home)
+        {
+            m_aScene.CommsManager.UserProfileCacheService.PreloadUserCache(user);
+            ulong realHandle = home.RegionHandle;
+            // Change the local coordinates
+            // X=0 on the map
+            home.RegionLocX = 0;
+            home.RegionLocY = random.Next(0, 10000) * (int)Constants.RegionSize;
+            
+            AddHyperlinkHomeRegion(user.ID, home, realHandle);
+
+            DumpUserData(user);
+            DumpRegionData(home);
+
+        }
+
+        public bool IsLocalUser(UUID userID)
+        {
+            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+            return IsLocalUser(uinfo);
+        }
+
         #endregion
+
+        #region IHyperlink Misc
+
+        protected bool IsComingHome(ForeignUserProfileData userData)
+        {
+            return (userData.UserServerURI == LocalUserServerURI);
+        }
+
+        // Is the user going back to the home region or the home grid?
+        protected bool IsGoingHome(CachedUserInfo uinfo, GridRegion rinfo)
+        {
+            if (uinfo.UserProfile == null)
+                return false;
+
+            if (!(uinfo.UserProfile is ForeignUserProfileData))
+                // it's a home user, can't be outside to return home
+                return false;
+
+            // OK, it's a foreign user with a ForeignUserProfileData
+            // and is going back to exactly the home region.
+            // We can't check if it's going back to a non-home region
+            // of the home grid. That will be dealt with in the
+            // receiving end
+            return (uinfo.UserProfile.HomeRegionID == rinfo.RegionID);
+        }
+
+        protected bool IsLocalUser(CachedUserInfo uinfo)
+        {
+            if (uinfo == null)
+                return false;
+
+            return !(uinfo.UserProfile is ForeignUserProfileData);
+
+        }
+
+        protected bool IsLocalRegion(ulong handle)
+        {
+            return m_LocalScenes.ContainsKey(handle);
+        }
+
+        private void DumpUserData(ForeignUserProfileData userData)
+        {
+            m_log.Info(" ------------ User Data Dump ----------");
+            m_log.Info(" >> Name: " + userData.FirstName + " " + userData.SurName);
+            m_log.Info(" >> HomeID: " + userData.HomeRegionID);
+            m_log.Info(" >> UserServer: " + userData.UserServerURI);
+            m_log.Info(" >> InvServer: " + userData.UserInventoryURI);
+            m_log.Info(" >> AssetServer: " + userData.UserAssetURI);
+            m_log.Info(" ------------ -------------- ----------");
+        }
+
+        private void DumpRegionData(GridRegion rinfo)
+        {
+            m_log.Info(" ------------ Region Data Dump ----------");
+            m_log.Info(" >> handle: " + rinfo.RegionHandle);
+            m_log.Info(" >> coords: " + rinfo.RegionLocX + ", " + rinfo.RegionLocY);
+            m_log.Info(" >> external host name: " + rinfo.ExternalHostName);
+            m_log.Info(" >> http port: " + rinfo.HttpPort);
+            m_log.Info(" >> external EP address: " + rinfo.ExternalEndPoint.Address);
+            m_log.Info(" >> external EP port: " + rinfo.ExternalEndPoint.Port);
+            m_log.Info(" ------------ -------------- ----------");
+        }
+
+
+        #endregion
+
 
     }
 }

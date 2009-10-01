@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -47,7 +48,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static LocalGridServicesConnector m_MainInstance;
+
         private IGridService m_GridService;
+        private Dictionary<UUID, RegionCache> m_LocalCache = new Dictionary<UUID, RegionCache>();
 
         private bool m_Enabled = false;
 
@@ -58,6 +62,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public LocalGridServicesConnector(IConfigSource source)
         {
             m_log.Debug("[LOCAL GRID CONNECTOR]: LocalGridServicesConnector instantiated");
+            m_MainInstance = this;
             InitialiseService(source);
         }
 
@@ -82,6 +87,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if (name == Name)
                 {
                     InitialiseService(source);
+                    m_MainInstance = this;
                     m_Enabled = true;
                     m_log.Info("[LOCAL GRID CONNECTOR]: Local grid connector enabled");
                 }
@@ -120,6 +126,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void PostInitialise()
         {
+            if (m_MainInstance == this)
+            {
+                MainConsole.Instance.Commands.AddCommand("LocalGridConnector", false, "show neighbours",
+                    "show neighbours",
+                    "Shows the local regions' neighbours", NeighboursCommand);
+            }
         }
 
         public void Close()
@@ -128,14 +140,25 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void AddRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
+            if (m_Enabled)
+                scene.RegisterModuleInterface<IGridService>(this);
 
-            scene.RegisterModuleInterface<IGridService>(this);
+            if (m_MainInstance == this)
+            {
+                if (m_LocalCache.ContainsKey(scene.RegionInfo.RegionID))
+                    m_log.ErrorFormat("[LOCAL GRID CONNECTOR]: simulator seems to have more than one region with the same UUID. Please correct this!");
+                else
+                    m_LocalCache.Add(scene.RegionInfo.RegionID, new RegionCache(scene));
+            }
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (m_MainInstance == this)
+            {
+                m_LocalCache[scene.RegionInfo.RegionID].Clear();
+                m_LocalCache.Remove(scene.RegionInfo.RegionID);
+            }
         }
 
         public void RegionLoaded(Scene scene)
@@ -158,7 +181,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public List<GridRegion> GetNeighbours(UUID scopeID, UUID regionID)
         {
-            return m_GridService.GetNeighbours(scopeID, regionID);
+            if (m_LocalCache.ContainsKey(regionID))
+            {
+                List<GridRegion> neighbours = m_LocalCache[regionID].GetNeighbours();
+                if (neighbours.Count == 0)
+                    // try the DB
+                    neighbours = m_GridService.GetNeighbours(scopeID, regionID);
+                return neighbours;
+            }
+            else
+            {
+                m_log.WarnFormat("[LOCAL GRID CONNECTOR]: GetNeighbours: Requested region {0} is not on this sim", regionID);
+                return new List<GridRegion>();
+            }
+
+            // Don't go to the DB
+            //return m_GridService.GetNeighbours(scopeID, regionID);
         }
 
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
@@ -187,5 +225,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         }
 
         #endregion
+
+        public void NeighboursCommand(string module, string[] cmdparams)
+        {
+            foreach (KeyValuePair<UUID, RegionCache> kvp in m_LocalCache)
+            {
+                m_log.InfoFormat("*** Neighbours of {0} {1} ***", kvp.Key, kvp.Value.RegionName);
+                List<GridRegion> regions = kvp.Value.GetNeighbours();
+                foreach (GridRegion r in regions)
+                    m_log.InfoFormat("    {0} @ {1}={2}", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
+            }
+        }
     }
 }

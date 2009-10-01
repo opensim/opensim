@@ -115,7 +115,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_requestCallbackTimer = new System.Timers.Timer(TIMEOUT);
             m_requestCallbackTimer.AutoReset = false;
-            m_requestCallbackTimer.Elapsed += new ElapsedEventHandler(OnRequestCallbackTimeout);        
+            m_requestCallbackTimer.Elapsed += new ElapsedEventHandler(OnRequestCallbackTimeout);
         }
 
         protected internal void Execute()
@@ -143,7 +143,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected void OnRequestCallbackTimeout(object source, ElapsedEventArgs args)
         {
             try
-            {            
+            {
                 lock (this)
                 {
                     // Take care of the possibilty that this thread started but was paused just outside the lock before
@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 // Calculate which uuids were not found.  This is an expensive way of doing it, but this is a failure
-                // case anyway.                
+                // case anyway.
                 List<UUID> uuids = new List<UUID>();
                 foreach (UUID uuid in m_uuids)
                 {
@@ -188,7 +188,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_log.ErrorFormat(
                         "[ARCHIVER]: (... {0} more not shown)", uuids.Count - MAX_UUID_DISPLAY_ON_TIMEOUT);
 
-                m_log.Error("[ARCHIVER]: OAR save aborted.");        
+                m_log.Error("[ARCHIVER]: OAR save aborted.");
             }
             catch (Exception e)
             {
@@ -213,7 +213,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     //m_log.DebugFormat("[ARCHIVER]: Received callback for asset {0}", id);
                     
-                    m_requestCallbackTimer.Stop();                     
+                    m_requestCallbackTimer.Stop();
                     
                     if (m_requestState == RequestState.Aborted)
                     {
@@ -258,7 +258,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}", e);                
+                m_log.ErrorFormat("[ARCHIVER]: AssetRequestCallback failed with {0}", e);
             }
         }
 

@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications.Osp
             
         public string Name { get { return "OspInventoryWrapperPlugin"; } }
         public string Version { get { return "0.1"; } }
-        public void Initialise() {}       
+        public void Initialise() {}
         public void Initialise(string connect) {}
         public void Dispose() {}
 
@@ -80,9 +80,9 @@ namespace OpenSim.Framework.Communications.Osp
         }
 
         protected InventoryItemBase PostProcessItem(InventoryItemBase item)
-        {            
+        {
             item.CreatorIdAsUuid = OspResolver.ResolveOspa(item.CreatorId, m_commsManager);
-            return item;            
+            return item;
         }
         
         public List<InventoryFolderBase> getFolderHierarchy(UUID parentID) { return m_wrappedPlugin.getFolderHierarchy(parentID); }

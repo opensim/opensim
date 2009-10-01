@@ -325,10 +325,10 @@ namespace OpenSim.Data.MySQL
                 UUID GroupID = UUID.Zero;
                 UUID.TryParse((string)reader["avatarID"], out Owner);
                 UUID.TryParse((string)reader["groupID"], out GroupID);
-                item.Owner = Owner;                
+                item.Owner = Owner;
                 item.GroupID = GroupID;
 
-                // Rest of the parsing.  If these UUID's fail, we're dead anyway                
+                // Rest of the parsing.  If these UUID's fail, we're dead anyway
                 item.ID = new UUID((string) reader["inventoryID"]);
                 item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
@@ -472,7 +472,7 @@ namespace OpenSim.Data.MySQL
                     + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?inventoryGroupPermissions, ?salePrice, ?saleType, ?creationDate"
                     + ", ?groupID, ?groupOwned, ?flags)";
 
-            string itemName = item.Name;            
+            string itemName = item.Name;
             if (item.Name.Length > 64)
             {
                 itemName = item.Name.Substring(0, 64);
@@ -484,7 +484,7 @@ namespace OpenSim.Data.MySQL
             {
                 itemDesc = item.Description.Substring(0, 128);
                 m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length + " to " + itemDesc.Length + " characters on add item");
-            }            
+            }
 
             try
             {
@@ -590,12 +590,12 @@ namespace OpenSim.Data.MySQL
                 "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName, type, version) VALUES ";
             sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version)";
 
-            string folderName = folder.Name;            
+            string folderName = folder.Name;
             if (folderName.Length > 64)
             {
                 folderName = folderName.Substring(0, 64);
                 m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length + " to " + folderName.Length + " characters on add folder");
-            }         
+            }
 
             database.CheckConnection();
 

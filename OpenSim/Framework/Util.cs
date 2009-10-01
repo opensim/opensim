@@ -54,7 +54,7 @@ namespace OpenSim.Framework
     /// </summary>
     public class Util
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);       
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
         private static Random randomClass = new Random();
@@ -136,7 +136,7 @@ namespace OpenSim.Framework
             float dx = a.X - b.X;
             float dy = a.Y - b.Y;
             float dz = a.Z - b.Z;
-            return (dx*dx + dy*dy + dz*dz) < (amount*amount);           
+            return (dx*dx + dy*dy + dz*dz) < (amount*amount);
         }
 
         /// <summary>
@@ -975,7 +975,7 @@ namespace OpenSim.Framework
             else
             {
                 os = ReadEtcIssue();
-            }         
+            }
                       
             if (os.Length > 45)
             {
@@ -1201,6 +1201,32 @@ namespace OpenSim.Framework
             }
 
             return found.ToArray();
+        }
+
+        public static string ServerURI(string uri)
+        {
+            if (uri == string.Empty)
+                return string.Empty;
+
+            // Get rid of eventual slashes at the end
+            uri = uri.TrimEnd('/');
+
+            IPAddress ipaddr1 = null;
+            string port1 = "";
+            try
+            {
+                ipaddr1 = Util.GetHostFromURL(uri);
+            }
+            catch { }
+
+            try
+            {
+                port1 = uri.Split(new char[] { ':' })[2];
+            }
+            catch { }
+
+            // We tried our best to convert the domain names to IP addresses
+            return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
         #region FireAndForget Threading Pattern

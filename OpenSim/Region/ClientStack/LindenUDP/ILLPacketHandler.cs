@@ -31,7 +31,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
-{        
+{
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     public delegate void PacketDrop(Packet pack, Object id);
     public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Take action depending on the type and contents of an received packet.
         /// </summary>
-        /// <param name="item"></param>        
+        /// <param name="item"></param>
         void ProcessInPacket(LLQueItem item);
         
         void ProcessOutPacket(LLQueItem item);

@@ -113,7 +113,7 @@ namespace OpenSim.Services.Connectors
             message = response.Message;
             
             return response.IsAuthorized;
-        }      
+        }
 
     }
 }

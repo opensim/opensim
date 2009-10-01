@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// User profiles indexed by name
         /// </summary>
         private readonly Dictionary<string, CachedUserInfo> m_userProfilesByName 
-            = new Dictionary<string, CachedUserInfo>();        
+            = new Dictionary<string, CachedUserInfo>();
         
         /// <summary>
         /// The root library folder.
@@ -123,35 +123,35 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Get details of the given user.
         /// </summary>
-        /// If the user isn't in cache then the user is requested from the profile service.  
+        /// If the user isn't in cache then the user is requested from the profile service.
         /// <param name="userID"></param>
-        /// <returns>null if no user details are found</returns>        
+        /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(string fname, string lname)
         {
             lock (m_userProfilesByName)
-            {    
+            {
                 CachedUserInfo userInfo;
                 
-                if (m_userProfilesByName.TryGetValue(string.Format(NAME_FORMAT, fname, lname), out userInfo))                    
+                if (m_userProfilesByName.TryGetValue(string.Format(NAME_FORMAT, fname, lname), out userInfo))
                 {
                     return userInfo;
-                }                
+                }
                 else
-                {                
+                {
                     UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(fname, lname);
                 
                     if (userProfile != null)
-                        return AddToCaches(userProfile);             
+                        return AddToCaches(userProfile);
                     else
                         return null;
-                }               
+                }
             }
         }
         
         /// <summary>
         /// Get details of the given user.
         /// </summary>
-        /// If the user isn't in cache then the user is requested from the profile service.  
+        /// If the user isn't in cache then the user is requested from the profile service.
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(UUID userID)
@@ -185,20 +185,20 @@ namespace OpenSim.Framework.Communications.Cache
         // probably by making sure that the update doesn't use the UserCacheInfo.UserProfile directly (possibly via
         // returning a read only class from the cache).
 //        public bool StoreProfile(UserProfileData userProfile)
-//        {            
+//        {
 //            lock (m_userProfilesById)
-//            {            
+//            {
 //                CachedUserInfo userInfo = GetUserDetails(userProfile.ID);
-//                
+//
 //                if (userInfo != null)
 //                {
-//                    userInfo.m_userProfile = userProfile;                   
+//                    userInfo.m_userProfile = userProfile;
 //                    m_commsManager.UserService.UpdateUserProfile(userProfile);
-//                    
+//
 //                    return true;
 //                }
 //            }
-//            
+//
 //            return false;
 //        }
         
@@ -220,7 +220,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
             
-            return createdUserInfo;            
+            return createdUserInfo;
         }
         
         /// <summary>
@@ -234,7 +234,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (m_userProfilesById.ContainsKey(userId))
                 {
-                    CachedUserInfo userInfo = m_userProfilesById[userId];                    
+                    CachedUserInfo userInfo = m_userProfilesById[userId];
                     m_userProfilesById.Remove(userId);
                     
                     lock (m_userProfilesByName)
@@ -244,7 +244,7 @@ namespace OpenSim.Framework.Communications.Cache
                     
                     return true;
                 }
-            }        
+            }
             
             return false;
         }

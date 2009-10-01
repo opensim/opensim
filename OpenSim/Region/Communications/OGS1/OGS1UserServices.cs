@@ -41,7 +41,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Clients;
 
 namespace OpenSim.Region.Communications.OGS1
-{        
+{
     public class OGS1UserServices : UserManagerBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.OGS1
             catch (WebException)
             {
                 m_log.Warn("[LOGOFF]: Unable to notify grid server of user logoff");
-            }   
+            }
         }
             
         /// <summary>
@@ -150,10 +150,10 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("authenticate_user_by_password", parameters);
-            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);                
+            XmlRpcResponse resp = req.Send(m_commsManager.NetworkServersInfo.UserURL, 30000);
 
             // Temporary measure to deal with older services
-            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)       
+            if (resp.IsFault && resp.FaultCode == XmlRpcErrorCodes.SERVER_ERROR_METHOD)
             {
                 throw new Exception(
                     String.Format(
@@ -170,7 +170,7 @@ namespace OpenSim.Region.Communications.OGS1
             else
             {
                 return false;
-            }           
+            }
         }
     }
 }

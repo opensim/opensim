@@ -454,7 +454,7 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 responsedata["error_status_text"] = "Upstream error:";
                 responsedata["http_protocol_version"] = "HTTP/1.0";
                 return responsedata;
-            }            
+            }
 
             OSDArray array = new OSDArray();
             if (element == null) // didn't have an event in 15s

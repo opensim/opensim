@@ -66,10 +66,20 @@ namespace OpenSim.Services.Connectors.Grid
             IList paramList = new ArrayList();
             paramList.Add(hash);
 
-            XmlRpcRequest request = new XmlRpcRequest("linkk_region", paramList);
+            XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
             string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
             m_log.Debug("[HGrid]: Linking to " + uri);
-            XmlRpcResponse response = request.Send(uri, 10000);
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(uri, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[HGrid]: Exception " + e.Message);
+                return uuid;
+            }
+
             if (response.IsFault)
             {
                 m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);
@@ -82,6 +92,7 @@ namespace OpenSim.Services.Connectors.Grid
                 try
                 {
                     UUID.TryParse((string)hash["uuid"], out uuid);
+                    m_log.Debug(">> HERE, uuid: " + uuid);
                     info.RegionID = uuid;
                     if ((string)hash["handle"] != null)
                     {
@@ -145,6 +156,95 @@ namespace OpenSim.Services.Connectors.Grid
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
                 m_log.Warn("[HGrid]: Failed getting/storing map image, because it is probably already in the cache");
+            }
+        }
+
+        public bool InformRegionOfUser(GridRegion regInfo, AgentCircuitData agentData, GridRegion home, string userServer, string assetServer, string inventoryServer)
+        {
+            string capsPath = agentData.CapsPath;
+            Hashtable loginParams = new Hashtable();
+            loginParams["session_id"] = agentData.SessionID.ToString();
+
+            loginParams["firstname"] = agentData.firstname;
+            loginParams["lastname"] = agentData.lastname;
+
+            loginParams["agent_id"] = agentData.AgentID.ToString();
+            loginParams["circuit_code"] = agentData.circuitcode.ToString();
+            loginParams["startpos_x"] = agentData.startpos.X.ToString();
+            loginParams["startpos_y"] = agentData.startpos.Y.ToString();
+            loginParams["startpos_z"] = agentData.startpos.Z.ToString();
+            loginParams["caps_path"] = capsPath;
+
+            if (home != null)
+            {
+                loginParams["region_uuid"] = home.RegionID.ToString();
+                loginParams["regionhandle"] = home.RegionHandle.ToString();
+                loginParams["home_address"] = home.ExternalHostName;
+                loginParams["home_port"] = home.HttpPort.ToString();
+                loginParams["internal_port"] = home.InternalEndPoint.Port.ToString();
+
+                m_log.Debug("  ---------     Home     -------");
+                m_log.Debug("  >> " + loginParams["home_address"] + " <<");
+                m_log.Debug("  >> " + loginParams["region_uuid"] + " <<");
+                m_log.Debug("  >> " + loginParams["regionhandle"] + " <<");
+                m_log.Debug("  >> " + loginParams["home_port"] + " <<");
+                m_log.Debug("  --------- ------------ -------");
+            }
+            else
+                m_log.WarnFormat("[HGrid]: Home region not found for {0} {1}", agentData.firstname, agentData.lastname);
+
+            loginParams["userserver_id"] = userServer;
+            loginParams["assetserver_id"] = assetServer;
+            loginParams["inventoryserver_id"] = inventoryServer;
+
+
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(loginParams);
+
+            // Send
+            string uri = "http://" + regInfo.ExternalHostName + ":" + regInfo.HttpPort + "/";
+            //m_log.Debug("XXX uri: " + uri);
+            XmlRpcRequest request = new XmlRpcRequest("expect_hg_user", SendParams);
+            XmlRpcResponse reply;
+            try
+            {
+                reply = request.Send(uri, 6000);
+            }
+            catch (Exception e)
+            {
+                m_log.Warn("[HGrid]: Failed to notify region about user. Reason: " + e.Message);
+                return false;
+            }
+
+            if (!reply.IsFault)
+            {
+                bool responseSuccess = true;
+                if (reply.Value != null)
+                {
+                    Hashtable resp = (Hashtable)reply.Value;
+                    if (resp.ContainsKey("success"))
+                    {
+                        if ((string)resp["success"] == "FALSE")
+                        {
+                            responseSuccess = false;
+                        }
+                    }
+                }
+                if (responseSuccess)
+                {
+                    m_log.Info("[HGrid]: Successfully informed remote region about user " + agentData.AgentID);
+                    return true;
+                }
+                else
+                {
+                    m_log.ErrorFormat("[HGrid]: Region responded that it is not available to receive clients");
+                    return false;
+                }
+            }
+            else
+            {
+                m_log.ErrorFormat("[HGrid]: XmlRpc request to region failed with message {0}, code {1} ", reply.FaultString, reply.FaultCode);
+                return false;
             }
         }
 

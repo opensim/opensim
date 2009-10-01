@@ -93,7 +93,7 @@ namespace OpenSim.Region.Physics.Manager
         BANKING_TIMESCALE = 40,
         REFERENCE_FRAME = 44
 
-    }   
+    }
 
     [Flags]
     public enum VehicleFlag

@@ -152,8 +152,8 @@ namespace OpenSim.Framework.Communications.Tests
 
             public virtual bool AuthenticateUserByPassword(UUID userID, string password)
             {
-                throw new NotImplementedException();        
-            }             
+                throw new NotImplementedException();
+            }
         }
     }
 }

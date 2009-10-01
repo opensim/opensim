@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
         public void SaveNamedPrimsToXml2(Scene scene, string primName, string fileName)
         {
             SceneXmlLoader.SaveNamedPrimsToXml2(scene, primName, fileName);
-        }       
+        }
 
         public SceneObjectGroup DeserializeGroupFromXml2(string xmlString)
         {

@@ -105,7 +105,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForceInventoryPersistence()
         {
             HasInventoryChanged = true;
-        }                
+        }
 
         /// <summary>
         /// Reset UUIDs for all the items in the prim's inventory.  This involves either generating
@@ -164,7 +164,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Change every item in this inventory to a new group.
         /// </summary>
-        /// <param name="groupID"></param>        
+        /// <param name="groupID"></param>
         public void ChangeInventoryGroup(UUID groupID)
         {
             lock (Items)

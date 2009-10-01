@@ -464,7 +464,7 @@ namespace OpenSim.Data.MySQL
                                     prim.Name, prim.UUID, prim.GroupPosition, groupID);
                                 
                                 prim.UUID = groupID;
-                            }                            
+                            }
 
                             grp = new SceneObjectGroup(prim);
                         }
@@ -533,7 +533,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Load in a prim's persisted inventory.
         /// </summary>
-        /// <param name="prim">The prim</param>        
+        /// <param name="prim">The prim</param>
         private void LoadItems(SceneObjectPart prim)
         {
             lock (m_Connection)
@@ -773,7 +773,7 @@ namespace OpenSim.Data.MySQL
                         "use_estate_sun, fixed_sun, sun_position, " +
                         "covenant, Sandbox, sunvectorx, sunvectory, " +
                         "sunvectorz, loaded_creation_datetime, " +
-                        "loaded_creation_id) values ( ?RegionUUID, ?BlockTerraform, " +
+                        "loaded_creation_id) values (?RegionUUID, ?BlockTerraform, " +
                         "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
                         "?AllowLandResell, ?AllowLandJoinDivide, " +
                         "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +

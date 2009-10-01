@@ -304,7 +304,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from this folder
-        /// </summary>        
+        /// </summary>
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
@@ -314,7 +314,7 @@ namespace OpenSim.Framework
         /// FIXME: Delimitors which occur in names themselves are not currently escapable.
         /// 
         /// <param name="path">
-        /// The path to the required folder.  
+        /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>

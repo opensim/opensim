@@ -155,7 +155,7 @@ namespace OpenSim.Services.AssetService
             AssetBase asset = Get(args[2]);
 
             if (asset == null || asset.Data.Length == 0)
-            {   
+            {
                 MainConsole.Instance.Output("Asset not found");
                 return;
             }
@@ -195,7 +195,7 @@ namespace OpenSim.Services.AssetService
             AssetBase asset = Get(args[2]);
 
             if (asset == null || asset.Data.Length == 0)
-            {   
+            {
                 MainConsole.Instance.Output("Asset not found");
                 return;
             }

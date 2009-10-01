@@ -59,11 +59,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 int length = 0;
                 using (StreamWriter writer = new StreamWriter(buffer))
                 {
-                    writer.WriteLine(obj);
+                    writer.Write(obj);
                     writer.Flush();
-                    length = (int)buffer.Length;
                 }
 
+                length = (int)obj.Length;
                 request.ContentLength = length;
 
                 Stream requestStream = request.GetRequestStream();

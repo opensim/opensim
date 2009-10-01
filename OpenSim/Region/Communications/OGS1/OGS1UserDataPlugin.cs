@@ -81,7 +81,7 @@ namespace OpenSim.Region.Communications.OGS1
         public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
         {
             // Not interested
-        }        
+        }
         
         public UserProfileData GetUserByUri(Uri uri)
         {
@@ -695,7 +695,7 @@ namespace OpenSim.Region.Communications.OGS1
                 userData.Partner = UUID.Zero;
 
             return userData;
-        }            
+        }
 
         protected AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
         {
@@ -766,6 +766,6 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             return buddylist;
-        }        
+        }
     }
 }

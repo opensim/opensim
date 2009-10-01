@@ -35,6 +35,8 @@ using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 using log4net;
 
 namespace OpenSim.Framework.Communications.Clients
@@ -43,7 +45,7 @@ namespace OpenSim.Framework.Communications.Clients
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool DoCreateChildAgentCall(RegionInfo region, AgentCircuitData aCircuit, string authKey, out string reason)
+        public bool DoCreateChildAgentCall(GridRegion region, AgentCircuitData aCircuit, string authKey, out string reason)
         {
             reason = String.Empty;
 
@@ -166,7 +168,7 @@ namespace OpenSim.Framework.Communications.Clients
 
         }
 
-        public bool DoChildAgentUpdateCall(RegionInfo region, IAgentData cAgentData)
+        public bool DoChildAgentUpdateCall(GridRegion region, IAgentData cAgentData)
         {
             // Eventually, we want to use a caps url instead of the agentID
             string uri = string.Empty;
@@ -260,7 +262,7 @@ namespace OpenSim.Framework.Communications.Clients
             return true;
         }
 
-        public bool DoRetrieveRootAgentCall(RegionInfo region, UUID id, out IAgentData agent)
+        public bool DoRetrieveRootAgentCall(GridRegion region, UUID id, out IAgentData agent)
         {
             agent = null;
             // Eventually, we want to use a caps url instead of the agentID
@@ -348,7 +350,7 @@ namespace OpenSim.Framework.Communications.Clients
         }
 
 
-        public bool DoCloseAgentCall(RegionInfo region, UUID id)
+        public bool DoCloseAgentCall(GridRegion region, UUID id)
         {
             string uri = string.Empty;
             try
@@ -391,7 +393,7 @@ namespace OpenSim.Framework.Communications.Clients
             return true;
         }
 
-        public bool DoCreateObjectCall(RegionInfo region, ISceneObject sog, string sogXml2, bool allowScriptCrossing)
+        public bool DoCreateObjectCall(GridRegion region, ISceneObject sog, string sogXml2, bool allowScriptCrossing)
         {
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
             string uri 
@@ -474,7 +476,7 @@ namespace OpenSim.Framework.Communications.Clients
 
         }
 
-        public bool DoCreateObjectCall(RegionInfo region, UUID userID, UUID itemID)
+        public bool DoCreateObjectCall(GridRegion region, UUID userID, UUID itemID)
         {
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
             string uri = "http://" + region.ExternalEndPoint.Address + ":" + region.HttpPort + "/object/" + UUID.Zero + "/" + regionHandle.ToString() + "/";
@@ -646,7 +648,7 @@ namespace OpenSim.Framework.Communications.Clients
             return false;
         }
 
-        public virtual void SendUserInformation(RegionInfo regInfo, AgentCircuitData aCircuit)
+        public virtual void SendUserInformation(GridRegion regInfo, AgentCircuitData aCircuit)
         {
         }
 

@@ -37,6 +37,8 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 using OpenSim.Server.Handlers.Grid;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
 {
@@ -94,6 +96,22 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
             if (!m_Enabled)
                 return;
 
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            GridRegion rinfo = new GridRegion(scene.RegionInfo);
+            m_HypergridHandler.RemoveRegion(rinfo);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
             if (!m_Registered)
             {
                 m_Registered = true;
@@ -102,25 +120,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
 
                 Object[] args = new Object[] { m_Config, MainServer.Instance };
 
-                m_HypergridHandler = new HypergridServiceInConnector(m_Config, MainServer.Instance);
-                    //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);
+                m_HypergridHandler = new HypergridServiceInConnector(m_Config, MainServer.Instance, scene.RequestModuleInterface<IHyperlinkService>());
+                //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);
             }
 
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(scene.RegionInfo);
+            GridRegion rinfo = new GridRegion(scene.RegionInfo);
             m_HypergridHandler.AddRegion(rinfo);
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            SimpleRegionInfo rinfo = new SimpleRegionInfo(scene.RegionInfo);
-            m_HypergridHandler.RemoveRegion(rinfo);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
         }
 
         #endregion

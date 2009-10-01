@@ -64,7 +64,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Change every item in this inventory to a new group.
         /// </summary>
-        /// <param name="groupID"></param>        
+        /// <param name="groupID"></param>
         void ChangeInventoryGroup(UUID groupID);
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="startParam"></param>
         /// <param name="postOnRez"></param>
         /// <param name="engine"></param>
-        /// <param name="stateSource"></param>        
+        /// <param name="stateSource"></param>
         void CreateScriptInstance(UUID itemId, int startParam, bool postOnRez, string engine, int stateSource);
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Return the name with which a client can request a xfer of this prim's inventory metadata
-        /// </summary>      
+        /// </summary>
         string GetInventoryFileName();
 
         bool GetInventoryFileName(IClientAPI client, uint localID);

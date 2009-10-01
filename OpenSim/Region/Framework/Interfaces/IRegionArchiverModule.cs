@@ -52,9 +52,9 @@ namespace OpenSim.Region.Framework.Interfaces
         /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
         /// the EventManager.OnOarFileSaved event.
         /// 
-        /// <param name="savePath"></param>  
+        /// <param name="savePath"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void ArchiveRegion(string savePath, Guid requestId);        
+        void ArchiveRegion(string savePath, Guid requestId);
 
         /// <summary>
         /// Archive the region to a stream.
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// settings in the archive will be ignored.
         /// </param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void DearchiveRegion(string loadPath, bool merge, Guid requestId);        
+        void DearchiveRegion(string loadPath, bool merge, Guid requestId);
         
         /// <summary>
         /// Dearchive a region from a stream.  This replaces the existing scene. 
@@ -109,8 +109,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="merge">
         /// If true, the loaded region merges with the existing one rather than replacing it.  Any terrain or region
         /// settings in the archive will be ignored.
-        /// </param>    
+        /// </param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
-        void DearchiveRegion(Stream loadStream, bool merge, Guid requestId);        
+        void DearchiveRegion(Stream loadStream, bool merge, Guid requestId);
     }
 }

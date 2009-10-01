@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 this, "alert", "alert <first> <last> <message>", "Send an alert to a user", HandleAlertConsoleCommand);
 
             m_scene.AddCommand(
-                this, "alert general", "alert general <message>", "Send an alert to everyone", HandleAlertConsoleCommand);            
+                this, "alert general", "alert general <message>", "Send an alert to everyone", HandleAlertConsoleCommand);
         }
         
         public void PostInitialise() {}
@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         public void SendAlertToUser(IClientAPI client, string message)
         {
             SendAlertToUser(client, message, false);
-        }          
+        }
         
         public void SendAlertToUser(IClientAPI client, string message, bool modal)
         {
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         public void SendAlertToUser(UUID agentID, string message)
         {
             SendAlertToUser(agentID, message, false);
-        }          
+        }
         
         public void SendAlertToUser(UUID agentID, string message, bool modal)
         {
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             
             if (sp != null)
                 sp.ControllingClient.SendAgentAlertMessage(message, modal);
-        }           
+        }
         
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
@@ -95,7 +95,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                     break;
                 }
             }
-        }     
+        }
         
         public void SendGeneralAlert(string message)
         {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendAlertMessage(message);
             }
-        }    
+        }
 
         public void SendDialogToUser(
             UUID avatarID, string objectName, UUID objectID, UUID ownerID,
@@ -135,9 +135,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         {
             ScenePresence sp = m_scene.GetScenePresence(avatarID);
             
-            if (sp != null)            
+            if (sp != null)
                 sp.ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned, message, url);
-        }        
+        }
         
         public void SendNotificationToUsersInEstate(
             UUID fromAvatarID, string fromAvatarName, string message)
@@ -145,11 +145,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             // TODO: This does not yet do what it says on the tin - it only sends the message to users in the same
             // region as the sending avatar.
             SendNotificationToUsersInRegion(fromAvatarID, fromAvatarName, message);
-        }        
+        }
         
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)
-        {        
+        {
             List<ScenePresence> presenceList = m_scene.GetScenePresences();
 
             foreach (ScenePresence presence in presenceList)
@@ -185,7 +185,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
                 
                 m_log.InfoFormat(
                     "[DIALOG]: Sending alert in region {0} to {1} {2} with message {3}", 
-                    m_scene.RegionInfo.RegionName, firstName, lastName, message);  
+                    m_scene.RegionInfo.RegionName, firstName, lastName, message);
                 SendAlertToUser(firstName, lastName, message, false);
             }
         }
@@ -199,6 +199,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             }
             
             return result;
-        }        
+        }
     }
 }

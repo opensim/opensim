@@ -29,6 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {
@@ -50,7 +51,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
                 if (UserProfile != null)
                 {
-                    RegionInfo regionInfo = CommsManager.GridService.RequestNeighbourInfo(UserProfile.HomeRegion);
+                    GridRegion regionInfo = GridService.GetRegionByUUID(UUID.Zero, UserProfile.HomeRegionID);
                     //if (regionInfo != null)
                     //{
                     //    UserProfile.HomeRegionID = regionInfo.RegionID;

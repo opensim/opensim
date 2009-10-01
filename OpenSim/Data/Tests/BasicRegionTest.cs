@@ -60,7 +60,7 @@ namespace OpenSim.Data.Tests
         public UUID item2;
         public UUID item3;
 
-        public static Random random;        
+        public static Random random;
         
         public string itemname1 = "item1";
 
@@ -173,7 +173,7 @@ namespace OpenSim.Data.Tests
             UUID tmp0 = UUID.Random();
             UUID tmp1 = UUID.Random();
             UUID tmp2 = UUID.Random();
-            UUID tmp3 = UUID.Random();            
+            UUID tmp3 = UUID.Random();
             UUID newregion = UUID.Random();
             SceneObjectPart p1 = NewSOP("SoP 1",tmp1);
             SceneObjectPart p2 = NewSOP("SoP 2",tmp2);
@@ -224,7 +224,7 @@ namespace OpenSim.Data.Tests
             random.NextBytes(partsys);
             DateTime expires = new DateTime(2008, 12, 20);
             DateTime rezzed = new DateTime(2009, 07, 15);
-            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());             
+            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
             Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
             Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
             Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
@@ -261,7 +261,7 @@ namespace OpenSim.Data.Tests
             sop.Shape = pbshap;
             sop.GroupPosition = groupos;
             sop.RotationOffset = rotoff;
-            sop.CreatorID = creator;            
+            sop.CreatorID = creator;
             sop.InventorySerial = iserial;
             sop.TaskInventory = dic;
             sop.ObjectFlags = objf;
@@ -306,7 +306,7 @@ namespace OpenSim.Data.Tests
             Assert.That(expires,Is.EqualTo(sop.Expires), "Assert.That(expires,Is.EqualTo(sop.Expires))");
             Assert.That(rezzed,Is.EqualTo(sop.Rezzed), "Assert.That(rezzed,Is.EqualTo(sop.Rezzed))");
             Assert.That(offset,Is.EqualTo(sop.OffsetPosition), "Assert.That(offset,Is.EqualTo(sop.OffsetPosition))");
-            Assert.That(velocity,Is.EqualTo(sop.Velocity), "Assert.That(velocity,Is.EqualTo(sop.Velocity))");                       
+            Assert.That(velocity,Is.EqualTo(sop.Velocity), "Assert.That(velocity,Is.EqualTo(sop.Velocity))");
             Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity), "Assert.That(angvelo,Is.EqualTo(sop.AngularVelocity))");
             Assert.That(accel,Is.EqualTo(sop.Acceleration), "Assert.That(accel,Is.EqualTo(sop.Acceleration))");
             Assert.That(description,Is.EqualTo(sop.Description), "Assert.That(description,Is.EqualTo(sop.Description))");
@@ -319,7 +319,7 @@ namespace OpenSim.Data.Tests
             Assert.That(scale,Is.EqualTo(sop.Scale), "Assert.That(scale,Is.EqualTo(sop.Scale))");
             Assert.That(updatef,Is.EqualTo(sop.UpdateFlag), "Assert.That(updatef,Is.EqualTo(sop.UpdateFlag))");
             
-            // This is necessary or object will not be inserted in DB            
+            // This is necessary or object will not be inserted in DB
             sop.ObjectFlags = 0;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
@@ -332,11 +332,11 @@ namespace OpenSim.Data.Tests
             // Makes sure there are no double insertions:
             db.StoreObject(sog,region3);
             sogs = db.LoadObjects(region3);
-            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count, Is.EqualTo(1))");            
+            Assert.That(sogs.Count, Is.EqualTo(1), "Assert.That(sogs.Count, Is.EqualTo(1))");
                 
 
             // Tests if the parameters were inserted correctly
-            SceneObjectPart p = sogs[0].RootPart;               
+            SceneObjectPart p = sogs[0].RootPart;
             Assert.That(regionh,Is.EqualTo(p.RegionHandle), "Assert.That(regionh,Is.EqualTo(p.RegionHandle))");
             //Assert.That(localid,Is.EqualTo(p.LocalId), "Assert.That(localid,Is.EqualTo(p.LocalId))");
             Assert.That(groupos,Is.EqualTo(p.GroupPosition), "Assert.That(groupos,Is.EqualTo(p.GroupPosition))");
@@ -402,7 +402,7 @@ namespace OpenSim.Data.Tests
             random.NextBytes(partsys);
             DateTime expires = new DateTime(2010, 12, 20);
             DateTime rezzed = new DateTime(2005, 07, 15);
-            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());             
+            Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
             Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
             Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
             Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
@@ -418,7 +418,7 @@ namespace OpenSim.Data.Tests
             PrimitiveBaseShape pbshap = new PrimitiveBaseShape();
             pbshap = PrimitiveBaseShape.Default;
             Vector3 scale = new Vector3(random.Next(),random.Next(),random.Next());
-            byte updatef = (byte) random.Next(127);            
+            byte updatef = (byte) random.Next(127);
             
             // Updates the region with new values
             SceneObjectGroup sog2 = FindSOG("Adam  West", region3);
@@ -427,7 +427,7 @@ namespace OpenSim.Data.Tests
             sog2.RootPart.Shape = pbshap;
             sog2.RootPart.GroupPosition = groupos;
             sog2.RootPart.RotationOffset = rotoff;
-            sog2.RootPart.CreatorID = creator;            
+            sog2.RootPart.CreatorID = creator;
             sog2.RootPart.TaskInventory = dic;
             sog2.RootPart.Name = name;
             sog2.RootPart.Material = material;
@@ -492,12 +492,12 @@ namespace OpenSim.Data.Tests
             {
                 UUID tmp = UUID.Random();
                 SceneObjectPart sop = NewSOP(("Test SOP " + i.ToString()),tmp);
-                Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());             
+                Vector3 groupos = new Vector3(random.Next(),random.Next(),random.Next());
                 Vector3 offset = new Vector3(random.Next(),random.Next(),random.Next());
                 Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
                 Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
                 Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
-                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());  
+                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
                 
                 sop.GroupPosition = groupos;
                 sop.RotationOffset = rotoff;
@@ -648,7 +648,7 @@ namespace OpenSim.Data.Tests
         {
             InventoryItemBase i = new InventoryItemBase();
             UUID id = UUID.Random();
-            i.ID = id;            
+            i.ID = id;
             UUID folder = UUID.Random();
             i.Folder = folder;
             UUID owner = UUID.Random();
@@ -666,13 +666,13 @@ namespace OpenSim.Data.Tests
             i.NextPermissions = nextperm;
             uint curperm = (uint) random.Next();
             i.CurrentPermissions = curperm;
-            uint baseperm = (uint) random.Next();            
+            uint baseperm = (uint) random.Next();
             i.BasePermissions = baseperm;
             uint eoperm = (uint) random.Next();
             i.EveryOnePermissions = eoperm;
             int assettype = random.Next();
             i.AssetType = assettype;
-            UUID groupid = UUID.Random();            
+            UUID groupid = UUID.Random();
             i.GroupID = groupid;
             bool groupown = true;
             i.GroupOwned = groupown;
@@ -1010,7 +1010,7 @@ namespace OpenSim.Data.Tests
         
         private SceneObjectPart NewSOP(string name, UUID uuid)
         {
-            SceneObjectPart sop = new SceneObjectPart();           
+            SceneObjectPart sop = new SceneObjectPart();
             sop.Name = name;
             sop.Description = name;
             sop.Text = RandomName();
@@ -1042,12 +1042,12 @@ namespace OpenSim.Data.Tests
             int size = random.Next(5,12); 
             char ch ;
             for (int i=0; i<size; i++)
-            {       
+            {
                 ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
                 name.Append(ch);
             }
             return name.ToString();
-        }      
+        }
 //        private InventoryFolderBase NewFolder(UUID id, UUID parent, UUID owner, string name)
 //        {
 //            InventoryFolderBase f = new InventoryFolderBase();

@@ -45,7 +45,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// <summary>
     /// Linking tests
     /// </summary>
-    [TestFixture]    
+    [TestFixture]
     public class SceneObjectLinkingTests
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -174,13 +174,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Link grp4 to grp3.
             grp3.LinkToGroup(grp4);
             
-            // At this point we should have 4 parts total in two groups.            
+            // At this point we should have 4 parts total in two groups.
             Assert.That(grp1.Children.Count == 2);
             Assert.That(grp2.IsDeleted, "Group 2 was not registered as deleted after link.");
-            Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained parts after delink.");            
+            Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained parts after delink.");
             Assert.That(grp3.Children.Count == 2);
             Assert.That(grp4.IsDeleted, "Group 4 was not registered as deleted after link.");
-            Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");            
+            Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");
             
             if (debugtest)
             {
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 m_log.Debug("Group3: Pos:"+grp3.AbsolutePosition+", Rot:"+grp3.Rotation);
                 m_log.Debug("Group3: Prim1: OffsetPosition:"+part3.OffsetPosition+", OffsetRotation:"+part3.RotationOffset);
                 m_log.Debug("Group3: Prim2: OffsetPosition:"+part4.OffsetPosition+", OffsetRotation:"+part4.RotationOffset);
-            }            
+            }
 
             // Required for linking
             grp1.RootPart.UpdateFlag = 0;
@@ -253,6 +253,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 && (part4.RotationOffset.Y - compareQuaternion.Y < 0.00003) 
                 && (part4.RotationOffset.Z - compareQuaternion.Z < 0.00003) 
                 && (part4.RotationOffset.W - compareQuaternion.W < 0.00003));
-        }        
+        }
     }
 }

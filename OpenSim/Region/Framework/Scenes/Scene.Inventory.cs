@@ -1015,7 +1015,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
             }
             else
-            {             
+            {
                 InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
 
                 if (agentItem == null)
