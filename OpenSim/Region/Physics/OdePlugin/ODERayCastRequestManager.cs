@@ -228,7 +228,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         mono [0x81d28b6]
                         mono [0x81ea2c6]
                         /lib/i686/cmov/libpthread.so.0 [0xb7e744c0]
-                        /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb7dcd6de]             
+                        /lib/i686/cmov/libc.so.6(clone+0x5e) [0xb7dcd6de]
              */
 
             // Exclude heightfield geom

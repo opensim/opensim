@@ -37,7 +37,7 @@ namespace OpenSim.Region.Communications.Local
     public class CommunicationsLocal : CommunicationsManager
     {
         public CommunicationsLocal(
-            ConfigSettings configSettings,                                   
+            ConfigSettings configSettings,
             NetworkServersInfo serversInfo,
             LibraryRootFolder libraryRootFolder)
             : base(serversInfo, libraryRootFolder)
@@ -47,13 +47,13 @@ namespace OpenSim.Region.Communications.Local
                 = new LocalUserServices(
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
             lus.AddPlugin(new TemporaryUserProfilePlugin());
-            lus.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource);            
+            lus.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource);
             m_userService = lus;
-            m_userAdminService = lus;            
+            m_userAdminService = lus;
             m_avatarService = lus;
             m_messageService = lus;
 
-            //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);                      
+            //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
         }
     }
 }

@@ -218,7 +218,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             httpResponse.ContentType = "text/xml";
             
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)              
+            if (serialiser != null)
                 serialiser.SavePrimsToXml2(scene, new StreamWriter(httpResponse.OutputStream), min, max);
             
             return "";

@@ -28,7 +28,7 @@
 using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
-{        
+{
     public class LLUtil
     {
         /// <summary>

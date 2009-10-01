@@ -152,7 +152,7 @@ namespace OpenSim.Data.Tests
             u1.FirstName = "Ugly";
             
             db.UpdateUserProfile(u1);
-            Assert.That("Ugly",Is.EqualTo(u1.FirstName), "Assert.That(\"Ugly\",Is.EqualTo(u1.FirstName))");                   
+            Assert.That("Ugly",Is.EqualTo(u1.FirstName), "Assert.That(\"Ugly\",Is.EqualTo(u1.FirstName))");
         }
 
         [Test]
@@ -174,7 +174,7 @@ namespace OpenSim.Data.Tests
             db.AddNewUserProfile(u4);
             Assert.That(db.GetUserByUUID(zero),Is.Null);
             Assert.That(db.GetUserByUUID(user4),Is.Null);
-        }        
+        }
         
         [Test]
         public void T015_UserPersistency()
@@ -218,7 +218,7 @@ namespace OpenSim.Data.Tests
             
             //HomeRegionX and HomeRegionY must only use 24 bits
             homeregx = ((homeregx << 8) >> 8);
-            homeregy = ((homeregy << 8) >> 8);            
+            homeregy = ((homeregy << 8) >> 8);
 
             u.ID = id;
             u.WebLoginKey = webloginkey;
@@ -299,7 +299,7 @@ namespace OpenSim.Data.Tests
             uint homeregx = (uint) random.Next();
             uint homeregy = (uint) random.Next();
             Vector3 homeloc = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
-            Vector3 homelookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));            
+            Vector3 homelookat = new Vector3((float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5),(float)Math.Round(random.NextDouble(),5));
             int created = random.Next();
             int lastlogin = random.Next();
             string userinvuri = RandomName();
@@ -359,7 +359,7 @@ namespace OpenSim.Data.Tests
             Assert.That(email,Is.EqualTo(u1a.Email), "Assert.That(email,Is.EqualTo(u1a.Email))");
             Assert.That(passhash,Is.EqualTo(u1a.PasswordHash), "Assert.That(passhash,Is.EqualTo(u1a.PasswordHash))");
             Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt), "Assert.That(passsalt,Is.EqualTo(u1a.PasswordSalt))");
-            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");            
+            Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");
             Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX), "Assert.That(homeregx,Is.EqualTo(u1a.HomeRegionX))");
             Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY), "Assert.That(homeregy,Is.EqualTo(u1a.HomeRegionY))");
             Assert.That(homereg,Is.EqualTo(u1a.HomeRegion), "Assert.That(homereg,Is.EqualTo(u1a.HomeRegion))");
@@ -426,7 +426,7 @@ namespace OpenSim.Data.Tests
             UserAgentData a2 = db.GetAgentByName(fname2,lname2);
             UserAgentData a3 = db.GetAgentByName(name3);
             Assert.That(user2,Is.EqualTo(a2.ProfileID), "Assert.That(user2,Is.EqualTo(a2.ProfileID))");
-            Assert.That(user3,Is.EqualTo(a3.ProfileID), "Assert.That(user3,Is.EqualTo(a3.ProfileID))");                    
+            Assert.That(user3,Is.EqualTo(a3.ProfileID), "Assert.That(user3,Is.EqualTo(a3.ProfileID))");
         }
         
         [Test]
@@ -501,11 +501,11 @@ namespace OpenSim.Data.Tests
             db.AddNewUserFriend(user1,user3, 2);
             db.AddNewUserFriend(user1,user2, 4); 
             List<FriendListItem> fl1 = db.GetUserFriendList(user1);
-            Assert.That(fl1.Count,Is.EqualTo(2), "Assert.That(fl1.Count,Is.EqualTo(2))");                   
+            Assert.That(fl1.Count,Is.EqualTo(2), "Assert.That(fl1.Count,Is.EqualTo(2))");
             perms.Add(user2,1);
             perms.Add(user3,2);
             for (int i = 0; i < fl1.Count; i++)
-            {   
+            {
                 Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner), "Assert.That(user1,Is.EqualTo(fl1[i].FriendListOwner))");
                 friends.Add(fl1[i].Friend,1);
                 temp = perms[fl1[i].Friend];
@@ -544,7 +544,7 @@ namespace OpenSim.Data.Tests
             db.UpdateUserFriendPerms(user1, user3, 4);
             
             fl1 = db.GetUserFriendList(user1);
-            Assert.That(fl1[0].FriendPerms,Is.EqualTo(4), "Assert.That(fl1[0].FriendPerms,Is.EqualTo(4))");                  
+            Assert.That(fl1[0].FriendPerms,Is.EqualTo(4), "Assert.That(fl1[0].FriendPerms,Is.EqualTo(4))");
         }
         
         [Test]
@@ -560,7 +560,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T041_UserAppearancePersistency()
         {
-            AvatarAppearance appear = new AvatarAppearance();            
+            AvatarAppearance appear = new AvatarAppearance();
             UUID owner = UUID.Random();
             int serial = random.Next();
             byte[] visualp = new byte[218];
@@ -698,7 +698,7 @@ namespace OpenSim.Data.Tests
             int size = random.Next(5,12); 
             char ch ;
             for (int i=0; i<size; i++)
-            {       
+            {
                 ch = Convert.ToChar(Convert.ToInt32(Math.Floor(26 * random.NextDouble() + 65))) ;
                 name.Append(ch);
             }

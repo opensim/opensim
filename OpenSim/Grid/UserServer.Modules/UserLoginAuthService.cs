@@ -47,7 +47,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
     /// <summary>
     /// Hypergrid login service used in grid mode.
-    /// </summary>     
+    /// </summary>
     public class UserLoginAuthService : HGLoginAuthService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

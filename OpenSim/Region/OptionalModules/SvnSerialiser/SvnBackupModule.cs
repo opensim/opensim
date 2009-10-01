@@ -117,7 +117,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         public void LoadRegion(Scene scene)
         {
             IRegionSerialiserModule serialiser = scene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)   
+            if (serialiser != null)
             {
                 serialiser.LoadPrimsFromXml2(
                     scene,

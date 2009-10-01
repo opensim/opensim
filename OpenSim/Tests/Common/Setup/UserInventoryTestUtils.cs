@@ -31,10 +31,10 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
-{       
+{
     /// <summary>
     /// Utility functions for carrying out user inventory related tests.
-    /// </summary>        
+    /// </summary>
     public static class UserInventoryTestUtils
     {
         public static readonly string PATH_DELIMITER = "/";
@@ -78,7 +78,7 @@ namespace OpenSim.Tests.Common
         /// </param>
         /// <returns>
         /// The folder created.  If the path contains multiple folders then the last one created is returned.
-        /// </returns>        
+        /// </returns>
         public static InventoryFolderBase CreateInventoryFolder(
             IInventoryService inventoryService, InventoryFolderBase parentFolder, string path)
         {
@@ -91,7 +91,7 @@ namespace OpenSim.Tests.Common
             if (components.Length > 1)
                 return CreateInventoryFolder(inventoryService, newFolder, components[1]);
             else
-                return newFolder;            
+                return newFolder;
         }
     }
 }

@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         private float m_avgStrength = 5.0f; // Average magnitude of the wind vector
         private float m_avgDirection = 0.0f; // Average direction of the wind in degrees
-        private float m_varStrength = 5.0f; // Max Strength  Variance  
+        private float m_varStrength = 5.0f; // Max Strength  Variance
         private float m_varDirection = 30.0f;// Max Direction Variance
         private float m_rateChange = 1.0f; // 
 
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
                 {
                     m_windSpeeds[y * 16 + x] = m_curPredominateWind;
                 }
-            }            
+            }
         }
 
         public Vector3 WindSpeed(float fX, float fY, float fZ)

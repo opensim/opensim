@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Interfaces
                                                sbyte type, byte wearableType, uint nextOwnerMask);
         
         void HandleTaskItemUpdateFromTransaction(
-            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item);      
+            IClientAPI remoteClient, SceneObjectPart part, UUID transactionID, TaskInventoryItem item);
 
         void RemoveAgentAssetTransactions(UUID userID);
     }

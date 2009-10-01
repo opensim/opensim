@@ -34,7 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Scenes
-{        
+{
     class DeleteToInventoryHolder
     {
         public DeRezAction action;
@@ -49,7 +49,7 @@ namespace OpenSim.Region.Framework.Scenes
     /// up the main client thread.
     /// </summary>
     public class AsyncSceneObjectGroupDeleter
-    {   
+    {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -58,16 +58,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </value>
         public bool Enabled;
         
-        private Timer m_inventoryTicker = new Timer(2000);       
-        private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();        
-        private Scene m_scene;        
+        private Timer m_inventoryTicker = new Timer(2000);
+        private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();
+        private Scene m_scene;
         
         public AsyncSceneObjectGroupDeleter(Scene scene)
         {
             m_scene = scene;
             
             m_inventoryTicker.AutoReset = false;
-            m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;            
+            m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 //m_log.Debug("[SCENE]: Sent item successfully to inventory, continuing...");
             }
-        }            
+        }
 
         /// <summary>
         /// Move the next object in the queue to inventory.  Then delete it properly from the scene.
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         public bool InventoryDeQueueAndDelete()
         {
-            DeleteToInventoryHolder x = null;            
+            DeleteToInventoryHolder x = null;
  
             try
             {
@@ -142,9 +142,9 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         try
                         {
-                            m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);                            
+                            m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
                             if (x.permissionToDelete)
-                                m_scene.DeleteSceneObject(x.objectGroup, false);                            
+                                m_scene.DeleteSceneObject(x.objectGroup, false);
                         }
                         catch (Exception e)
                         {
@@ -166,6 +166,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Debug("[SCENE]: No objects left in inventory send queue.");
             return false;
-        }        
+        }
     }
 }

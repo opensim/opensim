@@ -450,7 +450,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             addFrameMS(ms);
             addAgentMS(ms);
-        }        
+        }
 
         #endregion
     }

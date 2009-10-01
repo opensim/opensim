@@ -528,7 +528,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             // Teravus: Kitto, this code causes recurring errors that stall physics permenantly unless 
             // the values are checked, so checking below.
-            // Is there any reason that we don't do this in ScenePresence?   
+            // Is there any reason that we don't do this in ScenePresence?
             // The only physics engine that benefits from it in the physics plugin is this one
 
             if (x > (int)Constants.RegionSize || y > (int)Constants.RegionSize ||
@@ -650,7 +650,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
             if (iPropertiesNotSupportedDefault == 0)
             {
-#if SPAM              
+#if SPAM
                 m_log.Warn("NonMesh");
 #endif
                 return false;

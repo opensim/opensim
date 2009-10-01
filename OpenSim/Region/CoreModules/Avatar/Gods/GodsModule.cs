@@ -43,7 +43,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         {
             m_scene = scene;
             m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
-            m_scene.RegisterModuleInterface<IGodsModule>(this);           
+            m_scene.RegisterModuleInterface<IGodsModule>(this);
         }
         
         public void PostInitialise() {}
@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                         m_dialogModule.SendAlertToUser(agentID, "Request for god powers denied");
                 }
             }
-        }        
+        }
         
         /// <summary>
         /// Kicks User specified from the simulator. This logs them off of the grid
@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     }
                 }
                 else
-                {                  
+                {
                     m_dialogModule.SendAlertToUser(godID, "Kick request denied");
                 }
             }

@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("OwnerID", landData.OwnerID.ToString());
 
             xtw.WriteStartElement("ParcelAccessList");
-            foreach(ParcelManager.ParcelAccessEntry pal in landData.ParcelAccessList)
+            foreach (ParcelManager.ParcelAccessEntry pal in landData.ParcelAccessList)
             {
                 xtw.WriteStartElement("ParcelAccessEntry");
                 xtw.WriteElementString("AgentID", pal.AgentID.ToString());

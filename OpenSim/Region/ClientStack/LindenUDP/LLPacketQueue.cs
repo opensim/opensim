@@ -143,7 +143,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TextureThrottle = new LLPacketThrottle(1000, throttleMaxBPS / 2, 4000, userSettings.ClientThrottleMultipler);
 
 
-            // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.           
+            // Total Throttle trumps all - it is the number of bits in total that are allowed to go out per second.
 
 
             ThrottleSettings totalThrottleSettings = userSettings.TotalThrottleSettings;
@@ -410,7 +410,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         LLQueItem qpack = ResendOutgoingPacketQueue.Dequeue();
 
-                        SendQueue.Enqueue(qpack);                        
+                        SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Length);
                         ResendThrottle.AddBytes(qpack.Length);
                         
@@ -470,7 +470,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         LLQueItem qpack = TextureOutgoingPacketQueue.Dequeue();
 
-                        SendQueue.Enqueue(qpack);                       
+                        SendQueue.Enqueue(qpack);
                         TotalThrottle.AddBytes(qpack.Length);
                         TextureThrottle.AddBytes(qpack.Length);
                         qchanged = true;

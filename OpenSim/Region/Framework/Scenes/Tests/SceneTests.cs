@@ -41,11 +41,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     public class SceneTests
     {
         private class FakeStorageManager : StorageManager
-        {            
+        {
             private class FakeRegionDataStore : IRegionDataStore
             {
                 public void Initialise(string filename)
-                {                    
+                {
                 }
 
                 public void Dispose()

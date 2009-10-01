@@ -144,7 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.ErrorFormat("Remove Entity failed for {0}", localID, e);
                     return false;
-                }                
+                }
             }
         }
 

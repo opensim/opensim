@@ -117,6 +117,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="grp"></param>
         /// <returns></returns>
-        string SerializeGroupToXml2(SceneObjectGroup grp);        
+        string SerializeGroupToXml2(SceneObjectGroup grp);
     }
 }

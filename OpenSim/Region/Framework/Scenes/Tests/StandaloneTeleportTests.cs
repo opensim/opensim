@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
     /// Teleport tests in a standalone OpenSim
-    /// </summary>    
+    /// </summary>
     [TestFixture]
     public class StandaloneTeleportTests
     {
@@ -53,7 +53,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// </summary>
         /// Does not yet do what is says on the tin.
         /// Commenting for now
-        //[Test, LongRunning]        
+        //[Test, LongRunning]
         public void TestSimpleNotNeighboursTeleport()
         {
             TestHelper.InMethod();

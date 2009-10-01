@@ -76,7 +76,7 @@ namespace OpenSim.Region.UserStatistics
             try
             {
                 cnfg = config.Configs["WebStats"];
-                enabled = cnfg.GetBoolean("enabled", false);                              
+                enabled = cnfg.GetBoolean("enabled", false);
             } 
             catch (Exception)
             {
@@ -137,7 +137,7 @@ namespace OpenSim.Region.UserStatistics
 
                 m_simstatsCounters.Add(scene.RegionInfo.RegionID, new USimStatsData(scene.RegionInfo.RegionID));
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
-            }            
+            }
         }
 
         public void ReceiveClassicSimStatsPacket(SimStats stats)

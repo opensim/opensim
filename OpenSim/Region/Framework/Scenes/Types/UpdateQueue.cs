@@ -38,7 +38,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
     {
         private Queue<SceneObjectPart> m_queue;
 
-        private List<UUID> m_ids;
+        private Dictionary<UUID, bool> m_ids;
 
         private object m_syncObject = new object();
 
@@ -50,7 +50,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
         public UpdateQueue()
         {
             m_queue = new Queue<SceneObjectPart>();
-            m_ids = new List<UUID>();
+            m_ids = new Dictionary<UUID, bool>();
         }
 
         public void Clear()
@@ -66,9 +66,8 @@ namespace OpenSim.Region.Framework.Scenes.Types
         {
             lock (m_syncObject)
             {
-                if (!m_ids.Contains(part.UUID))
-                {
-                    m_ids.Add(part.UUID);
+                if (!m_ids.ContainsKey(part.UUID)) {
+                    m_ids.Add(part.UUID, true);
                     m_queue.Enqueue(part);
                 }
             }

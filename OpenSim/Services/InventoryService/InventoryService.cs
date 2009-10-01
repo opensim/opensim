@@ -251,7 +251,7 @@ namespace OpenSim.Services.InventoryService
 
             m_log.DebugFormat("[INVENTORY SERVICE]: Found {0} items and {1} folders in folder {2}", items.Count, folders.Count, folderID);
 
-            return invCollection;            
+            return invCollection;
         }
 
         public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)

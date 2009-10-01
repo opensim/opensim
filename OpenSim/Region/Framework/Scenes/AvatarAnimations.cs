@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (nod.Attributes["name"] != null)
                     {
-                        string name = (string)nod.Attributes["name"].Value;                        
+                        string name = (string)nod.Attributes["name"].Value;
                         UUID id = (UUID)nod.InnerText;
                         string animState = (string)nod.Attributes["state"].Value;
 

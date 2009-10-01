@@ -94,9 +94,9 @@ namespace OpenSim.Framework.Communications
         public void AddPlugin(string provider, string connect)
         {
             m_plugins.AddRange(DataPluginFactory.LoadDataPlugins<IUserDataPlugin>(provider, connect));
-        }       
+        }
 
-        #region UserProfile        
+        #region UserProfile
         
         public virtual void AddTemporaryUserProfile(UserProfileData userProfile)
         {
@@ -924,8 +924,8 @@ namespace OpenSim.Framework.Communications
             if (md5PasswordHash == userProfile.PasswordHash)
                 return true;
             else
-                return false;         
-        }          
+                return false;
+        }
 
         #endregion
     }

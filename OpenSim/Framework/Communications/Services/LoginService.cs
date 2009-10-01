@@ -1072,7 +1072,7 @@ namespace OpenSim.Framework.Communications.Services
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <param name="remoteClient"></param>
-        /// <returns>true if the region was successfully contacted, false otherwise</returns>        
+        /// <returns>true if the region was successfully contacted, false otherwise</returns>
         protected abstract bool PrepareLoginToRegion(
             RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint client);
 

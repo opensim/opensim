@@ -29,7 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
-{      
+{
     /// <summary>
     /// This interface provides god related methods
     /// </summary>
@@ -53,6 +53,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="agentID">the person that is being kicked</param>
         /// <param name="kickflags">This isn't used apparently</param>
         /// <param name="reason">The message to send to the user after it's been turned into a field</param>
-        void KickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason);     
+        void KickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason);
     }
 }

@@ -234,7 +234,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         
         /// <summary>
-        /// Variable length strings seem to be null terminated in the animation asset..    but..   
+        /// Variable length strings seem to be null terminated in the animation asset..    but..
         /// use with caution, home grown.
         /// advances the index.
         /// </summary>
@@ -273,7 +273,7 @@ namespace OpenSim.Region.Framework.Scenes
                 byte[] interm = new byte[endpos-i];
                 for (; i<endpos; i++)
                 {
-                    interm[i-startpos] = data[i];       
+                    interm[i-startpos] = data[i];
                 }
                 i++;  // advance past the null character
 
@@ -624,7 +624,7 @@ switch (jointname)
                     case "mWristLeft":
                     case "mWristRight":
                     case "mShoulderLeft":
-                    case "mShoulderRight":    
+                    case "mShoulderRight":
                         // ZYX->ZXY
                         t = y;
                         y = z;

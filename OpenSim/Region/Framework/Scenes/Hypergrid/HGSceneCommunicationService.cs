@@ -357,7 +357,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                             m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
                             m_log.DebugFormat(
                                 "[HGSceneCommService]: User {0} is going to another region, profile cache removed",
-                                avatar.UUID);                            
+                                avatar.UUID);
                         }
                     }
                     else

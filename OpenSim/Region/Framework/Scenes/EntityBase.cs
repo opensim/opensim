@@ -94,12 +94,20 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_velocity = value; }
         }
 
-        protected Quaternion m_rotation = new Quaternion(0f, 0f, 1f, 0f);
+        protected Quaternion m_rotation;
 
         public virtual Quaternion Rotation
         {
             get { return m_rotation; }
             set { m_rotation = value; }
+        }
+
+        protected Vector3 m_scale;
+
+        public virtual Vector3 Scale
+        {
+            get { return m_scale; }
+            set { m_scale = value; }
         }
 
         protected uint m_localId;
@@ -115,13 +123,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public EntityBase()
         {
-            m_uuid = UUID.Zero;
-
-            m_pos = Vector3.Zero;
-            m_velocity = Vector3.Zero;
-            Rotation = Quaternion.Identity;
+            m_rotation = Quaternion.Identity;
+            m_scale = Vector3.One;
             m_name = "(basic entity)";
-            m_rotationalvelocity = Vector3.Zero;
         }
 
         /// <summary>
@@ -130,7 +134,7 @@ namespace OpenSim.Region.Framework.Scenes
         public abstract void UpdateMovement();
 
         /// <summary>
-        /// Performs any updates that need to be done at each frame, as opposed to immediately.  
+        /// Performs any updates that need to be done at each frame, as opposed to immediately.
         /// These included scheduled updates and updates that occur due to physics processing.
         /// </summary>
         public abstract void Update();

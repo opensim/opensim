@@ -810,7 +810,7 @@ namespace OpenSim.Framework
         /// </summary>
         void Start();
         
-        void Stop();        
+        void Stop();
 
         //     void ActivateGesture(UUID assetId, UUID gestureId);
 
@@ -824,7 +824,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="agentID">The id of the agent associated with the appearance</param>
         /// <param name="visualParams"></param>
-        /// <param name="textureEntry"></param>        
+        /// <param name="textureEntry"></param>
         void SendAppearance(UUID agentID, byte[] visualParams, byte[] textureEntry);
 
         void SendStartPingCheck(byte seq);
@@ -833,7 +833,7 @@ namespace OpenSim.Framework
         /// Tell the client that an object has been deleted
         /// </summary>
         /// <param name="regionHandle"></param>
-        /// <param name="localID"></param>        
+        /// <param name="localID"></param>
         void SendKillObject(ulong regionHandle, uint localID);
 
         void SendAnimations(UUID[] animID, int[] seqs, UUID sourceAgentId, UUID[] objectIDs);

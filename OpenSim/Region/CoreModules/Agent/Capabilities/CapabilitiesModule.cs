@@ -49,9 +49,9 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
         /// </summary>
         protected Dictionary<UUID, Caps> m_capsHandlers = new Dictionary<UUID, Caps>();
         
-        protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();               
+        protected Dictionary<UUID, string> capsPaths = new Dictionary<UUID, string>();
         protected Dictionary<UUID, Dictionary<ulong, string>> childrenSeeds 
-            = new Dictionary<UUID, Dictionary<ulong, string>>();        
+            = new Dictionary<UUID, Dictionary<ulong, string>>();
         
         public void Initialise(IConfigSource source)
         {
@@ -147,7 +147,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
                         agentId, m_scene.RegionInfo.RegionName);
                 }
             }
-        }        
+        }
         
         public Caps GetCapsHandlerForUser(UUID agentId)
         {
@@ -177,7 +177,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
             }
 
             return null;
-        }        
+        }
         
         public Dictionary<ulong, string> GetChildrenSeeds(UUID agentID)
         {
@@ -225,6 +225,6 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
                 y = y / Constants.RegionSize;
                 m_log.Info(" >> "+x+", "+y+": "+kvp.Value);
             }
-        }        
+        }
     }
 }

@@ -40,12 +40,12 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
-{          
+{
     /// <summary>
     /// This module loads and saves OpenSimulator inventory archives
-    /// </summary>    
+    /// </summary>
     public class InventoryArchiverModule : IRegionModule, IInventoryArchiverModule
-    {    
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public string Name { get { return "Inventory Archiver Module"; } }
@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </value>
         public bool DisablePresenceChecks { get; set; }
         
-        public event InventoryArchiveSaved OnInventoryArchiveSaved;        
+        public event InventoryArchiveSaved OnInventoryArchiveSaved;
         
         /// <summary>
         /// The file to load and save inventory if no filename has been specified
@@ -83,7 +83,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public void Initialise(Scene scene, IConfigSource source)
-        {            
+        {
             if (m_scenes.Count == 0)
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_aScene = scene;
             }
                         
-            m_scenes[scene.RegionInfo.RegionID] = scene;            
+            m_scenes[scene.RegionInfo.RegionID] = scene;
         }
 
         public void PostInitialise() {}
@@ -119,7 +119,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
             if (handlerInventoryArchiveSaved != null)
                 handlerInventoryArchiveSaved(id, succeeded, userInfo, invPath, saveStream, reportedException);
-        }       
+        }
 
         public bool ArchiveInventory(Guid id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
         {
@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, Stream loadStream)
         {
             if (m_scenes.Count > 0)
-            {            
+            {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
                         
                 if (userInfo != null)
@@ -182,7 +182,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
                         InventoryArchiveReadRequest request = 
-                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);                
+                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
@@ -197,12 +197,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             return false;
-        }         
+        }
         
         public bool DearchiveInventory(string firstName, string lastName, string invPath, string pass, string loadPath)
         {
             if (m_scenes.Count > 0)
-            {   
+            {
                 CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
                 
                 if (userInfo != null)
@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
                         InventoryArchiveReadRequest request = 
-                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);                
+                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
@@ -221,11 +221,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             "[INVENTORY ARCHIVER]: User {0} {1} not logged in to this region simulator",
                             userInfo.UserProfile.Name, userInfo.UserProfile.ID);
                     }
-                }                                         
+                }
             }
 
             return false;
-        }           
+        }
         
         /// <summary>
         /// Load inventory from an inventory file archive
@@ -252,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 "[INVENTORY ARCHIVER]: Loading archive {0} to inventory path {1} for {2} {3}",
                 loadPath, invPath, firstName, lastName);
             
-            if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath))                 
+            if (DearchiveInventory(firstName, lastName, invPath, pass, loadPath))
                 m_log.InfoFormat(
                     "[INVENTORY ARCHIVER]: Loaded archive {0} for {1} {2}",
                     loadPath, firstName, lastName);
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             lock (m_pendingConsoleSaves)
                 m_pendingConsoleSaves.Add(id);
-        }        
+        }
         
         private void SaveInvConsoleCommandCompleted(
             Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="pass">User password</param>
         /// <returns></returns>
         protected CachedUserInfo GetUserInfo(string firstName, string lastName, string pass)
-        {            
+        {
             CachedUserInfo userInfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
             //m_aScene.CommsManager.UserService.GetUserProfile(firstName, lastName);
             if (null == userInfo)
@@ -334,7 +334,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
 
             try
-            {    
+            {
                 if (m_aScene.CommsManager.UserService.AuthenticateUserByPassword(userInfo.UserProfile.ID, pass))
                 {
                     return userInfo;
@@ -343,7 +343,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_log.ErrorFormat(
                         "[INVENTORY ARCHIVER]: Password for user {0} {1} incorrect.  Please try again.", 
-                        firstName, lastName);                    
+                        firstName, lastName);
                     return null;
                 }
             }
@@ -359,7 +359,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
         private void UpdateClientWithLoadedNodes(CachedUserInfo userInfo, List<InventoryNodeBase> loadedNodes)
-        {               
+        {
             if (loadedNodes.Count == 0)
                 return;
                    
@@ -368,7 +368,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 ScenePresence user = scene.GetScenePresence(userInfo.UserProfile.ID);
                 
                 if (user != null && !user.IsChildAgent)
-                {        
+                {
                     foreach (InventoryNodeBase node in loadedNodes)
                     {
 //                        m_log.DebugFormat(
@@ -379,8 +379,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     }
                     
                     break;
-                }        
-            }            
+                }
+            }
         }
 
         /// <summary>

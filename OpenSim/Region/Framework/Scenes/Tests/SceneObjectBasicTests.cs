@@ -46,13 +46,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     /// </summary>
     [TestFixture]
     public class SceneObjectBasicTests
-    {         
+    {
         /// <summary>
         /// Test adding an object to a scene.
         /// </summary>
         [Test, LongRunning]
         public void TestAddSceneObject()
-        {              
+        {
             TestHelper.InMethod();
 
             Scene scene = SceneSetupHelpers.SetupScene();
@@ -61,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             //m_log.Debug("retrievedPart : {0}", retrievedPart);
             // If the parts have the same UUID then we will consider them as one and the same
-            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));        
+            Assert.That(retrievedPart.UUID, Is.EqualTo(part.UUID));
         }
         
         /// <summary>
@@ -72,11 +72,11 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             
-            TestScene scene = SceneSetupHelpers.SetupScene();         
+            TestScene scene = SceneSetupHelpers.SetupScene();
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
             scene.DeleteSceneObject(part.ParentGroup, false);
             
-            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);            
+            SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart, Is.Null);
         }
         
@@ -115,19 +115,19 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //[Test]
         //public void TestDeleteSceneObjectAsyncToUserInventory()
         //{
-        //    TestHelper.InMethod();            
-        //    //log4net.Config.XmlConfigurator.Configure();                  
+        //    TestHelper.InMethod();
+        //    //log4net.Config.XmlConfigurator.Configure();
             
         //    UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
         //    string myObjectName = "Fred";
             
-        //    TestScene scene = SceneSetupHelpers.SetupScene();                
+        //    TestScene scene = SceneSetupHelpers.SetupScene();
         //    SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene, myObjectName);
             
         //    Assert.That(
         //        scene.CommsManager.UserAdminService.AddUser(
         //            "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-        //        Is.EqualTo(agentId));  
+        //        Is.EqualTo(agentId));
             
         //    IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
                                                 

@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// We only use this to request modules
         /// </value>
-        protected Scene m_scene;        
+        protected Scene m_scene;
 
         /// <value>
         /// The stream from which the inventory archive will be loaded.
@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         item.Folder = foundFolder.ID;
 
                         //m_userInfo.AddItem(item);
-                        m_scene.InventoryService.AddItem(item);                        
+                        m_scene.InventoryService.AddItem(item);
                         successfulItemRestores++;
 
                         // If we're loading an item directly into the given destination folder then we need to record
@@ -299,14 +299,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     = new InventoryFolderBase(
                         newFolderId, newFolderName, m_userInfo.UserProfile.ID, 
                         (short)AssetType.Unknown, destFolder.ID, 1);
-                m_scene.InventoryService.AddFolder(destFolder);               
+                m_scene.InventoryService.AddFolder(destFolder);
                 
 //                UUID newFolderId = UUID.Random();
 //                m_scene.InventoryService.AddFolder(
 //                m_userInfo.CreateFolder(
 //                    folderName, newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
 
-//                m_log.DebugFormat("[INVENTORY ARCHIVER]: Retrieving newly created folder {0}", folderName);                
+//                m_log.DebugFormat("[INVENTORY ARCHIVER]: Retrieving newly created folder {0}", folderName);
 //                foundFolder = foundFolder.GetChildFolder(newFolderId);
 //                m_log.DebugFormat(
 //                    "[INVENTORY ARCHIVER]: Retrieved newly created folder {0} with ID {1}", 
@@ -321,7 +321,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     nodesLoaded.Add(destFolder);
 
                 i++;
-            }         
+            }
             
             return destFolder;
             
@@ -357,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     rawFolders[i++], newFolderId, (ushort)AssetType.Folder, foundFolder.ID);
                 foundFolder = foundFolder.GetChildFolder(newFolderId);
             }
-            */            
+            */
         }
 
         /// <summary>

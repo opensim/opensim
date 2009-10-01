@@ -93,7 +93,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                      {
                          response = HandleRegister(Context, Realm, request);
                      } 
-                     else if (sipAuthMethod == "INVITE")  
+                     else if (sipAuthMethod == "INVITE")
                      {
                           response = HandleInvite(Context, Realm, request);
                      }
@@ -138,7 +138,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                      response["str_response_string"] = "";
                  }
             }
-            return response;   
+            return response;
         }
         
         private Hashtable HandleRegister(string Context, string Realm, Hashtable request)
@@ -309,17 +309,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                 "</document>\r\n", 
                 domain, Context); 
              
-            return response;    
-        }    
+            return response;
+        }
 
         
 //        private Hashtable HandleLoadNetworkLists(Hashtable request)
 //        {
 //            m_log.Info("[FreeSwitchDirectory] HandleLoadNetworkLists called");
-//            
+//
 //            // TODO the password we return needs to match that sent in the request, this is hard coded for now
 //            string domain = (string) request["domain"];
-//            
+//
 //            Hashtable response = new Hashtable();
 //            response["content_type"] = "text/xml";
 //            response["keepalive"] = false;
@@ -340,9 +340,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 //                    "</section>\r\n" +
 //                "</document>\r\n",
 //                domain); 
-//         
-//             
-//            return response;    
-//        }       
+//
+//
+//            return response;
+//        }
     }
 }

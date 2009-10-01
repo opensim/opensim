@@ -50,7 +50,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionID"></param>
         /// <returns></returns>
         /// <exception cref="System.Exception">Thrown if region deregistration failed</exception>
-        bool DeregisterRegion(UUID regionID);   
+        bool DeregisterRegion(UUID regionID);
 
         /// <summary>
         /// Get information about the regions neighbouring the given co-ordinates (in meters).

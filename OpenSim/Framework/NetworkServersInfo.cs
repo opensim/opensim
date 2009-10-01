@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
-        public string AssetSendKey = String.Empty;        
+        public string AssetSendKey = String.Empty;
         public string AssetURL = "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString() + "/";
 
         public string GridRecvKey = String.Empty;

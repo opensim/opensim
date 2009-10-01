@@ -37,15 +37,15 @@ namespace OpenSim.Region.Framework.Interfaces
         /// small interval.
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="message"></param>        
-        void SendAlertToUser(IClientAPI client, string message);      
+        /// <param name="message"></param>
+        void SendAlertToUser(IClientAPI client, string message);
         
         /// <summary>
         /// Send an alert message to a particular user.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="message"></param>
-        /// <param name="modal"></param>        
+        /// <param name="modal"></param>
         void SendAlertToUser(IClientAPI client, string message, bool modal);
         
         /// <summary>
@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void SendAlertToUser(string firstName, string lastName, string message, bool modal);
         
         /// <summary>
-        /// Send an alert message to all users in the scene.  
+        /// Send an alert message to all users in the scene.
         /// </summary>
         /// <param name="message"></param>
         void SendGeneralAlert(string message);
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="message"></param>
         /// <param name="url"></param>
         void SendUrlToUser(
-            UUID avatarID, string objectName, UUID objectID, UUID ownerID, bool groupOwned, string message, string url);        
+            UUID avatarID, string objectName, UUID objectID, UUID ownerID, bool groupOwned, string message, string url);
         
         /// <summary>
         /// Send a notification to all users in the scene.  This notification should remain around until the 
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 
         /// <param name="fromAvatarID">The user sending the message</param>
         /// <param name="fromAvatarName">The name of the user doing the sending</param>
-        /// <param name="message">The message being sent to the user</param>       
+        /// <param name="message">The message being sent to the user</param>
         void SendNotificationToUsersInRegion(UUID fromAvatarID, string fromAvatarName, string message);
         
         /// <summary>
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 
         /// <param name="fromAvatarID">The user sending the message</param>
         /// <param name="fromAvatarName">The name of the user doing the sending</param>
-        /// <param name="message">The message being sent to the user</param>  
+        /// <param name="message">The message being sent to the user</param>
         void SendNotificationToUsersInEstate(UUID fromAvatarID, string fromAvatarName, string message);
     }
 }

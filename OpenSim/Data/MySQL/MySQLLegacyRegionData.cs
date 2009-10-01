@@ -464,7 +464,7 @@ namespace OpenSim.Data.MySQL
                                     prim.Name, prim.UUID, prim.GroupPosition, groupID);
                                 
                                 prim.UUID = groupID;
-                            }                            
+                            }
 
                             grp = new SceneObjectGroup(prim);
                         }
@@ -533,7 +533,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Load in a prim's persisted inventory.
         /// </summary>
-        /// <param name="prim">The prim</param>        
+        /// <param name="prim">The prim</param>
         private void LoadItems(SceneObjectPart prim)
         {
             lock (m_Connection)

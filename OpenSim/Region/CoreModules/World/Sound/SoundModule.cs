@@ -33,9 +33,9 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Sound
-{        
+{
     public class SoundModule : IRegionModule, ISoundModule
-    {        
+    {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
@@ -68,11 +68,11 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 if (dis > 100.0) // Max audio distance
                     continue;
                 
-                // Scale by distance          
+                // Scale by distance
                 gain = (float)((double)gain*((100.0 - dis) / 100.0));
                 
                 p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)gain, flags);
-            }                
+            }
         }
         
         public virtual void TriggerSound(
@@ -84,12 +84,12 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 if (dis > 100.0) // Max audio distance
                     continue;
                 
-                // Scale by distance          
+                // Scale by distance
                 gain = (float)((double)gain*((100.0 - dis) / 100.0));
                 
                 p.ControllingClient.SendTriggeredSound(
                     soundId, ownerID, objectID, parentID, handle, position, (float)gain);
-            }            
-        }  
+            }
+        }
     }
 }

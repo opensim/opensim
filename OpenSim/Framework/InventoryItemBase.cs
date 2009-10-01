@@ -34,10 +34,10 @@ namespace OpenSim.Framework
     /// Inventory Item - contains all the properties associated with an individual inventory piece.
     /// </summary>
     public class InventoryItemBase : InventoryNodeBase, ICloneable
-    {       
+    {
         /// <value>
         /// The inventory type of the item.  This is slightly different from the asset type in some situations.
-        /// </value>        
+        /// </value>
         public int InvType 
         { 
             get
@@ -54,7 +54,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// The folder this item is contained in
-        /// </value>        
+        /// </value>
         public UUID Folder 
         { 
             get
@@ -71,7 +71,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// The creator of this item
-        /// </value>        
+        /// </value>
         public string CreatorId 
         { 
             get
@@ -114,7 +114,7 @@ namespace OpenSim.Framework
             {
                 m_creatorIdAsUuid = value;
             }
-        }     
+        }
         protected UUID m_creatorIdAsUuid = UUID.Zero;
 
         /// <value>
@@ -130,13 +130,13 @@ namespace OpenSim.Framework
             set
             {
                 m_description = value;
-            }            
+            }
         }
         protected string m_description = String.Empty;
 
         /// <value>
         ///
-        /// </value>          
+        /// </value>
         public uint NextPermissions 
         { 
             get
@@ -153,7 +153,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// A mask containing permissions for the current owner (cannot be enforced)
-        /// </value>        
+        /// </value>
         public uint CurrentPermissions 
         { 
             get
@@ -170,7 +170,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public uint BasePermissions 
         { 
             get
@@ -187,7 +187,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public uint EveryOnePermissions 
         { 
             get
@@ -204,7 +204,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public uint GroupPermissions 
         { 
             get
@@ -221,7 +221,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
-        /// </value>        
+        /// </value>
         public int AssetType 
         { 
             get
@@ -238,7 +238,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// The UUID of the associated asset on the asset server
-        /// </value>        
+        /// </value>
         public UUID AssetID 
         { 
             get
@@ -255,7 +255,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public UUID GroupID 
         { 
             get
@@ -272,13 +272,13 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public bool GroupOwned 
         { 
             get
             {
                 return m_groupOwned;
-            }               
+            }
                 
             set
             {
@@ -289,7 +289,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public int SalePrice 
         { 
             get
@@ -306,7 +306,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public byte SaleType 
         { 
             get
@@ -323,7 +323,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public uint Flags 
         { 
             get
@@ -340,7 +340,7 @@ namespace OpenSim.Framework
 
         /// <value>
         ///
-        /// </value>        
+        /// </value>
         public int CreationDate 
         { 
             get

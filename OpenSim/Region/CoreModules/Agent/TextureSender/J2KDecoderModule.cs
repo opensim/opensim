@@ -361,7 +361,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     m_cacheddecode.Remove(AssetId);
                 m_cacheddecode.Add(AssetId, layers);
 
-            }            
+            }
 
             // Notify Interested Parties
             lock (m_notifyList)

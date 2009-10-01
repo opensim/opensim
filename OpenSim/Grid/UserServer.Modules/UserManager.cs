@@ -229,7 +229,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
             UserProfileData userProfile = m_userDataBaseService.GetUserProfile(userUuid);
             if (null == userProfile)
-                return Util.CreateUnknownUserErrorResponse();            
+                return Util.CreateUnknownUserErrorResponse();
 
             string authed;
             
@@ -249,12 +249,12 @@ namespace OpenSim.Grid.UserServer.Modules
 //                "[USER MANAGER]: Authentication by password result from {0} for {1} is {2}",
 //                remoteClient, userUuid, authed);
 
-            XmlRpcResponse response = new XmlRpcResponse();            
-            Hashtable responseData = new Hashtable();            
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
             responseData["auth_user"] = authed;
             response.Value = responseData;
             
-            return response;            
+            return response;
         }
 
         public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request, IPEndPoint remoteClient)

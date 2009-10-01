@@ -55,7 +55,7 @@ namespace OpenSim.Grid.UserServer.Modules
 
     /// <summary>
     /// Login service used in grid mode.
-    /// </summary>     
+    /// </summary>
     public class UserLoginService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

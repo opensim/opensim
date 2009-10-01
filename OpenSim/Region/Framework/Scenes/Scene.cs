@@ -996,7 +996,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // Loop it
                     if (m_frame == Int32.MaxValue)
-                        m_frame = 0;                   
+                        m_frame = 0;
 
                     otherMS = Environment.TickCount;
                     // run through all entities looking for updates (slow)
@@ -2023,12 +2023,12 @@ namespace OpenSim.Region.Framework.Scenes
                                 return true;
                         }
                         break;
-                    case Cardinals.W:                     
+                    case Cardinals.W:
                         foreach (Border b in WestBorders)
                         {
                             if (b.TestCross(position))
                                 return true;
-                        }                       
+                        }
                         break;
                 }
             }
@@ -2305,8 +2305,8 @@ namespace OpenSim.Region.Framework.Scenes
                                 "to avatar {0} at position {1}",
                                 sp.UUID.ToString(), grp.AbsolutePosition);
                         AttachObject(sp.ControllingClient,
-                                grp.LocalId, (uint)0,
-                                grp.GroupRotation,
+                                grp.LocalId, 0,
+                                grp.Rotation,
                                 grp.AbsolutePosition, false);
                         RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                         grp.SendGroupFullUpdate();
@@ -3270,7 +3270,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the region",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
                     //reason = String.Format("You are not currently on the access list for {0}",RegionInfo.RegionName);
-                    return false;    
+                    return false;
                 }
             }
 
@@ -3419,7 +3419,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// We've got an update about an agent that sees into this region, 
         /// send it to ScenePresence for processing  It's the full data.
         /// </summary>
-        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.  
+        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.
         /// Appearance, animations, position, etc.</param>
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)

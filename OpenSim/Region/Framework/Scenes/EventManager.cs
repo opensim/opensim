@@ -290,7 +290,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Guid.Empty is returned.
         /// </summary>
         public delegate void OarFileSaved(Guid guid, string message);
-        public event OarFileSaved OnOarFileSaved;        
+        public event OarFileSaved OnOarFileSaved;
 
         /// <summary>
         /// Called when the script compile queue becomes empty
@@ -1004,7 +1004,7 @@ namespace OpenSim.Region.Framework.Scenes
             handlerOarFileSaved = OnOarFileSaved;
             if (handlerOarFileSaved != null)
                 handlerOarFileSaved(requestId, message);
-        }        
+        }
 
         public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {

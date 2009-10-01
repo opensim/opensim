@@ -54,7 +54,7 @@ namespace OpenSim.Data
         
         /// <summary>
         /// Get a user from a given uri.
-        /// </summary>  
+        /// </summary>
         /// <param name="uri"></param>
         /// <returns>The user data profile.  Null if no user is found.</returns>
         UserProfileData GetUserByUri(Uri uri);

@@ -41,7 +41,7 @@ namespace OpenSim.Region.Framework.Scenes
 {
     /// <summary>
     /// Gather uuids for a given entity.
-    /// </summary>        
+    /// </summary>
     ///
     /// This does a deep inspection of the entity to retrieve all the assets it uses (whether as textures, as scripts
     /// contained in inventory, as scripts contained in objects contained in another object's inventory, etc.  Assets
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// 
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         /// <param name="assetType">The type of the asset for the uuid given</param>
-        /// <param name="assetUuids">The assets gathered</param>        
+        /// <param name="assetUuids">The assets gathered</param>
         public void GatherAssetUuids(UUID assetUuid, AssetType assetType, IDictionary<UUID, int> assetUuids)
         {
             assetUuids[assetUuid] = 1;
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes
                     
                     // If the prim is a sculpt then preserve this information too
                     if (part.Shape.SculptTexture != UUID.Zero)
-                        assetUuids[part.Shape.SculptTexture] = 1;                    
+                        assetUuids[part.Shape.SculptTexture] = 1;
                     
                     TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
                     
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
-        /// </summary>        
+        /// </summary>
         protected void AssetReceived(string id, Object sender, AssetBase asset)
         {
             lock (this)
@@ -242,7 +242,7 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase assetBase = GetAsset(wearableAssetUuid);
 
             if (null != assetBase)
-            {            
+            {
                 //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
                 AssetWearable wearableAsset = new AssetBodypart(wearableAssetUuid, assetBase.Data);
                 wearableAsset.Decode();
@@ -275,6 +275,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectGroup sog = SceneObjectSerializer.FromOriginalXmlFormat(xml);
                 GatherAssetUuids(sog, assetUuids);
             }
-        }       
+        }
     }
 }

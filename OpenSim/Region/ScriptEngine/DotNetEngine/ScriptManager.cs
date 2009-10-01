@@ -520,13 +520,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 ExeStage = 5;           //        ;^) Ewe Loon, for debuging
             }
             catch (Exception e)         //        ;^) Ewe Loon, From here down tis fix
-            {                          
+            {
                 if ((ExeStage == 3)&&(qParams.Length>0))
                     detparms.Remove(id);
                 SceneObjectPart ob = m_scriptEngine.World.GetSceneObjectPart(localID);
                 m_log.InfoFormat("[Script Error] ,{0},{1},@{2},{3},{4},{5}", ob.Name , FunctionName, ExeStage, e.Message, qParams.Length, detparms.Count);
                 if (ExeStage != 2) throw e;
-            }            
+            }
         }
 
         public uint GetLocalID(UUID itemID)

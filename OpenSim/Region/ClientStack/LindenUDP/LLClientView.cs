@@ -2332,7 +2332,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return itemBlock;
         }
         
-        public void SendBulkUpdateInventory(InventoryNodeBase node)        
+        public void SendBulkUpdateInventory(InventoryNodeBase node)
         {
             if (node is InventoryItemBase)
                 SendBulkUpdateInventoryItem((InventoryItemBase)node);
@@ -2937,7 +2937,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else if (m_avatarTerseUpdates.Count == 1)
                 {
                     lock (m_avatarTerseUpdateTimer)
-                        m_avatarTerseUpdateTimer.Start();                
+                        m_avatarTerseUpdateTimer.Start();
                 }
             }
         }

@@ -133,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is this scene object acting as an attachment?
         /// 
         /// We return false if the group has already been deleted.
-        ///  
+        ///
         /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
         /// presume either all or no parts in a linkset can be part of an attachment (in which
         /// case the value would get proprogated down into all the descendent parts).
@@ -204,9 +204,22 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_parts.Count; }
         }
 
-        public Quaternion GroupRotation
+        public override Quaternion Rotation
         {
             get { return m_rootPart.RotationOffset; }
+            set { m_rootPart.RotationOffset = value; }
+        }
+
+        public override Vector3 Scale
+        {
+            get { return m_rootPart.Scale; }
+            set { m_rootPart.Scale = value; }
+        }
+
+        public override Vector3 Velocity
+        {
+            get { return m_rootPart.Velocity; }
+            set { m_rootPart.Velocity = value; }
         }
 
         public UUID GroupID
@@ -263,7 +276,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((m_scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || m_scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
                     || m_scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || m_scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
                     && !IsAttachmentCheckFull())
-                {                                       
+                {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }
 
@@ -454,7 +467,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scene"></param>
         public void AttachToScene(Scene scene)
         {
-            m_scene = scene;                        
+            m_scene = scene;
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             if (m_rootPart.Shape.PCode != 9 || m_rootPart.Shape.State == 0)
@@ -479,9 +492,9 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
             
-            ApplyPhysics(m_scene.m_physicalPrim);            
+            ApplyPhysics(m_scene.m_physicalPrim);
             
-            ScheduleGroupForFullUpdate();            
+            ScheduleGroupForFullUpdate();
         }
 
         public Vector3 GroupScale()
@@ -528,7 +541,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Temporary commented to stop compiler warning
                     //Vector3 partPosition =
                     //    new Vector3(part.AbsolutePosition.X, part.AbsolutePosition.Y, part.AbsolutePosition.Z);
-                    Quaternion parentrotation = GroupRotation;
+                    Quaternion parentrotation = Rotation;
 
                     // Telling the prim to raytrace.
                     //EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
@@ -1037,12 +1050,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_rootPart = part;
             if (!IsAttachment)
                 part.ParentID = 0;
-            part.LinkNum = 0;           
+            part.LinkNum = 0;
             
             // No locking required since the SOG should not be in the scene yet - one can't change root parts after
             // the scene object has been attached to the scene
             m_parts.Add(m_rootPart.UUID, m_rootPart);
-        }        
+        }
 
         /// <summary>
         /// Add a new part to this scene object.  The part must already be correctly configured.
@@ -1160,7 +1173,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Delete this group from its scene and tell all the scene presences about that deletion.
-        /// </summary>        
+        /// </summary>
         /// <param name="silent">Broadcast deletions to all clients.</param>
         public void DeleteGroup(bool silent)
         {
@@ -1267,11 +1280,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part.LocalId != m_rootPart.LocalId)
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive, m_physicalPrim);
-                        }                                                  
-                    }    
+                        }
+                    }
                     
                     // Hack to get the physics scene geometries in the right spot
-                    ResetChildPrimPhysicsPositions();                     
+                    ResetChildPrimPhysicsPositions();
                 }
                 else
                 {
@@ -1494,7 +1507,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectPart> partList;
 
             lock (m_parts)
-            {                
+            {
                 partList = new List<SceneObjectPart>(m_parts.Values);
             }
             
@@ -1744,7 +1757,7 @@ namespace OpenSim.Region.Framework.Scenes
                         rootpart.PhysActor.PIDHoverActive = false;
                     }
                 }
-            }            
+            }
         }
 
         /// <summary>
@@ -1871,14 +1884,17 @@ namespace OpenSim.Region.Framework.Scenes
 
                 checkAtTargets();
 
-                if (UsePhysics && ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
-                    || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1)))
+                Quaternion rot = Rotation;
+
+                if (UsePhysics &&
+                      ((Math.Abs(lastPhysGroupRot.W - rot.W) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.X - rot.X) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.Y - rot.Y) > 0.1f)
+                    || (Math.Abs(lastPhysGroupRot.Z - rot.Z) > 0.1f)))
                 {
                     m_rootPart.UpdateFlag = 1;
 
-                    lastPhysGroupRot = GroupRotation;
+                    lastPhysGroupRot = rot;
                 }
 
                 foreach (SceneObjectPart part in m_parts.Values)

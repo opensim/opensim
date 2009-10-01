@@ -31,7 +31,7 @@ using OpenMetaverse.Packets;
 namespace OpenSim.Region.ClientStack.LindenUDP.Tests
 { 
     public class TestLLPacketServer : LLPacketServer
-    {        
+    {
         /// <summary>
         /// Record counts of packets received
         /// </summary>
@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
                 m_packetsReceived[packet.Type]++;
             else
                 m_packetsReceived[packet.Type] = 1;
-        }    
+        }
         
         public int GetTotalPacketsReceived()
         {

@@ -204,7 +204,7 @@ namespace OpenSim.Data.MySQL
                         "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?data)",
                         _dbConnection.Connection);
 
-                string assetName = asset.Name;            
+                string assetName = asset.Name;
                 if (asset.Name.Length > 64)
                 {
                     assetName = asset.Name.Substring(0, 64);

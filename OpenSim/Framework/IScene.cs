@@ -55,7 +55,7 @@ namespace OpenSim.Framework
         GodTakeCopy = 5,
         Delete = 6,
         Return = 9
-    };     
+    };
 
     public interface IScene
     {

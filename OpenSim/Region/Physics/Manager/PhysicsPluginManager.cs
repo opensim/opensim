@@ -55,7 +55,7 @@ namespace OpenSim.Region.Physics.Manager
             plugHard = new ZeroMesherPlugin();
             _MeshPlugins.Add(plugHard.GetName(), plugHard);
             
-            m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());            
+            m_log.Info("[PHYSICS]: Added meshing engine: " + plugHard.GetName());
         }
 
         /// <summary>

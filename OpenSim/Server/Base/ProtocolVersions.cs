@@ -30,7 +30,7 @@ namespace OpenSim.Server.Base
     public class ProtocolVersions
     {
         /// <value>
-        /// This is the external protocol versions.  It is separate from the OpenSimulator project version.  
+        /// This is the external protocol versions.  It is separate from the OpenSimulator project version.
         /// 
         /// These version numbers should be increased by 1 every time a code
         /// change in the Service.Connectors and Server.Handlers, espectively, 
@@ -42,7 +42,7 @@ namespace OpenSim.Server.Base
         /// 
         /// Having this version number allows the grid service to reject connections from regions running a version
         /// of the code that is too old. 
-        ///   
+        ///
         /// </value>
         
         // The range of acceptable servers for client-side connectors

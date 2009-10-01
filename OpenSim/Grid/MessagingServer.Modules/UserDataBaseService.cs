@@ -70,6 +70,6 @@ namespace OpenSim.Grid.MessagingServer.Modules
         {
             //throw new Exception("The method or operation is not implemented.");
             return null;
-        }     
+        }
     }
 }

@@ -2007,10 +2007,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
                     }
                     else
-                        q = part.ParentGroup.GroupRotation; // Likely never get here but just in case
+                        q = part.ParentGroup.Rotation; // Likely never get here but just in case
                 }
                 else
-                    q = part.ParentGroup.GroupRotation; // just the group rotation
+                    q = part.ParentGroup.Rotation; // just the group rotation
                 return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
             }
             q = part.GetWorldRotation();
@@ -7181,10 +7181,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                         q = avatar.Rotation; // Currently infrequently updated so may be inaccurate
                 else
-                    q = m_host.ParentGroup.GroupRotation; // Likely never get here but just in case
+                    q = m_host.ParentGroup.Rotation; // Likely never get here but just in case
             }
             else
-                q = m_host.ParentGroup.GroupRotation; // just the group rotation
+                q = m_host.ParentGroup.Rotation; // just the group rotation
             return new LSL_Rotation(q.X, q.Y, q.Z, q.W);
         }
 

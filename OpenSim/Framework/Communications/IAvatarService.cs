@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Communications
         /// Update avatar appearance information
         /// </summary>
         /// <param name="user"></param>
-        /// <param name="appearance"></param>        
+        /// <param name="appearance"></param>
         void UpdateUserAppearance(UUID user, AvatarAppearance appearance);
     }
 }

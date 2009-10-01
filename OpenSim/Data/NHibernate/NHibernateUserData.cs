@@ -86,7 +86,7 @@ namespace OpenSim.Data.NHibernate
             m_log.InfoFormat("[NHIBERNATE] GetUserByUUID: {0} ", uuid);
             
             user = (UserProfileData)manager.Get(typeof(UserProfileData), uuid);
-            if (user != null)    
+            if (user != null)
             {
                 UserAgentData agent = GetAgentByUUID(uuid);
                 if (agent != null)
@@ -245,7 +245,7 @@ namespace OpenSim.Data.NHibernate
             UserProfileData user=GetUserByUUID(agentID);
             user.WebLoginKey = webLoginKey;
             UpdateUserProfile(user);
-            return;         
+            return;
         }
 
         public override void AddNewUserFriend(UUID ownerId, UUID friendId, uint perms) 
@@ -258,7 +258,7 @@ namespace OpenSim.Data.NHibernate
             {
                 manager.Insert(new UserFriend(UUID.Random(), friendId, ownerId, perms));
             }
-            return;         
+            return;
         }
 
         private bool FriendRelationExists(UUID ownerId, UUID friendId)
