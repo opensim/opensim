@@ -32,9 +32,11 @@ using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
 namespace OpenSim.Services.Connectors
 {
@@ -79,6 +81,10 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Asset connector init error");
             }
             m_ServerURI = serviceURI;
+
+            MainConsole.Instance.Commands.AddCommand("asset", false, "dump asset",
+                                          "dump asset <id> <file>",
+                                          "dump one cached asset", HandleDumpAsset);
         }
 
         protected void SetCache(IImprovedAssetCache cache)
@@ -263,6 +269,44 @@ namespace OpenSim.Services.Connectors
                 return true;
             }
             return false;
+        }
+
+        private void HandleDumpAsset(string module, string[] args)
+        {
+            if (args.Length != 4)
+            {
+                MainConsole.Instance.Output("Syntax: dump asset <id> <file>");
+                return;
+            }
+
+            UUID assetID;
+
+            if (!UUID.TryParse(args[2], out assetID))
+            {
+                MainConsole.Instance.Output("Invalid asset ID");
+                return;
+            }
+
+            if (m_Cache == null)
+            {
+                MainConsole.Instance.Output("Instance uses no cache");
+                return;
+            }
+
+            AssetBase asset = asset = m_Cache.Get(assetID.ToString());
+
+            if (asset == null)
+            {
+                MainConsole.Instance.Output("Asset not found in cache");
+                return;
+            }
+
+            string fileName = args[3];
+
+            FileStream fs = File.Create(fileName);
+            fs.Write(asset.Data, 0, asset.Data.Length);
+
+            fs.Close();
         }
     }
 }
