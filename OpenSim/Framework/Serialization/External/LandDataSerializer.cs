@@ -91,20 +91,26 @@ namespace OpenSim.Framework.Serialization.External
             landData.OwnerID        = UUID.Parse(                      xtr.ReadElementString("OwnerID"));
 
             landData.ParcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
-            xtr.ReadStartElement("ParcelAccessList");
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+            xtr.Read();
+            if (xtr.Name != "ParcelAccessList")
+                throw new XmlException(String.Format("Expected \"ParcelAccessList\" element but got \"{0}\"", xtr.Name));
+
+            if (!xtr.IsEmptyElement)
             {
-                ParcelManager.ParcelAccessEntry pae;
+                while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                {
+                    ParcelManager.ParcelAccessEntry pae;
 
-                xtr.ReadStartElement("ParcelAccessEntry");
-                pae.AgentID    = UUID.Parse(                           xtr.ReadElementString("AgentID"));
-                pae.Time       = Convert.ToDateTime(                   xtr.ReadElementString("Time"));
-                pae.Flags      = (AccessList)Convert.ToUInt32(         xtr.ReadElementString("AccessList"));
-                xtr.ReadEndElement();
-
-                landData.ParcelAccessList.Add(pae);
+                    xtr.ReadStartElement("ParcelAccessEntry");
+                    pae.AgentID    = UUID.Parse(                           xtr.ReadElementString("AgentID"));
+                    pae.Time       = Convert.ToDateTime(                   xtr.ReadElementString("Time"));
+                    pae.Flags      = (AccessList)Convert.ToUInt32(         xtr.ReadElementString("AccessList"));
+                    xtr.ReadEndElement();
+                    
+                    landData.ParcelAccessList.Add(pae);
+                }
             }
-            xtr.ReadEndElement();
+            xtr.Read();
 
             landData.PassHours      = Convert.ToSingle(                xtr.ReadElementString("PassHours"));
             landData.PassPrice      = Convert.ToInt32(                 xtr.ReadElementString("PassPrice"));
@@ -135,7 +141,7 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("Area",           Convert.ToString(landData.Area));            
             xtw.WriteElementString("AuctionID",      Convert.ToString(landData.AuctionID));
             xtw.WriteElementString("AuthBuyerID",    landData.AuthBuyerID.ToString());
-            xtw.WriteElementString("Category",       Convert.ToString(landData.Category));
+            xtw.WriteElementString("Category",       Convert.ToString((sbyte)landData.Category));
             xtw.WriteElementString("ClaimDate",      Convert.ToString(landData.ClaimDate));
             xtw.WriteElementString("ClaimPrice",     Convert.ToString(landData.ClaimPrice));
             xtw.WriteElementString("GlobalID",       landData.GlobalID.ToString());
@@ -143,10 +149,10 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteElementString("IsGroupOwned",   Convert.ToString(landData.IsGroupOwned));
             xtw.WriteElementString("Bitmap",         Convert.ToBase64String(landData.Bitmap));
             xtw.WriteElementString("Description",    landData.Description);
-            xtw.WriteElementString("Flags",          Convert.ToString(landData.Flags));
-            xtw.WriteElementString("LandingType",    Convert.ToString(landData.LandingType));
+            xtw.WriteElementString("Flags",          Convert.ToString((uint)landData.Flags));
+            xtw.WriteElementString("LandingType",    Convert.ToString((byte)landData.LandingType));
             xtw.WriteElementString("Name",           landData.Name);
-            xtw.WriteElementString("Status",         Convert.ToString(landData.Status));
+            xtw.WriteElementString("Status",         Convert.ToString((sbyte)landData.Status));
             xtw.WriteElementString("LocalID",        landData.LocalID.ToString());
             xtw.WriteElementString("MediaAutoScale", Convert.ToString(landData.MediaAutoScale));
             xtw.WriteElementString("MediaID",        landData.MediaID.ToString());

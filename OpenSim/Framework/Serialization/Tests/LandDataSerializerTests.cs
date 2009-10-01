@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Serialization.Tests
     public class LandDataSerializerTest
     {
         private LandData land;
-        private string preSerialized = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n<LandData>\n  <Area>128</Area>\n  <AuctionID>0</AuctionID>\n  <AuthBuyerID>00000000-0000-0000-0000-000000000000</AuthBuyerID>\n  <Category>Residential</Category>\n  <ClaimDate>0</ClaimDate>\n  <ClaimPrice>0</ClaimPrice>\n  <GlobalID>54ff9641-dd40-4a2c-b1f1-47dd3af24e50</GlobalID>\n  <GroupID>d740204e-bbbf-44aa-949d-02c7d739f6a5</GroupID>\n  <IsGroupOwned>False</IsGroupOwned>\n  <Bitmap>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</Bitmap>\n  <Description>land data to test LandDataSerializer</Description>\n  <Flags>536870944</Flags>\n  <LandingType>2</LandingType>\n  <Name>LandDataSerializerTest Land</Name>\n  <Status>Leased</Status>\n  <LocalID>0</LocalID>\n  <MediaAutoScale>1</MediaAutoScale>\n  <MediaID>d4452578-2f25-4b97-a81b-819af559cfd7</MediaID>\n  <MediaURL>http://videos.opensimulator.org/bumblebee.mp4</MediaURL>\n  <MusicURL />\n  <OwnerID>1b8eedf9-6d15-448b-8015-24286f1756bf</OwnerID>\n  <ParcelAccessList />\n  <PassHours>0</PassHours>\n  <PassPrice>0</PassPrice>\n  <SalePrice>0</SalePrice>\n  <SnapshotID>00000000-0000-0000-0000-000000000000</SnapshotID>\n  <UserLocation>&lt;0, 0, 0&gt;</UserLocation>\n  <UserLookAt>&lt;0, 0, 0&gt;</UserLookAt>\n  <Dwell>0</Dwell>\n  <OtherCleanTime>0</OtherCleanTime>\n</LandData>";
+        private string preSerialized = "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n<LandData>\n  <Area>128</Area>\n  <AuctionID>0</AuctionID>\n  <AuthBuyerID>00000000-0000-0000-0000-000000000000</AuthBuyerID>\n  <Category>10</Category>\n  <ClaimDate>0</ClaimDate>\n  <ClaimPrice>0</ClaimPrice>\n  <GlobalID>54ff9641-dd40-4a2c-b1f1-47dd3af24e50</GlobalID>\n  <GroupID>d740204e-bbbf-44aa-949d-02c7d739f6a5</GroupID>\n  <IsGroupOwned>False</IsGroupOwned>\n  <Bitmap>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</Bitmap>\n  <Description>land data to test LandDataSerializer</Description>\n  <Flags>536870944</Flags>\n  <LandingType>2</LandingType>\n  <Name>LandDataSerializerTest Land</Name>\n  <Status>0</Status>\n  <LocalID>0</LocalID>\n  <MediaAutoScale>1</MediaAutoScale>\n  <MediaID>d4452578-2f25-4b97-a81b-819af559cfd7</MediaID>\n  <MediaURL>http://videos.opensimulator.org/bumblebee.mp4</MediaURL>\n  <MusicURL />\n  <OwnerID>1b8eedf9-6d15-448b-8015-24286f1756bf</OwnerID>\n  <ParcelAccessList />\n  <PassHours>0</PassHours>\n  <PassPrice>0</PassPrice>\n  <SalePrice>0</SalePrice>\n  <SnapshotID>00000000-0000-0000-0000-000000000000</SnapshotID>\n  <UserLocation>&lt;0, 0, 0&gt;</UserLocation>\n  <UserLookAt>&lt;0, 0, 0&gt;</UserLookAt>\n  <Dwell>0</Dwell>\n  <OtherCleanTime>0</OtherCleanTime>\n</LandData>";
 
         [SetUp]
         public void setup()
@@ -75,15 +75,19 @@ namespace OpenSim.Framework.Serialization.Tests
         public void LandDataSerializerSerializeTest()
         {
             string serialized = LandDataSerializer.Serialize(this.land);
-            Assert.That(serialized.Length > 0);
-            Assert.That(serialized == this.preSerialized);
+            Assert.That(serialized.Length > 0, "Serialize(LandData) returned empty string");
+            Assert.That(serialized == this.preSerialized, "result of Serialize(LandData) does not match expected result");
         }
 
         /// <summary>
         /// </summary>
         [Test]
-        public void TestLandDataSerializerDeserializeTest()
+        public void TestLandDataSerializerDeserializeFromStringTest()
         {
+            LandData reifiedLandData = LandDataSerializer.Deserialize(this.preSerialized);
+            Assert.That(reifiedLandData != null, "Deserialize(string) returned null");
+            Assert.That(reifiedLandData.GlobalID == this.land.GlobalID, "Reified LandData.GlobalID != original LandData.GlobalID");
+            Assert.That(reifiedLandData.Name == this.land.Name, "Reified LandData.Name != original LandData.Name");
         }
     }
 }
