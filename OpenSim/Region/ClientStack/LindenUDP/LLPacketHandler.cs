@@ -863,5 +863,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketQueue.Close();
             Thread.CurrentThread.Abort();
         }
+
+        public int GetQueueCount(ThrottleOutPacketType queue)
+        {
+            return m_PacketQueue.GetQueueCount(queue);
+        }
     }
 }

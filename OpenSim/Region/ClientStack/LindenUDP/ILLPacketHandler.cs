@@ -78,5 +78,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void SetClientInfo(ClientInfo info);
         void AddImportantPacket(PacketType type);
         void RemoveImportantPacket(PacketType type);
+        int GetQueueCount(ThrottleOutPacketType queue);
     }
 }

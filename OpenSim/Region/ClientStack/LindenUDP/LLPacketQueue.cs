@@ -753,5 +753,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             get { return throttleMultiplier; }
         }
+
+        public int GetQueueCount(ThrottleOutPacketType queue)
+        {
+            switch (queue)
+            {
+            case ThrottleOutPacketType.Land:
+                return LandOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Wind:
+                return WindOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Cloud:
+                return CloudOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Task:
+                return TaskOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Texture:
+                return TextureOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Asset:
+                return AssetOutgoingPacketQueue.Count;
+            }
+
+            return 0;
+        }
     }
 }
