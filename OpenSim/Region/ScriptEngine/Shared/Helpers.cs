@@ -218,14 +218,16 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
-            Vector3 absPos = part.AbsolutePosition;
-            Position = new LSL_Types.Vector3(absPos.X, absPos.Y, absPos.Z);
+            Position = new LSL_Types.Vector3(part.AbsolutePosition.X,
+                                             part.AbsolutePosition.Y,
+                                             part.AbsolutePosition.Z);
 
-            Quaternion wr = part.ParentGroup.Rotation;
+            Quaternion wr = part.ParentGroup.GroupRotation;
             Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
 
-            Vector3 vel = part.Velocity;
-            Velocity = new LSL_Types.Vector3(vel.X, vel.Y, vel.Z);
+            Velocity = new LSL_Types.Vector3(part.Velocity.X,
+                                             part.Velocity.Y,
+                                             part.Velocity.Z);
         }
     }
 
