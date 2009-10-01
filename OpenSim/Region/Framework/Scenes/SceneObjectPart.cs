@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes
         public UUID FromItemID = UUID.Zero;
                
         /// <value>
-        /// The UUID of the user inventory item from which this object was rezzed if this is a root part.  
+        /// The UUID of the user inventory item from which this object was rezzed if this is a root part.
         /// If UUID.Zero then either this is not a root part or there is no connection with a user inventory item.
         /// </value>
         private UUID m_fromUserInventoryItemID = UUID.Zero;
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// A relic from when we we thought that prims contained folder objects. In 
-        /// reality, prim == folder  
+        /// reality, prim == folder
         /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
         /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
         /// </summary>
@@ -3386,7 +3386,7 @@ if (m_shape != null) {
                 }
                 else
                 {
-                    IsPhantom = false;  
+                    IsPhantom = false;
                     // If volumedetect is active we don't want phantom to be applied.
                     // If this is a new call to VD out of the state "phantom"
                     // this will also cause the prim to be visible to physics

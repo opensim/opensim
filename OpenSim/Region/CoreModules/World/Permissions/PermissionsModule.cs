@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         //private uint PERM_MODIFY = (uint)16384;
         private uint PERM_MOVE = (uint)524288;
         private uint PERM_TRANS = (uint)8192;
-        private uint PERM_LOCKED = (uint)540672;  
+        private uint PERM_LOCKED = (uint)540672;
         
         /// <value>
         /// Different user set names that come in from the configuration file.

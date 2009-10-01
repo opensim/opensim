@@ -56,7 +56,7 @@ namespace OpenSim
         public const int VERSIONINFO_VERSION_LENGTH = 27;
         
         /// <value>
-        /// This is the external interface version.  It is separate from the OpenSimulator project version.  
+        /// This is the external interface version.  It is separate from the OpenSimulator project version.
         /// 
         /// This version number should be 
         /// increased by 1 every time a code change makes the previous OpenSimulator revision incompatible

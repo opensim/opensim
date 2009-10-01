@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             scene.WestBorders[0].TriggerRegionY = conn.RegionScene.RegionInfo.RegionLocY;
                         }
 
-                        /*  
+                        /*
                                                 else
                                                 {
                                                     conn.RegionScene.NorthBorders[0].BorderLine.Z += (int)Constants.RegionSize;

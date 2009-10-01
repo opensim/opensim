@@ -93,7 +93,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                      {
                          response = HandleRegister(Context, Realm, request);
                      } 
-                     else if (sipAuthMethod == "INVITE")  
+                     else if (sipAuthMethod == "INVITE")
                      {
                           response = HandleInvite(Context, Realm, request);
                      }

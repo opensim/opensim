@@ -2313,7 +2313,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.Debug("DEBUG: AddNewMovement: child agent, Making root agent!");
 
-                // we have to reset the user's child agent connections.  
+                // we have to reset the user's child agent connections.
                 // Likely, here they've lost the eventqueue for other regions so border 
                 // crossings will fail at this point unless we reset them.
 

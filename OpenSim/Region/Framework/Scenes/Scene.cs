@@ -3419,7 +3419,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// We've got an update about an agent that sees into this region, 
         /// send it to ScenePresence for processing  It's the full data.
         /// </summary>
-        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.  
+        /// <param name="cAgentData">Agent that contains all of the relevant things about an agent.
         /// Appearance, animations, position, etc.</param>
         /// <returns>true if we handled it.</returns>
         public virtual bool IncomingChildAgentDataUpdate(AgentData cAgentData)

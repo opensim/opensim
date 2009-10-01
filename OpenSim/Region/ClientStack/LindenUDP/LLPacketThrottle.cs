@@ -49,7 +49,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int Min
         {
             get { return m_minAllowableThrottle; }
-        }  
+        }
         
         public int Current
         {

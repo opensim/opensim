@@ -123,7 +123,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Get details of the given user.
         /// </summary>
-        /// If the user isn't in cache then the user is requested from the profile service.  
+        /// If the user isn't in cache then the user is requested from the profile service.
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(string fname, string lname)
@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Get details of the given user.
         /// </summary>
-        /// If the user isn't in cache then the user is requested from the profile service.  
+        /// If the user isn't in cache then the user is requested from the profile service.
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(UUID userID)

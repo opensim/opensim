@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// This method occurs asynchronously.  If you want notification of when it has completed then subscribe to
         /// the EventManager.OnOarFileSaved event.
         /// 
-        /// <param name="savePath"></param>  
+        /// <param name="savePath"></param>
         /// <param name="requestId">If supplied, this request Id is later returned in the saved event</param>
         void ArchiveRegion(string savePath, Guid requestId);
 

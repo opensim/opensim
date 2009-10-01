@@ -55,11 +55,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Creates a Border.  The line is perpendicular to the direction cardinal. 
         /// IE: if the direction cardinal is South, the line is West->East
         /// </summary>
-        /// <param name="lineStart">The starting point for the line of the border.  
-        /// The position of an object must be greater then this for this border to trigger.  
+        /// <param name="lineStart">The starting point for the line of the border.
+        /// The position of an object must be greater then this for this border to trigger.
         /// Perpendicular to the direction cardinal</param>
-        /// <param name="lineEnd">The ending point for the line of the border.  
-        /// The position of an object must be less then this for this border to trigger.  
+        /// <param name="lineEnd">The ending point for the line of the border.
+        /// The position of an object must be less then this for this border to trigger.
         /// Perpendicular to the direction cardinal</param>
         /// <param name="triggerCoordinate">The position that triggers border the border 
         /// cross parallel to the direction cardinal.  On the North cardinal, this 

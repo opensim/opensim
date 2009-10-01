@@ -128,7 +128,7 @@ namespace OpenSim.Framework.Communications
         /// 
         /// <param name="friendlistowner">The agent for whom we're retreiving the friends Data.</param>
         /// <returns>
-        /// A List of FriendListItems that contains info about the user's friends.  
+        /// A List of FriendListItems that contains info about the user's friends.
         /// Always returns a list even if the user has no friends
         /// </returns>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);

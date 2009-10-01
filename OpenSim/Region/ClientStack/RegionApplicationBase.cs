@@ -80,7 +80,7 @@ namespace OpenSim.Region.ClientStack
         /// </summary>
         /// 
         /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
         /// </param>
         /// <returns></returns>
         protected abstract PhysicsScene GetPhysicsScene(string osSceneIdentifier);
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="meshEngine">The name of the mesh engine to use</param>
         /// <param name="config">The configuration data to pass to the physics and mesh engines</param>
         /// <param name="osSceneIdentifier">
-        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.  
+        /// The name of the OpenSim scene this physics scene is serving.  This will be used in log messages.
         /// </param>
         /// <returns></returns>
         protected PhysicsScene GetPhysicsScene(

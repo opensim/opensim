@@ -219,7 +219,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Fetch inventory for this user.
         /// </summary>
-        /// This has to be executed as a separate step once user information is retreived.  
+        /// This has to be executed as a separate step once user information is retreived.
         /// This will occur synchronously if the inventory service is in the same process as this class, and
         /// asynchronously otherwise.
         public void FetchInventory()

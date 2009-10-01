@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void SendAlertToUser(string firstName, string lastName, string message, bool modal);
         
         /// <summary>
-        /// Send an alert message to all users in the scene.  
+        /// Send an alert message to all users in the scene.
         /// </summary>
         /// <param name="message"></param>
         void SendGeneralAlert(string message);
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 
         /// <param name="fromAvatarID">The user sending the message</param>
         /// <param name="fromAvatarName">The name of the user doing the sending</param>
-        /// <param name="message">The message being sent to the user</param>  
+        /// <param name="message">The message being sent to the user</param>
         void SendNotificationToUsersInEstate(UUID fromAvatarID, string fromAvatarName, string message);
     }
 }
