@@ -3486,6 +3486,9 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenSim.Tests.Common"/>
@@ -3493,8 +3496,6 @@
       <Reference name="OpenSim.Framework.Serialization"/>
       <Reference name="OpenSim.Framework.Serialization.External"/>
       <Reference name="log4net.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="nunit.framework.dll" />
 
       <Files>
