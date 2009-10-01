@@ -228,6 +228,11 @@
     <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
   </exec>
 
+ <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.serialization.tests">
+    <arg value="./bin/OpenSim.Framework.Serialization.Tests.dll" />
+    <arg value="-xml=test-results/OpenSim.Framework.Serialization.Tests.dll-Results.xml" />
+  </exec>
+
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.servers.tests">
     <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />

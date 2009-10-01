@@ -99,7 +99,7 @@ namespace OpenSim.Framework.Serialization.External
             {
                 while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
                 {
-                    ParcelManager.ParcelAccessEntry pae;
+                    ParcelManager.ParcelAccessEntry pae = new ParcelManager.ParcelAccessEntry();
 
                     xtr.ReadStartElement("ParcelAccessEntry");
                     pae.AgentID    = UUID.Parse(                           xtr.ReadElementString("AgentID"));
@@ -112,14 +112,14 @@ namespace OpenSim.Framework.Serialization.External
             }
             xtr.Read();
 
-            landData.PassHours      = Convert.ToSingle(                xtr.ReadElementString("PassHours"));
-            landData.PassPrice      = Convert.ToInt32(                 xtr.ReadElementString("PassPrice"));
-            landData.SalePrice      = Convert.ToInt32(                 xtr.ReadElementString("SalePrice"));
-            landData.SnapshotID     = UUID.Parse(                      xtr.ReadElementString("SnapshotID"));
-            landData.UserLocation   = Vector3.Parse(                   xtr.ReadElementString("UserLocation"));
-            landData.UserLookAt     = Vector3.Parse(                   xtr.ReadElementString("UserLookAt"));
-            landData.Dwell          = Convert.ToInt32(                 xtr.ReadElementString("Dwell"));
-            landData.OtherCleanTime = Convert.ToInt32(                 xtr.ReadElementString("OtherCleanTime"));
+            landData.PassHours      = Convert.ToSingle(                    xtr.ReadElementString("PassHours"));
+            landData.PassPrice      = Convert.ToInt32(                     xtr.ReadElementString("PassPrice"));
+            landData.SalePrice      = Convert.ToInt32(                     xtr.ReadElementString("SalePrice"));
+            landData.SnapshotID     = UUID.Parse(                          xtr.ReadElementString("SnapshotID"));
+            landData.UserLocation   = Vector3.Parse(                       xtr.ReadElementString("UserLocation"));
+            landData.UserLookAt     = Vector3.Parse(                       xtr.ReadElementString("UserLookAt"));
+            landData.Dwell          = Convert.ToInt32(                     xtr.ReadElementString("Dwell"));
+            landData.OtherCleanTime = Convert.ToInt32(                     xtr.ReadElementString("OtherCleanTime"));
 
             xtr.ReadEndElement();
             
@@ -165,8 +165,8 @@ namespace OpenSim.Framework.Serialization.External
             {
                 xtw.WriteStartElement("ParcelAccessEntry");
                 xtw.WriteElementString("AgentID",     pal.AgentID.ToString());
-                xtw.WriteElementString("Time",        Convert.ToString(pal.Time));
-                xtw.WriteElementString("AccessList",  Convert.ToString(pal.Flags));
+                xtw.WriteElementString("Time",        pal.Time.ToString("s"));
+                xtw.WriteElementString("AccessList",  Convert.ToString((uint)pal.Flags));
                 xtw.WriteEndElement();
             }
             xtw.WriteEndElement();
