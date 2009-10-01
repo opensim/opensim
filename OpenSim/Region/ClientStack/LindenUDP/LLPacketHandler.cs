@@ -176,9 +176,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_AckTimer.Start();
         }
 
-        public void Stop()
+        public void Dispose()
         {
             m_AckTimer.Stop();
+            m_AckTimer.Close();
 
             m_PacketQueue.Enqueue(null);
             m_PacketQueue.Close();

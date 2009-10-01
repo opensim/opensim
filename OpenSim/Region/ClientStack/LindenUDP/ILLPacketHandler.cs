@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// Interface to a class that handles all the activity involved with maintaining the client circuit (handling acks,
     /// resends, pings, etc.)
     /// </summary>
-    public interface ILLPacketHandler
+    public interface ILLPacketHandler : IDisposable
     {
         event PacketStats OnPacketStats;
         event PacketDrop OnPacketDrop;
@@ -70,7 +70,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void OutPacket(Packet NewPack,
                        ThrottleOutPacketType throttlePacketType, Object id);
         LLPacketQueue PacketQueue { get; }
-        void Stop();
         void Flush();
         void Clear();
         ClientInfo GetClientInfo();

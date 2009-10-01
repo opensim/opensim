@@ -39,7 +39,7 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLPacketQueue : IPullStatsProvider
+    public class LLPacketQueue : IPullStatsProvider, IDisposable
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -342,11 +342,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Close()
         {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
             Flush();
             WipeClean(); // I'm sure there's a dirty joke in here somewhere. -AFrisby
 
             m_enabled = false;
             throttleTimer.Stop();
+            throttleTimer.Close();
 
             if (StatsManager.SimExtraStats != null)
             {

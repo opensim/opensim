@@ -1127,7 +1127,6 @@ namespace OpenSim.Framework
 
         void SetClientOption(string option, string value);
         string GetClientOption(string option);
-        void Terminate();
 
         void SendSetFollowCamProperties(UUID objectID, SortedDictionary<int, float> parameters);
         void SendClearFollowCamProperties(UUID objectID);

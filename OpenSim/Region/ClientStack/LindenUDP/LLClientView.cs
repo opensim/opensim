@@ -633,6 +633,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // of the client thread regardless of where Close() is called.
                 KillEndDone();
             }
+			
+			Terminate();
         }
 
         /// <summary>
@@ -737,16 +739,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         }
 
-        public void Terminate()
+        private void Terminate()
         {
+			IsActive = false;
+			
+			m_clientPingTimer.Close();
+			m_avatarTerseUpdateTimer.Close();
+			m_primTerseUpdateTimer.Close();
+			m_primFullUpdateTimer.Close();
+			m_textureRequestTimer.Close();
+			
             m_PacketHandler.OnPacketStats -= PopulateStats;
-            m_PacketHandler.Stop();
+			m_PacketHandler.Dispose();
 
             // wait for thread stoped
-            m_clientThread.Join();
+            // m_clientThread.Join();
 
             // delete circuit code
-            m_networkServer.CloseClient(this);
+            //m_networkServer.CloseClient(this);
         }
 
         #endregion
@@ -876,6 +886,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             while (IsActive)
             {
                 LLQueItem nextPacket = m_PacketHandler.PacketQueue.Dequeue();
+				
+				if (nextPacket == null) {
+					m_log.DebugFormat("[CLIENT]: PacketQueue return null LLQueItem");
+					continue;
+				}
 
                 if (nextPacket.Incoming)
                 {
