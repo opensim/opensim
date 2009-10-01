@@ -68,7 +68,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public override void UpdateMovement()
         {
-            UpdateGroupRotationR(GroupRotation * m_rotationDirection);
+            UpdateGroupRotationR(m_rootPart.RotationOffset * m_rotationDirection);
 
             base.UpdateMovement();
         }
