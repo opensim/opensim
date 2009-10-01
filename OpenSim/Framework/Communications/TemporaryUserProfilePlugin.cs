@@ -35,7 +35,7 @@ using OpenSim.Data;
 namespace OpenSim.Framework.Communications
 {
     /// <summary>
-    /// Plugin for managing temporary user profiles.  
+    /// Plugin for managing temporary user profiles.
     /// </summary>
     public class TemporaryUserProfilePlugin : IUserDataPlugin
     {

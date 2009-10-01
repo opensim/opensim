@@ -127,7 +127,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         //    Assert.That(
         //        scene.CommsManager.UserAdminService.AddUser(
         //            "Bob", "Hoskins", "test", "test@test.com", 1000, 1000, agentId),
-        //        Is.EqualTo(agentId));  
+        //        Is.EqualTo(agentId));
             
         //    IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
                                                 

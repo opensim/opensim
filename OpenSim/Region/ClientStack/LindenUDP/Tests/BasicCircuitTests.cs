@@ -233,7 +233,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             TestLLPacketServer testLLPacketServer;
             AgentCircuitManager acm;
             SetupStack(scene, out testLLUDPServer, out testLLPacketServer, out acm);
-            AddClient(myCircuitCode, testEp, testLLUDPServer, acm);  
+            AddClient(myCircuitCode, testEp, testLLUDPServer, acm);
 
             byte[] data = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
@@ -252,7 +252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             testLLUDPServer.LoadReceive(BuildTestObjectNamePacket(1, "helloooo"), testEp);
             testLLUDPServer.ReceiveData(null);
             
-            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));  
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(1));
             Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(1));
         }
         
@@ -292,7 +292,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             Assert.IsFalse(testLLUDPServer.HasCircuit(circuitCodeA));
          
-            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));  
+            Assert.That(testLLPacketServer.GetTotalPacketsReceived(), Is.EqualTo(3));
             Assert.That(testLLPacketServer.GetPacketsReceivedFor(PacketType.ObjectName), Is.EqualTo(3));
         }
     }

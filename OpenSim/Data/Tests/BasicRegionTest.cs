@@ -497,7 +497,7 @@ namespace OpenSim.Data.Tests
                 Quaternion rotoff = new Quaternion(random.Next(),random.Next(),random.Next(),random.Next());
                 Vector3 velocity = new Vector3(random.Next(),random.Next(),random.Next());
                 Vector3 angvelo = new Vector3(random.Next(),random.Next(),random.Next());
-                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());  
+                Vector3 accel = new Vector3(random.Next(),random.Next(),random.Next());
                 
                 sop.GroupPosition = groupos;
                 sop.RotationOffset = rotoff;

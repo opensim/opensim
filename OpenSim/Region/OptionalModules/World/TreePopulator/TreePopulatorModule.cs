@@ -92,7 +92,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 this.m_maximum_scale = cp.m_maximum_scale;
                 this.m_initial_scale = cp.m_initial_scale;
                 this.m_rate = cp.m_rate;
-                this.m_planted = planted;  
+                this.m_planted = planted;
                 this.m_trees = new List<UUID>();
             }
 

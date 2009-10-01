@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack
         /// <summary>
         /// Maximum bytes per second that the throttle can be set to.
         /// </summary>
-        public int Max;  
+        public int Max;
         
         /// <summary>
         /// Current bytes per second that the throttle should be set to.

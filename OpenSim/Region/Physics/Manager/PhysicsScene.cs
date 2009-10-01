@@ -178,12 +178,12 @@ namespace OpenSim.Region.Physics.Manager
         }
 
         /// <summary>
-        /// Queue a raycast against the physics scene.  
+        /// Queue a raycast against the physics scene.
         /// The provided callback method will be called when the raycast is complete
         /// 
         /// Many physics engines don't support collision testing at the same time as 
         /// manipulating the physics scene, so we queue the request up and callback 
-        /// a custom method when the raycast is complete.  
+        /// a custom method when the raycast is complete.
         /// This allows physics engines that give an immediate result to callback immediately
         /// and ones that don't, to callback when it gets a result back.
         /// 

@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// User id to search
         /// </param>
         /// <param name="path">
-        /// The path to the required folder.  
+        /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The folder from which the path starts
         /// </param>
         /// <param name="path">
-        /// The path to the required folder.  
+        /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>

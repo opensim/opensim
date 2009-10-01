@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     byte[] copyIDBytes = copyID.GetBytes();
                     im.binaryBucket = new byte[1 + copyIDBytes.Length];
                     im.binaryBucket[0] = (byte)AssetType.Folder;
-                    Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);  
+                    Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);
                     
                     if (user != null && !user.IsChildAgent)
                     {

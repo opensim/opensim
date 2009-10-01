@@ -90,6 +90,6 @@ namespace OpenSim.Region.CoreModules.World.Sound
                 p.ControllingClient.SendTriggeredSound(
                     soundId, ownerID, objectID, parentID, handle, position, (float)gain);
             }
-        }  
+        }
     }
 }

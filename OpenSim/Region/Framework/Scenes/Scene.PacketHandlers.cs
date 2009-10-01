@@ -544,7 +544,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
         /// and needs to be changed.
-        ///  
+        ///
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
         /// <param name="type"></param>

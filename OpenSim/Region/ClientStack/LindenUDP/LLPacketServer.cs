@@ -114,7 +114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             sessionInfo = circuitManager.AuthenticateSession(sessionId, agentId, circuitCode); 
 
             if (!sessionInfo.Authorised)
-                return false;  
+                return false;
             
             return true;
         }
