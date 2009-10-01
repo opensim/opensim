@@ -94,20 +94,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_velocity = value; }
         }
 
-        protected Quaternion m_rotation;
+        protected Quaternion m_rotation = new Quaternion(0f, 0f, 1f, 0f);
 
         public virtual Quaternion Rotation
         {
             get { return m_rotation; }
             set { m_rotation = value; }
-        }
-
-        protected Vector3 m_scale;
-
-        public virtual Vector3 Scale
-        {
-            get { return m_scale; }
-            set { m_scale = value; }
         }
 
         protected uint m_localId;
@@ -123,9 +115,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public EntityBase()
         {
-            m_rotation = Quaternion.Identity;
-            m_scale = Vector3.One;
+            m_uuid = UUID.Zero;
+
+            m_pos = Vector3.Zero;
+            m_velocity = Vector3.Zero;
+            Rotation = Quaternion.Identity;
             m_name = "(basic entity)";
+            m_rotationalvelocity = Vector3.Zero;
         }
 
         /// <summary>
