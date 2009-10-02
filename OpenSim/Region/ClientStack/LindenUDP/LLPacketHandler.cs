@@ -776,10 +776,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             QueueEmpty handlerQueueEmpty = OnQueueEmpty;
 
-            if (handlerQueueEmpty == null)
-                return;
-
-            handlerQueueEmpty(queue);
+            if (handlerQueueEmpty != null)
+                handlerQueueEmpty(queue);
         }
 
         // Convert the packet to bytes and stuff it onto the send queue

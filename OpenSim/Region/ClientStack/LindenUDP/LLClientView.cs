@@ -3131,26 +3131,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        // Unlike the other timers, this one is only started after
-        // the first request is seen.
-
         void HandleQueueEmpty(ThrottleOutPacketType queue)
         {
             switch (queue)
             {
-            case ThrottleOutPacketType.Texture:
-                ProcessTextureRequests();
-                break;
+                case ThrottleOutPacketType.Texture:
+                    ProcessTextureRequests();
+                    break;
             }
         }
 
         void ProcessTextureRequests()
         {
             if (m_imageManager != null)
-            {
-                m_imageManager.ProcessImageQueue(m_textureSendLimit, 
-                                                     m_textureDataLimit);
-            }
+                m_imageManager.ProcessImageQueue(m_textureSendLimit, m_textureDataLimit);
         }
 
         void ProcessPrimFullUpdates(object sender, ElapsedEventArgs e)
