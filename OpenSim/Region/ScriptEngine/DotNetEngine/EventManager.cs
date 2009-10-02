@@ -305,9 +305,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (engine != myScriptEngine.ScriptEngineName)
                 return;
 
-            m_log.Debug("OnRezScript localID: " + localID +
-                        " LLUID: " + itemID.ToString() + " Size: " +
-                        script.Length);
+            // m_log.Debug("OnRezScript localID: " + localID +
+            //             " LLUID: " + itemID.ToString() + " Size: " +
+            //             script.Length);
 
             myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script,
                     startParam, postOnRez);
@@ -315,7 +315,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void OnRemoveScript(uint localID, UUID itemID)
         {
-            m_log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
+            // m_log.Debug("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());
             myScriptEngine.m_ScriptManager.StopScript(
                 localID,
                 itemID
