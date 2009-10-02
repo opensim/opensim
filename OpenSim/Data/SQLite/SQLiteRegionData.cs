@@ -336,7 +336,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="regionUUID">the region UUID</param>
         public void RemoveObject(UUID obj, UUID regionUUID)
         {
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
+            // m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -638,29 +638,29 @@ namespace OpenSim.Data.SQLite
                 DataTable land = ds.Tables["land"];
                 DataTable landaccesslist = ds.Tables["landaccesslist"];
 
-                DataRow landRow = land.Rows.Find(parcel.landData.GlobalID.ToString());
+                DataRow landRow = land.Rows.Find(parcel.LandData.GlobalID.ToString());
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
-                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
+                    fillLandRow(landRow, parcel.LandData, parcel.RegionUUID);
                     land.Rows.Add(landRow);
                 }
                 else
                 {
-                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
+                    fillLandRow(landRow, parcel.LandData, parcel.RegionUUID);
                 }
 
                 // I know this caused someone issues before, but OpenSim is unusable if we leave this stuff around
                 using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.landData.GlobalID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.LandData.GlobalID.ToString()));
                     cmd.ExecuteNonQuery();
                 }
 
-                foreach (ParcelManager.ParcelAccessEntry entry in parcel.landData.ParcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
                 {
                     DataRow newAccessRow = landaccesslist.NewRow();
-                    fillLandAccessRow(newAccessRow, entry, parcel.landData.GlobalID);
+                    fillLandAccessRow(newAccessRow, entry, parcel.LandData.GlobalID);
                     landaccesslist.Rows.Add(newAccessRow);
                 }
             }

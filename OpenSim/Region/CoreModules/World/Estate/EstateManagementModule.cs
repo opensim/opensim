@@ -858,8 +858,30 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 if (y == -1 || m_scene.RegionInfo.RegionLocY == y)
                 {
-                    m_log.Debug("[ESTATEMODULE] Setting terrain textures for " + m_scene.RegionInfo.RegionName);
-                    setEstateTerrainBaseTexture(null, int.Parse(num), UUID.Parse(uuid));
+                    int corner = int.Parse(num);
+                    UUID texture = UUID.Parse(uuid);
+
+                    m_log.Debug("[ESTATEMODULE] Setting terrain textures for " + m_scene.RegionInfo.RegionName +
+                                string.Format(" (C#{0} = {1})", corner, texture));
+
+                    switch (corner)
+                    {
+                        case 0:
+                            m_scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
+                            break;
+                        case 1:
+                            m_scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
+                            break;
+                        case 2:
+                            m_scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
+                            break;
+                        case 3:
+                            m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
+                            break;
+                    }
+                    m_scene.RegionInfo.RegionSettings.Save();
+                    sendRegionInfoPacketToAll();
+
                 }
             }
          }
@@ -876,8 +898,34 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 if (y == -1 || m_scene.RegionInfo.RegionLocY == y)
                 {
-                    m_log.Debug("[ESTATEMODULE] Setting terrain heights " + m_scene.RegionInfo.RegionName);
-                    setEstateTerrainTextureHeights(null, int.Parse(num), float.Parse(min), float.Parse(max));
+                    int corner = int.Parse(num);
+                    float lowValue = float.Parse(min);
+                    float highValue = float.Parse(max);
+
+                    m_log.Debug("[ESTATEMODULE] Setting terrain heights " + m_scene.RegionInfo.RegionName +
+                                string.Format(" (C{0}, {1}-{2}", corner, lowValue, highValue));
+
+                    switch (corner)
+                    {
+                        case 0:
+                            m_scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
+                            m_scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
+                            break;
+                        case 1:
+                            m_scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
+                            m_scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
+                            break;
+                        case 2:
+                            m_scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
+                            m_scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
+                            break;
+                        case 3:
+                            m_scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
+                            m_scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
+                            break;
+                    }
+                    m_scene.RegionInfo.RegionSettings.Save();
+                    sendRegionHandshakeToAll();
                 }
             }
         }

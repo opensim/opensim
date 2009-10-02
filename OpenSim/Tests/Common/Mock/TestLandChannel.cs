@@ -29,6 +29,8 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.CoreModules.World.Land;
 
 namespace OpenSim.Tests.Common.Mock
 {
@@ -37,11 +39,45 @@ namespace OpenSim.Tests.Common.Mock
     /// </summary>
     public class TestLandChannel : ILandChannel
     {
-        public List<ILandObject> ParcelsNearPoint(Vector3 position) { return null; }
-        public List<ILandObject> AllParcels() { return null; }
-        public ILandObject GetLandObject(int x, int y) { return null; }
-        public ILandObject GetLandObject(int localID) { return null; }
-        public ILandObject GetLandObject(float x, float y) { return null; }
+        private Scene m_scene;
+
+        public TestLandChannel(Scene scene)
+        {
+            m_scene = scene;
+        }
+
+        public List<ILandObject> ParcelsNearPoint(Vector3 position) 
+        { 
+            return new List<ILandObject>(); 
+        }
+
+        public List<ILandObject> AllParcels() 
+        { 
+            return new List<ILandObject>(); 
+        }
+
+        protected ILandObject GetNoLand()
+        {
+            ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
+            obj.LandData.Name = "NO LAND";
+            return obj;
+        }
+
+        public ILandObject GetLandObject(int x, int y) 
+        {             
+            return GetNoLand();
+        }
+
+        public ILandObject GetLandObject(int localID) 
+        { 
+            return GetNoLand();
+        }
+
+        public ILandObject GetLandObject(float x, float y) 
+        { 
+            return GetNoLand();
+        }
+
         public bool IsLandPrimCountTainted() { return false; }
         public bool IsForcefulBansAllowed() { return false; }
         public void UpdateLandObject(int localID, LandData data) {}

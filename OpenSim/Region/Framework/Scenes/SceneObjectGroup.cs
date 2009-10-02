@@ -1327,15 +1327,15 @@ namespace OpenSim.Region.Framework.Scenes
                     ILandObject parcel = m_scene.LandChannel.GetLandObject(
                             m_rootPart.GroupPosition.X, m_rootPart.GroupPosition.Y);
 
-                    if (parcel != null && parcel.landData != null &&
-                            parcel.landData.OtherCleanTime != 0)
+                    if (parcel != null && parcel.LandData != null &&
+                            parcel.LandData.OtherCleanTime != 0)
                     {
-                        if (parcel.landData.OwnerID != OwnerID &&
-                                (parcel.landData.GroupID != GroupID ||
-                                parcel.landData.GroupID == UUID.Zero))
+                        if (parcel.LandData.OwnerID != OwnerID &&
+                                (parcel.LandData.GroupID != GroupID ||
+                                parcel.LandData.GroupID == UUID.Zero))
                         {
                             if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
-                                    parcel.landData.OtherCleanTime)
+                                    parcel.LandData.OtherCleanTime)
                             {
                                 DetachFromBackup();
                                 m_log.InfoFormat("[SCENE]: Returning object {0} due to parcel auto return", RootPart.UUID.ToString());

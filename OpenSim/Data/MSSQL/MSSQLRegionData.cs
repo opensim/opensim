@@ -624,7 +624,7 @@ ELSE
             //As the delete landaccess is already in the mysql code
 
             //Delete old values
-            RemoveLandObject(parcel.landData.GlobalID);
+            RemoveLandObject(parcel.LandData.GlobalID);
 
             //Insert new values
             string sql = @"INSERT INTO [land] 
@@ -634,7 +634,7 @@ VALUES
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddRange(CreateLandParameters(parcel.landData, parcel.regionUUID));
+                cmd.Parameters.AddRange(CreateLandParameters(parcel.LandData, parcel.RegionUUID));
 
                 cmd.ExecuteNonQuery();
             }
@@ -643,9 +643,9 @@ VALUES
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.landData.ParcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
                 {
-                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));
+                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.RegionUUID));
 
                     cmd.ExecuteNonQuery();
                     cmd.Parameters.Clear();

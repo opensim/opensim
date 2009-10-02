@@ -37,49 +37,49 @@ namespace OpenSim.Region.Framework.Interfaces
 
     public interface ILandObject
     {
-        int getParcelMaxPrimCount(ILandObject thisObject);
-        int getSimulatorMaxPrimCount(ILandObject thisObject);
+        int GetParcelMaxPrimCount(ILandObject thisObject);
+        int GetSimulatorMaxPrimCount(ILandObject thisObject);
 
-        LandData landData { get; set; }
-        bool[,] landBitmap { get; set; }
-        UUID regionUUID { get; }
-        bool containsPoint(int x, int y);
+        LandData LandData { get; set; }
+        bool[,] LandBitmap { get; set; }
+        UUID RegionUUID { get; }
+        bool ContainsPoint(int x, int y);
         ILandObject Copy();
 
-        void sendLandUpdateToAvatarsOverMe();
+        void SendLandUpdateToAvatarsOverMe();
 
-        void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
-        void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
-        bool isEitherBannedOrRestricted(UUID avatar);
-        bool isBannedFromLand(UUID avatar);
-        bool isRestrictedFromLand(UUID avatar);
-        void sendLandUpdateToClient(IClientAPI remote_client);
-        List<UUID> createAccessListArrayByFlag(AccessList flag);
-        void sendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
-        void updateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
-        void updateLandBitmapByteArray();
-        void setLandBitmapFromByteArray();
-        bool[,] getLandBitmap();
-        void forceUpdateLandInfo();
-        void setLandBitmap(bool[,] bitmap);
+        void SendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
+        void UpdateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
+        bool IsEitherBannedOrRestricted(UUID avatar);
+        bool IsBannedFromLand(UUID avatar);
+        bool IsRestrictedFromLand(UUID avatar);
+        void SendLandUpdateToClient(IClientAPI remote_client);
+        List<UUID> CreateAccessListArrayByFlag(AccessList flag);
+        void SendAccessList(UUID agentID, UUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
+        void UpdateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
+        void UpdateLandBitmapByteArray();
+        void SetLandBitmapFromByteArray();
+        bool[,] GetLandBitmap();
+        void ForceUpdateLandInfo();
+        void SetLandBitmap(bool[,] bitmap);
 
-        bool[,] basicFullRegionLandBitmap();
-        bool[,] getSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
-        bool[,] modifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
-        bool[,] mergeLandBitmaps(bool[,] bitmap_base, bool[,] bitmap_add);
-        void sendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
-        void sendLandObjectOwners(IClientAPI remote_client);
-        void returnObject(SceneObjectGroup obj);
-        void returnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client);
-        void resetLandPrimCounts();
-        void addPrimToCount(SceneObjectGroup obj);
-        void removePrimFromCount(SceneObjectGroup obj);
-        void updateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
+        bool[,] BasicFullRegionLandBitmap();
+        bool[,] GetSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
+        bool[,] ModifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
+        bool[,] MergeLandBitmaps(bool[,] bitmap_base, bool[,] bitmap_add);
+        void SendForceObjectSelect(int local_id, int request_type, List<UUID> returnIDs, IClientAPI remote_client);
+        void SendLandObjectOwners(IClientAPI remote_client);
+        void ReturnObject(SceneObjectGroup obj);
+        void ReturnLandObjects(uint type, UUID[] owners, UUID[] tasks, IClientAPI remote_client);
+        void ResetLandPrimCounts();
+        void AddPrimToCount(SceneObjectGroup obj);
+        void RemovePrimFromCount(SceneObjectGroup obj);
+        void UpdateLandSold(UUID avatarID, UUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
 
-        void deedToGroup(UUID groupID);
+        void DeedToGroup(UUID groupID);
 
-        void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
-        void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
+        void SetParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
+        void SetSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
 
         /// <summary>
         /// Set the media url for this land parcel
