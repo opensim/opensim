@@ -82,7 +82,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 J2KImage imgrequest;
 
                 // Do a linear search for this texture download
-                m_priorityQueue.Find(delegate(J2KImage img) { return img.m_requestedUUID == newRequest.RequestedAssetID; }, out imgrequest);
+                lock (m_priorityQueue)
+                    m_priorityQueue.Find(delegate(J2KImage img) { return img.m_requestedUUID == newRequest.RequestedAssetID; }, out imgrequest);
 
                 if (imgrequest != null)
                 {
@@ -90,7 +91,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         //m_log.Debug("[TEX]: (CAN) ID=" + newRequest.RequestedAssetID);
 
-                        try { m_priorityQueue.Delete(imgrequest.m_priorityQueueHandle); }
+                        try 
+                        {
+                            lock (m_priorityQueue)
+                                m_priorityQueue.Delete(imgrequest.m_priorityQueueHandle); 
+                        }
                         catch (Exception) { }
                     }
                     else
@@ -113,8 +118,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             //Update the requested priority
                             imgrequest.m_requestedPriority = newRequest.Priority;
-                            try { m_priorityQueue.Replace(imgrequest.m_priorityQueueHandle, imgrequest); }
-                            catch (Exception) { imgrequest.m_priorityQueueHandle = null; m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest); }
+                            try 
+                            { 
+                                lock (m_priorityQueue)
+                                    m_priorityQueue.Replace(imgrequest.m_priorityQueueHandle, imgrequest); 
+                            }
+                            catch (Exception) 
+                            { 
+                                imgrequest.m_priorityQueueHandle = null; 
+                                lock (m_priorityQueue)
+                                    m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest); 
+                            }
 
                             //Run an update
                             imgrequest.RunUpdate();
@@ -157,7 +171,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         imgrequest.m_requestedPriority = newRequest.Priority;
 
                         //Add this download to the priority queue
-                        m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest);
+                        lock (m_priorityQueue)
+                            m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest);
 
                         //Run an update
                         imgrequest.RunUpdate();
@@ -217,7 +232,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 while (m_priorityQueue.Count > 0)
                 {
-                    J2KImage imagereq = m_priorityQueue.FindMax();
+                    J2KImage imagereq = null;
+                    lock (m_priorityQueue)
+                        imagereq = m_priorityQueue.FindMax();
 
                     if (imagereq.m_decoded == true)
                     {
@@ -235,7 +252,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (imagereq.SendPackets(m_client, maxpack))
                         {
                             // Send complete. Destroy any knowledge of this transfer
-                            try { m_priorityQueue.Delete(imagereq.m_priorityQueueHandle); }
+                            try 
+                            { 
+                                lock (m_priorityQueue)
+                                    m_priorityQueue.Delete(imagereq.m_priorityQueueHandle); 
+                            }
                             catch (Exception) { }
                         }
                     }
