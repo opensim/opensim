@@ -1388,6 +1388,7 @@
 ;; zero configuration
 ;;
 [DatabaseService]
+    ;; default standalone, overridable in StandaloneCommon.ini
     StorageProvider = "OpenSim.Data.SQLite.dll"
 
 
@@ -1395,6 +1396,9 @@
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
 
+[GridService]
+    ;; default standalone, overridable in StandaloneCommon.ini
+	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; The following is the configuration section for the new style services
