@@ -805,7 +805,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="invType"></param>
         /// <param name="objectID"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>         
+        /// <returns></returns>
         public bool CanCreateObjectInventory(int invType, UUID objectID, UUID userID)
         {
             CreateObjectInventoryHandler handler = OnCreateObjectInventory;
@@ -856,7 +856,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="invType"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>         
+        /// <returns></returns>
         public bool CanCreateUserInventory(int invType, UUID userID)
         {
             CreateUserInventoryHandler handler = OnCreateUserInventory;
@@ -877,7 +877,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>         
+        /// <returns></returns>
         public bool CanEditUserInventory(UUID itemID, UUID userID)
         {
             EditUserInventoryHandler handler = OnEditUserInventory;
@@ -891,14 +891,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        }         
+        }
         
         /// <summary>
         /// Check whether the specified user is allowed to copy the given inventory item from their own inventory.
         /// </summary>
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>         
+        /// <returns></returns>
         public bool CanCopyUserInventory(UUID itemID, UUID userID)
         {
             CopyUserInventoryHandler handler = OnCopyUserInventory;
@@ -912,14 +912,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        }         
+        }
         
         /// <summary>
         /// Check whether the specified user is allowed to edit the given inventory item within their own inventory.
         /// </summary>
         /// <param name="itemID"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>         
+        /// <returns></returns>
         public bool CanDeleteUserInventory(UUID itemID, UUID userID)
         {
             DeleteUserInventoryHandler handler = OnDeleteUserInventory;
@@ -933,7 +933,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
             return true;
-        }         
+        }
         
         public bool CanTeleport(UUID userID)
         {

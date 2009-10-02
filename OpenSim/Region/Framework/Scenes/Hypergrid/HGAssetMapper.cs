@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Services.Interfaces;
 
 //using HyperGrid.Framework;
 //using OpenSim.Region.Communications.Hypergrid;
@@ -47,10 +48,21 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // This maps between inventory server urls and inventory server clients
-        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
-
+//        private Dictionary<string, InventoryClient> m_inventoryServers = new Dictionary<string, InventoryClient>();
 
         private Scene m_scene;
+
+        private IHyperlinkService m_hyper;
+        IHyperlinkService HyperlinkService
+        {
+            get
+            {
+                if (m_hyper == null)
+                    m_hyper = m_scene.RequestModuleInterface<IHyperlinkService>();
+                return m_hyper;
+            }
+        }
+
         #endregion
 
         #region Constructor
@@ -72,30 +84,14 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             return null;
         }
 
-        private string UserInventoryURL(UUID userID)
-        {
-            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null)
-                return (uinfo.UserProfile.UserInventoryURI == "") ? null : uinfo.UserProfile.UserInventoryURI;
-            return null;
-        }
+//        private string UserInventoryURL(UUID userID)
+//        {
+//            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+//            if (uinfo != null)
+//                return (uinfo.UserProfile.UserInventoryURI == "") ? null : uinfo.UserProfile.UserInventoryURI;
+//            return null;
+//        }
 
-        private bool IsLocalUser(UUID userID)
-        {
-            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-
-            if (uinfo != null)
-            {
-                if (HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile))
-                {
-                    m_log.Debug("[HGScene]: Home user " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
-                    return true;
-                }
-            }
-
-            m_log.Debug("[HGScene]: Foreign user " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
-            return false;
-        }
 
         public AssetBase FetchAsset(string url, UUID assetID)
         {
@@ -171,7 +167,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void Get(UUID assetID, UUID ownerID)
         {
-            if (!IsLocalUser(ownerID))
+            if (!HyperlinkService.IsLocalUser(ownerID))
             {
                 // Get the item from the remote asset server onto the local AssetCache
                 // and place an entry in m_assetMap
@@ -229,7 +225,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void Post(UUID assetID, UUID ownerID)
         {
-            if (!IsLocalUser(ownerID))
+            if (!HyperlinkService.IsLocalUser(ownerID))
             {
                 // Post the item from the local AssetCache onto the remote asset server
                 // and place an entry in m_assetMap

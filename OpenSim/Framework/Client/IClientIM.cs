@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Client
     // Porting Guide from old IM
     // SendIM(...)
     //      Loses FromAgentSession - this should be added by implementers manually.
-    //      
+    //
 
     public interface IClientIM
     {

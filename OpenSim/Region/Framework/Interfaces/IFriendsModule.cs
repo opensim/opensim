@@ -29,7 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Framework.Interfaces
-{       
+{
     public interface IFriendsModule
     {
         /// <summary>
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// FIXME: This is somewhat too tightly coupled - it should arguably be possible to offer friendships even if the 
         /// receiving user is not currently online. 
         /// </param>
-        /// <param name="offerMessage"></param>      
-        void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);        
+        /// <param name="offerMessage"></param>
+        void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);
     }
 }

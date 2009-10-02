@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveCurrentSceneToXml(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)            
+            if (serialiser != null)
                 serialiser.SavePrimsToXml(CurrentOrFirstScene, filename);
         }
 
@@ -205,7 +205,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, Vector3 loadOffset)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)            
+            if (serialiser != null)
                 serialiser.LoadPrimsFromXml(CurrentOrFirstScene, filename, generateNewIDs, loadOffset);
         }
 
@@ -216,14 +216,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveCurrentSceneToXml2(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)            
+            if (serialiser != null)
                 serialiser.SavePrimsToXml2(CurrentOrFirstScene, filename);
         }
 
         public void SaveNamedPrimsToXml2(string primName, string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)               
+            if (serialiser != null)
                 serialiser.SaveNamedPrimsToXml2(CurrentOrFirstScene, primName, filename);
         }
 
@@ -233,7 +233,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadCurrentSceneFromXml2(string filename)
         {
             IRegionSerialiserModule serialiser = CurrentOrFirstScene.RequestModuleInterface<IRegionSerialiserModule>();
-            if (serialiser != null)              
+            if (serialiser != null)
                 serialiser.LoadPrimsFromXml2(CurrentOrFirstScene, filename);
         }
 
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void LoadArchiveToCurrentScene(string filename)
         {
             IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
-            if (archiver != null)            
+            if (archiver != null)
                 archiver.DearchiveRegion(filename);
         }
 

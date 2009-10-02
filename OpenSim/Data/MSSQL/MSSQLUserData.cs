@@ -1146,7 +1146,7 @@ ELSE
                 if (reader.IsDBNull(reader.GetOrdinal("homeRegionID")))
                     retval.HomeRegionID = UUID.Zero;
                 else
-                    retval.HomeRegionID = new UUID((Guid)reader["homeRegionID"]);       
+                    retval.HomeRegionID = new UUID((Guid)reader["homeRegionID"]);
 
                 retval.Created = Convert.ToInt32(reader["created"].ToString());
                 retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
@@ -1200,7 +1200,7 @@ ELSE
                 if (reader.IsDBNull(reader.GetOrdinal("partner")))
                     retval.Partner = UUID.Zero;
                 else
-                    retval.Partner = new UUID((Guid)reader["partner"]);    
+                    retval.Partner = new UUID((Guid)reader["partner"]);
             }
             else
             {

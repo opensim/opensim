@@ -554,7 +554,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             // We must look for the part outside the m_Scripts lock because GetSceneObjectPart later triggers the
             // m_parts lock on SOG.  At the same time, a scene object that is being deleted will take the m_parts lock
-            // and then later on try to take the m_scripts lock in this class when it calls OnRemoveScript()            
+            // and then later on try to take the m_scripts lock in this class when it calls OnRemoveScript()
             SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
             if (part == null)
             {
@@ -562,7 +562,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ScriptErrorMessage += "SceneObjectPart unavailable. Script NOT started.\n";
                 m_ScriptFailCount++;
                 return false;
-            }     
+            }
 
             TaskInventoryItem item = part.Inventory.GetInventoryItem(itemID);
             if (item == null)
@@ -692,7 +692,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 AppDomain.CreateDomain(
                                     m_Scene.RegionInfo.RegionID.ToString(),
                                     evidence, appSetup);
-/*                            
+/*
                             PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
                             AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
                             PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
@@ -925,7 +925,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return new XWorkItem(m_ThreadPool.QueueWorkItem(
                                      new WorkItemCallback(this.ProcessEventHandler),
                                      parms));
-        }     
+        }
         
         /// <summary>
         /// Process a previously posted script event.

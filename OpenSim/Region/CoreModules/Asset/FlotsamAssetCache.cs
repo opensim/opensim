@@ -142,7 +142,7 @@ namespace Flotsam.RegionModules.AssetCache
                     m_CacheDirectory = assetConfig.GetString("CacheDirectory", m_DefaultCacheDirectory);
                     m_log.InfoFormat("[FLOTSAM ASSET CACHE]: Cache Directory", m_DefaultCacheDirectory);
 
-                    m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", true);
+                    m_MemoryCacheEnabled = assetConfig.GetBoolean("MemoryCacheEnabled", false);
                     m_MemoryExpiration = TimeSpan.FromHours(assetConfig.GetDouble("MemoryCacheTimeout", m_DefaultMemoryExpiration));
 
 #if WAIT_ON_INPROGRESS_REQUESTS
@@ -150,7 +150,7 @@ namespace Flotsam.RegionModules.AssetCache
 #endif
 
                     m_LogLevel = assetConfig.GetInt("LogLevel", 1);
-                    m_HitRateDisplay = (ulong)assetConfig.GetInt("HitRateDisplay", 1);
+                    m_HitRateDisplay = (ulong)assetConfig.GetInt("HitRateDisplay", 1000);
 
                     m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));
                     m_FileExpirationCleanupTimer = TimeSpan.FromHours(assetConfig.GetDouble("FileCleanupTimer", m_DefaultFileExpiration));
@@ -470,7 +470,7 @@ namespace Flotsam.RegionModules.AssetCache
             else if (dirSize >= m_CacheWarnAt)
             {
                 m_log.WarnFormat("[FLOTSAM ASSET CACHE]: Cache folder exceeded CacheWarnAt limit {0} {1}.  Suggest increasing tiers, tier length, or reducing cache expiration", dir, dirSize);
-            }            
+            }
         }
 
         private string GetFileName(string id)

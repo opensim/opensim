@@ -157,7 +157,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "Authentication",
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
                     "");
 
             doc.AppendChild(rootElement);
@@ -179,7 +179,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "Authentication",
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
                     "");
 
             doc.AppendChild(rootElement);
@@ -201,7 +201,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
             doc.AppendChild(xmlnode);
 
-            XmlElement rootElement = doc.CreateElement("", "Authentication",
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
                     "");
 
             doc.AppendChild(rootElement);

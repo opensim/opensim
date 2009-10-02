@@ -1072,7 +1072,7 @@ namespace OpenSim.Framework.Communications.Services
         /// <param name="user"></param>
         /// <param name="response"></param>
         /// <param name="remoteClient"></param>
-        /// <returns>true if the region was successfully contacted, false otherwise</returns>        
+        /// <returns>true if the region was successfully contacted, false otherwise</returns>
         protected abstract bool PrepareLoginToRegion(
             RegionInfo regionInfo, UserProfileData user, LoginResponse response, IPEndPoint client);
 
@@ -1221,11 +1221,13 @@ namespace OpenSim.Framework.Communications.Services
                 {
                     return Util.CreateUnknownUserErrorResponse();
                 }
+                
                 UUID.TryParse((string)requestData["session_id"], out guess_sid);
                 if (guess_sid == UUID.Zero)
                 {
                     return Util.CreateUnknownUserErrorResponse();
                 }
+                
                 if (m_userManager.VerifySession(guess_aid, guess_sid))
                 {
                     authed = "TRUE";
@@ -1243,6 +1245,5 @@ namespace OpenSim.Framework.Communications.Services
             response.Value = responseData;
             return response;
         }
-
     }
 }

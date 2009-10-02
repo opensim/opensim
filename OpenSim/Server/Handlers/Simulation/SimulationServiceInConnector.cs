@@ -41,7 +41,7 @@ namespace OpenSim.Server.Handlers.Simulation
         private IAuthenticationService m_AuthenticationService;
 
         public SimulationServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
-                base(config, server)
+                base(config, server, String.Empty)
         {
             IConfig serverConfig = config.Configs["SimulationService"];
             if (serverConfig == null)

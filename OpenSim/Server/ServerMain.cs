@@ -30,6 +30,7 @@ using log4net;
 using System.Reflection;
 using System;
 using System.Collections.Generic;
+using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 
@@ -60,22 +61,59 @@ namespace OpenSim.Server
             string connList = serverConfig.GetString("ServiceConnectors", String.Empty);
             string[] conns = connList.Split(new char[] {',', ' '});
 
-            foreach (string conn in conns)
+            int i = 0;
+            foreach (string c in conns)
             {
-                if (conn == String.Empty)
+                if (c == String.Empty)
                     continue;
 
+                string configName = String.Empty;
+                string conn = c;
+                uint port = 0;
+
+                string[] split1 = conn.Split(new char[] {'/'});
+                if (split1.Length > 1)
+                {
+                    conn = split1[1];
+
+                    string[] split2 = split1[0].Split(new char[] {'@'});
+                    if (split2.Length > 1)
+                    {
+                        configName = split2[0];
+                        port = Convert.ToUInt32(split2[1]);
+                    }
+                    else
+                    {
+                        port = Convert.ToUInt32(split1[0]);
+                    }
+                }
                 string[] parts = conn.Split(new char[] {':'});
                 string friendlyName = parts[0];
                 if (parts.Length > 1)
                     friendlyName = parts[1];
 
-                m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
+                IHttpServer server = m_Server.HttpServer;
+                if (port != 0)
+                    server = m_Server.GetHttpServer(port);
 
-                Object[] modargs = new Object[] { m_Server.Config, m_Server.HttpServer };
-                IServiceConnector connector =
-                        ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                if (port != m_Server.DefaultPort)
+                    m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, port);
+                else
+                    m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);
+
+                IServiceConnector connector = null;
+
+                Object[] modargs = new Object[] { m_Server.Config, server,
+                    configName };
+                connector = ServerUtils.LoadPlugin<IServiceConnector>(conn,
                         modargs);
+                if (connector == null)
+                {
+                    modargs = new Object[] { m_Server.Config, server };
+                    connector =
+                            ServerUtils.LoadPlugin<IServiceConnector>(conn,
+                            modargs);
+                }
 
                 if (connector != null)
                 {

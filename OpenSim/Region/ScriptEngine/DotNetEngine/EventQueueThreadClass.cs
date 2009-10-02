@@ -225,7 +225,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 // TODO: Let users in the sim and those entering it and possibly an external watchdog know what has happened
                 m_log.ErrorFormat(
                     "[{0}]: Event queue thread terminating with exception.  PLEASE REBOOT YOUR SIM - SCRIPT EVENTS WILL NOT WORK UNTIL YOU DO.  Exception is {1}", 
-                    ScriptEngineName, e);                
+                    ScriptEngineName, e);
             }
         }
 

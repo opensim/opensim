@@ -90,13 +90,13 @@ namespace OpenSim.Framework
 
             m_configMember.addConfigurationOption("allow_forceful_banlines",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Allow Forceful Banlines", "TRUE", true);   
+                                                "Allow Forceful Banlines", "TRUE", true);
             
             m_configMember.addConfigurationOption("allow_region_registration", 
                                                 ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Allow regions to register immediately upon grid server startup? true/false", 
                                                 "True", 
-                                                false);            
+                                                false);
             m_configMember.addConfigurationOption("console_user", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                  "Remote console access user name [Default: disabled]", "", false);
 
@@ -147,7 +147,7 @@ namespace OpenSim.Framework
                     break;
                 case "allow_region_registration":
                     AllowRegionRegistration = (bool)configuration_result;
-                    break;                
+                    break;
                 case "console_user":
                     ConsoleUser = (string)configuration_result;
                     break;

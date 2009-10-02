@@ -31,7 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Tests.Common.Mock
-{       
+{
     /// <summary>
     /// Land channel for test purposes
     /// </summary>
@@ -40,7 +40,7 @@ namespace OpenSim.Tests.Common.Mock
         public List<ILandObject> ParcelsNearPoint(Vector3 position) { return null; }
         public List<ILandObject> AllParcels() { return null; }
         public ILandObject GetLandObject(int x, int y) { return null; }
-        public ILandObject GetLandObject(int localID) { return null; }        
+        public ILandObject GetLandObject(int localID) { return null; }
         public ILandObject GetLandObject(float x, float y) { return null; }
         public bool IsLandPrimCountTainted() { return false; }
         public bool IsForcefulBansAllowed() { return false; }

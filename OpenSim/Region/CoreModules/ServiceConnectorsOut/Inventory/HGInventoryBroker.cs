@@ -525,7 +525,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return true;
             }
 
-            string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            if ((uinfo.UserProfile.UserInventoryURI == null) || (uinfo.UserProfile.UserInventoryURI == ""))
+                // this happens in standalone profiles, apparently
+                return true;
+            
+            string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
+
             string uri = m_LocalGridInventoryURI.TrimEnd('/');
 
             if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
@@ -544,7 +549,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if ((uinfo == null) || (uinfo.UserProfile == null))
                 return invURI;
 
-            string userInventoryServerURI = HGNetworkServersInfo.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
 
             if ((userInventoryServerURI != null) &&
                 (userInventoryServerURI != ""))

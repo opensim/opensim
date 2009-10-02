@@ -39,7 +39,7 @@ namespace OpenSim.Tests.Common.Mock
     /// tests are single threaded.
     /// </summary>
     public class TestAssetDataPlugin : BaseAssetRepository, IAssetDataPlugin
-    {        
+    {
         public string Version { get { return "0"; } }
         public string Name { get { return "TestAssetDataPlugin"; } }
 
@@ -59,6 +59,6 @@ namespace OpenSim.Tests.Common.Mock
             assets.Add(asset);
         }
 
-        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }        
+        public List<AssetMetadata> FetchAssetMetadataSet(int start, int count) { return new List<AssetMetadata>(count); }
     }
 }

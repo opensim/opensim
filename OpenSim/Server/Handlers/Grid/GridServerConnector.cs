@@ -25,55 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using OpenMetaverse;
+using System;
+using Nini.Config;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.Interfaces
+namespace OpenSim.Server.Handlers.Grid
 {
-    public class GridService : IGridService
+    public class GridServiceConnector : ServiceConnector
     {
-        bool RegisterRegion(UUID scopeID, RegionInfo regionInfos);
-        {
-            return false;
-        }
+        private IGridService m_GridService;
+        private string m_ConfigName = "GridService";
 
-        bool DeregisterRegion(UUID regionID);   
+        public GridServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            return false;
-        }
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-        List<SimpleRegionInfo> RequestNeighbours(UUID scopeID, uint x, uint y)
-        {
-            return new List<SimpleRegionInfo>()
-        }
+            string gridService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
 
-        RegionInfo RequestNeighbourInfo(UUID regionID)
-        {
-            return null;
-        }
+            if (gridService == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
 
-        RegionInfo RequestClosestRegion(UUID scopeID, string regionName)
-        {
-            return null;
-        }
+            Object[] args = new Object[] { config };
+            m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
 
-        List<MapBlockData> RequestNeighbourMapBlocks(UUID scopeID, int minX,
-                int minY, int maxX, int maxY)
-        {
-            return new List<MapBlockData>();
-        }
-
-        LandData RequestLandData(UUID scopeID, ulong regionHandle,
-                uint x, uint y)
-        {
-            return null;
-        }
-
-        List<RegionInfo> RequestNamedRegions(UUID scopeID, string name,
-                int maxNumber)
-        {
-            return new List<RegionInfo>();
+            server.AddStreamHandler(new GridServerPostHandler(m_GridService));
         }
     }
 }

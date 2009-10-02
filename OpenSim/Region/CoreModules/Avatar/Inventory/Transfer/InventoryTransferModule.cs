@@ -169,12 +169,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     byte[] copyIDBytes = copyID.GetBytes();
                     im.binaryBucket = new byte[1 + copyIDBytes.Length];
                     im.binaryBucket[0] = (byte)AssetType.Folder;
-                    Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);  
+                    Array.Copy(copyIDBytes, 0, im.binaryBucket, 1, copyIDBytes.Length);
                     
                     if (user != null && !user.IsChildAgent)
-                    {        
+                    {
                         user.ControllingClient.SendBulkUpdateInventory(folderCopy);
-                    }                    
+                    }
                 }
                 else
                 {
@@ -199,10 +199,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     }
                     
                     copyID = itemCopy.ID;
-                    Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);                                       
+                    Array.Copy(copyID.GetBytes(), 0, im.binaryBucket, 1, 16);
                     
                     if (user != null && !user.IsChildAgent)
-                    {        
+                    {
                         user.ControllingClient.SendBulkUpdateInventory(itemCopy);
                     }
                 }
@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
             }
             else if (im.dialog == (byte) InstantMessageDialog.InventoryDeclined)
-            {                                           
+            {
                 // Here, the recipient is local and we can assume that the
                 // inventory is loaded. Courtesy of the above bulk update,
                 // It will have been pushed to the client, too
@@ -284,7 +284,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
                 
                 if ((null == item && null == folder) | null == trashFolder)
-                {                        
+                {
                     string reason = String.Empty;
                     
                     if (trashFolder == null)

@@ -353,11 +353,11 @@ namespace OpenSim.Region.CoreModules.InterGrid
             return responseMap;
         }
 
-        // Using OpenSim.Framework.Capabilities.Caps here one time..   
+        // Using OpenSim.Framework.Capabilities.Caps here one time..
         // so the long name is probably better then a using statement
         public void OnRegisterCaps(UUID agentID, Caps caps)
         {
-            /* If we ever want to register our own caps here....    
+            /* If we ever want to register our own caps here....
              * 
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("CAPNAME",

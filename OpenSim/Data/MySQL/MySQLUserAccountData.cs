@@ -39,7 +39,7 @@ namespace OpenSim.Data.MySQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames = null;
-        private int m_LastExpire = 0;
+//        private int m_LastExpire = 0;
 
         public MySqlUserAccountData(string connectionString, string realm)
                 : base(connectionString)
@@ -146,7 +146,7 @@ namespace OpenSim.Data.MySQL
             {
                 string insert = "insert into `" + m_Realm + "` (`UUID`, `ScopeID`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ( ?principalID, ?scopeID, ?" + String.Join(", ?", fields) + ")";
+                        "`) values (?principalID, ?scopeID, ?" + String.Join(", ?", fields) + ")";
 
                 cmd.CommandText = insert;
 

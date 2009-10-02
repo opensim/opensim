@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from a user's root folder
-        /// </summary>        
+        /// </summary>
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// User id to search
         /// </param>
         /// <param name="path">
-        /// The path to the required folder.  
+        /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>
@@ -71,11 +71,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
 
             return FindFolderByPath(inventoryService, rootFolder, path);
-        }        
+        }
         
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from this folder
-        /// </summary>        
+        /// </summary>
         ///
         /// This method does not handle paths that contain multiple delimitors
         ///
@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// The folder from which the path starts
         /// </param>
         /// <param name="path">
-        /// The path to the required folder.  
+        /// The path to the required folder.
         /// It this is empty or consists only of the PATH_DELIMTER then this folder itself is returned.
         /// </param>
         /// <returns>null if the folder is not found</returns>
@@ -154,7 +154,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return null;
 
             return FindItemByPath(inventoryService, rootFolder, path);
-        }        
+        }
         
         /// <summary>
         /// Find an item given a PATH_DELIMITOR delimited path starting from this folder.
@@ -194,7 +194,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             else
             {
-                InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);                
+                InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
                 
                 foreach (InventoryFolderBase folder in contents.Folders)
                 {
@@ -205,6 +205,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // We didn't find an item or intermediate folder with the given name
             return null;
-        }        
+        }
     }
 }

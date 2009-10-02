@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// Stores user profile and inventory data received from backend services for a particular user.
     /// </summary>
     public class CachedUserInfo
-    {        
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         //// <value>
@@ -190,7 +190,7 @@ namespace OpenSim.Framework.Communications.Cache
                             resolvedFolders.Add(folder);
                             resolvedFolderDictionary[folder.ID] = folder;
                             parentFolder.AddChildFolder(folder);
-                        }                            
+                        }
                     }
                 } // foreach (folder in pendingCategorizationFolders[parentFolder.ID])
 
@@ -219,7 +219,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Fetch inventory for this user.
         /// </summary>
-        /// This has to be executed as a separate step once user information is retreived.  
+        /// This has to be executed as a separate step once user information is retreived.
         /// This will occur synchronously if the inventory service is in the same process as this class, and
         /// asynchronously otherwise.
         public void FetchInventory()
@@ -422,7 +422,7 @@ namespace OpenSim.Framework.Communications.Cache
         ///
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
-        /// and needs to be changed.        
+        /// and needs to be changed.
         ///
         /// <param name="folderID"></param>
         /// <param name="type"></param>
@@ -500,7 +500,7 @@ namespace OpenSim.Framework.Communications.Cache
                     InventoryFolderImpl oldParentFolder = RootFolder.FindFolder(folder.ParentID);
 
                     if (oldParentFolder != null)
-                    {                        
+                    {
                         oldParentFolder.RemoveChildFolder(folderID);
                         parentFolder.AddChildFolder(folder);
                     }

@@ -36,10 +36,12 @@ using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Physics.Manager;
 using Caps=OpenSim.Framework.Capabilities.Caps;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
@@ -1301,7 +1303,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                     {
                         // a parcel request for a parcel in another region. Ask the grid about the region
-                        RegionInfo info = m_scene.CommsManager.GridService.RequestNeighbourInfo(regionID);
+                        GridRegion info = m_scene.GridService.GetRegionByUUID(UUID.Zero, regionID);
                         if (info != null)
                             parcelID = Util.BuildFakeParcelID(info.RegionHandle, x, y);
                     }
@@ -1359,9 +1361,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                 }
                 else
                 {
-                    extLandData.landData = m_scene.CommsManager.GridService.RequestLandData(extLandData.regionHandle,
-                                                                                            extLandData.x,
-                                                                                            extLandData.y);
+                    ILandService landService = m_scene.RequestModuleInterface<ILandService>();
+                    extLandData.landData = landService.GetLandData(extLandData.regionHandle,
+                                                                   extLandData.x,
+                                                                   extLandData.y);
                     if (extLandData.landData == null)
                     {
                         // we didn't find the region/land => don't cache
@@ -1373,20 +1376,27 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (data != null)  // if we found some data, send it
             {
-                RegionInfo info;
+                GridRegion info;
                 if (data.regionHandle == m_scene.RegionInfo.RegionHandle)
                 {
-                    info = m_scene.RegionInfo;
+                    info = new GridRegion(m_scene.RegionInfo);
                 }
                 else
                 {
                     // most likely still cached from building the extLandData entry
-                    info = m_scene.CommsManager.GridService.RequestNeighbourInfo(data.regionHandle);
+                    uint x = 0, y = 0;
+                    Utils.LongToUInts(data.regionHandle, out x, out y);
+                    info = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
                 }
                 // we need to transfer the fake parcelID, not the one in landData, so the viewer can match it to the landmark.
                 m_log.DebugFormat("[LAND] got parcelinfo for parcel {0} in region {1}; sending...",
                                   data.landData.Name, data.regionHandle);
-                remoteClient.SendParcelInfo(info, data.landData, parcelID, data.x, data.y);
+                // HACK for now
+                RegionInfo r = new RegionInfo();
+                r.RegionName = info.RegionName;
+                r.RegionLocX = (uint)info.RegionLocX;
+                r.RegionLocY = (uint)info.RegionLocY;
+                remoteClient.SendParcelInfo(r, data.landData, parcelID, data.x, data.y);
             }
             else
                 m_log.Debug("[LAND] got no parcelinfo; not sending");

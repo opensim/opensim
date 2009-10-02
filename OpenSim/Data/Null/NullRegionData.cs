@@ -40,13 +40,14 @@ namespace OpenSim.Data.Null
 
         public NullRegionData(string connectionString, string realm)
         {
+            //Console.WriteLine("[XXX] NullRegionData constructor");
         }
 
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
             List<RegionData> ret = new List<RegionData>();
 
-            foreach(RegionData r in m_regionData.Values)
+            foreach (RegionData r in m_regionData.Values)
             {
                 if (regionName.Contains("%"))
                 {
@@ -70,7 +71,7 @@ namespace OpenSim.Data.Null
         {
             List<RegionData> ret = new List<RegionData>();
 
-            foreach(RegionData r in m_regionData.Values)
+            foreach (RegionData r in m_regionData.Values)
             {
                 if (r.posX == posX && r.posY == posY)
                     ret.Add(r);
@@ -94,16 +95,13 @@ namespace OpenSim.Data.Null
         {
             List<RegionData> ret = new List<RegionData>();
 
-            foreach(RegionData r in m_regionData.Values)
+            foreach (RegionData r in m_regionData.Values)
             {
                 if (r.posX >= startX && r.posX <= endX && r.posY >= startY && r.posY <= endY)
                     ret.Add(r);
             }
 
-            if (ret.Count > 0)
-                return ret;
-
-            return null;
+            return ret;
         }
 
         public bool Store(RegionData data)

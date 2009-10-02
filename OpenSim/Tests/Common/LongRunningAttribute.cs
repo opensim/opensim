@@ -43,7 +43,7 @@ namespace OpenSim.Tests.Common
         }
 
         protected LongRunningAttribute(string category) : base(category)
-        {            
+        {
         }
     }
 }

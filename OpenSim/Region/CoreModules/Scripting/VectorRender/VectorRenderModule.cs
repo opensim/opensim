@@ -184,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 string value = "";
                 
                 if (nvp[0] != null)
-                {    
+                {
                     name = nvp[0].Trim();
                 }
                 
@@ -291,10 +291,10 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                                      temp = 128;
                                   
                                  width = temp;
-                                 height = temp;   
+                                 height = temp;
                              }
                          }
-                     break;   
+                     break;
                 }
             }
 
@@ -410,7 +410,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             Font myFont = new Font(fontName, fontSize);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             
-            char[] lineDelimiter = {dataDelim};            
+            char[] lineDelimiter = {dataDelim};
             char[] partsDelimiter = {','};
             string[] lines = data.Split(lineDelimiter);
 

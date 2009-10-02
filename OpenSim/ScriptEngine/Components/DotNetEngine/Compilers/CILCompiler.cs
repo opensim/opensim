@@ -179,7 +179,7 @@ namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
                 }
             }
 
-            // TODO: Process errors         
+            // TODO: Process errors
             return OutFile;
         }
 

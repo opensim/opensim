@@ -48,6 +48,8 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using TPFlags = OpenSim.Framework.Constants.TeleportFlags;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using System.Text.RegularExpressions;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
@@ -599,17 +601,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         if (regionName.Contains(".") && regionName.Contains(":"))
                         {
                             // Try to link the region
-                            RegionInfo regInfo = HGHyperlink.TryLinkRegion(World,
-                                                               presence.ControllingClient,
-                                                               regionName);
-                            // Get the region name
-                            if (regInfo != null)
+                            IHyperlinkService hyperService = World.RequestModuleInterface<IHyperlinkService>();
+                            if (hyperService != null)
                             {
-                                regionName = regInfo.RegionName;
-                            }
-                            else
-                            {
-                                // Might need to ping the client here in case of failure??
+                                GridRegion regInfo = hyperService.TryLinkRegion(presence.ControllingClient,
+                                                                                regionName);
+                                // Get the region name
+                                if (regInfo != null)
+                                {
+                                    regionName = regInfo.RegionName;
+                                }
+                                else
+                                {
+                                    // Might need to ping the client here in case of failure??
+                                }
                             }
                         }
                         presence.ControllingClient.SendTeleportLocationStart();
@@ -1163,6 +1168,35 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
 
             land.SetMediaUrl(url);
+        }
+        
+        public void osSetParcelSIPAddress(string SIPAddress)
+        {
+            // What actually is the difference to the LL function?
+            //
+            CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
+
+            m_host.AddScriptLPS(1);
+            
+
+            ILandObject land
+                = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
+
+            if (land.landData.OwnerID != m_host.ObjectOwner)
+            {
+                OSSLError("osSetParcelSIPAddress: Sorry, you need to own the land to use this function");
+                return;
+            }
+            
+            // get the voice module
+            IVoiceModule voiceModule = World.RequestModuleInterface<IVoiceModule>();
+            
+            if (voiceModule != null) 
+                voiceModule.setLandSIPAddress(SIPAddress,land.landData.GlobalID);
+            else
+                OSSLError("osSetParcelSIPAddress: No voice module enabled for this land");
+            
+            
         }
 
         public string osGetScriptEngineName()

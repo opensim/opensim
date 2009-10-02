@@ -601,7 +601,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                 if (names.Length > 1)
                     return names[1];
                 return names[0];
-            }            
+            }
         }
 
         public IScene Scene

@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+ 
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -50,6 +50,9 @@ using OpenSim.Region.ScriptEngine.Shared.Api.Plugins;
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using OpenSim.Services.Interfaces;
+
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 
@@ -4996,6 +4999,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (end > src.Length)
                 end = src.Length;
 
+            if (stride == 0)
+                stride = 1;
+
             //  There may be one or two ranges to be considered
 
             if (start != end)
@@ -5022,9 +5028,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 //  A negative stride reverses the direction of the
                 //  scan producing an inverted list as a result.
 
-                if (stride == 0)
-                    stride = 1;
-
                 if (stride > 0)
                 {
                     for (int i = 0; i < src.Length; i += stride)
@@ -5048,7 +5051,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                result.Add(src.Data[start]);
+                if (start%stride == 0)
+                {
+                    result.Add(src.Data[start]);
+                }
             }
 
             return result;
@@ -5226,12 +5232,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
-            List<SimpleRegionInfo> neighbors = World.CommsManager.GridService.RequestNeighbours(World.RegionInfo.RegionLocX, World.RegionInfo.RegionLocY);
+            List<GridRegion> neighbors = World.GridService.GetNeighbours(World.RegionInfo.ScopeID, World.RegionInfo.RegionID);
 
             uint neighborX = World.RegionInfo.RegionLocX + (uint)dir.x;
             uint neighborY = World.RegionInfo.RegionLocY + (uint)dir.y;
 
-            foreach (SimpleRegionInfo sri in neighbors)
+            foreach (GridRegion sri in neighbors)
             {
                 if (sri.RegionLocX == neighborX && sri.RegionLocY == neighborY)
                     return 0;
@@ -6321,9 +6327,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 UUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, UUID.Zero);
                 IXmlRpcRouter xmlRpcRouter = m_ScriptEngine.World.RequestModuleInterface<IXmlRpcRouter>();
                 if (xmlRpcRouter != null)
+                {
+                    string ExternalHostName = m_ScriptEngine.World.RegionInfo.ExternalHostName;
+                    
                     xmlRpcRouter.RegisterNewReceiver(m_ScriptEngine.ScriptModule, channelID, m_host.UUID, 
-                                                     m_itemID, String.Format("http://{0}:{1}/", System.Environment.MachineName, 
+                                                     m_itemID, String.Format("http://{0}:{1}/", ExternalHostName, 
                                                                              xmlrpcMod.Port.ToString()));
+                }
                 object[] resobj = new object[] 
                     { 
                         new LSL_Integer(1), 
@@ -7834,8 +7844,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetHTTPHeader(LSL_Key request_id, string header)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetHTTPHeader");
-            return String.Empty;
+             
+           if (m_UrlModule != null)
+               return m_UrlModule.GetHttpHeader(new UUID(request_id), header);
+           return String.Empty;
         }
 
 
@@ -8175,7 +8187,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 string reply = String.Empty;
 
-                RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
+                GridRegion info = m_ScriptEngine.World.GridService.GetRegionByName(m_ScriptEngine.World.RegionInfo.ScopeID, simulator);
 
                 switch (data)
                 {
@@ -8202,7 +8214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             ConditionalScriptSleep(1000);
                             return UUID.Zero.ToString();
                         }
-                        int access = info.RegionSettings.Maturity;
+                        int access = info.Maturity;
                         if (access == 0)
                             reply = "PG";
                         else if (access == 1)
@@ -9113,13 +9125,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
 
-        public void llHTTPResponse(string url, int status, string body)
+        public void llHTTPResponse(LSL_Key id, int status, string body)
         {
             // Partial implementation: support for parameter flags needed
             //   see http://wiki.secondlife.com/wiki/llHTTPResponse
 
             m_host.AddScriptLPS(1);
-            NotImplemented("llHTTPResponse");
+
+            if (m_UrlModule != null)
+                m_UrlModule.HttpResponse(new UUID(id), status,body);
         }
 
         public void llResetLandBanList()

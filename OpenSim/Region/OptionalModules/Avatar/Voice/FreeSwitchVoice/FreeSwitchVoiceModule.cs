@@ -53,7 +53,7 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
-    public class FreeSwitchVoiceModule : IRegionModule
+    public class FreeSwitchVoiceModule : IRegionModule, IVoiceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -101,13 +101,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         private FreeSwitchDialplan m_FreeSwitchDialplan;
 
         private readonly Dictionary<string, string> m_UUIDName = new Dictionary<string, string>();
+        private Dictionary<string, string> m_ParcelAddress = new Dictionary<string, string>();
+        
+        private Scene m_scene;
         
 
         private IConfig m_config;
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-
+            m_scene = scene;
             m_config = config.Configs["FreeSwitchVoice"];
 
             if (null == m_config)
@@ -230,6 +233,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     {
                         OnRegisterCaps(scene, agentID, caps);
                     };
+                    
+                
 
                 try
                 {
@@ -255,6 +260,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         
         public void PostInitialise()
         {
+            if (m_pluginEnabled)
+            {
+                m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
+                
+                // register the voice interface for this module, so the script engine can call us
+                m_scene.RegisterModuleInterface<IVoiceModule>(this);
+            }
         }
 
         public void Close()
@@ -270,7 +282,27 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         {
             get { return true; }
         }
-
+        
+        // <summary>
+        // implementation of IVoiceModule, called by osSetParcelSIPAddress script function
+        // </summary>
+        public void setLandSIPAddress(string SIPAddress,UUID GlobalID)
+        {
+            m_log.DebugFormat("[FreeSwitchVoice]: setLandSIPAddress parcel id {0}: setting sip address {1}", 
+                                  GlobalID, SIPAddress);
+                                  
+            lock (m_ParcelAddress)
+            {
+                if (m_ParcelAddress.ContainsKey(GlobalID.ToString()))
+                {
+                    m_ParcelAddress[GlobalID.ToString()] = SIPAddress;
+                }
+                else
+                {
+                    m_ParcelAddress.Add(GlobalID.ToString(), SIPAddress);
+                }
+            }
+        }
         
         // <summary>
         // OnRegisterCaps is invoked via the scene.EventManager
@@ -776,6 +808,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             // Create parcel voice channel. If no parcel exists, then the voice channel ID is the same
             // as the directory ID. Otherwise, it reflects the parcel's ID.
+            
+            lock (m_ParcelAddress)
+            {
+                if (m_ParcelAddress.ContainsKey(land.GlobalID.ToString()))
+                {
+                    m_log.DebugFormat("[FreeSwitchVoice]: parcel id {0}: using sip address {1}", 
+                                      land.GlobalID, m_ParcelAddress[land.GlobalID.ToString()]);
+                    return m_ParcelAddress[land.GlobalID.ToString()];
+                }
+            }
 
             if (land.LocalID != 1 && (land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) == 0)
             {
@@ -797,6 +839,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             // the personal speech indicators as well unless some siren14-3d codec magic happens. we dont have siren143d so we'll settle for the personal speech indicator.
             channelUri = String.Format("sip:conf-{0}@{1}", "x" + Convert.ToBase64String(encoding.GetBytes(landUUID)), m_freeSwitchRealm);
             
+            lock (m_ParcelAddress)
+            {
+                if (!m_ParcelAddress.ContainsKey(land.GlobalID.ToString()))
+                {
+                    m_ParcelAddress.Add(land.GlobalID.ToString(),channelUri);
+                }
+            }
 
             return channelUri;
         }

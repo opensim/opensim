@@ -197,8 +197,8 @@ namespace OpenSim.Framework.Console
 
             string uri = "/ReadResponses/" + sessionID.ToString() + "/";
 
-            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpCloseSession,
-                    new PollServiceEventArgs(HasEvents, GetEvents, NoEvents,
+            m_Server.AddPollServiceHTTPHandler(uri, HandleHttpPoll,
+                    new PollServiceEventArgs(null, HasEvents, GetEvents, NoEvents,
                     sessionID));
 
             XmlDocument xmldoc = new XmlDocument();
@@ -228,6 +228,11 @@ namespace OpenSim.Framework.Console
             reply["content_type"] = "text/xml";
 
             return reply;
+        }
+
+        private Hashtable HandleHttpPoll(Hashtable request)
+        {
+            return new Hashtable();
         }
 
         private Hashtable HandleHttpCloseSession(Hashtable request)
@@ -365,7 +370,7 @@ namespace OpenSim.Framework.Console
             }
         }
 
-        private bool HasEvents(UUID sessionID)
+        private bool HasEvents(UUID RequestID, UUID sessionID)
         {
             ConsoleConnection c = null;
 
@@ -381,19 +386,19 @@ namespace OpenSim.Framework.Console
             return false;
         }
 
-        private Hashtable GetEvents(UUID sessionID, string request)
+        private Hashtable GetEvents(UUID RequestID, UUID sessionID, string request)
         {
             ConsoleConnection c = null;
 
             lock (m_Connections)
             {
                 if (!m_Connections.ContainsKey(sessionID))
-                    return NoEvents();
+                    return NoEvents(RequestID, UUID.Zero);
                 c = m_Connections[sessionID];
             }
             c.last = System.Environment.TickCount;
             if (c.lastLineSeen >= m_LineNumber)
-                return NoEvents();
+                return NoEvents(RequestID, UUID.Zero);
 
             Hashtable result = new Hashtable();
 
@@ -435,7 +440,7 @@ namespace OpenSim.Framework.Console
             return result;
         }
 
-        private Hashtable NoEvents()
+        private Hashtable NoEvents(UUID RequestID, UUID id)
         {
             Hashtable result = new Hashtable();
 

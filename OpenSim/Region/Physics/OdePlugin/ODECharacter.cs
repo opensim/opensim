@@ -107,6 +107,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public float MinimumGroundFlightOffset = 3f;
 
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
+        private float m_tiltMagnitudeWhenProjectedOnXYPlane = 0.1131371f; // used to introduce a fixed tilt because a straight-up capsule falls through terrain, probably a bug in terrain collider
 
 
         private float m_buoyancy = 0f;
@@ -477,7 +478,71 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
-        
+
+        private void AlignAvatarTiltWithCurrentDirectionOfMovement(PhysicsVector movementVector)
+        {
+            movementVector.Z = 0f;
+            float magnitude = (float)Math.Sqrt((double)(movementVector.X * movementVector.X + movementVector.Y * movementVector.Y));
+            if (magnitude < 0.1f) return;
+
+            // normalize the velocity vector
+            float invMagnitude = 1.0f / magnitude;
+            movementVector.X *= invMagnitude;
+            movementVector.Y *= invMagnitude;
+
+            // if we change the capsule heading too often, the capsule can fall down
+            // therefore we snap movement vector to just 1 of 4 predefined directions (ne, nw, se, sw),
+            // meaning only 4 possible capsule tilt orientations
+            if (movementVector.X > 0)
+            {
+                // east
+                if (movementVector.Y > 0)
+                {
+                    // northeast
+                    movementVector.X = (float)Math.Sqrt(2.0);
+                    movementVector.Y = (float)Math.Sqrt(2.0);
+                }
+                else
+                {
+                    // southeast
+                    movementVector.X = (float)Math.Sqrt(2.0);
+                    movementVector.Y = -(float)Math.Sqrt(2.0);
+                }
+            }
+            else
+            {
+                // west
+                if (movementVector.Y > 0)
+                {
+                    // northwest
+                    movementVector.X = -(float)Math.Sqrt(2.0);
+                    movementVector.Y = (float)Math.Sqrt(2.0);
+                }
+                else
+                {
+                    // southwest
+                    movementVector.X = -(float)Math.Sqrt(2.0);
+                    movementVector.Y = -(float)Math.Sqrt(2.0);
+                }
+            }
+
+
+            // movementVector.Z is zero
+
+            // calculate tilt components based on desired amount of tilt and current (snapped) heading.
+            // the "-" sign is to force the tilt to be OPPOSITE the direction of movement.
+            float xTiltComponent = -movementVector.X * m_tiltMagnitudeWhenProjectedOnXYPlane;
+            float yTiltComponent = -movementVector.Y * m_tiltMagnitudeWhenProjectedOnXYPlane;
+
+            //m_log.Debug("[PHYSICS] changing avatar tilt");
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, xTiltComponent);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, xTiltComponent); // must be same as lowstop, else a different, spurious tilt is introduced
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, yTiltComponent);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, yTiltComponent); // same as lowstop
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
+        }
+
         /// <summary>
         /// This creates the Avatar's physical Surrogate at the position supplied
         /// </summary>
@@ -576,71 +641,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // (with -0..0 motor stops) falls into the terrain for reasons yet
                 // to be comprehended in their entirety.
                 #endregion
+                AlignAvatarTiltWithCurrentDirectionOfMovement(new PhysicsVector(0,0,0));
                 d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, 0.08f);
                 d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0f);
                 d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, 0.08f);
                 d.JointSetAMotorParam(Amotor, (int)dParam.HiStop,  0.08f); // must be same as lowstop, else a different, spurious tilt is introduced
                 d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0f); // same as lowstop
                 d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.08f); // same as lowstop
-                #region Documentation of capsule motor StopERP and StopCFM parameters
-                // In addition to the above tilt, we allow a dynamic tilt, or
-                // wobble, to emerge as the capsule is pushed around the environment.
-                // We do this with an experimentally determined combination of
-                // StopERP and StopCFM which make the above motor stops soft.
-                // The softness of the stops should be tweaked according to two
-                // requirements:
-                //
-                // 1. Motor stops should be weak enough to allow enough wobble such 
-                // that the capsule can tilt slightly more when moving, to allow 
-                // "gliding" over obstacles:
-                //
-                // 
-                //                                        .-.
-                //                                       / /
-                //                                      / /
-                //     _                               / /       _ 
-                //    / \                     .-.     / /       / \
-                //    | | ---->              / /     / /        | |
-                //    | |                   / /     `-'         | |
-                //    | |                  / / +------+         | |
-                //    | |                 / /  |      |         | |
-                //    | |                / /   |      |         | |
-                //    \_/               `-'    +------+         \_/
-                // ----------------------------------------------------------
-                // 
-                // Note that requirement 1 is made complicated by the ever-present
-                // slight avatar tilt (assigned in the above code to prevent avatar
-                // from falling through terrain), which introduces a direction-dependent
-                // bias into the wobble (wobbling against the existing tilt is harder
-                // than wobbling with the tilt), which makes it easier to walk over
-                // prims from some directions. I have tried to minimize this effect by
-                // minimizing the avatar tilt to the minimum that prevents the avatar from
-                // falling through the terrain.
-                // 
-                // 2. Motor stops should be strong enough to prevent the capsule
-                // from being forced all the way to the ground; otherwise the
-                // capsule could slip underneath obstacles like this:
-                //     _                                         _ 
-                //    / \                      +------+         / \
-                //    | | ---->                |      |         | |
-                //    | |                      |      |         | |
-                //    | |             .--.___  +------+         | |
-                //    | |              `--.__`--.__             | |
-                //    | |                    `--.__`--.         | |
-                //    \_/                          `--'         \_/
-                // ----------------------------------------------------------
-                // 
-                //
-                // It is strongly recommended you enable USE_DRAWSTUFF if you want to
-                // tweak these values, to see how the capsule is reacting in various
-                // situations.
-                #endregion
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM, 0.0035f); 
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM2, 0.0035f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopCFM3, 0.0035f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP, 0.8f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP2, 0.8f);
-                d.JointSetAMotorParam(Amotor, (int)dParam.StopERP3, 0.8f);
             }
 
             // Fudge factor is 1f by default, we're setting it to 0.  We don't want it to Fudge or the
@@ -939,6 +946,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             PhysicsVector vec = new PhysicsVector();
             d.Vector3 vel = d.BodyGetLinearVel(Body);
+
             float movementdivisor = 1f;
 
             if (!m_alwaysRun)
@@ -1052,6 +1060,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (PhysicsVector.isFinite(vec))
             {
                 doForce(vec);
+                if (!_zeroFlag)
+                {
+                  AlignAvatarTiltWithCurrentDirectionOfMovement(new PhysicsVector(vec.X, vec.Y, vec.Z));
+                }
             }
             else
             {

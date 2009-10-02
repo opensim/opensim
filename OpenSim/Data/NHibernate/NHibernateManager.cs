@@ -155,7 +155,7 @@ namespace OpenSim.Data.NHibernate
                     m_log.ErrorFormat("[NHIBERNATE] {0} of id {1} loading threw exception: " + e.ToString(), type.Name, id);
                 }
                 return obj;
-            }            
+            }
         }
 
         /// <summary>

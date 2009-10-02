@@ -180,16 +180,16 @@ namespace OpenSim.Framework
         /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
         /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
         /// </para>
-        /// </remarks>        
+        /// </remarks>
         /// <seealso cref="MaxElementSize"/>
         /// <seealso cref="Size"/>
-        /// <seealso cref="MaxSize"/>        
+        /// <seealso cref="MaxSize"/>
         /// <seealso cref="IsCountLimited"/>
         /// <seealso cref="IsTimeLimited"/>
         bool IsSizeLimited { get; }
 
         /// <summary>
-        /// Gets a value indicating whether elements stored to <see cref="ICnmCache{TKey,TValue}"/> have limited inactivity time.        
+        /// Gets a value indicating whether elements stored to <see cref="ICnmCache{TKey,TValue}"/> have limited inactivity time.
         /// </summary>
         /// <value>
         /// <see langword="true"/> if the <see cref="ICnmCache{TKey,TValue}"/> has a fixed total size of elements; 
@@ -200,7 +200,7 @@ namespace OpenSim.Framework
         /// or <see cref="TryGetValue"/> methods in <see cref="ExpirationTime"/> , then element is automatically removed from 
         /// the cache. Depending on implementation of the <see cref="ICnmCache{TKey,TValue}"/>, some of the elements may 
         /// stay longer in cache.
-        /// </remarks>        
+        /// </remarks>
         /// <seealso cref="ExpirationTime"/>
         /// <seealso cref="PurgeExpired"/>
         /// <seealso cref="IsCountLimited"/>
@@ -237,7 +237,7 @@ namespace OpenSim.Framework
         /// <seealso cref="Set"/>
         /// <seealso cref="IsSizeLimited"/>
         /// <seealso cref="Size"/>
-        /// <seealso cref="MaxSize"/>        
+        /// <seealso cref="MaxSize"/>
         long MaxElementSize { get; }
 
         /// <summary>
@@ -246,7 +246,7 @@ namespace OpenSim.Framework
         /// <value>
         /// Maximal allowed total size for elements stored to <see cref="ICnmCache{TKey,TValue}"/>.
         /// </value>
-        /// <remarks>        
+        /// <remarks>
         /// <para>
         /// Normally size is total bytes used by elements in the cache. But it can be any other suitable unit of measure.
         /// </para>
@@ -278,10 +278,10 @@ namespace OpenSim.Framework
         /// When adding an new element to <see cref="ICnmCache{TKey,TValue}"/> that is limiting total size of elements, 
         /// <see cref="ICnmCache{TKey,TValue}"/> will remove less recently used elements until it can fit an new element. 
         /// </para>
-        /// </remarks>        
+        /// </remarks>
         /// <seealso cref="MaxElementSize"/>
         /// <seealso cref="IsSizeLimited"/>
-        /// <seealso cref="MaxSize"/>        
+        /// <seealso cref="MaxSize"/>
         /// <seealso cref="IsCountLimited"/>
         /// <seealso cref="ExpirationTime"/>
         long Size { get; }
@@ -289,9 +289,9 @@ namespace OpenSim.Framework
         /// <summary>
         /// Gets an object that can be used to synchronize access to the <see cref="ICnmCache{TKey,TValue}"/>.
         /// </summary>
-        /// <value>        
+        /// <value>
         /// An object that can be used to synchronize access to the <see cref="ICnmCache{TKey,TValue}"/>.
-        /// </value>        
+        /// </value>
         /// <remarks>
         /// <para>
         /// To get synchronized (thread safe) access to <see cref="ICnmCache{TKey,TValue}"/>, use <see cref="CnmSynchronizedCache{TKey,TValue}"/> 
@@ -322,7 +322,7 @@ namespace OpenSim.Framework
         /// </para>
         /// <para>
         /// Depending on <see cref="ICnmCache{TKey,TValue}"/> implementation, some of expired elements
-        /// may stay longer than <see cref="ExpirationTime"/> in the cache.        
+        /// may stay longer than <see cref="ExpirationTime"/> in the cache.
         /// </para>
         /// </remarks>
         /// <seealso cref="IsTimeLimited"/>
@@ -418,7 +418,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <returns>
         /// <see langword="true"/>if the <see cref="ICnmCache{TKey,TValue}"/> contains an element with 
-        /// the specified key; otherwise, <see langword="false"/>.        
+        /// the specified key; otherwise, <see langword="false"/>.
         /// </returns>
         /// <param name="key">
         /// The key whose <paramref name="value"/> to get.

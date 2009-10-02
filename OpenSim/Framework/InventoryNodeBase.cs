@@ -31,12 +31,12 @@ namespace OpenSim.Framework
 {
     /// <summary>
     /// Common base class for inventory nodes of different types (files, folders, etc.)
-    /// </summary>        
+    /// </summary>
     public class InventoryNodeBase
-    {                
+    {
         /// <summary>
         /// The name of the node (64 characters or less)
-        /// </summary>        
+        /// </summary>
         public virtual string Name
         {
             get { return m_name; }
@@ -51,17 +51,17 @@ namespace OpenSim.Framework
         {
             get { return m_id; }
             set { m_id = value; }
-        }       
+        }
         private UUID m_id;
         
         /// <summary>
         /// The agent who's inventory this is contained by
-        /// </summary>        
+        /// </summary>
         public virtual UUID Owner
         {
             get { return m_owner; }
             set { m_owner = value; }
         }
-        private UUID m_owner;        
+        private UUID m_owner;
     }
 }

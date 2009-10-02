@@ -44,7 +44,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 {
     /// <summary>
     /// Teleport tests in a standalone OpenSim
-    /// </summary>    
+    /// </summary>
     [TestFixture]
     public class StandaloneTeleportTests
     {
@@ -52,7 +52,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         /// Test a teleport between two regions that are not neighbours and do not share any neighbours in common.
         /// </summary>
         /// Does not yet do what is says on the tin.
-        [Test, LongRunning]        
+        /// Commenting for now
+        //[Test, LongRunning]
         public void TestSimpleNotNeighboursTeleport()
         {
             TestHelper.InMethod();
@@ -117,13 +118,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // shared module
             ISharedRegionModule interregionComms = new RESTInterregionComms();
 
-            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm);
-            SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
-            sceneA.RegisterRegionWithGrid();
 
-            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm);
+            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm, "grid");
             SceneSetupHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
             sceneB.RegisterRegionWithGrid();
+
+            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm, "grid");
+            SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
+            sceneA.RegisterRegionWithGrid();
 
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000041");
             TestClient client = SceneSetupHelpers.AddRootAgent(sceneA, agentId);

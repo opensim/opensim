@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             AgentAssetTransactions transactions = GetUserTransactions(remoteClient.AgentId);
 
             transactions.RequestUpdateTaskInventoryItem(remoteClient, part, transactionID, item);
-        }               
+        }
 
         /// <summary>
         /// Request that a client (agent) begin an asset transfer.

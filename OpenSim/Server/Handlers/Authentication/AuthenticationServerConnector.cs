@@ -37,13 +37,17 @@ namespace OpenSim.Server.Handlers.Authentication
     public class AuthenticationServiceConnector : ServiceConnector
     {
         private IAuthenticationService m_AuthenticationService;
+        private string m_ConfigName = "AuthenticationService";
 
-        public AuthenticationServiceConnector(IConfigSource config, IHttpServer server) :
-                base(config, server)
+        public AuthenticationServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            IConfig serverConfig = config.Configs["AuthenticationService"];
+            if (configName != String.Empty)
+                m_ConfigName = configName;
+
+            IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception("No section 'Server' in config file");
+                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
 
             string authenticationService = serverConfig.GetString("AuthenticationServiceModule",
                     String.Empty);

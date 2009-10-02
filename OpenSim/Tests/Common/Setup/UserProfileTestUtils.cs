@@ -31,12 +31,12 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Tests.Common.Setup
-{    
+{
     /// <summary>
     /// Utility functions for carrying out user profile related tests.
     /// </summary>
     public static class UserProfileTestUtils
-    {           
+    {
         /// <summary>
         /// Create a test user with a standard inventory
         /// </summary>
@@ -51,7 +51,7 @@ namespace OpenSim.Tests.Common.Setup
         {
             UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000099");
             return CreateUserWithInventory(commsManager, userId, callback);
-        }        
+        }
         
         /// <summary>
         /// Create a test user with a standard inventory
@@ -65,7 +65,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <returns></returns>
         public static CachedUserInfo CreateUserWithInventory(
             CommunicationsManager commsManager, UUID userId, OnInventoryReceivedDelegate callback)
-        {                                    
+        {
             return CreateUserWithInventory(commsManager, "Bill", "Bailey", userId, callback);
         }
 
@@ -84,8 +84,8 @@ namespace OpenSim.Tests.Common.Setup
         public static CachedUserInfo CreateUserWithInventory(
             CommunicationsManager commsManager, string firstName, string lastName, 
             UUID userId, OnInventoryReceivedDelegate callback)
-        {                        
-            LocalUserServices lus = (LocalUserServices)commsManager.UserService;           
+        {
+            LocalUserServices lus = (LocalUserServices)commsManager.UserService;
             lus.AddUser(firstName, lastName, "troll", "bill@bailey.com", 1000, 1000, userId);
             
             CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
@@ -93,6 +93,6 @@ namespace OpenSim.Tests.Common.Setup
             userInfo.FetchInventory();
             
             return userInfo;
-        }        
+        }
     }
 }

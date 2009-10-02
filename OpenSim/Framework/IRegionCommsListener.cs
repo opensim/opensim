@@ -46,8 +46,6 @@ namespace OpenSim.Framework
 
     public delegate bool CloseAgentConnection(UUID agentID);
 
-    public delegate bool RegionUp(RegionInfo region);
-
     public delegate bool ChildAgentUpdate(ChildAgentDataUpdate cAgentData);
 
     public delegate void LogOffUser(UUID agentID, UUID regionSecret, string message);
@@ -65,7 +63,6 @@ namespace OpenSim.Framework
         event AcknowledgePrimCross OnAcknowledgePrimCrossed;
         event UpdateNeighbours OnNeighboursUpdate;
         event CloseAgentConnection OnCloseAgentConnection;
-        event RegionUp OnRegionUp;
         event ChildAgentUpdate OnChildAgentUpdate;
         event LogOffUser OnLogOffUser;
         event GetLandData OnGetLandData;

@@ -41,14 +41,13 @@ namespace OpenSim.Region.Communications.Hypergrid
     public class HGCommunicationsStandalone : CommunicationsManager
     {
         public HGCommunicationsStandalone(
-            ConfigSettings configSettings,                          
+            ConfigSettings configSettings,
             NetworkServersInfo serversInfo,
             BaseHttpServer httpServer,
-            HGGridServices gridService, 
             LibraryRootFolder libraryRootFolder, 
             bool dumpAssetsToFile)
             : base(serversInfo, libraryRootFolder)
-        {           
+        {
             LocalUserServices localUserService =
                 new LocalUserServices(
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
@@ -59,13 +58,11 @@ namespace OpenSim.Region.Communications.Hypergrid
             hgUserService.AddPlugin(new TemporaryUserProfilePlugin());
             hgUserService.AddPlugin(new HGUserDataPlugin(this, hgUserService));
             
-            m_userService = hgUserService;            
-            m_userAdminService = hgUserService;            
+            m_userService = hgUserService;
+            m_userAdminService = hgUserService;
             m_avatarService = hgUserService;
             m_messageService = hgUserService;
             
-            gridService.UserProfileCache = m_userProfileCacheService;
-            m_gridService = gridService;                        
         }
     }
 }

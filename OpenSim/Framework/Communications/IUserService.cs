@@ -128,18 +128,30 @@ namespace OpenSim.Framework.Communications
         /// 
         /// <param name="friendlistowner">The agent for whom we're retreiving the friends Data.</param>
         /// <returns>
-        /// A List of FriendListItems that contains info about the user's friends.  
+        /// A List of FriendListItems that contains info about the user's friends.
         /// Always returns a list even if the user has no friends
-        /// </returns>        
+        /// </returns>
         List<FriendListItem> GetUserFriendList(UUID friendlistowner);
 
         // This probably shouldn't be here, it belongs to IAuthentication
         // But since Scenes only have IUserService references, I'm placing it here for now.
         bool VerifySession(UUID userID, UUID sessionID);
 
+        /// <summary>
+        /// Authenticate a user by their password.
+        /// </summary>
+        /// 
+        /// This is used by callers outside the login process that want to
+        /// verify a user who has given their password.
+        ///
+        /// This should probably also be in IAuthentication but is here for the same reasons as VerifySession() is
+        ///
+        /// <param name="userID"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        bool AuthenticateUserByPassword(UUID userID, string password);
 
         // Temporary Hack until we move everything to the new service model
         void SetInventoryService(IInventoryService invService);
-
     }
 }

@@ -134,7 +134,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
 
         public bool IsAuthorizedForRegion(string userID, string regionID, out string message)
         {
-            return m_AuthorizationService.IsAuthorizedForRegion(userID, regionID, out message);   
+            return m_AuthorizationService.IsAuthorizedForRegion(userID, regionID, out message);
         }
 
     }

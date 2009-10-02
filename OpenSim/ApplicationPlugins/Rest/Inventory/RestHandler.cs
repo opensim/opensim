@@ -207,7 +207,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 // This plugin will only be enabled if the broader
                 // REST plugin mechanism is enabled.
 
-                Rest.Log.InfoFormat("{0}  Plugin is initializing", MsgId);
+                //Rest.Log.InfoFormat("{0}  Plugin is initializing", MsgId);
 
                 base.Initialise(openSim);
 
@@ -216,7 +216,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 if (!IsEnabled)
                 {
-                    Rest.Log.WarnFormat("{0} Plugins are disabled", MsgId);
+                    //Rest.Log.WarnFormat("{0} Plugins are disabled", MsgId);
                     return;
                 }
 

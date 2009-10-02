@@ -38,7 +38,7 @@ namespace OpenSim.Framework
     /// A dictionary for task inventory.
     /// </summary>
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods or Clone() this object before
-    /// iterating over it.    
+    /// iterating over it.
     public class TaskInventoryDictionary : Dictionary<UUID, TaskInventoryItem>,
                                            ICloneable, IXmlSerializable
     {

@@ -418,7 +418,7 @@ namespace OpenSim.Region.CoreModules
                 }
 
                 avatar.ControllingClient.SendWindData(windSpeeds);
-            }            
+            }
         }
 
         private void SendWindAllClients()

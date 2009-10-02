@@ -29,7 +29,7 @@ namespace OpenSim
 {
     public class VersionInfo
     {
-        private const string VERSION_NUMBER = "0.6.6";
+        private const string VERSION_NUMBER = "0.6.8";
         private const Flavour VERSION_FLAVOUR = Flavour.Dev;
 
         public enum Flavour
@@ -56,7 +56,7 @@ namespace OpenSim
         public const int VERSIONINFO_VERSION_LENGTH = 27;
         
         /// <value>
-        /// This is the external interface version.  It is separate from the OpenSimulator project version.  
+        /// This is the external interface version.  It is separate from the OpenSimulator project version.
         /// 
         /// This version number should be 
         /// increased by 1 every time a code change makes the previous OpenSimulator revision incompatible
@@ -67,7 +67,7 @@ namespace OpenSim
         /// 
         /// Having this version number allows the grid service to reject connections from regions running a version
         /// of the code that is too old. 
-        ///   
+        ///
         /// </value>
         public readonly static int MajorInterfaceVersion = 6;
     }

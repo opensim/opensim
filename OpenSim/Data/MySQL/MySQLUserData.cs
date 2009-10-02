@@ -632,7 +632,7 @@ namespace OpenSim.Data.MySQL
             UUID zero = UUID.Zero;
             if (user.ID == zero)
             {
-                return;   
+                return;
             }
             MySQLSuperManager dbm = GetLockedConnection("AddNewUserProfile");
 
@@ -666,7 +666,7 @@ namespace OpenSim.Data.MySQL
         {
             UUID zero = UUID.Zero;
             if (agent.ProfileID == zero || agent.SessionID == zero)
-                return;   
+                return;
 
             MySQLSuperManager dbm = GetLockedConnection("AddNewUserAgent");
             try

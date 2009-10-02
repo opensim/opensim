@@ -351,7 +351,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             {
                 m_log.DebugFormat("[IRC-Region {0}] dropping message {1} on channel {2}", Region, msg, msg.Channel);
                 return;
-            }                
+            }
 
             ScenePresence avatar = null;
             string fromName = msg.From;

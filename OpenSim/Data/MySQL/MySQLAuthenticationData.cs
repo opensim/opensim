@@ -127,7 +127,7 @@ namespace OpenSim.Data.MySQL
             {
                 string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ( ?principalID, ?" + String.Join(", ?", fields) + ")";
+                        "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
 
                 cmd.CommandText = insert;
 

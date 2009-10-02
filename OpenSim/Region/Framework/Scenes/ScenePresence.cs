@@ -36,6 +36,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -777,7 +778,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Moved this from SendInitialData to ensure that m_appearance is initialized
             // before the inventory is processed in MakeRootAgent. This fixes a race condition
             // related to the handling of attachments
-            //m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);            
+            //m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
             if (m_scene.TestBorderCross(pos, Cardinals.E))
             {
                 Border crossedBorder = m_scene.GetCrossedBorder(pos, Cardinals.E);
@@ -1236,7 +1237,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
-            }                       
+            }
 
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
@@ -1490,7 +1491,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
 //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
 //                    m_log.DebugFormat(
-//                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);                    
+//                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
                     
                     AddNewMovement(agent_control_v3, q);
 
@@ -2271,7 +2272,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         //Record the time we enter this state so we know whether to "land" or not
                         m_animPersistUntil = DateTime.Now.Ticks;
-                        return "FALLDOWN";
+                        return "FALLDOWN"; // this falling animation is invoked too frequently when capsule tilt correction is used - why?
                     }
                 }
             }
@@ -2307,14 +2308,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// Rotate the avatar to the given rotation and apply a movement in the given relative vector
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
-        /// <param name="rotation">The direction in which this avatar should now face.        
+        /// <param name="rotation">The direction in which this avatar should now face.
         public void AddNewMovement(Vector3 vec, Quaternion rotation)
         {
             if (m_isChildAgent)
             {
                 m_log.Debug("DEBUG: AddNewMovement: child agent, Making root agent!");
 
-                // we have to reset the user's child agent connections.  
+                // we have to reset the user's child agent connections.
                 // Likely, here they've lost the eventqueue for other regions so border 
                 // crossings will fail at this point unless we reset them.
 
@@ -2650,7 +2651,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Tell the client for this scene presence what items it should be wearing now
         /// </summary>
         public void SendWearables()
-        {   
+        {
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
@@ -2959,8 +2960,9 @@ namespace OpenSim.Region.Framework.Scenes
             else if (dir > 3 && dir < 7) // Heading Sout
                 neighboury--;
 
-            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
-            SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
+            int x = (int)(neighbourx * Constants.RegionSize);
+            int y = (int)(neighboury * Constants.RegionSize);
+            GridRegion neighbourRegion = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, x, y);
 
             if (neighbourRegion == null)
             {
@@ -3198,7 +3200,7 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                     {
                         wears[i++] = UUID.Zero;
-                        wears[i++] = UUID.Zero;                        
+                        wears[i++] = UUID.Zero;
                     }
                 }
                 cAgent.Wearables = wears;
@@ -3510,7 +3512,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool HasAttachments()
         {
-            return m_attachments.Count > 0;   
+            return m_attachments.Count > 0;
         }
 
         public bool HasScriptedAttachments()

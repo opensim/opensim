@@ -217,7 +217,7 @@ namespace OpenSim.Framework
         public string Name
         {
             get { return String.Format("{0} {1}", m_firstname, m_surname); }
-        }        
+        }
 
         public string Email
         {

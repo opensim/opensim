@@ -133,7 +133,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Is this scene object acting as an attachment?
         /// 
         /// We return false if the group has already been deleted.
-        ///  
+        ///
         /// TODO: At the moment set must be done on the part itself.  There may be a case for doing it here since I
         /// presume either all or no parts in a linkset can be part of an attachment (in which
         /// case the value would get proprogated down into all the descendent parts).
@@ -245,6 +245,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        private bool IsAttachmentCheckFull()
+        {
+            return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
+        }
+        
         /// <summary>
         /// The absolute position of this scene object in the scene
         /// </summary>
@@ -257,8 +262,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if ((m_scene.TestBorderCross(val - Vector3.UnitX, Cardinals.E) || m_scene.TestBorderCross(val + Vector3.UnitX, Cardinals.W)
                     || m_scene.TestBorderCross(val - Vector3.UnitY, Cardinals.N) || m_scene.TestBorderCross(val + Vector3.UnitY, Cardinals.S)) 
-                    && !IsAttachment)
-                {                                       
+                    && !IsAttachmentCheckFull())
+                {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this, true);
                 }
 
@@ -449,7 +454,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="scene"></param>
         public void AttachToScene(Scene scene)
         {
-            m_scene = scene;                        
+            m_scene = scene;
             RegionHandle = m_scene.RegionInfo.RegionHandle;
 
             if (m_rootPart.Shape.PCode != 9 || m_rootPart.Shape.State == 0)
@@ -474,9 +479,9 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENE]: Given local id {0} to part {1}, linknum {2}, parent {3} {4}", part.LocalId, part.UUID, part.LinkNum, part.ParentID, part.ParentUUID);
             }
             
-            ApplyPhysics(m_scene.m_physicalPrim);            
+            ApplyPhysics(m_scene.m_physicalPrim);
             
-            ScheduleGroupForFullUpdate();            
+            ScheduleGroupForFullUpdate();
         }
 
         public Vector3 GroupScale()
@@ -1032,12 +1037,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_rootPart = part;
             if (!IsAttachment)
                 part.ParentID = 0;
-            part.LinkNum = 0;           
+            part.LinkNum = 0;
             
             // No locking required since the SOG should not be in the scene yet - one can't change root parts after
             // the scene object has been attached to the scene
             m_parts.Add(m_rootPart.UUID, m_rootPart);
-        }        
+        }
 
         /// <summary>
         /// Add a new part to this scene object.  The part must already be correctly configured.
@@ -1155,7 +1160,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         /// <summary>
         /// Delete this group from its scene and tell all the scene presences about that deletion.
-        /// </summary>        
+        /// </summary>
         /// <param name="silent">Broadcast deletions to all clients.</param>
         public void DeleteGroup(bool silent)
         {
@@ -1262,11 +1267,11 @@ namespace OpenSim.Region.Framework.Scenes
                         if (part.LocalId != m_rootPart.LocalId)
                         {
                             part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), part.VolumeDetectActive, m_physicalPrim);
-                        }                                                  
-                    }    
+                        }
+                    }
                     
                     // Hack to get the physics scene geometries in the right spot
-                    ResetChildPrimPhysicsPositions();                     
+                    ResetChildPrimPhysicsPositions();
                 }
                 else
                 {
@@ -1489,7 +1494,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<SceneObjectPart> partList;
 
             lock (m_parts)
-            {                
+            {
                 partList = new List<SceneObjectPart>(m_parts.Values);
             }
             
@@ -1739,7 +1744,7 @@ namespace OpenSim.Region.Framework.Scenes
                         rootpart.PhysActor.PIDHoverActive = false;
                     }
                 }
-            }            
+            }
         }
 
         /// <summary>
