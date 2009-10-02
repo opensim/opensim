@@ -273,55 +273,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (this)
             {
-                while (PacketsWaiting())
+                // These categories do not contain transactional packets so we can safely drop any pending data in them
+                LandOutgoingPacketQueue.Clear();
+                WindOutgoingPacketQueue.Clear();
+                CloudOutgoingPacketQueue.Clear();
+                TextureOutgoingPacketQueue.Clear();
+                AssetOutgoingPacketQueue.Clear();
+
+                // Now comes the fun part..   we dump all remaining resend and task packets into the send queue
+                while (ResendOutgoingPacketQueue.Count > 0 || TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0)
                 {
-                    //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
                     if (ResendOutgoingPacketQueue.Count > 0)
-                    {
                         SendQueue.Enqueue(ResendOutgoingPacketQueue.Dequeue());
-                    }
-                    if (LandOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(LandOutgoingPacketQueue.Dequeue());
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Land);
-                    }
-                    if (WindOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(WindOutgoingPacketQueue.Dequeue());
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Wind);
-                    }
-                    if (CloudOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(CloudOutgoingPacketQueue.Dequeue());
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Cloud);
-                    }
-                    bool tasksSent = false;
+
                     if (TaskOutgoingPacketQueue.Count > 0)
-                    {
-                        tasksSent = true;
                         SendQueue.PriorityEnqueue(TaskOutgoingPacketQueue.Dequeue());
-                    }
+
                     if (TaskLowpriorityPacketQueue.Count > 0)
-                    {
-                        tasksSent = true;
                         SendQueue.Enqueue(TaskLowpriorityPacketQueue.Dequeue());
-                    }
-                    if (tasksSent)
-                    {
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Task);
-                    }
-                    if (TextureOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(TextureOutgoingPacketQueue.Dequeue());
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Texture);
-                    }
-                    if (AssetOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(AssetOutgoingPacketQueue.Dequeue());
-                        TriggerOnQueueEmpty(ThrottleOutPacketType.Asset);
-                    }
                 }
-                // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
             }
         }
 
@@ -530,10 +500,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             QueueEmpty handlerQueueEmpty = OnQueueEmpty;
 
-            if (handlerQueueEmpty == null)
-                return;
-
-            handlerQueueEmpty(queue);
+            if (handlerQueueEmpty != null)
+                handlerQueueEmpty(queue);
         }
 
         private void ThrottleTimerElapsed(object sender, ElapsedEventArgs e)
