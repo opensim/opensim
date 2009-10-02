@@ -81,8 +81,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private List<ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates =
                 new List<ObjectUpdatePacket.ObjectDataBlock>();
 
-        private Timer m_textureRequestTimer;
-
         private bool m_clientBlocked;
 
         private int m_probesWithNoIngressPackets;
@@ -143,9 +141,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_primTerseUpdateRate = 10;
         protected int m_primFullUpdateRate = 14;
 
-        protected int m_textureRequestRate  = 100;
-        protected int m_textureSendLimit   = 10;
-        protected int m_textureDataLimit   = 5;
+        protected int m_textureSendLimit   = 100;
+        protected int m_textureDataLimit   = 10;
 
         protected int m_packetMTU = 1400;
 
@@ -534,6 +531,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_PacketHandler = new LLPacketHandler(this, m_networkServer, userSettings);
             m_PacketHandler.SynchronizeClient = SynchronizeClient;
             m_PacketHandler.OnPacketStats += PopulateStats;
+            m_PacketHandler.OnQueueEmpty += HandleQueueEmpty;
 
             if (scene.Config != null)
             {
@@ -554,9 +552,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                                 m_primTerseUpdateRate);
                     m_primFullUpdateRate = clientConfig.GetInt("FullUpdateRate",
                                                                m_primFullUpdateRate);
-
-                    m_textureRequestRate = clientConfig.GetInt("TextureRequestRate",
-                                                               m_textureRequestRate);
 
                     m_textureSendLimit = clientConfig.GetInt("TextureSendLimit",
                                                                m_textureSendLimit);
@@ -607,9 +602,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_primFullUpdateTimer.Enabled)
                 lock (m_primFullUpdateTimer)
                     m_primFullUpdateTimer.Stop();
-            if (m_textureRequestTimer.Enabled)
-                lock (m_textureRequestTimer)
-                    m_textureRequestTimer.Stop();
 
             // This is just to give the client a reasonable chance of
             // flushing out all it's packets.  There should probably
@@ -706,10 +698,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_primFullUpdateTimer.Enabled)
                 lock (m_primFullUpdateTimer)
                     m_primFullUpdateTimer.Stop();
-
-            if (m_textureRequestTimer.Enabled)
-                lock (m_textureRequestTimer)
-                    m_textureRequestTimer.Stop();
         }
 
         public void Restart()
@@ -732,11 +720,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_primFullUpdateTimer = new Timer(m_primFullUpdateRate);
             m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
             m_primFullUpdateTimer.AutoReset = false;
-
-            m_textureRequestTimer = new Timer(m_textureRequestRate);
-            m_textureRequestTimer.Elapsed += new ElapsedEventHandler(ProcessTextureRequests);
-            m_textureRequestTimer.AutoReset = false;
-
         }
 
         private void Terminate()
@@ -747,7 +730,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 			m_avatarTerseUpdateTimer.Close();
 			m_primTerseUpdateTimer.Close();
 			m_primFullUpdateTimer.Close();
-			m_textureRequestTimer.Close();
 			
             m_PacketHandler.OnPacketStats -= PopulateStats;
 			m_PacketHandler.Dispose();
@@ -982,10 +964,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
             m_primFullUpdateTimer.AutoReset = false;
 
-            m_textureRequestTimer = new Timer(m_textureRequestRate);
-            m_textureRequestTimer.Elapsed += new ElapsedEventHandler(ProcessTextureRequests);
-            m_textureRequestTimer.AutoReset = false;
-
             m_scene.AddNewClient(this);
 
             RefreshGroupMembership();
@@ -1055,26 +1033,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
                 }
             }
-        }
-
-        protected virtual void TextureRequestHandler()
-        {
-            m_log.DebugFormat("[TRH] Thread started");
-           while (m_imageManager != null)
-            {
-                try
-                {
-                   while (m_imageManager != null)
-                    {
-                    }
-                }
-               catch (Exception e)
-                {
-                    m_log.WarnFormat("[TRH] Exception in handler loop: {0}", e.Message);
-                    m_log.Debug(e);
-                }
-            }
-            m_log.DebugFormat("[TRH] Thread terminated");
         }
 
         # endregion
@@ -3176,16 +3134,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Unlike the other timers, this one is only started after
         // the first request is seen.
 
-        void ProcessTextureRequests(object sender, ElapsedEventArgs e)
+        void HandleQueueEmpty(ThrottleOutPacketType queue)
+        {
+            switch (queue)
+            {
+            case ThrottleOutPacketType.Texture:
+                m_log.Debug("Texture queue empty");
+                ProcessTextureRequests();
+                break;
+            }
+        }
+
+        void ProcessTextureRequests()
         {
             if (m_imageManager != null)
             {
-                if (m_imageManager.ProcessImageQueue(m_textureSendLimit, 
-                                                     m_textureDataLimit))
-                {
-                    lock (m_textureRequestTimer)
-                        m_textureRequestTimer.Start();
-                }
+                m_imageManager.ProcessImageQueue(m_textureSendLimit, 
+                                                     m_textureDataLimit);
             }
         }
 
@@ -6638,8 +6603,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (m_imageManager != null)
                             {
                                 m_imageManager.EnqueueReq(args);
-                                lock (m_textureRequestTimer)
-                                    m_textureRequestTimer.Start();
                             }
                         }
                     }

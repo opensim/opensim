@@ -1352,11 +1352,6 @@
 
     ;PacketMTU = 1400
 
-    ; TextureUpdateRate (mS) determines how many times per second
-    ; texture send processing will occur. The default is 100mS.
-    ;
-    ;TextureRequestRate = 100
-
     ; TextureSendLimit determines how many different textures
     ; will be considered on each cycle. Textures are selected
     ; by priority. The old mechanism specified a value of 10 for

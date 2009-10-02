@@ -65,6 +65,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_j2kDecodeModule = pJ2kDecodeModule;
         }
 
+        public LLClientView Client
+        {
+            get { return m_client; }
+        }
+
         public void EnqueueReq(TextureRequestArgs newRequest)
         {
             //newRequest is the properties of our new texture fetch request.
@@ -207,8 +212,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 threshold = 10;
 
             //Uncomment this to see what the texture stack is doing
-            //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount.ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
-            if (m_client.PacketHandler.PacketQueue.TextureOutgoingPacketQueueCount < threshold)
+            //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.getQueueCount(ThrottleOutPacketType.Texture).ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
+            if (m_client.PacketHandler.PacketQueue.GetQueueCount(ThrottleOutPacketType.Texture) < threshold)
             {
                 while (m_priorityQueue.Count > 0)
                 {
