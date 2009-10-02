@@ -235,7 +235,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     if (m_imageManager.Client.PacketHandler.GetQueueCount(ThrottleOutPacketType.Texture) == 0)
                     {
-                        m_log.Debug("No textures queued, sending one packet to kickstart it");
+                        //m_log.Debug("No textures queued, sending one packet to kickstart it");
                         SendPacket(m_imageManager.Client);
                     }
                 }
@@ -333,7 +333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (Data == null)
             {
                 client.SendImageNotFound(m_requestedUUID);
-                m_log.WarnFormat("[TEXTURE]: Got null Data element on a asset {0}..  and the missing image Data property is al", m_requestedUUID);
+                m_log.WarnFormat("[TEXTURE]: Got null Data element on a asset {0}..  and the missing image Data property is also null", m_requestedUUID);
                 return true;
             }
             // Do we have less then 1 packet's worth of data?
@@ -374,8 +374,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (asset == null || asset.Data == null)
             {
-                m_asset = null;
-                m_decoded = true;
+                if (m_imageManager.MissingImage != null)
+                {
+                    m_asset = m_imageManager.MissingImage;
+                    m_assetDataLength = m_asset.Data.Length;
+                }
+                else
+                {
+                    m_asset = null;
+                    m_decoded = true;
+                }
             }
             else
             {

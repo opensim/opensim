@@ -141,7 +141,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_primTerseUpdateRate = 10;
         protected int m_primFullUpdateRate = 14;
 
-        protected int m_textureSendLimit   = 100;
+        protected int m_textureSendLimit   = 20;
         protected int m_textureDataLimit   = 10;
 
         protected int m_packetMTU = 1400;
@@ -3139,7 +3139,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             switch (queue)
             {
             case ThrottleOutPacketType.Texture:
-                m_log.Debug("Texture queue empty");
                 ProcessTextureRequests();
                 break;
             }

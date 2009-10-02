@@ -52,6 +52,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_shuttingdown = false;
         private long m_lastloopprocessed = 0;
+        private AssetBase m_missingImage = null;
 
         private LLClientView m_client; //Client we're assigned to
         private IAssetService m_assetCache; //Asset Cache
@@ -62,12 +63,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_client = client;
             m_assetCache = pAssetCache;
+            if (pAssetCache != null)
+                m_missingImage = pAssetCache.Get("5748decc-f629-461c-9a36-a35a221fe21f");
+            else
+                m_log.Error("[ClientView] - couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
+
             m_j2kDecodeModule = pJ2kDecodeModule;
         }
 
         public LLClientView Client
         {
             get { return m_client; }
+        }
+
+        public AssetBase MissingImage
+        {
+            get { return m_missingImage; }
         }
 
         public void EnqueueReq(TextureRequestArgs newRequest)
@@ -183,90 +194,93 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool ProcessImageQueue(int count, int maxpack)
         {
-            //count is the number of textures we want to process in one go.
-            //As part of this class re-write, that number will probably rise
-            //since we're processing in a more efficient manner.
-
-            // this can happen during Close()
-            if (m_client == null)
-                return false;
-
-            int numCollected = 0;
-
-            //Calculate our threshold
-            int threshold;
-            if (m_lastloopprocessed == 0)
+            lock (this)
             {
-                if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
+                //count is the number of textures we want to process in one go.
+                //As part of this class re-write, that number will probably rise
+                //since we're processing in a more efficient manner.
+
+                // this can happen during Close()
+                if (m_client == null)
                     return false;
-                //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
-                threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
-                m_lastloopprocessed = DateTime.Now.Ticks;
-            }
-            else
-            {
-                double throttleseconds = ((double)DateTime.Now.Ticks - (double)m_lastloopprocessed) / (double)TimeSpan.TicksPerSecond;
-                throttleseconds = throttleseconds * m_client.PacketHandler.PacketQueue.TextureThrottle.Current;
 
-                //Average of 1000 bytes per packet
-                throttleseconds = throttleseconds / 1000;
+                int numCollected = 0;
 
-                //Safe-zone multiplier of 2.0
-                threshold = (int)(throttleseconds * 2.0);
-                m_lastloopprocessed = DateTime.Now.Ticks;
-
-            }
-
-            if (m_client.PacketHandler == null)
-                return false;
-
-            if (m_client.PacketHandler.PacketQueue == null)
-                return false;
-
-            if (threshold < 10)
-                threshold = 10;
-
-            //Uncomment this to see what the texture stack is doing
-            //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.getQueueCount(ThrottleOutPacketType.Texture).ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
-            if (m_client.PacketHandler.PacketQueue.GetQueueCount(ThrottleOutPacketType.Texture) < threshold)
-            {
-                while (m_priorityQueue.Count > 0)
+                //Calculate our threshold
+                int threshold;
+                if (m_lastloopprocessed == 0)
                 {
-                    J2KImage imagereq = null;
-                    lock (m_priorityQueue)
-                        imagereq = m_priorityQueue.FindMax();
-
-                    if (imagereq.m_decoded == true)
-                    {
-                        // we need to test this here now that we are dropping assets
-                        if (!imagereq.m_hasasset)
-                        {
-                            m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.m_requestedUUID);
-                            imagereq.RunUpdate();
-                            continue;
-                        }
-
-                        ++numCollected;
-
-                        //SendPackets will send up to ten packets per cycle
-                        if (imagereq.SendPackets(m_client, maxpack))
-                        {
-                            // Send complete. Destroy any knowledge of this transfer
-                            try 
-                            { 
-                                lock (m_priorityQueue)
-                                    m_priorityQueue.Delete(imagereq.m_priorityQueueHandle); 
-                            }
-                            catch (Exception) { }
-                        }
-                    }
-
-                    if (numCollected == count)
-                        break;
+                    if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
+                        return false;
+                    //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
+                    threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
+                    m_lastloopprocessed = DateTime.Now.Ticks;
                 }
-            }
+                else
+                {
+                    double throttleseconds = ((double)DateTime.Now.Ticks - (double)m_lastloopprocessed) / (double)TimeSpan.TicksPerSecond;
+                    throttleseconds = throttleseconds * m_client.PacketHandler.PacketQueue.TextureThrottle.Current;
 
-            return m_priorityQueue.Count > 0;
+                    //Average of 1000 bytes per packet
+                    throttleseconds = throttleseconds / 1000;
+
+                    //Safe-zone multiplier of 2.0
+                    threshold = (int)(throttleseconds * 2.0);
+                    m_lastloopprocessed = DateTime.Now.Ticks;
+
+                }
+
+                if (m_client.PacketHandler == null)
+                    return false;
+
+                if (m_client.PacketHandler.PacketQueue == null)
+                    return false;
+
+                if (threshold < 10)
+                    threshold = 10;
+
+                //Uncomment this to see what the texture stack is doing
+                //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.getQueueCount(ThrottleOutPacketType.Texture).ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
+                if (true) //m_client.PacketHandler.PacketQueue.GetQueueCount(ThrottleOutPacketType.Texture) < threshold)
+                {
+                    while (m_priorityQueue.Count > 0)
+                    {
+                        J2KImage imagereq = null;
+                        lock (m_priorityQueue)
+                            imagereq = m_priorityQueue.FindMax();
+
+                        if (imagereq.m_decoded == true)
+                        {
+                            // we need to test this here now that we are dropping assets
+                            if (!imagereq.m_hasasset)
+                            {
+                                m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.m_requestedUUID);
+                                imagereq.RunUpdate();
+                                continue;
+                            }
+
+                            ++numCollected;
+
+                            //SendPackets will send up to ten packets per cycle
+                            if (imagereq.SendPackets(m_client, maxpack))
+                            {
+                                // Send complete. Destroy any knowledge of this transfer
+                                try 
+                                { 
+                                    lock (m_priorityQueue)
+                                        m_priorityQueue.Delete(imagereq.m_priorityQueueHandle); 
+                                }
+                                catch (Exception) { }
+                            }
+                        }
+
+                        if (numCollected == count)
+                            break;
+                    }
+                }
+
+                return m_priorityQueue.Count > 0;
+            }
         }
 
         //Faux destructor
