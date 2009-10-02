@@ -1102,5 +1102,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         #endregion
+        
+        public void SendRebakeAvatarTextures(UUID textureID)
+        {
+        }
     }
 }

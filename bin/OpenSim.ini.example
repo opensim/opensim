@@ -1356,11 +1356,6 @@
 
     ;PacketMTU = 1400
 
-    ; TextureUpdateRate (mS) determines how many times per second
-    ; texture send processing will occur. The default is 100mS.
-    ;
-    ;TextureRequestRate = 100
-
     ; TextureSendLimit determines how many different textures
     ; will be considered on each cycle. Textures are selected
     ; by priority. The old mechanism specified a value of 10 for
@@ -1372,14 +1367,6 @@
     ; each of the selected textures. Default is 5.
     ;
     ;TextureDataLimit = 5
-
-;; The JPEG2000 decode cache
-;; Timeout is in minutes
-
-[J2KDecoder]
-;CacheDir = "./j2kDecodeCache"
-; Time in minutes before cached decodes expire. Set to 0 for no expiration. Default is 720 minutes.
-;CacheTimeout = 720
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

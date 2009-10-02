@@ -34,16 +34,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     public delegate void PacketDrop(Packet pack, Object id);
+    public delegate void QueueEmpty(ThrottleOutPacketType queue);
     public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
 
     /// <summary>
     /// Interface to a class that handles all the activity involved with maintaining the client circuit (handling acks,
     /// resends, pings, etc.)
     /// </summary>
-    public interface ILLPacketHandler
+    public interface ILLPacketHandler : IDisposable
     {
         event PacketStats OnPacketStats;
         event PacketDrop OnPacketDrop;
+        event QueueEmpty OnQueueEmpty;
         SynchronizeClientHandler SynchronizeClient { set; }
 
         int PacketsReceived { get; }
@@ -70,12 +72,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void OutPacket(Packet NewPack,
                        ThrottleOutPacketType throttlePacketType, Object id);
         LLPacketQueue PacketQueue { get; }
-        void Stop();
         void Flush();
         void Clear();
         ClientInfo GetClientInfo();
         void SetClientInfo(ClientInfo info);
         void AddImportantPacket(PacketType type);
         void RemoveImportantPacket(PacketType type);
+        int GetQueueCount(ThrottleOutPacketType queue);
     }
 }

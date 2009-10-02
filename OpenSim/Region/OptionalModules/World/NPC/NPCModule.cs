@@ -163,13 +163,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     {
                         AvatarAppearance x = GetAppearance(p_cloneAppearanceFrom, p_scene);
 
-                        List<byte> wearbyte = new List<byte>();
-                        for (int i = 0; i < x.VisualParams.Length; i++)
-                        {
-                            wearbyte.Add(x.VisualParams[i]);
-                        }
-
-                        sp.SetAppearance(x.Texture.GetBytes(), wearbyte);
+                        sp.SetAppearance(x.Texture, (byte[])x.VisualParams.Clone());
                     }
 
                     m_avatars.Add(npcAvatar.AgentId, npcAvatar);

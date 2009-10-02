@@ -1541,6 +1541,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverse.dll"/>
+      <Reference name="CSJ2K.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Capabilities"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -3534,35 +3535,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Servers.HttpServer.Tests" path="OpenSim/Framework/Servers/HttpServer/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="HttpServer_OpenSim.dll"/>
-      <Reference name="nunit.framework.dll" />
-
-      <Files>
-        <Match pattern="*.cs" recurse="true">
-        </Match>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Framework.Communications.Tests" path="OpenSim/Framework/Communications/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -3822,40 +3794,6 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="Ode.NET.dll" />
       <Reference name="nunit.framework.dll" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Server.Handlers.Tests" path="OpenSim/Server/Handlers/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="nunit.framework.dll" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>      
-      <Reference name="OpenSim.Server.Handlers"/>
-      <Reference name="OpenSim.Server.Base"/>
-      <Reference name="OpenSim.Services.Base" />
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Tests.Common"/>
-      <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>

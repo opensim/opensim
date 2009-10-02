@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 IJ2KDecoder cacheLayerDecode = scene.RequestModuleInterface<IJ2KDecoder>();
                 if (cacheLayerDecode != null)
                 {
-                    cacheLayerDecode.syncdecode(asset.FullID, asset.Data);
+                    cacheLayerDecode.Decode(asset.FullID, asset.Data);
                     cacheLayerDecode = null;
                     LastAssetID = asset.FullID;
                 }

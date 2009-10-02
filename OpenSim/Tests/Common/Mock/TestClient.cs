@@ -1163,5 +1163,9 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public void SendRebakeAvatarTextures(UUID textureID)
+        {
+        }
+
     }
 }

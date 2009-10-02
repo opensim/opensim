@@ -826,12 +826,7 @@ namespace OpenSim.Client.MXP.ClientStack
             OpenSim.Region.Framework.Scenes.Scene scene=(OpenSim.Region.Framework.Scenes.Scene)Scene;
             AvatarAppearance appearance;
             scene.GetAvatarAppearance(this,out appearance);
-            List<byte> visualParams = new List<byte>();
-            foreach (byte visualParam in appearance.VisualParams)
-            {
-                visualParams.Add(visualParam);
-            }
-            OnSetAppearance(appearance.Texture.GetBytes(), visualParams);
+            OnSetAppearance(appearance.Texture, (byte[])appearance.VisualParams.Clone());
         }
 
         public void Stop()
@@ -1647,6 +1642,10 @@ namespace OpenSim.Client.MXP.ClientStack
         }
         
         public void SendPickInfoReply(UUID pickID,UUID creatorID, bool topPick, UUID parcelID, string name, string desc, UUID snapshotID, string user, string originalName, string simName, Vector3 posGlobal, int sortOrder, bool enabled)
+        {
+        }
+        
+        public void SendRebakeAvatarTextures(UUID textureID)
         {
         }
     }

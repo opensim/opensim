@@ -65,7 +65,7 @@ namespace OpenSim.Framework
 
     public delegate void NetworkStats(int inPackets, int outPackets, int unAckedBytes);
 
-    public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
+    public delegate void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams);
 
     public delegate void StartAnim(IClientAPI remoteClient, UUID animID);
 
@@ -1127,7 +1127,6 @@ namespace OpenSim.Framework
 
         void SetClientOption(string option, string value);
         string GetClientOption(string option);
-        void Terminate();
 
         void SendSetFollowCamProperties(UUID objectID, SortedDictionary<int, float> parameters);
         void SendClearFollowCamProperties(UUID objectID);
@@ -1175,5 +1174,7 @@ namespace OpenSim.Framework
         void KillEndDone();
 
         bool AddGenericPacketHandler(string MethodName, GenericMessage handler);
+
+        void SendRebakeAvatarTextures(UUID textureID);
     }
 }

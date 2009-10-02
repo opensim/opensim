@@ -78,6 +78,20 @@ namespace OpenSim.Region.Physics.Meshing
 
         private Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
 
+        public Meshmerizer()
+        {
+            try
+            {
+                if (!Directory.Exists(decodedScultMapPath))
+                    Directory.CreateDirectory(decodedScultMapPath);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[SCULPT]: Unable to create {0} directory: ", decodedScultMapPath, e.Message);
+            }
+
+        }
+
         /// <summary>
         /// creates a simple box mesh of the specified size. This mesh is of very low vertex count and may
         /// be useful as a backup proxy when level of detail is not needed or when more complex meshes fail

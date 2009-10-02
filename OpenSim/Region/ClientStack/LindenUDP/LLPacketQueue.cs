@@ -39,7 +39,7 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLPacketQueue : IPullStatsProvider
+    public class LLPacketQueue : IPullStatsProvider, IDisposable
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -62,6 +62,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Queue<LLQueItem> TextureOutgoingPacketQueue;
         private Queue<LLQueItem> AssetOutgoingPacketQueue;
 
+        private List<ThrottleOutPacketType> Empty = new List<ThrottleOutPacketType>();
+                // m_log.Info("[THROTTLE]: Entering Throttle");
         // private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
         // private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
@@ -85,25 +87,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         private Dictionary<uint,int> contents = new Dictionary<uint, int>();
 
-        /// <summary>
-        /// The number of packets in the OutgoingPacketQueue
-        /// 
-        /// </summary>
-        internal int TextureOutgoingPacketQueueCount
-        {
-            get 
-            { 
-                if (TextureOutgoingPacketQueue == null)
-                    return 0;
-                return TextureOutgoingPacketQueue.Count;
-            }
-        }
-
         // private long LastThrottle;
         // private long ThrottleInterval;
         private Timer throttleTimer;
 
         private UUID m_agentId;
+
+        public event QueueEmpty OnQueueEmpty;
 
         public LLPacketQueue(UUID agentId, ClientStackUserSettings userSettings)
         {
@@ -210,28 +200,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 switch (item.throttleType & ThrottleOutPacketType.TypeMask)
                 {
                     case ThrottleOutPacketType.Resend:
-                        ThrottleCheck(ref ResendThrottle, ref ResendOutgoingPacketQueue, item);
+                        ThrottleCheck(ref ResendThrottle, ref ResendOutgoingPacketQueue, item, ThrottleOutPacketType.Resend);
                         break;
                     case ThrottleOutPacketType.Texture:
-                        ThrottleCheck(ref TextureThrottle, ref TextureOutgoingPacketQueue, item);
+                        ThrottleCheck(ref TextureThrottle, ref TextureOutgoingPacketQueue, item, ThrottleOutPacketType.Texture);
                         break;
                     case ThrottleOutPacketType.Task:
                         if ((item.throttleType & ThrottleOutPacketType.LowPriority) != 0)
-                            ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item);
+                            ThrottleCheck(ref TaskThrottle, ref TaskLowpriorityPacketQueue, item, ThrottleOutPacketType.Task);
                         else
-                            ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item);
+                            ThrottleCheck(ref TaskThrottle, ref TaskOutgoingPacketQueue, item, ThrottleOutPacketType.Task);
                         break;
                     case ThrottleOutPacketType.Land:
-                        ThrottleCheck(ref LandThrottle, ref LandOutgoingPacketQueue, item);
+                        ThrottleCheck(ref LandThrottle, ref LandOutgoingPacketQueue, item, ThrottleOutPacketType.Land);
                         break;
                     case ThrottleOutPacketType.Asset:
-                        ThrottleCheck(ref AssetThrottle, ref AssetOutgoingPacketQueue, item);
+                        ThrottleCheck(ref AssetThrottle, ref AssetOutgoingPacketQueue, item, ThrottleOutPacketType.Asset);
                         break;
                     case ThrottleOutPacketType.Cloud:
-                        ThrottleCheck(ref CloudThrottle, ref CloudOutgoingPacketQueue, item);
+                        ThrottleCheck(ref CloudThrottle, ref CloudOutgoingPacketQueue, item, ThrottleOutPacketType.Cloud);
                         break;
                     case ThrottleOutPacketType.Wind:
-                        ThrottleCheck(ref WindThrottle, ref WindOutgoingPacketQueue, item);
+                        ThrottleCheck(ref WindThrottle, ref WindOutgoingPacketQueue, item, ThrottleOutPacketType.Wind);
                         break;
 
                     default:
@@ -283,43 +273,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (this)
             {
-                while (PacketsWaiting())
+                // These categories do not contain transactional packets so we can safely drop any pending data in them
+                LandOutgoingPacketQueue.Clear();
+                WindOutgoingPacketQueue.Clear();
+                CloudOutgoingPacketQueue.Clear();
+                TextureOutgoingPacketQueue.Clear();
+                AssetOutgoingPacketQueue.Clear();
+
+                // Now comes the fun part..   we dump all remaining resend and task packets into the send queue
+                while (ResendOutgoingPacketQueue.Count > 0 || TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0)
                 {
-                    //Now comes the fun part..   we dump all our elements into m_packetQueue that we've saved up.
                     if (ResendOutgoingPacketQueue.Count > 0)
-                    {
                         SendQueue.Enqueue(ResendOutgoingPacketQueue.Dequeue());
-                    }
-                    if (LandOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(LandOutgoingPacketQueue.Dequeue());
-                    }
-                    if (WindOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(WindOutgoingPacketQueue.Dequeue());
-                    }
-                    if (CloudOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(CloudOutgoingPacketQueue.Dequeue());
-                    }
+
                     if (TaskOutgoingPacketQueue.Count > 0)
-                    {
                         SendQueue.PriorityEnqueue(TaskOutgoingPacketQueue.Dequeue());
-                    }
+
                     if (TaskLowpriorityPacketQueue.Count > 0)
-                    {
                         SendQueue.Enqueue(TaskLowpriorityPacketQueue.Dequeue());
-                    }
-                    if (TextureOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(TextureOutgoingPacketQueue.Dequeue());
-                    }
-                    if (AssetOutgoingPacketQueue.Count > 0)
-                    {
-                        SendQueue.Enqueue(AssetOutgoingPacketQueue.Dequeue());
-                    }
                 }
-                // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
             }
         }
 
@@ -342,11 +314,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Close()
         {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
             Flush();
             WipeClean(); // I'm sure there's a dirty joke in here somewhere. -AFrisby
 
             m_enabled = false;
             throttleTimer.Stop();
+            throttleTimer.Close();
 
             if (StatsManager.SimExtraStats != null)
             {
@@ -388,6 +366,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int MaxThrottleLoops = 4550; // 50*7 packets can be dequeued at once.
             int throttleLoops = 0;
+            List<ThrottleOutPacketType> e;
 
             // We're going to dequeue all of the saved up packets until
             // we've hit the throttle limit or there's no more packets to send
@@ -399,7 +378,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 bool qchanged = true;
                 
                 ResetCounters();
-                // m_log.Info("[THROTTLE]: Entering Throttle");
+
                 while (TotalThrottle.UnderLimit() && qchanged && throttleLoops <= MaxThrottleLoops)
                 {
                     qchanged = false; // We will break out of the loop if no work was accomplished
@@ -425,6 +404,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         LandThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (LandOutgoingPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Land))
+                            Empty.Add(ThrottleOutPacketType.Land);
                     }
                     
                     if ((WindOutgoingPacketQueue.Count > 0) && WindThrottle.UnderLimit())
@@ -435,6 +417,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         WindThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (WindOutgoingPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Wind))
+                            Empty.Add(ThrottleOutPacketType.Wind);
                     }
                     
                     if ((CloudOutgoingPacketQueue.Count > 0) && CloudThrottle.UnderLimit())
@@ -445,6 +430,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         CloudThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (CloudOutgoingPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Cloud))
+                            Empty.Add(ThrottleOutPacketType.Cloud);
                     }
                     
                     if ((TaskOutgoingPacketQueue.Count > 0 || TaskLowpriorityPacketQueue.Count > 0) && TaskThrottle.UnderLimit())
@@ -464,6 +452,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         TaskThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (TaskOutgoingPacketQueue.Count == 0 && TaskLowpriorityPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Task))
+                            Empty.Add(ThrottleOutPacketType.Task);
                     }
                     
                     if ((TextureOutgoingPacketQueue.Count > 0) && TextureThrottle.UnderLimit())
@@ -474,6 +465,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         TextureThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (TextureOutgoingPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Texture))
+                            Empty.Add(ThrottleOutPacketType.Texture);
                     }
                     
                     if ((AssetOutgoingPacketQueue.Count > 0) && AssetThrottle.UnderLimit())
@@ -484,10 +478,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         TotalThrottle.AddBytes(qpack.Length);
                         AssetThrottle.AddBytes(qpack.Length);
                         qchanged = true;
+
+                        if (AssetOutgoingPacketQueue.Count == 0 && !Empty.Contains(ThrottleOutPacketType.Asset))
+                            Empty.Add(ThrottleOutPacketType.Asset);
                     }
                 }
                 // m_log.Info("[THROTTLE]: Processed " + throttleLoops + " packets");
+
+                e = new List<ThrottleOutPacketType>(Empty);
+                Empty.Clear();
             }
+
+            foreach (ThrottleOutPacketType t in e)
+            {
+                if (GetQueueCount(t) == 0)
+                    TriggerOnQueueEmpty(t);
+            }
+        }
+
+        private void TriggerOnQueueEmpty(ThrottleOutPacketType queue)
+        {
+            QueueEmpty handlerQueueEmpty = OnQueueEmpty;
+
+            if (handlerQueueEmpty != null)
+                handlerQueueEmpty(queue);
         }
 
         private void ThrottleTimerElapsed(object sender, ElapsedEventArgs e)
@@ -497,7 +511,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ProcessThrottle();
         }
 
-        private void ThrottleCheck(ref LLPacketThrottle throttle, ref Queue<LLQueItem> q, LLQueItem item)
+        private void ThrottleCheck(ref LLPacketThrottle throttle, ref Queue<LLQueItem> q, LLQueItem item, ThrottleOutPacketType itemType)
         {
             // The idea..  is if the packet throttle queues are empty
             // and the client is under throttle for the type.  Queue
@@ -513,6 +527,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     throttle.AddBytes(item.Length);
                     TotalThrottle.AddBytes(item.Length);
                     SendQueue.Enqueue(item);
+                    lock (this)
+                    {
+                        if (!Empty.Contains(itemType))
+                            Empty.Add(itemType);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -697,6 +716,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public float ThrottleMultiplier
         {
             get { return throttleMultiplier; }
+        }
+
+        public int GetQueueCount(ThrottleOutPacketType queue)
+        {
+            switch (queue)
+            {
+            case ThrottleOutPacketType.Land:
+                return LandOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Wind:
+                return WindOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Cloud:
+                return CloudOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Task:
+                return TaskOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Texture:
+                return TextureOutgoingPacketQueue.Count;
+            case ThrottleOutPacketType.Asset:
+                return AssetOutgoingPacketQueue.Count;
+            }
+
+            return 0;
         }
     }
 }

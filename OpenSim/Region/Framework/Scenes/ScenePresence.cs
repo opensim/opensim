@@ -74,6 +74,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
+
         public static byte[] DefaultTexture;
 
         public UUID currentParcelUUID = UUID.Zero;
@@ -2686,7 +2688,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(byte[] texture, List<byte> visualParam)
+        public void SetAppearance(Primitive.TextureEntry textureEntry, byte[] visualParams)
         {
             if (m_physicsActor != null)
             {
@@ -2704,7 +2706,30 @@ namespace OpenSim.Region.Framework.Scenes
                     AddToPhysicalScene(flyingTemp);
                 }
             }
-            m_appearance.SetAppearance(texture, visualParam);
+
+            #region Bake Cache Check
+
+            if (textureEntry != null)
+            {
+                for (int i = 0; i < BAKE_INDICES.Length; i++)
+                {
+                    int j = BAKE_INDICES[i];
+                    Primitive.TextureEntryFace face = textureEntry.FaceTextures[j];
+
+                    if (face != null && face.TextureID != AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+                    {
+                        if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
+                        {
+                            m_log.Warn("[APPEARANCE]: Missing baked texture " + face.TextureID + " (" + (AppearanceManager.TextureIndex)j + ") for avatar " + this.Name);
+                            this.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
+                        }
+                    }
+                }
+            }
+
+            #endregion Bake Cache Check
+
+            m_appearance.SetAppearance(textureEntry, visualParams);
             if (m_appearance.AvatarHeight > 0)
                 SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
@@ -3255,14 +3280,14 @@ namespace OpenSim.Region.Framework.Scenes
                     wears[i++] = new AvatarWearable(itemId, assetId);
                 }
                 m_appearance.Wearables = wears;
-                byte[] te = null; 
-                if (cAgent.AgentTextures != null)
-                    te = cAgent.AgentTextures;
+                Primitive.TextureEntry te;
+                if (cAgent.AgentTextures != null && cAgent.AgentTextures.Length > 1)
+                    te = new Primitive.TextureEntry(cAgent.AgentTextures, 0, cAgent.AgentTextures.Length);
                 else
-                    te = AvatarAppearance.GetDefaultTexture().GetBytes();
+                    te = AvatarAppearance.GetDefaultTexture();
                 if ((cAgent.VisualParams == null) || (cAgent.VisualParams.Length < AvatarAppearance.VISUALPARAM_COUNT))
                     cAgent.VisualParams = AvatarAppearance.GetDefaultVisualParams();
-                m_appearance.SetAppearance(te, new List<byte>(cAgent.VisualParams));
+                m_appearance.SetAppearance(te, (byte[])cAgent.VisualParams.Clone());
             }
             catch (Exception e)
             {
