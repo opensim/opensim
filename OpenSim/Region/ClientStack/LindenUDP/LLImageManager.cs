@@ -83,15 +83,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (newRequest.DiscardLevel == -1 && newRequest.Priority == 0f)
                     {
-                        m_log.Debug("[JPEG2000]: (CAN) ID=" + newRequest.RequestedAssetID);
+                        //m_log.Debug("[TEX]: (CAN) ID=" + newRequest.RequestedAssetID);
 
                         try { m_priorityQueue.Delete(imgrequest.m_priorityQueueHandle); }
                         catch (Exception) { }
                     }
                     else
                     {
-                        m_log.DebugFormat("[JPEG2000]: (UPD) ID={0}: D={1}, S={2}, P={3}",
-                        newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
+                        //m_log.DebugFormat("[TEX]: (UPD) ID={0}: D={1}, S={2}, P={3}",
+                        //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
                         //Check the packet sequence to make sure this isn't older than 
                         //one we've already received
@@ -120,13 +120,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (newRequest.DiscardLevel == -1 && newRequest.Priority == 0f)
                     {
-                        m_log.DebugFormat("[JPEG2000]: (IGN) ID={0}: D={1}, S={2}, P={3}",
-                            newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
+                        //m_log.DebugFormat("[TEX]: (IGN) ID={0}: D={1}, S={2}, P={3}",
+                        //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
                     }
                     else
                     {
-                        m_log.DebugFormat("[JPEG2000]: (NEW) ID={0}: D={1}, S={2}, P={3}",
-                            newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
+                        //m_log.DebugFormat("[TEX]: (NEW) ID={0}: D={1}, S={2}, P={3}",
+                        //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
                         imgrequest = new J2KImage(this);
 
