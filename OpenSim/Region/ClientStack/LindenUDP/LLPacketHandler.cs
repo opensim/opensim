@@ -129,6 +129,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //
         public event PacketStats OnPacketStats;
         public event PacketDrop OnPacketDrop;
+        public event QueueEmpty OnQueueEmpty;
 
         
         //private SynchronizeClientHandler m_SynchronizeClient = null;
@@ -171,6 +172,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_DropSafeTimeout = Environment.TickCount + 15000;
 
             m_PacketQueue = new LLPacketQueue(client.AgentId, userSettings);
+
+            m_PacketQueue.OnQueueEmpty += TriggerOnQueueEmpty;
 
             m_AckTimer.Elapsed += AckTimerElapsed;
             m_AckTimer.Start();
@@ -769,6 +772,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerPacketDrop(packet, id);
         }
 
+        private void TriggerOnQueueEmpty(ThrottleOutPacketType queue)
+        {
+            QueueEmpty handlerQueueEmpty = OnQueueEmpty;
+
+            if (handlerQueueEmpty == null)
+                return;
+
+            handlerQueueEmpty(queue);
+        }
+
         // Convert the packet to bytes and stuff it onto the send queue
         //
         public void ProcessOutPacket(LLQueItem item)
@@ -849,6 +862,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_PacketQueue.Close();
             Thread.CurrentThread.Abort();
+        }
+
+        public int GetQueueCount(ThrottleOutPacketType queue)
+        {
+            return m_PacketQueue.GetQueueCount(queue);
         }
     }
 }
