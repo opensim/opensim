@@ -94,10 +94,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             }
 
             // root part should have no offset position or rotation
-            Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity);
+            Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity, 
+                "root part should have no offset position or rotation");
 
             // offset position should be root part position - part2.absolute position.
-            Assert.That(part2.OffsetPosition == new Vector3(-10, -10, -10));
+            Assert.That(part2.OffsetPosition == new Vector3(-10, -10, -10),
+                "offset position should be root part position - part2.absolute position.");
 
             float roll = 0;
             float pitch = 0;
@@ -116,7 +118,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             if (debugtest)
                 m_log.Debug(rotEuler2);
 
-            Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
+            Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f),
+                "Not exactly sure what this is asserting...");
 
             // Delink part 2
             grp1.DelinkFromGroup(part2.LocalId);
@@ -125,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 m_log.Debug("Group2: Prim2: OffsetPosition:" + part2.AbsolutePosition + ", OffsetRotation:" + part2.RotationOffset);
 
             Assert.That(grp1.Children.Count, Is.EqualTo(1), "Group 1 still contained part2 after delink.");
-            Assert.That(part2.AbsolutePosition == Vector3.Zero);
+            Assert.That(part2.AbsolutePosition == Vector3.Zero, "The absolute position should be zero");
         }
 
         [Test]
@@ -175,10 +178,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp3.LinkToGroup(grp4);
             
             // At this point we should have 4 parts total in two groups.
-            Assert.That(grp1.Children.Count == 2);
+            Assert.That(grp1.Children.Count == 2, "Group1 children count should be 2");
             Assert.That(grp2.IsDeleted, "Group 2 was not registered as deleted after link.");
             Assert.That(grp2.Children.Count, Is.EqualTo(0), "Group 2 still contained parts after delink.");
-            Assert.That(grp3.Children.Count == 2);
+            Assert.That(grp3.Children.Count == 2, "Group3 children count should be 2");
             Assert.That(grp4.IsDeleted, "Group 4 was not registered as deleted after link.");
             Assert.That(grp4.Children.Count, Is.EqualTo(0), "Group 4 still contained parts after delink.");
             
@@ -201,10 +204,12 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp3.RootPart.UpdateFlag = 0;
 
             // root part should have no offset position or rotation
-            Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity);
+            Assert.That(part1.OffsetPosition == Vector3.Zero && part1.RotationOffset == Quaternion.Identity,
+                "root part should have no offset position or rotation (again)");
 
             // offset position should be root part position - part2.absolute position.
-            Assert.That(part2.OffsetPosition == new Vector3(-10, -10, -10));
+            Assert.That(part2.OffsetPosition == new Vector3(-10, -10, -10),
+                "offset position should be root part position - part2.absolute position (again)");
 
             float roll = 0;
             float pitch = 0;
@@ -223,7 +228,8 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             if (debugtest)
                 m_log.Debug(rotEuler2);
 
-            Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f));
+            Assert.That(rotEuler2.ApproxEquals(new Vector3(-180, 0, 0), 0.001f) || rotEuler2.ApproxEquals(new Vector3(180, 0, 0), 0.001f),
+                "Not sure what this assertion is all about...");
 
             // Now we're linking the first group to the third group.  This will make the first group child parts of the third one.
             grp3.LinkToGroup(grp1);
@@ -246,13 +252,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 m_log.Debug("Group3: Prim2: OffsetPosition:" + part4.OffsetPosition + ", OffsetRotation:" + part4.RotationOffset);
             }
 
-            Assert.That(part2.AbsolutePosition == Vector3.Zero);
-            Assert.That(part4.OffsetPosition == new Vector3(20, 20, 20));
+            Assert.That(part2.AbsolutePosition == Vector3.Zero, "Badness 1");
+            Assert.That(part4.OffsetPosition == new Vector3(20, 20, 20), "Badness 2");
             Quaternion compareQuaternion = new Quaternion(0, 0.7071068f, 0, 0.7071068f);
             Assert.That((part4.RotationOffset.X - compareQuaternion.X < 0.00003) 
                 && (part4.RotationOffset.Y - compareQuaternion.Y < 0.00003) 
                 && (part4.RotationOffset.Z - compareQuaternion.Z < 0.00003) 
-                && (part4.RotationOffset.W - compareQuaternion.W < 0.00003));
+                && (part4.RotationOffset.W - compareQuaternion.W < 0.00003),
+                "Badness 3");
         }
     }
 }
