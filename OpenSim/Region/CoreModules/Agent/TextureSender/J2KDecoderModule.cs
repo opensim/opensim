@@ -161,7 +161,6 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                         for (int i = 0; i < layerStarts.Count; i++)
                         {
                             OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
-                            int start = layerStarts[i];
 
                             if (i == 0)
                                 layer.Start = 0;

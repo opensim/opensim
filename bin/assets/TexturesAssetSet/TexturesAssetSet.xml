@@ -401,4 +401,11 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="default_clear.jp2" />
   </Section>
+  
+  <Section Name="Default Avatar">
+    <Key Name="assetID" Value="c228d1cf-4b5d-4ba8-84f4-899a0796aa97"/>
+    <Key Name="name" Value="Default Avatar"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="default_avatar.jp2" />
+  </Section>
 </Nini>
