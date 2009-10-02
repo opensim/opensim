@@ -82,7 +82,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
-            obj.landData.Name = "NO LAND";
+            obj.LandData.Name = "NO LAND";
             return obj;
         }
 
@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
-            obj.landData.Name = "NO LAND";
+            obj.LandData.Name = "NO LAND";
             return obj;
         }
 

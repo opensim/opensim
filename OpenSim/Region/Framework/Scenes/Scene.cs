@@ -3206,9 +3206,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
                 {
-                    if (land.landData.LandingType == (byte)1 && land.landData.UserLocation != Vector3.Zero)
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
                     {
-                        agent.startpos = land.landData.UserLocation;
+                        agent.startpos = land.LandData.UserLocation;
                     }
                 }
             }
@@ -3846,13 +3846,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public LandData GetLandData(float x, float y)
         {
-            return LandChannel.GetLandObject(x, y).landData;
+            return LandChannel.GetLandObject(x, y).LandData;
         }
 
         public LandData GetLandData(uint x, uint y)
         {
             m_log.DebugFormat("[SCENE]: returning land for {0},{1}", x, y);
-            return LandChannel.GetLandObject((int)x, (int)y).landData;
+            return LandChannel.GetLandObject((int)x, (int)y).LandData;
         }
 
 
@@ -3880,14 +3880,14 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (parcel != null)
                 {
-                    if ((parcel.landData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
+                    if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowOtherScripts) != 0)
                     {
                         return true;
                     }
-                    else if ((parcel.landData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
+                    else if ((parcel.LandData.Flags & (uint)ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.OwnerID
-                            || (parcel.landData.IsGroupOwned && part.GroupID == parcel.landData.GroupID)
+                        if (part.OwnerID == parcel.LandData.OwnerID
+                            || (parcel.LandData.IsGroupOwned && part.GroupID == parcel.LandData.GroupID)
                             || Permissions.IsGod(part.OwnerID))
                         {
                             return true;
@@ -3899,7 +3899,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        if (part.OwnerID == parcel.landData.OwnerID)
+                        if (part.OwnerID == parcel.LandData.OwnerID)
                         {
                             return true;
                         }

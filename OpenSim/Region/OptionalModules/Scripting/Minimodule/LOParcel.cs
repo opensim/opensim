@@ -48,14 +48,14 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public string Name
         {
-            get { return GetLO().landData.Name; }
-            set { GetLO().landData.Name = value; }
+            get { return GetLO().LandData.Name; }
+            set { GetLO().LandData.Name = value; }
         }
 
         public string Description
         {
-            get { return GetLO().landData.Description; }
-            set { GetLO().landData.Description = value; }
+            get { return GetLO().LandData.Description; }
+            set { GetLO().LandData.Description = value; }
         }
 
         public ISocialEntity Owner
@@ -66,7 +66,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         public bool[,] Bitmap
         {
-            get { return GetLO().landBitmap; }
+            get { return GetLO().LandBitmap; }
         }
     }
 }
