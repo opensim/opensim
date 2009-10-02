@@ -50,43 +50,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private bool m_shuttingdown = false;
-        private long m_lastloopprocessed = 0;
-        private AssetBase m_missingImage = null;
-
+        private bool m_shuttingdown;
+        private long m_lastloopprocessed;
+        private AssetBase m_missingImage;
         private LLClientView m_client; //Client we're assigned to
         private IAssetService m_assetCache; //Asset Cache
         private IJ2KDecoder m_j2kDecodeModule; //Our J2K module
         private C5.IntervalHeap<J2KImage> m_priorityQueue = new C5.IntervalHeap<J2KImage>(10, new J2KImageComparer());
+        private object m_syncRoot = new object();
+
+        public LLClientView Client { get { return m_client; } }
+        public AssetBase MissingImage { get { return m_missingImage; } }
 
         public LLImageManager(LLClientView client, IAssetService pAssetCache, IJ2KDecoder pJ2kDecodeModule)
         {
             m_client = client;
             m_assetCache = pAssetCache;
+
             if (pAssetCache != null)
                 m_missingImage = pAssetCache.Get("5748decc-f629-461c-9a36-a35a221fe21f");
-            else
-                m_log.Error("[ClientView] - couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
+            
+            if (m_missingImage == null)
+                m_log.Error("[ClientView] - Couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
 
             m_j2kDecodeModule = pJ2kDecodeModule;
         }
 
-        public LLClientView Client
-        {
-            get { return m_client; }
-        }
-
-        public AssetBase MissingImage
-        {
-            get { return m_missingImage; }
-        }
-
+        /// <summary>
+        /// Handles an incoming texture request or update to an existing texture request
+        /// </summary>
+        /// <param name="newRequest"></param>
         public void EnqueueReq(TextureRequestArgs newRequest)
         {
-            //newRequest is the properties of our new texture fetch request.
-            //Basically, here is where we queue up "new" requests..
-            // .. or modify existing requests to suit.
-
             //Make sure we're not shutting down..
             if (!m_shuttingdown)
             {
@@ -125,21 +120,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             imgrequest.DiscardLevel = newRequest.DiscardLevel;
 
                             //Update the requested packet number
-                            imgrequest.StartPacket = newRequest.PacketNumber;
+                            imgrequest.StartPacket = Math.Max(1, newRequest.PacketNumber);
 
                             //Update the requested priority
                             imgrequest.Priority = newRequest.Priority;
-                            try 
-                            { 
-                                lock (m_priorityQueue)
-                                    m_priorityQueue.Replace(imgrequest.PriorityQueueHandle, imgrequest); 
-                            }
-                            catch (Exception) 
-                            { 
-                                imgrequest.PriorityQueueHandle = null; 
-                                lock (m_priorityQueue)
-                                    m_priorityQueue.Add(ref imgrequest.PriorityQueueHandle, imgrequest); 
-                            }
+                            UpdateImageInQueue(imgrequest);
 
                             //Run an update
                             imgrequest.RunUpdate();
@@ -159,31 +144,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
                         imgrequest = new J2KImage(this);
-
-                        //Assign our decoder module
                         imgrequest.J2KDecoder = m_j2kDecodeModule;
-
-                        //Assign our asset cache module
                         imgrequest.AssetService = m_assetCache;
-
-                        //Assign the requested discard level
                         imgrequest.DiscardLevel = newRequest.DiscardLevel;
-
-                        //Assign the requested packet number
-                        imgrequest.StartPacket = newRequest.PacketNumber;
-
-                        //Assign the requested priority
+                        imgrequest.StartPacket = Math.Max(1, newRequest.PacketNumber);
                         imgrequest.Priority = newRequest.Priority;
-
-                        //Assign the asset uuid
                         imgrequest.TextureID = newRequest.RequestedAssetID;
-
-                        //Assign the requested priority
                         imgrequest.Priority = newRequest.Priority;
 
                         //Add this download to the priority queue
-                        lock (m_priorityQueue)
-                            m_priorityQueue.Add(ref imgrequest.PriorityQueueHandle, imgrequest);
+                        AddImageToQueue(imgrequest);
 
                         //Run an update
                         imgrequest.RunUpdate();
@@ -194,105 +164,97 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool ProcessImageQueue(int count, int maxpack)
         {
-            lock (this)
+            J2KImage imagereq;
+            int numCollected = 0;
+
+            lock (m_syncRoot)
             {
-                //count is the number of textures we want to process in one go.
-                //As part of this class re-write, that number will probably rise
-                //since we're processing in a more efficient manner.
+                m_lastloopprocessed = DateTime.Now.Ticks;
 
-                // this can happen during Close()
-                if (m_client == null)
+                // This can happen during Close()
+                if (m_client == null || m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null)
                     return false;
-
-                int numCollected = 0;
-
-                //Calculate our threshold
-                int threshold;
-                if (m_lastloopprocessed == 0)
+                
+                while ((imagereq = GetHighestPriorityImage()) != null)
                 {
-                    if (m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null || m_client.PacketHandler.PacketQueue.TextureThrottle == null)
-                        return false;
-                    //This is decent for a semi fast machine, but we'll calculate it more accurately based on time below
-                    threshold = m_client.PacketHandler.PacketQueue.TextureThrottle.Current / 6300;
-                    m_lastloopprocessed = DateTime.Now.Ticks;
-                }
-                else
-                {
-                    double throttleseconds = ((double)DateTime.Now.Ticks - (double)m_lastloopprocessed) / (double)TimeSpan.TicksPerSecond;
-                    throttleseconds = throttleseconds * m_client.PacketHandler.PacketQueue.TextureThrottle.Current;
-
-                    //Average of 1000 bytes per packet
-                    throttleseconds = throttleseconds / 1000;
-
-                    //Safe-zone multiplier of 2.0
-                    threshold = (int)(throttleseconds * 2.0);
-                    m_lastloopprocessed = DateTime.Now.Ticks;
-
-                }
-
-                if (m_client.PacketHandler == null)
-                    return false;
-
-                if (m_client.PacketHandler.PacketQueue == null)
-                    return false;
-
-                if (threshold < 10)
-                    threshold = 10;
-
-                //Uncomment this to see what the texture stack is doing
-                //m_log.Debug("Queue: " + m_client.PacketHandler.PacketQueue.getQueueCount(ThrottleOutPacketType.Texture).ToString() + " Threshold: " + threshold.ToString() + " outstanding: " + m_outstandingtextures.ToString());
-                if (true) //m_client.PacketHandler.PacketQueue.GetQueueCount(ThrottleOutPacketType.Texture) < threshold)
-                {
-                    while (m_priorityQueue.Count > 0)
+                    if (imagereq.IsDecoded == true)
                     {
-                        J2KImage imagereq = null;
-                        lock (m_priorityQueue)
-                            imagereq = m_priorityQueue.FindMax();
+                        ++numCollected;
 
-                        if (imagereq.IsDecoded == true)
+                        if (imagereq.SendPackets(m_client, maxpack))
                         {
-                            // we need to test this here now that we are dropping assets
-                            if (!imagereq.HasAsset)
-                            {
-                                m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.TextureID);
-                                imagereq.RunUpdate();
-                                continue;
-                            }
-
-                            ++numCollected;
-
-                            //SendPackets will send up to ten packets per cycle
-                            if (imagereq.SendPackets(m_client, maxpack))
-                            {
-                                // Send complete. Destroy any knowledge of this transfer
-                                try 
-                                { 
-                                    lock (m_priorityQueue)
-                                        m_priorityQueue.Delete(imagereq.PriorityQueueHandle); 
-                                }
-                                catch (Exception) { }
-                            }
+                            // Send complete. Destroy any knowledge of this transfer
+                            RemoveImageFromQueue(imagereq);
                         }
-
-                        if (numCollected == count)
-                            break;
                     }
-                }
 
-                return m_priorityQueue.Count > 0;
+                    if (numCollected == count)
+                        break;
+                }
             }
+
+            return m_priorityQueue.Count > 0;
         }
 
         //Faux destructor
         public void Close()
         {
-
             m_shuttingdown = true;
             m_j2kDecodeModule = null;
             m_assetCache = null;
             m_client = null;
         }
 
+        #region Priority Queue Helpers
 
+        J2KImage GetHighestPriorityImage()
+        {
+            J2KImage image = null;
+
+            if (m_priorityQueue.Count > 0)
+            {
+                try
+                {
+                    lock (m_priorityQueue)
+                        image = m_priorityQueue.FindMax();
+                }
+                catch (Exception) { }
+            }
+
+            return image;
+        }
+
+        void AddImageToQueue(J2KImage image)
+        {
+            image.PriorityQueueHandle = null;
+
+            lock (m_priorityQueue)
+                m_priorityQueue.Add(ref image.PriorityQueueHandle, image);
+        }
+
+        void RemoveImageFromQueue(J2KImage image)
+        {
+            try
+            {
+                lock (m_priorityQueue)
+                    m_priorityQueue.Delete(image.PriorityQueueHandle);
+            }
+            catch (Exception) { }
+        }
+
+        void UpdateImageInQueue(J2KImage image)
+        {
+            lock (m_priorityQueue)
+            {
+                try { m_priorityQueue.Replace(image.PriorityQueueHandle, image); }
+                catch (Exception)
+                {
+                    image.PriorityQueueHandle = null;
+                    m_priorityQueue.Add(ref image.PriorityQueueHandle, image);
+                }
+            }
+        }
+
+        #endregion Priority Queue Helpers
     }
 }
