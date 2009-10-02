@@ -45,7 +45,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             public int Compare(J2KImage x, J2KImage y)
             {
-                return x.m_requestedPriority.CompareTo(y.m_requestedPriority);
+                return x.Priority.CompareTo(y.Priority);
             }
         }
 
@@ -94,7 +94,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // Do a linear search for this texture download
                 lock (m_priorityQueue)
-                    m_priorityQueue.Find(delegate(J2KImage img) { return img.m_requestedUUID == newRequest.RequestedAssetID; }, out imgrequest);
+                    m_priorityQueue.Find(delegate(J2KImage img) { return img.TextureID == newRequest.RequestedAssetID; }, out imgrequest);
 
                 if (imgrequest != null)
                 {
@@ -105,7 +105,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         try 
                         {
                             lock (m_priorityQueue)
-                                m_priorityQueue.Delete(imgrequest.m_priorityQueueHandle); 
+                                m_priorityQueue.Delete(imgrequest.PriorityQueueHandle); 
                         }
                         catch (Exception) { }
                     }
@@ -116,29 +116,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         //Check the packet sequence to make sure this isn't older than 
                         //one we've already received
-                        if (newRequest.requestSequence > imgrequest.m_lastSequence)
+                        if (newRequest.requestSequence > imgrequest.LastSequence)
                         {
                             //Update the sequence number of the last RequestImage packet
-                            imgrequest.m_lastSequence = newRequest.requestSequence;
+                            imgrequest.LastSequence = newRequest.requestSequence;
 
                             //Update the requested discard level
-                            imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
+                            imgrequest.DiscardLevel = newRequest.DiscardLevel;
 
                             //Update the requested packet number
-                            imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
+                            imgrequest.StartPacket = newRequest.PacketNumber;
 
                             //Update the requested priority
-                            imgrequest.m_requestedPriority = newRequest.Priority;
+                            imgrequest.Priority = newRequest.Priority;
                             try 
                             { 
                                 lock (m_priorityQueue)
-                                    m_priorityQueue.Replace(imgrequest.m_priorityQueueHandle, imgrequest); 
+                                    m_priorityQueue.Replace(imgrequest.PriorityQueueHandle, imgrequest); 
                             }
                             catch (Exception) 
                             { 
-                                imgrequest.m_priorityQueueHandle = null; 
+                                imgrequest.PriorityQueueHandle = null; 
                                 lock (m_priorityQueue)
-                                    m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest); 
+                                    m_priorityQueue.Add(ref imgrequest.PriorityQueueHandle, imgrequest); 
                             }
 
                             //Run an update
@@ -161,29 +161,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         imgrequest = new J2KImage(this);
 
                         //Assign our decoder module
-                        imgrequest.m_j2kDecodeModule = m_j2kDecodeModule;
+                        imgrequest.J2KDecoder = m_j2kDecodeModule;
 
                         //Assign our asset cache module
-                        imgrequest.m_assetCache = m_assetCache;
+                        imgrequest.AssetService = m_assetCache;
 
                         //Assign the requested discard level
-                        imgrequest.m_requestedDiscardLevel = newRequest.DiscardLevel;
+                        imgrequest.DiscardLevel = newRequest.DiscardLevel;
 
                         //Assign the requested packet number
-                        imgrequest.m_requestedPacketNumber = newRequest.PacketNumber;
+                        imgrequest.StartPacket = newRequest.PacketNumber;
 
                         //Assign the requested priority
-                        imgrequest.m_requestedPriority = newRequest.Priority;
+                        imgrequest.Priority = newRequest.Priority;
 
                         //Assign the asset uuid
-                        imgrequest.m_requestedUUID = newRequest.RequestedAssetID;
+                        imgrequest.TextureID = newRequest.RequestedAssetID;
 
                         //Assign the requested priority
-                        imgrequest.m_requestedPriority = newRequest.Priority;
+                        imgrequest.Priority = newRequest.Priority;
 
                         //Add this download to the priority queue
                         lock (m_priorityQueue)
-                            m_priorityQueue.Add(ref imgrequest.m_priorityQueueHandle, imgrequest);
+                            m_priorityQueue.Add(ref imgrequest.PriorityQueueHandle, imgrequest);
 
                         //Run an update
                         imgrequest.RunUpdate();
@@ -249,12 +249,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         lock (m_priorityQueue)
                             imagereq = m_priorityQueue.FindMax();
 
-                        if (imagereq.m_decoded == true)
+                        if (imagereq.IsDecoded == true)
                         {
                             // we need to test this here now that we are dropping assets
-                            if (!imagereq.m_hasasset)
+                            if (!imagereq.HasAsset)
                             {
-                                m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.m_requestedUUID);
+                                m_log.WarnFormat("[LLIMAGE MANAGER]: Re-requesting the image asset {0}", imagereq.TextureID);
                                 imagereq.RunUpdate();
                                 continue;
                             }
@@ -268,7 +268,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 try 
                                 { 
                                     lock (m_priorityQueue)
-                                        m_priorityQueue.Delete(imagereq.m_priorityQueueHandle); 
+                                        m_priorityQueue.Delete(imagereq.PriorityQueueHandle); 
                                 }
                                 catch (Exception) { }
                             }
