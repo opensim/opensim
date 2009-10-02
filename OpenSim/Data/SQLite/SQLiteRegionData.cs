@@ -336,7 +336,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="regionUUID">the region UUID</param>
         public void RemoveObject(UUID obj, UUID regionUUID)
         {
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
+            // m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
