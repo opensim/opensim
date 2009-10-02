@@ -227,7 +227,7 @@ namespace OpenSim.Data.NHibernate
                 manager.Delete(p);
             }
 
-            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
+            // m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.Guid, regionUUID);
 
         }
 

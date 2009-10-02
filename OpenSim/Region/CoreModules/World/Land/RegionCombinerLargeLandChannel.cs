@@ -85,7 +85,7 @@ public class RegionCombinerLargeLandChannel : ILandChannel
                     }
                 }
                 ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
-                obj.landData.Name = "NO LAND";
+                obj.LandData.Name = "NO LAND";
                 return obj;
             }
         }
@@ -118,7 +118,7 @@ public class RegionCombinerLargeLandChannel : ILandChannel
                     }
                 }
                 ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
-                obj.landData.Name = "NO LAND";
+                obj.LandData.Name = "NO LAND";
                 return obj;
             }
         }

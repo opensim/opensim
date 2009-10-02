@@ -191,7 +191,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
                 foreach (ILandObject landObject in m_los)
                 {
-                    m_parcels.Add(new LOParcel(m_internalScene, landObject.landData.LocalID));
+                    m_parcels.Add(new LOParcel(m_internalScene, landObject.LandData.LocalID));
                 }
 
                 return m_parcels.ToArray();

@@ -658,9 +658,9 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                         foreach (ILandObject parcel in parcels)
                         {
-                            parcel.landData.Flags |= (uint) ParcelFlags.AllowVoiceChat;
-                            parcel.landData.Flags |= (uint) ParcelFlags.UseEstateVoiceChan;
-                            ((Scene)newscene).LandChannel.UpdateLandObject(parcel.landData.LocalID, parcel.landData);
+                            parcel.LandData.Flags |= (uint) ParcelFlags.AllowVoiceChat;
+                            parcel.LandData.Flags |= (uint) ParcelFlags.UseEstateVoiceChan;
+                            ((Scene)newscene).LandChannel.UpdateLandObject(parcel.LandData.LocalID, parcel.LandData);
                         }
                     }
 
@@ -910,15 +910,15 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         {
                             if (enableVoice)
                             {
-                                parcel.landData.Flags |= (uint)ParcelFlags.AllowVoiceChat;
-                                parcel.landData.Flags |= (uint)ParcelFlags.UseEstateVoiceChan;
+                                parcel.LandData.Flags |= (uint)ParcelFlags.AllowVoiceChat;
+                                parcel.LandData.Flags |= (uint)ParcelFlags.UseEstateVoiceChan;
                             }
                             else
                             {
-                                parcel.landData.Flags &= ~(uint)ParcelFlags.AllowVoiceChat;
-                                parcel.landData.Flags &= ~(uint)ParcelFlags.UseEstateVoiceChan;
+                                parcel.LandData.Flags &= ~(uint)ParcelFlags.AllowVoiceChat;
+                                parcel.LandData.Flags &= ~(uint)ParcelFlags.UseEstateVoiceChan;
                             }
-                            scene.LandChannel.UpdateLandObject(parcel.landData.LocalID, parcel.landData);
+                            scene.LandChannel.UpdateLandObject(parcel.LandData.LocalID, parcel.LandData);
                         }
                     }
 

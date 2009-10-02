@@ -139,7 +139,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             xmlobject.AppendChild(node);
 
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "parceluuid", "");
-                            node.InnerText = land.landData.GlobalID.ToString();
+                            node.InnerText = land.LandData.GlobalID.ToString();
                             xmlobject.AppendChild(node);
 
                             parent.AppendChild(xmlobject);

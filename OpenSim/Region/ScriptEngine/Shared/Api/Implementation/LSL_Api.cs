@@ -3899,7 +3899,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                     {
                         presence.ControllingClient.SendTeleportLocationStart();
                         World.TeleportClientHome(agentId, presence.ControllingClient);
@@ -4091,7 +4091,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return;
 
                     // Need provisions for Group Owned here
-                    if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                    if (m_host.OwnerID == targetlandObj.LandData.OwnerID || 
+                        targetlandObj.LandData.IsGroupOwned || m_host.OwnerID == targetID)
                     {
                         pushAllowed = true;
                     }
@@ -4107,10 +4108,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     else
                     {
                         // Parcel push restriction
-                        if ((targetlandObj.landData.Flags & (uint)ParcelFlags.RestrictPushObject) == (uint)ParcelFlags.RestrictPushObject)
+                        if ((targetlandObj.LandData.Flags & (uint)ParcelFlags.RestrictPushObject) == (uint)ParcelFlags.RestrictPushObject)
                         {
                             // Need provisions for Group Owned here
-                            if (m_host.OwnerID == targetlandObj.landData.OwnerID || targetlandObj.landData.IsGroupOwned || m_host.OwnerID == targetID)
+                            if (m_host.OwnerID == targetlandObj.LandData.OwnerID || 
+                                targetlandObj.LandData.IsGroupOwned || 
+                                m_host.OwnerID == targetID)
                             {
                                 pushAllowed = true;
                             }
@@ -5442,7 +5445,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                         World.TeleportClientHome(agentId, presence.ControllingClient);
                 }
             }
@@ -5532,7 +5535,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     if (m_host.OwnerID
                         == World.LandChannel.GetLandObject(
-                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).landData.OwnerID)
+                            presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)
                         return 1;
                 }
                 else // object is not an avatar
@@ -5541,7 +5544,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (obj != null)
                         if (m_host.OwnerID
                             == World.LandChannel.GetLandObject(
-                                obj.AbsolutePosition.X, obj.AbsolutePosition.Y).landData.OwnerID)
+                                obj.AbsolutePosition.X, obj.AbsolutePosition.Y).LandData.OwnerID)
                             return 1;
                 }
             }
@@ -5552,7 +5555,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetLandOwnerAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            return World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.OwnerID.ToString();
+            return World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).LandData.OwnerID.ToString();
         }
 
         /// <summary>
@@ -5621,9 +5624,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
                         if (parcel != null)
                         {
-                            if (m_host.ObjectOwner == parcel.landData.OwnerID ||
-                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.GroupID
-                                && parcel.landData.IsGroupOwned) || World.Permissions.IsGod(m_host.OwnerID))
+                            if (m_host.ObjectOwner == parcel.LandData.OwnerID ||
+                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.LandData.GroupID
+                                && parcel.LandData.IsGroupOwned) || World.Permissions.IsGod(m_host.OwnerID))
                             {
                                 av.StandUp();
                             }
@@ -6126,7 +6129,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -7144,7 +7147,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if (land.landData.OwnerID != m_host.ObjectOwner)
+            if (land.LandData.OwnerID != m_host.ObjectOwner)
                 return;
 
             land.SetMusicUrl(url);
@@ -8403,7 +8406,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
             byte loop = 0;
 
-            LandData landData = landObject.landData;
+            LandData landData = landObject.LandData;
             string url = landData.MediaURL;
             string texture = landData.MediaID.ToString();
             bool autoAlign = landData.MediaAutoScale != 0;
@@ -8832,7 +8835,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -8851,7 +8854,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 if (UUID.TryParse(avatar, out key))
@@ -8873,7 +8876,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             UUID key;
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 if (UUID.TryParse(avatar, out key))
@@ -9018,7 +9021,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetParcelFlags(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            return (int)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.Flags;
+            return (int)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).LandData.Flags;
         }
 
         public LSL_Integer llGetRegionFlags()
@@ -9139,7 +9142,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetLandBanList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
@@ -9156,7 +9159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetLandPassList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).LandData;
             if (land.OwnerID == m_host.OwnerID)
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.ParcelAccessList)
@@ -9240,7 +9243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LSL_List ret = new LSL_List();
             if (land != null)
             {
-                foreach (KeyValuePair<UUID, int> detectedParams in land.getLandObjectOwners())
+                foreach (KeyValuePair<UUID, int> detectedParams in land.GetLandObjectOwners())
                 {
                     ret.Add(detectedParams.Key.ToString());
                     ret.Add(detectedParams.Value);

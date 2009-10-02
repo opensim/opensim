@@ -569,7 +569,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
-            if (parcel != null && parcel.landData.OwnerID == user && m_ParcelOwnerIsGod)
+            if (parcel != null && parcel.LandData.OwnerID == user && m_ParcelOwnerIsGod)
             {
                 // Admin objects should not be editable by the above
                 if (!IsAdministrator(objectOwner))
@@ -672,7 +672,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         
             // Users should be able to edit what is over their land.
             ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
-            if ((parcel != null) && (parcel.landData.OwnerID == currentUser))
+            if ((parcel != null) && (parcel.LandData.OwnerID == currentUser))
             {
                 permission = true;
             }
@@ -740,12 +740,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             bool permission = false;
 
-            if (parcel.landData.OwnerID == user)
+            if (parcel.LandData.OwnerID == user)
             {
                 permission = true;
             }
 
-            if ((parcel.landData.GroupID != UUID.Zero) && IsGroupMember(parcel.landData.GroupID, user, groupPowers))
+            if ((parcel.LandData.GroupID != UUID.Zero) && IsGroupMember(parcel.LandData.GroupID, user, groupPowers))
             {
                 permission = true;
             }
@@ -767,12 +767,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             bool permission = false;
 
-            if (parcel.landData.OwnerID == user)
+            if (parcel.LandData.OwnerID == user)
             {
                 permission = true;
             }
 
-            if (parcel.landData.IsGroupOwned && IsGroupMember(parcel.landData.GroupID, user, groupPowers))
+            if (parcel.LandData.IsGroupOwned && IsGroupMember(parcel.LandData.GroupID, user, groupPowers))
             {
                 permission = true;
             }
@@ -820,13 +820,13 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            if (parcel.landData.OwnerID != user) // Only the owner can deed!
+            if (parcel.LandData.OwnerID != user) // Only the owner can deed!
                 return false;
 
             ScenePresence sp = scene.GetScenePresence(user);
             IClientAPI client = sp.ControllingClient;
 
-            if ((client.GetGroupPowers(parcel.landData.GroupID) & (ulong)GroupPowers.LandDeed) == 0)
+            if ((client.GetGroupPowers(parcel.LandData.GroupID) & (ulong)GroupPowers.LandDeed) == 0)
                 return false;
 
             return GenericParcelOwnerPermission(user, parcel, (ulong)GroupPowers.LandDeed);
@@ -1189,7 +1189,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
             }
 
-            if ((land.landData.Flags & ((int)ParcelFlags.AllowAPrimitiveEntry)) != 0)
+            if ((land.LandData.Flags & ((int)ParcelFlags.AllowAPrimitiveEntry)) != 0)
             {
                 return true;
             }
@@ -1233,7 +1233,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
             if (land == null) return false;
 
-            if ((land.landData.Flags & ((int)ParcelFlags.CreateObjects)) ==
+            if ((land.LandData.Flags & ((int)ParcelFlags.CreateObjects)) ==
                 (int)ParcelFlags.CreateObjects)
                 permission = true;
 
@@ -1360,7 +1360,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return false;
 
             // Others allowed to terraform?
-            if ((parcel.landData.Flags & ((int)ParcelFlags.AllowTerraform)) != 0)
+            if ((parcel.LandData.Flags & ((int)ParcelFlags.AllowTerraform)) != 0)
                 return true;
 
             // Land owner can terraform too
@@ -1693,27 +1693,27 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
             long powers = 0;
-            if (parcel.landData.GroupID != UUID.Zero)
-                client.GetGroupPowers(parcel.landData.GroupID);
+            if (parcel.LandData.GroupID != UUID.Zero)
+                client.GetGroupPowers(parcel.LandData.GroupID);
 
             switch (type)
             {
             case (uint)ObjectReturnType.Owner:
                 // Don't let group members return owner's objects, ever
                 //
-                if (parcel.landData.IsGroupOwned)
+                if (parcel.LandData.IsGroupOwned)
                 {
                     if ((powers & (long)GroupPowers.ReturnGroupOwned) != 0)
                         return true;
                 }
                 else
                 {
-                    if (parcel.landData.OwnerID != client.AgentId)
+                    if (parcel.LandData.OwnerID != client.AgentId)
                         return false;
                 }
         return GenericParcelOwnerPermission(client.AgentId, parcel, (ulong)GroupPowers.ReturnGroupOwned);
             case (uint)ObjectReturnType.Group:
-                if (parcel.landData.OwnerID != client.AgentId)
+                if (parcel.LandData.OwnerID != client.AgentId)
                 {
                     // If permissionis granted through a group...
                     //

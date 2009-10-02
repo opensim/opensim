@@ -127,7 +127,7 @@ namespace OpenSim.Tests.Common.Setup
         public static TestScene SetupScene(
             string name, UUID id, uint x, uint y, TestCommunicationsManager cm, String realServices)
         {
-            bool newScene= false;
+            bool newScene = false;
 
             Console.WriteLine("Setting up test scene {0}", name);
             
@@ -198,7 +198,7 @@ namespace OpenSim.Tests.Common.Setup
 
             testScene.SetModuleInterfaces();
 
-            testScene.LandChannel = new TestLandChannel();
+            testScene.LandChannel = new TestLandChannel(testScene);
             testScene.LoadWorldMap();
 
             PhysicsPluginManager physicsPluginManager = new PhysicsPluginManager();
