@@ -699,7 +699,7 @@ namespace OpenSim
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                return Encoding.UTF8.GetBytes("OK");
+                return Util.UTF8.GetBytes("OK");
             }
 
             public string ContentType
@@ -736,7 +736,7 @@ namespace OpenSim
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                return Encoding.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
+                return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
 
             public string ContentType
@@ -777,7 +777,7 @@ namespace OpenSim
             public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
-                return Encoding.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
+                return Util.UTF8.GetBytes(m_opensim.StatReport(httpRequest));
             }
 
             public string ContentType

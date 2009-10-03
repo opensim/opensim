@@ -81,7 +81,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             m_log.Info("[IRCd] Sending >>> " + command);
 
-            byte[] buf = Encoding.UTF8.GetBytes(command + "\r\n");
+            byte[] buf = Util.UTF8.GetBytes(command + "\r\n");
 
             m_client.GetStream().BeginWrite(buf, 0, buf.Length, SendComplete, null);
         }
@@ -109,7 +109,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     byte[] buf = new byte[8]; // RFC1459 defines max message size as 512.
 
                     int count = m_client.GetStream().Read(buf, 0, buf.Length);
-                    string line = Encoding.UTF8.GetString(buf, 0, count);
+                    string line = Util.UTF8.GetString(buf, 0, count);
 
                     strbuf += line;
 

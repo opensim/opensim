@@ -965,7 +965,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             // response.ContentType = "application/llsd+json";
-            // return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(llsdResponse));
+            // return Util.UTF8.GetBytes(OSDParser.SerializeJsonString(llsdResponse));
             response.ContentType = "application/llsd+xml";
             return OSDParser.SerializeLLSDXmlBytes(llsdResponse);
         }

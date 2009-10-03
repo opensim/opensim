@@ -45,7 +45,8 @@ namespace OpenSim.ApplicationPlugins.Rest
         {
         }
 
-        public RestXmlWriter(Stream stream) : this(stream, Encoding.UTF8)
+        public RestXmlWriter(Stream stream)
+            : this(stream, Encoding.UTF8)
         {
         }
 

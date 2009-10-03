@@ -163,7 +163,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             get { return Plugin.RequestId; }
         }
 
-        internal static Encoding Encoding = Encoding.UTF8;
+        internal static Encoding Encoding = Util.UTF8;
 
         /// <summary>
         /// Version control for REST implementation. This
@@ -435,7 +435,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             try
             {
                 byte[] encData_byte = new byte[str.Length];
-                encData_byte = Encoding.UTF8.GetBytes(str);
+                encData_byte = Util.UTF8.GetBytes(str);
                 return Convert.ToBase64String(encData_byte);
             }
             catch

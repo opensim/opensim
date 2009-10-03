@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                 // Encode outbound data
                 if (OutboundBody.Length > 0) 
                 {
-                    byte[] data = Encoding.UTF8.GetBytes(OutboundBody);
+                    byte[] data = Util.UTF8.GetBytes(OutboundBody);
 
                     Request.ContentLength = data.Length;
                     Stream bstream = Request.GetRequestStream();
@@ -390,7 +390,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                     if (count != 0)
                     {
                         // translate from bytes to ASCII text
-                        tempString = Encoding.UTF8.GetString(buf, 0, count);
+                        tempString = Util.UTF8.GetString(buf, 0, count);
 
                         // continue building the string
                         sb.Append(tempString);

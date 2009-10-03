@@ -172,7 +172,7 @@ namespace OpenSim.Region.Framework.Scenes
         public string SaveToXmlString()
         {
             XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Encoding = Encoding.UTF8;
+            settings.Encoding = Util.UTF8;
             using (StringWriter sw = new StringWriter())
             {
                 using (XmlWriter writer = XmlWriter.Create(sw, settings))

@@ -69,7 +69,9 @@ namespace OpenSim.Framework
 
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-        
+
+        public static Encoding UTF8 = Encoding.UTF8;
+
         /// <value>
         /// Well known UUID for the blank texture used in the Linden SL viewer version 1.20 (and hopefully onwards) 
         /// </value>
@@ -432,7 +434,7 @@ namespace OpenSim.Framework
                     output.Append(": ");
                 }
 
-                output.Append(CleanString(Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1)));
+                output.Append(CleanString(Util.UTF8.GetString(bytes, 0, bytes.Length - 1)));
             }
             else
             {
@@ -793,7 +795,7 @@ namespace OpenSim.Framework
 
         public static string Compress(string text)
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(text);
+            byte[] buffer = Util.UTF8.GetBytes(text);
             MemoryStream memory = new MemoryStream();
             using (GZipStream compressor = new GZipStream(memory, CompressionMode.Compress, true))
             {
@@ -827,7 +829,7 @@ namespace OpenSim.Framework
                     decompressor.Read(buffer, 0, buffer.Length);
                 }
 
-                return Encoding.UTF8.GetString(buffer);
+                return Util.UTF8.GetString(buffer);
             }
         }
 
@@ -1099,7 +1101,7 @@ namespace OpenSim.Framework
         {
             byte[] data = new byte[length];
             stream.Read(data, 0, length);
-            string strdata = Encoding.UTF8.GetString(data);
+            string strdata = Util.UTF8.GetString(data);
             OSDMap args = null;
             OSD buffer;
             buffer = OSDParser.DeserializeJson(strdata);

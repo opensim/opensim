@@ -87,7 +87,7 @@ namespace OpenSim.Server.Base
         public static  byte[] SerializeResult(XmlSerializer xs, object data)
         {
             MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, Encoding.UTF8);
+            XmlTextWriter xw = new XmlTextWriter(ms, Util.UTF8);
             xw.Formatting = Formatting.Indented;
             xs.Serialize(xw, data);
             xw.Flush();

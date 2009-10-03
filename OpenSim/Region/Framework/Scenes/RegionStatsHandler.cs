@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
                     
         public byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            return Encoding.UTF8.GetBytes(Report());
+            return Util.UTF8.GetBytes(Report());
         }
 
         public string ContentType
