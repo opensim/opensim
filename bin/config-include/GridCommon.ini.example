@@ -17,7 +17,7 @@
 
 [GridService]
     ;
-    ; change this to your grid-wide inventory server
+    ; change this to your grid-wide grid server
     ;
     GridServerURI = "http://mygridserver.com:8001"
 
