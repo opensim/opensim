@@ -576,8 +576,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return objectOwnerMask;
             }
 
-            if ((objectOwnerMask & PermissionMask.Transfer != 0) && task.saleType != 0)
-                objectEveryoneMask |= ObjectFlags.ObjectTransfer;
+            if ((objectOwnerMask & (uint)PermissionMask.Transfer) != 0 && task.ObjectSaleType != 0)
+                objectEveryoneMask |= (uint)PrimFlags.ObjectTransfer;
 
             // Group permissions
             if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))
