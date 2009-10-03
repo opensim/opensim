@@ -58,6 +58,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public static TResponse MakeRequest<TRequest, TResponse>(string verb, string requestUrl, TRequest obj)
         {
             Type type = typeof (TRequest);
+            TResponse deserial = default(TResponse);
 
             WebRequest request = WebRequest.Create(requestUrl);
             request.Method = verb;
@@ -81,19 +82,33 @@ namespace OpenSim.Framework.Servers.HttpServer
                 int length = (int) buffer.Length;
                 request.ContentLength = length;
 
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(buffer.ToArray(), 0, length);
+                Stream requestStream = null;
+                try
+                {
+                    requestStream = request.GetRequestStream();
+                    requestStream.Write(buffer.ToArray(), 0, length);
+                }
+                catch (Exception)
+                {
+                    return deserial;
+                }
+                finally
+                {
+                    if (requestStream != null)
+                        requestStream.Close();
+                }
             }
 
-            TResponse deserial = default(TResponse);
             try
             {
                 using (WebResponse resp = request.GetResponse())
                 {
                     if (resp.ContentLength > 0)
                     {
+                        Stream respStream = resp.GetResponseStream();
                         XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                        deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
+                        deserial = (TResponse)deserializer.Deserialize(respStream);
+                        respStream.Close();
                     }
                 }
             }
