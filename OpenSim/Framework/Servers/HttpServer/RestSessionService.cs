@@ -88,14 +88,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                 serializer.Serialize(writer, sobj);
                 writer.Flush();
             }
-            buffer.Close();
 
             int length = (int)buffer.Length;
             request.ContentLength = length;
 
             Stream requestStream = request.GetRequestStream();
             requestStream.Write(buffer.ToArray(), 0, length);
+            buffer.Close();
             requestStream.Close();
+
             TResponse deserial = default(TResponse);
             using (WebResponse resp = request.GetResponse())
             {
