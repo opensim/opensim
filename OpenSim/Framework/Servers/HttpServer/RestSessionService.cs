@@ -88,6 +88,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 serializer.Serialize(writer, sobj);
                 writer.Flush();
             }
+            buffer.Close();
 
             int length = (int)buffer.Length;
             request.ContentLength = length;
@@ -99,8 +100,19 @@ namespace OpenSim.Framework.Servers.HttpServer
             using (WebResponse resp = request.GetResponse())
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
-                deserial = (TResponse)deserializer.Deserialize(resp.GetResponseStream());
-                resp.Close();
+                Stream respStream = null;
+                try
+                {
+                    respStream = resp.GetResponseStream();
+                    deserial = (TResponse)deserializer.Deserialize(respStream);
+                }
+                catch { }
+                finally
+                {
+                    if (respStream != null)
+                        respStream.Close();
+                    resp.Close();
+                }
             }
             return deserial;
         }
@@ -140,6 +152,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 serializer.Serialize(writer, sobj);
                 writer.Flush();
             }
+            buffer.Close();
 
             int length = (int)buffer.Length;
             request.ContentLength = length;
@@ -165,6 +178,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //                m_log.DebugFormat("[REST OBJECT POSTER RESPONSE]: Received {0}", reader.ReadToEnd());
 
                 deserial = (TResponse)deserializer.Deserialize(stream);
+                if (stream != null)
+                    stream.Close();
 
                 if (deserial != null && ResponseCallback != null)
                 {

@@ -62,6 +62,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     writer.Write(obj);
                     writer.Flush();
                 }
+                buffer.Close();
 
                 length = (int)obj.Length;
                 request.ContentLength = length;
