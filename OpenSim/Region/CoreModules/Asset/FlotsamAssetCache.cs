@@ -499,21 +499,22 @@ namespace Flotsam.RegionModules.AssetCache
         private void WriteFileCache(string filename, AssetBase asset)
         {
             Stream stream = null;
+            // Make sure the target cache directory exists
+            string directory = Path.GetDirectoryName(filename);
+            // Write file first to a temp name, so that it doesn't look 
+            // like it's already cached while it's still writing.
+            string tempname = Path.Combine(directory, Path.GetRandomFileName());
             try
             {
-                // Make sure the target cache directory exists
-                string directory = Path.GetDirectoryName(filename);
                 if (!Directory.Exists(directory))
                 {
                     Directory.CreateDirectory(directory);
                 }
 
-                // Write file first to a temp name, so that it doesn't look 
-                // like it's already cached while it's still writing.
-                string tempname = Path.Combine(directory, Path.GetRandomFileName());
                 stream = File.Open(tempname, FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
                 bformatter.Serialize(stream, asset);
+                stream.Close();
 
                 // Now that it's written, rename it so that it can be found.
                 File.Move(tempname, filename);
