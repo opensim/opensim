@@ -1344,7 +1344,8 @@ if (m_shape != null) {
                 bool RigidBody = isPhysical && !isPhantom;
 
                 // The only time the physics scene shouldn't know about the prim is if it's phantom or an attachment, which is phantom by definition
-                if (!isPhantom && !IsAttachment)
+                // or flexible
+                if (!isPhantom && !IsAttachment && !(Shape.PathCurve == (byte) Extrusion.Flexible))
                 {
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                         Name,
@@ -3426,8 +3427,8 @@ if (m_shape != null) {
                 }
             }
 
-            
-            if (IsPhantom || IsAttachment) // note: this may have been changed above in the case of joints
+
+            if (IsPhantom || IsAttachment || (Shape.PathCurve == (byte)Extrusion.Flexible)) // note: this may have been changed above in the case of joints
             {
                 AddFlag(PrimFlags.Phantom);
                 PhysicsActor pa = PhysActor;
