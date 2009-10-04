@@ -183,7 +183,8 @@ namespace OpenSim.Services.Connectors
             }
             else
             {
-                Util.FireAndForget(delegate { handler(id, sender, asset); });
+                //Util.FireAndForget(delegate { handler(id, sender, asset); });
+                handler(id, sender, asset);
             }
 
             return true;
