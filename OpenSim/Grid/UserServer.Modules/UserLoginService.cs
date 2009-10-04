@@ -317,6 +317,7 @@ namespace OpenSim.Grid.UserServer.Modules
                 {
                     m_log.DebugFormat("[LOGIN]: Appearance not for {0} {1}. Creating default.", user.FirstName, user.SurName);
                     appearance = new AvatarAppearance(user.ID);
+                    loginParams["appearance"] = appearance.ToHashTable();
                 }
 
                 ArrayList SendParams = new ArrayList();

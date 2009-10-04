@@ -182,103 +182,125 @@ namespace OpenSim.Client.Linden
         /// <returns></returns>
         public XmlRpcResponse ExpectUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable requestData = (Hashtable)request.Params[0];
-            AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new UUID((string)requestData["session_id"]);
-            agentData.SecureSessionID = new UUID((string)requestData["secure_session_id"]);
-            agentData.firstname = (string)requestData["firstname"];
-            agentData.lastname = (string)requestData["lastname"];
-            agentData.AgentID = new UUID((string)requestData["agent_id"]);
-            agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-            agentData.CapsPath = (string)requestData["caps_path"];
-            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
-
-            // Appearance
-            if (requestData["appearance"] != null)
-                agentData.Appearance = new AvatarAppearance((Hashtable)requestData["appearance"]);
-
-            m_log.DebugFormat(
-                "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",
-                agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);
-
-            if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
-            {
-                //m_log.Debug("[CLIENT]: Child agent detected");
-                agentData.child = true;
-            }
-            else
-            {
-                //m_log.Debug("[CLIENT]: Main agent detected");
-                agentData.startpos =
-                    new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
-                                  (float)Convert.ToDecimal((string)requestData["startpos_y"]),
-                                  (float)Convert.ToDecimal((string)requestData["startpos_z"]));
-                agentData.child = false;
-            }
-
             XmlRpcResponse resp = new XmlRpcResponse();
 
-            if (!RegionLoginsEnabled)
+            try
             {
-                m_log.InfoFormat(
-                    "[CLIENT]: Denying access for user {0} {1} because region login is currently disabled",
-                    agentData.firstname, agentData.lastname);
+                ulong regionHandle = 0;
+                Hashtable requestData = (Hashtable)request.Params[0];
+                AgentCircuitData agentData = new AgentCircuitData();
+                if (requestData.ContainsKey("session_id"))
+                    agentData.SessionID = new UUID((string)requestData["session_id"]);
+                if (requestData.ContainsKey("secure_session_id"))
+                    agentData.SecureSessionID = new UUID((string)requestData["secure_session_id"]);
+                if (requestData.ContainsKey("firstname"))
+                    agentData.firstname = (string)requestData["firstname"];
+                if (requestData.ContainsKey("lastname"))
+                    agentData.lastname = (string)requestData["lastname"];
+                if (requestData.ContainsKey("agent_id"))
+                    agentData.AgentID = new UUID((string)requestData["agent_id"]);
+                if (requestData.ContainsKey("circuit_code"))
+                    agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
+                if (requestData.ContainsKey("caps_path"))
+                    agentData.CapsPath = (string)requestData["caps_path"];
+                if (requestData.ContainsKey("regionhandle"))
+                    regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
+                else
+                    m_log.Warn("[CLIENT]: request from login server did not contain regionhandle");
 
-                Hashtable respdata = new Hashtable();
-                respdata["success"] = "FALSE";
-                respdata["reason"] = "region login currently disabled";
-                resp.Value = respdata;
-            }
-            else
-            {
-                bool success = false;
-                string denyMess = "";
+                // Appearance
+                if (requestData.ContainsKey("appearance"))
+                    agentData.Appearance = new AvatarAppearance((Hashtable)requestData["appearance"]);
 
-                Scene scene;
-                if (TryGetRegion(regionHandle, out scene))
+                m_log.DebugFormat(
+                    "[CLIENT]: Told by user service to prepare for a connection from {0} {1} {2}, circuit {3}",
+                    agentData.firstname, agentData.lastname, agentData.AgentID, agentData.circuitcode);
+
+                if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
                 {
-                    if (scene.RegionInfo.EstateSettings.IsBanned(agentData.AgentID))
+                    //m_log.Debug("[CLIENT]: Child agent detected");
+                    agentData.child = true;
+                }
+                else
+                {
+                    //m_log.Debug("[CLIENT]: Main agent detected");
+                    agentData.startpos =
+                        new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
+                                      (float)Convert.ToDecimal((string)requestData["startpos_y"]),
+                                      (float)Convert.ToDecimal((string)requestData["startpos_z"]));
+                    agentData.child = false;
+                }
+
+                if (!RegionLoginsEnabled)
+                {
+                    m_log.InfoFormat(
+                        "[CLIENT]: Denying access for user {0} {1} because region login is currently disabled",
+                        agentData.firstname, agentData.lastname);
+
+                    Hashtable respdata = new Hashtable();
+                    respdata["success"] = "FALSE";
+                    respdata["reason"] = "region login currently disabled";
+                    resp.Value = respdata;
+                }
+                else
+                {
+                    bool success = false;
+                    string denyMess = "";
+
+                    Scene scene;
+                    if (TryGetRegion(regionHandle, out scene))
                     {
-                        denyMess = "User is banned from this region";
-                        m_log.InfoFormat(
-                            "[CLIENT]: Denying access for user {0} {1} because user is banned",
-                            agentData.firstname, agentData.lastname);
-                    }
-                    else
-                    {
-                        string reason;
-                        if (scene.NewUserConnection(agentData, out reason))
+                        if (scene.RegionInfo.EstateSettings.IsBanned(agentData.AgentID))
                         {
-                            success = true;
+                            denyMess = "User is banned from this region";
+                            m_log.InfoFormat(
+                                "[CLIENT]: Denying access for user {0} {1} because user is banned",
+                                agentData.firstname, agentData.lastname);
                         }
                         else
                         {
-                            denyMess = String.Format("Login refused by region: {0}", reason);
-                            m_log.InfoFormat(
-                                "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
-                                agentData.firstname, agentData.lastname);
+                            string reason;
+                            if (scene.NewUserConnection(agentData, out reason))
+                            {
+                                success = true;
+                            }
+                            else
+                            {
+                                denyMess = String.Format("Login refused by region: {0}", reason);
+                                m_log.InfoFormat(
+                                    "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
+                                    agentData.firstname, agentData.lastname);
+                            }
                         }
+
+                    }
+                    else
+                    {
+                        denyMess = "Region not found";
                     }
 
+                    if (success)
+                    {
+                        Hashtable respdata = new Hashtable();
+                        respdata["success"] = "TRUE";
+                        resp.Value = respdata;
+                    }
+                    else
+                    {
+                        Hashtable respdata = new Hashtable();
+                        respdata["success"] = "FALSE";
+                        respdata["reason"] = denyMess;
+                        resp.Value = respdata;
+                    }
                 }
-                else
-                {
-                    denyMess = "Region not found";
-                }
-
-                if (success)
-                {
-                    Hashtable respdata = new Hashtable();
-                    respdata["success"] = "TRUE";
-                    resp.Value = respdata;
-                }
-                else
-                {
-                    Hashtable respdata = new Hashtable();
-                    respdata["success"] = "FALSE";
-                    respdata["reason"] = denyMess;
-                    resp.Value = respdata;
-                }
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat("[CLIENT]: Unable to receive user. Reason: {0}", e);
+                Hashtable respdata = new Hashtable();
+                respdata["success"] = "FALSE";
+                respdata["reason"] = "Exception occurred";
+                resp.Value = respdata;
             }
 
             return resp;
