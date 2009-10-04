@@ -167,8 +167,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             J2KImage imagereq;
             int numCollected = 0;
 
-            lock (m_syncRoot)
-            {
+            //lock (m_syncRoot)
+            //{
                 m_lastloopprocessed = DateTime.Now.Ticks;
 
                 // This can happen during Close()
@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (numCollected == count)
                         break;
                 }
-            }
+            //}
 
             return m_priorityQueue.Count > 0;
         }
@@ -211,16 +211,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             J2KImage image = null;
 
-            if (m_priorityQueue.Count > 0)
+            lock (m_priorityQueue)
             {
-                try
-                {
-                    lock (m_priorityQueue)
-                        image = m_priorityQueue.FindMax();
-                }
-                catch (Exception) { }
-            }
 
+                if (m_priorityQueue.Count > 0)
+                {
+                    try
+                    {
+                        image = m_priorityQueue.FindMax();
+                    }
+                    catch (Exception) { }
+                }
+            }
             return image;
         }
 
