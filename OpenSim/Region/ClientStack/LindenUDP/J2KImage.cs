@@ -197,11 +197,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_currentPacket = StartPacket;
                     }
 
-                    if (m_imageManager.Client.PacketHandler.GetQueueCount(ThrottleOutPacketType.Texture) == 0)
-                    {
-                        //m_log.Debug("No textures queued, sending one packet to kickstart it");
-                        SendPacket(m_imageManager.Client);
-                    }
+                    if ((m_imageManager != null) && (m_imageManager.Client != null) && (m_imageManager.Client.PacketHandler != null))
+                        if (m_imageManager.Client.PacketHandler.GetQueueCount(ThrottleOutPacketType.Texture) == 0)
+                        {
+                            //m_log.Debug("No textures queued, sending one packet to kickstart it");
+                            SendPacket(m_imageManager.Client);
+                        }
                 }
             }
         }
