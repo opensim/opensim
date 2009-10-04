@@ -197,20 +197,11 @@ namespace OpenSim.Data.MSSQL
         public void Dispose()
         {
             SqlConnection conn = realCommand.Connection;
-            try
-            {
-                realCommand.Dispose();
-            }
+            try { realCommand.Dispose(); }
             finally
             {
-                try
-                {
-                    conn.Close();
-                }
-                finally
-                {
-                    conn.Dispose();
-                }
+                try { conn.Dispose(); }
+                finally { }
             }
         }
 

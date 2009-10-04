@@ -197,29 +197,27 @@ namespace OpenSim.Data.MySQL
                     param["?xmax"] = xmax.ToString();
                     param["?ymax"] = ymax.ToString();
 
-                    IDbCommand result =
-                        dbm.Manager.Query(
+                    using (IDbCommand result = dbm.Manager.Query(
                             "SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row;
-
-                    List<RegionProfileData> rows = new List<RegionProfileData>();
-
-                    while ((row = dbm.Manager.readSimRow(reader)) != null)
+                            param))
                     {
-                        rows.Add(row);
-                    }
-                    reader.Close();
-                    result.Dispose();
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            RegionProfileData row;
 
-                    return rows.ToArray();
+                            List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                            while ((row = dbm.Manager.readSimRow(reader)) != null)
+                                rows.Add(row);
+
+                            return rows.ToArray();
+                        }
+                    }
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
             }
             finally
@@ -243,29 +241,27 @@ namespace OpenSim.Data.MySQL
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?name"] = namePrefix + "%";
 
-                IDbCommand result =
-                    dbm.Manager.Query(
-                        "SELECT * FROM regions WHERE regionName LIKE ?name",
-                        param);
-                IDataReader reader = result.ExecuteReader();
-
-                RegionProfileData row;
-
-                List<RegionProfileData> rows = new List<RegionProfileData>();
-
-                while (rows.Count < maxNum && (row = dbm.Manager.readSimRow(reader)) != null)
+                using (IDbCommand result = dbm.Manager.Query(
+                    "SELECT * FROM regions WHERE regionName LIKE ?name",
+                    param))
                 {
-                    rows.Add(row);
-                }
-                reader.Close();
-                result.Dispose();
+                    using (IDataReader reader = result.ExecuteReader())
+                    {
+                        RegionProfileData row;
 
-                return rows;
+                        List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                        while (rows.Count < maxNum && (row = dbm.Manager.readSimRow(reader)) != null)
+                            rows.Add(row);
+
+                        return rows;
+                    }
+                }
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
             }
             finally
@@ -286,21 +282,21 @@ namespace OpenSim.Data.MySQL
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?handle"] = handle.ToString();
+                param["?handle"] = handle.ToString();
 
-                    IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                using (IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param))
+                {
+                    using (IDataReader reader = result.ExecuteReader())
+                    {
+                        RegionProfileData row = dbm.Manager.readSimRow(reader);
+                        return row;
+                    }
                 }
+            }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
             }
             finally
@@ -321,23 +317,24 @@ namespace OpenSim.Data.MySQL
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?uuid"] = uuid.ToString();
+                param["?uuid"] = uuid.ToString();
 
-                    IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                using (IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE uuid = ?uuid", param))
+                {
+                    using (IDataReader reader = result.ExecuteReader())
+                    {
+                        RegionProfileData row = dbm.Manager.readSimRow(reader);
+                        return row;
+                    }
                 }
+            }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            } finally
+            }
+            finally
             {
                 dbm.Release();
             }
@@ -359,22 +356,21 @@ namespace OpenSim.Data.MySQL
                     // Add % because this is a like query.
                     param["?regionName"] = regionName + "%";
                     // Order by statement will return shorter matches first.  Only returns one record or no record.
-                    IDbCommand result =
-                        dbm.Manager.Query(
-                            "SELECT * FROM regions WHERE regionName like ?regionName order by LENGTH(regionName) asc LIMIT 1",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                    using (IDbCommand result = dbm.Manager.Query(
+                        "SELECT * FROM regions WHERE regionName like ?regionName order by LENGTH(regionName) asc LIMIT 1",
+                        param))
+                    {
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            RegionProfileData row = dbm.Manager.readSimRow(reader);
+                            return row;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
                     dbm.Manager.Reconnect();
-                    m_log.Error(e.ToString());
+                    m_log.Error(e.Message, e);
                     return null;
                 }
                 finally
@@ -382,6 +378,7 @@ namespace OpenSim.Data.MySQL
                     dbm.Release();
                 }
             }
+
             m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
             return null;
         }
@@ -394,12 +391,12 @@ namespace OpenSim.Data.MySQL
         override public DataResponse StoreProfile(RegionProfileData profile)
         {
             MySQLSuperManager dbm = GetLockedConnection();
-            try {
+            try
+            {
                 if (dbm.Manager.insertRegion(profile))
-                {
                     return DataResponse.RESPONSE_OK;
-                }
-                return DataResponse.RESPONSE_ERROR;
+                else
+                   return DataResponse.RESPONSE_ERROR;
             }
             finally
             {
@@ -417,14 +414,14 @@ namespace OpenSim.Data.MySQL
         {
             MySQLSuperManager dbm = GetLockedConnection();
 
-
-            try {
+            try
+            {
                 if (dbm.Manager.deleteRegion(uuid))
-                {
                     return DataResponse.RESPONSE_OK;
-                }
-                return DataResponse.RESPONSE_ERROR;
-            } finally
+                else
+                    return DataResponse.RESPONSE_ERROR;
+            }
+            finally
             {
                 dbm.Release();
             }
@@ -482,26 +479,26 @@ namespace OpenSim.Data.MySQL
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?x"] = x.ToString();
-                    param["?y"] = y.ToString();
-                    IDbCommand result =
-                        dbm.Manager.Query(
-                            "SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    ReservationData row = dbm.Manager.readReservationRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                param["?x"] = x.ToString();
+                param["?y"] = y.ToString();
+                using (IDbCommand result = dbm.Manager.Query(
+                    "SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y",
+                    param))
+                {
+                    using (IDataReader reader = result.ExecuteReader())
+                    {
+                        ReservationData row = dbm.Manager.readReservationRow(reader);
+                        return row;
+                    }
+                }
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            } finally
+            }
+            finally
             {
                 dbm.Release();
             }

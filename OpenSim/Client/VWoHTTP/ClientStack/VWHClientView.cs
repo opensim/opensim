@@ -95,16 +95,15 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
 
             ManagedImage tmp;
             Image imgData;
+            byte[] jpegdata;
 
             OpenJPEG.DecodeToImage(asset.Data, out tmp, out imgData);
-            
-            MemoryStream ms = new MemoryStream();
 
-            imgData.Save(ms, ImageFormat.Jpeg);
-
-            byte[] jpegdata = ms.GetBuffer();
-
-            ms.Close();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                imgData.Save(ms, ImageFormat.Jpeg);
+                jpegdata = ms.GetBuffer();
+            }
 
             resp.ContentType = "image/jpeg";
             resp.ContentLength = jpegdata.Length;
