@@ -158,9 +158,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_currentPacket = m_stopPacket;
                         return;
                     }
-
+                    
                     if (DiscardLevel >= 0 || m_stopPacket == 0)
                     {
+                        // This shouldn't happen, but if it does, we really can't proceed
+                        if (Layers == null)
+                        {
+                            m_log.Warn("[J2KIMAGE]: RunUpdate() called with missing Layers. Canceling texture transfer");
+                            m_currentPacket = m_stopPacket;
+                            return;
+                        }
+
                         int maxDiscardLevel = Math.Max(0, Layers.Length - 1);
 
                         // Treat initial texture downloads with a DiscardLevel of -1 a request for the highest DiscardLevel
