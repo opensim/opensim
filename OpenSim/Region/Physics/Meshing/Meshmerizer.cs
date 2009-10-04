@@ -397,7 +397,7 @@ namespace OpenSim.Region.Physics.Meshing
                 primMesh.pathCutBegin = pathBegin;
                 primMesh.pathCutEnd = pathEnd;
 
-                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
                 {
                     primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
                     primMesh.twistEnd = primShape.PathTwist * 18 / 10;
