@@ -49,7 +49,7 @@ namespace OpenSim.Framework
 
         private void InternData()
         {
-            string temp = Encoding.UTF8.GetString(Data).Trim();
+            string temp = Util.UTF8.GetString(Data).Trim();
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             UUID.TryParse(parts[1].Substring(10, 36), out RegionID);

@@ -7077,7 +7077,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             try
             {
                 byte[] encData_byte = new byte[str.Length];
-                encData_byte = Encoding.UTF8.GetBytes(str);
+                encData_byte = Util.UTF8.GetBytes(str);
                 string encodedData = Convert.ToBase64String(encData_byte);
                 return encodedData;
             }

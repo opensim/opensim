@@ -559,7 +559,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
             if (method == "POST")
             {
-                byte[] contentreq = Encoding.UTF8.GetBytes(body);
+                byte[] contentreq = Util.UTF8.GetBytes(body);
                 forwardreq.ContentLength = contentreq.Length;
                 Stream reqStream = forwardreq.GetRequestStream();
                 reqStream.Write(contentreq, 0, contentreq.Length);
@@ -567,7 +567,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
             }
 
             HttpWebResponse fwdrsp = (HttpWebResponse)forwardreq.GetResponse();
-            Encoding encoding = Encoding.UTF8;
+            Encoding encoding = Util.UTF8;
             StreamReader fwdresponsestream = new StreamReader(fwdrsp.GetResponseStream(), encoding);
             fwdresponsestr = fwdresponsestream.ReadToEnd();
             fwdresponsecontenttype = fwdrsp.ContentType;
