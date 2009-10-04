@@ -40,6 +40,8 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySqlFramework
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         protected MySqlConnection m_Connection;
 
         protected MySqlFramework(string connectionString)
@@ -70,12 +72,11 @@ namespace OpenSim.Data.MySQL
                     }
                     catch (MySqlException e)
                     {
-Console.WriteLine(e.ToString());
+                        m_log.Error(e.Message, e);
                         if (errorSeen)
                             throw;
 
                         // This is "Server has gone away" and "Server lost"
-                        //
                         if (e.Number == 2006 || e.Number == 2013)
                         {
                             errorSeen = true;
@@ -94,7 +95,7 @@ Console.WriteLine(e.ToString());
                     }
                     catch (Exception e)
                     {
-Console.WriteLine(e.ToString());
+                        m_log.Error(e.Message, e);
                         return 0;
                     }
                 }
@@ -111,13 +112,6 @@ Console.WriteLine(e.ToString());
             cmd.Connection = newConnection;
 
             return cmd.ExecuteReader();
-        }
-
-        protected void CloseReaderCommand(MySqlCommand cmd)
-        {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
         }
     }
 }

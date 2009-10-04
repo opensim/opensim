@@ -205,13 +205,10 @@ namespace OpenSim
                         Directory.CreateDirectory(m_crashDir);
                     }
                     string log = Util.GetUniqueFilename(ex.GetType() + ".txt");
-                    StreamWriter m_crashLog =
-                        new StreamWriter(
-                            Path.Combine(m_crashDir, log)
-                            );
-
-                    m_crashLog.WriteLine(msg);
-                    m_crashLog.Close();
+                    using (StreamWriter m_crashLog = new StreamWriter(Path.Combine(m_crashDir, log)))
+                    {
+                        m_crashLog.WriteLine(msg);
+                    }
 
                     File.Copy("OpenSim.ini", Path.Combine(m_crashDir, log + "_OpenSim.ini"), true);
                 }

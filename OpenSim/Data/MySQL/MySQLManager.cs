@@ -134,18 +134,16 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         protected void GetWaitTimeout()
         {
-            MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, dbcon);
-
-            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            using (MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, dbcon))
             {
-                if (dbReader.Read())
+                using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                 {
-                    m_waitTimeout
-                        = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                    if (dbReader.Read())
+                    {
+                        m_waitTimeout
+                            = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                    }
                 }
-
-                dbReader.Close();
-                cmd.Dispose();
             }
 
             m_lastConnectionUse = DateTime.Now.Ticks;
@@ -303,31 +301,31 @@ namespace OpenSim.Data.MySQL
             {
                 CheckConnection();
 
-                MySqlCommand tablesCmd =
-                    new MySqlCommand(
-                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
-                        dbcon);
-                tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
-
-                using (MySqlDataReader tables = tablesCmd.ExecuteReader())
+                using (MySqlCommand tablesCmd = new MySqlCommand(
+                    "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
+                    dbcon))
                 {
-                    while (tables.Read())
+                    tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+
+                    using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                     {
-                        try
+                        while (tables.Read())
                         {
-                            string tableName = (string) tables["TABLE_NAME"];
-                            string comment = (string) tables["TABLE_COMMENT"];
-                            if (tableList.ContainsKey(tableName))
+                            try
                             {
-                                tableList[tableName] = comment;
+                                string tableName = (string)tables["TABLE_NAME"];
+                                string comment = (string)tables["TABLE_COMMENT"];
+                                if (tableList.ContainsKey(tableName))
+                                {
+                                    tableList[tableName] = comment;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.Error(e.Message, e);
                             }
                         }
-                        catch (Exception e)
-                        {
-                            m_log.Error(e.ToString());
-                        }
                     }
-                    tables.Close();
                 }
             }
         }
@@ -346,19 +344,19 @@ namespace OpenSim.Data.MySQL
             {
                 CheckConnection(); // Not sure if this one is necessary
 
-                MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
+                MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
                 foreach (KeyValuePair<string, object> param in parameters)
                 {
                     dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                 }
 
-                return (IDbCommand) dbcommand;
+                return (IDbCommand)dbcommand;
             }
             catch (Exception e)
             {
                 // Return null if it fails.
-                m_log.Error("Failed during Query generation: " + e.ToString());
+                m_log.Error("Failed during Query generation: " + e.Message, e);
                 return null;
             }
         }
@@ -693,8 +691,6 @@ namespace OpenSim.Data.MySQL
 
                 ret.Add(attachpoint, item);
             }
-
-            r.Close();
 
             return ret;
         }
