@@ -323,13 +323,13 @@ namespace Flotsam.RegionModules.AssetCache
                 string filename = GetFileName(id);
                 if (File.Exists(filename))
                 {
+                    FileStream stream = null;
                     try
                     {
-                        FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
                         BinaryFormatter bformatter = new BinaryFormatter();
 
                         asset = (AssetBase)bformatter.Deserialize(stream);
-                        stream.Close();
 
                         UpdateMemoryCache(id, asset);
 
@@ -348,6 +348,11 @@ namespace Flotsam.RegionModules.AssetCache
                     catch (Exception e)
                     {
                         LogException(e);
+                    }
+                    finally
+                    {
+                        if (stream != null)
+                            stream.Close();
                     }
                 }
 
@@ -493,6 +498,7 @@ namespace Flotsam.RegionModules.AssetCache
 
         private void WriteFileCache(string filename, AssetBase asset)
         {
+            Stream stream = null;
             try
             {
                 // Make sure the target cache directory exists
@@ -505,10 +511,9 @@ namespace Flotsam.RegionModules.AssetCache
                 // Write file first to a temp name, so that it doesn't look 
                 // like it's already cached while it's still writing.
                 string tempname = Path.Combine(directory, Path.GetRandomFileName());
-                Stream stream = File.Open(tempname, FileMode.Create);
+                stream = File.Open(tempname, FileMode.Create);
                 BinaryFormatter bformatter = new BinaryFormatter();
                 bformatter.Serialize(stream, asset);
-                stream.Close();
 
                 // Now that it's written, rename it so that it can be found.
                 File.Move(tempname, filename);
@@ -522,6 +527,9 @@ namespace Flotsam.RegionModules.AssetCache
             }
             finally
             {
+                if (stream != null)
+                    stream.Close();
+
                 // Even if the write fails with an exception, we need to make sure
                 // that we release the lock on that file, otherwise it'll never get
                 // cached
