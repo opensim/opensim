@@ -108,7 +108,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         finally
                         {
-                            buffer.Close();
+                            // Let's not close this
+                            //buffer.Close();
                             respStream.Close();
                             response.Close();
                         }

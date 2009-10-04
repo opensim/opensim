@@ -79,7 +79,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     if (requestStream != null)
                         requestStream.Close();
-                    buffer.Close();
+                    // Let's not close this
+                    //buffer.Close();
 
                 }
             }
