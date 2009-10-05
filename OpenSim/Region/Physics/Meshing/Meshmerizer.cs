@@ -498,12 +498,9 @@ namespace OpenSim.Region.Physics.Meshing
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
 
-            if (! primShape.SculptEntry)
-            {
-                key = GetMeshKey(primShape, size, lod);
-                if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                    return mesh;
-            }
+            key = GetMeshKey(primShape, size, lod);
+            if (m_uniqueMeshes.TryGetValue(key, out mesh))
+                return mesh;
 
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
@@ -525,10 +522,9 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // trim the vertex and triangle lists to free up memory
                 mesh.TrimExcess();
-            }
 
-            if (!primShape.SculptEntry)
                 m_uniqueMeshes.Add(key, mesh);
+            }
 
             return mesh;
         }
