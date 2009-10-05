@@ -137,11 +137,21 @@ namespace OpenSim.Server.Handlers.Grid
             }
 
             Dictionary<string, object> rinfoData = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, string> kvp in request)
-                rinfoData[kvp.Key] = kvp.Value;
-            GridRegion rinfo = new GridRegion(rinfoData);
+            GridRegion rinfo = null;
+            try
+            {
+                foreach (KeyValuePair<string, string> kvp in request)
+                    rinfoData[kvp.Key] = kvp.Value;
+                rinfo = new GridRegion(rinfoData);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID HANDLER]: exception unpacking region data: {0}", e);
+            }
 
-            bool result = m_GridService.RegisterRegion(scopeID, rinfo);
+            bool result = false;
+            if (rinfo != null)
+                result = m_GridService.RegisterRegion(scopeID, rinfo);
 
             if (result)
                 return SuccessResult();
