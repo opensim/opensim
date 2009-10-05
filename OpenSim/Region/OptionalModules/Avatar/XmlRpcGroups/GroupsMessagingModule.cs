@@ -425,7 +425,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
             foreach (GroupMembersData member in m_groupsModule.GroupMembersRequest(null, groupID))
             {
-                if (m_agentsDroppedSession[im.imSessionID].Contains(member.AgentID.Guid))
+                if (!m_agentsDroppedSession.ContainsKey(im.imSessionID) || m_agentsDroppedSession[im.imSessionID].Contains(member.AgentID.Guid))
                 {
                     // Don't deliver messages to people who have dropped this session
                     if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} has dropped session, not delivering to them", member.AgentID);
