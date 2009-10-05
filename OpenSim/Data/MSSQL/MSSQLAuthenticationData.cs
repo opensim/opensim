@@ -43,6 +43,7 @@ namespace OpenSim.Data.MSSQL
         private List<string> m_ColumnNames = null;
         private int m_LastExpire = 0;
         private string m_ConnectionString;
+        private MSSQLManager m_database;
 
         public MSSQLAuthenticationData(string connectionString, string realm)
         {
@@ -61,12 +62,12 @@ namespace OpenSim.Data.MSSQL
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
-            string sql = string.Format("select * from '{0}' where UUID = @principalID", m_Realm);
+            string sql = string.Format("select * from {0} where UUID = @principalID", m_Realm);
 
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
                 conn.Open();
                 using (SqlDataReader result = cmd.ExecuteReader())
                 {
@@ -108,34 +109,33 @@ namespace OpenSim.Data.MSSQL
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand())
             {
-                updateBuilder.AppendFormat("update '{0}' set ", m_Realm);
+                updateBuilder.AppendFormat("update {0} set ", m_Realm);
 
                 bool first = true;
                 foreach (string field in fields)
                 {
                     if (!first)
                         updateBuilder.Append(", ");
-                    updateBuilder.AppendFormat("'{0}' = @{0}",field);
+                    updateBuilder.AppendFormat("{0} = @{0}",field);
 
                     first = false;
-
-                    cmd.Parameters.AddWithValue("@" + field, data.Data[field]);
+                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));                    
                 }
 
                 updateBuilder.Append(" where UUID = @principalID");
 
                 cmd.CommandText = updateBuilder.ToString();
                 cmd.Connection = conn;
-
-                cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", data.PrincipalID));
+                
                 conn.Open();
                 if (cmd.ExecuteNonQuery() < 1)
                 {
                     StringBuilder insertBuilder = new StringBuilder();
 
-                    insertBuilder.AppendFormat("insert into '{0}' ('UUID', '", m_Realm);
-                    insertBuilder.Append(String.Join("', '", fields));
-                    insertBuilder.Append("') values (@principalID, @");
+                    insertBuilder.AppendFormat("insert into {0} (UUID, ", m_Realm);
+                    insertBuilder.Append(String.Join(", ", fields));
+                    insertBuilder.Append(") values ( @principalID, @");
                     insertBuilder.Append(String.Join(", @", fields));
                     insertBuilder.Append(")");
 
@@ -152,12 +152,11 @@ namespace OpenSim.Data.MSSQL
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            string sql = string.Format("update '{0}' set '{1}' = @{1} where UUID = @UUID", m_Realm, item);
+            string sql = string.Format("update {0} set {1} = @{1} where UUID = @UUID", m_Realm, item);
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@" + item, value);
-                cmd.Parameters.AddWithValue("@UUID", principalID.ToString());
+                cmd.Parameters.Add(m_database.CreateParameter("@" + item, value));
                 conn.Open();
                 if (cmd.ExecuteNonQuery() > 0)
                     return true;
@@ -173,9 +172,9 @@ namespace OpenSim.Data.MSSQL
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("@token", token);
-                cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
+                cmd.Parameters.Add(m_database.CreateParameter("@token", token));
+                cmd.Parameters.Add(m_database.CreateParameter("@lifetime", lifetime));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
@@ -194,9 +193,9 @@ namespace OpenSim.Data.MSSQL
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("@token", token);
-                cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
+                cmd.Parameters.Add(m_database.CreateParameter("@token", token));
+                cmd.Parameters.Add(m_database.CreateParameter("@lifetime", lifetime));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
