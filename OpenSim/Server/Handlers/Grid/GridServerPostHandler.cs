@@ -67,43 +67,50 @@ namespace OpenSim.Server.Handlers.Grid
 
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
 
-            Dictionary<string, string> request =
-                    ServerUtils.ParseQueryString(body);
-
-            if (!request.ContainsKey("METHOD"))
-                return FailureResult();
-
-            string method = request["METHOD"];
-
-            switch (method)
+            try
             {
-                case "register":
-                    return Register(request);
+                Dictionary<string, string> request =
+                        ServerUtils.ParseQueryString(body);
 
-                case "deregister":
-                    return Deregister(request);
+                if (!request.ContainsKey("METHOD"))
+                    return FailureResult();
 
-                case "get_neighbours":
-                    return GetNeighbours(request);
+                string method = request["METHOD"];
 
-                case "get_region_by_uuid":
-                    return GetRegionByUUID(request);
+                switch (method)
+                {
+                    case "register":
+                        return Register(request);
 
-                case "get_region_by_position":
-                    return GetRegionByPosition(request);
+                    case "deregister":
+                        return Deregister(request);
 
-                case "get_region_by_name":
-                    return GetRegionByName(request);
+                    case "get_neighbours":
+                        return GetNeighbours(request);
 
-                case "get_regions_by_name":
-                    return GetRegionsByName(request);
+                    case "get_region_by_uuid":
+                        return GetRegionByUUID(request);
 
-                case "get_region_range":
-                    return GetRegionRange(request);
+                    case "get_region_by_position":
+                        return GetRegionByPosition(request);
 
+                    case "get_region_by_name":
+                        return GetRegionByName(request);
+
+                    case "get_regions_by_name":
+                        return GetRegionsByName(request);
+
+                    case "get_region_range":
+                        return GetRegionRange(request);
+
+                }
+                m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID HANDLER]: Exception {0}", e);
             }
 
-            m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
             return FailureResult();
 
         }
