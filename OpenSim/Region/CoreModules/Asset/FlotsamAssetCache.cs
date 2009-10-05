@@ -636,11 +636,8 @@ namespace Flotsam.RegionModules.AssetCache
                 m_log.InfoFormat("[FLOTSAM ASSET CACHE] flotsamcache clearfile - Remove all assets cached on disk");
 
             }
-
-
         }
 
         #endregion
-
     }
 }

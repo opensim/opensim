@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.Asset
             if (moduleConfig != null)
             {
                 string name = moduleConfig.GetString("AssetCaching");
-                m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
+                //m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
                 if (name == Name)
                 {
