@@ -113,7 +113,7 @@ namespace OpenSim.Server.Handlers.Grid
         byte[] Register(Dictionary<string, string> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
+            if (request.ContainsKey("SCOPEID"))
                 UUID.TryParse(request["SCOPEID"], out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to register region");
