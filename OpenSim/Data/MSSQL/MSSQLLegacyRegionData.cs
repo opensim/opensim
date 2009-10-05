@@ -575,7 +575,7 @@ ELSE
         /// <returns></returns>
         public List<LandData> LoadLandObjects(UUID regionUUID)
         {
-            List<LandData> landDataForRegion = new List<LandData>();
+            List<LandData> LandDataForRegion = new List<LandData>();
 
             string sql = "select * from land where RegionUUID = @RegionUUID";
 
@@ -588,30 +588,30 @@ ELSE
                 {
                     while (readerLandData.Read())
                     {
-                        landDataForRegion.Add(BuildLandData(readerLandData));
+                        LandDataForRegion.Add(BuildLandData(readerLandData));
                     }
                 }
             }
 
             //Retrieve all accesslist data for all landdata
-            foreach (LandData landData in landDataForRegion)
+            foreach (LandData LandData in LandDataForRegion)
             {
                 sql = "select * from landaccesslist where LandUUID = @LandUUID";
                 using (AutoClosingSqlCommand cmdAccessList = _Database.Query(sql))
                 {
-                    cmdAccessList.Parameters.Add(_Database.CreateParameter("@LandUUID", landData.GlobalID));
+                    cmdAccessList.Parameters.Add(_Database.CreateParameter("@LandUUID", LandData.GlobalID));
                     using (SqlDataReader readerAccessList = cmdAccessList.ExecuteReader())
                     {
                         while (readerAccessList.Read())
                         {
-                            landData.ParcelAccessList.Add(BuildLandAccessData(readerAccessList));
+                            LandData.ParcelAccessList.Add(BuildLandAccessData(readerAccessList));
                         }
                     }
                 }
             }
 
             //Return data
-            return landDataForRegion;
+            return LandDataForRegion;
         }
 
         /// <summary>
@@ -624,7 +624,7 @@ ELSE
             //As the delete landaccess is already in the mysql code
 
             //Delete old values
-            RemoveLandObject(parcel.landData.GlobalID);
+            RemoveLandObject(parcel.LandData.GlobalID);
 
             //Insert new values
             string sql = @"INSERT INTO [land] 
@@ -634,7 +634,7 @@ VALUES
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                cmd.Parameters.AddRange(CreateLandParameters(parcel.landData, parcel.regionUUID));
+                cmd.Parameters.AddRange(CreateLandParameters(parcel.LandData, parcel.RegionUUID));
 
                 cmd.ExecuteNonQuery();
             }
@@ -643,9 +643,9 @@ VALUES
 
             using (AutoClosingSqlCommand cmd = _Database.Query(sql))
             {
-                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.landData.ParcelAccessList)
+                foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
                 {
-                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.regionUUID));
+                    cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.RegionUUID));
 
                     cmd.ExecuteNonQuery();
                     cmd.Parameters.Clear();
