@@ -160,7 +160,7 @@ namespace OpenSim.Server.Handlers.Neighbour
 
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
-            return Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
+            return Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
         }
     }
 

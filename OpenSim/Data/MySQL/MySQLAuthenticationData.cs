@@ -55,43 +55,37 @@ namespace OpenSim.Data.MySQL
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
-            MySqlCommand cmd = new MySqlCommand(
-                "select * from `"+m_Realm+"` where UUID = ?principalID"
-            );
-
-            cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-
-            IDataReader result = ExecuteReader(cmd);
-
-            if (result.Read())
+            using (MySqlCommand cmd = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID"))
             {
-                ret.PrincipalID = principalID;
+                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
 
-                if (m_ColumnNames == null)
+                using (IDataReader result = ExecuteReader(cmd))
                 {
-                    m_ColumnNames = new List<string>();
+                    if (result.Read())
+                    {
+                        ret.PrincipalID = principalID;
 
-                    DataTable schemaTable = result.GetSchemaTable();
-                    foreach (DataRow row in schemaTable.Rows)
-                        m_ColumnNames.Add(row["ColumnName"].ToString());
+                        if (m_ColumnNames == null)
+                        {
+                            m_ColumnNames = new List<string>();
+
+                            DataTable schemaTable = result.GetSchemaTable();
+                            foreach (DataRow row in schemaTable.Rows)
+                                m_ColumnNames.Add(row["ColumnName"].ToString());
+                        }
+
+                        foreach (string s in m_ColumnNames)
+                        {
+                            if (s == "UUID")
+                                continue;
+
+                            ret.Data[s] = result[s].ToString();
+                        }
+
+                        return ret;
+                    }
                 }
-
-                foreach (string s in m_ColumnNames)
-                {
-                    if (s == "UUID")
-                        continue;
-
-                    ret.Data[s] = result[s].ToString();
-                }
-
-                result.Close();
-                CloseReaderCommand(cmd);
-
-                return ret;
             }
-
-            result.Close();
-            CloseReaderCommand(cmd);
 
             return null;
         }

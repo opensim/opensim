@@ -539,7 +539,7 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
             {
                 XmlSerializer xs = new XmlSerializer(typeof(Copse));
 
-                using (XmlTextWriter writer = new XmlTextWriter(fileName, System.Text.Encoding.UTF8))
+                using (XmlTextWriter writer = new XmlTextWriter(fileName, Util.UTF8))
                 {
                     writer.Formatting = Formatting.Indented;
                     xs.Serialize(writer, obj);

@@ -106,7 +106,6 @@ namespace OpenSim.Framework.Communications.Clients
                 AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = AgentCreateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
                 //m_log.InfoFormat("[REST COMMS]: Posted CreateChildAgent request to remote sim {0}", uri);
             }
             //catch (WebException ex)
@@ -115,6 +114,11 @@ namespace OpenSim.Framework.Communications.Clients
                 //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
                 reason = "cannot contact remote region";
                 return false;
+            }
+            finally
+            {
+                if (os != null)
+                    os.Close();
             }
 
             // Let's wait for the response
@@ -224,7 +228,6 @@ namespace OpenSim.Framework.Communications.Clients
                 ChildUpdateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = ChildUpdateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
                 //m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
             }
             //catch (WebException ex)
@@ -233,6 +236,11 @@ namespace OpenSim.Framework.Communications.Clients
                 //m_log.InfoFormat("[REST COMMS]: Bad send on ChildAgentUpdate {0}", ex.Message);
 
                 return false;
+            }
+            finally
+            {
+                if (os != null)
+                    os.Close();
             }
 
             // Let's wait for the response
@@ -437,7 +445,6 @@ namespace OpenSim.Framework.Communications.Clients
                 ObjectCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = ObjectCreateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
                 m_log.InfoFormat("[REST COMMS]: Posted ChildAgentUpdate request to remote sim {0}", uri);
             }
             //catch (WebException ex)
@@ -446,6 +453,11 @@ namespace OpenSim.Framework.Communications.Clients
                 // m_log.InfoFormat("[REST COMMS]: Bad send on CreateObject {0}", ex.Message);
 
                 return false;
+            }
+            finally
+            {
+                if (os != null)
+                    os.Close();
             }
 
             // Let's wait for the response
@@ -512,7 +524,6 @@ namespace OpenSim.Framework.Communications.Clients
                 ObjectCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = ObjectCreateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
                 //m_log.InfoFormat("[REST COMMS]: Posted CreateObject request to remote sim {0}", uri);
             }
             //catch (WebException ex)
@@ -521,6 +532,11 @@ namespace OpenSim.Framework.Communications.Clients
                 // m_log.InfoFormat("[REST COMMS]: Bad send on CreateObject {0}", ex.Message);
 
                 return false;
+            }
+            finally
+            {
+                if (os != null)
+                    os.Close();
             }
 
             // Let's wait for the response
@@ -597,7 +613,6 @@ namespace OpenSim.Framework.Communications.Clients
                 HelloNeighbourRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = HelloNeighbourRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                os.Close();
                 //m_log.InfoFormat("[REST COMMS]: Posted HelloNeighbour request to remote sim {0}", uri);
             }
             //catch (WebException ex)
@@ -607,7 +622,11 @@ namespace OpenSim.Framework.Communications.Clients
 
                 return false;
             }
-
+            finally
+            {
+                if (os != null)
+                    os.Close();
+            }
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
 

@@ -66,8 +66,23 @@ namespace OpenSim.Framework.Servers.HttpServer
                 length = (int)obj.Length;
                 request.ContentLength = length;
 
-                Stream requestStream = request.GetRequestStream();
-                requestStream.Write(buffer.ToArray(), 0, length);
+                Stream requestStream = null;
+                try
+                {
+                    requestStream = request.GetRequestStream();
+                    requestStream.Write(buffer.ToArray(), 0, length);
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    if (requestStream != null)
+                        requestStream.Close();
+                    // Let's not close this
+                    //buffer.Close();
+
+                }
             }
 
             string respstring = String.Empty;
@@ -78,9 +93,20 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     if (resp.ContentLength > 0)
                     {
-                        using (StreamReader reader = new StreamReader(resp.GetResponseStream()))
+                        Stream respStream = null;
+                        try
                         {
-                            respstring = reader.ReadToEnd();
+                            respStream = resp.GetResponseStream();
+                            using (StreamReader reader = new StreamReader(respStream))
+                            {
+                                respstring = reader.ReadToEnd();
+                            }
+                        }
+                        catch { }
+                        finally
+                        {
+                            if (respStream != null)
+                                respStream.Close();
                         }
                     }
                 }

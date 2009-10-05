@@ -36,10 +36,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
     {
         public struct HeightmapLookupValue : IComparable<HeightmapLookupValue>
         {
-            public int Index;
-            public double Value;
+            public ushort Index;
+            public float Value;
 
-            public HeightmapLookupValue(int index, double value)
+            public HeightmapLookupValue(ushort index, float value)
             {
                 Index = index;
                 Value = value;
@@ -62,7 +62,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             {
                 for (int j = 0; j < 256; j++)
                 {
-                    LookupHeightTable[i + (j * 256)] = new HeightmapLookupValue(i + (j * 256), ((double)i * ((double)j / 128.0d)));
+                    LookupHeightTable[i + (j * 256)] = new HeightmapLookupValue((ushort)(i + (j * 256)), (float)((double)i * ((double)j / 128.0d)));
                 }
             }
             Array.Sort<HeightmapLookupValue>(LookupHeightTable);
@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
                     // The lookup table is pre-sorted, so we either find an exact match or
                     // the next closest (smaller) match with a binary search
-                    index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, t));
+                    index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, (float)t));
                     if (index < 0)
                         index = ~index - 1;
 

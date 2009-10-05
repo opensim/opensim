@@ -886,7 +886,7 @@ namespace OpenSim.Client.MXP.ClientStack
             chatActionEvent.ActionFragment.SourceObjectId = fromAgentID.Guid;
             chatActionEvent.ActionFragment.ObservationRadius = 180.0f;
             chatActionEvent.ActionFragment.ExtensionDialect = "TEXT";
-            chatActionEvent.SetPayloadData(Encoding.UTF8.GetBytes(message));
+            chatActionEvent.SetPayloadData(Util.UTF8.GetBytes(message));
 
             Session.Send(chatActionEvent);
         }

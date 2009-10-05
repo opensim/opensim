@@ -268,6 +268,8 @@ namespace OpenSim.Data.MySQL
 
         public void RemoveObject(UUID obj, UUID regionUUID)
         {
+            List<UUID> uuids = new List<UUID>();
+
             // Formerly, this used to check the region UUID.
             // That makes no sense, as we remove the contents of a prim
             // unconditionally, but the prim dependent on the region ID.
@@ -278,42 +280,30 @@ namespace OpenSim.Data.MySQL
             //
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "select UUID from prims where "+
-                        "SceneGroupID= ?UUID";
-
-                cmd.Parameters.AddWithValue("UUID", obj.ToString());
-
-                List<UUID> uuids = new List<UUID>();
-
-                IDataReader reader = ExecuteReader(cmd);
-
-                try
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    while (reader.Read())
+                    cmd.CommandText = "select UUID from prims where SceneGroupID= ?UUID";
+                    cmd.Parameters.AddWithValue("UUID", obj.ToString());
+
+                    using (IDataReader reader = ExecuteReader(cmd))
                     {
-                        uuids.Add(new UUID(reader["UUID"].ToString()));
+                        while (reader.Read())
+                            uuids.Add(new UUID(reader["UUID"].ToString()));
                     }
-                }
-                finally
-                {
-                    reader.Close();
-                }
 
-                // delete the main prims
-                cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
-
-                // there is no way this should be < 1 unless there is
-                // a very corrupt database, but in that case be extra
-                // safe anyway.
-                if (uuids.Count > 0) 
-                {
-                    RemoveShapes(uuids);
-                    RemoveItems(uuids);
+                    // delete the main prims
+                    cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
+                    ExecuteNonQuery(cmd);
                 }
+            }
+
+            // there is no way this should be < 1 unless there is
+            // a very corrupt database, but in that case be extra
+            // safe anyway.
+            if (uuids.Count > 0)
+            {
+                RemoveShapes(uuids);
+                RemoveItems(uuids);
             }
         }
 
@@ -326,18 +316,15 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "delete from primitems where PrimID = ?PrimID";
+                    cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
 
-                cmd.CommandText = "delete from primitems where " +
-                        "PrimID = ?PrimID";
-
-                cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
-
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
-
 
         /// <summary>
         /// Remove all persisted shapes for a list of prims
@@ -349,28 +336,27 @@ namespace OpenSim.Data.MySQL
             lock (m_Connection)
             {
                 string sql = "delete from primshapes where ";
-                MySqlCommand cmd = m_Connection.CreateCommand();
-                
-                for (int i = 0; i < uuids.Count; i++)
+
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    if ((i + 1) == uuids.Count) 
-                    {// end of the list
-                        sql += "(UUID = ?UUID" + i + ")";
-                    }
-                    else
+                    for (int i = 0; i < uuids.Count; i++)
                     {
-                        sql += "(UUID = ?UUID" + i + ") or ";
+                        if ((i + 1) == uuids.Count)
+                        {// end of the list
+                            sql += "(UUID = ?UUID" + i + ")";
+                        }
+                        else
+                        {
+                            sql += "(UUID = ?UUID" + i + ") or ";
+                        }
                     }
-                }
-                cmd.CommandText = sql;
+                    cmd.CommandText = sql;
 
-                for (int i = 0; i < uuids.Count; i++)
-                {
-                    cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
-                }
+                    for (int i = 0; i < uuids.Count; i++)
+                        cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
 
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
 
@@ -384,28 +370,28 @@ namespace OpenSim.Data.MySQL
             lock (m_Connection)
             {
                 string sql = "delete from primitems where ";
-                MySqlCommand cmd = m_Connection.CreateCommand();
-                
-                for (int i = 0; i < uuids.Count; i++)
+
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    if ((i + 1) == uuids.Count) 
-                    {// end of the list
-                        sql += "(PrimID = ?PrimID" + i + ")";
-                    }
-                    else
+                    for (int i = 0; i < uuids.Count; i++)
                     {
-                        sql += "(PrimID = ?PrimID" + i + ") or ";
+                        if ((i + 1) == uuids.Count)
+                        {
+                            // end of the list
+                            sql += "(PrimID = ?PrimID" + i + ")";
+                        }
+                        else
+                        {
+                            sql += "(PrimID = ?PrimID" + i + ") or ";
+                        }
                     }
-                }
-                cmd.CommandText = sql;
+                    cmd.CommandText = sql;
 
-                for (int i = 0; i < uuids.Count; i++)
-                {
-                    cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
-                }
+                    for (int i = 0; i < uuids.Count; i++)
+                        cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
 
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
 
@@ -418,77 +404,71 @@ namespace OpenSim.Data.MySQL
 
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "select *, " +
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "select *, " +
                         "case when prims.UUID = SceneGroupID " +
                         "then 0 else 1 end as sort from prims " +
-                        "left join primshapes on prims.UUID = primshapes.UUID "+
+                        "left join primshapes on prims.UUID = primshapes.UUID " +
                         "where RegionUUID = ?RegionUUID " +
                         "order by SceneGroupID asc, sort asc, LinkNumber asc";
-                
-                cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
-                IDataReader reader = ExecuteReader(cmd);
+                    cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
-                try
-                {
-                    while (reader.Read())
+                    using (IDataReader reader = ExecuteReader(cmd))
                     {
-                        SceneObjectPart prim = BuildPrim(reader);
-                        if (reader["Shape"] is DBNull)
-                            prim.Shape = PrimitiveBaseShape.Default;
-                        else
-                            prim.Shape = BuildShape(reader);
-
-                        prims[prim.UUID] = prim;
-
-                        UUID groupID = new UUID(reader["SceneGroupID"].ToString());
-
-                        if (groupID != lastGroupID) // New SOG
+                        while (reader.Read())
                         {
-                            if (grp != null)
-                                objects[grp.UUID] = grp;
+                            SceneObjectPart prim = BuildPrim(reader);
+                            if (reader["Shape"] is DBNull)
+                                prim.Shape = PrimitiveBaseShape.Default;
+                            else
+                                prim.Shape = BuildShape(reader);
 
-                            lastGroupID = groupID;
-                            
-                            // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
-                            // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
-                            // this case, force the UUID to be the same as the group UUID so that at least these can be
-                            // deleted (we need to change the UUID so that any other prims in the linkset can also be 
-                            // deleted).
-                            if (prim.UUID != groupID && groupID != UUID.Zero)
+                            prims[prim.UUID] = prim;
+
+                            UUID groupID = new UUID(reader["SceneGroupID"].ToString());
+
+                            if (groupID != lastGroupID) // New SOG
                             {
-                                m_log.WarnFormat(
-                                    "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID", 
-                                    prim.Name, prim.UUID, prim.GroupPosition, groupID);
-                                
-                                prim.UUID = groupID;
+                                if (grp != null)
+                                    objects[grp.UUID] = grp;
+
+                                lastGroupID = groupID;
+
+                                // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
+                                // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
+                                // this case, force the UUID to be the same as the group UUID so that at least these can be
+                                // deleted (we need to change the UUID so that any other prims in the linkset can also be 
+                                // deleted).
+                                if (prim.UUID != groupID && groupID != UUID.Zero)
+                                {
+                                    m_log.WarnFormat(
+                                        "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID",
+                                        prim.Name, prim.UUID, prim.GroupPosition, groupID);
+
+                                    prim.UUID = groupID;
+                                }
+
+                                grp = new SceneObjectGroup(prim);
                             }
+                            else
+                            {
+                                // Black magic to preserve link numbers
+                                //
+                                int link = prim.LinkNum;
 
-                            grp = new SceneObjectGroup(prim);
-                        }
-                        else
-                        {
-                            // Black magic to preserve link numbers
-                            //
-                            int link = prim.LinkNum;
+                                grp.AddPart(prim);
 
-                            grp.AddPart(prim);
-
-                            if (link != 0)
-                                prim.LinkNum = link;
+                                if (link != 0)
+                                    prim.LinkNum = link;
+                            }
                         }
                     }
-                }
-                finally
-                {
-                    reader.Close();
-                }
 
-                if (grp != null)
-                    objects[grp.UUID] = grp;
-                cmd.Dispose();
+                    if (grp != null)
+                        objects[grp.UUID] = grp;
+                }
             }
 
             // Instead of attempting to LoadItems on every prim,
@@ -498,34 +478,29 @@ namespace OpenSim.Data.MySQL
             List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
             lock (m_Connection)
             {
-                MySqlCommand itemCmd = m_Connection.CreateCommand();
-                itemCmd.CommandText = "select distinct primID from primitems";
-                IDataReader itemReader = ExecuteReader(itemCmd);
-                try
+                using (MySqlCommand itemCmd = m_Connection.CreateCommand())
                 {
-                    while (itemReader.Read())
+                    itemCmd.CommandText = "select distinct primID from primitems";
+                    using (IDataReader itemReader = ExecuteReader(itemCmd))
                     {
-                        if (!(itemReader["primID"] is DBNull))
+                        while (itemReader.Read())
                         {
-                            UUID primID = new UUID(itemReader["primID"].ToString());
-                            if (prims.ContainsKey(primID))
+                            if (!(itemReader["primID"] is DBNull))
                             {
-                                primsWithInventory.Add(prims[primID]);
+                                UUID primID = new UUID(itemReader["primID"].ToString());
+                                if (prims.ContainsKey(primID))
+                                {
+                                    primsWithInventory.Add(prims[primID]);
+                                }
                             }
                         }
                     }
                 }
-                finally
-                {
-                    itemReader.Close();
-                }
-                itemCmd.Dispose();
             }
 
             foreach (SceneObjectPart prim in primsWithInventory)
-            {
                 LoadItems(prim);
-            }
+
             m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
             return new List<SceneObjectGroup>(objects.Values);
         }
@@ -538,34 +513,25 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
+                List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
-                cmd.CommandText = "select * from primitems where "+
-                        "PrimID = ?PrimID";
-
-                cmd.Parameters.AddWithValue("PrimID", prim.UUID.ToString());
-
-                IDataReader reader = ExecuteReader(cmd);
-                List<TaskInventoryItem> inventory =
-                        new List<TaskInventoryItem>();
-
-                try
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    while (reader.Read())
-                    {
-                        TaskInventoryItem item = BuildItem(reader);
+                    cmd.CommandText = "select * from primitems where PrimID = ?PrimID";
+                    cmd.Parameters.AddWithValue("PrimID", prim.UUID.ToString());
 
-                        item.ParentID = prim.UUID; // Values in database are
-                                                   // often wrong
-                        inventory.Add(item);
+                    using (IDataReader reader = ExecuteReader(cmd))
+                    {
+                        while (reader.Read())
+                        {
+                            TaskInventoryItem item = BuildItem(reader);
+
+                            item.ParentID = prim.UUID; // Values in database are often wrong
+                            inventory.Add(item);
+                        }
                     }
                 }
-                finally
-                {
-                    reader.Close();
-                }
 
-                cmd.Dispose();
                 prim.Inventory.RestoreInventoryItems(inventory);
             }
         }
@@ -576,23 +542,21 @@ namespace OpenSim.Data.MySQL
 
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
+                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
-                cmd.CommandText = "delete from terrain where " +
-                        "RegionUUID = ?RegionUUID";
-                cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                    ExecuteNonQuery(cmd);
 
-                ExecuteNonQuery(cmd);
-                
-                cmd.CommandText = "insert into terrain (RegionUUID, " +
+                    cmd.CommandText = "insert into terrain (RegionUUID, " +
                         "Revision, Heightfield) values (?RegionUUID, " +
                         "1, ?Heightfield)";
 
-                cmd.Parameters.AddWithValue("Heightfield",
-                        SerializeTerrain(ter));
-                
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
+                    cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
+
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
 
@@ -602,42 +566,40 @@ namespace OpenSim.Data.MySQL
 
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-                cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
-                        "from terrain where RegionUUID = ?RegionUUID "+
-                        "order by Revision desc limit 1";
-                cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
-
-                IDataReader reader = ExecuteReader(cmd);
-
-                try
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    while (reader.Read())
+                    cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
+                        "from terrain where RegionUUID = ?RegionUUID " +
+                        "order by Revision desc limit 1";
+                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                    using (IDataReader reader = ExecuteReader(cmd))
                     {
-                        terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-                        terrain.Initialize();
-
-                        MemoryStream mstr = new MemoryStream((byte[]) reader["Heightfield"]);
-                        int rev = 0;
-
-                        BinaryReader br = new BinaryReader(mstr);
-                        for (int x = 0; x < (int)Constants.RegionSize; x++)
+                        while (reader.Read())
                         {
-                            for (int y = 0; y < (int)Constants.RegionSize; y++)
+                            int rev = Convert.ToInt32(reader["Revision"]);
+
+                            terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
+                            terrain.Initialize();
+
+                            using (MemoryStream mstr = new MemoryStream((byte[])reader["Heightfield"]))
                             {
-                                terrain[x, y] = br.ReadDouble();
+                                using (BinaryReader br = new BinaryReader(mstr))
+                                {
+                                    for (int x = 0; x < (int)Constants.RegionSize; x++)
+                                    {
+                                        for (int y = 0; y < (int)Constants.RegionSize; y++)
+                                        {
+                                            terrain[x, y] = br.ReadDouble();
+                                        }
+                                    }
+                                }
+
+                                m_log.InfoFormat("[REGION DB]: Loaded terrain revision r{0}", rev);
                             }
-                            rev = Convert.ToInt32(reader["Revision"]);
                         }
-                        m_log.InfoFormat("[REGION DB]: Loaded terrain " +
-                                "revision r{0}", rev);
                     }
                 }
-                finally
-                {
-                    reader.Close();
-                }
-                cmd.Dispose();
             }
 
             return terrain;
@@ -647,14 +609,13 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "delete from land where UUID = ?UUID";
+                    cmd.Parameters.AddWithValue("UUID", globalID.ToString());
 
-                cmd.CommandText = "delete from land where UUID = ?UUID";
-
-                cmd.Parameters.AddWithValue("UUID", globalID.ToString());
-
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
 
@@ -662,9 +623,9 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "replace into land (UUID, RegionUUID, " +
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "replace into land (UUID, RegionUUID, " +
                         "LocalLandID, Bitmap, Name, Description, " +
                         "OwnerUUID, IsGroupOwned, Area, AuctionID, " +
                         "Category, ClaimDate, ClaimPrice, GroupUUID, " +
@@ -685,28 +646,26 @@ namespace OpenSim.Data.MySQL
                         "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
                         "?AuthbuyerID, ?OtherCleanTime, ?Dwell)";
 
-                FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
+                    FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
 
-                ExecuteNonQuery(cmd);
-
-                cmd.CommandText = "delete from landaccesslist where " +
-                        "LandUUID = ?UUID";
-
-                ExecuteNonQuery(cmd);
-
-                cmd.Parameters.Clear();
-                cmd.CommandText = "insert into landaccesslist (LandUUID, " +
-                        "AccessUUID, Flags) values (?LandUUID, ?AccessUUID, " +
-                        "?Flags)";
-
-                foreach (ParcelManager.ParcelAccessEntry entry in
-                        parcel.LandData.ParcelAccessList)
-                {
-                    FillLandAccessCommand(cmd, entry, parcel.LandData.GlobalID);
                     ExecuteNonQuery(cmd);
+
+                    cmd.CommandText = "delete from landaccesslist where LandUUID = ?UUID";
+
+                    ExecuteNonQuery(cmd);
+
                     cmd.Parameters.Clear();
+                    cmd.CommandText = "insert into landaccesslist (LandUUID, " +
+                            "AccessUUID, Flags) values (?LandUUID, ?AccessUUID, " +
+                            "?Flags)";
+
+                    foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
+                    {
+                        FillLandAccessCommand(cmd, entry, parcel.LandData.GlobalID);
+                        ExecuteNonQuery(cmd);
+                        cmd.Parameters.Clear();
+                    }
                 }
-                cmd.Dispose();
             }
         }
 
@@ -716,35 +675,28 @@ namespace OpenSim.Data.MySQL
 
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "select * from regionsettings where " +
-                        "regionUUID = ?RegionUUID";
-                cmd.Parameters.AddWithValue("regionUUID", regionUUID);
-
-                IDataReader reader = ExecuteReader(cmd);
-
-                try
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    if (reader.Read())
-                    {
-                        rs = BuildRegionSettings(reader);
-                        rs.OnSave += StoreRegionSettings;
-                    }
-                    else
-                    {
-                        rs = new RegionSettings();
-                        rs.RegionUUID = regionUUID;
-                        rs.OnSave += StoreRegionSettings;
+                    cmd.CommandText = "select * from regionsettings where regionUUID = ?RegionUUID";
+                    cmd.Parameters.AddWithValue("regionUUID", regionUUID);
 
-                        StoreRegionSettings(rs);
+                    using (IDataReader reader = ExecuteReader(cmd))
+                    {
+                        if (reader.Read())
+                        {
+                            rs = BuildRegionSettings(reader);
+                            rs.OnSave += StoreRegionSettings;
+                        }
+                        else
+                        {
+                            rs = new RegionSettings();
+                            rs.RegionUUID = regionUUID;
+                            rs.OnSave += StoreRegionSettings;
+
+                            StoreRegionSettings(rs);
+                        }
                     }
                 }
-                finally
-                {
-                    reader.Close();
-                }
-                cmd.Dispose();
             }
 
             return rs;
@@ -754,9 +706,9 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "replace into regionsettings (regionUUID, " +
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "replace into regionsettings (regionUUID, " +
                         "block_terraform, block_fly, allow_damage, " +
                         "restrict_pushing, allow_land_resell, " +
                         "allow_land_join_divide, block_show_in_search, " +
@@ -766,8 +718,8 @@ namespace OpenSim.Data.MySQL
                         "terrain_texture_2, terrain_texture_3, " +
                         "terrain_texture_4, elevation_1_nw, " +
                         "elevation_2_nw, elevation_1_ne, " +
-                        "elevation_2_ne, elevation_1_se, "+
-                        "elevation_2_se, elevation_1_sw, "+
+                        "elevation_2_ne, elevation_1_se, " +
+                        "elevation_2_se, elevation_1_sw, " +
                         "elevation_2_sw, water_height, " +
                         "terrain_raise_limit, terrain_lower_limit, " +
                         "use_estate_sun, fixed_sun, sun_position, " +
@@ -789,11 +741,10 @@ namespace OpenSim.Data.MySQL
                         "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
                         "?LoadedCreationDateTime, ?LoadedCreationID)";
 
-                FillRegionSettingsCommand(cmd, rs);
+                    FillRegionSettingsCommand(cmd, rs);
 
-                ExecuteNonQuery(cmd);
-                cmd.Dispose();
-
+                    ExecuteNonQuery(cmd);
+                }
             }
         }
 
@@ -803,52 +754,38 @@ namespace OpenSim.Data.MySQL
 
             lock (m_Connection)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                cmd.CommandText = "select * from land where " +
-                        "RegionUUID = ?RegionUUID";
-
-                cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
-
-                IDataReader reader = ExecuteReader(cmd);
-
-                try
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    while (reader.Read())
-                    {
-                        LandData newLand = BuildLandData(reader);
-                        landData.Add(newLand);
-                    }
-                }
-                finally
-                {
-                    reader.Close();
-                }
+                    cmd.CommandText = "select * from land where RegionUUID = ?RegionUUID";
+                    cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
-                foreach (LandData land in landData)
-                {
-                    cmd.Parameters.Clear();
-
-                    cmd.CommandText = "select * from landaccesslist " +
-                            "where LandUUID = ?LandUUID";
-
-                    cmd.Parameters.AddWithValue("LandUUID", land.GlobalID.ToString());
-
-                    reader = ExecuteReader(cmd);
-
-                    try
+                    using (IDataReader reader = ExecuteReader(cmd))
                     {
                         while (reader.Read())
                         {
-                            land.ParcelAccessList.Add(BuildLandAccessData(reader));
+                            LandData newLand = BuildLandData(reader);
+                            landData.Add(newLand);
                         }
                     }
-                    finally
+                }
+
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    foreach (LandData land in landData)
                     {
-                        reader.Close();
+                        cmd.Parameters.Clear();
+                        cmd.CommandText = "select * from landaccesslist where LandUUID = ?LandUUID";
+                        cmd.Parameters.AddWithValue("LandUUID", land.GlobalID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                            {
+                                land.ParcelAccessList.Add(BuildLandAccessData(reader));
+                            }
+                        }
                     }
                 }
-                cmd.Dispose();
             }
 
             return landData;

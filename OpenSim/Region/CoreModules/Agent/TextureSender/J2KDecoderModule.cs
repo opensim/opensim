@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].End - Layers[i].Start, strEnd);
                 }
 
-                layerDecodeAsset.Data = Encoding.UTF8.GetBytes(stringResult.ToString());
+                layerDecodeAsset.Data = Util.UTF8.GetBytes(stringResult.ToString());
 
                 #endregion Serialize Layer Data
 
@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 {
                     #region Deserialize Layer Data
 
-                    string readResult = Encoding.UTF8.GetString(layerDecodeAsset.Data);
+                    string readResult = Util.UTF8.GetString(layerDecodeAsset.Data);
                     string[] lines = readResult.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     if (lines.Length == 0)

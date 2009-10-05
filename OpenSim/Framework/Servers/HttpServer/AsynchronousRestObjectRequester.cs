@@ -91,24 +91,35 @@ namespace OpenSim.Framework.Servers.HttpServer
                     Stream requestStream = request.EndGetRequestStream(res);
 
                     requestStream.Write(buffer.ToArray(), 0, length);
+                    requestStream.Close();
 
                     request.BeginGetResponse(delegate(IAsyncResult ar)
                     {
                         response = request.EndGetResponse(ar);
-
+                        Stream respStream = null;
                         try
                         {
-                            deserial = (TResponse) deserializer.Deserialize(
-                                    response.GetResponseStream());
+                            respStream = response.GetResponseStream();
+                            deserial = (TResponse)deserializer.Deserialize(
+                                    respStream);
                         }
                         catch (System.InvalidOperationException)
                         {
                         }
+                        finally
+                        {
+                            // Let's not close this
+                            //buffer.Close();
+                            respStream.Close();
+                            response.Close();
+                        }
 
                         action(deserial);
+
                     }, null);
                 }, null);
 
+                
                 return;
             }
 
@@ -119,13 +130,20 @@ namespace OpenSim.Framework.Servers.HttpServer
                     // If the server returns a 404, this appears to trigger a System.Net.WebException even though that isn't
                     // documented in MSDN
                     response = request.EndGetResponse(res2);
-              
+
+                    Stream respStream = null;
                     try
                     {
-                        deserial = (TResponse)deserializer.Deserialize(response.GetResponseStream());
+                        respStream = response.GetResponseStream();
+                        deserial = (TResponse)deserializer.Deserialize(respStream);
                     }
                     catch (System.InvalidOperationException)
                     {
+                    }
+                    finally
+                    {
+                        respStream.Close();
+                        response.Close();
                     }
                 }
                 catch (WebException e)
@@ -148,7 +166,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     }
                     else
                     {
-                        m_log.ErrorFormat("[ASYNC REQUEST]: Request {0} {1} failed with exception {2}", verb, requestUrl, e);
+                        m_log.ErrorFormat("[ASYNC REQUEST]: Request {0} {1} failed with status {2} and message {3}", verb, requestUrl, e.Status, e.Message);
                     }
                 }
                 catch (Exception e)

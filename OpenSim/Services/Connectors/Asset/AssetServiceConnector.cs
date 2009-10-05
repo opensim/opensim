@@ -171,6 +171,8 @@ namespace OpenSim.Services.Connectors
 
             if (asset == null)
             {
+                bool result = false;
+
                 AsynchronousRestObjectRequester.
                         MakeRequest<int, AssetBase>("GET", uri, 0,
                         delegate(AssetBase a)
@@ -178,12 +180,15 @@ namespace OpenSim.Services.Connectors
                             if (m_Cache != null)
                                 m_Cache.Cache(a);
                             handler(id, sender, a);
+                            result = true;
                         });
 
+                return result;
             }
             else
             {
-                Util.FireAndForget(delegate { handler(id, sender, asset); });
+                //Util.FireAndForget(delegate { handler(id, sender, asset); });
+                handler(id, sender, asset);
             }
 
             return true;

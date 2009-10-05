@@ -4751,7 +4751,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 Hashtable mp = (Hashtable)simMapProfiles[iii];
                 mbReply.Data[iii] = new MapBlockReplyPacket.DataBlock();
-                mbReply.Data[iii].Name = System.Text.Encoding.UTF8.GetBytes((string)mp["name"]);
+                mbReply.Data[iii].Name = Util.UTF8.GetBytes((string)mp["name"]);
                 mbReply.Data[iii].Access = System.Convert.ToByte(mp["access"]);
                 mbReply.Data[iii].Agents = System.Convert.ToByte(mp["agents"]);
                 mbReply.Data[iii].MapImageID = new UUID((string)mp["map-image-id"]);
@@ -7341,7 +7341,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     #endregion
 
-                    string mapName = Encoding.UTF8.GetString(map.NameData.Name, 0,
+                    string mapName = Util.UTF8.GetString(map.NameData.Name, 0,
                                                              map.NameData.Name.Length - 1);
                     handlerMapNameRequest = OnMapNameRequest;
                     if (handlerMapNameRequest != null)

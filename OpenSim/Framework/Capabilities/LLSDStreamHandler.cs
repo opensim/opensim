@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Capabilities
         public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            //Encoding encoding = Encoding.UTF8;
+            //Encoding encoding = Util.UTF8;
             //StreamReader streamReader = new StreamReader(request, false);
 
             //string requestBody = streamReader.ReadToEnd();

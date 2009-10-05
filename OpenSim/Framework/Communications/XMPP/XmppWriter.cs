@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Communications.XMPP
         {
         }
 
-        public XMPPWriter(IOStream stream) : this(stream, Encoding.UTF8)
+        public XMPPWriter(IOStream stream) : this(stream, Util.UTF8)
         {
         }
 

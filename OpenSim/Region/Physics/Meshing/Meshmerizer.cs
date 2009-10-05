@@ -224,6 +224,14 @@ namespace OpenSim.Region.Physics.Meshing
             for (int i = 0; i < lodBytes.Length; i++)
                 hash = djb2(hash, lodBytes[i]);
 
+            // include sculpt UUID
+            if (pbs.SculptEntry)
+            {
+                scaleBytes = pbs.SculptTexture.GetBytes();
+                for (int i = 0; i < scaleBytes.Length; i++)
+                    hash = djb2(hash, scaleBytes[i]);
+            }
+
             return hash;
         }
 
@@ -330,7 +338,7 @@ namespace OpenSim.Region.Physics.Meshing
                 bool invert = ((primShape.SculptType & 64) != 0);
 
                 sculptMesh = new PrimMesher.SculptMesh((Bitmap)idata, sculptType, (int)lod, false, mirror, invert);
-
+                
                 idata.Dispose();
 
                 sculptMesh.DumpRaw(baseDir, primName, "primMesh");
@@ -389,7 +397,7 @@ namespace OpenSim.Region.Physics.Meshing
                 primMesh.pathCutBegin = pathBegin;
                 primMesh.pathCutEnd = pathEnd;
 
-                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                if (primShape.PathCurve == (byte)Extrusion.Straight || primShape.PathCurve == (byte) Extrusion.Flexible)
                 {
                     primMesh.twistBegin = primShape.PathTwistBegin * 18 / 10;
                     primMesh.twistEnd = primShape.PathTwist * 18 / 10;
@@ -484,12 +492,18 @@ namespace OpenSim.Region.Physics.Meshing
 
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod, bool isPhysical)
         {
+            Mesh mesh = null;
+            ulong key = 0;
+
             // If this mesh has been created already, return it instead of creating another copy
             // For large regions with 100k+ prims and hundreds of copies of each, this can save a GB or more of memory
-            ulong key = GetMeshKey(primShape, size, lod);
-            Mesh mesh = null;
-            if (m_uniqueMeshes.TryGetValue(key, out mesh))
-                return mesh;
+
+            if (! primShape.SculptEntry)
+            {
+                key = GetMeshKey(primShape, size, lod);
+                if (m_uniqueMeshes.TryGetValue(key, out mesh))
+                    return mesh;
+            }
 
             if (size.X < 0.01f) size.X = 0.01f;
             if (size.Y < 0.01f) size.Y = 0.01f;
@@ -512,7 +526,10 @@ namespace OpenSim.Region.Physics.Meshing
                 // trim the vertex and triangle lists to free up memory
                 mesh.TrimExcess();
             }
-            m_uniqueMeshes.Add(key, mesh);
+
+            if (!primShape.SculptEntry)
+                m_uniqueMeshes.Add(key, mesh);
+
             return mesh;
         }
     }

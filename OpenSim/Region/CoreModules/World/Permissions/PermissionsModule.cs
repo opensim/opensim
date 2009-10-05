@@ -397,10 +397,15 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         // with the powers requested (powers = 0 for no powers check)
         protected bool IsGroupMember(UUID groupID, UUID userID, ulong powers)
         {
-            IClientAPI client = m_scene.GetScenePresence(userID).ControllingClient;
-    
-            return ((groupID == client.ActiveGroupId) && (client.ActiveGroupPowers != 0) &&
-                ((powers == 0) || ((client.ActiveGroupPowers & powers) == powers)));
+            ScenePresence sp = m_scene.GetScenePresence(userID);
+            if (sp != null)
+            {
+                IClientAPI client = sp.ControllingClient;
+
+                return ((groupID == client.ActiveGroupId) && (client.ActiveGroupPowers != 0) &&
+                    ((powers == 0) || ((client.ActiveGroupPowers & powers) == powers)));
+            }
+            return false;
         }
             
         /// <summary>
@@ -576,9 +581,12 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return objectOwnerMask;
             }
 
+            if ((objectOwnerMask & (uint)PermissionMask.Transfer) != 0 && task.ObjectSaleType != 0)
+                objectEveryoneMask |= (uint)PrimFlags.ObjectTransfer;
+
             // Group permissions
             if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))
-                return objectGroupMask;
+                return objectGroupMask | objectEveryoneMask;
         
             return objectEveryoneMask;
         }

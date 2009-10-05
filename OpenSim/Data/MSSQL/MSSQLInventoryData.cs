@@ -348,8 +348,6 @@ namespace OpenSim.Data.MSSQL
                 //Delete the actual row
                 DeleteOneFolder(folderID, connection);
                 DeleteItemsInFolder(folderID, connection);
-
-                connection.Close();
             }
         }
 

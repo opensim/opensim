@@ -1491,7 +1491,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             notecardData = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
             + textLength.ToString() + "\n" + notecardData + "}\n";
 
-            asset.Data = Encoding.UTF8.GetBytes(notecardData);
+            asset.Data = Util.UTF8.GetBytes(notecardData);
             World.AssetService.Store(asset);
 
             // Create Task Entry

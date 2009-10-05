@@ -56,7 +56,6 @@ namespace OpenSim.Data.MSSQL
                         {
                             version = Convert.ToInt32(reader["version"]);
                         }
-                        reader.Close();
                     }
                 }
                 catch
