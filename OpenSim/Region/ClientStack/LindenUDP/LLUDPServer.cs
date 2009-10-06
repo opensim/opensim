@@ -35,6 +35,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 
@@ -190,31 +191,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void RemoveClient(LLUDPClient udpClient)
-        {
-            IClientAPI client;
-
-            if (m_scene.ClientManager.TryGetClient(udpClient.CircuitCode, out client))
-                RemoveClient(client);
-            else
-                m_log.Warn("[LLUDPSERVER]: Failed to lookup IClientAPI for LLUDPClient " + udpClient.AgentID);
-        }
-
-        public void SetClientPaused(UUID agentID, bool paused)
-        {
-            LLUDPClient client;
-            if (clients.TryGetValue(agentID, out client))
-            {
-                client.IsPaused = paused;
-            }
-            else
-            {
-                m_log.Warn("[LLUDPSERVER]: Attempted to pause/unpause unknown agent " + agentID);
-            }
-        }
-
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
         {
+            // CoarseLocationUpdate packets cannot be split in an automated way
+            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+                allowSplitting = false;
+
             if (allowSplitting && packet.HasVariableBlocks)
             {
                 byte[][] datas = packet.ToBytesMultiple();
@@ -251,6 +233,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPacket(LLUDPClient client, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
         {
+            // CoarseLocationUpdate packets cannot be split in an automated way
+            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+                allowSplitting = false;
+
             if (allowSplitting && packet.HasVariableBlocks)
             {
                 byte[][] datas = packet.ToBytesMultiple();
@@ -339,6 +325,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        public void SendPing(LLUDPClient client)
+        {
+            IClientAPI api = client.ClientAPI;
+            if (api != null)
+                api.SendStartPingCheck(client.CurrentPingSequence++);
+        }
+
         public void ResendUnacked(LLUDPClient client)
         {
             if (client.NeedAcks.Count > 0)
@@ -387,9 +380,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             //FIXME: Make 60 an .ini setting
                             if (Environment.TickCount - client.TickLastPacketReceived > 1000 * 60)
                             {
-                                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + client.RemoteEndPoint);
+                                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + client.ClientAPI.Name);
 
-                                RemoveClient(client);
+                                RemoveClient(client.ClientAPI);
                                 return;
                             }
                         }
@@ -590,8 +583,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPClient client = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
             clients.Add(agentID, client.RemoteEndPoint, client);
 
-            // Create the IClientAPI
-            IClientAPI clientApi = new LLClientView(remoteEndPoint, m_scene, this, client, sessionInfo, agentID, sessionID, circuitCode);
+            // Create the LLClientView
+            LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, client, sessionInfo, agentID, sessionID, circuitCode);
             clientApi.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
             clientApi.OnLogout += LogoutHandler;
             clientApi.OnConnectionClosed += RemoveClient;
@@ -618,23 +611,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void IncomingPacketHandler()
         {
-            IncomingPacket incomingPacket = new IncomingPacket();
-            Packet packet = null;
-            LLUDPClient client = null;
+            // Set this culture for the thread that incoming packets are received
+            // on to en-US to avoid number parsing issues
+            Culture.SetCurrentCulture();
+
+            IncomingPacket incomingPacket = default(IncomingPacket);
 
             while (base.IsRunning)
             {
-                // Reset packet to null for the check below
-                packet = null;
-
                 if (packetInbox.Dequeue(100, ref incomingPacket))
-                {
-                    packet = incomingPacket.Packet;
-                    client = incomingPacket.Client;
-
-                    if (packet != null && client != null)
-                        client.ClientAPI.ProcessInPacket(packet);
-                }
+                    Util.FireAndForget(ProcessInPacket, incomingPacket);
             }
 
             if (packetInbox.Count > 0)
@@ -642,32 +628,98 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packetInbox.Clear();
         }
 
+        private void ProcessInPacket(object state)
+        {
+            IncomingPacket incomingPacket = (IncomingPacket)state;
+            Packet packet = incomingPacket.Packet;
+            LLUDPClient client = incomingPacket.Client;
+
+            if (packet != null && client != null)
+            {
+                try
+                {
+                    client.ClientAPI.ProcessInPacket(packet);
+                }
+                catch (ThreadAbortException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    if (StatsManager.SimExtraStats != null)
+                        StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
+
+                    // Don't let a failure in an individual client thread crash the whole sim.
+                    m_log.ErrorFormat("[LLUDPSERVER]: Client thread for {0} {1} crashed. Logging them out", client.ClientAPI.Name, client.AgentID);
+                    m_log.Error(e.Message, e);
+
+                    try
+                    {
+                        // Make an attempt to alert the user that their session has crashed
+                        AgentAlertMessagePacket alert = client.ClientAPI.BuildAgentAlertPacket(
+                            "Unfortunately the session for this client on the server has crashed.\n" +
+                            "Any further actions taken will not be processed.\n" +
+                            "Please relog", true);
+
+                        SendPacket(client, alert, ThrottleOutPacketType.Unknown, false);
+
+                        // TODO: There may be a better way to do this. Perhaps kick? Not sure this propogates notifications to
+                        // listeners yet, though.
+                        client.ClientAPI.SendLogoutPacket();
+                        RemoveClient(client.ClientAPI);
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        throw;
+                    }
+                    catch (Exception e2)
+                    {
+                        m_log.Error("[LLUDPSERVER]: Further exception thrown on forced session logout for " + client.ClientAPI.Name);
+                        m_log.Error(e2.Message, e2);
+                    }
+                }
+            }
+        }
+
         private void OutgoingPacketHandler()
         {
+            // Set this culture for the thread that outgoing packets are sent
+            // on to en-US to avoid number parsing issues
+            Culture.SetCurrentCulture();
+
             int now = Environment.TickCount;
             int elapsedMS = 0;
             int elapsed100MS = 0;
+            int elapsed500MS = 0;
 
             while (base.IsRunning)
             {
                 bool resendUnacked = false;
                 bool sendAcks = false;
+                bool sendPings = false;
                 bool packetSent = false;
 
                 elapsedMS += Environment.TickCount - now;
 
-                // Check for packets that need to be resent every 100ms
+                // Check for pending outgoing resends every 100ms
                 if (elapsedMS >= 100)
                 {
                     resendUnacked = true;
                     elapsedMS -= 100;
                     ++elapsed100MS;
                 }
-                // Check for ACKs that need to be sent out every 500ms
+                // Check for pending outgoing ACKs every 500ms
                 if (elapsed100MS >= 5)
                 {
                     sendAcks = true;
                     elapsed100MS = 0;
+                    ++elapsed500MS;
+                }
+                // Send pings to clients every 2000ms
+                if (elapsed500MS >= 4)
+                {
+                    sendPings = true;
+                    elapsed500MS = 0;
                 }
 
                 clients.ForEach(
@@ -679,6 +731,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             ResendUnacked(client);
                         if (sendAcks)
                             SendAcks(client);
+                        if (sendPings)
+                            SendPing(client);
                     }
                 );
 

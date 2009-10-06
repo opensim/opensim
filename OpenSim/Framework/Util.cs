@@ -1231,6 +1231,42 @@ namespace OpenSim.Framework
             return (ipaddr1 != null) ? "http://" + ipaddr1.ToString() + ":" + port1 : uri;
         }
 
+        public static byte[] StringToBytes256(string str)
+        {
+            if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }
+            if (str.Length > 254) str = str.Remove(254);
+            if (!str.EndsWith("\0")) { str += "\0"; }
+            
+            // Because this is UTF-8 encoding and not ASCII, it's possible we
+            // might have gotten an oversized array even after the string trim
+            byte[] data = UTF8.GetBytes(str);
+            if (data.Length > 256)
+            {
+                Array.Resize<byte>(ref data, 256);
+                data[255] = 0;
+            }
+
+            return data;
+        }
+
+        public static byte[] StringToBytes1024(string str)
+        {
+            if (String.IsNullOrEmpty(str)) { return Utils.EmptyBytes; }
+            if (str.Length > 1023) str = str.Remove(1023);
+            if (!str.EndsWith("\0")) { str += "\0"; }
+
+            // Because this is UTF-8 encoding and not ASCII, it's possible we
+            // might have gotten an oversized array even after the string trim
+            byte[] data = UTF8.GetBytes(str);
+            if (data.Length > 1024)
+            {
+                Array.Resize<byte>(ref data, 1024);
+                data[1023] = 0;
+            }
+
+            return data;
+        }
+
         #region FireAndForget Threading Pattern
 
         public static void FireAndForget(System.Threading.WaitCallback callback)

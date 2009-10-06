@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -27,30 +27,47 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
-using OpenMetaverse;
-
-using ReaderWriterLockImpl = OpenMetaverse.ReaderWriterLockSlim;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLUtil
+    /// <summary>
+    /// A circular buffer and hashset for tracking incoming packet sequence
+    /// numbers
+    /// </summary>
+    public sealed class IncomingPacketHistoryCollection
     {
-        /// <summary>
-        /// Convert a string to bytes suitable for use in an LL UDP packet.
-        /// </summary>
-        /// <param name="s">Truncated to 254 characters if necessary</param>
-        /// <returns></returns>
-        public static byte[] StringToPacketBytes(string s)
+        private readonly uint[] m_items;
+        private HashSet<uint> m_hashSet;
+        private int m_first;
+        private int m_next;
+        private int m_capacity;
+
+        public IncomingPacketHistoryCollection(int capacity)
         {
-            // Anything more than 254 will cause libsecondlife to barf
-            // (libsl 1550) adds an \0 on the Utils.StringToBytes conversion if it isn't present
-            if (s.Length > 254)
+            this.m_capacity = capacity;
+            m_items = new uint[capacity];
+            m_hashSet = new HashSet<uint>();
+        }
+
+        public bool TryEnqueue(uint ack)
+        {
+            lock (m_hashSet)
             {
-                s = s.Remove(254);
-            } 
-            
-            return Utils.StringToBytes(s);
+                if (m_hashSet.Add(ack))
+                {
+                    m_items[m_next] = ack;
+                    m_next = (m_next + 1) % m_capacity;
+                    if (m_next == m_first)
+                    {
+                        m_hashSet.Remove(m_items[m_first]);
+                        m_first = (m_first + 1) % m_capacity;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

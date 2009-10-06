@@ -239,10 +239,8 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat(
-                        "[ASSETS DB]: " +
-                        "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
-                        + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
+                    m_log.ErrorFormat("[ASSET DB]: MySQL failure creating asset {0} with name \"{1}\". Attempting reconnect. Error: {2}",
+                        asset.FullID, asset.Name, e.Message);
                     _dbConnection.Reconnect();
                 }
             }

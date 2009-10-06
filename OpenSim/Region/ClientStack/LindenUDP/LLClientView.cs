@@ -70,28 +70,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUDPServer m_udpServer;
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
-        private readonly UUID m_secureSessionId = UUID.Zero;
+        private readonly UUID m_secureSessionId;
         private readonly UUID m_agentId;
         private readonly uint m_circuitCode;
-        private readonly byte[] m_channelVersion = Utils.StringToBytes("OpenSimulator Server"); // Dummy value needed by libSL
+        private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
         private readonly IGroupsModule m_GroupsModule;
 
-        private int m_debugPacketLevel;
         private int m_cachedTextureSerial;
-        private Timer m_clientPingTimer;
         private Timer m_avatarTerseUpdateTimer;
         private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
         private Timer m_primTerseUpdateTimer;
         private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
         private Timer m_primFullUpdateTimer;
         private List<ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates = new List<ObjectUpdatePacket.ObjectDataBlock>();
-        private bool m_clientBlocked;
-        private int m_probesWithNoIngressPackets;
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
-        private int m_inPacketsChecked;
         private AgentUpdateArgs lastarg;
         private bool m_IsActive = true;
 
@@ -170,57 +165,71 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientChat>(this);
             RegisterInterface<IClientIPEndpoint>(this);
-            m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
-
-            m_moneyBalance = 1000;
-
-            m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
-
+            
             InitDefaultAnimations();
 
             m_scene = scene;
-            //m_assetCache = assetCache;
-
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-
-            m_udpServer = udpServer;
-            m_udpClient = udpClient;
-
+            m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
+            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
+            m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
             m_agentId = agentId;
             m_sessionId = sessionId;
+            m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
             m_circuitCode = circuitCode;
-
             m_userEndPoint = remoteEP;
-
             m_firstName = sessionInfo.LoginInfo.First;
             m_lastName = sessionInfo.LoginInfo.Last;
             m_startpos = sessionInfo.LoginInfo.StartPos;
+            m_moneyBalance = 1000;
 
-            if (sessionInfo.LoginInfo.SecureSession != UUID.Zero)
-            {
-                m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
-            }
-
-            // While working on this, the BlockingQueue had me fooled for a bit.
-            // The Blocking queue causes the thread to stop until there's something
-            // in it to process.  It's an on-purpose threadlock though because
-            // without it, the clientloop will suck up all sim resources.
-
-            //m_PacketHandler = new LLPacketHandler(this, m_networkServer, userSettings);
-            //m_PacketHandler.SynchronizeClient = SynchronizeClient;
-            //m_PacketHandler.OnPacketStats += PopulateStats;
-            //m_PacketHandler.OnQueueEmpty += HandleQueueEmpty;
+            m_udpServer = udpServer;
+            m_udpClient = udpClient;
+            m_udpClient.OnQueueEmpty += HandleQueueEmpty;
+            // FIXME: Implement this
+            //m_udpClient.OnPacketStats += PopulateStats;
 
             RegisterLocalPacketHandlers();
-            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
         }
 
-        public void SetDebugPacketLevel(int newDebugPacketLevel)
+        public void SetDebugPacketLevel(int newDebug)
         {
-            m_debugPacketLevel = newDebugPacketLevel;
         }
 
         #region Client Methods
+
+        /// <summary>
+        /// Close down the client view.  This *must* be the last method called, since the last  #
+        /// statement of CloseCleanup() aborts the thread.
+        /// </summary>
+        /// <param name="shutdownCircuit"></param>
+        public void Close(bool shutdownCircuit)
+        {
+            m_log.DebugFormat(
+                "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
+                shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
+
+            if (m_imageManager != null)
+                m_imageManager.Close();
+
+            if (m_udpServer != null)
+                m_udpServer.Flush();
+
+            // raise an event on the packet server to Shutdown the circuit
+            // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
+            // here otherwise we'll end up calling it twice.
+            // FIXME: In truth, I might be wrong but this whole business of calling this method twice (with different args) looks
+            // horribly tangly.  Hopefully it should be possible to greatly simplify it.
+            if (shutdownCircuit)
+            {
+                if (OnConnectionClosed != null)
+                    OnConnectionClosed(this);
+            }
+            else
+            {
+                CloseCleanup(shutdownCircuit);
+            }
+        }
 
         private void CloseCleanup(bool shutdownCircuit)
         {
@@ -236,9 +245,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Thread.Sleep(2000);
 
             // Shut down timers. Thread Context of this method is murky.   Lock all timers
-            if (m_clientPingTimer.Enabled)
-                lock (m_clientPingTimer)
-                    m_clientPingTimer.Stop();
             if (m_avatarTerseUpdateTimer.Enabled)
                 lock (m_avatarTerseUpdateTimer)
                     m_avatarTerseUpdateTimer.Stop();
@@ -271,43 +277,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // of the client thread regardless of where Close() is called.
                 KillEndDone();
             }
-			
-			Terminate();
-        }
 
-        /// <summary>
-        /// Close down the client view.  This *must* be the last method called, since the last  #
-        /// statement of CloseCleanup() aborts the thread.
-        /// </summary>
-        /// <param name="shutdownCircuit"></param>
-        public void Close(bool shutdownCircuit)
-        {
-            m_clientPingTimer.Enabled = false;
+            IsActive = false;
 
-            m_log.DebugFormat(
-                "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
-                shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
+            m_avatarTerseUpdateTimer.Close();
+            m_primTerseUpdateTimer.Close();
+            m_primFullUpdateTimer.Close();
 
-            if (m_imageManager != null)
-                m_imageManager.Close();
+            //m_udpServer.OnPacketStats -= PopulateStats;
+            m_udpClient.Shutdown();
 
-            if (m_udpServer != null)
-                m_udpServer.Flush();
+            // wait for thread stoped
+            // m_clientThread.Join();
 
-            // raise an event on the packet server to Shutdown the circuit
-            // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
-            // here otherwise we'll end up calling it twice.
-            // FIXME: In truth, I might be wrong but this whole business of calling this method twice (with different args) looks
-            // horribly tangly.  Hopefully it should be possible to greatly simplify it.
-            if (shutdownCircuit)
-            {
-                if (OnConnectionClosed != null)
-                    OnConnectionClosed(this);
-            }
-            else
-            {
-                CloseCleanup(shutdownCircuit);
-            }
+            // delete circuit code
+            //m_networkServer.CloseClient(this);
         }
 
         public void Kick(string message)
@@ -329,10 +313,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Stop()
         {
             // Shut down timers.  Thread Context is Murky, lock all timers!
-            if (m_clientPingTimer.Enabled)
-                lock (m_clientPingTimer)
-                    m_clientPingTimer.Stop();
-
             if (m_avatarTerseUpdateTimer.Enabled)
                 lock (m_avatarTerseUpdateTimer)
                     m_avatarTerseUpdateTimer.Stop();
@@ -344,25 +324,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_primFullUpdateTimer.Enabled)
                 lock (m_primFullUpdateTimer)
                     m_primFullUpdateTimer.Stop();
-        }
-
-        private void Terminate()
-        {
-			IsActive = false;
-			
-			m_clientPingTimer.Close();
-			m_avatarTerseUpdateTimer.Close();
-			m_primTerseUpdateTimer.Close();
-			m_primFullUpdateTimer.Close();
-
-            //m_udpServer.OnPacketStats -= PopulateStats;
-            m_udpClient.Shutdown();
-
-            // wait for thread stoped
-            // m_clientThread.Join();
-
-            // delete circuit code
-            //m_networkServer.CloseClient(this);
         }
 
         #endregion Client Methods
@@ -452,7 +413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return result;
         }
 
-        protected void DebugPacket(string direction, Packet packet)
+        /*protected void DebugPacket(string direction, Packet packet)
         {
             string info;
 
@@ -478,7 +439,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
-        }
+        }*/
 
         #endregion Packet Handling
 
@@ -490,8 +451,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void InitNewClient()
         {
-            //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
-
             m_avatarTerseUpdateTimer = new Timer(m_avatarTerseUpdateRate);
             m_avatarTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
             m_avatarTerseUpdateTimer.AutoReset = false;
@@ -511,11 +470,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public virtual void Start()
         {
-            m_clientThread = new Thread(RunUserSession);
-            m_clientThread.Name = "ClientThread";
-            m_clientThread.IsBackground = true;
-            m_clientThread.Start();
-            ThreadTracker.Add(m_clientThread);
+            // This sets up all the timers
+            InitNewClient();
         }
 
         /// <summary>
@@ -523,14 +479,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected void RunUserSession()
         {
-            //tell this thread we are using the culture set up for the sim (currently hardcoded to en_US)
-            //otherwise it will override this and use the system default
-            Culture.SetCurrentCulture();
-
             try
             {
-                // This sets up all the timers
-                InitNewClient();
+                
             }
             catch (Exception e)
             {
@@ -1373,8 +1324,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendStartPingCheck(byte seq)
         {
             StartPingCheckPacket pc = (StartPingCheckPacket)PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
-            pc.PingID.PingID = seq;
             pc.Header.Reliable = false;
+
+            OutgoingPacket oldestPacket = m_udpClient.NeedAcks.GetOldest();
+
+            pc.PingID.PingID = seq;
+            pc.PingID.OldestUnacked = (oldestPacket != null) ? oldestPacket.SequenceNumber : 0;
+            
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
 
@@ -1450,12 +1406,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     descend.ItemData[i].AssetID = item.AssetID;
                     descend.ItemData[i].CreatorID = item.CreatorIdAsUuid;
                     descend.ItemData[i].BaseMask = item.BasePermissions;
-                    descend.ItemData[i].Description = LLUtil.StringToPacketBytes(item.Description);
+                    descend.ItemData[i].Description = Util.StringToBytes256(item.Description);
                     descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
                     descend.ItemData[i].OwnerMask = item.CurrentPermissions;
                     descend.ItemData[i].FolderID = item.Folder;
                     descend.ItemData[i].InvType = (sbyte)item.InvType;
-                    descend.ItemData[i].Name = LLUtil.StringToPacketBytes(item.Name);
+                    descend.ItemData[i].Name = Util.StringToBytes256(item.Name);
                     descend.ItemData[i].NextOwnerMask = item.NextPermissions;
                     descend.ItemData[i].OwnerID = item.Owner;
                     descend.ItemData[i].Type = (sbyte)item.AssetType;
@@ -1536,7 +1492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
                     descend.FolderData[i].FolderID = folder.ID;
-                    descend.FolderData[i].Name = LLUtil.StringToPacketBytes(folder.Name);
+                    descend.FolderData[i].Name = Util.StringToBytes256(folder.Name);
                     descend.FolderData[i].ParentID = folder.ParentID;
                     descend.FolderData[i].Type = (sbyte)folder.Type;
 
@@ -1651,11 +1607,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
             inventoryReply.InventoryData[0].CreationDate = item.CreationDate;
 
-            inventoryReply.InventoryData[0].Description = LLUtil.StringToPacketBytes(item.Description);
+            inventoryReply.InventoryData[0].Description = Util.StringToBytes256(item.Description);
             inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
             inventoryReply.InventoryData[0].FolderID = item.Folder;
             inventoryReply.InventoryData[0].InvType = (sbyte)item.InvType;
-            inventoryReply.InventoryData[0].Name = LLUtil.StringToPacketBytes(item.Name);
+            inventoryReply.InventoryData[0].Name = Util.StringToBytes256(item.Name);
             inventoryReply.InventoryData[0].NextOwnerMask = item.NextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.Owner;
             inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
@@ -1780,7 +1736,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             folderBlock.FolderID = folder.ID;
             folderBlock.ParentID = folder.ParentID;
             folderBlock.Type = -1;
-            folderBlock.Name = LLUtil.StringToPacketBytes(folder.Name);
+            folderBlock.Name = Util.StringToBytes256(folder.Name);
 
             return folderBlock;
         }
@@ -1798,11 +1754,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             itemBlock.AssetID = item.AssetID;
             itemBlock.CreatorID = item.CreatorIdAsUuid;
             itemBlock.BaseMask = item.BasePermissions;
-            itemBlock.Description = LLUtil.StringToPacketBytes(item.Description);
+            itemBlock.Description = Util.StringToBytes256(item.Description);
             itemBlock.EveryoneMask = item.EveryOnePermissions;
             itemBlock.FolderID = item.Folder;
             itemBlock.InvType = (sbyte)item.InvType;
-            itemBlock.Name = LLUtil.StringToPacketBytes(item.Name);
+            itemBlock.Name = Util.StringToBytes256(item.Name);
             itemBlock.NextOwnerMask = item.NextPermissions;
             itemBlock.OwnerID = item.Owner;
             itemBlock.OwnerMask = item.CurrentPermissions;
@@ -1862,11 +1818,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bulkUpdate.ItemData[0].CreatorID = item.CreatorIdAsUuid;
             bulkUpdate.ItemData[0].BaseMask = item.BasePermissions;
             bulkUpdate.ItemData[0].CreationDate = item.CreationDate;
-            bulkUpdate.ItemData[0].Description = LLUtil.StringToPacketBytes(item.Description);
+            bulkUpdate.ItemData[0].Description = Util.StringToBytes256(item.Description);
             bulkUpdate.ItemData[0].EveryoneMask = item.EveryOnePermissions;
             bulkUpdate.ItemData[0].FolderID = item.Folder;
             bulkUpdate.ItemData[0].InvType = (sbyte)item.InvType;
-            bulkUpdate.ItemData[0].Name = LLUtil.StringToPacketBytes(item.Name);
+            bulkUpdate.ItemData[0].Name = Util.StringToBytes256(item.Name);
             bulkUpdate.ItemData[0].NextOwnerMask = item.NextPermissions;
             bulkUpdate.ItemData[0].OwnerID = item.Owner;
             bulkUpdate.ItemData[0].OwnerMask = item.CurrentPermissions;
@@ -1909,11 +1865,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].AssetID = Item.AssetID;
             InventoryReply.InventoryData[0].CreatorID = Item.CreatorIdAsUuid;
             InventoryReply.InventoryData[0].BaseMask = Item.BasePermissions;
-            InventoryReply.InventoryData[0].Description = LLUtil.StringToPacketBytes(Item.Description);
+            InventoryReply.InventoryData[0].Description = Util.StringToBytes256(Item.Description);
             InventoryReply.InventoryData[0].EveryoneMask = Item.EveryOnePermissions;
             InventoryReply.InventoryData[0].FolderID = Item.Folder;
             InventoryReply.InventoryData[0].InvType = (sbyte)Item.InvType;
-            InventoryReply.InventoryData[0].Name = LLUtil.StringToPacketBytes(Item.Name);
+            InventoryReply.InventoryData[0].Name = Util.StringToBytes256(Item.Name);
             InventoryReply.InventoryData[0].NextOwnerMask = Item.NextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.Owner;
             InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
@@ -2080,7 +2036,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="message"></param>
         /// <param name="modal"></param>
         /// <returns></returns>
-        protected AgentAlertMessagePacket BuildAgentAlertPacket(string message, bool modal)
+        public AgentAlertMessagePacket BuildAgentAlertPacket(string message, bool modal)
         {
             AgentAlertMessagePacket alertPack = (AgentAlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AgentAlertMessage);
             alertPack.AgentData.AgentID = AgentId;
@@ -3533,7 +3489,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objectData.FullID = objectID;
             objectData.OwnerID = ownerID;
 
-            objectData.Text = LLUtil.StringToPacketBytes(text);
+            objectData.Text = Util.StringToBytes256(text);
             objectData.TextColor[0] = color[0];
             objectData.TextColor[1] = color[1];
             objectData.TextColor[2] = color[2];
@@ -3911,8 +3867,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             objPropDB.SalePrice = SalePrice;
             objPropDB.Category = Category;
             objPropDB.LastOwnerID = LastOwnerID;
-            objPropDB.Name = LLUtil.StringToPacketBytes(ObjectName);
-            objPropDB.Description = LLUtil.StringToPacketBytes(Description);
+            objPropDB.Name = Util.StringToBytes256(ObjectName);
+            objPropDB.Description = Util.StringToBytes256(Description);
             objPropFamilyPack.ObjectData = objPropDB;
             objPropFamilyPack.Header.Zerocoded = true;
             OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
@@ -3946,11 +3902,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 proper.ObjectData[0].OwnerID = UUID.Zero;
             else
                 proper.ObjectData[0].OwnerID = OwnerUUID;
-            proper.ObjectData[0].TouchName = LLUtil.StringToPacketBytes(TouchTitle);
+            proper.ObjectData[0].TouchName = Util.StringToBytes256(TouchTitle);
             proper.ObjectData[0].TextureID = TextureID;
-            proper.ObjectData[0].SitName = LLUtil.StringToPacketBytes(SitTitle);
-            proper.ObjectData[0].Name = LLUtil.StringToPacketBytes(ItemName);
-            proper.ObjectData[0].Description = LLUtil.StringToPacketBytes(ItemDescription);
+            proper.ObjectData[0].SitName = Util.StringToBytes256(SitTitle);
+            proper.ObjectData[0].Name = Util.StringToBytes256(ItemName);
+            proper.ObjectData[0].Description = Util.StringToBytes256(ItemDescription);
             proper.ObjectData[0].OwnerMask = OwnerMask;
             proper.ObjectData[0].NextOwnerMask = NextOwnerMask;
             proper.ObjectData[0].GroupMask = GroupMask;
@@ -4191,11 +4147,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             updatePacket.ParcelData.MediaAutoScale = landData.MediaAutoScale;
             updatePacket.ParcelData.MediaID = landData.MediaID;
-            updatePacket.ParcelData.MediaURL = LLUtil.StringToPacketBytes(landData.MediaURL);
-            updatePacket.ParcelData.MusicURL = LLUtil.StringToPacketBytes(landData.MusicURL);
-            updatePacket.ParcelData.Name = Utils.StringToBytes(landData.Name);
+            updatePacket.ParcelData.MediaURL = Util.StringToBytes256(landData.MediaURL);
+            updatePacket.ParcelData.MusicURL = Util.StringToBytes256(landData.MusicURL);
+            updatePacket.ParcelData.Name = Util.StringToBytes256(landData.Name);
             updatePacket.ParcelData.OtherCleanTime = landData.OtherCleanTime;
-            updatePacket.ParcelData.OtherCount = 0; //unemplemented
+            updatePacket.ParcelData.OtherCount = 0; //TODO: Unimplemented
             updatePacket.ParcelData.OtherPrims = landData.OtherPrims;
             updatePacket.ParcelData.OwnerID = landData.OwnerID;
             updatePacket.ParcelData.OwnerPrims = landData.OwnerPrims;
@@ -4203,22 +4159,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.ParcelPrimBonus = simObjectBonusFactor;
             updatePacket.ParcelData.PassHours = landData.PassHours;
             updatePacket.ParcelData.PassPrice = landData.PassPrice;
-            updatePacket.ParcelData.PublicCount = 0; //unemplemented
+            updatePacket.ParcelData.PublicCount = 0; //TODO: Unimplemented
 
-            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint)RegionFlags.DenyAnonymous) >
-                                                           0);
-            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint)RegionFlags.DenyIdentified) >
-                                                            0);
-            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint)RegionFlags.DenyTransacted) >
-                                                            0);
-            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint)RegionFlags.RestrictPushObject) >
-                                                          0);
+            updatePacket.ParcelData.RegionDenyAnonymous = (regionFlags & (uint)RegionFlags.DenyAnonymous) > 0;
+            updatePacket.ParcelData.RegionDenyIdentified = (regionFlags & (uint)RegionFlags.DenyIdentified) > 0;
+            updatePacket.ParcelData.RegionDenyTransacted = (regionFlags & (uint)RegionFlags.DenyTransacted) > 0;
+            updatePacket.ParcelData.RegionPushOverride = (regionFlags & (uint)RegionFlags.RestrictPushObject) > 0;
 
             updatePacket.ParcelData.RentPrice = 0;
             updatePacket.ParcelData.RequestResult = request_result;
             updatePacket.ParcelData.SalePrice = landData.SalePrice;
             updatePacket.ParcelData.SelectedPrims = landData.SelectedPrims;
-            updatePacket.ParcelData.SelfCount = 0; //unemplemented
+            updatePacket.ParcelData.SelfCount = 0; //TODO: Unimplemented
             updatePacket.ParcelData.SequenceID = sequence_id;
             if (landData.SimwideArea > 0)
             {
@@ -5265,18 +5217,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient.SetThrottles(throttles);
         }
 
+        /// <summary>
+        /// Get the current throttles for this client as a packed byte array
+        /// </summary>
+        /// <param name="multiplier">Unused</param>
+        /// <returns></returns>
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return m_udpClient.GetThrottlesPacked();
         }
 
-        public bool IsThrottleEmpty(ThrottleOutPacketType category)
-        {
-            return m_udpClient.IsThrottleEmpty(category);
-        }
-
         /// <summary>
-        /// Unused
+        /// Cruft?
         /// </summary>
         public virtual void InPacket(object NewPack)
         {
@@ -6231,14 +6183,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
 
                 case PacketType.AgentPause:
-                    m_probesWithNoIngressPackets = 0;
-                    m_clientBlocked = true;
+                    m_udpClient.IsPaused = true;
                     break;
 
                 case PacketType.AgentResume:
-                    m_probesWithNoIngressPackets = 0;
-                    m_clientBlocked = false;
-                    SendStartPingCheck(0);
+                    m_udpClient.IsPaused = false;
+                    SendStartPingCheck(m_udpClient.CurrentPingSequence++);
 
                     break;
 
@@ -8904,14 +8854,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     #region unimplemented handlers
 
                 case PacketType.StartPingCheck:
-                    // Send the client the ping response back
-                    // Pass the same PingID in the matching packet
-                    // Handled In the packet processing
-                    //m_log.Debug("[CLIENT]: possibly unhandled StartPingCheck packet");
+                    StartPingCheckPacket pingStart = (StartPingCheckPacket)Pack;
+                    CompletePingCheckPacket pingComplete = new CompletePingCheckPacket();
+                    pingComplete.PingID.PingID = pingStart.PingID.PingID;
+                    m_udpServer.SendPacket(m_udpClient, pingComplete, ThrottleOutPacketType.Unknown, false);
                     break;
+
                 case PacketType.CompletePingCheck:
-                    // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
-                    //m_log.Warn("[CLIENT]: unhandled CompletePingCheck packet");
+                    // TODO: Do stats tracking or something with these?
                     break;
 
                 case PacketType.ViewerStats:
@@ -10209,14 +10159,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return info;
         }
 
-        public EndPoint GetClientEP()
-        {
-            return m_userEndPoint;
-        }
-
         public void SetClientInfo(ClientInfo info)
         {
             m_udpClient.SetClientInfo(info);
+        }
+
+        public EndPoint GetClientEP()
+        {
+            return m_userEndPoint;
         }
 
         #region Media Parcel Members
