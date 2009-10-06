@@ -318,11 +318,11 @@ namespace OpenSim.Framework.Communications
                     HttpWebResponse errorResponse = e.Response as HttpWebResponse;
                     if (null != errorResponse && HttpStatusCode.NotFound == errorResponse.StatusCode)
                     {
-                        m_log.Warn("[ASSET] Asset not found (404)");
+                        m_log.Warn("[REST CLIENT] Resource not found (404)");
                     }
                     else
                     {
-                        m_log.Error("[ASSET] Error fetching asset from asset server");
+                        m_log.Error("[REST CLIENT] Error fetching resource from server " + _request.Address.ToString());
                         m_log.Debug(e.ToString());
                     }
 
