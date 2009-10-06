@@ -724,7 +724,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -805,7 +804,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Communications" />
@@ -1539,7 +1537,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1624,7 +1621,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1682,7 +1678,6 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
@@ -3590,7 +3585,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Data"/>
