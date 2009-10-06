@@ -111,12 +111,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             lock (SyncRoot)
             {
-                OutgoingPacket p;
-
                 using (SortedDictionary<uint, OutgoingPacket>.ValueCollection.Enumerator e = packets.Values.GetEnumerator())
-                    p = e.Current;
-
-                return p;
+                {
+                    if (e.MoveNext())
+                        return e.Current;
+                    else
+                        return null;
+                }
             }
         }
 
