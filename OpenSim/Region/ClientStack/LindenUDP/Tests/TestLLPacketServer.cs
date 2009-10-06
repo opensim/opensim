@@ -37,7 +37,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
         /// </summary>
         protected Dictionary<PacketType, int> m_packetsReceived = new Dictionary<PacketType, int>();
         
-        public TestLLPacketServer(ILLClientStackNetworkHandler networkHandler, ClientStackUserSettings userSettings)
+        public TestLLPacketServer(LLUDPServer networkHandler, ClientStackUserSettings userSettings)
             : base(networkHandler, userSettings)
         {}
         

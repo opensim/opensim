@@ -42,7 +42,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 //        private static readonly log4net.ILog m_log
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected readonly ILLClientStackNetworkHandler m_networkHandler;
+        protected readonly LLUDPServer m_networkHandler;
         protected IScene m_scene;
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private ClientStackUserSettings m_userSettings;
 
-        public LLPacketServer(ILLClientStackNetworkHandler networkHandler, ClientStackUserSettings userSettings)
+        public LLPacketServer(LLUDPServer networkHandler, ClientStackUserSettings userSettings)
         {
             m_userSettings = userSettings;
             m_networkHandler = networkHandler;

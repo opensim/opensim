@@ -39,7 +39,12 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLPacketHandler : ILLPacketHandler
+    public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
+    public delegate void PacketDrop(Packet pack, Object id);
+    public delegate void QueueEmpty(ThrottleOutPacketType queue);
+    public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, UUID agentID, ThrottleOutPacketType throttlePacketType);
+
+    public class LLPacketHandler
     {
         private static readonly ILog m_log 
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

@@ -172,7 +172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_lastloopprocessed = DateTime.Now.Ticks;
 
                 // This can happen during Close()
-                if (m_client == null || m_client.PacketHandler == null || m_client.PacketHandler.PacketQueue == null)
+                if (m_client == null)
                     return false;
                 
                 while ((imagereq = GetHighestPriorityImage()) != null)
