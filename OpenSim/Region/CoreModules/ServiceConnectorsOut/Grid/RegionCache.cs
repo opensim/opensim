@@ -29,10 +29,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
+using OpenMetaverse;
 using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
@@ -74,6 +76,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public List<GridRegion> GetNeighbours()
         {
             return new List<GridRegion>(m_neighbours.Values);
+        }
+
+        public GridRegion GetRegionByPosition(int x, int y)
+        {
+            uint xsnap = (uint)(x / Constants.RegionSize) * Constants.RegionSize;
+            uint ysnap = (uint)(y / Constants.RegionSize) * Constants.RegionSize;
+            ulong handle = Utils.UIntsToLong(xsnap, ysnap);
+            
+            if (m_neighbours.ContainsKey(handle))
+                return m_neighbours[handle];
+            
+            return null;
         }
     }
 }

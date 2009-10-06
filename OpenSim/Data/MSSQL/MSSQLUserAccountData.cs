@@ -40,19 +40,21 @@ namespace OpenSim.Data.MSSQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames = null;
-        private int m_LastExpire = 0;
         private string m_ConnectionString;
+        private MSSQLManager m_database;
 
         public MSSQLUserAccountData(string connectionString, string realm)
         {
             m_Realm = realm;
             m_ConnectionString = connectionString;
+            m_database = new MSSQLManager(connectionString);
+
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             {
                 conn.Open();
                 Migration m = new Migration(conn, GetType().Assembly, "UserStore");
                 m.Update();
-            }
+            }            
         }
 
         public List<UserAccountData> Query(UUID principalID, UUID scopeID, string query)
@@ -65,16 +67,16 @@ namespace OpenSim.Data.MSSQL
             UserAccountData ret = new UserAccountData();
             ret.Data = new Dictionary<string, object>();
 
-            string sql = string.Format("select * from '{0}' where UUID = @principalID", m_Realm);
+            string sql = string.Format("select * from {0} where UUID = @principalID", m_Realm);
             if (scopeID != UUID.Zero)
                 sql += " and ScopeID = @scopeID";
 
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-
-                cmd.Parameters.AddWithValue("@principalID", principalID);
-                cmd.Parameters.AddWithValue("@scopeID", scopeID);
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
+                cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
+                
                 conn.Open();
                 using (SqlDataReader result = cmd.ExecuteReader())
                 {
@@ -123,17 +125,16 @@ namespace OpenSim.Data.MSSQL
             using (SqlCommand cmd = new SqlCommand())
             {
                 StringBuilder updateBuilder = new StringBuilder();
-                updateBuilder.AppendFormat("update '{0}' set ", m_Realm);
+                updateBuilder.AppendFormat("update {0} set ", m_Realm);
                 bool first = true;
                 foreach (string field in fields)
                 {
                     if (!first)
                         updateBuilder.Append(", ");
-                    updateBuilder.AppendFormat("'{0}' = @{0}", field);
+                    updateBuilder.AppendFormat("{0} = @{0}", field);
 
                     first = false;
-
-                    cmd.Parameters.AddWithValue("@" + field, data.Data[field]);
+                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));                    
                 }
 
                 updateBuilder.Append(" where UUID = @principalID");
@@ -143,16 +144,16 @@ namespace OpenSim.Data.MSSQL
 
                 cmd.CommandText = updateBuilder.ToString();
                 cmd.Connection = conn;
-                cmd.Parameters.AddWithValue("@principalID", data.PrincipalID);
-                cmd.Parameters.AddWithValue("@scopeID", data.ScopeID);
+                cmd.Parameters.Add(m_database.CreateParameter("@principalID", data.PrincipalID));
+                cmd.Parameters.Add(m_database.CreateParameter("@scopeID", data.ScopeID));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() < 1)
                 {
                     StringBuilder insertBuilder = new StringBuilder();
-                    insertBuilder.AppendFormat("insert into '{0}' ('UUID', 'ScopeID', '", m_Realm);
-                    insertBuilder.Append(String.Join("', '", fields));
-                    insertBuilder.Append("') values (@principalID, @scopeID, @");
+                    insertBuilder.AppendFormat("insert into {0} (UUID, ScopeID, ", m_Realm);
+                    insertBuilder.Append(String.Join(", ", fields));
+                    insertBuilder.Append(") values ( @principalID, @scopeID, @");
                     insertBuilder.Append(String.Join(", @", fields));
                     insertBuilder.Append(")");
 
@@ -169,12 +170,13 @@ namespace OpenSim.Data.MSSQL
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            string sql = string.Format("update '{0}' set '{1}' = @{1} where UUID = @UUID", m_Realm, item);
+            string sql = string.Format("update {0} set {1} = @{1} where UUID = @UUID", m_Realm, item);
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.AddWithValue("@" + item, value);
-                cmd.Parameters.AddWithValue("@UUID", principalID);
+                cmd.Parameters.Add(m_database.CreateParameter("@" + item, value));
+                cmd.Parameters.Add(m_database.CreateParameter("@UUID", principalID));
+
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)

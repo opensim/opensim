@@ -178,7 +178,7 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (maximalSize <= 0 || maximalCount <= 0)
             {
-                Log.Info("[ASSET CACHE]: Cenome asset cache is not enabled.");
+                //Log.Debug("[ASSET CACHE]: Cenome asset cache is not enabled.");
                 m_enabled = false;
                 return;
             }
@@ -194,7 +194,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 CnmSynchronizedCache<string, AssetBase>.Synchronized(new CnmMemoryCache<string, AssetBase>(
                     maximalSize, maximalCount, expirationTime));
             m_enabled = true;
-            Log.InfoFormat(
+            Log.DebugFormat(
                 "[ASSET CACHE]: Cenome asset cache enabled (MaxSize = {0} bytes, MaxCount = {1}, ExpirationTime = {2})",
                 maximalSize,
                 maximalCount,
@@ -263,7 +263,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (m_getCount == m_debugEpoch)
             {
-                Log.InfoFormat(
+                Log.DebugFormat(
                     "[ASSET CACHE]: Cached = {0}, Get = {1}, Hits = {2}%, Size = {3} bytes, Avg. A. Size = {4} bytes",
                     m_cachedCount,
                     m_getCount,
@@ -333,7 +333,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 return;
 
             string name = moduleConfig.GetString("AssetCaching");
-            Log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
+            //Log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
             if (name != Name)
                 return;
@@ -343,14 +343,14 @@ namespace OpenSim.Region.CoreModules.Asset
             int maxCount = DefaultMaxCount;
             TimeSpan expirationTime = DefaultExpirationTime;
 
-            IConfig assetConfig = source.Configs[ "AssetCache" ];
+            IConfig assetConfig = source.Configs["AssetCache"];
             if (assetConfig != null)
             {
                 // Get optional configurations
                 maxSize = assetConfig.GetLong("MaxSize", DefaultMaxSize);
                 maxCount = assetConfig.GetInt("MaxCount", DefaultMaxCount);
                 expirationTime =
-                    TimeSpan.FromMinutes(assetConfig.GetInt("ExpirationTime", (int) DefaultExpirationTime.TotalMinutes));
+                    TimeSpan.FromMinutes(assetConfig.GetInt("ExpirationTime", (int)DefaultExpirationTime.TotalMinutes));
 
                 // Debugging purposes only
                 m_debugEpoch = assetConfig.GetInt("DebugEpoch", 0);

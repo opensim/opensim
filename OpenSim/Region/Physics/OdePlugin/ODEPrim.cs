@@ -813,18 +813,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
-            int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
+            IntPtr vertices, indices;
+            int vertexCount, indexCount;
+            int vertexStride, triStride;
+            mesh.getVertexListAsPtrToFloatArray( out vertices, out vertexStride, out vertexCount ); // Note, that vertices are fixed in unmanaged heap
+            mesh.getIndexListAsPtrToIntArray( out indices, out triStride, out indexCount ); // Also fixed, needs release after usage
 
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
 
-            int VertexCount = vertexList.GetLength(0)/3;
-            int IndexCount = indexList.GetLength(0);
-
             _triMeshData = d.GeomTriMeshDataCreate();
 
-            d.GeomTriMeshDataBuildSimple(_triMeshData, vertexList, 3*sizeof (float), VertexCount, indexList, IndexCount,
-                                         3*sizeof (int));
+            d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
             _parent_scene.waitForSpaceUnlock(m_targetSpace);

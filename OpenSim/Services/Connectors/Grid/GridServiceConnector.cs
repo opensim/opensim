@@ -109,8 +109,13 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if ((replyData["Result"] != null) && (replyData["Result"].ToString().ToLower() == "success"))
+                    if (replyData.ContainsKey("Result")&& (replyData["Result"].ToString().ToLower() == "success"))
                         return true;
+                    else if (!replyData.ContainsKey("Result"))
+                        m_log.DebugFormat("[GRID CONNECTOR]: reply data does not contain result field");
+                    else
+                        m_log.DebugFormat("[GRID CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
+                    
                 }
                 else
                     m_log.DebugFormat("[GRID CONNECTOR]: RegisterRegion received null reply");

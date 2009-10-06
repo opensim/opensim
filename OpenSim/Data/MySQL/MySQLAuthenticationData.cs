@@ -82,12 +82,16 @@ namespace OpenSim.Data.MySQL
                             ret.Data[s] = result[s].ToString();
                         }
 
+                        CloseDBConnection(cmd);
                         return ret;
+                    }
+                    else
+                    {
+                        CloseDBConnection(cmd);
+                        return null;
                     }
                 }
             }
-
-            return null;
         }
 
         public bool Store(AuthenticationData data)

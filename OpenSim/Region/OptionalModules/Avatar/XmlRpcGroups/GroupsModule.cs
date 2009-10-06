@@ -148,9 +148,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 UUID[] CurrentKeys = new UUID[m_clientRequestIDInfo.Count];
                 foreach (UUID key in CurrentKeys)
                 {
-                    if (DateTime.Now - m_clientRequestIDInfo[key].LastUsedTMStamp > cacheTimeout)
+                    if (m_clientRequestIDInfo.ContainsKey(key))
                     {
-                        m_clientRequestIDInfo.Remove(key);
+                        if (DateTime.Now - m_clientRequestIDInfo[key].LastUsedTMStamp > cacheTimeout)
+                        {
+                            m_clientRequestIDInfo.Remove(key);
+                        }
                     }
                 }
             }
@@ -476,7 +479,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                             
                             foreach (string key in binBucketOSD.Keys)
                             {
-                                m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
+                                if (binBucketOSD.ContainsKey(key))
+                                {
+                                    m_log.WarnFormat("{0}: {1}", key, binBucketOSD[key].ToString());
+                                }
                             }
                         }
    

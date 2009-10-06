@@ -88,7 +88,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 J2KImage imgrequest;
 
                 // Do a linear search for this texture download
-                lock (m_priorityQueue)
+                lock (m_syncRoot)
                     m_priorityQueue.Find(delegate(J2KImage img) { return img.TextureID == newRequest.RequestedAssetID; }, out imgrequest);
 
                 if (imgrequest != null)
@@ -99,7 +99,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         try 
                         {
-                            lock (m_priorityQueue)
+                            lock (m_syncRoot)
                                 m_priorityQueue.Delete(imgrequest.PriorityQueueHandle); 
                         }
                         catch (Exception) { }
@@ -167,8 +167,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             J2KImage imagereq;
             int numCollected = 0;
 
-            lock (m_syncRoot)
-            {
+            //lock (m_syncRoot)
+            //{
                 m_lastloopprocessed = DateTime.Now.Ticks;
 
                 // This can happen during Close()
@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (numCollected == count)
                         break;
                 }
-            }
+            //}
 
             return m_priorityQueue.Count > 0;
         }
@@ -211,16 +211,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             J2KImage image = null;
 
-            if (m_priorityQueue.Count > 0)
+            lock (m_syncRoot)
             {
-                try
-                {
-                    lock (m_priorityQueue)
-                        image = m_priorityQueue.FindMax();
-                }
-                catch (Exception) { }
-            }
 
+                if (m_priorityQueue.Count > 0)
+                {
+                    try
+                    {
+                        image = m_priorityQueue.FindMax();
+                    }
+                    catch (Exception) { }
+                }
+            }
             return image;
         }
 
@@ -228,23 +230,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             image.PriorityQueueHandle = null;
 
-            lock (m_priorityQueue)
-                m_priorityQueue.Add(ref image.PriorityQueueHandle, image);
+            lock (m_syncRoot)
+                try
+                {
+                    m_priorityQueue.Add(ref image.PriorityQueueHandle, image);
+                }
+                catch (Exception) { }
         }
 
         void RemoveImageFromQueue(J2KImage image)
         {
-            try
-            {
-                lock (m_priorityQueue)
+            lock (m_syncRoot)
+                try
+                {
                     m_priorityQueue.Delete(image.PriorityQueueHandle);
-            }
-            catch (Exception) { }
+                }
+                catch (Exception) { }
         }
 
         void UpdateImageInQueue(J2KImage image)
         {
-            lock (m_priorityQueue)
+            lock (m_syncRoot)
             {
                 try { m_priorityQueue.Replace(image.PriorityQueueHandle, image); }
                 catch (Exception)

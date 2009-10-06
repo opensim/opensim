@@ -47,7 +47,6 @@ namespace OpenSim.Data.MySQL
         protected MySqlFramework(string connectionString)
         {
             m_Connection = new MySqlConnection(connectionString);
-
             m_Connection.Open();
         }
 
@@ -82,8 +81,7 @@ namespace OpenSim.Data.MySQL
                             errorSeen = true;
 
                             m_Connection.Close();
-                            MySqlConnection newConnection = (MySqlConnection)
-                                    ((ICloneable)m_Connection).Clone();
+                            MySqlConnection newConnection = (MySqlConnection)((ICloneable)m_Connection).Clone();
                             m_Connection.Dispose();
                             m_Connection = newConnection;
                             m_Connection.Open();
@@ -104,14 +102,16 @@ namespace OpenSim.Data.MySQL
         
         protected IDataReader ExecuteReader(MySqlCommand cmd)
         {
-            MySqlConnection newConnection = (MySqlConnection)
-                    ((ICloneable)m_Connection).Clone();
-            
+            MySqlConnection newConnection = (MySqlConnection)((ICloneable)m_Connection).Clone();
             newConnection.Open();
 
             cmd.Connection = newConnection;
-
             return cmd.ExecuteReader();
+        }
+
+        protected void CloseDBConnection(MySqlCommand cmd)
+        {
+            cmd.Connection.Dispose();
         }
     }
 }
