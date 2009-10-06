@@ -142,7 +142,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
                 cmdHandlerThread.IsBackground = true;
                 cmdHandlerThread.Start();
-                ThreadTracker.Add(cmdHandlerThread);
             }
         }
 

@@ -89,7 +89,6 @@ namespace OpenSim.Client.MXP.PacketHandler
             m_clientThread.Name = "MXPThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
-            ThreadTracker.Add(m_clientThread);
         }
 
         public void StartListener()

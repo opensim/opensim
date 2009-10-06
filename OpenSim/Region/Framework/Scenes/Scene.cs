@@ -901,7 +901,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
             if (HeartbeatThread != null)
             {
-                ThreadTracker.Remove(HeartbeatThread);
                 HeartbeatThread.Abort();
                 HeartbeatThread = null;
             }
@@ -910,7 +909,6 @@ namespace OpenSim.Region.Framework.Scenes
             HeartbeatThread.SetApartmentState(ApartmentState.MTA);
             HeartbeatThread.Name = string.Format("Heartbeat for region {0}", RegionInfo.RegionName);
             HeartbeatThread.Priority = ThreadPriority.AboveNormal;
-            ThreadTracker.Add(HeartbeatThread);
             HeartbeatThread.Start();
         }
 

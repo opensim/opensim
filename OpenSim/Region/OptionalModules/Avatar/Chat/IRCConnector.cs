@@ -360,7 +360,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     m_listener.Name = "IRCConnectorListenerThread";
                     m_listener.IsBackground = true;
                     m_listener.Start();
-                    ThreadTracker.Add(m_listener);
 
                     // This is the message order recommended by RFC 2812
                     if (m_password != null)
