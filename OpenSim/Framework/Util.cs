@@ -1283,7 +1283,9 @@ namespace OpenSim.Framework
         {
             System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
 
-            callback.EndInvoke(ar);
+            try { callback.EndInvoke(ar); }
+            catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
+
             ar.AsyncWaitHandle.Close();
         }
 

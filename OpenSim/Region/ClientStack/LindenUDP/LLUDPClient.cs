@@ -33,6 +33,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     public delegate void QueueEmpty(ThrottleOutPacketType category);
 
     public class LLUDPClient
@@ -41,6 +42,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// or removed, this number must also change</summary>
         const int THROTTLE_CATEGORY_COUNT = 7;
 
+        public event PacketStats OnPacketStats;
         public event QueueEmpty OnQueueEmpty;
 
         /// <summary>AgentID for this client</summary>
@@ -84,6 +86,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Number of bytes received since the last acknowledgement was sent out. This is used
         /// to loosely follow the TCP delayed ACK algorithm in RFC 1122 (4.2.3.2)</summary>
         public int BytesSinceLastACK;
+        /// <summary>Number of packets received from this client</summary>
+        public int PacketsReceived;
+        /// <summary>Number of packets sent to this client</summary>
+        public int PacketsSent;
+        /// <summary>Total byte count of unacked packets sent to this client</summary>
+        public int UnackedBytes;
+
+        /// <summary>Total number of received packets that we have reported to the OnPacketStats event(s)</summary>
+        private int m_packetsReceivedReported;
+        /// <summary>Total number of sent packets that we have reported to the OnPacketStats event(s)</summary>
+        private int m_packetsSentReported;
 
         /// <summary>Throttle bucket for this agent's connection</summary>
         private readonly TokenBucket throttle;
@@ -162,17 +175,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public string GetStats()
         {
+            // TODO: ???
             return string.Format("{0,7} {1,7} {2,7} {3,7} {4,7} {5,7} {6,7} {7,7} {8,7} {9,7}",
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0);
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        public void SendPacketStats()
+        {
+            PacketStats callback = OnPacketStats;
+            if (callback != null)
+            {
+                int newPacketsReceived = PacketsReceived - m_packetsReceivedReported;
+                int newPacketsSent = PacketsSent - m_packetsSentReported;
+
+                callback(newPacketsReceived, newPacketsSent, UnackedBytes);
+
+                m_packetsReceivedReported += newPacketsReceived;
+                m_packetsSentReported += newPacketsSent;
+            }
         }
 
         public void SetThrottles(byte[] throttleData)

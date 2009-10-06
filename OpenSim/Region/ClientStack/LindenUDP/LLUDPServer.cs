@@ -359,6 +359,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // is actually sent out again
                             outgoingPacket.TickCount = 0;
 
+                            // Bump up the resend count on this packet
                             Interlocked.Increment(ref outgoingPacket.ResendCount);
                             //Interlocked.Increment(ref Stats.ResentPackets);
 
@@ -393,6 +394,68 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Flush()
         {
+            // FIXME: Implement?
+        }
+
+        internal void SendPacketFinal(OutgoingPacket outgoingPacket)
+        {
+            UDPPacketBuffer buffer = outgoingPacket.Buffer;
+            byte flags = buffer.Data[0];
+            bool isResend = (flags & Helpers.MSG_RESENT) != 0;
+            bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
+            LLUDPClient client = outgoingPacket.Client;
+
+            // Keep track of when this packet was sent out (right now)
+            outgoingPacket.TickCount = Environment.TickCount;
+
+            #region ACK Appending
+
+            int dataLength = buffer.DataLength;
+
+            // Keep appending ACKs until there is no room left in the packet or there are
+            // no more ACKs to append
+            uint ackCount = 0;
+            uint ack;
+            while (dataLength + 5 < buffer.Data.Length && client.PendingAcks.Dequeue(out ack))
+            {
+                Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
+                dataLength += 4;
+                ++ackCount;
+            }
+
+            if (ackCount > 0)
+            {
+                // Set the last byte of the packet equal to the number of appended ACKs
+                buffer.Data[dataLength++] = (byte)ackCount;
+                // Set the appended ACKs flag on this packet
+                buffer.Data[0] = (byte)(buffer.Data[0] | Helpers.MSG_APPENDED_ACKS);
+            }
+
+            buffer.DataLength = dataLength;
+
+            #endregion ACK Appending
+
+            if (!isResend)
+            {
+                // Not a resend, assign a new sequence number
+                uint sequenceNumber = (uint)Interlocked.Increment(ref client.CurrentSequence);
+                Utils.UIntToBytesBig(sequenceNumber, buffer.Data, 1);
+                outgoingPacket.SequenceNumber = sequenceNumber;
+
+                if (isReliable)
+                {
+                    // Add this packet to the list of ACK responses we are waiting on from the server
+                    client.NeedAcks.Add(outgoingPacket);
+                }
+            }
+
+            // Stats tracking
+            Interlocked.Increment(ref client.PacketsSent);
+            if (isReliable)
+                Interlocked.Add(ref client.UnackedBytes, outgoingPacket.Buffer.DataLength);
+
+            // Put the UDP payload on the wire
+            AsyncBeginSend(buffer);
         }
 
         protected override void PacketReceived(UDPPacketBuffer buffer)
@@ -456,8 +519,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion UseCircuitCode Handling
 
-            //if (packet.Header.Resent)
-            //    Interlocked.Increment(ref Stats.ReceivedResends);
+            // Stats tracking
+            Interlocked.Increment(ref client.PacketsReceived);
 
             #region ACK Receiving
 
@@ -581,7 +644,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Create the LLUDPClient
             LLUDPClient client = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
-            clients.Add(agentID, client.RemoteEndPoint, client);
 
             // Create the LLClientView
             LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, client, sessionInfo, agentID, sessionID, circuitCode);
@@ -589,12 +651,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             clientApi.OnLogout += LogoutHandler;
             clientApi.OnConnectionClosed += RemoveClient;
 
-            // Give LLUDPClient a reference to IClientAPI
-            client.ClientAPI = clientApi;
-
             // Start the IClientAPI
             m_scene.ClientManager.Add(circuitCode, clientApi);
             clientApi.Start();
+
+            // Give LLUDPClient a reference to IClientAPI
+            client.ClientAPI = clientApi;
+
+            // Add the new client to our list of tracked clients
+            clients.Add(agentID, client.RemoteEndPoint, client);
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
@@ -602,6 +667,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutgoingPacket ackedPacket;
             if (client.NeedAcks.RemoveUnsafe(ack, out ackedPacket) && !fromResend)
             {
+                // Update stats
+                Interlocked.Add(ref client.UnackedBytes, -ackedPacket.Buffer.DataLength);
+
                 // Calculate the round-trip time for this packet and its ACK
                 int rtt = currentTime - ackedPacket.TickCount;
                 if (rtt > 0)
@@ -650,7 +718,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
 
                     // Don't let a failure in an individual client thread crash the whole sim.
-                    m_log.ErrorFormat("[LLUDPSERVER]: Client thread for {0} {1} crashed. Logging them out", client.ClientAPI.Name, client.AgentID);
+                    m_log.ErrorFormat("[LLUDPSERVER]: Client thread for {0} crashed. Logging them out", client.AgentID);
                     m_log.Error(e.Message, e);
 
                     try
@@ -674,7 +742,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     catch (Exception e2)
                     {
-                        m_log.Error("[LLUDPSERVER]: Further exception thrown on forced session logout for " + client.ClientAPI.Name);
+                        m_log.Error("[LLUDPSERVER]: Further exception thrown on forced session logout for " + client.AgentID);
                         m_log.Error(e2.Message, e2);
                     }
                 }
@@ -715,8 +783,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     elapsed100MS = 0;
                     ++elapsed500MS;
                 }
-                // Send pings to clients every 2000ms
-                if (elapsed500MS >= 4)
+                // Send pings to clients every 5000ms
+                if (elapsed500MS >= 10)
                 {
                     sendPings = true;
                     elapsed500MS = 0;
@@ -730,7 +798,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (resendUnacked)
                             ResendUnacked(client);
                         if (sendAcks)
+                        {
                             SendAcks(client);
+                            client.SendPacketStats();
+                        }
                         if (sendPings)
                             SendPing(client);
                     }
@@ -745,62 +816,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             client.SendLogoutPacket();
             RemoveClient(client);
-        }
-
-        internal void SendPacketFinal(OutgoingPacket outgoingPacket)
-        {
-            UDPPacketBuffer buffer = outgoingPacket.Buffer;
-            byte flags = buffer.Data[0];
-            bool isResend = (flags & Helpers.MSG_RESENT) != 0;
-            bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
-            LLUDPClient client = outgoingPacket.Client;
-
-            // Keep track of when this packet was sent out (right now)
-            outgoingPacket.TickCount = Environment.TickCount;
-
-            #region ACK Appending
-
-            int dataLength = buffer.DataLength;
-
-            // Keep appending ACKs until there is no room left in the packet or there are
-            // no more ACKs to append
-            uint ackCount = 0;
-            uint ack;
-            while (dataLength + 5 < buffer.Data.Length && client.PendingAcks.Dequeue(out ack))
-            {
-                Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
-                dataLength += 4;
-                ++ackCount;
-            }
-
-            if (ackCount > 0)
-            {
-                // Set the last byte of the packet equal to the number of appended ACKs
-                buffer.Data[dataLength++] = (byte)ackCount;
-                // Set the appended ACKs flag on this packet
-                buffer.Data[0] = (byte)(buffer.Data[0] | Helpers.MSG_APPENDED_ACKS);
-            }
-
-            buffer.DataLength = dataLength;
-
-            #endregion ACK Appending
-
-            if (!isResend)
-            {
-                // Not a resend, assign a new sequence number
-                uint sequenceNumber = (uint)Interlocked.Increment(ref client.CurrentSequence);
-                Utils.UIntToBytesBig(sequenceNumber, buffer.Data, 1);
-                outgoingPacket.SequenceNumber = sequenceNumber;
-
-                if (isReliable)
-                {
-                    // Add this packet to the list of ACK responses we are waiting on from the server
-                    client.NeedAcks.Add(outgoingPacket);
-                }
-            }
-
-            // Put the UDP payload on the wire
-            AsyncBeginSend(buffer);
         }
     }
 }

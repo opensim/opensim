@@ -186,8 +186,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpServer = udpServer;
             m_udpClient = udpClient;
             m_udpClient.OnQueueEmpty += HandleQueueEmpty;
-            // FIXME: Implement this
-            //m_udpClient.OnPacketStats += PopulateStats;
+            m_udpClient.OnPacketStats += PopulateStats;
 
             RegisterLocalPacketHandlers();
         }
