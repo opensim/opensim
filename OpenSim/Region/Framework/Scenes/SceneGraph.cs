@@ -297,33 +297,43 @@ namespace OpenSim.Region.Framework.Scenes
 
             sceneObject.AttachToScene(m_parentScene);
 
+            List<SceneObjectPart> parts = null;
+            bool found = false;
             lock (sceneObject)
             {
                 if (!Entities.ContainsKey(sceneObject.UUID))
                 {
+                    found = true;
                     Entities.Add(sceneObject);
                     m_numPrim += sceneObject.Children.Count;
 
                     if (attachToBackup)
                         sceneObject.AttachToBackup();
 
-                    if (OnObjectCreate != null)
-                        OnObjectCreate(sceneObject);
-                    
-                    lock (m_dictionary_lock)
-                    {
-                        SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
-                        SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
-                        foreach (SceneObjectPart part in sceneObject.Children.Values)
-                        {
-                            SceneObjectGroupsByFullID[part.UUID] = sceneObject;
-                            SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
-                        }
-                    }
+                    parts = new List<SceneObjectPart>(sceneObject.Children.Values);
 
-                    return true;
                 }
             }
+
+            if (found)
+            {
+                lock (m_dictionary_lock)
+                {
+                    SceneObjectGroupsByFullID[sceneObject.UUID] = sceneObject;
+                    SceneObjectGroupsByLocalID[sceneObject.LocalId] = sceneObject;
+                    foreach (SceneObjectPart part in parts)
+                    {
+                        SceneObjectGroupsByFullID[part.UUID] = sceneObject;
+                        SceneObjectGroupsByLocalID[part.LocalId] = sceneObject;
+                    }
+                }
+
+                if (OnObjectCreate != null)
+                    OnObjectCreate(sceneObject);
+
+                return true;
+            }
+
 
             return false;
         }
