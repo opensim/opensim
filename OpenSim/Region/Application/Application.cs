@@ -91,6 +91,18 @@ namespace OpenSim
                 m_log.Info("[OPENSIM MAIN]: configured log4net using default OpenSim.exe.config");
             }
 
+            // Increase the number of IOCP threads available. Mono defaults to a tragically low number
+            int workerThreads, iocpThreads;
+            System.Threading.ThreadPool.GetMaxThreads(out workerThreads, out iocpThreads);
+            m_log.InfoFormat("[OPENSIM MAIN]: Runtime gave us {0} worker threads and {1} IOCP threads", workerThreads, iocpThreads);
+            if (workerThreads < 500 || iocpThreads < 1000)
+            {
+                workerThreads = 500;
+                iocpThreads = 1000;
+                m_log.Info("[OPENSIM MAIN]: Bumping up to 500 worker threads and 1000 IOCP threads");
+                System.Threading.ThreadPool.SetMaxThreads(workerThreads, iocpThreads);
+            }
+
             // Check if the system is compatible with OpenSimulator.
             // Ensures that the minimum system requirements are met
             m_log.Info("Performing compatibility checks... ");
