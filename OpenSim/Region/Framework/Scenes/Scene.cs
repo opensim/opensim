@@ -963,11 +963,10 @@ namespace OpenSim.Region.Framework.Scenes
             while (!shuttingdown)
             {
 #if DEBUG
-                int w = 0, io = 0, maxw=0, maxio=0;
+                int w = 0, io = 0;
                 ThreadPool.GetAvailableThreads(out w, out io);
-                ThreadPool.GetMaxThreads(out maxw, out maxio);
-                if ((maxw - w < 10) || (maxio - io < 10))
-                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}({1}); io = {2}({3})", w, io, maxw, maxio);
+                if ((w < 10) || (io < 10))
+                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}; io = {1}", w, io);
 #endif
                 maintc = Environment.TickCount;
 
