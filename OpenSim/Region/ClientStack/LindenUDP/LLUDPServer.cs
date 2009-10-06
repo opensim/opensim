@@ -210,8 +210,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[][] datas = packet.ToBytesMultiple();
                 int packetCount = datas.Length;
 
-                if (packetCount > 1)
-                    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+                //if (packetCount > 1)
+                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
 
                 for (int i = 0; i < packetCount; i++)
                 {
@@ -250,8 +250,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[][] datas = packet.ToBytesMultiple();
                 int packetCount = datas.Length;
 
-                if (packetCount > 1)
-                    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+                //if (packetCount > 1)
+                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
 
                 for (int i = 0; i < packetCount; i++)
                 {
