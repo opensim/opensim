@@ -962,6 +962,13 @@ namespace OpenSim.Region.Framework.Scenes
             int maintc = 0;
             while (!shuttingdown)
             {
+#if DEBUG
+                int w = 0, io = 0, maxw=0, maxio=0;
+                ThreadPool.GetAvailableThreads(out w, out io);
+                ThreadPool.GetMaxThreads(out maxw, out maxio);
+                if ((maxw - w < 10) || (maxio - io < 10))
+                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}({1}); io = {2}({3})", w, io, maxw, maxio);
+#endif
                 maintc = Environment.TickCount;
 
                 TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
