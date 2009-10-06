@@ -137,6 +137,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected IAssetService m_AssetService = null;
         protected IAuthorizationService m_AuthorizationService = null;
 
+        private Object m_heartbeatLock = new Object();
+
         public IAssetService AssetService
         {
             get
@@ -942,6 +944,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="e"></param>
         private void Heartbeat(object sender)
         {
+            if (!Monitor.TryEnter(m_heartbeatLock))
+                return;
+
             try
             {
                 Update();
@@ -951,6 +956,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (ThreadAbortException)
             {
+            }
+            finally
+            {
+                Monitor.Pulse(m_heartbeatLock);
+                Monitor.Exit(m_heartbeatLock);
             }
         }
 
