@@ -77,6 +77,7 @@ namespace OpenSim.Server.Handlers.Inventory
             m_doLookup = serverConfig.GetBoolean("SessionAuthentication", false);
 
             AddHttpHandlers(server);
+            m_log.Debug("[INVENTORY HANDLER]: handlers initialized");
         }
 
         protected virtual void AddHttpHandlers(IHttpServer m_httpServer)
