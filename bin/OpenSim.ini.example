@@ -312,7 +312,7 @@
     ; Uncomment below to enable llRemoteData/remote channels
     ; remoteDataPort = 20800
 
-    grid_server_url = "http://127.0.0.1:8001"
+    grid_server_url = "http://127.0.0.1:8003"
     grid_send_key = "null"
     grid_recv_key = "null"
 
@@ -322,7 +322,7 @@
 
     asset_server_url = "http://127.0.0.1:8003"
 
-    inventory_server_url = "http://127.0.0.1:8004"
+    inventory_server_url = "http://127.0.0.1:8003"
 
     ; The MessagingServer is a companion of the UserServer. It uses
     ; user_send_key and user_recv_key, too

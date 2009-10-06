@@ -13,13 +13,13 @@
     ;
     ; change this to your grid-wide inventory server
     ;
-    InventoryServerURI = "http://myinventoryserver.com:8004"
+    InventoryServerURI = "http://myinventoryserver.com:8003"
 
 [GridService]
     ;
     ; change this to your grid-wide grid server
     ;
-    GridServerURI = "http://mygridserver.com:8001"
+    GridServerURI = "http://mygridserver.com:8003"
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.

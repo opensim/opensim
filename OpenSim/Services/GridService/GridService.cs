@@ -69,18 +69,40 @@ namespace OpenSim.Services.GridService
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
                 // Region reregistering in other coordinates. Delete the old entry
-                m_Database.Delete(regionInfos.RegionID);
+                m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
+                    regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+
+                try
+                {
+                    m_Database.Delete(regionInfos.RegionID);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+                }
             }
 
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
-            m_Database.Store(rdata);
+            try
+            {
+                m_Database.Store(rdata);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+            }
+
+            m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
+                regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
+
             return true;
         }
 
         public bool DeregisterRegion(UUID regionID)
         {
+            m_log.DebugFormat("[GRID SERVICE]: Region {0} deregistered", regionID);
             return m_Database.Delete(regionID);
         }
 

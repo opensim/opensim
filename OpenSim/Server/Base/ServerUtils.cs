@@ -260,7 +260,7 @@ namespace OpenSim.Server.Base
 
         public static Dictionary<string, object> ParseXmlResponse(string data)
         {
-            //m_log.DebugFormat("[XXX]: received xml string: {0}", data);
+            m_log.DebugFormat("[XXX]: received xml string: {0}", data);
 
             Dictionary<string, object> ret = new Dictionary<string, object>();
 

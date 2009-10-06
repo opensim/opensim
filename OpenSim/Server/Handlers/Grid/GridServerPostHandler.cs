@@ -67,43 +67,50 @@ namespace OpenSim.Server.Handlers.Grid
 
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
 
-            Dictionary<string, string> request =
-                    ServerUtils.ParseQueryString(body);
-
-            if (!request.ContainsKey("METHOD"))
-                return FailureResult();
-
-            string method = request["METHOD"];
-
-            switch (method)
+            try
             {
-                case "register":
-                    return Register(request);
+                Dictionary<string, string> request =
+                        ServerUtils.ParseQueryString(body);
 
-                case "deregister":
-                    return Deregister(request);
+                if (!request.ContainsKey("METHOD"))
+                    return FailureResult();
 
-                case "get_neighbours":
-                    return GetNeighbours(request);
+                string method = request["METHOD"];
 
-                case "get_region_by_uuid":
-                    return GetRegionByUUID(request);
+                switch (method)
+                {
+                    case "register":
+                        return Register(request);
 
-                case "get_region_by_position":
-                    return GetRegionByPosition(request);
+                    case "deregister":
+                        return Deregister(request);
 
-                case "get_region_by_name":
-                    return GetRegionByName(request);
+                    case "get_neighbours":
+                        return GetNeighbours(request);
 
-                case "get_regions_by_name":
-                    return GetRegionsByName(request);
+                    case "get_region_by_uuid":
+                        return GetRegionByUUID(request);
 
-                case "get_region_range":
-                    return GetRegionRange(request);
+                    case "get_region_by_position":
+                        return GetRegionByPosition(request);
 
+                    case "get_region_by_name":
+                        return GetRegionByName(request);
+
+                    case "get_regions_by_name":
+                        return GetRegionsByName(request);
+
+                    case "get_region_range":
+                        return GetRegionRange(request);
+
+                }
+                m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID HANDLER]: Exception {0}", e);
             }
 
-            m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
             return FailureResult();
 
         }
@@ -113,7 +120,7 @@ namespace OpenSim.Server.Handlers.Grid
         byte[] Register(Dictionary<string, string> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
+            if (request.ContainsKey("SCOPEID"))
                 UUID.TryParse(request["SCOPEID"], out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to register region");
@@ -137,11 +144,21 @@ namespace OpenSim.Server.Handlers.Grid
             }
 
             Dictionary<string, object> rinfoData = new Dictionary<string, object>();
-            foreach (KeyValuePair<string, string> kvp in request)
-                rinfoData[kvp.Key] = kvp.Value;
-            GridRegion rinfo = new GridRegion(rinfoData);
+            GridRegion rinfo = null;
+            try
+            {
+                foreach (KeyValuePair<string, string> kvp in request)
+                    rinfoData[kvp.Key] = kvp.Value;
+                rinfo = new GridRegion(rinfoData);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID HANDLER]: exception unpacking region data: {0}", e);
+            }
 
-            bool result = m_GridService.RegisterRegion(scopeID, rinfo);
+            bool result = false;
+            if (rinfo != null)
+                result = m_GridService.RegisterRegion(scopeID, rinfo);
 
             if (result)
                 return SuccessResult();

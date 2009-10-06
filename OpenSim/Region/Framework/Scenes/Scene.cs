@@ -137,6 +137,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected IAssetService m_AssetService = null;
         protected IAuthorizationService m_AuthorizationService = null;
 
+        private Object m_heartbeatLock = new Object();
+
         public IAssetService AssetService
         {
             get
@@ -942,6 +944,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="e"></param>
         private void Heartbeat(object sender)
         {
+            if (!Monitor.TryEnter(m_heartbeatLock))
+                return;
+
             try
             {
                 Update();
@@ -951,6 +956,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
             catch (ThreadAbortException)
             {
+            }
+            finally
+            {
+                Monitor.Pulse(m_heartbeatLock);
+                Monitor.Exit(m_heartbeatLock);
             }
         }
 
@@ -962,6 +972,12 @@ namespace OpenSim.Region.Framework.Scenes
             int maintc = 0;
             while (!shuttingdown)
             {
+//#if DEBUG
+//                int w = 0, io = 0;
+//                ThreadPool.GetAvailableThreads(out w, out io);
+//                if ((w < 10) || (io < 10))
+//                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}; io = {1}", w, io);
+//#endif
                 maintc = Environment.TickCount;
 
                 TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;

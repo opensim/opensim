@@ -206,6 +206,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
         {
+            GridRegion region = null;
+
+            // First see if it's a neighbour, even if it isn't on this sim.
+            // Neighbour data is cached in memory, so this is fast
+            foreach (RegionCache rcache in m_LocalCache.Values)
+            {
+                region = rcache.GetRegionByPosition(x, y);
+                if (region != null)
+                {
+                    return region;
+                }
+            }
+
+            // Then try on this sim (may be a lookup in DB if this is using MySql).
             return m_GridService.GetRegionByPosition(scopeID, x, y);
         }
 

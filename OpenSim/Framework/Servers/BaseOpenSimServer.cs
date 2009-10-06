@@ -238,7 +238,7 @@ namespace OpenSim.Framework.Servers
             List<Thread> threads = ThreadTracker.GetThreads();
             if (threads == null)
             {
-                sb.Append("Thread tracking is only enabled in DEBUG mode.");
+                sb.Append("OpenSim thread tracking is only enabled in DEBUG mode.");
             }
             else
             {
@@ -264,6 +264,12 @@ namespace OpenSim.Framework.Servers
                     }
                 }
             }
+            int workers = 0, ports = 0, maxWorkers = 0, maxPorts = 0;
+            ThreadPool.GetAvailableThreads(out workers, out ports);
+            ThreadPool.GetMaxThreads(out maxWorkers, out maxPorts);
+
+            sb.Append(Environment.NewLine + "*** ThreadPool threads ***"  + Environment.NewLine);
+            sb.Append("workers: " + (maxWorkers - workers) + " (" + maxWorkers + "); ports: " + (maxPorts - ports) + " (" + maxPorts + ")" + Environment.NewLine);
 
             return sb.ToString();
         }

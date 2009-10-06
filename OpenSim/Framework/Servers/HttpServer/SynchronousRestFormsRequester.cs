@@ -28,14 +28,21 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+
+using log4net;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
     public class SynchronousRestFormsRequester
     {
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// Perform a synchronous REST request.
         /// </summary>
@@ -72,8 +79,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                     requestStream = request.GetRequestStream();
                     requestStream.Write(buffer.ToArray(), 0, length);
                 }
-                catch
+                catch (Exception e)
                 {
+                    m_log.DebugFormat("[FORMS]: exception occured on sending request {0}", e.Message);
                 }
                 finally
                 {
@@ -102,7 +110,10 @@ namespace OpenSim.Framework.Servers.HttpServer
                                 respstring = reader.ReadToEnd();
                             }
                         }
-                        catch { }
+                        catch (Exception e)
+                        {
+                            m_log.DebugFormat("[FORMS]: exception occured on receiving reply {0}", e.Message);
+                        }
                         finally
                         {
                             if (respStream != null)
@@ -114,6 +125,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             catch (System.InvalidOperationException)
             {
                 // This is what happens when there is invalid XML
+                m_log.DebugFormat("[FORMS]: InvalidOperationException on receiving request");
             }
             return respstring;
         }

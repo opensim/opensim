@@ -3488,7 +3488,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void UnCombine(PhysicsScene pScene)
         {
             IntPtr localGround = IntPtr.Zero;
-            float[] localHeightfield;
+            //float[] localHeightfield;
             bool proceed = false;
             List<IntPtr> geomDestroyList = new List<IntPtr>();
 
@@ -3785,16 +3785,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                         sides.Z = 0.5f;
 
                         ds.DrawBox(ref pos, ref R, ref sides);
-
-
                     }
                 }
             }
         }
 
         public void start(int unused)
-        {
-            
+        {            
             ds.SetViewpoint(ref xyz, ref hpr);
         }
 #endif
