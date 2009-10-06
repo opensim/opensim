@@ -402,8 +402,12 @@ namespace OpenSim.Data.MySQL
             Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup grp = null;
 
+            m_log.Debug("[REGION DB]: Entering LoadObjects()");
+
             lock (m_Connection)
             {
+                m_log.Debug("[REGION DB]: Entered LoadObjects() lock");
+
                 using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
                     cmd.CommandText = "select *, " +
@@ -419,6 +423,8 @@ namespace OpenSim.Data.MySQL
                     {
                         while (reader.Read())
                         {
+                            m_log.Debug("[REGION DB]: LoadObjects() Read a prim");
+
                             SceneObjectPart prim = BuildPrim(reader);
                             if (reader["Shape"] is DBNull)
                                 prim.Shape = PrimitiveBaseShape.Default;
