@@ -173,7 +173,7 @@ namespace OpenSim.Data.MySQL
                     retList.Add(ret);
                 }
 
-                CloseDBConnection(cmd);
+                CloseDBConnection(result, cmd);
             }
 
             return retList;

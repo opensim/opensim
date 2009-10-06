@@ -40,7 +40,9 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySqlFramework
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log =
+                log4net.LogManager.GetLogger(
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected MySqlConnection m_Connection;
 
@@ -81,7 +83,8 @@ namespace OpenSim.Data.MySQL
                             errorSeen = true;
 
                             m_Connection.Close();
-                            MySqlConnection newConnection = (MySqlConnection)((ICloneable)m_Connection).Clone();
+                            MySqlConnection newConnection =
+                                    (MySqlConnection)((ICloneable)m_Connection).Clone();
                             m_Connection.Dispose();
                             m_Connection = newConnection;
                             m_Connection.Open();
@@ -102,15 +105,18 @@ namespace OpenSim.Data.MySQL
         
         protected IDataReader ExecuteReader(MySqlCommand cmd)
         {
-            MySqlConnection newConnection = (MySqlConnection)((ICloneable)m_Connection).Clone();
+            MySqlConnection newConnection =
+                    (MySqlConnection)((ICloneable)m_Connection).Clone();
             newConnection.Open();
 
             cmd.Connection = newConnection;
             return cmd.ExecuteReader();
         }
 
-        protected void CloseDBConnection(MySqlCommand cmd)
+        protected void CloseDBConnection(IDataReader reader, MySqlCommand cmd)
         {
+            reader.Close();
+            cmd.Connection.Close();
             cmd.Connection.Dispose();
         }
     }

@@ -64,48 +64,46 @@ namespace OpenSim.Data.MySQL
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
 
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            MySqlCommand cmd = new MySqlCommand(command);
+
+            cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+
+            IDataReader result = ExecuteReader(cmd);
+
+            if (result.Read())
             {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                ret.PrincipalID = principalID;
+                UUID scope;
+                UUID.TryParse(result["ScopeID"].ToString(), out scope);
+                ret.ScopeID = scope;
 
-                using (IDataReader result = ExecuteReader(cmd))
+                if (m_ColumnNames == null)
                 {
-                    if (result.Read())
-                    {
-                        ret.PrincipalID = principalID;
-                        UUID scope;
-                        UUID.TryParse(result["ScopeID"].ToString(), out scope);
-                        ret.ScopeID = scope;
+                    m_ColumnNames = new List<string>();
 
-                        if (m_ColumnNames == null)
-                        {
-                            m_ColumnNames = new List<string>();
-
-                            DataTable schemaTable = result.GetSchemaTable();
-                            foreach (DataRow row in schemaTable.Rows)
-                                m_ColumnNames.Add(row["ColumnName"].ToString());
-                        }
-
-                        foreach (string s in m_ColumnNames)
-                        {
-                            if (s == "UUID")
-                                continue;
-                            if (s == "ScopeID")
-                                continue;
-
-                            ret.Data[s] = result[s].ToString();
-                        }
-
-                        CloseDBConnection(cmd);
-                        return ret;
-                    }
-                    else
-                    {
-                        CloseDBConnection(cmd);
-                        return null;
-                    }
+                    DataTable schemaTable = result.GetSchemaTable();
+                    foreach (DataRow row in schemaTable.Rows)
+                        m_ColumnNames.Add(row["ColumnName"].ToString());
                 }
+
+                foreach (string s in m_ColumnNames)
+                {
+                    if (s == "UUID")
+                        continue;
+                    if (s == "ScopeID")
+                        continue;
+
+                    ret.Data[s] = result[s].ToString();
+                }
+
+                CloseDBConnection(result, cmd);
+                return ret;
+            }
+            else
+            {
+                CloseDBConnection(result, cmd);
+                return null;
             }
         }
 
