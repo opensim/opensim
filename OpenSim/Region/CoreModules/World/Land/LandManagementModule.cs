@@ -187,14 +187,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             LandData newData = data.Copy();
             newData.LocalID = local_id;
 
+            ILandObject land = null;
             lock (m_landList)
             {
                 if (m_landList.ContainsKey(local_id))
                 {
                     m_landList[local_id].LandData = newData;
-                    m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, m_landList[local_id]);
+                    land = m_landList[local_id];
                 }
             }
+            m_scene.EventManager.TriggerLandObjectUpdated((uint)local_id, land);
         }
 
         public bool AllowedForcefulBans
@@ -504,6 +506,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <param name="local_id">Land.localID of the peice of land to remove.</param>
         public void removeLandObject(int local_id)
         {
+            UUID id = UUID.Zero;
             lock (m_landList)
             {
                 for (int x = 0; x < 64; x++)
@@ -520,9 +523,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     }
                 }
 
-                m_scene.EventManager.TriggerLandObjectRemoved(m_landList[local_id].LandData.GlobalID);
+                id = m_landList[local_id].LandData.GlobalID;
                 m_landList.Remove(local_id);
             }
+            m_scene.EventManager.TriggerLandObjectRemoved(id);
         }
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
