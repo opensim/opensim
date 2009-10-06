@@ -1446,6 +1446,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_log.Info("[SCENE]: Loading objects from datastore");
 
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
+
+            m_log.Info("[SCENE]: Loaded " + PrimsFromDB.Count + " objects from the datastore");
+
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
                 if (group.RootPart == null)
