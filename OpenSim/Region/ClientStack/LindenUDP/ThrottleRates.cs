@@ -30,24 +30,47 @@ using Nini.Config;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// Holds drip rates and maximum burst rates for throttling with hierarchical
+    /// token buckets. The maximum burst rates set here are hard limits and can
+    /// not be overridden by client requests
+    /// </summary>
     public sealed class ThrottleRates
     {
+        /// <summary>Drip rate for resent packets</summary>
         public int Resend;
+        /// <summary>Drip rate for terrain packets</summary>
         public int Land;
+        /// <summary>Drip rate for wind packets</summary>
         public int Wind;
+        /// <summary>Drip rate for cloud packets</summary>
         public int Cloud;
+        /// <summary>Drip rate for task (state and transaction) packets</summary>
         public int Task;
+        /// <summary>Drip rate for texture packets</summary>
         public int Texture;
+        /// <summary>Drip rate for asset packets</summary>
         public int Asset;
 
+        /// <summary>Maximum burst rate for resent packets</summary>
         public int ResendLimit;
+        /// <summary>Maximum burst rate for land packets</summary>
         public int LandLimit;
+        /// <summary>Maximum burst rate for wind packets</summary>
         public int WindLimit;
+        /// <summary>Maximum burst rate for cloud packets</summary>
         public int CloudLimit;
+        /// <summary>Maximum burst rate for task (state and transaction) packets</summary>
         public int TaskLimit;
+        /// <summary>Maximum burst rate for texture packets</summary>
         public int TextureLimit;
+        /// <summary>Maximum burst rate for asset packets</summary>
         public int AssetLimit;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="config">Config source to load defaults from</param>
         public ThrottleRates(IConfigSource config)
         {
             try

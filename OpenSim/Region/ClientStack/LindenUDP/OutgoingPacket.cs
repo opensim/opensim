@@ -31,6 +31,13 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// Holds a reference to the <seealso cref="LLUDPClient"/> this packet is
+    /// destined for, along with the serialized packet data, sequence number
+    /// (if this is a resend), number of times this packet has been resent,
+    /// the time of the last resend, and the throttling category for this
+    /// packet
+    /// </summary>
     public sealed class OutgoingPacket
     {
         /// <summary>Client this packet is destined for</summary>
@@ -46,6 +53,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Category this packet belongs to</summary>
         public ThrottleOutPacketType Category;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="client">Reference to the client this packet is destined for</param>
+        /// <param name="buffer">Serialized packet data. If the flags or sequence number
+        /// need to be updated, they will be injected directly into this binary buffer</param>
+        /// <param name="category">Throttling category for this packet</param>
         public OutgoingPacket(LLUDPClient client, UDPPacketBuffer buffer, ThrottleOutPacketType category)
         {
             Client = client;

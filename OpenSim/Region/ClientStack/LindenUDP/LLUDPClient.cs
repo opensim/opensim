@@ -33,16 +33,40 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    #region Delegates
+
+    /// <summary>
+    /// Fired when updated networking stats are produced for this client
+    /// </summary>
+    /// <param name="inPackets">Number of incoming packets received since this
+    /// event was last fired</param>
+    /// <param name="outPackets">Number of outgoing packets sent since this
+    /// event was last fired</param>
+    /// <param name="unAckedBytes">Current total number of bytes in packets we
+    /// are waiting on ACKs for</param>
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
+    /// <summary>
+    /// Fired when the queue for a packet category is empty. This event can be
+    /// hooked to put more data on the empty queue
+    /// </summary>
+    /// <param name="category">Category of the packet queue that is empty</param>
     public delegate void QueueEmpty(ThrottleOutPacketType category);
 
-    public class LLUDPClient
+    #endregion Delegates
+
+    /// <summary>
+    /// Tracks state for a client UDP connection and provides client-specific methods
+    /// </summary>
+    public sealed class LLUDPClient
     {
         /// <summary>The number of packet categories to throttle on. If a throttle category is added
         /// or removed, this number must also change</summary>
         const int THROTTLE_CATEGORY_COUNT = 7;
 
+        /// <summary>Fired when updated networking stats are produced for this client</summary>
         public event PacketStats OnPacketStats;
+        /// <summary>Fired when the queue for a packet category is empty. This event can be
+        /// hooked to put more data on the empty queue</summary>
         public event QueueEmpty OnQueueEmpty;
 
         /// <summary>AgentID for this client</summary>
@@ -115,6 +139,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer udpServer;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="server">Reference to the UDP server this client is connected to</param>
+        /// <param name="rates">Default throttling rates and maximum throttle limits</param>
+        /// <param name="parentThrottle">Parent HTB (hierarchical token bucket)
+        /// that the child throttles will be governed by</param>
+        /// <param name="circuitCode">Circuit code for this connection</param>
+        /// <param name="agentID">AgentID for the connected agent</param>
+        /// <param name="remoteEndPoint">Remote endpoint for this connection</param>
         public LLUDPClient(LLUDPServer server, ThrottleRates rates, TokenBucket parentThrottle, uint circuitCode, UUID agentID, IPEndPoint remoteEndPoint)
         {
             udpServer = server;
@@ -144,14 +178,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RTO = 3000;
         }
 
+        /// <summary>
+        /// Shuts down this client connection
+        /// </summary>
         public void Shutdown()
         {
+            // TODO: Do we need to invalidate the circuit?
             IsConnected = false;
         }
 
+        /// <summary>
+        /// Gets information about this client connection
+        /// </summary>
+        /// <returns>Information about the client connection</returns>
         public ClientInfo GetClientInfo()
         {
-            // TODO: This data structure is wrong in so many ways
+            // TODO: This data structure is wrong in so many ways. Locking and copying the entire lists
+            // of pending and needed ACKs for every client every time some method wants information about
+            // this connection is a recipe for poor performance
             ClientInfo info = new ClientInfo();
             info.pendingAcks = new Dictionary<uint, uint>();
             info.needAck = new Dictionary<uint, byte[]>();
@@ -169,8 +213,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return info;
         }
 
+        /// <summary>
+        /// Modifies the UDP throttles
+        /// </summary>
+        /// <param name="info">New throttling values</param>
         public void SetClientInfo(ClientInfo info)
         {
+            // TODO: Allowing throttles to be manually set from this function seems like a reasonable
+            // idea. On the other hand, letting external code manipulate our ACK accounting is not
+            // going to happen
+            throw new NotImplementedException();
         }
 
         public string GetStats()

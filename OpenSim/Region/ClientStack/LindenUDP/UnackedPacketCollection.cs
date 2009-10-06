@@ -32,19 +32,34 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// Special collection that is optimized for tracking unacknowledged packets
+    /// </summary>
     public sealed class UnackedPacketCollection
     {
+        /// <summary>Synchronization primitive. A lock must be acquired on this
+        /// object before calling any of the unsafe methods</summary>
         public object SyncRoot = new object();
 
-        SortedDictionary<uint, OutgoingPacket> packets;
+        /// <summary>Holds the actual unacked packet data, sorted by sequence number</summary>
+        private SortedDictionary<uint, OutgoingPacket> packets = new SortedDictionary<uint, OutgoingPacket>();
 
+        /// <summary>Gets the total number of unacked packets</summary>
         public int Count { get { return packets.Count; } }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public UnackedPacketCollection()
         {
-            packets = new SortedDictionary<uint, OutgoingPacket>();
         }
 
+        /// <summary>
+        /// Add an unacked packet to the collection
+        /// </summary>
+        /// <param name="packet">Packet that is awaiting acknowledgement</param>
+        /// <returns>True if the packet was successfully added, false if the
+        /// packet already existed in the collection</returns>
         public bool Add(OutgoingPacket packet)
         {
             lock (SyncRoot)
@@ -58,11 +73,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Removes a packet from the collection without attempting to obtain a
+        /// lock first
+        /// </summary>
+        /// <param name="sequenceNumber">Sequence number of the packet to remove</param>
+        /// <returns>True if the packet was found and removed, otherwise false</returns>
         public bool RemoveUnsafe(uint sequenceNumber)
         {
             return packets.Remove(sequenceNumber);
         }
 
+        /// <summary>
+        /// Removes a packet from the collection without attempting to obtain a
+        /// lock first
+        /// </summary>
+        /// <param name="sequenceNumber">Sequence number of the packet to remove</param>
+        /// <param name="packet">Returns the removed packet</param>
+        /// <returns>True if the packet was found and removed, otherwise false</returns>
         public bool RemoveUnsafe(uint sequenceNumber, out OutgoingPacket packet)
         {
             if (packets.TryGetValue(sequenceNumber, out packet))
@@ -74,6 +102,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
+        /// <summary>
+        /// Gets the packet with the lowest sequence number
+        /// </summary>
+        /// <returns>The packet with the lowest sequence number, or null if the
+        /// collection is empty</returns>
         public OutgoingPacket GetOldest()
         {
             lock (SyncRoot)
@@ -83,7 +116,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public List<OutgoingPacket> GetExpiredPackets(int timeout)
+        /// <summary>
+        /// Returns a list of all of the packets with a TickCount older than
+        /// the specified timeout
+        /// </summary>
+        /// <param name="timeoutMS">Number of ticks (milliseconds) before a
+        /// packet is considered expired</param>
+        /// <returns>A list of all expired packets according to the given
+        /// expiration timeout</returns>
+        public List<OutgoingPacket> GetExpiredPackets(int timeoutMS)
         {
             List<OutgoingPacket> expiredPackets = null;
 
@@ -95,7 +136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (packet.TickCount == 0)
                         continue;
 
-                    if (now - packet.TickCount >= timeout)
+                    if (now - packet.TickCount >= timeoutMS)
                     {
                         if (expiredPackets == null)
                             expiredPackets = new List<OutgoingPacket>();

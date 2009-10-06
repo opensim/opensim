@@ -41,7 +41,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLUDPServerShim : IClientNetworkServer
+    /// <summary>
+    /// A shim around LLUDPServer that implements the IClientNetworkServer interface
+    /// </summary>
+    public sealed class LLUDPServerShim : IClientNetworkServer
     {
         LLUDPServer m_udpServer;
 
@@ -80,6 +83,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
     }
 
+    /// <summary>
+    /// The LLUDP server for a region. This handles incoming and outgoing
+    /// packets for all UDP connections to the region
+    /// </summary>
     public class LLUDPServer : UDPBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -152,6 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public new void Stop()
         {
+            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
             base.Stop();
         }
 
@@ -591,11 +599,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type != PacketType.PacketAck)
             {
                 // Inbox insertion
-                IncomingPacket incomingPacket;
-                incomingPacket.Client = client;
-                incomingPacket.Packet = packet;
-
-                packetInbox.Enqueue(incomingPacket);
+                packetInbox.Enqueue(new IncomingPacket(client, packet));
             }
         }
 
@@ -683,7 +687,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            IncomingPacket incomingPacket = default(IncomingPacket);
+            IncomingPacket incomingPacket = null;
 
             while (base.IsRunning)
             {
@@ -694,59 +698,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packetInbox.Count > 0)
                 m_log.Warn("[LLUDPSERVER]: IncomingPacketHandler is shutting down, dropping " + packetInbox.Count + " packets");
             packetInbox.Clear();
-        }
-
-        private void ProcessInPacket(object state)
-        {
-            IncomingPacket incomingPacket = (IncomingPacket)state;
-            Packet packet = incomingPacket.Packet;
-            LLUDPClient client = incomingPacket.Client;
-
-            if (packet != null && client != null)
-            {
-                try
-                {
-                    client.ClientAPI.ProcessInPacket(packet);
-                }
-                catch (ThreadAbortException)
-                {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    if (StatsManager.SimExtraStats != null)
-                        StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-
-                    // Don't let a failure in an individual client thread crash the whole sim.
-                    m_log.ErrorFormat("[LLUDPSERVER]: Client thread for {0} crashed. Logging them out", client.AgentID);
-                    m_log.Error(e.Message, e);
-
-                    try
-                    {
-                        // Make an attempt to alert the user that their session has crashed
-                        AgentAlertMessagePacket alert = client.ClientAPI.BuildAgentAlertPacket(
-                            "Unfortunately the session for this client on the server has crashed.\n" +
-                            "Any further actions taken will not be processed.\n" +
-                            "Please relog", true);
-
-                        SendPacket(client, alert, ThrottleOutPacketType.Unknown, false);
-
-                        // TODO: There may be a better way to do this. Perhaps kick? Not sure this propogates notifications to
-                        // listeners yet, though.
-                        client.ClientAPI.SendLogoutPacket();
-                        RemoveClient(client.ClientAPI);
-                    }
-                    catch (ThreadAbortException)
-                    {
-                        throw;
-                    }
-                    catch (Exception e2)
-                    {
-                        m_log.Error("[LLUDPSERVER]: Further exception thrown on forced session logout for " + client.AgentID);
-                        m_log.Error(e2.Message, e2);
-                    }
-                }
-            }
         }
 
         private void OutgoingPacketHandler()
@@ -809,6 +760,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (!packetSent)
                     Thread.Sleep(20);
+            }
+        }
+
+        private void ProcessInPacket(object state)
+        {
+            IncomingPacket incomingPacket = (IncomingPacket)state;
+            Packet packet = incomingPacket.Packet;
+            LLUDPClient client = incomingPacket.Client;
+
+            // Sanity check
+            if (packet == null || client == null || client.ClientAPI == null)
+            {
+                m_log.WarnFormat("[LLUDPSERVER]: Processing a packet with incomplete state. Packet=\"{0}\", Client=\"{1}\", Client.ClientAPI=\"{2}\"",
+                    packet, client, (client != null) ? client.ClientAPI : null);
+            }
+
+            try
+            {
+                // Process this packet
+                client.ClientAPI.ProcessInPacket(packet);
+            }
+            catch (ThreadAbortException)
+            {
+                // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
+                m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
+                Stop();
+            }
+            catch (Exception e)
+            {
+                // Don't let a failure in an individual client thread crash the whole sim.
+                m_log.ErrorFormat("[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw an exception", client.AgentID, packet.Type);
+                m_log.Error(e.Message, e);
             }
         }
 
