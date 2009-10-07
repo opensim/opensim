@@ -140,6 +140,14 @@ namespace OpenSim.Services.Interfaces
         }
         protected int m_regionLocY;
 
+        protected UUID m_estateOwner;
+
+        public UUID EstateOwner
+        {
+            get { return m_estateOwner; }
+            set { m_estateOwner = value; }
+        }
+
         public UUID RegionID = UUID.Zero;
         public UUID ScopeID = UUID.Zero;
 
@@ -191,6 +199,7 @@ namespace OpenSim.Services.Interfaces
             Access = ConvertFrom.AccessLevel;
             Maturity = ConvertFrom.RegionSettings.Maturity;
             RegionSecret = ConvertFrom.regionSecret;
+            EstateOwner = ConvertFrom.EstateSettings.EstateOwner;
         }
 
         public GridRegion(GridRegion ConvertFrom)
@@ -207,6 +216,7 @@ namespace OpenSim.Services.Interfaces
             Access = ConvertFrom.Access;
             Maturity = ConvertFrom.Maturity;
             RegionSecret = ConvertFrom.RegionSecret;
+            EstateOwner = ConvertFrom.EstateOwner;
         }
 
         /// <value>
@@ -291,6 +301,7 @@ namespace OpenSim.Services.Interfaces
             kvp["regionMapTexture"] = TerrainImage.ToString();
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
+            kvp["owner_uuid"] = EstateOwner.ToString();
             // Maturity doesn't seem to exist in the DB
             return kvp;
         }
@@ -344,6 +355,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("regionSecret"))
                 RegionSecret =(string)kvp["regionSecret"];
+
+            if (kvp.ContainsKey("owner_uuid"))
+                EstateOwner = new UUID(kvp["owner_uuid"].ToString());
 
         }
     }
