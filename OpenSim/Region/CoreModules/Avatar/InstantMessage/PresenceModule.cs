@@ -290,14 +290,13 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             // get the agent. This should work every time, as we just got a packet from it
             ScenePresence agent = null;
-            List<Scene> scenes = null;
             lock (m_Scenes)
-                scenes = new List<Scene>(m_Scenes);
-
-            foreach (Scene scene in scenes)
             {
-                agent = scene.GetScenePresence(agentID);
-                if (agent != null) break;
+                foreach (Scene scene in m_Scenes)
+                {
+                    agent = scene.GetScenePresence(agentID);
+                    if (agent != null) break;
+                }
             }
 
             // just to be paranoid...

@@ -198,20 +198,19 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
         private SceneObjectPart findPrim(UUID objectID, out string ObjectRegionName)
         {
-            List<Scene> scenes = null;
             lock (m_Scenes)
-                scenes = new List<Scene>(m_Scenes.Values);
-
-            foreach (Scene s in scenes)
             {
-                SceneObjectPart part = s.GetSceneObjectPart(objectID);
-                if (part != null)
+                foreach (Scene s in m_Scenes.Values)
                 {
-                    ObjectRegionName = s.RegionInfo.RegionName;
-                    uint localX = (s.RegionInfo.RegionLocX * (int)Constants.RegionSize);
-                    uint localY = (s.RegionInfo.RegionLocY * (int)Constants.RegionSize);
-                    ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
-                    return part;
+                    SceneObjectPart part = s.GetSceneObjectPart(objectID);
+                    if (part != null)
+                    {
+                        ObjectRegionName = s.RegionInfo.RegionName;
+                        uint localX = (s.RegionInfo.RegionLocX * (int)Constants.RegionSize);
+                        uint localY = (s.RegionInfo.RegionLocY * (int)Constants.RegionSize);
+                        ObjectRegionName = ObjectRegionName + " (" + localX + ", " + localY + ")";
+                        return part;
+                    }
                 }
             }
             ObjectRegionName = string.Empty;
@@ -364,7 +363,6 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         public Email GetNextEmail(UUID objectID, string sender, string subject)
         {
             List<Email> queue = null;
-            List<UUID> removal = new List<UUID>();
 
             lock (m_LastGetEmailCall)
             {
@@ -377,6 +375,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                 // Hopefully this isn't too time consuming.  If it is, we can always push it into a worker thread.
                 DateTime now = DateTime.Now;
+                List<UUID> removal = new List<UUID>();
                 foreach (UUID uuid in m_LastGetEmailCall.Keys)
                 {
                     if ((now - m_LastGetEmailCall[uuid]) > m_QueueTimeout)
@@ -384,15 +383,15 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                         removal.Add(uuid);
                     }
                 }
-            }
 
-            foreach (UUID remove in removal)
-            {
-                lock (m_LastGetEmailCall)
+                foreach (UUID remove in removal)
+                {
                     m_LastGetEmailCall.Remove(remove);
-    
-                lock (m_MailQueues)
-                    m_MailQueues.Remove(remove);
+                    lock (m_MailQueues)
+                    {
+                        m_MailQueues.Remove(remove);
+                    }
+                }
             }
 
             lock (m_MailQueues)

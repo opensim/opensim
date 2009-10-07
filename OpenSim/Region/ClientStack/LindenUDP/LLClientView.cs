@@ -3122,7 +3122,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 objectData.TextureAnim = textureanim;
             }
 
-            bool doUpdate = false;
             lock (m_primFullUpdates)
             {
                 if (m_primFullUpdates.Count == 0)
@@ -3131,10 +3130,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_primFullUpdates.Add(objectData);
 
                 if (m_primFullUpdates.Count >= m_primFullUpdatesPerPacket)
-                    doUpdate = true;
+                    ProcessPrimFullUpdates(this, null);
             }
-            if (doUpdate)
-                ProcessPrimFullUpdates(this, null);
         }
 
         void HandleQueueEmpty(ThrottleOutPacketType queue)
@@ -3155,40 +3152,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void ProcessPrimFullUpdates(object sender, ElapsedEventArgs e)
         {
-            bool stopTimer = false;
             lock (m_primFullUpdates)
             {
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
-                    stopTimer = true;
-            }
-            if (stopTimer)
-            {
-                lock (m_primFullUpdateTimer)
-                    m_primFullUpdateTimer.Stop();
-                return;
-            }
+                {
+                    lock (m_primFullUpdateTimer)
+                        m_primFullUpdateTimer.Stop();
 
-            ObjectUpdatePacket outPacket =
-                    (ObjectUpdatePacket)PacketPool.Instance.GetPacket(
-                    PacketType.ObjectUpdate);
+                    return;
+                }
 
-            outPacket.RegionData.RegionHandle =
-                    Scene.RegionInfo.RegionHandle;
-            outPacket.RegionData.TimeDilation =
-                    (ushort)(Scene.TimeDilation * ushort.MaxValue);
+                ObjectUpdatePacket outPacket =
+                        (ObjectUpdatePacket)PacketPool.Instance.GetPacket(
+                        PacketType.ObjectUpdate);
 
-            int max = m_primFullUpdates.Count;
-            if (max > m_primFullUpdatesPerPacket)
-                max = m_primFullUpdatesPerPacket;
+                outPacket.RegionData.RegionHandle =
+                        Scene.RegionInfo.RegionHandle;
+                outPacket.RegionData.TimeDilation =
+                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-            int count = 0;
-            int size = 0;
+                int max = m_primFullUpdates.Count;
+                if (max > m_primFullUpdatesPerPacket)
+                    max = m_primFullUpdatesPerPacket;
 
-            byte[] zerobuffer = new byte[1024];
-            byte[] blockbuffer = new byte[1024];
+                int count = 0;
+                int size = 0;
 
-            lock (m_primFullUpdates)
-            {
+                byte[] zerobuffer = new byte[1024];
+                byte[] blockbuffer = new byte[1024];
+
                 for (count = 0 ; count < max ; count++)
                 {
                     int length = 0;
@@ -3212,12 +3204,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
 
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
-                    stopTimer = true;
+                    lock (m_primFullUpdateTimer)
+                        m_primFullUpdateTimer.Stop();
             }
-
-            if (stopTimer)
-                lock (m_primFullUpdateTimer)
-                    m_primFullUpdateTimer.Stop();
         }
 
         /// <summary>
@@ -3236,7 +3225,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     CreatePrimImprovedBlock(localID, position, rotation,
                     velocity, rotationalvelocity, state);
 
-            bool doUpdate = false;
             lock (m_primTerseUpdates)
             {
                 if (m_primTerseUpdates.Count == 0)
@@ -3245,51 +3233,43 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_primTerseUpdates.Add(objectData);
 
                 if (m_primTerseUpdates.Count >= m_primTerseUpdatesPerPacket)
-                    doUpdate = true;
+                    ProcessPrimTerseUpdates(this, null);
             }
-            if (doUpdate)
-                ProcessPrimTerseUpdates(this, null);
         }
 
         void ProcessPrimTerseUpdates(object sender, ElapsedEventArgs e)
         {
-            bool stopTimer = false;
             lock (m_primTerseUpdates)
             {
                 if (m_primTerseUpdates.Count == 0)
-                    stopTimer = true;
-            }
-            if (stopTimer)
-            {
-                lock (m_primTerseUpdateTimer)
-                    m_primTerseUpdateTimer.Stop();
+                {
+                    lock (m_primTerseUpdateTimer)
+                        m_primTerseUpdateTimer.Stop();
 
-                return;
-            }
+                    return;
+                }
 
-            ImprovedTerseObjectUpdatePacket outPacket =
-                    (ImprovedTerseObjectUpdatePacket)
-                    PacketPool.Instance.GetPacket(
-                    PacketType.ImprovedTerseObjectUpdate);
+                ImprovedTerseObjectUpdatePacket outPacket =
+                        (ImprovedTerseObjectUpdatePacket)
+                        PacketPool.Instance.GetPacket(
+                        PacketType.ImprovedTerseObjectUpdate);
 
-            outPacket.RegionData.RegionHandle =
-                    Scene.RegionInfo.RegionHandle;
-            outPacket.RegionData.TimeDilation =
-                    (ushort)(Scene.TimeDilation * ushort.MaxValue);
+                outPacket.RegionData.RegionHandle =
+                        Scene.RegionInfo.RegionHandle;
+                outPacket.RegionData.TimeDilation =
+                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-            int max = m_primTerseUpdates.Count;
-            if (max > m_primTerseUpdatesPerPacket)
-                max = m_primTerseUpdatesPerPacket;
+                int max = m_primTerseUpdates.Count;
+                if (max > m_primTerseUpdatesPerPacket)
+                    max = m_primTerseUpdatesPerPacket;
 
-            int count = 0;
-            int size = 0;
+                int count = 0;
+                int size = 0;
 
-            byte[] zerobuffer = new byte[1024];
-            byte[] blockbuffer = new byte[1024];
+                byte[] zerobuffer = new byte[1024];
+                byte[] blockbuffer = new byte[1024];
 
-            lock (m_primTerseUpdates)
-            {
-                for (count = 0; count < max; count++)
+                for (count = 0 ; count < max ; count++)
                 {
                     int length = 0;
                     m_primTerseUpdates[count].ToBytes(blockbuffer, ref length);
@@ -3314,11 +3294,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(outPacket, ThrottleOutPacketType.Task | ThrottleOutPacketType.LowPriority);
 
                 if (m_primTerseUpdates.Count == 0)
-                    stopTimer = true;
+                    lock (m_primTerseUpdateTimer)
+                        m_primTerseUpdateTimer.Stop();
             }
-            if (stopTimer)
-                lock (m_primTerseUpdateTimer)
-                    m_primTerseUpdateTimer.Stop();
         }
 
         public void FlushPrimUpdates()

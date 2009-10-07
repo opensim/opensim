@@ -128,18 +128,24 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(string fname, string lname)
         {
-            CachedUserInfo userInfo;
             lock (m_userProfilesByName)
-            {    
+            {
+                CachedUserInfo userInfo;
+                
                 if (m_userProfilesByName.TryGetValue(string.Format(NAME_FORMAT, fname, lname), out userInfo))
+                {
                     return userInfo;
+                }
+                else
+                {
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(fname, lname);
+                
+                    if (userProfile != null)
+                        return AddToCaches(userProfile);
+                    else
+                        return null;
+                }
             }
-            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(fname, lname);
-        
-            if (userProfile != null)
-                return AddToCaches(userProfile);
-            else
-                return null;
         }
         
         /// <summary>
@@ -154,14 +160,20 @@ namespace OpenSim.Framework.Communications.Cache
                 return null;
 
             lock (m_userProfilesById)
+            {
                 if (m_userProfilesById.ContainsKey(userID))
+                {
                     return m_userProfilesById[userID];
-
-            UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
-            if (userProfile != null)
-                return AddToCaches(userProfile);
-            else
-                return null;
+                }
+                else
+                {
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
+                    if (userProfile != null)
+                        return AddToCaches(userProfile);
+                    else
+                        return null;
+                }
+            }
         }
         
         /// <summary>
@@ -199,10 +211,14 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo createdUserInfo = new CachedUserInfo(m_InventoryService, userProfile);
             
             lock (m_userProfilesById)
+            {
                 m_userProfilesById[createdUserInfo.UserProfile.ID] = createdUserInfo;
-
-            lock (m_userProfilesByName)
-                m_userProfilesByName[createdUserInfo.UserProfile.Name] = createdUserInfo;
+                
+                lock (m_userProfilesByName)
+                {
+                    m_userProfilesByName[createdUserInfo.UserProfile.Name] = createdUserInfo;
+                }
+            }
             
             return createdUserInfo;
         }
@@ -214,25 +230,21 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns>true if there was a profile to remove, false otherwise</returns>
         protected bool RemoveFromCaches(UUID userId)
         {
-            CachedUserInfo userInfo = null;
             lock (m_userProfilesById)
             {
                 if (m_userProfilesById.ContainsKey(userId))
                 {
-                    userInfo = m_userProfilesById[userId];
+                    CachedUserInfo userInfo = m_userProfilesById[userId];
                     m_userProfilesById.Remove(userId);
-                }
-            }
-
-            if (userInfo != null)
-                lock (m_userProfilesByName)
-                {
-                    if (m_userProfilesByName.ContainsKey(userInfo.UserProfile.Name))
+                    
+                    lock (m_userProfilesByName)
                     {
                         m_userProfilesByName.Remove(userInfo.UserProfile.Name);
-                        return true;
                     }
+                    
+                    return true;
                 }
+            }
             
             return false;
         }

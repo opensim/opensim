@@ -122,13 +122,12 @@ namespace OpenSim.Region.Framework.Scenes
         public bool InventoryDeQueueAndDelete()
         {
             DeleteToInventoryHolder x = null;
-            int left = 0;
  
             try
             {
                 lock (m_inventoryDeletes)
                 {
-                    left = m_inventoryDeletes.Count;
+                    int left = m_inventoryDeletes.Count;
                     if (left > 0)
                     {
                         x = m_inventoryDeletes.Dequeue();
@@ -137,26 +136,23 @@ namespace OpenSim.Region.Framework.Scenes
                             m_inventoryDeletes.Enqueue(x);
                             return true;
                         }
-                    }
-                }
 
-                if (left > 0)
-                {
-                    m_log.DebugFormat(
-                        "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);
-                    
-                    try
-                    {
-                        m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
-                        if (x.permissionToDelete)
-                            m_scene.DeleteSceneObject(x.objectGroup, false);
+                        m_log.DebugFormat(
+                            "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);
+                        
+                        try
+                        {
+                            m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
+                            if (x.permissionToDelete)
+                                m_scene.DeleteSceneObject(x.objectGroup, false);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.DebugFormat("Exception background sending object: " + e);
+                        }
+                        
+                        return true;
                     }
-                    catch (Exception e)
-                    {
-                        m_log.DebugFormat("Exception background sending object: " + e);
-                    }
-                    
-                    return true;
                 }
             }
             catch (Exception e)
