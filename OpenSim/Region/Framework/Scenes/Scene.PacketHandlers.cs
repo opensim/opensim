@@ -497,10 +497,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return ret;
             }
 
-            InventoryCollection contents = InventoryService.GetFolderContent(agentID, folderID);
+            InventoryCollection contents = new InventoryCollection();
 
             if (folderID != UUID.Zero)
             {
+                contents = InventoryService.GetFolderContent(agentID, folderID); 
                 InventoryFolderBase containingFolder = new InventoryFolderBase();
                 containingFolder.ID = folderID;
                 containingFolder.Owner = agentID;
