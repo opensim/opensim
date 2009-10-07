@@ -56,15 +56,15 @@ namespace OpenSim.Framework
             m_configMember.addConfigurationOption("default_inventory_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Inventory Server URI (this server's external name)",
-                                                "http://127.0.0.1:" + ConfigSettings.DefaultInventoryServerHttpPort, false);
+                                                "http://127.0.0.1:8004", false);
             m_configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort, false);
+                                                "http://127.0.0.1:8002", false);
             m_configMember.addConfigurationOption("default_asset_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Asset Server URI",
-                                                "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort, false);
+                                                "http://127.0.0.1:8003", false);
             m_configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
             m_configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,

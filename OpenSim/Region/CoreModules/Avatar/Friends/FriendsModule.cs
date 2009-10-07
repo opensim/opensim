@@ -442,46 +442,42 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private ScenePresence GetRootPresenceFromAgentID(UUID AgentID)
         {
-            List<Scene> scenes = null;
-            lock (m_scenes)
-                scenes = new List<Scene>(m_scenes.Values);
-
             ScenePresence returnAgent = null;
-            ScenePresence queryagent = null;
-            foreach (Scene scene in scenes)
+            lock (m_scenes)
             {
-                queryagent = scene.GetScenePresence(AgentID);
-                if (queryagent != null)
+                ScenePresence queryagent = null;
+                foreach (Scene scene in m_scenes.Values)
                 {
-                    if (!queryagent.IsChildAgent)
+                    queryagent = scene.GetScenePresence(AgentID);
+                    if (queryagent != null)
+                    {
+                        if (!queryagent.IsChildAgent)
+                        {
+                            returnAgent = queryagent;
+                            break;
+                        }
+                    }
+                }
+            }
+            return returnAgent;
+        }
+
+        private ScenePresence GetAnyPresenceFromAgentID(UUID AgentID)
+        {
+            ScenePresence returnAgent = null;
+            lock (m_scenes)
+            {
+                ScenePresence queryagent = null;
+                foreach (Scene scene in m_scenes.Values)
+                {
+                    queryagent = scene.GetScenePresence(AgentID);
+                    if (queryagent != null)
                     {
                         returnAgent = queryagent;
                         break;
                     }
                 }
             }
-
-            return returnAgent;
-        }
-
-        private ScenePresence GetAnyPresenceFromAgentID(UUID AgentID)
-        {
-            List<Scene> scenes = null;
-            lock (m_scenes)
-                scenes = new List<Scene>(m_scenes.Values);
-
-            ScenePresence returnAgent = null;
-            ScenePresence queryagent = null;
-            foreach (Scene scene in m_scenes.Values)
-            {
-                queryagent = scene.GetScenePresence(AgentID);
-                if (queryagent != null)
-                {
-                    returnAgent = queryagent;
-                    break;
-                }
-            }
- 
             return returnAgent;
         }
         

@@ -111,17 +111,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
         private Scene FindClientScene(UUID agentId)
         {
-            List<Scene> scenes = null;
             lock (m_Scenelist)
-                scenes = new List<Scene>(m_Scenelist);
-
-            foreach (Scene scene in scenes)
             {
-                ScenePresence presence = scene.GetScenePresence(agentId);
-                if (presence != null)
+                foreach (Scene scene in m_Scenelist)
                 {
-                    if (!presence.IsChildAgent)
-                        return scene;
+                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    if (presence != null)
+                    {
+                        if (!presence.IsChildAgent)
+                            return scene;
+                    }
                 }
             }
             return null;
