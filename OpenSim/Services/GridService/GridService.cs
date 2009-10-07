@@ -200,6 +200,7 @@ namespace OpenSim.Services.GridService
             rdata.RegionName = rinfo.RegionName;
             rdata.Data = rinfo.ToKeyValuePairs();
             rdata.Data["regionHandle"] = Utils.UIntsToLong((uint)rdata.posX, (uint)rdata.posY);
+            rdata.Data["owner_uuid"] = rinfo.EstateOwner.ToString();
             return rdata;
         }
 
