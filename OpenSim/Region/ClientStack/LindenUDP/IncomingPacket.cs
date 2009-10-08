@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,27 +25,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using OpenSim.Framework;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
-    public class LLUtil
+    /// <summary>
+    /// Holds a reference to a <seealso cref="LLUDPClient"/> and a <seealso cref="Packet"/>
+    /// for incoming packets
+    /// </summary>
+    public sealed class IncomingPacket
     {
+        /// <summary>Client this packet came from</summary>
+        public LLUDPClient Client;
+        /// <summary>Packet data that has been received</summary>
+        public Packet Packet;
+
         /// <summary>
-        /// Convert a string to bytes suitable for use in an LL UDP packet.
+        /// Default constructor
         /// </summary>
-        /// <param name="s">Truncated to 254 characters if necessary</param>
-        /// <returns></returns>
-        public static byte[] StringToPacketBytes(string s)
+        /// <param name="client">Reference to the client this packet came from</param>
+        /// <param name="packet">Packet data</param>
+        public IncomingPacket(LLUDPClient client, Packet packet)
         {
-            // Anything more than 254 will cause libsecondlife to barf
-            // (libsl 1550) adds an \0 on the Utils.StringToBytes conversion if it isn't present
-            if (s.Length > 254)
-            {
-                s = s.Remove(254);
-            } 
-            
-            return Utils.StringToBytes(s);
+            Client = client;
+            Packet = packet;
         }
     }
 }

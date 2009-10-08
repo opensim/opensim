@@ -99,7 +99,7 @@ namespace OpenSim.Services.Connectors
             sendData["METHOD"] = "register";
 
             string reqString = ServerUtils.BuildQueryString(sendData);
-            //m_log.DebugFormat("[GRID CONNECTOR]: queryString = {0}", reqString);
+            // m_log.DebugFormat("[GRID CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",

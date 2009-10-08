@@ -124,9 +124,11 @@ namespace OpenSim.Framework.Communications.Clients
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
 
+            WebResponse webResponse = null;
+            StreamReader sr = null;
             try
             {
-                WebResponse webResponse = AgentCreateRequest.GetResponse();
+                webResponse = AgentCreateRequest.GetResponse();
                 if (webResponse == null)
                 {
                     m_log.Info("[REST COMMS]: Null reply on DoCreateChildAgentCall post");
@@ -134,11 +136,10 @@ namespace OpenSim.Framework.Communications.Clients
                 else
                 {
 
-                    StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                    sr = new StreamReader(webResponse.GetResponseStream());
                     string response = sr.ReadToEnd().Trim();
-                    sr.Close();
                     m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", response);
-                
+
                     if (!String.IsNullOrEmpty(response))
                     {
                         try
@@ -166,6 +167,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -246,15 +252,17 @@ namespace OpenSim.Framework.Communications.Clients
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after ChildAgentUpdate");
 
+            WebResponse webResponse = null;
+            StreamReader sr = null;
             try
             {
-                WebResponse webResponse = ChildUpdateRequest.GetResponse();
+                webResponse = ChildUpdateRequest.GetResponse();
                 if (webResponse == null)
                 {
                     m_log.Info("[REST COMMS]: Null reply on ChilAgentUpdate post");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 //reply = sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
                 sr.Close();
@@ -265,6 +273,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of ChilAgentUpdate {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -284,6 +297,7 @@ namespace OpenSim.Framework.Communications.Clients
 
             HttpWebResponse webResponse = null;
             string reply = string.Empty;
+            StreamReader sr = null;
             try
             {
                 webResponse = (HttpWebResponse)request.GetResponse();
@@ -292,9 +306,8 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on agent get ");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 reply = sr.ReadToEnd().Trim();
-                sr.Close();
 
                 //Console.WriteLine("[REST COMMS]: ChilAgentUpdate reply was " + reply);
 
@@ -304,6 +317,11 @@ namespace OpenSim.Framework.Communications.Clients
                 m_log.InfoFormat("[REST COMMS]: exception on reply of agent get {0}", ex.Message);
                 // ignore, really
                 return false;
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             if (webResponse.StatusCode == HttpStatusCode.OK)
@@ -333,6 +351,7 @@ namespace OpenSim.Framework.Communications.Clients
             request.Method = "DELETE";
             request.Timeout = 10000;
 
+            StreamReader sr = null;
             try
             {
                 WebResponse webResponse = request.GetResponse();
@@ -341,7 +360,7 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on agent delete ");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 //reply = sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
                 sr.Close();
@@ -352,6 +371,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -377,6 +401,7 @@ namespace OpenSim.Framework.Communications.Clients
             request.Method = "DELETE";
             request.Timeout = 10000;
 
+            StreamReader sr = null;
             try
             {
                 WebResponse webResponse = request.GetResponse();
@@ -385,7 +410,7 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on agent delete ");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 //reply = sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
                 sr.Close();
@@ -396,6 +421,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of agent delete {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -463,6 +493,7 @@ namespace OpenSim.Framework.Communications.Clients
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
 
+            StreamReader sr = null;
             try
             {
                 WebResponse webResponse = ObjectCreateRequest.GetResponse();
@@ -471,10 +502,9 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on DoCreateObjectCall post");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 //reply = sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
-                sr.Close();
                 //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
 
             }
@@ -482,6 +512,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateObjectCall {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -542,6 +577,7 @@ namespace OpenSim.Framework.Communications.Clients
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoCreateChildAgentCall");
 
+            StreamReader sr = null;
             try
             {
                 WebResponse webResponse = ObjectCreateRequest.GetResponse();
@@ -550,11 +586,10 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on DoCreateObjectCall post");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
-                sr.Close();
-                
+
                 //m_log.InfoFormat("[REST COMMS]: DoCreateChildAgentCall reply was {0} ", reply);
 
             }
@@ -562,6 +597,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of DoCreateObjectCall {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;
@@ -630,6 +670,7 @@ namespace OpenSim.Framework.Communications.Clients
             // Let's wait for the response
             //m_log.Info("[REST COMMS]: Waiting for a reply after DoHelloNeighbourCall");
 
+            StreamReader sr = null;
             try
             {
                 WebResponse webResponse = HelloNeighbourRequest.GetResponse();
@@ -638,10 +679,9 @@ namespace OpenSim.Framework.Communications.Clients
                     m_log.Info("[REST COMMS]: Null reply on DoHelloNeighbourCall post");
                 }
 
-                StreamReader sr = new StreamReader(webResponse.GetResponseStream());
+                sr = new StreamReader(webResponse.GetResponseStream());
                 //reply = sr.ReadToEnd().Trim();
                 sr.ReadToEnd().Trim();
-                sr.Close();
                 //m_log.InfoFormat("[REST COMMS]: DoHelloNeighbourCall reply was {0} ", reply);
 
             }
@@ -649,6 +689,11 @@ namespace OpenSim.Framework.Communications.Clients
             {
                 m_log.InfoFormat("[REST COMMS]: exception on reply of DoHelloNeighbourCall {0}", ex.Message);
                 // ignore, really
+            }
+            finally
+            {
+                if (sr != null)
+                    sr.Close();
             }
 
             return true;

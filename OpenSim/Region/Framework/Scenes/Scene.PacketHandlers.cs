@@ -477,9 +477,9 @@ namespace OpenSim.Region.Framework.Scenes
         public InventoryCollection HandleFetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder, out int version)
         {
-//            m_log.DebugFormat(
-//                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
-//                fetchFolders, fetchItems, folderID, agentID);
+            m_log.DebugFormat(
+                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
+                fetchFolders, fetchItems, folderID, agentID);
 
             // FIXME MAYBE: We're not handling sortOrder!
 
@@ -497,10 +497,11 @@ namespace OpenSim.Region.Framework.Scenes
                 return ret;
             }
 
-            InventoryCollection contents = InventoryService.GetFolderContent(agentID, folderID);
+            InventoryCollection contents = new InventoryCollection();
 
             if (folderID != UUID.Zero)
             {
+                contents = InventoryService.GetFolderContent(agentID, folderID); 
                 InventoryFolderBase containingFolder = new InventoryFolderBase();
                 containingFolder.ID = folderID;
                 containingFolder.Owner = agentID;

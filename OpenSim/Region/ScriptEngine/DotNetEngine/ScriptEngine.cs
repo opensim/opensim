@@ -129,10 +129,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public void AddRegion(Scene Sceneworld)
         {
-            m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
-
-            m_Scene = Sceneworld;
-
             // Make sure we have config
             if (ConfigSource.Configs[ScriptEngineName] == null)
                 ConfigSource.AddConfig(ScriptEngineName);
@@ -142,6 +138,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             m_enabled = ScriptConfigSource.GetBoolean("Enabled", true);
             if (!m_enabled)
                 return;
+
+            m_log.Info("[" + ScriptEngineName + "]: ScriptEngine initializing");
+
+            m_Scene = Sceneworld;
 
             // Create all objects we'll be using
             m_EventQueueManager = new EventQueueManager(this);

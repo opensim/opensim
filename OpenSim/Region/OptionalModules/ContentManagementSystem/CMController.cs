@@ -152,7 +152,6 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 m_thread.Name = "Content Management";
                 m_thread.IsBackground = true;
                 m_thread.Start();
-                ThreadTracker.Add(m_thread);
                 m_state = State.NONE;
             }
         }

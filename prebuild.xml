@@ -131,6 +131,7 @@
 
       <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
@@ -724,7 +725,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -805,7 +805,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Communications" />
@@ -1539,7 +1538,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1624,7 +1622,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1682,7 +1679,6 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
@@ -1755,6 +1751,7 @@
 
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -3590,7 +3587,6 @@
       <Reference name="System"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-      <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Data"/>
@@ -3695,6 +3691,7 @@
       </Files>
     </Project>
 
+    <!-- Commented for now until new unit tests are written for the new LLUDP implementation
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ClientStack.LindenUDP.Tests" path="OpenSim/Region/ClientStack/LindenUDP/Tests" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -3728,6 +3725,7 @@
         <Match pattern="*.cs" recurse="false"/>
       </Files>
     </Project>
+    -->
 
     <Project frameworkVersion="v3_5" name="OpenSim.Region.ScriptEngine.Tests" path="OpenSim/Region/ScriptEngine" type="Library">
       <Configuration name="Debug">

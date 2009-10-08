@@ -416,13 +416,6 @@ namespace OpenSim.Services.Connectors
                      e.Source, e.Message);
             }
 
-            foreach (InventoryItemBase item in items)
-            {
-                InventoryItemBase itm = this.QueryItem(userID, item, sessionID);
-                itm.Name = item.Name;
-                itm.Folder = item.Folder;
-                this.UpdateItem(userID, itm, sessionID);
-            }
         }
 
         private void MoveItemsCompleted(IAsyncResult iar)

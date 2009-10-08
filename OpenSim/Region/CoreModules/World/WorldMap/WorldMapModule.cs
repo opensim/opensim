@@ -345,7 +345,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             mapItemReqThread.Priority = ThreadPriority.BelowNormal;
             mapItemReqThread.SetApartmentState(ApartmentState.MTA);
             mapItemReqThread.Start();
-            ThreadTracker.Add(mapItemReqThread);
         }
 
         /// <summary>
@@ -447,7 +446,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                     // end gracefully
                     if (st.agentID == UUID.Zero)
                     {
-                        ThreadTracker.Remove(mapItemReqThread);
                         break;
                     }
 

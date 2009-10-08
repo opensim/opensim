@@ -61,6 +61,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private void OnRegionUp(GridRegion otherRegion)
         {
+            // This shouldn't happen
+            if (otherRegion == null)
+                return;
+
             m_log.DebugFormat("[REGION CACHE]: (on region {0}) Region {1} is up @ {2}-{3}",
                 m_scene.RegionInfo.RegionName, otherRegion.RegionName, otherRegion.RegionLocX, otherRegion.RegionLocY);
 

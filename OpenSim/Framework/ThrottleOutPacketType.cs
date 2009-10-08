@@ -29,9 +29,9 @@ using System;
 
 namespace OpenSim.Framework
 {
-    [Flags]
     public enum ThrottleOutPacketType : int
     {
+        Unknown = -1, // Also doubles as 'do not throttle'
         Resend = 0,
         Land = 1,
         Wind = 2,
@@ -39,11 +39,5 @@ namespace OpenSim.Framework
         Task = 4,
         Texture = 5,
         Asset = 6,
-        Unknown = 7, // Also doubles as 'do not throttle'
-        Back = 8,
-
-        TypeMask = 15, // The mask to mask off the flags
-
-        LowPriority = 128 // Additional flags
     }
 }

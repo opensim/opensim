@@ -639,7 +639,6 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
             httpThread.IsBackground = true;
             _finished = false;
             httpThread.Start();
-            ThreadTracker.Add(httpThread);
         }
 
         /*

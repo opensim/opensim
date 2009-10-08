@@ -76,27 +76,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             if (m_currentPacket <= m_stopPacket)
             {
-                bool SendMore = true;
+                int count = 0;
+                bool sendMore = true;
+
                 if (!m_sentInfo || (m_currentPacket == 0))
                 {
-                    if (SendFirstPacket(client))
-                    {
-                        SendMore = false;
-                    }
+                    sendMore = !SendFirstPacket(client);
+
                     m_sentInfo = true;
-                    m_currentPacket++;
+                    ++m_currentPacket;
+                    ++count;
                 }
                 if (m_currentPacket < 2)
                 {
                     m_currentPacket = 2;
                 }
-
-                int count = 0;
-                while (SendMore && count < maxpack && m_currentPacket <= m_stopPacket)
+                
+                while (sendMore && count < maxpack && m_currentPacket <= m_stopPacket)
                 {
-                    count++;
-                    SendMore = SendPacket(client);
-                    m_currentPacket++;
+                    sendMore = SendPacket(client);
+                    ++m_currentPacket;
+                    ++count;
                 }
 
                 if (m_currentPacket > m_stopPacket)
@@ -196,13 +196,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         m_currentPacket = StartPacket;
                     }
-
-                    if ((m_imageManager != null) && (m_imageManager.Client != null) && (m_imageManager.Client.PacketHandler != null))
-                        if (m_imageManager.Client.PacketHandler.GetQueueCount(ThrottleOutPacketType.Texture) == 0)
-                        {
-                            //m_log.Debug("No textures queued, sending one packet to kickstart it");
-                            SendPacket(m_imageManager.Client);
-                        }
                 }
             }
         }
