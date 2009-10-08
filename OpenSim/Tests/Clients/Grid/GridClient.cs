@@ -55,7 +55,7 @@ namespace OpenSim.Tests.Clients.GridClient
                 new PatternLayout("%date [%thread] %-5level %logger [%property{NDC}] - %message%newline");
             log4net.Config.BasicConfigurator.Configure(consoleAppender);
 
-            string serverURI = "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort;
+            string serverURI = "http://127.0.0.1:8001";
             GridServicesConnector m_Connector = new GridServicesConnector(serverURI);
 
             GridRegion r1 = CreateRegion("Test Region 1", 1000, 1000);

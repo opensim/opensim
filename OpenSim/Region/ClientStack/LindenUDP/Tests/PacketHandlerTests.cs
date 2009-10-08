@@ -70,7 +70,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP.Tests
             
             TestClient testClient = new TestClient(agent, scene);
             
-            ILLPacketHandler packetHandler 
+            LLPacketHandler packetHandler 
                 = new LLPacketHandler(testClient, testLLPacketServer, new ClientStackUserSettings());
             
             packetHandler.InPacket(new AgentAnimationPacket());

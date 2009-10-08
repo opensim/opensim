@@ -26,138 +26,21 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
+using System.Diagnostics;
 using log4net;
 
 namespace OpenSim.Framework
 {
     public static class ThreadTracker
     {
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private static readonly long ThreadTimeout = 30 * 10000000;
-        public static List<ThreadTrackerItem> m_Threads;
-        public static Thread ThreadTrackerThread;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        static ThreadTracker()
+        public static ProcessThreadCollection GetThreads()
         {
-#if DEBUG
-            m_Threads = new List<ThreadTrackerItem>();
-            ThreadTrackerThread = new Thread(ThreadTrackerThreadLoop);
-            ThreadTrackerThread.Name = "ThreadTrackerThread";
-            ThreadTrackerThread.IsBackground = true;
-            ThreadTrackerThread.Priority = ThreadPriority.BelowNormal;
-            ThreadTrackerThread.Start();
-            Add(ThreadTrackerThread);
-#endif
+            Process thisProc = Process.GetCurrentProcess();
+            return thisProc.Threads;
         }
-
-        private static void ThreadTrackerThreadLoop()
-        {
-            try
-            {
-                while (true)
-                {
-                    Thread.Sleep(5000);
-                    CleanUp();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat(
-                    "[THREAD TRACKER]: Thread tracker cleanup thread terminating with exception.  Please report this error.  Exception is {0}", 
-                    e);
-            }
-        }
-
-        public static void Add(Thread thread)
-        {
-#if DEBUG
-            if (thread != null)
-            {
-                lock (m_Threads)
-                {
-                    ThreadTrackerItem tti = new ThreadTrackerItem();
-                    tti.Thread = thread;
-                    tti.LastSeenActive = DateTime.Now.Ticks;
-                    m_Threads.Add(tti);
-                }
-            }
-#endif
-        }
-
-        public static void Remove(Thread thread)
-        {
-#if DEBUG
-            lock (m_Threads)
-            {
-                foreach (ThreadTrackerItem tti in new ArrayList(m_Threads))
-                {
-                    if (tti.Thread == thread)
-                        m_Threads.Remove(tti);
-                }
-            }
-#endif
-        }
-
-        public static void CleanUp()
-        {
-            lock (m_Threads)
-            {
-                foreach (ThreadTrackerItem tti in new ArrayList(m_Threads))
-                {
-                    try
-                    {
-                        
-                    
-                        if (tti.Thread.IsAlive)
-                        {
-                            // Its active
-                            tti.LastSeenActive = DateTime.Now.Ticks;
-                        }
-                        else
-                        {
-                            // Its not active -- if its expired then remove it
-                            if (tti.LastSeenActive + ThreadTimeout < DateTime.Now.Ticks)
-                                m_Threads.Remove(tti);
-                        }
-                    }
-                    catch (NullReferenceException)
-                    {
-                        m_Threads.Remove(tti);
-                    }
-                }
-            }
-        }
-
-        public static List<Thread> GetThreads()
-        {
-            if (m_Threads == null)
-                return null;
-
-            List<Thread> threads = new List<Thread>();
-            lock (m_Threads)
-            {
-                foreach (ThreadTrackerItem tti in new ArrayList(m_Threads))
-                {
-                    threads.Add(tti.Thread);
-                }
-            }
-            return threads;
-        }
-
-        #region Nested type: ThreadTrackerItem
-
-        public class ThreadTrackerItem
-        {
-            public long LastSeenActive;
-            public Thread Thread;
-        }
-
-        #endregion
     }
 }

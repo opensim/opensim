@@ -138,7 +138,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             EventQueueThread.Priority = MyThreadPriority;
             EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
             EventQueueThread.Start();
-            ThreadTracker.Add(EventQueueThread);
 
             // Look at this... Don't you wish everyone did that solid
             // coding everywhere? :P

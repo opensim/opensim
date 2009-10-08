@@ -97,7 +97,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 MaintenanceThreadThread.Name = "ScriptMaintenanceThread";
                 MaintenanceThreadThread.IsBackground = true;
                 MaintenanceThreadThread.Start();
-                ThreadTracker.Add(MaintenanceThreadThread);
             }
         }
 

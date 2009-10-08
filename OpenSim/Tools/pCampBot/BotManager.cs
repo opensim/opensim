@@ -149,7 +149,6 @@ namespace pCampBot
             m_td[pos].IsBackground = true;
             m_td[pos].Start();
             m_lBot.Add(pb);
-            ThreadTracker.Add(m_td[pos]);
         }
 
         /// <summary>

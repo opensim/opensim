@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,47 +25,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenMetaverse.Packets;
+using System;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
-    /// When packetqueue dequeues this packet in the outgoing stream, it thread aborts
-    /// Ensures that the thread abort happens from within the client thread
-    /// regardless of where the close method is called
+    /// A circular buffer and hashset for tracking incoming packet sequence
+    /// numbers
     /// </summary>
-    class KillPacket : Packet
+    public sealed class IncomingPacketHistoryCollection
     {
-        public override int Length
+        private readonly uint[] m_items;
+        private HashSet<uint> m_hashSet;
+        private int m_first;
+        private int m_next;
+        private int m_capacity;
+
+        public IncomingPacketHistoryCollection(int capacity)
         {
-            get { return 0; }
+            this.m_capacity = capacity;
+            m_items = new uint[capacity];
+            m_hashSet = new HashSet<uint>();
         }
 
-        public override void FromBytes(Header header, byte[] bytes, ref int i, ref int packetEnd)
+        public bool TryEnqueue(uint ack)
         {
-        }
+            lock (m_hashSet)
+            {
+                if (m_hashSet.Add(ack))
+                {
+                    m_items[m_next] = ack;
+                    m_next = (m_next + 1) % m_capacity;
+                    if (m_next == m_first)
+                    {
+                        m_hashSet.Remove(m_items[m_first]);
+                        m_first = (m_first + 1) % m_capacity;
+                    }
 
-        public override void FromBytes(byte[] bytes, ref int i, ref int packetEnd, byte[] zeroBuffer)
-        {
-        }
+                    return true;
+                }
+            }
 
-        public override byte[] ToBytes()
-        {
-            return new byte[0];
-        }
-
-        public override byte[][] ToBytesMultiple()
-        {
-            return new byte[][] { new byte[0] };
-        }
-
-        public KillPacket()
-        {
-            Type = PacketType.UseCircuitCode;
-            Header = new Header();
-            Header.Frequency = OpenMetaverse.PacketFrequency.Low;
-            Header.ID = 65531;
-            Header.Reliable = true;
+            return false;
         }
     }
 }

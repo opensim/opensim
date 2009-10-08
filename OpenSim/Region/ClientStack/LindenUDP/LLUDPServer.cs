@@ -26,616 +26,779 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
-    /// This class handles the initial UDP circuit setup with a client and passes on subsequent packets to the LLPacketServer
+    /// A shim around LLUDPServer that implements the IClientNetworkServer interface
     /// </summary>
-    public class LLUDPServer : ILLClientStackNetworkHandler, IClientNetworkServer
+    public sealed class LLUDPServerShim : IClientNetworkServer
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        LLUDPServer m_udpServer;
 
-        /// <value>
-        /// The client circuits established with this UDP server.  If a client exists here we can also assume that
-        /// it is populated in clientCircuits_reverse and proxyCircuits (if relevant)
-        /// </value>
-        protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        public Hashtable clientCircuits_reverse = Hashtable.Synchronized(new Hashtable());
-        protected Dictionary<uint, EndPoint> proxyCircuits = new Dictionary<uint, EndPoint>();
-        
-        private Socket m_socket;
-        protected IPEndPoint ServerIncoming;
-        protected byte[] RecvBuffer = new byte[4096];
-        protected byte[] ZeroBuffer = new byte[8192];
-
-        /// <value>
-        /// This is an endpoint that is reused where we don't need to protect the information from potentially
-        /// being stomped on by other threads.
-        /// </value>
-        protected EndPoint reusedEpSender = new IPEndPoint(IPAddress.Any, 0);
-        
-        protected int proxyPortOffset;
-        
-        protected AsyncCallback ReceivedData;
-        protected LLPacketServer m_packetServer;
-        protected Location m_location;
-
-        protected uint listenPort;
-        protected bool Allow_Alternate_Port;
-        protected IPAddress listenIP = IPAddress.Parse("0.0.0.0");
-        protected IScene m_localScene;
-        protected int m_clientSocketReceiveBuffer = 0;
-
-        /// <value>
-        /// Manages authentication for agent circuits
-        /// </value>
-        protected AgentCircuitManager m_circuitManager;
-
-        public IScene LocalScene
+        public LLUDPServerShim()
         {
-            set
-            {
-                m_localScene = value;
-                m_packetServer.LocalScene = m_localScene;
-
-                m_location = new Location(m_localScene.RegionInfo.RegionHandle);
-            }
         }
 
-        public ulong RegionHandle
+        public void Initialise(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
         {
-            get { return m_location.RegionHandle; }
+            m_udpServer = new LLUDPServer(listenIP, ref port, proxyPortOffsetParm, allow_alternate_port, configSource, circuitManager);
         }
 
-        Socket IClientNetworkServer.Server
+        public void NetworkStop()
         {
-            get { return m_socket; }
+            m_udpServer.Stop();
+        }
+
+        public void AddScene(IScene scene)
+        {
+            m_udpServer.AddScene(scene);
         }
 
         public bool HandlesRegion(Location x)
         {
-            //return x.RegionHandle == m_location.RegionHandle;
-            return x == m_location;
-        }
-
-        public void AddScene(IScene x)
-        {
-            LocalScene = x;
+            return m_udpServer.HandlesRegion(x);
         }
 
         public void Start()
         {
-            ServerListener();
+            m_udpServer.Start();
         }
 
         public void Stop()
         {
-            m_socket.Close();
+            m_udpServer.Stop();
         }
+    }
 
-        public LLUDPServer()
+    /// <summary>
+    /// The LLUDP server for a region. This handles incoming and outgoing
+    /// packets for all UDP connections to the region
+    /// </summary>
+    public class LLUDPServer : UDPBase
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>Handlers for incoming packets</summary>
+        //PacketEventDictionary packetEvents = new PacketEventDictionary();
+        /// <summary>Incoming packets that are awaiting handling</summary>
+        private OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
+        /// <summary></summary>
+        private UDPClientCollection clients = new UDPClientCollection();
+        /// <summary>Bandwidth throttle for this UDP server</summary>
+        private TokenBucket m_throttle;
+        /// <summary>Bandwidth throttle rates for this UDP server</summary>
+        private ThrottleRates m_throttleRates;
+        /// <summary>Manages authentication for agent circuits</summary>
+        private AgentCircuitManager m_circuitManager;
+        /// <summary>Reference to the scene this UDP server is attached to</summary>
+        private IScene m_scene;
+        /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
+        private Location m_location;
+        /// <summary>The measured resolution of Environment.TickCount</summary>
+        private float m_tickCountResolution;
+
+        /// <summary>The measured resolution of Environment.TickCount</summary>
+        public float TickCountResolution { get { return m_tickCountResolution; } }
+        public Socket Server { get { return null; } }
+
+        public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
+            : base((int)port)
         {
-        }
+            #region Environment.TickCount Measurement
 
-        public LLUDPServer(
-            IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, IConfigSource configSource, 
-            AgentCircuitManager authenticateClass)
-        {
-            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, configSource, authenticateClass);
-        }
-
-        /// <summary>
-        /// Initialize the server
-        /// </summary>
-        /// <param name="_listenIP"></param>
-        /// <param name="port"></param>
-        /// <param name="proxyPortOffsetParm"></param>
-        /// <param name="allow_alternate_port"></param>
-        /// <param name="configSource"></param>
-        /// <param name="assetCache"></param>
-        /// <param name="circuitManager"></param>
-        public void Initialise(
-            IPAddress _listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource,
-            AgentCircuitManager circuitManager)
-        {
-            ClientStackUserSettings userSettings = new ClientStackUserSettings();
-            
-            IConfig config = configSource.Configs["ClientStack.LindenUDP"];
-
-            if (config != null)
+            // Measure the resolution of Environment.TickCount
+            m_tickCountResolution = 0f;
+            for (int i = 0; i < 5; i++)
             {
-                if (config.Contains("client_throttle_max_bps"))
-                {
-                    int maxBPS = config.GetInt("client_throttle_max_bps", 1500000);
-                    userSettings.TotalThrottleSettings = new ThrottleSettings(0, maxBPS,
-                    maxBPS > 28000 ? maxBPS : 28000);
-                }
-
-                if (config.Contains("client_throttle_multiplier"))
-                    userSettings.ClientThrottleMultipler = config.GetFloat("client_throttle_multiplier");
-                if (config.Contains("client_socket_rcvbuf_size"))
-                    m_clientSocketReceiveBuffer = config.GetInt("client_socket_rcvbuf_size");
+                int start = Environment.TickCount;
+                int now = start;
+                while (now == start)
+                    now = Environment.TickCount;
+                m_tickCountResolution += (float)(now - start) * 0.2f;
             }
-            
-            m_log.DebugFormat("[CLIENT]: client_throttle_multiplier = {0}", userSettings.ClientThrottleMultipler);
-            m_log.DebugFormat("[CLIENT]: client_socket_rcvbuf_size  = {0}", (m_clientSocketReceiveBuffer != 0 ? 
-                                                                             m_clientSocketReceiveBuffer.ToString() : "OS default"));
-                
-            proxyPortOffset = proxyPortOffsetParm;
-            listenPort = (uint) (port + proxyPortOffsetParm);
-            listenIP = _listenIP;
-            Allow_Alternate_Port = allow_alternate_port;
+            m_log.Info("[LLUDPSERVER]: Average Environment.TickCount resolution: " + TickCountResolution + "ms");
+
+            #endregion Environment.TickCount Measurement
+
             m_circuitManager = circuitManager;
-            CreatePacketServer(userSettings);
 
-            // Return new port
-            // This because in Grid mode it is not really important what port the region listens to as long as it is correctly registered.
-            // So the option allow_alternate_ports="true" was added to default.xml
-            port = (uint)(listenPort - proxyPortOffsetParm);
+            // TODO: Config support for throttling the entire connection
+            m_throttle = new TokenBucket(null, 0, 0);
+            m_throttleRates = new ThrottleRates(configSource);
         }
 
-        protected virtual void CreatePacketServer(ClientStackUserSettings userSettings)
+        public new void Start()
         {
-            new LLPacketServer(this, userSettings);
+            if (m_scene == null)
+                throw new InvalidOperationException("Cannot LLUDPServer.Start() without an IScene reference");
+
+            base.Start();
+
+            // Start the incoming packet processing thread
+            Thread incomingThread = new Thread(IncomingPacketHandler);
+            incomingThread.Name = "Incoming Packets (" + m_scene.RegionInfo.RegionName + ")";
+            incomingThread.Start();
+
+            Thread outgoingThread = new Thread(OutgoingPacketHandler);
+            outgoingThread.Name = "Outgoing Packets (" + m_scene.RegionInfo.RegionName + ")";
+            outgoingThread.Start();
         }
 
-        /// <summary>
-        /// This method is called every time that we receive new UDP data. 
-        /// </summary>
-        /// <param name="result"></param>
-        protected virtual void OnReceivedData(IAsyncResult result)
+        public new void Stop()
         {
+            m_log.Info("[LLUDPSERVER]: Shutting down the LLUDP server for " + m_scene.RegionInfo.RegionName);
+            base.Stop();
+        }
+
+        public void AddScene(IScene scene)
+        {
+            if (m_scene == null)
+            {
+                m_scene = scene;
+                m_location = new Location(m_scene.RegionInfo.RegionHandle);
+            }
+            else
+            {
+                m_log.Error("[LLUDPSERVER]: AddScene() called on an LLUDPServer that already has a scene");
+            }
+        }
+
+        public bool HandlesRegion(Location x)
+        {
+            return x == m_location;
+        }
+
+        public void RemoveClient(IClientAPI client)
+        {
+            m_scene.ClientManager.Remove(client.CircuitCode);
+            client.Close(false);
+
+            LLUDPClient udpClient;
+            if (clients.TryGetValue(client.AgentId, out udpClient))
+            {
+                m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + client.Name);
+                udpClient.Shutdown();
+                clients.Remove(client.AgentId, udpClient.RemoteEndPoint);
+            }
+            else
+            {
+                m_log.Warn("[LLUDPSERVER]: Failed to remove LLUDPClient for " + client.Name);
+            }
+        }
+
+        public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
+        {
+            // CoarseLocationUpdate packets cannot be split in an automated way
+            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+                allowSplitting = false;
+
+            if (allowSplitting && packet.HasVariableBlocks)
+            {
+                byte[][] datas = packet.ToBytesMultiple();
+                int packetCount = datas.Length;
+
+                //if (packetCount > 1)
+                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+
+                for (int i = 0; i < packetCount; i++)
+                {
+                    byte[] data = datas[i];
+                    clients.ForEach(
+                        delegate(LLUDPClient client)
+                        { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
+                }
+            }
+            else
+            {
+                byte[] data = packet.ToBytes();
+                clients.ForEach(
+                    delegate(LLUDPClient client)
+                    { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
+            }
+        }
+
+        public void SendPacket(UUID agentID, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
+        {
+            LLUDPClient client;
+            if (clients.TryGetValue(agentID, out client))
+                SendPacket(client, packet, category, allowSplitting);
+            else
+                m_log.Warn("[LLUDPSERVER]: Attempted to send a packet to unknown agentID " + agentID);
+        }
+
+        public void SendPacket(LLUDPClient client, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
+        {
+            // CoarseLocationUpdate packets cannot be split in an automated way
+            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+                allowSplitting = false;
+
+            if (allowSplitting && packet.HasVariableBlocks)
+            {
+                byte[][] datas = packet.ToBytesMultiple();
+                int packetCount = datas.Length;
+
+                //if (packetCount > 1)
+                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+
+                for (int i = 0; i < packetCount; i++)
+                {
+                    byte[] data = datas[i];
+                    SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category);
+                }
+            }
+            else
+            {
+                byte[] data = packet.ToBytes();
+                SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category);
+            }
+        }
+
+        public void SendPacketData(LLUDPClient client, byte[] data, int dataLength, PacketType type, bool doZerocode, ThrottleOutPacketType category)
+        {
+            // Frequency analysis of outgoing packet sizes shows a large clump of packets at each end of the spectrum.
+            // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
+            // there are a decent number of packets in the 1000-1140 byte range. We allocate one of two sizes of data here
+            // to accomodate for both common scenarios and provide ample room for ACK appending in both
+            int bufferSize = (dataLength > 180) ? Packet.MTU : 200;
+
+            UDPPacketBuffer buffer = new UDPPacketBuffer(client.RemoteEndPoint, bufferSize);
+
+            // Zerocode if needed
+            if (doZerocode)
+            {
+                try { dataLength = Helpers.ZeroEncode(data, dataLength, buffer.Data); }
+                catch (IndexOutOfRangeException)
+                {
+                    // The packet grew larger than the bufferSize while zerocoding.
+                    // Remove the MSG_ZEROCODED flag and send the unencoded data
+                    // instead
+                    m_log.Info("[LLUDPSERVER]: Packet exceeded buffer size during zerocoding. Removing MSG_ZEROCODED flag");
+                    data[0] = (byte)(data[0] & ~Helpers.MSG_ZEROCODED);
+                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
+                }
+            }
+            else
+            {
+                Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
+            }
+            buffer.DataLength = dataLength;
+
+            #region Queue or Send
+
+            // Look up the UDPClient this is going to
+            OutgoingPacket outgoingPacket = new OutgoingPacket(client, buffer, category);
+
+            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
+                SendPacketFinal(outgoingPacket);
+
+            #endregion Queue or Send
+        }
+
+        public void SendAcks(LLUDPClient client)
+        {
+            uint ack;
+
+            if (client.PendingAcks.Dequeue(out ack))
+            {
+                List<PacketAckPacket.PacketsBlock> blocks = new List<PacketAckPacket.PacketsBlock>();
+                PacketAckPacket.PacketsBlock block = new PacketAckPacket.PacketsBlock();
+                block.ID = ack;
+                blocks.Add(block);
+
+                while (client.PendingAcks.Dequeue(out ack))
+                {
+                    block = new PacketAckPacket.PacketsBlock();
+                    block.ID = ack;
+                    blocks.Add(block);
+                }
+
+                PacketAckPacket packet = new PacketAckPacket();
+                packet.Header.Reliable = false;
+                packet.Packets = blocks.ToArray();
+
+                SendPacket(client, packet, ThrottleOutPacketType.Unknown, true);
+            }
+        }
+
+        public void SendPing(LLUDPClient client)
+        {
+            IClientAPI api = client.ClientAPI;
+            if (api != null)
+                api.SendStartPingCheck(client.CurrentPingSequence++);
+        }
+
+        public void ResendUnacked(LLUDPClient client)
+        {
+            if (client.NeedAcks.Count > 0)
+            {
+                List<OutgoingPacket> expiredPackets = client.NeedAcks.GetExpiredPackets(client.RTO);
+
+                if (expiredPackets != null)
+                {
+                    // Resend packets
+                    for (int i = 0; i < expiredPackets.Count; i++)
+                    {
+                        OutgoingPacket outgoingPacket = expiredPackets[i];
+
+                        // FIXME: Make this an .ini setting
+                        if (outgoingPacket.ResendCount < 3)
+                        {
+                            //Logger.Debug(String.Format("Resending packet #{0} (attempt {1}), {2}ms have passed",
+                            //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount));
+
+                            // Set the resent flag
+                            outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
+                            outgoingPacket.Category = ThrottleOutPacketType.Resend;
+
+                            // The TickCount will be set to the current time when the packet
+                            // is actually sent out again
+                            outgoingPacket.TickCount = 0;
+
+                            // Bump up the resend count on this packet
+                            Interlocked.Increment(ref outgoingPacket.ResendCount);
+                            //Interlocked.Increment(ref Stats.ResentPackets);
+
+                            // Queue or (re)send the packet
+                            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
+                                SendPacketFinal(outgoingPacket);
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[LLUDPSERVER]: Dropping packet #{0} for agent {1} after {2} failed attempts",
+                                outgoingPacket.SequenceNumber, outgoingPacket.Client.RemoteEndPoint, outgoingPacket.ResendCount);
+
+                            lock (client.NeedAcks.SyncRoot)
+                                client.NeedAcks.RemoveUnsafe(outgoingPacket.SequenceNumber);
+
+                            //Interlocked.Increment(ref Stats.DroppedPackets);
+
+                            // Disconnect an agent if no packets are received for some time
+                            //FIXME: Make 60 an .ini setting
+                            if (Environment.TickCount - client.TickLastPacketReceived > 1000 * 60)
+                            {
+                                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + client.ClientAPI.Name);
+
+                                RemoveClient(client.ClientAPI);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Flush()
+        {
+            // FIXME: Implement?
+        }
+
+        internal void SendPacketFinal(OutgoingPacket outgoingPacket)
+        {
+            UDPPacketBuffer buffer = outgoingPacket.Buffer;
+            byte flags = buffer.Data[0];
+            bool isResend = (flags & Helpers.MSG_RESENT) != 0;
+            bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
+            LLUDPClient client = outgoingPacket.Client;
+
+            // Keep track of when this packet was sent out (right now)
+            outgoingPacket.TickCount = Environment.TickCount;
+
+            #region ACK Appending
+
+            int dataLength = buffer.DataLength;
+
+            // Keep appending ACKs until there is no room left in the packet or there are
+            // no more ACKs to append
+            uint ackCount = 0;
+            uint ack;
+            while (dataLength + 5 < buffer.Data.Length && client.PendingAcks.Dequeue(out ack))
+            {
+                Utils.UIntToBytesBig(ack, buffer.Data, dataLength);
+                dataLength += 4;
+                ++ackCount;
+            }
+
+            if (ackCount > 0)
+            {
+                // Set the last byte of the packet equal to the number of appended ACKs
+                buffer.Data[dataLength++] = (byte)ackCount;
+                // Set the appended ACKs flag on this packet
+                buffer.Data[0] = (byte)(buffer.Data[0] | Helpers.MSG_APPENDED_ACKS);
+            }
+
+            buffer.DataLength = dataLength;
+
+            #endregion ACK Appending
+
+            if (!isResend)
+            {
+                // Not a resend, assign a new sequence number
+                uint sequenceNumber = (uint)Interlocked.Increment(ref client.CurrentSequence);
+                Utils.UIntToBytesBig(sequenceNumber, buffer.Data, 1);
+                outgoingPacket.SequenceNumber = sequenceNumber;
+
+                if (isReliable)
+                {
+                    // Add this packet to the list of ACK responses we are waiting on from the server
+                    client.NeedAcks.Add(outgoingPacket);
+                }
+            }
+
+            // Stats tracking
+            Interlocked.Increment(ref client.PacketsSent);
+            if (isReliable)
+                Interlocked.Add(ref client.UnackedBytes, outgoingPacket.Buffer.DataLength);
+
+            // Put the UDP payload on the wire
+            AsyncBeginSend(buffer);
+        }
+
+        protected override void PacketReceived(UDPPacketBuffer buffer)
+        {
+            // Debugging/Profiling
+            //try { Thread.CurrentThread.Name = "PacketReceived (" + scene.RegionName + ")"; }
+            //catch (Exception) { }
+
+            LLUDPClient client = null;
             Packet packet = null;
-            int numBytes = 1;
-            EndPoint epSender = new IPEndPoint(IPAddress.Any, 0);
-            EndPoint epProxy = null;
+            int packetEnd = buffer.DataLength - 1;
+            IPEndPoint address = (IPEndPoint)buffer.RemoteEndPoint;
+
+            #region Decoding
 
             try
             {
-                if (EndReceive(out numBytes, result, ref epSender))
-                {
-                    // Make sure we are getting zeroes when running off the
-                    // end of grab / degrab packets from old clients
-                    Array.Clear(RecvBuffer, numBytes, RecvBuffer.Length - numBytes);
-                    
-                    int packetEnd = numBytes - 1;
-                    if (proxyPortOffset != 0) packetEnd -= 6;
-                    
-                    try
-                    {
-                        packet = PacketPool.Instance.GetPacket(RecvBuffer, ref packetEnd, ZeroBuffer);
-                    }
-                    catch (MalformedDataException e)
-                    {
-                        m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to MalformedDataException: {0}", e.StackTrace);
-                    }
-                    catch (IndexOutOfRangeException e)
-                    {
-                        m_log.DebugFormat("[CLIENT]: Dropped Malformed Packet due to IndexOutOfRangeException: {0}", e.StackTrace);
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Debug("[CLIENT]: " + e);
-                    }
-                }
-            
-            
-                if (proxyPortOffset != 0)
-                {
-                    // If we've received a use circuit packet, then we need to decode an endpoint proxy, if one exists,
-                    // before allowing the RecvBuffer to be overwritten by the next packet. 
-                    if (packet != null && packet.Type == PacketType.UseCircuitCode)
-                    {
-                        epProxy = epSender;
-                    }
-                    
-                    // Now decode the message from the proxy server
-                    epSender = ProxyCodec.DecodeProxyMessage(RecvBuffer, ref numBytes);
-                }
+                packet = Packet.BuildPacket(buffer.Data, ref packetEnd,
+                    // Only allocate a buffer for zerodecoding if the packet is zerocoded
+                    ((buffer.Data[0] & Helpers.MSG_ZEROCODED) != 0) ? new byte[4096] : null);
             }
-            catch (Exception ex)
+            catch (MalformedDataException)
             {
-                m_log.ErrorFormat("[CLIENT]: Exception thrown during EndReceive(): {0}", ex);
+                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse packet:\n{0}",
+                    Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
             }
 
-            BeginRobustReceive(); 
-
-            if (packet != null)
+            // Fail-safe check
+            if (packet == null)
             {
-                if (packet.Type == PacketType.UseCircuitCode)
-                    AddNewClient((UseCircuitCodePacket)packet, epSender, epProxy);
+                m_log.Warn("[LLUDPSERVER]: Couldn't build a message from the incoming data");
+                return;
+            }
+
+            //Stats.RecvBytes += (ulong)buffer.DataLength;
+            //++Stats.RecvPackets;
+
+            #endregion Decoding
+
+            #region UseCircuitCode Handling
+
+            if (packet.Type == PacketType.UseCircuitCode)
+            {
+                UseCircuitCodePacket useCircuitCode = (UseCircuitCodePacket)packet;
+                IClientAPI newuser;
+                uint circuitCode = useCircuitCode.CircuitCode.Code;
+
+                // Check if the client is already established
+                if (!m_scene.ClientManager.TryGetClient(circuitCode, out newuser))
+                {
+                    AddNewClient(useCircuitCode, (IPEndPoint)buffer.RemoteEndPoint);
+                }
+            }
+
+            // Determine which agent this packet came from
+            if (!clients.TryGetValue(address, out client))
+            {
+                m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address);
+                return;
+            }
+
+            #endregion UseCircuitCode Handling
+
+            // Stats tracking
+            Interlocked.Increment(ref client.PacketsReceived);
+
+            #region ACK Receiving
+
+            int now = Environment.TickCount;
+            client.TickLastPacketReceived = now;
+
+            // Handle appended ACKs
+            if (packet.Header.AppendedAcks && packet.Header.AckList != null)
+            {
+                lock (client.NeedAcks.SyncRoot)
+                {
+                    for (int i = 0; i < packet.Header.AckList.Length; i++)
+                        AcknowledgePacket(client, packet.Header.AckList[i], now, packet.Header.Resent);
+                }
+            }
+
+            // Handle PacketAck packets
+            if (packet.Type == PacketType.PacketAck)
+            {
+                PacketAckPacket ackPacket = (PacketAckPacket)packet;
+
+                lock (client.NeedAcks.SyncRoot)
+                {
+                    for (int i = 0; i < ackPacket.Packets.Length; i++)
+                        AcknowledgePacket(client, ackPacket.Packets[i].ID, now, packet.Header.Resent);
+                }
+            }
+
+            #endregion ACK Receiving
+
+            #region ACK Sending
+
+            if (packet.Header.Reliable)
+                client.PendingAcks.Enqueue((uint)packet.Header.Sequence);
+
+            // This is a somewhat odd sequence of steps to pull the client.BytesSinceLastACK value out,
+            // add the current received bytes to it, test if 2*MTU bytes have been sent, if so remove
+            // 2*MTU bytes from the value and send ACKs, and finally add the local value back to
+            // client.BytesSinceLastACK. Lockless thread safety
+            int bytesSinceLastACK = Interlocked.Exchange(ref client.BytesSinceLastACK, 0);
+            bytesSinceLastACK += buffer.DataLength;
+            if (bytesSinceLastACK > Packet.MTU * 2)
+            {
+                bytesSinceLastACK -= Packet.MTU * 2;
+                SendAcks(client);
+            }
+            Interlocked.Add(ref client.BytesSinceLastACK, bytesSinceLastACK);
+
+            #endregion ACK Sending
+
+            #region Incoming Packet Accounting
+
+            // Check the archive of received reliable packet IDs to see whether we already received this packet
+            if (packet.Header.Reliable && !client.PacketArchive.TryEnqueue(packet.Header.Sequence))
+            {
+                if (packet.Header.Resent)
+                    m_log.Debug("[LLUDPSERVER]: Received a resend of already processed packet #" + packet.Header.Sequence + ", type: " + packet.Type);
                 else
-                    ProcessInPacket(packet, epSender);
+                    m_log.Warn("[LLUDPSERVER]: Received a duplicate (not marked as resend) of packet #" + packet.Header.Sequence + ", type: " + packet.Type);
+
+                // Avoid firing a callback twice for the same packet
+                return;
+            }
+
+            #endregion Incoming Packet Accounting
+
+            // Don't bother clogging up the queue with PacketAck packets that are already handled here
+            if (packet.Type != PacketType.PacketAck)
+            {
+                // Inbox insertion
+                packetInbox.Enqueue(new IncomingPacket(client, packet));
             }
         }
-        
-        /// <summary>
-        /// Process a successfully received packet.
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="epSender"></param>
-        protected virtual void ProcessInPacket(Packet packet, EndPoint epSender)
+
+        protected override void PacketSent(UDPPacketBuffer buffer, int bytesSent)
         {
-            try
-            {
-                // do we already have a circuit for this endpoint
-                uint circuit;
-                bool ret;
-                
-                lock (clientCircuits)
-                {
-                    ret = clientCircuits.TryGetValue(epSender, out circuit);
-                }
-
-                if (ret)
-                {
-                    //if so then send packet to the packetserver
-                    //m_log.DebugFormat(
-                    //    "[UDPSERVER]: For circuit {0} {1} got packet {2}", circuit, epSender, packet.Type);
-
-                    m_packetServer.InPacket(circuit, packet);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CLIENT]: Exception in processing packet - ignoring: ", e);
-            }
         }
-        
-        /// <summary>
-        /// Begin an asynchronous receive of the next bit of raw data
-        /// </summary>
-        protected virtual void BeginReceive()
+
+        private bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)
         {
-            m_socket.BeginReceiveFrom(
-                RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref reusedEpSender, ReceivedData, null);
+            UUID agentID = useCircuitCode.CircuitCode.ID;
+            UUID sessionID = useCircuitCode.CircuitCode.SessionID;
+            uint circuitCode = useCircuitCode.CircuitCode.Code;
+
+            sessionInfo = m_circuitManager.AuthenticateSession(sessionID, agentID, circuitCode);
+            return sessionInfo.Authorised;
         }
 
-        /// <summary>
-        /// Begin a robust asynchronous receive of the next bit of raw data.  Robust means that SocketExceptions are
-        /// automatically dealt with until the next set of valid UDP data is received.
-        /// </summary>
-        private void BeginRobustReceive()
-        {
-            bool done = false;
-
-            while (!done)
-            {
-                try
-                {
-                    BeginReceive();
-                    done = true;
-                }
-                catch (SocketException e)
-                {
-                    // ENDLESS LOOP ON PURPOSE!
-                    // Reset connection and get next UDP packet off the buffer
-                    // If the UDP packet is part of the same stream, this will happen several hundreds of times before
-                    // the next set of UDP data is for a valid client.
-
-                    try
-                    {
-                        CloseCircuit(e);
-                    }
-                    catch (Exception e2)
-                    {
-                        m_log.ErrorFormat(
-                            "[CLIENT]: Exception thrown when trying to close the circuit for {0} - {1}", reusedEpSender,
-                            e2);
-                    }
-                }
-                catch (ObjectDisposedException)
-                {
-                    m_log.Info(
-                        "[UDPSERVER]: UDP Object disposed.   No need to worry about this if you're restarting the simulator.");
-
-                    done = true;
-                }
-                catch (Exception ex)
-                {
-                    m_log.ErrorFormat("[CLIENT]: Exception thrown during BeginReceive(): {0}", ex);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Close a client circuit.  This is done in response to an exception on receive, and should not be called
-        /// normally.
-        /// </summary>
-        /// <param name="e">The exception that caused the close.  Can be null if there was no exception</param>
-        private void CloseCircuit(Exception e)
-        {
-            uint circuit;
-            lock (clientCircuits)
-            {
-                if (clientCircuits.TryGetValue(reusedEpSender, out circuit))
-                {
-                    m_packetServer.CloseCircuit(circuit);
-                    
-                    if (e != null)
-                        m_log.ErrorFormat(
-                            "[CLIENT]: Closed circuit {0} {1} due to exception {2}", circuit, reusedEpSender, e);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// Finish the process of asynchronously receiving the next bit of raw data
-        /// </summary>
-        /// <param name="numBytes">The number of bytes received.  Will return 0 if no bytes were recieved
-        /// <param name="result"></param>
-        /// <param name="epSender">The sender of the data</param>
-        /// <returns></returns>
-        protected virtual bool EndReceive(out int numBytes, IAsyncResult result, ref EndPoint epSender)
-        {
-            bool hasReceivedOkay = false;
-            numBytes = 0;
-            
-            try
-            {
-                numBytes = m_socket.EndReceiveFrom(result, ref epSender);
-                hasReceivedOkay = true;
-            }
-            catch (SocketException e)
-            {
-                // TODO : Actually only handle those states that we have control over, re-throw everything else,
-                // TODO: implement cases as we encounter them.
-                //m_log.Error("[CLIENT]: Connection Error! - " + e.ToString());
-                switch (e.SocketErrorCode)
-                {
-                    case SocketError.AlreadyInProgress:
-                        return hasReceivedOkay;
-
-                    case SocketError.NetworkReset:
-                    case SocketError.ConnectionReset:
-                    case SocketError.OperationAborted:
-                        break;
-
-                    default:
-                        throw;
-                }
-            }
-            catch (ObjectDisposedException e)
-            {
-                m_log.DebugFormat("[CLIENT]: ObjectDisposedException: Object {0} disposed.", e.ObjectName);
-                // Uhh, what object, and why? this needs better handling.
-            }
-            
-            return hasReceivedOkay;
-        }
-
-        /// <summary>
-        /// Add a new client circuit.
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <param name="epSender"></param>
-        /// <param name="epProxy"></param>
-        protected virtual void AddNewClient(UseCircuitCodePacket useCircuit, EndPoint epSender, EndPoint epProxy)
+        private void AddNewClient(UseCircuitCodePacket useCircuitCode, IPEndPoint remoteEndPoint)
         {
             //Slave regions don't accept new clients
-            if (m_localScene.RegionStatus != RegionStatus.SlaveScene)
+            if (m_scene.RegionStatus != RegionStatus.SlaveScene)
             {
                 AuthenticateResponse sessionInfo;
-                bool isNewCircuit = false;
-                
-                if (!m_packetServer.IsClientAuthorized(useCircuit, m_circuitManager, out sessionInfo))
+                bool isNewCircuit = !clients.ContainsKey(remoteEndPoint);
+
+                if (!IsClientAuthorized(useCircuitCode, out sessionInfo))
                 {
                     m_log.WarnFormat(
                         "[CONNECTION FAILURE]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                        useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, epSender);
-                    
+                        useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
                     return;
-                }
-                
-                lock (clientCircuits)
-                {
-                    if (!clientCircuits.ContainsKey(epSender))
-                    {
-                        clientCircuits.Add(epSender, useCircuit.CircuitCode.Code);
-                        isNewCircuit = true;
-                    }
                 }
 
                 if (isNewCircuit)
                 {
-                    // This doesn't need locking as it's synchronized data
-                    clientCircuits_reverse[useCircuit.CircuitCode.Code] = epSender;
+                    UUID agentID = useCircuitCode.CircuitCode.ID;
+                    UUID sessionID = useCircuitCode.CircuitCode.SessionID;
+                    uint circuitCode = useCircuitCode.CircuitCode.Code;
 
-                    lock (proxyCircuits)
-                    {
-                        proxyCircuits[useCircuit.CircuitCode.Code] = epProxy;
-                    }
-                    
-                    m_packetServer.AddNewClient(epSender, useCircuit, sessionInfo, epProxy);
-                                    
-                    //m_log.DebugFormat(
-                    //    "[CONNECTION SUCCESS]: Incoming client {0} (circuit code {1}) received and authenticated for {2}", 
-                    //    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code, m_localScene.RegionInfo.RegionName);
-                }
-            }
-            
-            // Ack the UseCircuitCode packet
-            PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
-            // TODO: don't create new blocks if recycling an old packet
-            ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
-            ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
-            ack_it.Packets[0].ID = useCircuit.Header.Sequence;
-            // ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) is just a failsafe to ensure that we don't overflow.
-            ack_it.Header.Sequence = ((useCircuit.Header.Sequence < uint.MaxValue) ? useCircuit.Header.Sequence : 0) + 1;
-            ack_it.Header.Reliable = false;
-
-            byte[] ackmsg = ack_it.ToBytes();
-
-            // Need some extra space in case we need to add proxy
-            // information to the message later
-            byte[] msg = new byte[4096];
-            Buffer.BlockCopy(ackmsg, 0, msg, 0, ackmsg.Length);
-
-            SendPacketTo(msg, ackmsg.Length, SocketFlags.None, useCircuit.CircuitCode.Code);
-
-            PacketPool.Instance.ReturnPacket(useCircuit);
-        }
-
-        public void ServerListener()
-        {
-            uint newPort = listenPort;
-            m_log.Info("[UDPSERVER]: Opening UDP socket on " + listenIP + " " + newPort + ".");
-
-            ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
-            m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            if (0 != m_clientSocketReceiveBuffer)
-                m_socket.ReceiveBufferSize = m_clientSocketReceiveBuffer;
-            m_socket.Bind(ServerIncoming);
-            // Add flags to the UDP socket to prevent "Socket forcibly closed by host"
-            // uint IOC_IN = 0x80000000;
-            // uint IOC_VENDOR = 0x18000000;
-            // uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
-            // TODO: this apparently works in .NET but not in Mono, need to sort out the right flags here.
-            // m_socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
-
-            listenPort = newPort;
-
-            m_log.Info("[UDPSERVER]: UDP socket bound, getting ready to listen");
-
-            ReceivedData = OnReceivedData;
-            BeginReceive();
-
-            m_log.Info("[UDPSERVER]: Listening on port " + newPort);
-        }
-
-        public virtual void RegisterPacketServer(LLPacketServer server)
-        {
-            m_packetServer = server;
-        }
-
-        public virtual void SendPacketTo(byte[] buffer, int size, SocketFlags flags, uint circuitcode)
-            //EndPoint packetSender)
-        {
-            // find the endpoint for this circuit
-            EndPoint sendto;
-            try 
-            {
-                sendto = (EndPoint)clientCircuits_reverse[circuitcode];
-            } 
-            catch 
-            {
-                // Exceptions here mean there is no circuit
-                m_log.Warn("[CLIENT]: Circuit not found, not sending packet");
-                return;
-            }
-
-            if (sendto != null)
-            {
-                //we found the endpoint so send the packet to it
-                if (proxyPortOffset != 0)
-                {
-                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo proxy " + proxyCircuits[circuitcode].ToString() + ": client " + sendto.ToString());
-                    ProxyCodec.EncodeProxyMessage(buffer, ref size, sendto);
-                    m_socket.SendTo(buffer, size, flags, proxyCircuits[circuitcode]);
-                }
-                else
-                {
-                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo : client " + sendto.ToString());
-                    try
-                    {
-                        m_socket.SendTo(buffer, size, flags, sendto);
-                    }
-                    catch (SocketException SockE)
-                    {
-                        m_log.ErrorFormat("[UDPSERVER]: Caught Socket Error in the send buffer!. {0}",SockE.ToString());
-                    }
+                    AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
                 }
             }
         }
 
-        public virtual void RemoveClientCircuit(uint circuitcode)
+        private void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
-            EndPoint sendto;
-            if (clientCircuits_reverse.Contains(circuitcode))
+            // Create the LLUDPClient
+            LLUDPClient client = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
+
+            // Create the LLClientView
+            LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, client, sessionInfo, agentID, sessionID, circuitCode);
+            clientApi.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
+            clientApi.OnLogout += LogoutHandler;
+            clientApi.OnConnectionClosed += RemoveClient;
+
+            // Start the IClientAPI
+            m_scene.ClientManager.Add(circuitCode, clientApi);
+            clientApi.Start();
+
+            // Give LLUDPClient a reference to IClientAPI
+            client.ClientAPI = clientApi;
+
+            // Add the new client to our list of tracked clients
+            clients.Add(agentID, client.RemoteEndPoint, client);
+        }
+
+        private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
+        {
+            OutgoingPacket ackedPacket;
+            if (client.NeedAcks.RemoveUnsafe(ack, out ackedPacket) && !fromResend)
             {
-                sendto = (EndPoint)clientCircuits_reverse[circuitcode];
+                // Update stats
+                Interlocked.Add(ref client.UnackedBytes, -ackedPacket.Buffer.DataLength);
 
-                clientCircuits_reverse.Remove(circuitcode);
-
-                lock (clientCircuits)
-                {
-                    if (sendto != null)
-                    {
-                        clientCircuits.Remove(sendto);
-                    }
-                    else
-                    {
-                        m_log.DebugFormat(
-                            "[CLIENT]: endpoint for circuit code {0} in RemoveClientCircuit() was unexpectedly null!", circuitcode);
-                    }
-                }
-                lock (proxyCircuits)
-                {
-                    proxyCircuits.Remove(circuitcode);
-                }
+                // Calculate the round-trip time for this packet and its ACK
+                int rtt = currentTime - ackedPacket.TickCount;
+                if (rtt > 0)
+                    client.UpdateRoundTrip(rtt);
             }
         }
 
-        public void RestoreClient(AgentCircuitData circuit, EndPoint userEP, EndPoint proxyEP)
+        private void IncomingPacketHandler()
         {
-            //MainLog.Instance.Verbose("UDPSERVER", "RestoreClient");
+            // Set this culture for the thread that incoming packets are received
+            // on to en-US to avoid number parsing issues
+            Culture.SetCurrentCulture();
 
-            UseCircuitCodePacket useCircuit = new UseCircuitCodePacket();
-            useCircuit.CircuitCode.Code = circuit.circuitcode;
-            useCircuit.CircuitCode.ID = circuit.AgentID;
-            useCircuit.CircuitCode.SessionID = circuit.SessionID;
-            
-            AuthenticateResponse sessionInfo;
-            
-            if (!m_packetServer.IsClientAuthorized(useCircuit, m_circuitManager, out sessionInfo))
+            IncomingPacket incomingPacket = null;
+
+            while (base.IsRunning)
             {
-                m_log.WarnFormat(
-                    "[CLIENT]: Restore request denied to avatar {0} connecting with unauthorized circuit code {1}",
-                    useCircuit.CircuitCode.ID, useCircuit.CircuitCode.Code);
-                
-                return;
+                if (packetInbox.Dequeue(100, ref incomingPacket))
+                    Util.FireAndForget(ProcessInPacket, incomingPacket);
             }
 
-            lock (clientCircuits)
-            {
-                if (!clientCircuits.ContainsKey(userEP))
-                    clientCircuits.Add(userEP, useCircuit.CircuitCode.Code);
-                else
-                    m_log.Error("[CLIENT]: clientCircuits already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
-            }
+            if (packetInbox.Count > 0)
+                m_log.Warn("[LLUDPSERVER]: IncomingPacketHandler is shutting down, dropping " + packetInbox.Count + " packets");
+            packetInbox.Clear();
+        }
 
-            // This data structure is synchronized, so we don't need the lock
-            if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
-            else
-                m_log.Error("[CLIENT]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code + ". NOT adding.");
+        private void OutgoingPacketHandler()
+        {
+            // Set this culture for the thread that outgoing packets are sent
+            // on to en-US to avoid number parsing issues
+            Culture.SetCurrentCulture();
 
-            lock (proxyCircuits)
+            int now = Environment.TickCount;
+            int elapsedMS = 0;
+            int elapsed100MS = 0;
+            int elapsed500MS = 0;
+
+            while (base.IsRunning)
             {
-                if (!proxyCircuits.ContainsKey(useCircuit.CircuitCode.Code))
+                bool resendUnacked = false;
+                bool sendAcks = false;
+                bool sendPings = false;
+                bool packetSent = false;
+
+                elapsedMS += Environment.TickCount - now;
+
+                // Check for pending outgoing resends every 100ms
+                if (elapsedMS >= 100)
                 {
-                    proxyCircuits.Add(useCircuit.CircuitCode.Code, proxyEP);
+                    resendUnacked = true;
+                    elapsedMS -= 100;
+                    ++elapsed100MS;
                 }
-                else
+                // Check for pending outgoing ACKs every 500ms
+                if (elapsed100MS >= 5)
                 {
-                    // re-set proxy endpoint
-                    proxyCircuits.Remove(useCircuit.CircuitCode.Code);
-                    proxyCircuits.Add(useCircuit.CircuitCode.Code, proxyEP);
+                    sendAcks = true;
+                    elapsed100MS = 0;
+                    ++elapsed500MS;
                 }
+                // Send pings to clients every 5000ms
+                if (elapsed500MS >= 10)
+                {
+                    sendPings = true;
+                    elapsed500MS = 0;
+                }
+
+                clients.ForEach(
+                    delegate(LLUDPClient client)
+                    {
+                        if (client.DequeueOutgoing())
+                            packetSent = true;
+                        if (resendUnacked)
+                            ResendUnacked(client);
+                        if (sendAcks)
+                        {
+                            SendAcks(client);
+                            client.SendPacketStats();
+                        }
+                        if (sendPings)
+                            SendPing(client);
+                    }
+                );
+
+                if (!packetSent)
+                    Thread.Sleep(20);
+            }
+        }
+
+        private void ProcessInPacket(object state)
+        {
+            IncomingPacket incomingPacket = (IncomingPacket)state;
+            Packet packet = incomingPacket.Packet;
+            LLUDPClient client = incomingPacket.Client;
+
+            // Sanity check
+            if (packet == null || client == null || client.ClientAPI == null)
+            {
+                m_log.WarnFormat("[LLUDPSERVER]: Processing a packet with incomplete state. Packet=\"{0}\", Client=\"{1}\", Client.ClientAPI=\"{2}\"",
+                    packet, client, (client != null) ? client.ClientAPI : null);
             }
 
-            m_packetServer.AddNewClient(userEP, useCircuit, sessionInfo, proxyEP);
+            try
+            {
+                // Process this packet
+                client.ClientAPI.ProcessInPacket(packet);
+            }
+            catch (ThreadAbortException)
+            {
+                // If something is trying to abort the packet processing thread, take that as a hint that it's time to shut down
+                m_log.Info("[LLUDPSERVER]: Caught a thread abort, shutting down the LLUDP server");
+                Stop();
+            }
+            catch (Exception e)
+            {
+                // Don't let a failure in an individual client thread crash the whole sim.
+                m_log.ErrorFormat("[LLUDPSERVER]: Client packet handler for {0} for packet {1} threw an exception", client.AgentID, packet.Type);
+                m_log.Error(e.Message, e);
+            }
+        }
+
+        private void LogoutHandler(IClientAPI client)
+        {
+            client.SendLogoutPacket();
+            RemoveClient(client);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Tests
         [Test]
         public void DefaultThreadTrackerTest()
         {
-            List<Thread> lThread = ThreadTracker.GetThreads();
+            System.Diagnostics.ProcessThreadCollection lThread = ThreadTracker.GetThreads();
             
             /*
             foreach (Thread t in lThread)
@@ -50,143 +50,7 @@ namespace OpenSim.Framework.Tests
             }
             */
 
-            Assert.That(lThread.Count == 1);
-            Assert.That(lThread[0].Name == "ThreadTrackerThread");
+            Assert.That(lThread.Count > 0);
         }
-
-        /// <summary>
-        /// Validate that adding a thread to the thread tracker works
-        /// Validate that removing a thread from the thread tracker also works.
-        /// </summary>
-        [Test]
-        public void AddThreadToThreadTrackerTestAndRemoveTest()
-        {
-            Thread t = new Thread(run);
-            t.Name = "TestThread";
-            t.Priority = ThreadPriority.BelowNormal;
-            t.IsBackground = true;
-            t.SetApartmentState(ApartmentState.MTA);
-            t.Start();
-            ThreadTracker.Add(t);
-
-            List<Thread> lThread = ThreadTracker.GetThreads();
-
-            Assert.That(lThread.Count == 2);
-
-            foreach (Thread tr in lThread)
-            {
-                Assert.That((tr.Name == "ThreadTrackerThread" || tr.Name == "TestThread"));
-            }
-            running = false;
-            ThreadTracker.Remove(t);
-
-            lThread = ThreadTracker.GetThreads();
-
-            Assert.That(lThread.Count == 1);
-
-            foreach (Thread tr in lThread)
-            {
-                Assert.That((tr.Name == "ThreadTrackerThread"));
-            }
-
-
-        }
-
-        /// <summary>
-        /// Test a dead thread removal by aborting it and setting it's last seen active date to 50 seconds
-        /// </summary>
-        [Test]
-        public void DeadThreadTest()
-        {
-            Thread t = new Thread(run2);
-            t.Name = "TestThread";
-            t.Priority = ThreadPriority.BelowNormal;
-            t.IsBackground = true;
-            t.SetApartmentState(ApartmentState.MTA);
-            t.Start();
-            ThreadTracker.Add(t);
-            t.Abort();
-            Thread.Sleep(5000);
-            ThreadTracker.m_Threads[1].LastSeenActive = DateTime.Now.Ticks - (50*10000000);
-            ThreadTracker.CleanUp();
-            List<Thread> lThread = ThreadTracker.GetThreads();
-
-            Assert.That(lThread.Count == 1);
-
-            foreach (Thread tr in lThread)
-            {
-                Assert.That((tr.Name == "ThreadTrackerThread"));
-            }
-        }
-
-        [Test]
-        public void UnstartedThreadTest()
-        {
-            Thread t = new Thread(run2);
-            t.Name = "TestThread";
-            t.Priority = ThreadPriority.BelowNormal;
-            t.IsBackground = true;
-            t.SetApartmentState(ApartmentState.MTA);
-            ThreadTracker.Add(t);
-            ThreadTracker.m_Threads[1].LastSeenActive = DateTime.Now.Ticks - (50 * 10000000);
-            ThreadTracker.CleanUp();
-            List<Thread> lThread = ThreadTracker.GetThreads();
-
-            Assert.That(lThread.Count == 1);
-
-            foreach (Thread tr in lThread)
-            {
-                Assert.That((tr.Name == "ThreadTrackerThread"));
-            }
-        }
-
-        [Test]
-        public void NullThreadTest()
-        {
-            Thread t = null;
-            ThreadTracker.Add(t);
-            
-            List<Thread> lThread = ThreadTracker.GetThreads();
-
-            Assert.That(lThread.Count == 1);
-
-            foreach (Thread tr in lThread)
-            {
-                Assert.That((tr.Name == "ThreadTrackerThread"));
-            }
-        }
-
-
-        /// <summary>
-        /// Worker thread 0
-        /// </summary>
-        /// <param name="o"></param>
-        public void run(object o)
-        {
-            while (running)
-            {
-                Thread.Sleep(5000);
-            }
-        }
-
-        /// <summary>
-        /// Worker thread 1
-        /// </summary>
-        /// <param name="o"></param>
-        public void run2(object o)
-        {
-            try
-            {
-                while (running2)
-                {
-                    Thread.Sleep(5000);
-                }
-
-            } 
-            catch (ThreadAbortException)
-            {
-            }
-        }
-
     }
 }

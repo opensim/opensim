@@ -675,7 +675,7 @@ namespace OpenSim
 
             if (foundClientServer)
             {
-                m_clientServers[clientServerElement].Server.Close();
+                m_clientServers[clientServerElement].NetworkStop();
                 m_clientServers.RemoveAt(clientServerElement);
             }
             IScene scene;
