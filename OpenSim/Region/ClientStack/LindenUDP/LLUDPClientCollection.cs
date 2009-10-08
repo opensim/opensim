@@ -247,16 +247,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ////return success;
 
-            //lock (m_sync)
-            //    return Dictionary2.TryGetValue(key, out value);
-
-            try
-            {
+            lock (m_sync)
                 return Dictionary2.TryGetValue(key, out value);
-            }
-            catch { }
-            value = null;
-            return false;
+
+            //try
+            //{
+            //    return Dictionary2.TryGetValue(key, out value);
+            //}
+            //catch { }
+            //value = null;
+            //return false;
 
         }
 
@@ -268,8 +268,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //try { Parallel.ForEach<LLUDPClient>(Array, action); }
             //finally { if (doLock) rwLock.ExitUpgradeableReadLock(); }
 
+            LLUDPClient[] localArray = null;
             lock (m_sync)
-                Parallel.ForEach<LLUDPClient>(Array, action); 
+            {
+                localArray = new LLUDPClient[Array.Length];
+                Array.CopyTo(localArray, 0);
+            }
+
+            Parallel.ForEach<LLUDPClient>(localArray, action); 
 
         }
     }
