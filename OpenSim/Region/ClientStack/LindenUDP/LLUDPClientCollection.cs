@@ -41,6 +41,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         Dictionary<IPEndPoint, LLUDPClient> Dictionary2;
         LLUDPClient[] Array;
         ReaderWriterLockImpl rwLock = new ReaderWriterLockImpl();
+        object m_sync = new object();
 
         public UDPClientCollection()
         {
@@ -58,9 +59,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void Add(UUID key1, IPEndPoint key2, LLUDPClient value)
         {
-            rwLock.EnterWriteLock();
+            //rwLock.EnterWriteLock();
 
-            try
+            //try
+            //{
+            //    if (Dictionary1.ContainsKey(key1))
+            //    {
+            //        if (!Dictionary2.ContainsKey(key2))
+            //            throw new ArgumentException("key1 exists in the dictionary but not key2");
+            //    }
+            //    else if (Dictionary2.ContainsKey(key2))
+            //    {
+            //        if (!Dictionary1.ContainsKey(key1))
+            //            throw new ArgumentException("key2 exists in the dictionary but not key1");
+            //    }
+
+            //    Dictionary1[key1] = value;
+            //    Dictionary2[key2] = value;
+
+            //    LLUDPClient[] oldArray = Array;
+            //    int oldLength = oldArray.Length;
+
+            //    LLUDPClient[] newArray = new LLUDPClient[oldLength + 1];
+            //    for (int i = 0; i < oldLength; i++)
+            //        newArray[i] = oldArray[i];
+            //    newArray[oldLength] = value;
+
+            //    Array = newArray;
+            //}
+            //finally { rwLock.ExitWriteLock(); }
+
+            lock (m_sync)
             {
                 if (Dictionary1.ContainsKey(key1))
                 {
@@ -86,14 +115,41 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 Array = newArray;
             }
-            finally { rwLock.ExitWriteLock(); }
+
         }
 
         public bool Remove(UUID key1, IPEndPoint key2)
         {
-            rwLock.EnterWriteLock();
+            //rwLock.EnterWriteLock();
 
-            try
+            //try
+            //{
+            //    LLUDPClient value;
+            //    if (Dictionary1.TryGetValue(key1, out value))
+            //    {
+            //        Dictionary1.Remove(key1);
+            //        Dictionary2.Remove(key2);
+
+            //        LLUDPClient[] oldArray = Array;
+            //        int oldLength = oldArray.Length;
+
+            //        LLUDPClient[] newArray = new LLUDPClient[oldLength - 1];
+            //        int j = 0;
+            //        for (int i = 0; i < oldLength; i++)
+            //        {
+            //            if (oldArray[i] != value)
+            //                newArray[j++] = oldArray[i];
+            //        }
+
+            //        Array = newArray;
+            //        return true;
+            //    }
+            //}
+            //finally { rwLock.ExitWriteLock(); }
+
+            //return false;
+
+            lock (m_sync)
             {
                 LLUDPClient value;
                 if (Dictionary1.TryGetValue(key1, out value))
@@ -116,22 +172,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
                 }
             }
-            finally { rwLock.ExitWriteLock(); }
 
             return false;
+
         }
 
         public void Clear()
         {
-            rwLock.EnterWriteLock();
+            //rwLock.EnterWriteLock();
 
-            try
+            //try
+            //{
+            //    Dictionary1.Clear();
+            //    Dictionary2.Clear();
+            //    Array = new LLUDPClient[0];
+            //}
+            //finally { rwLock.ExitWriteLock(); }
+
+            lock (m_sync)
             {
                 Dictionary1.Clear();
                 Dictionary2.Clear();
                 Array = new LLUDPClient[0];
             }
-            finally { rwLock.ExitWriteLock(); }
+
         }
 
         public int Count
@@ -151,35 +215,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool TryGetValue(UUID key, out LLUDPClient value)
         {
-            bool success;
-            bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            if (doLock) rwLock.EnterReadLock();
+            //bool success;
+            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
+            //if (doLock) rwLock.EnterReadLock();
 
-            try { success = Dictionary1.TryGetValue(key, out value); }
-            finally { if (doLock) rwLock.ExitReadLock(); }
+            //try { success = Dictionary1.TryGetValue(key, out value); }
+            //finally { if (doLock) rwLock.ExitReadLock(); }
 
-            return success;
+            //return success;
+
+            lock (m_sync)
+                return Dictionary1.TryGetValue(key, out value); 
+
         }
 
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)
         {
-            bool success;
-            bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            if (doLock) rwLock.EnterReadLock();
+            //bool success;
+            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
+            //if (doLock) rwLock.EnterReadLock();
 
-            try { success = Dictionary2.TryGetValue(key, out value); }
-            finally { if (doLock) rwLock.ExitReadLock(); }
+            //try { success = Dictionary2.TryGetValue(key, out value); }
+            //finally { if (doLock) rwLock.ExitReadLock(); }
 
-            return success;
+            //return success;
+
+            lock (m_sync)
+                return Dictionary2.TryGetValue(key, out value);
         }
 
         public void ForEach(Action<LLUDPClient> action)
         {
-            bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            if (doLock) rwLock.EnterUpgradeableReadLock();
+            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
+            //if (doLock) rwLock.EnterUpgradeableReadLock();
 
-            try { Parallel.ForEach<LLUDPClient>(Array, action); }
-            finally { if (doLock) rwLock.ExitUpgradeableReadLock(); }
+            //try { Parallel.ForEach<LLUDPClient>(Array, action); }
+            //finally { if (doLock) rwLock.ExitUpgradeableReadLock(); }
+
+            lock (m_sync)
+                Parallel.ForEach<LLUDPClient>(Array, action); 
+
         }
     }
 }
