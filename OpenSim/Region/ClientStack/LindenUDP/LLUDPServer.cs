@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// The LLUDP server for a region. This handles incoming and outgoing
     /// packets for all UDP connections to the region
     /// </summary>
-    public class LLUDPServer : UDPBase
+    public class LLUDPServer : OpenSimUDPBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
