@@ -215,33 +215,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool TryGetValue(UUID key, out LLUDPClient value)
         {
-            //bool success;
-            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            //if (doLock) rwLock.EnterReadLock();
+            ////bool success;
+            ////bool doLock = !rwLock.IsUpgradeableReadLockHeld;
+            ////if (doLock) rwLock.EnterReadLock();
 
-            //try { success = Dictionary1.TryGetValue(key, out value); }
-            //finally { if (doLock) rwLock.ExitReadLock(); }
+            ////try { success = Dictionary1.TryGetValue(key, out value); }
+            ////finally { if (doLock) rwLock.ExitReadLock(); }
 
-            //return success;
+            ////return success;
 
-            lock (m_sync)
-                return Dictionary1.TryGetValue(key, out value); 
+            //lock (m_sync)
+            //    return Dictionary1.TryGetValue(key, out value); 
 
+            try
+            {
+                return Dictionary1.TryGetValue(key, out value);
+            }
+            catch { }
+            value = null;
+            return false;
         }
 
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)
         {
-            //bool success;
-            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            //if (doLock) rwLock.EnterReadLock();
+            ////bool success;
+            ////bool doLock = !rwLock.IsUpgradeableReadLockHeld;
+            ////if (doLock) rwLock.EnterReadLock();
 
-            //try { success = Dictionary2.TryGetValue(key, out value); }
-            //finally { if (doLock) rwLock.ExitReadLock(); }
+            ////try { success = Dictionary2.TryGetValue(key, out value); }
+            ////finally { if (doLock) rwLock.ExitReadLock(); }
 
-            //return success;
+            ////return success;
 
-            lock (m_sync)
+            //lock (m_sync)
+            //    return Dictionary2.TryGetValue(key, out value);
+
+            try
+            {
                 return Dictionary2.TryGetValue(key, out value);
+            }
+            catch { }
+            value = null;
+            return false;
+
         }
 
         public void ForEach(Action<LLUDPClient> action)
