@@ -246,8 +246,12 @@ namespace OpenSim.Framework.Servers
                 foreach (ProcessThread t in threads)
                 {
                     sb.Append("ID: " + t.Id + ", TotalProcessorTime: " + t.TotalProcessorTime + ", TimeRunning: " +
-                        (DateTime.Now - t.StartTime) + ", Pri: " + t.CurrentPriority + ", State: " + t.ThreadState + 
-                        ", WaitReason: " + t.WaitReason + Environment.NewLine);
+                        (DateTime.Now - t.StartTime) + ", Pri: " + t.CurrentPriority + ", State: " + t.ThreadState );
+                    if (t.ThreadState == System.Diagnostics.ThreadState.Wait)
+                        sb.Append(", Reason: " + t.WaitReason + Environment.NewLine);
+                    else
+                        sb.Append(Environment.NewLine);
+
                 }
             }
             int workers = 0, ports = 0, maxWorkers = 0, maxPorts = 0;
