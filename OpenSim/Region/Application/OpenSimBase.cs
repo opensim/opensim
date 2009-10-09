@@ -459,7 +459,8 @@ namespace OpenSim
 
             scene.DeleteAllSceneObjects();
             m_sceneManager.CloseScene(scene);
-
+            ShutdownClientServer(scene.RegionInfo);
+            
             if (!cleanup)
                 return;
 
@@ -519,7 +520,7 @@ namespace OpenSim
             }
 
             m_sceneManager.CloseScene(scene);
-
+            ShutdownClientServer(scene.RegionInfo);
         }
         
         /// <summary>
@@ -653,12 +654,10 @@ namespace OpenSim
                 storageManager, m_moduleLoader, false, m_configSettings.PhysicalPrim,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }
-
-        public void handleRestartRegion(RegionInfo whichRegion)
+        
+        protected void ShutdownClientServer(RegionInfo whichRegion)
         {
-            m_log.Info("[OPENSIM]: Got restart signal from SceneManager");
-
-            // Shutting down the client server
+            // Close and remove the clientserver for a region
             bool foundClientServer = false;
             int clientServerElement = 0;
             Location location = new Location(whichRegion.RegionHandle);
@@ -678,6 +677,13 @@ namespace OpenSim
                 m_clientServers[clientServerElement].NetworkStop();
                 m_clientServers.RemoveAt(clientServerElement);
             }
+        }
+        
+        public void handleRestartRegion(RegionInfo whichRegion)
+        {
+            m_log.Info("[OPENSIM]: Got restart signal from SceneManager");
+
+            ShutdownClientServer(whichRegion);
             IScene scene;
             CreateRegion(whichRegion, true, out scene);
         }
