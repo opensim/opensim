@@ -247,16 +247,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ////return success;
 
-            lock (m_sync)
-                return Dictionary2.TryGetValue(key, out value);
-
-            //try
-            //{
+            //lock (m_sync)
             //    return Dictionary2.TryGetValue(key, out value);
-            //}
-            //catch { }
-            //value = null;
-            //return false;
+
+            try
+            {
+                return Dictionary2.TryGetValue(key, out value);
+            }
+            catch { }
+            value = null;
+            return false;
 
         }
 
