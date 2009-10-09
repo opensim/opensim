@@ -60,7 +60,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ImmutableMap<IPEndPoint, LLUDPClient> m_dict;
         /// <summary>Immutability grants thread safety for concurrent reads and
         /// read-writes, but not concurrent writes</summary>
-        private object m_writeLock;
+        private object m_writeLock = new object();
 
         /// <summary>Number of clients in the collection</summary>
         public int Count { get { return m_dict.Count; } }
