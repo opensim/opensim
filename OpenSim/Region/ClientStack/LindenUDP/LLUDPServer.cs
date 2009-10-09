@@ -504,7 +504,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Determine which agent this packet came from
             if (!m_clients.TryGetValue(address, out client))
             {
-                m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address);
+                m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address +
+                    ", currently tracking " + m_clients.Count + " clients");
                 return;
             }
 
