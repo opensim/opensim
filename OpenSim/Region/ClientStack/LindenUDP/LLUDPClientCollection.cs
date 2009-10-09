@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Net;
 using OpenSim.Framework;
 using OpenMetaverse;
+using BclExtras.Collections;
 
 using ReaderWriterLockImpl = OpenMetaverse.ReaderWriterLockSlim;
 
@@ -37,246 +38,113 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public sealed class UDPClientCollection
     {
-        Dictionary<UUID, LLUDPClient> Dictionary1;
-        Dictionary<IPEndPoint, LLUDPClient> Dictionary2;
-        LLUDPClient[] Array;
-        ReaderWriterLockImpl rwLock = new ReaderWriterLockImpl();
-        object m_sync = new object();
+        #region IComparers
+
+        private sealed class UUIDComparer : IComparer<UUID>
+        {
+            public int Compare(UUID x, UUID y)
+            {
+                return x.Guid.CompareTo(y.Guid);
+            }
+        }
+
+        private sealed class IPEndPointComparer : IComparer<IPEndPoint>
+        {
+            public int Compare(IPEndPoint x, IPEndPoint y)
+            {
+                int result = x.Address.Address.CompareTo(y.Address.Address);
+                if (result == 0) result = x.Port.CompareTo(y.Port);
+                return result;
+            }
+        }
+
+        #endregion IComparers
+
+        private ImmutableMap<UUID, LLUDPClient> m_dict1;
+        private ImmutableMap<IPEndPoint, LLUDPClient> m_dict2;
+        private LLUDPClient[] m_array;
 
         public UDPClientCollection()
         {
-            Dictionary1 = new Dictionary<UUID, LLUDPClient>();
-            Dictionary2 = new Dictionary<IPEndPoint, LLUDPClient>();
-            Array = new LLUDPClient[0];
-        }
-
-        public UDPClientCollection(int capacity)
-        {
-            Dictionary1 = new Dictionary<UUID, LLUDPClient>(capacity);
-            Dictionary2 = new Dictionary<IPEndPoint, LLUDPClient>(capacity);
-            Array = new LLUDPClient[0];
+            m_dict1 = new ImmutableMap<UUID, LLUDPClient>(new UUIDComparer());
+            m_dict2 = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
+            m_array = new LLUDPClient[0];
         }
 
         public void Add(UUID key1, IPEndPoint key2, LLUDPClient value)
         {
-            //rwLock.EnterWriteLock();
+            m_dict1 = m_dict1.Add(key1, value);
+            m_dict2 = m_dict2.Add(key2, value);
 
-            //try
-            //{
-            //    if (Dictionary1.ContainsKey(key1))
-            //    {
-            //        if (!Dictionary2.ContainsKey(key2))
-            //            throw new ArgumentException("key1 exists in the dictionary but not key2");
-            //    }
-            //    else if (Dictionary2.ContainsKey(key2))
-            //    {
-            //        if (!Dictionary1.ContainsKey(key1))
-            //            throw new ArgumentException("key2 exists in the dictionary but not key1");
-            //    }
+            // Copy the array by hand
+            LLUDPClient[] oldArray = m_array;
+            int oldLength = oldArray.Length;
+            LLUDPClient[] newArray = new LLUDPClient[oldLength + 1];
 
-            //    Dictionary1[key1] = value;
-            //    Dictionary2[key2] = value;
-
-            //    LLUDPClient[] oldArray = Array;
-            //    int oldLength = oldArray.Length;
-
-            //    LLUDPClient[] newArray = new LLUDPClient[oldLength + 1];
-            //    for (int i = 0; i < oldLength; i++)
-            //        newArray[i] = oldArray[i];
-            //    newArray[oldLength] = value;
-
-            //    Array = newArray;
-            //}
-            //finally { rwLock.ExitWriteLock(); }
-
-            lock (m_sync)
-            {
-                if (Dictionary1.ContainsKey(key1))
-                {
-                    if (!Dictionary2.ContainsKey(key2))
-                        throw new ArgumentException("key1 exists in the dictionary but not key2");
-                }
-                else if (Dictionary2.ContainsKey(key2))
-                {
-                    if (!Dictionary1.ContainsKey(key1))
-                        throw new ArgumentException("key2 exists in the dictionary but not key1");
-                }
-
-                Dictionary1[key1] = value;
-                Dictionary2[key2] = value;
-
-                LLUDPClient[] oldArray = Array;
-                int oldLength = oldArray.Length;
-
-                LLUDPClient[] newArray = new LLUDPClient[oldLength + 1];
-                for (int i = 0; i < oldLength; i++)
-                    newArray[i] = oldArray[i];
-                newArray[oldLength] = value;
-
-                Array = newArray;
-            }
-
+            for (int i = 0; i < oldLength; i++)
+                newArray[i] = oldArray[i];
+            newArray[oldLength] = value;
+            
+            m_array = newArray;
         }
 
-        public bool Remove(UUID key1, IPEndPoint key2)
+        public void Remove(UUID key1, IPEndPoint key2)
         {
-            //rwLock.EnterWriteLock();
+            m_dict1 = m_dict1.Delete(key1);
+            m_dict2 = m_dict2.Delete(key2);
 
-            //try
-            //{
-            //    LLUDPClient value;
-            //    if (Dictionary1.TryGetValue(key1, out value))
-            //    {
-            //        Dictionary1.Remove(key1);
-            //        Dictionary2.Remove(key2);
+            LLUDPClient[] oldArray = m_array;
+            int oldLength = oldArray.Length;
 
-            //        LLUDPClient[] oldArray = Array;
-            //        int oldLength = oldArray.Length;
+            // Copy the array by hand
 
-            //        LLUDPClient[] newArray = new LLUDPClient[oldLength - 1];
-            //        int j = 0;
-            //        for (int i = 0; i < oldLength; i++)
-            //        {
-            //            if (oldArray[i] != value)
-            //                newArray[j++] = oldArray[i];
-            //        }
+            LLUDPClient[] newArray = new LLUDPClient[oldLength - 1];
+            int j = 0;
 
-            //        Array = newArray;
-            //        return true;
-            //    }
-            //}
-            //finally { rwLock.ExitWriteLock(); }
-
-            //return false;
-
-            lock (m_sync)
+            for (int i = 0; i < oldLength; i++)
             {
-                LLUDPClient value;
-                if (Dictionary1.TryGetValue(key1, out value))
-                {
-                    Dictionary1.Remove(key1);
-                    Dictionary2.Remove(key2);
-
-                    LLUDPClient[] oldArray = Array;
-                    int oldLength = oldArray.Length;
-
-                    LLUDPClient[] newArray = new LLUDPClient[oldLength - 1];
-                    int j = 0;
-                    for (int i = 0; i < oldLength; i++)
-                    {
-                        if (oldArray[i] != value)
-                            newArray[j++] = oldArray[i];
-                    }
-
-                    Array = newArray;
-                    return true;
-                }
+                if (oldArray[i].AgentID != key1)
+                    newArray[j++] = oldArray[i];
             }
 
-            return false;
-
+            m_array = newArray;
         }
 
         public void Clear()
         {
-            //rwLock.EnterWriteLock();
-
-            //try
-            //{
-            //    Dictionary1.Clear();
-            //    Dictionary2.Clear();
-            //    Array = new LLUDPClient[0];
-            //}
-            //finally { rwLock.ExitWriteLock(); }
-
-            lock (m_sync)
-            {
-                Dictionary1.Clear();
-                Dictionary2.Clear();
-                Array = new LLUDPClient[0];
-            }
-
+            m_dict1 = new ImmutableMap<UUID, LLUDPClient>(new UUIDComparer());
+            m_dict2 = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
+            m_array = new LLUDPClient[0];
         }
 
         public int Count
         {
-            get { return Array.Length; }
+            get { return m_array.Length; }
         }
 
         public bool ContainsKey(UUID key)
         {
-            return Dictionary1.ContainsKey(key);
+            return m_dict1.ContainsKey(key);
         }
 
         public bool ContainsKey(IPEndPoint key)
         {
-            return Dictionary2.ContainsKey(key);
+            return m_dict2.ContainsKey(key);
         }
 
         public bool TryGetValue(UUID key, out LLUDPClient value)
         {
-            ////bool success;
-            ////bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            ////if (doLock) rwLock.EnterReadLock();
-
-            ////try { success = Dictionary1.TryGetValue(key, out value); }
-            ////finally { if (doLock) rwLock.ExitReadLock(); }
-
-            ////return success;
-
-            lock (m_sync)
-                return Dictionary1.TryGetValue(key, out value); 
-
-            //try
-            //{
-            //    return Dictionary1.TryGetValue(key, out value);
-            //}
-            //catch { }
-            //value = null;
-            //return false;
+            return m_dict1.TryGetValue(key, out value);
         }
 
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)
         {
-            ////bool success;
-            ////bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            ////if (doLock) rwLock.EnterReadLock();
-
-            ////try { success = Dictionary2.TryGetValue(key, out value); }
-            ////finally { if (doLock) rwLock.ExitReadLock(); }
-
-            ////return success;
-
-            lock (m_sync)
-                return Dictionary2.TryGetValue(key, out value);
-
-            //try
-            //{
-            //    return Dictionary2.TryGetValue(key, out value);
-            //}
-            //catch { }
-            //value = null;
-            //return false;
-
+            return m_dict2.TryGetValue(key, out value);
         }
 
         public void ForEach(Action<LLUDPClient> action)
         {
-            //bool doLock = !rwLock.IsUpgradeableReadLockHeld;
-            //if (doLock) rwLock.EnterUpgradeableReadLock();
-
-            //try { Parallel.ForEach<LLUDPClient>(Array, action); }
-            //finally { if (doLock) rwLock.ExitUpgradeableReadLock(); }
-
-            LLUDPClient[] localArray = null;
-            lock (m_sync)
-            {
-                localArray = new LLUDPClient[Array.Length];
-                Array.CopyTo(localArray, 0);
-            }
-
-            Parallel.ForEach<LLUDPClient>(localArray, action); 
-
+            Parallel.ForEach<LLUDPClient>(m_array, action); 
         }
     }
 }

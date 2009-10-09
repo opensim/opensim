@@ -1767,6 +1767,7 @@
       <Reference name="OpenSim.Region.Communications.Local"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="BclExtras.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
