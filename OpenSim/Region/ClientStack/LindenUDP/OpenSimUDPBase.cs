@@ -198,9 +198,6 @@ namespace OpenMetaverse
             // to AsyncBeginReceive
             if (!m_shutdownFlag)
             {
-                // start another receive - this keeps the server going!
-                AsyncBeginReceive();
-
                 // get the buffer that was created in AsyncBeginReceive
                 // this is the received data
                 //WrappedObject<UDPPacketBuffer> wrappedBuffer = (WrappedObject<UDPPacketBuffer>)iar.AsyncState;
@@ -219,7 +216,14 @@ namespace OpenMetaverse
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
-                //finally { wrappedBuffer.Dispose(); }
+                finally
+                {
+                    // wrappedBuffer.Dispose();
+
+                    // start another receive - this keeps the server going!
+                    AsyncBeginReceive();
+                }
+
             }
         }
 
