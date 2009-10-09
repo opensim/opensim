@@ -209,6 +209,12 @@ namespace OpenSim.Framework.Communications
 
         private string[] doUUIDNameRequest(UUID uuid)
         {
+            lock (m_nameRequestCache)
+            {
+                if (m_nameRequestCache.ContainsKey(uuid))
+                    return m_nameRequestCache[uuid];
+            }
+
             string[] returnstring = new string[0];
             CachedUserInfo uinfo = UserProfileCacheService.GetUserDetails(uuid);
 
