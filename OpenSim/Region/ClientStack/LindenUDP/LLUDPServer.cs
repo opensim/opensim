@@ -96,7 +96,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Incoming packets that are awaiting handling</summary>
         private OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
         /// <summary></summary>
-        private UDPClientCollection clients = new UDPClientCollection();
+        private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
         private TokenBucket m_throttle;
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
@@ -115,7 +115,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public Socket Server { get { return null; } }
 
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
-            : base((int)port)
+            : base(listenIP, (int)port)
         {
             #region Environment.TickCount Measurement
 
@@ -143,7 +143,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public new void Start()
         {
             if (m_scene == null)
-                throw new InvalidOperationException("Cannot LLUDPServer.Start() without an IScene reference");
+                throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
 
             base.Start();
 
@@ -188,7 +188,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene.ClientManager.Remove(udpClient.CircuitCode);
             udpClient.ClientAPI.Close(false);
             udpClient.Shutdown();
-            clients.Remove(udpClient.RemoteEndPoint);
+            m_clients.Remove(udpClient.RemoteEndPoint);
         }
 
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    clients.ForEach(
+                    m_clients.ForEach(
                         delegate(LLUDPClient client)
                         { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
                 }
@@ -216,7 +216,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 byte[] data = packet.ToBytes();
-                clients.ForEach(
+                m_clients.ForEach(
                     delegate(LLUDPClient client)
                     { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
             }
@@ -502,7 +502,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Determine which agent this packet came from
-            if (!clients.TryGetValue(address, out client))
+            if (!m_clients.TryGetValue(address, out client))
             {
                 m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address);
                 return;
@@ -606,7 +606,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene.RegionStatus != RegionStatus.SlaveScene)
             {
                 AuthenticateResponse sessionInfo;
-                bool isNewCircuit = !clients.ContainsKey(remoteEndPoint);
+                bool isNewCircuit = !m_clients.ContainsKey(remoteEndPoint);
 
                 if (!IsClientAuthorized(useCircuitCode, out sessionInfo))
                 {
@@ -648,7 +648,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             udpClient.ClientAPI = clientApi;
 
             // Add the new client to our list of tracked clients
-            clients.Add(udpClient.RemoteEndPoint, udpClient);
+            m_clients.Add(udpClient.RemoteEndPoint, udpClient);
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
@@ -726,7 +726,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     elapsed500MS = 0;
                 }
 
-                clients.ForEach(
+                m_clients.ForEach(
                     delegate(LLUDPClient client)
                     {
                         if (client.DequeueOutgoing())

@@ -36,6 +36,9 @@ using ReaderWriterLockImpl = OpenMetaverse.ReaderWriterLockSlim;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    /// <summary>
+    /// A thread safe mapping from endpoints to client references
+    /// </summary>
     public sealed class UDPClientCollection
     {
         #region IComparers
@@ -52,43 +55,80 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion IComparers
 
+        /// <summary>An immutable dictionary mapping from <seealso cref="IPEndPoint"/>
+        /// to <seealso cref="LLUDPClient"/> references</summary>
         private ImmutableMap<IPEndPoint, LLUDPClient> m_dict;
+        /// <summary>Immutability grants thread safety for concurrent reads and
+        /// read-writes, but not concurrent writes</summary>
+        private object m_writeLock;
 
+        /// <summary>Number of clients in the collection</summary>
+        public int Count { get { return m_dict.Count; } }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public UDPClientCollection()
         {
             m_dict = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
         }
 
+        /// <summary>
+        /// Add a client reference to the collection
+        /// </summary>
+        /// <param name="key">Remote endpoint of the client</param>
+        /// <param name="value">Reference to the client object</param>
         public void Add(IPEndPoint key, LLUDPClient value)
         {
-            m_dict = m_dict.Add(key, value);
+            lock (m_writeLock)
+                m_dict = m_dict.Add(key, value);
         }
 
+        /// <summary>
+        /// Remove a client from the collection
+        /// </summary>
+        /// <param name="key">Remote endpoint of the client</param>
         public void Remove(IPEndPoint key)
         {
-            m_dict = m_dict.Delete(key);
+            lock (m_writeLock)
+                m_dict = m_dict.Delete(key);
         }
 
+        /// <summary>
+        /// Resets the client collection
+        /// </summary>
         public void Clear()
         {
-            m_dict = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
+            lock (m_writeLock)
+                m_dict = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
         }
 
-        public int Count
-        {
-            get { return m_dict.Count; }
-        }
-
+        /// <summary>
+        /// Checks if an endpoint is in the collection
+        /// </summary>
+        /// <param name="key">Endpoint to check for</param>
+        /// <returns>True if the endpoint was found in the collection, otherwise false</returns>
         public bool ContainsKey(IPEndPoint key)
         {
             return m_dict.ContainsKey(key);
         }
 
+        /// <summary>
+        /// Attempts to fetch a value out of the collection
+        /// </summary>
+        /// <param name="key">Endpoint of the client to retrieve</param>
+        /// <param name="value">Retrieved client, or null on lookup failure</param>
+        /// <returns>True if the lookup succeeded, otherwise false</returns>
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)
         {
             return m_dict.TryGetValue(key, out value);
         }
 
+        /// <summary>
+        /// Performs a given task in parallel for each of the elements in the
+        /// collection
+        /// </summary>
+        /// <param name="action">Action to perform on each element</param>
         public void ForEach(Action<LLUDPClient> action)
         {
             Parallel.ForEach<LLUDPClient>(m_dict.Values, action); 
