@@ -642,7 +642,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_ScriptErrorMessage += "Failed to compile script in object: '" + part.ParentGroup.RootPart.Name + "' Script name: '" + item.Name + "' Error message: " + e.Message.ToString();
 
                     m_ScriptFailCount++;
-                    string text = "Error compiling script:\n" + e.Message.ToString();
+                    string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
                     World.SimChat(Utils.StringToBytes(text),
