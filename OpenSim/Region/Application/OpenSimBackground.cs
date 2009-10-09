@@ -58,6 +58,7 @@ namespace OpenSim
                              m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
 
             WorldHasComeToAnEnd.WaitOne();
+            WorldHasComeToAnEnd.Close();
         }
 
         /// <summary>

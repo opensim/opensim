@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// This flag will help block the main synchroneous method, in case we run in synchroneous mode
         /// </summary>
-        public static ManualResetEvent _allDone = new ManualResetEvent(false);
+        //public static ManualResetEvent _allDone = new ManualResetEvent(false);
 
         /// <summary>
         /// Default time out period
@@ -282,12 +282,12 @@ namespace OpenSim.Framework.Communications
                 else
                 {
                     s.Close();
-                    _allDone.Set();
+                    //_allDone.Set();
                 }
             }
             catch (Exception e)
             {
-                _allDone.Set();
+                //_allDone.Set();
                 _asyncException = e;
             }
         }
