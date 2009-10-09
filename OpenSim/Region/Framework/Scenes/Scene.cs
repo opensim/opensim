@@ -1186,10 +1186,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-                Thread backupthread = new Thread(Backup);
-                backupthread.Name = "BackupWriter";
-                backupthread.IsBackground = true;
-                backupthread.Start();
+
+                System.ComponentModel.BackgroundWorker backupWorker = new System.ComponentModel.BackgroundWorker();
+                backupWorker.DoWork += delegate(object sender, System.ComponentModel.DoWorkEventArgs e) { Backup(); };
+                backupWorker.RunWorkerAsync();
             }
         }
 
