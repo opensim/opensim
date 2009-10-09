@@ -181,22 +181,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return x == m_location;
         }
 
-        public void RemoveClient(IClientAPI client)
+        public void RemoveClient(LLUDPClient udpClient)
         {
-            m_scene.ClientManager.Remove(client.CircuitCode);
-            client.Close(false);
+            m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + udpClient.ClientAPI.Name);
 
-            LLUDPClient udpClient;
-            if (clients.TryGetValue(client.AgentId, out udpClient))
-            {
-                m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + client.Name);
-                udpClient.Shutdown();
-                clients.Remove(client.AgentId, udpClient.RemoteEndPoint);
-            }
-            else
-            {
-                m_log.Warn("[LLUDPSERVER]: Failed to remove LLUDPClient for " + client.Name);
-            }
+            m_scene.ClientManager.Remove(udpClient.CircuitCode);
+            udpClient.ClientAPI.Close(false);
+            udpClient.Shutdown();
+            clients.Remove(udpClient.RemoteEndPoint);
         }
 
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
@@ -228,15 +220,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     delegate(LLUDPClient client)
                     { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
             }
-        }
-
-        public void SendPacket(UUID agentID, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
-        {
-            LLUDPClient client;
-            if (clients.TryGetValue(agentID, out client))
-                SendPacket(client, packet, category, allowSplitting);
-            else
-                m_log.Warn("[LLUDPSERVER]: Attempted to send a packet to unknown agentID " + agentID);
         }
 
         public void SendPacket(LLUDPClient client, Packet packet, ThrottleOutPacketType category, bool allowSplitting)
@@ -391,7 +374,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + client.ClientAPI.Name);
 
-                                RemoveClient(client.ClientAPI);
+                                RemoveClient(client);
                                 return;
                             }
                         }
@@ -647,23 +630,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             // Create the LLUDPClient
-            LLUDPClient client = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
+            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
 
             // Create the LLClientView
-            LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, client, sessionInfo, agentID, sessionID, circuitCode);
+            LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
             clientApi.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
             clientApi.OnLogout += LogoutHandler;
-            clientApi.OnConnectionClosed += RemoveClient;
+            clientApi.OnConnectionClosed +=
+                delegate(IClientAPI client)
+                { if (client is LLClientView) RemoveClient(((LLClientView)client).UDPClient); };
 
             // Start the IClientAPI
             m_scene.ClientManager.Add(circuitCode, clientApi);
             clientApi.Start();
 
             // Give LLUDPClient a reference to IClientAPI
-            client.ClientAPI = clientApi;
+            udpClient.ClientAPI = clientApi;
 
             // Add the new client to our list of tracked clients
-            clients.Add(agentID, client.RemoteEndPoint, client);
+            clients.Add(udpClient.RemoteEndPoint, udpClient);
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
@@ -798,7 +783,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
-            RemoveClient(client);
+            if (client is LLClientView)
+                RemoveClient(((LLClientView)client).UDPClient);
         }
     }
 }

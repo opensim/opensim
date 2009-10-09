@@ -119,6 +119,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Properties
 
+        public LLUDPClient UDPClient { get { return m_udpClient; } }
         public UUID SecureSessionId { get { return m_secureSessionId; } }
         public IScene Scene { get { return m_scene; } }
         public UUID SessionId { get { return m_sessionId; } }
@@ -504,7 +505,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 + "Any further actions taken will not be processed.\n"
                                 + "Please relog", true);
 
-                    m_udpServer.SendPacket(m_agentId, packet, ThrottleOutPacketType.Unknown, false);
+                    OutPacket(packet, ThrottleOutPacketType.Unknown);
 
                     // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
                     // listeners yet, though.

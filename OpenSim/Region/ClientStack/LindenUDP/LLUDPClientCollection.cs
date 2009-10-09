@@ -40,14 +40,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         #region IComparers
 
-        private sealed class UUIDComparer : IComparer<UUID>
-        {
-            public int Compare(UUID x, UUID y)
-            {
-                return x.Guid.CompareTo(y.Guid);
-            }
-        }
-
         private sealed class IPEndPointComparer : IComparer<IPEndPoint>
         {
             public int Compare(IPEndPoint x, IPEndPoint y)
@@ -60,91 +52,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion IComparers
 
-        private ImmutableMap<UUID, LLUDPClient> m_dict1;
-        private ImmutableMap<IPEndPoint, LLUDPClient> m_dict2;
-        private LLUDPClient[] m_array;
+        private ImmutableMap<IPEndPoint, LLUDPClient> m_dict;
 
         public UDPClientCollection()
         {
-            m_dict1 = new ImmutableMap<UUID, LLUDPClient>(new UUIDComparer());
-            m_dict2 = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
-            m_array = new LLUDPClient[0];
+            m_dict = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
         }
 
-        public void Add(UUID key1, IPEndPoint key2, LLUDPClient value)
+        public void Add(IPEndPoint key, LLUDPClient value)
         {
-            m_dict1 = m_dict1.Add(key1, value);
-            m_dict2 = m_dict2.Add(key2, value);
-
-            // Copy the array by hand
-            LLUDPClient[] oldArray = m_array;
-            int oldLength = oldArray.Length;
-            LLUDPClient[] newArray = new LLUDPClient[oldLength + 1];
-
-            for (int i = 0; i < oldLength; i++)
-                newArray[i] = oldArray[i];
-            newArray[oldLength] = value;
-            
-            m_array = newArray;
+            m_dict = m_dict.Add(key, value);
         }
 
-        public void Remove(UUID key1, IPEndPoint key2)
+        public void Remove(IPEndPoint key)
         {
-            m_dict1 = m_dict1.Delete(key1);
-            m_dict2 = m_dict2.Delete(key2);
-
-            LLUDPClient[] oldArray = m_array;
-            int oldLength = oldArray.Length;
-
-            // Copy the array by hand
-
-            LLUDPClient[] newArray = new LLUDPClient[oldLength - 1];
-            int j = 0;
-
-            for (int i = 0; i < oldLength; i++)
-            {
-                if (oldArray[i].AgentID != key1)
-                    newArray[j++] = oldArray[i];
-            }
-
-            m_array = newArray;
+            m_dict = m_dict.Delete(key);
         }
 
         public void Clear()
         {
-            m_dict1 = new ImmutableMap<UUID, LLUDPClient>(new UUIDComparer());
-            m_dict2 = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
-            m_array = new LLUDPClient[0];
+            m_dict = new ImmutableMap<IPEndPoint, LLUDPClient>(new IPEndPointComparer());
         }
 
         public int Count
         {
-            get { return m_array.Length; }
-        }
-
-        public bool ContainsKey(UUID key)
-        {
-            return m_dict1.ContainsKey(key);
+            get { return m_dict.Count; }
         }
 
         public bool ContainsKey(IPEndPoint key)
         {
-            return m_dict2.ContainsKey(key);
-        }
-
-        public bool TryGetValue(UUID key, out LLUDPClient value)
-        {
-            return m_dict1.TryGetValue(key, out value);
+            return m_dict.ContainsKey(key);
         }
 
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)
         {
-            return m_dict2.TryGetValue(key, out value);
+            return m_dict.TryGetValue(key, out value);
         }
 
         public void ForEach(Action<LLUDPClient> action)
         {
-            Parallel.ForEach<LLUDPClient>(m_array, action); 
+            Parallel.ForEach<LLUDPClient>(m_dict.Values, action); 
         }
     }
 }
