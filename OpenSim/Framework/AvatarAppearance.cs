@@ -66,6 +66,8 @@ namespace OpenSim.Framework
         private static UUID SHIRT_ITEM = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
         private static UUID PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
         private static UUID PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
+        private static UUID HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
+        private static UUID HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
 
         public readonly static int VISUALPARAM_COUNT = 218;
 
@@ -238,6 +240,8 @@ namespace OpenSim.Framework
             m_wearables[BODY].ItemID = BODY_ITEM;
             m_wearables[SKIN].AssetID = SKIN_ASSET;
             m_wearables[SKIN].ItemID = SKIN_ITEM;
+            m_wearables[HAIR].AssetID = HAIR_ASSET;
+            m_wearables[HAIR].ItemID = HAIR_ITEM;
             m_wearables[SHIRT].AssetID = SHIRT_ASSET;
             m_wearables[SHIRT].ItemID = SHIRT_ITEM;
             m_wearables[PANTS].AssetID = PANTS_ASSET;

@@ -58,10 +58,12 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.serialization.tests)==0}" /> 
 
+<!--
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
+-->
 
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
@@ -115,16 +117,18 @@
       <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Communications.cov" />
     </exec>
     
+<!--
     <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Region.ClientStack.LindenUDP.cov,+[OpenSim.Region.ClientStack.LindenUDP]" />
+      <arg value="&#45;&#45;debug" />
+      <arg value="&#45;&#45;profile=monocov:outfile=./cov/OpenSim.Region.ClientStack.LindenUDP.cov,+[OpenSim.Region.ClientStack.LindenUDP]" />
       <arg value="/usr/lib/nunit/nunit-console.exe" />
      <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     </exec>
     <delete dir="./cov/OpenSim.Region.ClientStack.LindenUDP" />
     <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Region.ClientStack.LindenUDP ./cov/OpenSim.Region.ClientStack.LindenUDP.cov" />
+      <arg value="&#45;&#45;export-html=./cov/OpenSim.Region.ClientStack.LindenUDP ./cov/OpenSim.Region.ClientStack.LindenUDP.cov" />
     </exec>
+-->
     
     <exec program="mono">
       <arg value="--debug" />
@@ -238,10 +242,12 @@
     <arg value="-xml=test-results/OpenSim.Framework.Servers.Tests.dll-Results.xml" />
   </exec>
 
+<!--
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.clientstack.lindenudp.tests">
     <arg value="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Region.ClientStack.LindenUDP.Tests.dll-Results.xml" />
   </exec>
+-->
 
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.region.scriptengine.tests">
     <arg value="./bin/OpenSim.Region.ScriptEngine.Tests.dll" />
@@ -271,7 +277,7 @@
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.servers.tests)==0}" /> 
- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> 
+<!-- <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.clientstack.lindenudp.tests)==0}" /> -->
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.scriptengine.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.coremodules.tests)==0}" /> 
  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.region.framework.tests)==0}" /> 
