@@ -98,6 +98,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_alwaysRun = false;
         private bool m_hackSentFall = false;
         private bool m_hackSentFly = false;
+        private int m_requestedUpdateFrequency = 0;
         private PhysicsVector m_taintPosition = new PhysicsVector(0, 0, 0);
         public uint m_localID = 0;
         public bool m_returnCollisions = false;
@@ -1184,26 +1185,31 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override void SubscribeEvents(int ms)
         {
+            m_requestedUpdateFrequency = ms;
             m_eventsubscription = ms;
             _parent_scene.addCollisionEventReporting(this);
         }
         public override void UnSubscribeEvents()
         {
             _parent_scene.remCollisionEventReporting(this);
+            m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }
         public void AddCollisionEvent(uint CollidedWith, float depth)
         {
             if (m_eventsubscription > 0)
-                CollisionEventsThisFrame.addCollider(CollidedWith,depth);
+            {
+                CollisionEventsThisFrame.addCollider(CollidedWith, depth);
+            }
         }
 
         public void SendCollisions()
         {
-            if (m_eventsubscription > 0)
+            if (m_eventsubscription > m_requestedUpdateFrequency)
             {
                 base.SendCollisionUpdate(CollisionEventsThisFrame);
                 CollisionEventsThisFrame = new CollisionEventUpdate();
+                m_eventsubscription = 0;
             }
         }
         public override bool SubscribedEvents()
@@ -1308,6 +1314,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
+        }
+
+        internal void AddCollisionFrameTime(int p)
+        {
+            // protect it from overflow crashing
+            if (m_eventsubscription + p >= int.MaxValue)
+                m_eventsubscription = 0;
+            m_eventsubscription += p;
         }
     }
 }
