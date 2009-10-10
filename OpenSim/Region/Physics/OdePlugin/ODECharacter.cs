@@ -1318,6 +1318,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void AddCollisionFrameTime(int p)
         {
+            // protect it from overflow crashing
+            if (m_eventsubscription + p >= int.MaxValue)
+                m_eventsubscription = 0;
             m_eventsubscription += p;
         }
     }
