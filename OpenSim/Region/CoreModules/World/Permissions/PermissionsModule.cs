@@ -556,6 +556,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             // Customize the EveryoneMask
             uint objectEveryoneMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
+            if (objectOwner != UUID.Zero)
+                objectEveryoneMask |= (uint)PrimFlags.ObjectAnyOwner;
 
             if (m_bypassPermissions)
                 return objectOwnerMask;
@@ -578,11 +580,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             {
                 // Admin objects should not be editable by the above
                 if (!IsAdministrator(objectOwner))
-            return objectOwnerMask;
+                    return objectOwnerMask;
             }
-
-            if ((objectOwnerMask & (uint)PermissionMask.Transfer) != 0 && task.ObjectSaleType != 0)
-                objectEveryoneMask |= (uint)PrimFlags.ObjectTransfer;
 
             // Group permissions
             if ((task.GroupID != UUID.Zero) && IsGroupMember(task.GroupID, user, 0))

@@ -3409,7 +3409,7 @@ namespace OpenSim.Region.Framework.Scenes
             scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-            m_physicsActor.SubscribeEvents(1000);
+            m_physicsActor.SubscribeEvents(500);
             m_physicsActor.LocalID = LocalId;
             
         }
@@ -3417,7 +3417,15 @@ namespace OpenSim.Region.Framework.Scenes
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
-            if ((e == null) || m_invulnerable)
+            if (e == null)
+                return;
+
+            //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
+            // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
+            // as of this comment the interval is set in AddToPhysicalScene
+            UpdateMovementAnimations();
+
+            if (m_invulnerable)
                 return;
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, float> coldata = collisionData.m_objCollisionList;
@@ -3455,8 +3463,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
             }
 
-            if (Velocity.X > 0 || Velocity.Y > 0)
-                UpdateMovementAnimations();
+            
         }
 
         public void setHealthWithUpdate(float health)

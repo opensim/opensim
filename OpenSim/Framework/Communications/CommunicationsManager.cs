@@ -209,35 +209,24 @@ namespace OpenSim.Framework.Communications
 
         private string[] doUUIDNameRequest(UUID uuid)
         {
-            string[] returnstring = new string[0];
-            bool doLookup = false;
-
             lock (m_nameRequestCache)
             {
                 if (m_nameRequestCache.ContainsKey(uuid))
-                {
-                    returnstring = m_nameRequestCache[uuid];
-                }
-                else
-                {
-                    // we don't want to lock the dictionary while we're doing the lookup
-                    doLookup = true;
-                }
+                    return m_nameRequestCache[uuid];
             }
 
-            if (doLookup) {
-                UserProfileData profileData = m_userService.GetUserProfile(uuid);
-                if (profileData != null)
+            string[] returnstring = new string[0];
+            CachedUserInfo uinfo = UserProfileCacheService.GetUserDetails(uuid);
+
+            if ((uinfo != null) && (uinfo.UserProfile != null))
+            {
+                returnstring = new string[2];
+                returnstring[0] = uinfo.UserProfile.FirstName;
+                returnstring[1] = uinfo.UserProfile.SurName;
+                lock (m_nameRequestCache)
                 {
-                    returnstring = new string[2];
-                    // UUID profileId = profileData.ID;
-                    returnstring[0] = profileData.FirstName;
-                    returnstring[1] = profileData.SurName;
-                    lock (m_nameRequestCache)
-                    {
-                        if (!m_nameRequestCache.ContainsKey(uuid))
-                            m_nameRequestCache.Add(uuid, returnstring);
-                    }
+                    if (!m_nameRequestCache.ContainsKey(uuid))
+                        m_nameRequestCache.Add(uuid, returnstring);
                 }
             }
             
