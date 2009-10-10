@@ -3420,7 +3420,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (e == null)
                 return;
 
-            if ((Math.Abs(Velocity.X) > 0.05f) || (Math.Abs(Velocity.Y) > 0.05f))
+            if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
                 UpdateMovementAnimations();
 
             if (m_invulnerable)
