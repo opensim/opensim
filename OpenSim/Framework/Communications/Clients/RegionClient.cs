@@ -90,7 +90,7 @@ namespace OpenSim.Framework.Communications.Clients
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
+                Encoding str = Util.UTF8;
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -218,7 +218,7 @@ namespace OpenSim.Framework.Communications.Clients
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
+                Encoding str = Util.UTF8;
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -459,7 +459,7 @@ namespace OpenSim.Framework.Communications.Clients
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
+                Encoding str = Util.UTF8;
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -543,7 +543,7 @@ namespace OpenSim.Framework.Communications.Clients
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
+                Encoding str = Util.UTF8;
                 buffer = str.GetBytes(strBuffer);
 
             }
@@ -637,7 +637,7 @@ namespace OpenSim.Framework.Communications.Clients
             try
             {
                 strBuffer = OSDParser.SerializeJsonString(args);
-                UTF8Encoding str = new UTF8Encoding();
+                Encoding str = Util.UTF8;
                 buffer = str.GetBytes(strBuffer);
 
             }
