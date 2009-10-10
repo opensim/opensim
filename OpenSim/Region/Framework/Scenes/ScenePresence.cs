@@ -3409,7 +3409,7 @@ namespace OpenSim.Region.Framework.Scenes
             scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-            m_physicsActor.SubscribeEvents(1000);
+            m_physicsActor.SubscribeEvents(500);
             m_physicsActor.LocalID = LocalId;
             
         }
