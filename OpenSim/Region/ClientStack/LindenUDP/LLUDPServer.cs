@@ -189,7 +189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPClient udpClient;
             if (clients.TryGetValue(client.AgentId, out udpClient))
             {
-                m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + client.Name);
+                m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + client.Name + " in " + m_scene.RegionInfo.RegionName);
                 udpClient.Shutdown();
                 clients.Remove(client.AgentId, udpClient.RemoteEndPoint);
             }
@@ -525,7 +525,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Determine which agent this packet came from
             if (!clients.TryGetValue(address, out client))
             {
-                m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address);
+                m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 
@@ -668,6 +668,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Add the new client to our list of tracked clients
             clients.Add(agentID, client.RemoteEndPoint, client);
+
+            m_log.DebugFormat("[LLUDPSERVER]: Added new client {0} to region {1}", agentID, m_scene.RegionInfo.RegionName);
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)

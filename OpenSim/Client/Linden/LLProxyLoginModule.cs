@@ -76,10 +76,10 @@ namespace OpenSim.Client.Linden
 
         public void Initialise(IConfigSource source)
         {
-            IConfig startupConfig = source.Configs["Startup"];
+            IConfig startupConfig = source.Configs["Modules"];
             if (startupConfig != null)
             {
-                m_enabled = startupConfig.GetBoolean("gridmode", false);
+                m_enabled = startupConfig.GetBoolean("LLProxyLoginModule", false);
             }
         }
 
