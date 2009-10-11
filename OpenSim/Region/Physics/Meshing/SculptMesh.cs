@@ -436,9 +436,9 @@ namespace PrimMesher
             {
                 Face face = this.faces[i];
                 Coord surfaceNormal = face.SurfaceNormal(this.coords);
-                this.normals[face.v1] += surfaceNormal;
-                this.normals[face.v2] += surfaceNormal;
-                this.normals[face.v3] += surfaceNormal;
+                this.normals[face.n1] += surfaceNormal;
+                this.normals[face.n2] += surfaceNormal;
+                this.normals[face.n3] += surfaceNormal;
             }
 
             int numNormals = this.normals.Count;
@@ -461,6 +461,10 @@ namespace PrimMesher
                 vf.v1 = this.coords[face.v1];
                 vf.v2 = this.coords[face.v2];
                 vf.v3 = this.coords[face.v3];
+
+                vf.coordIndex1 = face.v1;
+                vf.coordIndex2 = face.v2;
+                vf.coordIndex3 = face.v3;
 
                 vf.n1 = this.normals[face.n1];
                 vf.n2 = this.normals[face.n2];
@@ -519,6 +523,10 @@ namespace PrimMesher
 
             for (i = 0; i < numVerts; i++)
                 this.coords[i] *= q;
+
+            int numNormals = this.normals.Count;
+            for (i = 0; i < numNormals; i++)
+                this.normals[i] *= q;
 
             if (this.viewerFaces != null)
             {
