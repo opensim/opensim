@@ -74,6 +74,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool SendPackets(LLClientView client, int maxpack)
         {
+            if (client == null)
+                return false;
+
             if (m_currentPacket <= m_stopPacket)
             {
                 int count = 0;
@@ -202,6 +205,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool SendFirstPacket(LLClientView client)
         {
+            if (client == null)
+                return false;
+
             if (m_asset == null)
             {
                 m_log.Warn("[J2KIMAGE]: Sending ImageNotInDatabase for texture " + TextureID);
@@ -234,6 +240,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool SendPacket(LLClientView client)
         {
+            if (client == null)
+                return false;
+
             bool complete = false;
             int imagePacketSize = ((int)m_currentPacket == (TexturePacketCount())) ? LastPacketSize() : IMAGE_PACKET_SIZE;
 

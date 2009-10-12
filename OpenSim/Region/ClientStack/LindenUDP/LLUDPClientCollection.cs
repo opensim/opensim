@@ -224,16 +224,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ////return success;
 
-            //lock (m_sync)
-            //    return Dictionary1.TryGetValue(key, out value); 
+            lock (m_sync)
+                return Dictionary1.TryGetValue(key, out value); 
 
-            try
-            {
-                return Dictionary1.TryGetValue(key, out value);
-            }
-            catch { }
-            value = null;
-            return false;
+            //try
+            //{
+            //    return Dictionary1.TryGetValue(key, out value);
+            //}
+            //catch { }
+            //value = null;
+            //return false;
         }
 
         public bool TryGetValue(IPEndPoint key, out LLUDPClient value)

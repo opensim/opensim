@@ -2940,6 +2940,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         {
                                             case ActorTypes.Agent:
                                                 OdeCharacter cobj = (OdeCharacter)obj;
+                                                cobj.AddCollisionFrameTime(100);
                                                 cobj.SendCollisions();
                                                 break;
                                             case ActorTypes.Prim:

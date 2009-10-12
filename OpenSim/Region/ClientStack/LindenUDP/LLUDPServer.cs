@@ -87,7 +87,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// The LLUDP server for a region. This handles incoming and outgoing
     /// packets for all UDP connections to the region
     /// </summary>
-    public class LLUDPServer : UDPBase
+    public class LLUDPServer : OpenSimUDPBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -287,11 +287,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // instead
                     m_log.Info("[LLUDPSERVER]: Packet exceeded buffer size during zerocoding. Removing MSG_ZEROCODED flag");
                     data[0] = (byte)(data[0] & ~Helpers.MSG_ZEROCODED);
+                    //
+                    buffer = new UDPPacketBuffer(client.RemoteEndPoint, dataLength);
+                    //
                     Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
                 }
             }
             else
             {
+                // ??? will it fit?
                 Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
             }
             buffer.DataLength = dataLength;
