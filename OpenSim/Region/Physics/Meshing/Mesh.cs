@@ -308,7 +308,7 @@ namespace OpenSim.Region.Physics.Meshing
             if (path == null)
                 return;
             String fileName = name + "_" + title + ".raw";
-            String completePath = Path.Combine(path, fileName);
+            String completePath = System.IO.Path.Combine(path, fileName);
             StreamWriter sw = new StreamWriter(completePath);
             foreach (Triangle t in m_triangles)
             {

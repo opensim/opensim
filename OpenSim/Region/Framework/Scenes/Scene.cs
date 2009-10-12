@@ -2284,75 +2284,73 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart p in sceneObject.Children.Values)
                 p.LocalId = 0;
 
-            if (sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim)
+            if ((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0)) // Attachment
             {
-                if (sceneObject.RootPart.Shape.State != 0) // Attachment
+                sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
+                sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
+
+                AddRestoredSceneObject(sceneObject, false, false);
+
+                // Handle attachment special case
+                SceneObjectPart RootPrim = sceneObject.RootPart;
+
+                // Fix up attachment Parent Local ID
+                ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
+
+                //uint parentLocalID = 0;
+                if (sp != null)
                 {
-                    sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
-                    sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
+                    //parentLocalID = sp.LocalId;
 
-                    AddRestoredSceneObject(sceneObject, false, false);
+                    //sceneObject.RootPart.IsAttachment = true;
+                    //sceneObject.RootPart.SetParentLocalId(parentLocalID);
 
-                    // Handle attachment special case
-                    SceneObjectPart RootPrim = sceneObject.RootPart;
+                    SceneObjectGroup grp = sceneObject;
 
-                    // Fix up attachment Parent Local ID
-                    ScenePresence sp = GetScenePresence(sceneObject.OwnerID);
+                    //RootPrim.SetParentLocalId(parentLocalID);
 
-                    //uint parentLocalID = 0;
-                    if (sp != null)
-                    {
-                        //parentLocalID = sp.LocalId;
+                    m_log.DebugFormat("[ATTACHMENT]: Received " +
+                                "attachment {0}, inworld asset id {1}",
+                                //grp.RootPart.LastOwnerID.ToString(),
+                                grp.GetFromItemID(),
+                                grp.UUID.ToString());
 
-                        //sceneObject.RootPart.IsAttachment = true;
-                        //sceneObject.RootPart.SetParentLocalId(parentLocalID);
-
-                        SceneObjectGroup grp = sceneObject;
-
-                        //RootPrim.SetParentLocalId(parentLocalID);
-
-                        m_log.DebugFormat("[ATTACHMENT]: Received " +
-                                    "attachment {0}, inworld asset id {1}",
-                                    //grp.RootPart.LastOwnerID.ToString(),
-                                    grp.GetFromItemID(),
-                                    grp.UUID.ToString());
-
-                        //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
-                        m_log.DebugFormat("[ATTACHMENT]: Attach " +
-                                "to avatar {0} at position {1}",
-                                sp.UUID.ToString(), grp.AbsolutePosition);
-                        AttachObject(sp.ControllingClient,
-                                grp.LocalId, (uint)0,
-                                grp.GroupRotation,
-                                grp.AbsolutePosition, false);
-                        RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                        grp.SendGroupFullUpdate();
-                    }
-                    else
-                    {
-                        RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                        RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
-                    }
-
+                    //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
+                    m_log.DebugFormat("[ATTACHMENT]: Attach " +
+                            "to avatar {0} at position {1}",
+                            sp.UUID.ToString(), grp.AbsolutePosition);
+                    AttachObject(sp.ControllingClient,
+                            grp.LocalId, (uint)0,
+                            grp.GroupRotation,
+                            grp.AbsolutePosition, false);
+                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
+                    grp.SendGroupFullUpdate();
                 }
                 else
                 {
-                    AddRestoredSceneObject(sceneObject, true, false);
+                    RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
+                    RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
+                }
 
-                    if (!Permissions.CanObjectEntry(sceneObject.UUID,
-                            true, sceneObject.AbsolutePosition))
-                    {
-                        // Deny non attachments based on parcel settings
-                        //
-                        m_log.Info("[INTERREGION]: Denied prim crossing " +
-                                "because of parcel settings");
+            }
+            else
+            {
+                AddRestoredSceneObject(sceneObject, true, false);
 
-                        DeleteSceneObject(sceneObject, false);
+                if (!Permissions.CanObjectEntry(sceneObject.UUID,
+                        true, sceneObject.AbsolutePosition))
+                {
+                    // Deny non attachments based on parcel settings
+                    //
+                    m_log.Info("[INTERREGION]: Denied prim crossing " +
+                            "because of parcel settings");
 
-                        return false;
-                    }
+                    DeleteSceneObject(sceneObject, false);
+
+                    return false;
                 }
             }
+
             return true;
         }
         #endregion

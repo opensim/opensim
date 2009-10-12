@@ -794,7 +794,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
 
-            Thread.Sleep(10);
+            //Thread.Sleep(10);
 
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != IntPtr.Zero)
