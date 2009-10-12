@@ -151,7 +151,10 @@ namespace OpenSim.Data.MySQL
 
                         DataTable schemaTable = result.GetSchemaTable();
                         foreach (DataRow row in schemaTable.Rows)
-                            m_ColumnNames.Add(row["ColumnName"].ToString());
+                        {
+                            if (row["ColumnName"] != null)
+                                m_ColumnNames.Add(row["ColumnName"].ToString());
+                        }
                     }
 
                     foreach (string s in m_ColumnNames)
