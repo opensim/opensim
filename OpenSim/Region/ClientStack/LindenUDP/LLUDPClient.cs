@@ -82,8 +82,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
         public readonly LocklessQueue<uint> PendingAcks = new LocklessQueue<uint>();
 
-        /// <summary>Reference to the IClientAPI for this client</summary>
-        public LLClientView ClientAPI;
         /// <summary>Current packet sequence number</summary>
         public int CurrentSequence;
         /// <summary>Current ping sequence number</summary>
