@@ -802,7 +802,7 @@ namespace OpenSim.Framework
 
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
-        void Close(bool ShutdownCircuit);
+        void Close();
         void Kick(string message);
         
         /// <summary>

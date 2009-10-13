@@ -155,7 +155,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                     NPCAvatar npcAvatar = new NPCAvatar(p_firstname, p_lastname, p_position, p_scene);
                     npcAvatar.CircuitCode = (uint) Util.RandomClass.Next(0, int.MaxValue);
 
-                    p_scene.ClientManager.Add(npcAvatar.CircuitCode, npcAvatar);
+                    p_scene.ClientManager.Add(npcAvatar.AgentId, npcAvatar.RemoteEndPoint, npcAvatar);
                     p_scene.AddNewClient(npcAvatar);
 
                     ScenePresence sp;

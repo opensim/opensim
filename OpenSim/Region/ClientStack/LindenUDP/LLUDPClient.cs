@@ -181,7 +181,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public void Shutdown()
         {
-            // TODO: Do we need to invalidate the circuit?
             IsConnected = false;
         }
 

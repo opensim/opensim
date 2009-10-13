@@ -1267,7 +1267,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
                 if (avToBeKilled.IsChildAgent)
                 {
                     m_mod.DeleteOGPState(avUUID);
-                    avToBeKilled.ControllingClient.Close(true);
+                    avToBeKilled.ControllingClient.Close();
                 }
             }
         }

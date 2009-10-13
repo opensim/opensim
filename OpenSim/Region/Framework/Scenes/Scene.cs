@@ -867,7 +867,7 @@ namespace OpenSim.Region.Framework.Scenes
             Thread.Sleep(500);
 
             // Stop all client threads.
-            ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(true); });
+            ForEachScenePresence(delegate(ScenePresence avatar) { avatar.ControllingClient.Close(); });
 
             // Stop updating the scene objects and agents.
             //m_heartbeatTimer.Close();
@@ -3372,7 +3372,7 @@ namespace OpenSim.Region.Framework.Scenes
                     loggingOffUser.ControllingClient.Kick(message);
                     // Give them a second to receive the message!
                     Thread.Sleep(1000);
-                    loggingOffUser.ControllingClient.Close(true);
+                    loggingOffUser.ControllingClient.Close();
                 }
                 else
                 {
@@ -3543,7 +3543,7 @@ namespace OpenSim.Region.Framework.Scenes
                         presence.ControllingClient.SendShutdownConnectionNotice();
                 }
 
-                presence.ControllingClient.Close(true);
+                presence.ControllingClient.Close();
                 return true;
             }
 

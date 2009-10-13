@@ -96,7 +96,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Incoming packets that are awaiting handling</summary>
         private OpenMetaverse.BlockingQueue<IncomingPacket> packetInbox = new OpenMetaverse.BlockingQueue<IncomingPacket>();
         /// <summary></summary>
-        private UDPClientCollection m_clients = new UDPClientCollection();
+        //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
         private TokenBucket m_throttle;
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
@@ -181,23 +181,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return x == m_location;
         }
 
-        public void RemoveClient(LLUDPClient udpClient)
-        {
-            m_log.Debug("[LLUDPSERVER]: Removing LLUDPClient for " + udpClient.AgentID);
-
-            // Shut down the IClientAPI and remove it from the scene
-            IClientAPI client;
-            if (m_scene.ClientManager.TryGetClient(udpClient.CircuitCode, out client))
-            {
-                client.Close(false);
-                m_scene.ClientManager.Remove(udpClient.CircuitCode);
-            }
-            
-            // Shut down the LLUDPClient and remove it from the list of UDP clients
-            udpClient.Shutdown();
-            m_clients.Remove(udpClient.RemoteEndPoint);
-        }
-
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
         {
             // CoarseLocationUpdate packets cannot be split in an automated way
@@ -215,17 +198,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    m_clients.ForEach(
-                        delegate(LLUDPClient client)
-                        { SendPacketData(client, data, packet.Type, category); });
+                    m_scene.ClientManager.ForEach(
+                        delegate(IClientAPI client)
+                        {
+                            if (client is LLClientView)
+                                SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category);
+                        }
+                    );
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                m_clients.ForEach(
-                    delegate(LLUDPClient client)
-                    { SendPacketData(client, data, packet.Type, category); });
+                m_scene.ClientManager.ForEach(
+                    delegate(IClientAPI client)
+                    {
+                        if (client is LLClientView)
+                            SendPacketData(((LLClientView)client).UDPClient, data, packet.Type, category);
+                    }
+                );
             }
         }
 
@@ -475,7 +466,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //try { Thread.CurrentThread.Name = "PacketReceived (" + m_scene.RegionInfo.RegionName + ")"; }
             //catch (Exception) { }
 
-            LLUDPClient client = null;
+            LLUDPClient udpClient = null;
             Packet packet = null;
             int packetEnd = buffer.DataLength - 1;
             IPEndPoint address = (IPEndPoint)buffer.RemoteEndPoint;
@@ -512,30 +503,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Determine which agent this packet came from
-            if (!m_clients.TryGetValue(address, out client))
+            IClientAPI client;
+            if (!m_scene.ClientManager.TryGetValue(address, out client) || !(client is LLClientView))
             {
                 m_log.Warn("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address +
-                    " in " + m_scene.RegionInfo.RegionName + ", currently tracking " + m_clients.Count + " clients");
+                    " in " + m_scene.RegionInfo.RegionName + ", currently tracking " + m_scene.ClientManager.Count + " clients");
                 return;
             }
+
+            udpClient = ((LLClientView)client).UDPClient;
 
             #endregion Packet to Client Mapping
 
             // Stats tracking
-            Interlocked.Increment(ref client.PacketsReceived);
+            Interlocked.Increment(ref udpClient.PacketsReceived);
 
             #region ACK Receiving
 
             int now = Environment.TickCount;
-            client.TickLastPacketReceived = now;
+            udpClient.TickLastPacketReceived = now;
 
             // Handle appended ACKs
             if (packet.Header.AppendedAcks && packet.Header.AckList != null)
             {
-                lock (client.NeedAcks.SyncRoot)
+                lock (udpClient.NeedAcks.SyncRoot)
                 {
                     for (int i = 0; i < packet.Header.AckList.Length; i++)
-                        AcknowledgePacket(client, packet.Header.AckList[i], now, packet.Header.Resent);
+                        AcknowledgePacket(udpClient, packet.Header.AckList[i], now, packet.Header.Resent);
                 }
             }
 
@@ -544,10 +538,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 PacketAckPacket ackPacket = (PacketAckPacket)packet;
 
-                lock (client.NeedAcks.SyncRoot)
+                lock (udpClient.NeedAcks.SyncRoot)
                 {
                     for (int i = 0; i < ackPacket.Packets.Length; i++)
-                        AcknowledgePacket(client, ackPacket.Packets[i].ID, now, packet.Header.Resent);
+                        AcknowledgePacket(udpClient, ackPacket.Packets[i].ID, now, packet.Header.Resent);
                 }
             }
 
@@ -556,27 +550,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region ACK Sending
 
             if (packet.Header.Reliable)
-                client.PendingAcks.Enqueue(packet.Header.Sequence);
+                udpClient.PendingAcks.Enqueue(packet.Header.Sequence);
 
             // This is a somewhat odd sequence of steps to pull the client.BytesSinceLastACK value out,
             // add the current received bytes to it, test if 2*MTU bytes have been sent, if so remove
             // 2*MTU bytes from the value and send ACKs, and finally add the local value back to
             // client.BytesSinceLastACK. Lockless thread safety
-            int bytesSinceLastACK = Interlocked.Exchange(ref client.BytesSinceLastACK, 0);
+            int bytesSinceLastACK = Interlocked.Exchange(ref udpClient.BytesSinceLastACK, 0);
             bytesSinceLastACK += buffer.DataLength;
             if (bytesSinceLastACK > Packet.MTU * 2)
             {
                 bytesSinceLastACK -= Packet.MTU * 2;
-                SendAcks(client);
+                SendAcks(udpClient);
             }
-            Interlocked.Add(ref client.BytesSinceLastACK, bytesSinceLastACK);
+            Interlocked.Add(ref udpClient.BytesSinceLastACK, bytesSinceLastACK);
 
             #endregion ACK Sending
 
             #region Incoming Packet Accounting
 
             // Check the archive of received reliable packet IDs to see whether we already received this packet
-            if (packet.Header.Reliable && !client.PacketArchive.TryEnqueue(packet.Header.Sequence))
+            if (packet.Header.Reliable && !udpClient.PacketArchive.TryEnqueue(packet.Header.Sequence))
             {
                 if (packet.Header.Resent)
                     m_log.Debug("[LLUDPSERVER]: Received a resend of already processed packet #" + packet.Header.Sequence + ", type: " + packet.Type);
@@ -593,7 +587,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (packet.Type != PacketType.PacketAck)
             {
                 // Inbox insertion
-                packetInbox.Enqueue(new IncomingPacket(client, packet));
+                packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
             }
         }
 
@@ -613,31 +607,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void AddNewClient(UseCircuitCodePacket useCircuitCode, IPEndPoint remoteEndPoint)
         {
+            UUID agentID = useCircuitCode.CircuitCode.ID;
+            UUID sessionID = useCircuitCode.CircuitCode.SessionID;
+            uint circuitCode = useCircuitCode.CircuitCode.Code;
+
             if (m_scene.RegionStatus != RegionStatus.SlaveScene)
             {
-                if (!m_clients.ContainsKey(remoteEndPoint))
+                AuthenticateResponse sessionInfo;
+                if (IsClientAuthorized(useCircuitCode, out sessionInfo))
                 {
-                    AuthenticateResponse sessionInfo;
-                    if (IsClientAuthorized(useCircuitCode, out sessionInfo))
-                    {
-                        UUID agentID = useCircuitCode.CircuitCode.ID;
-                        UUID sessionID = useCircuitCode.CircuitCode.SessionID;
-                        uint circuitCode = useCircuitCode.CircuitCode.Code;
-
-                        AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
-                    }
-                    else
-                    {
-                        // Don't create circuits for unauthorized clients
-                        m_log.WarnFormat(
-                            "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                            useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
-                    }
+                    AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
                 }
                 else
                 {
-                    // Ignore repeated UseCircuitCode packets
-                    m_log.Debug("[LLUDPSERVER]: Ignoring UseCircuitCode for already established circuit " + useCircuitCode.CircuitCode.Code);
+                    // Don't create circuits for unauthorized clients
+                    m_log.WarnFormat(
+                        "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
+                        useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
                 }
             }
             else
@@ -652,17 +638,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Create the LLUDPClient
             LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
 
-            // Create the LLClientView
-            LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-            clientApi.OnLogout += LogoutHandler;
-            clientApi.OnConnectionClosed += ConnectionClosedHandler;
+            if (!m_scene.ClientManager.ContainsKey(agentID))
+            {
+                // Create the LLClientView
+                LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
+                client.OnLogout += LogoutHandler;
+                client.OnConnectionClosed += ConnectionClosedHandler;
 
-            // Start the IClientAPI
-            m_scene.ClientManager.Add(circuitCode, clientApi);
-            clientApi.Start();
+                m_scene.ClientManager.Add(agentID, remoteEndPoint, client);
 
-            // Add the new client to our list of tracked clients
-            m_clients.Add(udpClient.RemoteEndPoint, udpClient);
+                // Start the IClientAPI
+                m_scene.ClientManager.Add(agentID, remoteEndPoint, client);
+                client.Start();
+            }
+            else
+            {
+                m_log.Debug("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from " + udpClient.AgentID);
+            }
+        }
+
+        private void RemoveClient(LLUDPClient udpClient)
+        {
+            // Remove this client from the scene ClientManager
+            IClientAPI client;
+            if (m_scene.ClientManager.TryGetValue(udpClient.AgentID, out client))
+                Util.FireAndForget(delegate(object o) { client.Close(); });
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
@@ -740,20 +740,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     elapsed500MS = 0;
                 }
 
-                m_clients.ForEach(
-                    delegate(LLUDPClient client)
+                m_scene.ClientManager.ForEach(
+                    delegate(IClientAPI client)
                     {
-                        if (client.DequeueOutgoing())
-                            packetSent = true;
-                        if (resendUnacked)
-                            ResendUnacked(client);
-                        if (sendAcks)
+                        if (client is LLClientView)
                         {
-                            SendAcks(client);
-                            client.SendPacketStats();
+                            LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+
+                            if (udpClient.DequeueOutgoing())
+                                packetSent = true;
+                            if (resendUnacked)
+                                ResendUnacked(udpClient);
+                            if (sendAcks)
+                            {
+                                SendAcks(udpClient);
+                                udpClient.SendPacketStats();
+                            }
+                            if (sendPings)
+                                SendPing(udpClient);
                         }
-                        if (sendPings)
-                            SendPing(client);
                     }
                 );
 
@@ -777,7 +782,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Make sure this client is still alive
-            if (m_scene.ClientManager.TryGetClient(udpClient.CircuitCode, out client))
+            if (m_scene.ClientManager.TryGetValue(udpClient.AgentID, out client))
             {
                 try
                 {

@@ -403,39 +403,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Client Methods
 
         /// <summary>
-        /// Close down the client view.  This *must* be the last method called, since the last  #
-        /// statement of CloseCleanup() aborts the thread.
+        /// Shut down the client view
         /// </summary>
-        /// <param name="shutdownCircuit"></param>
-        public void Close(bool shutdownCircuit)
+        public void Close()
         {
             m_log.DebugFormat(
-                "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
-                shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
+                "[CLIENT]: Close has been called for {0} attached to scene {1}",
+                Name, m_scene.RegionInfo.RegionName);
+
+            // Remove ourselves from the scene
+            m_scene.ClientManager.Remove(m_agentId, m_udpClient.RemoteEndPoint);
 
             if (m_imageManager != null)
+            {
                 m_imageManager.Close();
+                m_imageManager = null;
+            }
 
             if (m_udpServer != null)
+            {
                 m_udpServer.Flush();
+            }
 
-            // raise an event on the packet server to Shutdown the circuit
-            // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
-            // here otherwise we'll end up calling it twice.
-            // FIXME: In truth, I might be wrong but this whole business of calling this method twice (with different args) looks
-            // horribly tangly.  Hopefully it should be possible to greatly simplify it.
-            if (shutdownCircuit)
-            {
-                if (OnConnectionClosed != null)
-                    OnConnectionClosed(this);
-            }
-            else
-            {
-                CloseCleanup(shutdownCircuit);
-            }
+            if (OnConnectionClosed != null)
+                OnConnectionClosed(this);
+
+            CloseCleanup();
         }
 
-        private void CloseCleanup(bool shutdownCircuit)
+        private void CloseCleanup()
         {
             m_scene.RemoveClient(AgentId);
 
@@ -459,43 +455,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lock (m_primFullUpdateTimer)
                     m_primFullUpdateTimer.Stop();
 
-            // This is just to give the client a reasonable chance of
-            // flushing out all it's packets.  There should probably
-            // be a better mechanism here
-
             // We can't reach into other scenes and close the connection
             // We need to do this over grid communications
             //m_scene.CloseAllAgents(CircuitCode);
 
-            // If we're not shutting down the circuit, then this is the last time we'll go here.
-            // If we are shutting down the circuit, the UDP Server will come back here with
-            // ShutDownCircuit = false
-            if (!(shutdownCircuit))
-            {
-                GC.Collect();
-                m_imageManager = null;
-                // Sends a KillPacket object, with which, the
-                // blockingqueue dequeues and sees it's a killpacket
-                // and terminates within the context of the client thread.
-                // This ensures that it's done from within the context
-                // of the client thread regardless of where Close() is called.
-                KillEndDone();
-            }
-
             IsActive = false;
 
-            m_avatarTerseUpdateTimer.Close();
-            m_primTerseUpdateTimer.Close();
-            m_primFullUpdateTimer.Close();
+            m_avatarTerseUpdateTimer.Dispose();
+            m_primTerseUpdateTimer.Dispose();
+            m_primFullUpdateTimer.Dispose();
 
-            //m_udpServer.OnPacketStats -= PopulateStats;
+            // Disable UDP handling for this client
             m_udpClient.Shutdown();
-
-            // wait for thread stoped
-            // m_clientThread.Join();
-
-            // delete circuit code
-            //m_networkServer.CloseClient(this);
         }
 
         public void Kick(string message)
@@ -10225,7 +10196,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void KillEndDone()
         {
-            m_udpClient.Shutdown();
         }
 
         #region IClientCore
@@ -10268,14 +10238,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Kick(reason);
             Thread.Sleep(1000);
-            Close(true);
+            Close();
         }
 
         public void Disconnect()
         {
-            Close(true);
+            Close();
         }
-
 
         #endregion
 

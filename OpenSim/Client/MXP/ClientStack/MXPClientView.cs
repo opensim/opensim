@@ -774,6 +774,11 @@ namespace OpenSim.Client.MXP.ClientStack
             get { return m_sessionID.CRC(); }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return Session.RemoteEndPoint; }
+        }
+
         public void SetDebugPacketLevel(int newDebug)
         {
             //m_debugLevel = newDebug;
@@ -798,9 +803,9 @@ namespace OpenSim.Client.MXP.ClientStack
                 OnConnectionClosed(this);
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
-            m_log.Info("[MXP ClientStack] Close Called with SC=" + ShutdownCircuit);
+            m_log.Info("[MXP ClientStack] Close Called");
 
             // Tell the client to go
             SendLogoutPacket();
@@ -815,7 +820,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void Kick(string message)
         {
-            Close(false);
+            Close();
         }
 
         public void Start()
@@ -1448,7 +1453,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void Terminate()
         {
-            Close(false);
+            Close();
         }
 
         public void SendSetFollowCamProperties(UUID objectID, SortedDictionary<int, float> parameters)
@@ -1615,12 +1620,12 @@ namespace OpenSim.Client.MXP.ClientStack
         public void Disconnect(string reason)
         {
             Kick(reason);
-            Close(true);
+            Close();
         }
 
         public void Disconnect()
         {
-            Close(true);
+            Close();
         }
 
         #endregion

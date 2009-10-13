@@ -408,7 +408,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
 
-            ClientManager.ForEachClient(
+            ClientManager.ForEach(
                 delegate(IClientAPI client)
                 {
                     if (client.AgentId != remoteClient.AgentId)

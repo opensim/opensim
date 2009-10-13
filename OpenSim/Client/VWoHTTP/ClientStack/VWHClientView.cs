@@ -415,7 +415,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
             throw new System.NotImplementedException();
         }

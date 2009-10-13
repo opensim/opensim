@@ -813,7 +813,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
         }
 

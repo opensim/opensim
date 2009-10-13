@@ -825,7 +825,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
         }
 
@@ -838,11 +838,21 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
         private uint m_circuitCode;
+        private IPEndPoint m_remoteEndPoint;
 
         public uint CircuitCode
         {
             get { return m_circuitCode; }
-            set { m_circuitCode = value; }
+            set
+            {
+                m_circuitCode = value;
+                m_remoteEndPoint = new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode);
+            }
+        }
+
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return m_remoteEndPoint; }
         }
 
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)

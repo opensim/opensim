@@ -183,8 +183,9 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         public virtual void HideFromAll()
         {
             foreach (SceneObjectPart part in m_Entity.Children.Values)
-                m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                           { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
+                m_Entity.Scene.ClientManager.ForEach(
+                    delegate(IClientAPI controller)
+                    { controller.SendKillObject(m_Entity.RegionHandle, part.LocalId); }
                 );
         }
 
@@ -201,8 +202,9 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
 
         public void SendFullUpdateToAll()
         {
-            m_Entity.Scene.ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                       { m_Entity.SendFullUpdateToClient(controller); }
+            m_Entity.Scene.ClientManager.ForEach(
+                delegate(IClientAPI controller)
+                { m_Entity.SendFullUpdateToClient(controller); }
             );
         }
 

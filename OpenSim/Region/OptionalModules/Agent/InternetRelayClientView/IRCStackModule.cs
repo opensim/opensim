@@ -64,7 +64,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
         void user_OnIRCReady(IRCClientView cv)
         {
             m_log.Info("[IRCd] Adding user...");
-            m_scene.ClientManager.Add(cv.CircuitCode, cv);
+            m_scene.ClientManager.Add(cv.AgentId, cv.RemoteEndPoint, cv);
             cv.Start();
             m_log.Info("[IRCd] Added user to Scene");
         }
