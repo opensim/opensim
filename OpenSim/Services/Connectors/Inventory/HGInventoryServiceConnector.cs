@@ -299,6 +299,7 @@ namespace OpenSim.Services.Connectors.Inventory
 
             if (StringToUrlAndUserID(id, out url, out userID))
             {
+                //m_log.DebugFormat("[HGInventory CONNECTOR]: calling {0}", url);
                 ISessionAuthInventoryService connector = GetConnector(url);
                 return connector.QueryItem(userID, item, sessionID);
             }

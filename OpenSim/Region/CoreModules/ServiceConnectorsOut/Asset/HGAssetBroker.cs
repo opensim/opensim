@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Server.Base;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -40,7 +41,7 @@ using OpenMetaverse;
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 {
     public class HGAssetBroker :
-            ISharedRegionModule, IAssetService
+            ISharedRegionModule, IAssetService, IHyperAssetService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -49,6 +50,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         private IImprovedAssetCache m_Cache = null;
         private IAssetService m_GridService;
         private IAssetService m_HGService;
+
+        private Scene m_aScene;
+        private string m_LocalAssetServiceURI;
 
         private bool m_Enabled = false;
 
@@ -114,6 +118,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return;
                     }
 
+                    m_LocalAssetServiceURI = assetConfig.GetString("AssetServerURI", string.Empty);
+                    if (m_LocalAssetServiceURI == string.Empty)
+                    {
+                        IConfig netConfig = source.Configs["Network"];
+                        m_LocalAssetServiceURI = netConfig.GetString("asset_server_url", string.Empty);
+                    }
+
+                    if (m_LocalAssetServiceURI != string.Empty)
+                        m_LocalAssetServiceURI = m_LocalAssetServiceURI.Trim('/');
+
                     m_Enabled = true;
                     m_log.Info("[HG ASSET CONNECTOR]: HG asset broker enabled");
                 }
@@ -132,8 +146,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         {
             if (!m_Enabled)
                 return;
+            
+            m_aScene = scene;
 
             scene.RegisterModuleInterface<IAssetService>(this);
+            scene.RegisterModuleInterface<IHyperAssetService>(this);
         }
 
         public void RemoveRegion(Scene scene)
@@ -344,5 +361,30 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
             else
                 return m_GridService.Delete(id);
         }
+
+        #region IHyperAssetService
+
+        public string GetUserAssetServer(UUID userID)
+        {
+            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+            if ((uinfo != null) && (uinfo.UserProfile != null))
+            {
+                if ((uinfo.UserProfile.UserAssetURI == string.Empty) || (uinfo.UserProfile.UserAssetURI == ""))
+                    return m_LocalAssetServiceURI;
+                return uinfo.UserProfile.UserAssetURI.Trim('/');
+            }
+            else
+            {
+                // we don't know anyting about this user
+                return string.Empty;
+            }
+        }
+
+        public string GetSimAssetServer()
+        {
+            return m_LocalAssetServiceURI;
+        }
+
+        #endregion
     }
 }

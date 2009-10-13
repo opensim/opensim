@@ -43,6 +43,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using Timer=System.Timers.Timer;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
@@ -116,6 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_avatarTerseUpdatesPerPacket = 5;
         protected int m_packetMTU = 1400;
         protected IAssetService m_assetService;
+
 
         #region Properties
 
@@ -7013,7 +7015,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     #endregion
 
                     //handlerTextureRequest = null;
-
                     for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                     {
                         if (OnRequestTexture != null)
@@ -7024,7 +7025,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.PacketNumber = imageRequest.RequestImage[i].Packet;
                             args.Priority = imageRequest.RequestImage[i].DownloadPriority;
                             args.requestSequence = imageRequest.Header.Sequence;
-
                             //handlerTextureRequest = OnRequestTexture;
 
                             //if (handlerTextureRequest != null)
@@ -7047,10 +7047,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Validate inventory transfers
                     // Has to be done here, because AssetCache can't do it
                     //
-                    
+                    UUID taskID = UUID.Zero;
                     if (transfer.TransferInfo.SourceType == 3)
                     {
-                        UUID taskID = new UUID(transfer.TransferInfo.Params, 48);
+                        taskID = new UUID(transfer.TransferInfo.Params, 48);
                         UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                         UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
                         if (!(((Scene)m_scene).Permissions.BypassPermissions()))
@@ -7121,7 +7121,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     //m_assetCache.AddAssetRequest(this, transfer);
 
-                    MakeAssetRequest(transfer);
+                    MakeAssetRequest(transfer, taskID);
 
                     /* RequestAsset = OnRequestAsset;
                          if (RequestAsset != null)
@@ -10330,7 +10330,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
-        public void MakeAssetRequest(TransferRequestPacket transferRequest)
+        public void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
             if (transferRequest.TransferInfo.SourceType == 2)
@@ -10343,11 +10343,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
                 //m_log.Debug("asset request " + requestID);
+                if (taskID == UUID.Zero) // Agent
+                    if (m_scene is HGScene)
+                    {
+                        // We may need to fetch the asset from the user's asset server into the local asset server
+                        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
+                        mapper.Get(requestID, AgentId);
+                    }
             }
 
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //m_log.Debug("asset request " + requestID);
-            
+
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
 
         }
