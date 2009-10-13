@@ -210,7 +210,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     byte[] data = datas[i];
                     m_clients.ForEach(
                         delegate(LLUDPClient client)
-                        { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
+                        { SendPacketData(client, data, packet.Type, category); });
                 }
             }
             else
@@ -218,7 +218,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[] data = packet.ToBytes();
                 m_clients.ForEach(
                     delegate(LLUDPClient client)
-                    { SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category); });
+                    { SendPacketData(client, data, packet.Type, category); });
             }
         }
 
@@ -239,18 +239,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category);
+                    SendPacketData(client, data, packet.Type, category);
                 }
             }
             else
             {
                 byte[] data = packet.ToBytes();
-                SendPacketData(client, data, data.Length, packet.Type, packet.Header.Zerocoded, category);
+                SendPacketData(client, data, packet.Type, category);
             }
         }
 
-        public void SendPacketData(LLUDPClient client, byte[] data, int dataLength, PacketType type, bool doZerocode, ThrottleOutPacketType category)
+        public void SendPacketData(LLUDPClient client, byte[] data, PacketType type, ThrottleOutPacketType category)
         {
+            int dataLength = data.Length;
+            bool doZerocode = (data[0] & Helpers.MSG_ZEROCODED) != 0;
+
             // Frequency analysis of outgoing packet sizes shows a large clump of packets at each end of the spectrum.
             // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
             // there are a decent number of packets in the 1000-1140 byte range. We allocate one of two sizes of data here
