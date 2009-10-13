@@ -117,6 +117,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_avatarTerseUpdatesPerPacket = 5;
         protected int m_packetMTU = 1400;
         protected IAssetService m_assetService;
+        private IHyperAssetService m_hyperAssets;
 
 
         #region Properties
@@ -172,6 +173,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = scene;
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
             m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
             m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
@@ -10342,14 +10344,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                //m_log.Debug("asset request " + requestID);
-                if (taskID == UUID.Zero) // Agent
-                    if (m_scene is HGScene)
-                    {
-                        // We may need to fetch the asset from the user's asset server into the local asset server
-                        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
-                        mapper.Get(requestID, AgentId);
-                    }
+                //m_log.Debug("[XXX] inventory asset request " + requestID);
+                //if (taskID == UUID.Zero) // Agent
+                //    if (m_scene is HGScene)
+                //    {
+                //        m_log.Debug("[XXX] hg asset request " + requestID);
+                //        // We may need to fetch the asset from the user's asset server into the local asset server
+                //        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
+                //        mapper.Get(requestID, AgentId);
+                //    }
             }
 
             //check to see if asset is in local cache, if not we need to request it from asset server.
@@ -10378,10 +10381,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //m_log.Debug("asset request " + requestID);
             }
 
-            // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
             {
+                // Try the user's inventory, but only if it's different from the regions'
+                string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
+                if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
+                {
+                    m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
+                    transferRequest.TransferInfo.SourceType = 9999; // marker
+                    m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
+                    return;
+                }
+
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
+                
+                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
                 return;
             }
 
