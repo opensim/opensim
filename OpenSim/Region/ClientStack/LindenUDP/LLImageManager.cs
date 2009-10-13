@@ -167,39 +167,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             J2KImage imagereq;
             int numCollected = 0;
 
-            //lock (m_syncRoot)
-            //{
-                m_lastloopprocessed = DateTime.Now.Ticks;
+            m_lastloopprocessed = DateTime.Now.Ticks;
 
-                // This can happen during Close()
-                if (m_client == null)
-                    return false;
-                
-                while ((imagereq = GetHighestPriorityImage()) != null)
+            // This can happen during Close()
+            if (m_client == null)
+                return false;
+
+            while ((imagereq = GetHighestPriorityImage()) != null)
+            {
+                if (imagereq.IsDecoded == true)
                 {
-                    if (imagereq.IsDecoded == true)
+                    ++numCollected;
+
+                    if (imagereq.SendPackets(m_client, maxpack))
                     {
-                        ++numCollected;
-
-                        if (imagereq.SendPackets(m_client, maxpack))
-                        {
-                            // Send complete. Destroy any knowledge of this transfer
-                            RemoveImageFromQueue(imagereq);
-                        }
+                        // Send complete. Destroy any knowledge of this transfer
+                        RemoveImageFromQueue(imagereq);
                     }
-
-                    if (numCollected == count)
-                        break;
                 }
-            //}
+
+                if (numCollected == count)
+                    break;
+            }
 
             return m_priorityQueue.Count > 0;
         }
 
-        //Faux destructor
+        /// <summary>
+        /// Faux destructor
+        /// </summary>
         public void Close()
         {
             m_shuttingdown = true;
+            m_priorityQueue = null;
             m_j2kDecodeModule = null;
             m_assetCache = null;
             m_client = null;

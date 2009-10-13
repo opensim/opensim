@@ -411,38 +411,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 "[CLIENT]: Close has been called for {0} attached to scene {1}",
                 Name, m_scene.RegionInfo.RegionName);
 
-            // Remove ourselves from the scene
-            m_scene.ClientManager.Remove(m_agentId, m_udpClient.RemoteEndPoint);
-
-            if (m_imageManager != null)
-            {
-                m_imageManager.Close();
-                m_imageManager = null;
-            }
-
-            if (m_udpServer != null)
-            {
-                m_udpServer.Flush();
-            }
-
-            if (OnConnectionClosed != null)
-                OnConnectionClosed(this);
-
-            CloseCleanup();
-        }
-
-        private void CloseCleanup()
-        {
-            m_scene.RemoveClient(AgentId);
-
-            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
-            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
-
             // Send the STOP packet
             DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
             OutPacket(disable, ThrottleOutPacketType.Unknown);
 
-            Thread.Sleep(2000);
+            IsActive = false;
+
+            // Shutdown the image manager
+            if (m_imageManager != null)
+                m_imageManager.Close();
+
+            // Fire the callback for this connection closing
+            if (OnConnectionClosed != null)
+                OnConnectionClosed(this);
+
+            // Flush all of the packets out of the UDP server for this client
+            if (m_udpServer != null)
+                m_udpServer.Flush(m_udpClient);
+
+            // Remove ourselves from the scene
+            m_scene.RemoveClient(AgentId);
+            m_scene.ClientManager.Remove(this);
+
+            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //GC.Collect();
+            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
+
+            // FIXME: Is this still necessary?
+            //Thread.Sleep(2000);
 
             // Shut down timers. Thread Context of this method is murky.   Lock all timers
             if (m_avatarTerseUpdateTimer.Enabled)
@@ -458,8 +454,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // We can't reach into other scenes and close the connection
             // We need to do this over grid communications
             //m_scene.CloseAllAgents(CircuitCode);
-
-            IsActive = false;
 
             m_avatarTerseUpdateTimer.Dispose();
             m_primTerseUpdateTimer.Dispose();

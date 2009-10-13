@@ -390,7 +390,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void Flush()
+        public void Flush(LLUDPClient udpClient)
         {
             // FIXME: Implement?
         }
@@ -645,15 +645,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 client.OnLogout += LogoutHandler;
                 client.OnConnectionClosed += ConnectionClosedHandler;
 
-                m_scene.ClientManager.Add(agentID, remoteEndPoint, client);
-
                 // Start the IClientAPI
-                m_scene.ClientManager.Add(agentID, remoteEndPoint, client);
+                m_scene.ClientManager.Add(client);
                 client.Start();
             }
             else
             {
-                m_log.Debug("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from " + udpClient.AgentID);
+                m_log.WarnFormat("[LLUDPSERVER]: Ignoring a repeated UseCircuitCode from {0} at {1} for circuit {2}",
+                    udpClient.AgentID, remoteEndPoint, circuitCode);
             }
         }
 

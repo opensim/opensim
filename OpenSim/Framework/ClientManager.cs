@@ -97,19 +97,17 @@ namespace OpenSim.Framework
         /// Add a client reference to the collection if it does not already
         /// exist
         /// </summary>
-        /// <param name="key">UUID of the client</param>
-        /// <param name="key2">Remote endpoint of the client</param>
         /// <param name="value">Reference to the client object</param>
         /// <returns>True if the client reference was successfully added,
         /// otherwise false if the given key already existed in the collection</returns>
-        public bool Add(UUID key, IPEndPoint key2, IClientAPI value)
+        public bool Add(IClientAPI value)
         {
             lock (m_writeLock)
             {
-                if (!m_dict.ContainsKey(key) && !m_dict2.ContainsKey(key2))
+                if (!m_dict.ContainsKey(value.AgentId) && !m_dict2.ContainsKey(value.RemoteEndPoint))
                 {
-                    m_dict = m_dict.Add(key, value);
-                    m_dict2 = m_dict2.Add(key2, value);
+                    m_dict = m_dict.Add(value.AgentId, value);
+                    m_dict2 = m_dict2.Add(value.RemoteEndPoint, value);
 
                     return true;
                 }
@@ -123,14 +121,16 @@ namespace OpenSim.Framework
         /// <summary>
         /// Remove a client from the collection
         /// </summary>
-        /// <param name="key">UUID of the client</param>
-        /// <param name="key2">Remote endpoint of the client</param>
-        public void Remove(UUID key, IPEndPoint key2)
+        /// <param name="value">Reference to the client object</param>
+        public void Remove(IClientAPI value)
         {
             lock (m_writeLock)
             {
-                m_dict = m_dict.Delete(key);
-                m_dict2 = m_dict2.Delete(key2);
+                if (m_dict.ContainsKey(value.AgentId))
+                    m_dict = m_dict.Delete(value.AgentId);
+
+                if (m_dict2.ContainsKey(value.RemoteEndPoint))
+                    m_dict2 = m_dict2.Delete(value.RemoteEndPoint);
             }
         }
 
