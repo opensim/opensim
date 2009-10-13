@@ -61,11 +61,6 @@ namespace OpenSim.Region.Framework.Scenes.Tests
                 throw new NotImplementedException();
             }
 
-            public override void CloseAllAgents(uint circuitcode)
-            {
-                throw new NotImplementedException();
-            }
-
             public override void OtherRegionUp(GridRegion otherRegion)
             {
                 throw new NotImplementedException();

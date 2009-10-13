@@ -58,6 +58,209 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
+        #region Events
+
+        public event GenericMessage OnGenericMessage;
+        public event BinaryGenericMessage OnBinaryGenericMessage;
+        public event Action<IClientAPI> OnLogout;
+        public event ObjectPermissions OnObjectPermissions;
+        public event Action<IClientAPI> OnConnectionClosed;
+        public event ViewerEffectEventHandler OnViewerEffect;
+        public event ImprovedInstantMessage OnInstantMessage;
+        public event ChatMessage OnChatFromClient;
+        public event TextureRequest OnRequestTexture;
+        public event RezObject OnRezObject;
+        public event DeRezObject OnDeRezObject;
+        public event ModifyTerrain OnModifyTerrain;
+        public event Action<IClientAPI> OnRegionHandShakeReply;
+        public event GenericCall2 OnRequestWearables;
+        public event SetAppearance OnSetAppearance;
+        public event AvatarNowWearing OnAvatarNowWearing;
+        public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event RezMultipleAttachmentsFromInv OnRezMultipleAttachmentsFromInv;
+        public event UUIDNameRequest OnDetachAttachmentIntoInv;
+        public event ObjectAttach OnObjectAttach;
+        public event ObjectDeselect OnObjectDetach;
+        public event ObjectDrop OnObjectDrop;
+        public event GenericCall2 OnCompleteMovementToRegion;
+        public event UpdateAgent OnAgentUpdate;
+        public event AgentRequestSit OnAgentRequestSit;
+        public event AgentSit OnAgentSit;
+        public event AvatarPickerRequest OnAvatarPickerRequest;
+        public event StartAnim OnStartAnim;
+        public event StopAnim OnStopAnim;
+        public event Action<IClientAPI> OnRequestAvatarsData;
+        public event LinkObjects OnLinkObjects;
+        public event DelinkObjects OnDelinkObjects;
+        public event GrabObject OnGrabObject;
+        public event DeGrabObject OnDeGrabObject;
+        public event SpinStart OnSpinStart;
+        public event SpinStop OnSpinStop;
+        public event ObjectDuplicate OnObjectDuplicate;
+        public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
+        public event MoveObject OnGrabUpdate;
+        public event SpinObject OnSpinUpdate;
+        public event AddNewPrim OnAddPrim;
+        public event RequestGodlikePowers OnRequestGodlikePowers;
+        public event GodKickUser OnGodKickUser;
+        public event ObjectExtraParams OnUpdateExtraParams;
+        public event UpdateShape OnUpdatePrimShape;
+        public event ObjectRequest OnObjectRequest;
+        public event ObjectSelect OnObjectSelect;
+        public event ObjectDeselect OnObjectDeselect;
+        public event GenericCall7 OnObjectDescription;
+        public event GenericCall7 OnObjectName;
+        public event GenericCall7 OnObjectClickAction;
+        public event GenericCall7 OnObjectMaterial;
+        public event ObjectIncludeInSearch OnObjectIncludeInSearch;
+        public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
+        public event UpdatePrimFlags OnUpdatePrimFlags;
+        public event UpdatePrimTexture OnUpdatePrimTexture;
+        public event UpdateVector OnUpdatePrimGroupPosition;
+        public event UpdateVector OnUpdatePrimSinglePosition;
+        public event UpdatePrimRotation OnUpdatePrimGroupRotation;
+        public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
+        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
+        public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
+        public event UpdateVector OnUpdatePrimScale;
+        public event UpdateVector OnUpdatePrimGroupScale;
+        public event StatusChange OnChildAgentStatus;
+        public event GenericCall2 OnStopMovement;
+        public event Action<UUID> OnRemoveAvatar;
+        public event RequestMapBlocks OnRequestMapBlocks;
+        public event RequestMapName OnMapNameRequest;
+        public event TeleportLocationRequest OnTeleportLocationRequest;
+        public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
+        public event DisconnectUser OnDisconnectUser;
+        public event RequestAvatarProperties OnRequestAvatarProperties;
+        public event SetAlwaysRun OnSetAlwaysRun;
+        public event FetchInventory OnAgentDataUpdateRequest;
+        public event TeleportLocationRequest OnSetStartLocationRequest;
+        public event UpdateAvatarProperties OnUpdateAvatarProperties;
+        public event CreateNewInventoryItem OnCreateNewInventoryItem;
+        public event CreateInventoryFolder OnCreateNewInventoryFolder;
+        public event UpdateInventoryFolder OnUpdateInventoryFolder;
+        public event MoveInventoryFolder OnMoveInventoryFolder;
+        public event FetchInventoryDescendents OnFetchInventoryDescendents;
+        public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
+        public event FetchInventory OnFetchInventory;
+        public event RequestTaskInventory OnRequestTaskInventory;
+        public event UpdateInventoryItem OnUpdateInventoryItem;
+        public event CopyInventoryItem OnCopyInventoryItem;
+        public event MoveInventoryItem OnMoveInventoryItem;
+        public event RemoveInventoryItem OnRemoveInventoryItem;
+        public event RemoveInventoryFolder OnRemoveInventoryFolder;
+        public event UDPAssetUploadRequest OnAssetUploadRequest;
+        public event XferReceive OnXferReceive;
+        public event RequestXfer OnRequestXfer;
+        public event ConfirmXfer OnConfirmXfer;
+        public event AbortXfer OnAbortXfer;
+        public event RequestTerrain OnRequestTerrain;
+        public event RezScript OnRezScript;
+        public event UpdateTaskInventory OnUpdateTaskInventory;
+        public event MoveTaskInventory OnMoveTaskItem;
+        public event RemoveTaskInventory OnRemoveTaskItem;
+        public event RequestAsset OnRequestAsset;
+        public event UUIDNameRequest OnNameFromUUIDRequest;
+        public event ParcelAccessListRequest OnParcelAccessListRequest;
+        public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
+        public event ParcelPropertiesRequest OnParcelPropertiesRequest;
+        public event ParcelDivideRequest OnParcelDivideRequest;
+        public event ParcelJoinRequest OnParcelJoinRequest;
+        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
+        public event ParcelSelectObjects OnParcelSelectObjects;
+        public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
+        public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelGodForceOwner OnParcelGodForceOwner;
+        public event ParcelReclaim OnParcelReclaim;
+        public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
+        public event ParcelDeedToGroup OnParcelDeedToGroup;
+        public event RegionInfoRequest OnRegionInfoRequest;
+        public event EstateCovenantRequest OnEstateCovenantRequest;
+        public event FriendActionDelegate OnApproveFriendRequest;
+        public event FriendActionDelegate OnDenyFriendRequest;
+        public event FriendshipTermination OnTerminateFriendship;
+        public event MoneyTransferRequest OnMoneyTransferRequest;
+        public event EconomyDataRequest OnEconomyDataRequest;
+        public event MoneyBalanceRequest OnMoneyBalanceRequest;
+        public event ParcelBuy OnParcelBuy;
+        public event UUIDNameRequest OnTeleportHomeRequest;
+        public event UUIDNameRequest OnUUIDGroupNameRequest;
+        public event ScriptAnswer OnScriptAnswer;
+        public event RequestPayPrice OnRequestPayPrice;
+        public event ObjectSaleInfo OnObjectSaleInfo;
+        public event ObjectBuy OnObjectBuy;
+        public event BuyObjectInventory OnBuyObjectInventory;
+        public event AgentSit OnUndo;
+        public event ForceReleaseControls OnForceReleaseControls;
+        public event GodLandStatRequest OnLandStatRequest;
+        public event RequestObjectPropertiesFamily OnObjectGroupRequest;
+        public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
+        public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
+        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
+        public event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
+        public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
+        public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
+        public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        public event BakeTerrain OnBakeTerrain;
+        public event RequestTerrain OnUploadTerrain;
+        public event EstateChangeInfo OnEstateChangeInfo;
+        public event EstateRestartSimRequest OnEstateRestartSimRequest;
+        public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
+        public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        public event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
+        public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
+        public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
+        public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
+        public event RegionHandleRequest OnRegionHandleRequest;
+        public event ParcelInfoRequest OnParcelInfoRequest;
+        public event ScriptReset OnScriptReset;
+        public event GetScriptRunning OnGetScriptRunning;
+        public event SetScriptRunning OnSetScriptRunning;
+        public event UpdateVector OnAutoPilotGo;
+        public event TerrainUnacked OnUnackedTerrain;
+        public event ActivateGesture OnActivateGesture;
+        public event DeactivateGesture OnDeactivateGesture;
+        public event ObjectOwner OnObjectOwner;
+        public event DirPlacesQuery OnDirPlacesQuery;
+        public event DirFindQuery OnDirFindQuery;
+        public event DirLandQuery OnDirLandQuery;
+        public event DirPopularQuery OnDirPopularQuery;
+        public event DirClassifiedQuery OnDirClassifiedQuery;
+        public event EventInfoRequest OnEventInfoRequest;
+        public event ParcelSetOtherCleanTime OnParcelSetOtherCleanTime;
+        public event MapItemRequest OnMapItemRequest;
+        public event OfferCallingCard OnOfferCallingCard;
+        public event AcceptCallingCard OnAcceptCallingCard;
+        public event DeclineCallingCard OnDeclineCallingCard;
+        public event SoundTrigger OnSoundTrigger;
+        public event StartLure OnStartLure;
+        public event TeleportLureRequest OnTeleportLureRequest;
+        public event NetworkStats OnNetworkStatsUpdate;
+        public event ClassifiedInfoRequest OnClassifiedInfoRequest;
+        public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
+        public event ClassifiedDelete OnClassifiedDelete;
+        public event ClassifiedDelete OnClassifiedGodDelete;
+        public event EventNotificationAddRequest OnEventNotificationAddRequest;
+        public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
+        public event EventGodDelete OnEventGodDelete;
+        public event ParcelDwellRequest OnParcelDwellRequest;
+        public event UserInfoRequest OnUserInfoRequest;
+        public event UpdateUserInfo OnUpdateUserInfo;
+        public event RetrieveInstantMessages OnRetrieveInstantMessages;
+        public event PickDelete OnPickDelete;
+        public event PickGodDelete OnPickGodDelete;
+        public event PickInfoUpdate OnPickInfoUpdate;
+        public event AvatarNotesUpdate OnAvatarNotesUpdate;
+        public event MuteListRequest OnMuteListRequest;
+        public event AvatarInterestUpdate OnAvatarInterestUpdate;
+        public event PlacesQuery OnPlacesQuery;
+
+        #endregion Events
+
+        #region Class Members
+
         // LLClientView Only
         public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
 
@@ -114,8 +317,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_textureDataLimit   = 10;
         protected int m_avatarTerseUpdateRate = 50;
         protected int m_avatarTerseUpdatesPerPacket = 5;
-        protected int m_packetMTU = 1400;
         protected IAssetService m_assetService;
+
+        #endregion Class Members
 
         #region Properties
 
@@ -413,34 +617,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return result;
         }
 
-        /*protected void DebugPacket(string direction, Packet packet)
-        {
-            string info;
-
-            if (m_debugPacketLevel < 255 && packet.Type == PacketType.AgentUpdate)
-                return;
-            if (m_debugPacketLevel < 254 && packet.Type == PacketType.ViewerEffect)
-                return;
-            if (m_debugPacketLevel < 253 && (
-                                     packet.Type == PacketType.CompletePingCheck ||
-                                     packet.Type == PacketType.StartPingCheck
-                                 ))
-                return;
-            if (m_debugPacketLevel < 252 && packet.Type == PacketType.PacketAck)
-                return;
-
-            if (m_debugPacketLevel > 1)
-            {
-                info = packet.ToString();
-            }
-            else
-            {
-                info = packet.Type.ToString();
-            }
-
-            Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
-        }*/
-
         #endregion Packet Handling
 
         # region Setup
@@ -522,207 +698,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         # endregion
-
-        #region Events
-
-        public event GenericMessage OnGenericMessage;
-        public event BinaryGenericMessage OnBinaryGenericMessage;
-        public event Action<IClientAPI> OnLogout;
-        public event ObjectPermissions OnObjectPermissions;
-        public event Action<IClientAPI> OnConnectionClosed;
-        public event ViewerEffectEventHandler OnViewerEffect;
-        public event ImprovedInstantMessage OnInstantMessage;
-        public event ChatMessage OnChatFromClient;
-        public event TextureRequest OnRequestTexture;
-        public event RezObject OnRezObject;
-        public event DeRezObject OnDeRezObject;
-        public event ModifyTerrain OnModifyTerrain;
-        public event Action<IClientAPI> OnRegionHandShakeReply;
-        public event GenericCall2 OnRequestWearables;
-        public event SetAppearance OnSetAppearance;
-        public event AvatarNowWearing OnAvatarNowWearing;
-        public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
-        public event RezMultipleAttachmentsFromInv OnRezMultipleAttachmentsFromInv;
-        public event UUIDNameRequest OnDetachAttachmentIntoInv;
-        public event ObjectAttach OnObjectAttach;
-        public event ObjectDeselect OnObjectDetach;
-        public event ObjectDrop OnObjectDrop;
-        public event GenericCall2 OnCompleteMovementToRegion;
-        public event UpdateAgent OnAgentUpdate;
-        public event AgentRequestSit OnAgentRequestSit;
-        public event AgentSit OnAgentSit;
-        public event AvatarPickerRequest OnAvatarPickerRequest;
-        public event StartAnim OnStartAnim;
-        public event StopAnim OnStopAnim;
-        public event Action<IClientAPI> OnRequestAvatarsData;
-        public event LinkObjects OnLinkObjects;
-        public event DelinkObjects OnDelinkObjects;
-        public event GrabObject OnGrabObject;
-        public event DeGrabObject OnDeGrabObject;
-        public event SpinStart OnSpinStart;
-        public event SpinStop OnSpinStop;
-        public event ObjectDuplicate OnObjectDuplicate;
-        public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
-        public event MoveObject OnGrabUpdate;
-        public event SpinObject OnSpinUpdate;
-        public event AddNewPrim OnAddPrim;
-        public event RequestGodlikePowers OnRequestGodlikePowers;
-        public event GodKickUser OnGodKickUser;
-        public event ObjectExtraParams OnUpdateExtraParams;
-        public event UpdateShape OnUpdatePrimShape;
-        public event ObjectRequest OnObjectRequest;
-        public event ObjectSelect OnObjectSelect;
-        public event ObjectDeselect OnObjectDeselect;
-        public event GenericCall7 OnObjectDescription;
-        public event GenericCall7 OnObjectName;
-        public event GenericCall7 OnObjectClickAction;
-        public event GenericCall7 OnObjectMaterial;
-        public event ObjectIncludeInSearch OnObjectIncludeInSearch;
-        public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
-        public event UpdatePrimFlags OnUpdatePrimFlags;
-        public event UpdatePrimTexture OnUpdatePrimTexture;
-        public event UpdateVector OnUpdatePrimGroupPosition;
-        public event UpdateVector OnUpdatePrimSinglePosition;
-        public event UpdatePrimRotation OnUpdatePrimGroupRotation;
-        public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
-        public event UpdatePrimSingleRotationPosition OnUpdatePrimSingleRotationPosition;
-        public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
-        public event UpdateVector OnUpdatePrimScale;
-        public event UpdateVector OnUpdatePrimGroupScale;
-        public event StatusChange OnChildAgentStatus;
-        public event GenericCall2 OnStopMovement;
-        public event Action<UUID> OnRemoveAvatar;
-        public event RequestMapBlocks OnRequestMapBlocks;
-        public event RequestMapName OnMapNameRequest;
-        public event TeleportLocationRequest OnTeleportLocationRequest;
-        public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
-        public event DisconnectUser OnDisconnectUser;
-        public event RequestAvatarProperties OnRequestAvatarProperties;
-        public event SetAlwaysRun OnSetAlwaysRun;
-        public event FetchInventory OnAgentDataUpdateRequest;
-        public event TeleportLocationRequest OnSetStartLocationRequest;
-        public event UpdateAvatarProperties OnUpdateAvatarProperties;
-        public event CreateNewInventoryItem OnCreateNewInventoryItem;
-        public event CreateInventoryFolder OnCreateNewInventoryFolder;
-        public event UpdateInventoryFolder OnUpdateInventoryFolder;
-        public event MoveInventoryFolder OnMoveInventoryFolder;
-        public event FetchInventoryDescendents OnFetchInventoryDescendents;
-        public event PurgeInventoryDescendents OnPurgeInventoryDescendents;
-        public event FetchInventory OnFetchInventory;
-        public event RequestTaskInventory OnRequestTaskInventory;
-        public event UpdateInventoryItem OnUpdateInventoryItem;
-        public event CopyInventoryItem OnCopyInventoryItem;
-        public event MoveInventoryItem OnMoveInventoryItem;
-        public event RemoveInventoryItem OnRemoveInventoryItem;
-        public event RemoveInventoryFolder OnRemoveInventoryFolder;
-        public event UDPAssetUploadRequest OnAssetUploadRequest;
-        public event XferReceive OnXferReceive;
-        public event RequestXfer OnRequestXfer;
-        public event ConfirmXfer OnConfirmXfer;
-        public event AbortXfer OnAbortXfer;
-        public event RequestTerrain OnRequestTerrain;
-        public event RezScript OnRezScript;
-        public event UpdateTaskInventory OnUpdateTaskInventory;
-        public event MoveTaskInventory OnMoveTaskItem;
-        public event RemoveTaskInventory OnRemoveTaskItem;
-        public event RequestAsset OnRequestAsset;
-        public event UUIDNameRequest OnNameFromUUIDRequest;
-        public event ParcelAccessListRequest OnParcelAccessListRequest;
-        public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
-        public event ParcelPropertiesRequest OnParcelPropertiesRequest;
-        public event ParcelDivideRequest OnParcelDivideRequest;
-        public event ParcelJoinRequest OnParcelJoinRequest;
-        public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
-        public event ParcelSelectObjects OnParcelSelectObjects;
-        public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
-        public event ParcelAbandonRequest OnParcelAbandonRequest;
-        public event ParcelGodForceOwner OnParcelGodForceOwner;
-        public event ParcelReclaim OnParcelReclaim;
-        public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
-        public event ParcelDeedToGroup OnParcelDeedToGroup;
-        public event RegionInfoRequest OnRegionInfoRequest;
-        public event EstateCovenantRequest OnEstateCovenantRequest;
-        public event FriendActionDelegate OnApproveFriendRequest;
-        public event FriendActionDelegate OnDenyFriendRequest;
-        public event FriendshipTermination OnTerminateFriendship;
-        public event MoneyTransferRequest OnMoneyTransferRequest;
-        public event EconomyDataRequest OnEconomyDataRequest;
-        public event MoneyBalanceRequest OnMoneyBalanceRequest;
-        public event ParcelBuy OnParcelBuy;
-        public event UUIDNameRequest OnTeleportHomeRequest;
-        public event UUIDNameRequest OnUUIDGroupNameRequest;
-        public event ScriptAnswer OnScriptAnswer;
-        public event RequestPayPrice OnRequestPayPrice;
-        public event ObjectSaleInfo OnObjectSaleInfo;
-        public event ObjectBuy OnObjectBuy;
-        public event BuyObjectInventory OnBuyObjectInventory;
-        public event AgentSit OnUndo;
-        public event ForceReleaseControls OnForceReleaseControls;
-        public event GodLandStatRequest OnLandStatRequest;
-        public event RequestObjectPropertiesFamily OnObjectGroupRequest;
-        public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
-        public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
-        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
-        public event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
-        public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
-        public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
-        public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
-        public event BakeTerrain OnBakeTerrain;
-        public event RequestTerrain OnUploadTerrain;
-        public event EstateChangeInfo OnEstateChangeInfo;
-        public event EstateRestartSimRequest OnEstateRestartSimRequest;
-        public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
-        public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
-        public event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
-        public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
-        public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
-        public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
-        public event EstateTeleportAllUsersHomeRequest OnEstateTeleportAllUsersHomeRequest;
-        public event RegionHandleRequest OnRegionHandleRequest;
-        public event ParcelInfoRequest OnParcelInfoRequest;
-        public event ScriptReset OnScriptReset;
-        public event GetScriptRunning OnGetScriptRunning;
-        public event SetScriptRunning OnSetScriptRunning;
-        public event UpdateVector OnAutoPilotGo;
-        public event TerrainUnacked OnUnackedTerrain;
-        public event ActivateGesture OnActivateGesture;
-        public event DeactivateGesture OnDeactivateGesture;
-        public event ObjectOwner OnObjectOwner;
-        public event DirPlacesQuery OnDirPlacesQuery;
-        public event DirFindQuery OnDirFindQuery;
-        public event DirLandQuery OnDirLandQuery;
-        public event DirPopularQuery OnDirPopularQuery;
-        public event DirClassifiedQuery OnDirClassifiedQuery;
-        public event EventInfoRequest OnEventInfoRequest;
-        public event ParcelSetOtherCleanTime OnParcelSetOtherCleanTime;
-        public event MapItemRequest OnMapItemRequest;
-        public event OfferCallingCard OnOfferCallingCard;
-        public event AcceptCallingCard OnAcceptCallingCard;
-        public event DeclineCallingCard OnDeclineCallingCard;
-        public event SoundTrigger OnSoundTrigger;
-        public event StartLure OnStartLure;
-        public event TeleportLureRequest OnTeleportLureRequest;
-        public event NetworkStats OnNetworkStatsUpdate;
-        public event ClassifiedInfoRequest OnClassifiedInfoRequest;
-        public event ClassifiedInfoUpdate OnClassifiedInfoUpdate;
-        public event ClassifiedDelete OnClassifiedDelete;
-        public event ClassifiedDelete OnClassifiedGodDelete;
-        public event EventNotificationAddRequest OnEventNotificationAddRequest;
-        public event EventNotificationRemoveRequest OnEventNotificationRemoveRequest;
-        public event EventGodDelete OnEventGodDelete;
-        public event ParcelDwellRequest OnParcelDwellRequest;
-        public event UserInfoRequest OnUserInfoRequest;
-        public event UpdateUserInfo OnUpdateUserInfo;
-        public event RetrieveInstantMessages OnRetrieveInstantMessages;
-        public event PickDelete OnPickDelete;
-        public event PickGodDelete OnPickGodDelete;
-        public event PickInfoUpdate OnPickInfoUpdate;
-        public event AvatarNotesUpdate OnAvatarNotesUpdate;
-        public event MuteListRequest OnMuteListRequest;
-        public event AvatarInterestUpdate OnAvatarInterestUpdate;
-        public event PlacesQuery OnPlacesQuery;
-
-        #endregion Events
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -3367,7 +3342,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_avatarTerseUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -3611,7 +3586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_primFullUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -3699,7 +3674,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_primTerseUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -4802,7 +4777,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
         {
-
             ObjectGroupPacket ogpack = (ObjectGroupPacket)Pack;
             if (ogpack.AgentData.SessionID != SessionId) return false;
 

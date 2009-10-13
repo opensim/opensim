@@ -419,7 +419,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int dataLength = buffer.DataLength;
 
-            // Keep appending ACKs until there is no room left in the packet or there are
+            // Keep appending ACKs until there is no room left in the buffer or there are
             // no more ACKs to append
             uint ackCount = 0;
             uint ack;
@@ -654,11 +654,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Create the LLClientView
             LLClientView clientApi = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-            clientApi.OnViewerEffect += m_scene.ClientManager.ViewerEffectHandler;
             clientApi.OnLogout += LogoutHandler;
-            clientApi.OnConnectionClosed +=
-                delegate(IClientAPI client)
-                { if (client is LLClientView) RemoveClient(((LLClientView)client).UDPClient); };
+            clientApi.OnConnectionClosed += ConnectionClosedHandler;
 
             // Start the IClientAPI
             m_scene.ClientManager.Add(circuitCode, clientApi);
@@ -808,7 +805,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void LogoutHandler(IClientAPI client)
         {
+            client.OnLogout -= LogoutHandler;
+
             client.SendLogoutPacket();
+
+            if (client is LLClientView)
+                RemoveClient(((LLClientView)client).UDPClient);
+        }
+
+        private void ConnectionClosedHandler(IClientAPI client)
+        {
+            client.OnConnectionClosed -= ConnectionClosedHandler;
+
             if (client is LLClientView)
                 RemoveClient(((LLClientView)client).UDPClient);
         }

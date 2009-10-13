@@ -2572,6 +2572,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientNetworkEvents(IClientAPI client)
         {
             client.OnNetworkStatsUpdate += StatsReporter.AddPacketsStats;
+            client.OnViewerEffect += ProcessViewerEffect;
         }
 
         protected virtual void UnsubscribeToClientEvents(IClientAPI client)
@@ -2726,10 +2727,8 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void UnSubscribeToClientNetworkEvents(IClientAPI client)
         {
             client.OnNetworkStatsUpdate -= StatsReporter.AddPacketsStats;
+            client.OnViewerEffect -= ProcessViewerEffect;
         }
-
-
-        
 
         /// <summary>
         /// Teleport an avatar to their home region
@@ -3050,16 +3049,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Closes all endpoints with the circuitcode provided.
-        /// </summary>
-        /// <param name="circuitcode">Circuit Code of the endpoint to close</param>
-        public override void CloseAllAgents(uint circuitcode)
-        {
-            // Called by ClientView to kill all circuit codes
-            ClientManager.CloseAllAgents(circuitcode);
         }
 
         /// <summary>

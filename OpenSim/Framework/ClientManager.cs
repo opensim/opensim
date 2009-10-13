@@ -34,20 +34,31 @@ using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
 {
-    public delegate void ForEachClientDelegate(IClientAPI client);
-
     public class ClientManager
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<uint, IClientAPI> m_clients;
+        private Dictionary<uint, IClientAPI> m_clients = new Dictionary<uint, IClientAPI>();
 
-        public ClientManager()
+        public void Add(uint circuitCode, IClientAPI client)
         {
-            m_clients = new Dictionary<uint, IClientAPI>();
+            lock (m_clients)
+                m_clients.Add(circuitCode, client);
         }
 
-        public void ForEachClient(ForEachClientDelegate whatToDo)
+        public bool Remove(uint circuitCode)
+        {
+            lock (m_clients)
+                return m_clients.Remove(circuitCode);
+        }
+
+        public bool TryGetClient(uint circuitCode, out IClientAPI user)
+        {
+            lock (m_clients)
+                return m_clients.TryGetValue(circuitCode, out user);
+        }
+
+        public void ForEachClient(Action<IClientAPI> action)
         {
             IClientAPI[] LocalClients;
             lock (m_clients)
@@ -60,160 +71,12 @@ namespace OpenSim.Framework
             {
                 try
                 {
-                    whatToDo(LocalClients[i]);
+                    action(LocalClients[i]);
                 }
                 catch (Exception e)
                 {
                     m_log.Warn("[CLIENT]: Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
                 }
-            }
-        }
-
-        public void Remove(uint id)
-        {
-            lock (m_clients)
-            {
-                m_clients.Remove(id);
-            }
-        }
-
-        public void Add(uint id, IClientAPI client)
-        {
-            lock (m_clients)
-            {
-                m_clients.Add(id, client);
-            }
-        }
-
-        /// <summary>
-        /// Pass incoming packet to client.
-        /// </summary>
-        /// <param name="circuitCode">uint identifying the connection/client.</param>
-        /// <param name="packet">object containing the packet.</param>
-        public void InPacket(uint circuitCode, object packet)
-        {
-            IClientAPI client;
-            bool tryGetRet = false;
-            
-            lock (m_clients)
-                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            
-            if (tryGetRet)
-            {
-                client.InPacket(packet);
-            }
-        }
-
-        public void CloseAllAgents(uint circuitCode)
-        {
-            IClientAPI client;
-            bool tryGetRet = false;
-            lock (m_clients)
-                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            if (tryGetRet)
-            {
-                CloseAllCircuits(client.AgentId);
-            }
-        }
-
-        public void CloseAllCircuits(UUID agentId)
-        {
-            uint[] circuits = GetAllCircuits(agentId);
-            // We're using a for loop here so changes to the circuits don't cause it to completely fail.
-
-            for (int i = 0; i < circuits.Length; i++)
-            {
-                IClientAPI client;
-                try
-                {
-                    bool tryGetRet = false;
-                    lock (m_clients)
-                        tryGetRet = m_clients.TryGetValue(circuits[i], out client);
-                    if (tryGetRet)
-                    {
-                        Remove(client.CircuitCode);
-                        client.Close(false);
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(string.Format("[CLIENT]: Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
-                }
-            }
-        }
-
-        // [Obsolete("Using Obsolete to drive development is invalid.  Obsolete presumes that something new has already been created to replace this.")]
-        public uint[] GetAllCircuits(UUID agentId)
-        {
-            List<uint> circuits = new List<uint>();
-            // Wasteful, I know
-            IClientAPI[] LocalClients = new IClientAPI[0];
-            lock (m_clients)
-            {
-                LocalClients = new IClientAPI[m_clients.Count];
-                m_clients.Values.CopyTo(LocalClients, 0);
-            }
-
-            for (int i = 0; i < LocalClients.Length; i++)
-            {
-                if (LocalClients[i].AgentId == agentId)
-                {
-                    circuits.Add(LocalClients[i].CircuitCode);
-                }
-            }
-            return circuits.ToArray();
-        }
-
-        public List<uint> GetAllCircuitCodes()
-        {
-            List<uint> circuits;
-
-            lock (m_clients)
-            {
-                circuits = new List<uint>(m_clients.Keys);
-            }
-
-            return circuits;
-        }
-
-        public void ViewerEffectHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args)
-        {
-            // TODO: don't create new blocks if recycling an old packet
-            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
-                effect.AgentID = args[i].AgentID;
-                effect.Color = args[i].Color;
-                effect.Duration = args[i].Duration;
-                effect.ID = args[i].ID;
-                effect.Type = args[i].Type;
-                effect.TypeData = args[i].TypeData;
-                effectBlock.Add(effect);
-            }
-            ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
-
-            IClientAPI[] LocalClients;
-            lock (m_clients)
-            {
-                LocalClients = new IClientAPI[m_clients.Count];
-                m_clients.Values.CopyTo(LocalClients, 0);
-            }
-
-            for (int i = 0; i < LocalClients.Length; i++)
-            {
-                if (LocalClients[i].AgentId != sender.AgentId)
-                {
-                    LocalClients[i].SendViewerEffect(effectBlockArray);
-                }
-            }
-        }
-
-        public bool TryGetClient(uint circuitId, out IClientAPI user)
-        {
-            lock (m_clients)
-            {
-                return m_clients.TryGetValue(circuitId, out user);
             }
         }
     }
