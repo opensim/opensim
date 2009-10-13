@@ -10368,12 +10368,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             UUID requestID = UUID.Zero;
             byte source = 2;
-            if (transferRequest.TransferInfo.SourceType == 2)
+            if ((transferRequest.TransferInfo.SourceType == 2) || (transferRequest.TransferInfo.SourceType == 2222))
             {
                 //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == 3)
+            else if ((transferRequest.TransferInfo.SourceType == 3) || (transferRequest.TransferInfo.SourceType == 3333))
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
@@ -10383,14 +10383,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (null == asset)
             {
-                // Try the user's inventory, but only if it's different from the regions'
-                string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
-                if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
+                if ((m_hyperAssets != null) && (transferRequest.TransferInfo.SourceType < 2000))
                 {
-                    m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
-                    transferRequest.TransferInfo.SourceType = 9999; // marker
-                    m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
-                    return;
+                    // Try the user's inventory, but only if it's different from the regions'
+                    string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
+                    if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
+                    {
+                        m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
+                        if (transferRequest.TransferInfo.SourceType == 2)
+                            transferRequest.TransferInfo.SourceType = 2222; // marker
+                        else if (transferRequest.TransferInfo.SourceType == 3)
+                            transferRequest.TransferInfo.SourceType = 3333; // marker
+
+                        m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
+                        return;
+                    }
                 }
 
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
