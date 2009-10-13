@@ -503,19 +503,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Decoding
 
-            #region UseCircuitCode Handling
+            #region Packet to Client Mapping
 
+            // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
-                UseCircuitCodePacket useCircuitCode = (UseCircuitCodePacket)packet;
-                IClientAPI newuser;
-                uint circuitCode = useCircuitCode.CircuitCode.Code;
-
-                // Check if the client is already established
-                if (!m_scene.ClientManager.TryGetClient(circuitCode, out newuser))
-                {
-                    AddNewClient(useCircuitCode, (IPEndPoint)buffer.RemoteEndPoint);
-                }
+                AddNewClient((UseCircuitCodePacket)packet, (IPEndPoint)buffer.RemoteEndPoint);
             }
 
             // Determine which agent this packet came from
@@ -526,7 +519,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            #endregion UseCircuitCode Handling
+            #endregion Packet to Client Mapping
 
             // Stats tracking
             Interlocked.Increment(ref client.PacketsReceived);
@@ -620,28 +613,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void AddNewClient(UseCircuitCodePacket useCircuitCode, IPEndPoint remoteEndPoint)
         {
-            //Slave regions don't accept new clients
             if (m_scene.RegionStatus != RegionStatus.SlaveScene)
             {
-                AuthenticateResponse sessionInfo;
-                bool isNewCircuit = !m_clients.ContainsKey(remoteEndPoint);
-
-                if (!IsClientAuthorized(useCircuitCode, out sessionInfo))
+                if (!m_clients.ContainsKey(remoteEndPoint))
                 {
-                    m_log.WarnFormat(
-                        "[CONNECTION FAILURE]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
-                        useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
-                    return;
-                }
+                    AuthenticateResponse sessionInfo;
+                    if (IsClientAuthorized(useCircuitCode, out sessionInfo))
+                    {
+                        UUID agentID = useCircuitCode.CircuitCode.ID;
+                        UUID sessionID = useCircuitCode.CircuitCode.SessionID;
+                        uint circuitCode = useCircuitCode.CircuitCode.Code;
 
-                if (isNewCircuit)
+                        AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
+                    }
+                    else
+                    {
+                        // Don't create circuits for unauthorized clients
+                        m_log.WarnFormat(
+                            "[LLUDPSERVER]: Connection request for client {0} connecting with unnotified circuit code {1} from {2}",
+                            useCircuitCode.CircuitCode.ID, useCircuitCode.CircuitCode.Code, remoteEndPoint);
+                    }
+                }
+                else
                 {
-                    UUID agentID = useCircuitCode.CircuitCode.ID;
-                    UUID sessionID = useCircuitCode.CircuitCode.SessionID;
-                    uint circuitCode = useCircuitCode.CircuitCode.Code;
-
-                    AddClient(circuitCode, agentID, sessionID, remoteEndPoint, sessionInfo);
+                    // Ignore repeated UseCircuitCode packets
+                    m_log.Debug("[LLUDPSERVER]: Ignoring UseCircuitCode for already established circuit " + useCircuitCode.CircuitCode.Code);
                 }
+            }
+            else
+            {
+                // Slave regions don't accept new clients
+                m_log.Debug("[LLUDPSERVER]: Slave region " + m_scene.RegionInfo.RegionName + " ignoring UseCircuitCode packet");
             }
         }
 

@@ -131,7 +131,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="action">Action to perform on each element</param>
         public void ForEach(Action<LLUDPClient> action)
         {
-            Parallel.ForEach<LLUDPClient>(m_dict.Values, action); 
+            Parallel.ForEach<LLUDPClient>(m_dict.Values, action);
         }
     }
 }
