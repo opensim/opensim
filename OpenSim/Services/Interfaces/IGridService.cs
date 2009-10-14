@@ -200,6 +200,12 @@ namespace OpenSim.Services.Interfaces
             Maturity = ConvertFrom.RegionSettings.Maturity;
             RegionSecret = ConvertFrom.regionSecret;
             EstateOwner = ConvertFrom.EstateSettings.EstateOwner;
+            if (EstateOwner == UUID.Zero)
+            {
+                EstateOwner = ConvertFrom.MasterAvatarAssignedUUID;
+                ConvertFrom.EstateSettings.EstateOwner = EstateOwner;
+                ConvertFrom.EstateSettings.Save();
+            }
         }
 
         public GridRegion(GridRegion ConvertFrom)

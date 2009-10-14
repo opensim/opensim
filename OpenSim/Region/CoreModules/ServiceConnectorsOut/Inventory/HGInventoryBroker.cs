@@ -386,7 +386,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return false;
 
             if (IsLocalGridUser(item.Owner))
+            {
                 return m_GridService.AddItem(item);
+            }
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);

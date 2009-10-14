@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Framework.Scenes.Serialization;
+using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Services.Interfaces;
 
 //using HyperGrid.Framework;
@@ -52,13 +53,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         private Scene m_scene;
 
-        private IHyperlinkService m_hyper;
-        IHyperlinkService HyperlinkService
+        private IHyperAssetService m_hyper;
+        IHyperAssetService HyperlinkAssets
         {
             get
             {
                 if (m_hyper == null)
-                    m_hyper = m_scene.RequestModuleInterface<IHyperlinkService>();
+                    m_hyper = m_scene.RequestModuleInterface<IHyperAssetService>();
                 return m_hyper;
             }
         }
@@ -99,7 +100,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
             if (asset != null)
             {
-                m_log.Debug("[HGScene]: Asset made it to asset cache. " + asset.Name + " " + assetID);
+                m_log.DebugFormat("[HGScene]: Copied asset {0} from {1} to local asset server. ", asset.ID, url);
                 return asset;
             }
             return null;
@@ -129,6 +130,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     }
 
                     m_scene.AssetService.Store(asset1);
+                    m_log.DebugFormat("[HGScene]: Posted copy of asset {0} from local asset server to {1}", asset1.ID, url);
                 }
                 return true;
            }
@@ -167,34 +169,32 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void Get(UUID assetID, UUID ownerID)
         {
-            if (!HyperlinkService.IsLocalUser(ownerID))
+            // Get the item from the remote asset server onto the local AssetCache
+            // and place an entry in m_assetMap
+
+            string userAssetURL = HyperlinkAssets.GetUserAssetServer(ownerID);
+            if ((userAssetURL != string.Empty) && (userAssetURL != HyperlinkAssets.GetSimAssetServer()))
             {
-                // Get the item from the remote asset server onto the local AssetCache
-                // and place an entry in m_assetMap
+                m_log.Debug("[HGScene]: Fetching object " + assetID + " from asset server " + userAssetURL);
+                AssetBase asset = FetchAsset(userAssetURL, assetID); 
 
-                string userAssetURL = UserAssetURL(ownerID);
-                if (userAssetURL != null)
+                if (asset != null)
                 {
-                    m_log.Debug("[HGScene]: Fetching object " + assetID + " to asset server " + userAssetURL);
-                    AssetBase asset = FetchAsset(userAssetURL, assetID); 
+                    // OK, now fetch the inside.
+                    Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
+                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
+                    uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                    foreach (UUID uuid in ids.Keys)
+                        FetchAsset(userAssetURL, uuid);
 
-                    if (asset != null)
-                    {
-                        m_log.Debug("[HGScene]: Successfully fetched item from remote asset server " + userAssetURL);
+                    m_log.DebugFormat("[HGScene]: Successfully fetched asset {0} from asset server {1}", asset.ID, userAssetURL);
 
-                        // OK, now fetch the inside.
-                        Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
-                        HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, userAssetURL);
-                        uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
-                        foreach (UUID uuid in ids.Keys)
-                            FetchAsset(userAssetURL, uuid);
-                    }
-                    else
-                        m_log.Warn("[HGScene]: Could not fetch asset from remote asset server " + userAssetURL);
                 }
                 else
-                    m_log.Warn("[HGScene]: Unable to locate foreign user's asset server");
+                    m_log.Warn("[HGScene]: Could not fetch asset from remote asset server " + userAssetURL);
             }
+            else
+                m_log.Debug("[HGScene]: user's asset server is the local region's asset server");
         }
 
         //public InventoryItemBase Get(InventoryItemBase item, UUID rootFolder, CachedUserInfo userInfo)
@@ -225,44 +225,38 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void Post(UUID assetID, UUID ownerID)
         {
-            if (!HyperlinkService.IsLocalUser(ownerID))
-            {
                 // Post the item from the local AssetCache onto the remote asset server
                 // and place an entry in m_assetMap
 
-                string userAssetURL = UserAssetURL(ownerID);
-                if (userAssetURL != null)
+            string userAssetURL = HyperlinkAssets.GetUserAssetServer(ownerID);
+            if ((userAssetURL != string.Empty) && (userAssetURL != HyperlinkAssets.GetSimAssetServer()))
+            {
+                m_log.Debug("[HGScene]: Posting object " + assetID + " to asset server " + userAssetURL);
+                AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
+                if (asset != null)
                 {
-                    m_log.Debug("[HGScene]: Posting object " + assetID + " to asset server " + userAssetURL);
-                    AssetBase asset = m_scene.AssetService.Get(assetID.ToString());
-                    if (asset != null)
+                    Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
+                    HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, string.Empty);
+                    uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
+                    foreach (UUID uuid in ids.Keys)
                     {
-                        Dictionary<UUID, int> ids = new Dictionary<UUID, int>();
-                        HGUuidGatherer uuidGatherer = new HGUuidGatherer(this, m_scene.AssetService, string.Empty);
-                        uuidGatherer.GatherAssetUuids(asset.FullID, (AssetType)asset.Type, ids);
-                        foreach (UUID uuid in ids.Keys)
-                        {
-                            asset = m_scene.AssetService.Get(uuid.ToString());
-                            if (asset != null)
-                                m_log.DebugFormat("[HGScene]: Posting {0} {1}", asset.Type.ToString(), asset.Name);
-                            else
-                                m_log.DebugFormat("[HGScene]: Could not find asset {0}", uuid);
-                            PostAsset(userAssetURL, asset);
-                        }
-
-                        if (ids.Count > 0) // maybe it succeeded...
-                            m_log.DebugFormat("[HGScene]: Successfully posted item {0} to remote asset server {1}", assetID, userAssetURL);
+                        asset = m_scene.AssetService.Get(uuid.ToString());
+                        if (asset == null)
+                            m_log.DebugFormat("[HGScene]: Could not find asset {0}", uuid);
                         else
-                            m_log.WarnFormat("[HGScene]: Could not post asset {0} to remote asset server {1}", assetID, userAssetURL);
-
+                            PostAsset(userAssetURL, asset);
                     }
-                    else
-                        m_log.Debug("[HGScene]: Something wrong with asset, it could not be found");
+
+                     // maybe all pieces got there...
+                    m_log.DebugFormat("[HGScene]: Successfully posted item {0} to asset server {1}", assetID, userAssetURL);
+
                 }
                 else
-                    m_log.Warn("[HGScene]: Unable to locate foreign user's asset server");
-
+                    m_log.DebugFormat("[HGScene]: Something wrong with asset {0}, it could not be found", assetID);
             }
+            else
+                m_log.Debug("[HGScene]: user's asset server is local region's asset server");
+
         }
 
         #endregion

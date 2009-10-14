@@ -43,6 +43,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using Timer=System.Timers.Timer;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
@@ -318,6 +319,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_avatarTerseUpdateRate = 50;
         protected int m_avatarTerseUpdatesPerPacket = 5;
         protected IAssetService m_assetService;
+        private IHyperAssetService m_hyperAssets;
+
 
         #endregion Class Members
 
@@ -376,6 +379,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_scene = scene;
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
             m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
             m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
@@ -6894,7 +6898,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     #endregion
 
                     //handlerTextureRequest = null;
-
                     for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                     {
                         if (OnRequestTexture != null)
@@ -6905,7 +6908,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.PacketNumber = imageRequest.RequestImage[i].Packet;
                             args.Priority = imageRequest.RequestImage[i].DownloadPriority;
                             args.requestSequence = imageRequest.Header.Sequence;
-
                             //handlerTextureRequest = OnRequestTexture;
 
                             //if (handlerTextureRequest != null)
@@ -6928,10 +6930,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Validate inventory transfers
                     // Has to be done here, because AssetCache can't do it
                     //
-                    
+                    UUID taskID = UUID.Zero;
                     if (transfer.TransferInfo.SourceType == 3)
                     {
-                        UUID taskID = new UUID(transfer.TransferInfo.Params, 48);
+                        taskID = new UUID(transfer.TransferInfo.Params, 48);
                         UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                         UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
                         if (!(((Scene)m_scene).Permissions.BypassPermissions()))
@@ -7002,7 +7004,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     //m_assetCache.AddAssetRequest(this, transfer);
 
-                    MakeAssetRequest(transfer);
+                    MakeAssetRequest(transfer, taskID);
 
                     /* RequestAsset = OnRequestAsset;
                          if (RequestAsset != null)
@@ -10209,7 +10211,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
-        public void MakeAssetRequest(TransferRequestPacket transferRequest)
+        public void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
             if (transferRequest.TransferInfo.SourceType == 2)
@@ -10221,12 +10223,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                //m_log.Debug("asset request " + requestID);
+                //m_log.Debug("[XXX] inventory asset request " + requestID);
+                //if (taskID == UUID.Zero) // Agent
+                //    if (m_scene is HGScene)
+                //    {
+                //        m_log.Debug("[XXX] hg asset request " + requestID);
+                //        // We may need to fetch the asset from the user's asset server into the local asset server
+                //        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
+                //        mapper.Get(requestID, AgentId);
+                //    }
             }
 
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //m_log.Debug("asset request " + requestID);
-            
+
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
 
         }
@@ -10237,12 +10247,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             UUID requestID = UUID.Zero;
             byte source = 2;
-            if (transferRequest.TransferInfo.SourceType == 2)
+            if ((transferRequest.TransferInfo.SourceType == 2) || (transferRequest.TransferInfo.SourceType == 2222))
             {
                 //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == 3)
+            else if ((transferRequest.TransferInfo.SourceType == 3) || (transferRequest.TransferInfo.SourceType == 3333))
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
@@ -10250,10 +10260,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //m_log.Debug("asset request " + requestID);
             }
 
-            // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
             {
+                if ((m_hyperAssets != null) && (transferRequest.TransferInfo.SourceType < 2000))
+                {
+                    // Try the user's inventory, but only if it's different from the regions'
+                    string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
+                    if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
+                    {
+                        m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
+                        if (transferRequest.TransferInfo.SourceType == 2)
+                            transferRequest.TransferInfo.SourceType = 2222; // marker
+                        else if (transferRequest.TransferInfo.SourceType == 3)
+                            transferRequest.TransferInfo.SourceType = 3333; // marker
+
+                        m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
+                        return;
+                    }
+                }
+
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
+                
+                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
                 return;
             }
 

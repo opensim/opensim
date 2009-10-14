@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using log4net;
 using System.Reflection;
@@ -54,6 +55,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public UUID TextureID;
         public IJ2KDecoder J2KDecoder;
         public IAssetService AssetService;
+        public UUID AgentID;
+        public IHyperAssetService HyperAssets;
         public OpenJPEG.J2KLayerInfo[] Layers;
         public bool IsDecoded;
         public bool HasAsset;
@@ -370,6 +373,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID assetID = UUID.Zero;
             if (asset != null)
                 assetID = asset.FullID;
+            else if ((HyperAssets != null) && (sender != HyperAssets))
+            {
+                // Try the user's inventory, but only if it's different from the regions'
+                string userAssets = HyperAssets.GetUserAssetServer(AgentID);
+                if ((userAssets != string.Empty) && (userAssets != HyperAssets.GetSimAssetServer()))
+                {
+                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
+                    AssetService.Get(userAssets + "/" + id, HyperAssets, AssetReceived);
+                    return;
+                }
+            }
 
             AssetDataCallback(assetID, asset);
 

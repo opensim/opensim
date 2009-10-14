@@ -759,6 +759,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         }
 
+
         protected bool IsLocalRegion(ulong handle)
         {
             return m_LocalScenes.ContainsKey(handle);

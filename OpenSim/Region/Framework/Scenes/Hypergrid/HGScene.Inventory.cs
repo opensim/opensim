@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {
@@ -41,6 +42,21 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private HGAssetMapper m_assMapper;
+        public HGAssetMapper AssetMapper
+        {
+            get { return m_assMapper; }
+        }
+
+        private IHyperAssetService m_hyper;
+        private IHyperAssetService HyperAssets
+        {
+            get
+            {
+                if (m_hyper == null)
+                    m_hyper = RequestModuleInterface<IHyperAssetService>();
+                return m_hyper;
+            }
+        }
 
         #endregion
 
@@ -140,6 +156,16 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         }
 
+        protected override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
+        {
+            string userAssetServer = HyperAssets.GetUserAssetServer(sender);
+            if ((userAssetServer != string.Empty) && (userAssetServer != HyperAssets.GetSimAssetServer()))
+                m_assMapper.Get(item.AssetID, sender);
+
+            userAssetServer = HyperAssets.GetUserAssetServer(receiver);
+            if ((userAssetServer != string.Empty) && (userAssetServer != HyperAssets.GetSimAssetServer()))
+                m_assMapper.Post(item.AssetID, receiver);
+        }
 
         #endregion
 
