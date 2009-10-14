@@ -152,7 +152,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_throttleRates = new ThrottleRates(configSource);
         }
 
-        public new void Start()
+        public void Start()
         {
             if (m_scene == null)
                 throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
@@ -817,6 +817,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
+            if (client.IsActive)
+                RemoveClient(((LLClientView)client).UDPClient);
         }
     }
 }

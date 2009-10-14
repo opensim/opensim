@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Net;
-using BclExtras.Collections;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 
@@ -41,56 +40,29 @@ namespace OpenSim.Framework
     /// </summary>
     public class ClientManager
     {
-        #region IComparers
-
-        private sealed class UUIDComparer : IComparer<UUID>
-        {
-            public int Compare(UUID x, UUID y)
-            {
-                return x.CompareTo(y);
-            }
-        }
-
-        private sealed class IPEndPointComparer : IComparer<IPEndPoint>
-        {
-            public int Compare(IPEndPoint x, IPEndPoint y)
-            {
-                if (x == null && y == null)
-                    return 0;
-                else if (x == null)
-                    return -1;
-                else if (y == null)
-                    return 1;
-
-                int result = x.Address.Address.CompareTo(y.Address.Address);
-                if (result == 0) result = x.Port.CompareTo(y.Port);
-
-                return result;
-            }
-        }
-
-        #endregion IComparers
-
-        /// <summary>An immutable dictionary mapping from <seealso cref="UUID"/>
+        /// <summary>A dictionary mapping from <seealso cref="UUID"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private ImmutableMap<UUID, IClientAPI> m_dict;
-        /// <summary>An immutable dictionary mapping from <seealso cref="IPEndPoint"/>
+        private Dictionary<UUID, IClientAPI> m_dict1;
+        /// <summary>A dictionary mapping from <seealso cref="IPEndPoint"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private ImmutableMap<IPEndPoint, IClientAPI> m_dict2;
-        /// <summary>Immutability grants thread safety for concurrent reads and
-        /// read-writes, but not concurrent writes</summary>
-        private object m_writeLock = new object();
+        private Dictionary<IPEndPoint, IClientAPI> m_dict2;
+        /// <summary>An immutable collection of <seealso cref="IClientAPI"/>
+        /// references</summary>
+        private IClientAPI[] m_array;
+        /// <summary>Synchronization object for writing to the collections</summary>
+        private object m_syncRoot = new object();
 
         /// <summary>Number of clients in the collection</summary>
-        public int Count { get { return m_dict.Count; } }
+        public int Count { get { return m_dict1.Count; } }
 
         /// <summary>
         /// Default constructor
         /// </summary>
         public ClientManager()
         {
-            m_dict = new ImmutableMap<UUID, IClientAPI>(new UUIDComparer());
-            m_dict2 = new ImmutableMap<IPEndPoint, IClientAPI>(new IPEndPointComparer());
+            m_dict1 = new Dictionary<UUID, IClientAPI>();
+            m_dict2 = new Dictionary<IPEndPoint, IClientAPI>();
+            m_array = new IClientAPI[0];
         }
 
         /// <summary>
@@ -102,20 +74,26 @@ namespace OpenSim.Framework
         /// otherwise false if the given key already existed in the collection</returns>
         public bool Add(IClientAPI value)
         {
-            lock (m_writeLock)
+            lock (m_syncRoot)
             {
-                if (!m_dict.ContainsKey(value.AgentId) && !m_dict2.ContainsKey(value.RemoteEndPoint))
-                {
-                    m_dict = m_dict.Add(value.AgentId, value);
-                    m_dict2 = m_dict2.Add(value.RemoteEndPoint, value);
-
-                    return true;
-                }
-                else
-                {
+                if (m_dict1.ContainsKey(value.AgentId) || m_dict2.ContainsKey(value.RemoteEndPoint))
                     return false;
-                }
+
+                m_dict1[value.AgentId] = value;
+                m_dict2[value.RemoteEndPoint] = value;
+
+                IClientAPI[] oldArray = m_array;
+                int oldLength = oldArray.Length;
+
+                IClientAPI[] newArray = new IClientAPI[oldLength + 1];
+                for (int i = 0; i < oldLength; i++)
+                    newArray[i] = oldArray[i];
+                newArray[oldLength] = value;
+
+                m_array = newArray;
             }
+
+            return true;
         }
 
         /// <summary>
@@ -126,21 +104,31 @@ namespace OpenSim.Framework
         /// was not present in the collection</returns>
         public bool Remove(UUID key)
         {
-            lock (m_writeLock)
+            lock (m_syncRoot)
             {
-                IClientAPI client;
-
-                if (m_dict.TryGetValue(key, out client))
+                IClientAPI value;
+                if (m_dict1.TryGetValue(key, out value))
                 {
-                    m_dict = m_dict.Delete(key);
-                    m_dict2 = m_dict2.Delete(client.RemoteEndPoint);
+                    m_dict1.Remove(key);
+                    m_dict2.Remove(value.RemoteEndPoint);
+
+                    IClientAPI[] oldArray = m_array;
+                    int oldLength = oldArray.Length;
+
+                    IClientAPI[] newArray = new IClientAPI[oldLength - 1];
+                    int j = 0;
+                    for (int i = 0; i < oldLength; i++)
+                    {
+                        if (oldArray[i] != value)
+                            newArray[j++] = oldArray[i];
+                    }
+
+                    m_array = newArray;
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
             }
+
+            return false;
         }
 
         /// <summary>
@@ -148,10 +136,11 @@ namespace OpenSim.Framework
         /// </summary>
         public void Clear()
         {
-            lock (m_writeLock)
+            lock (m_syncRoot)
             {
-                m_dict = new ImmutableMap<UUID, IClientAPI>(new UUIDComparer());
-                m_dict2 = new ImmutableMap<IPEndPoint, IClientAPI>(new IPEndPointComparer());
+                m_dict1.Clear();
+                m_dict2.Clear();
+                m_array = new IClientAPI[0];
             }
         }
 
@@ -162,7 +151,7 @@ namespace OpenSim.Framework
         /// <returns>True if the UUID was found in the collection, otherwise false</returns>
         public bool ContainsKey(UUID key)
         {
-            return m_dict.ContainsKey(key);
+            return m_dict1.ContainsKey(key);
         }
 
         /// <summary>
@@ -183,7 +172,12 @@ namespace OpenSim.Framework
         /// <returns>True if the lookup succeeded, otherwise false</returns>
         public bool TryGetValue(UUID key, out IClientAPI value)
         {
-            return m_dict.TryGetValue(key, out value);
+            try { return m_dict1.TryGetValue(key, out value); }
+            catch (Exception)
+            {
+                value = null;
+                return false;
+            }
         }
 
         /// <summary>
@@ -194,7 +188,12 @@ namespace OpenSim.Framework
         /// <returns>True if the lookup succeeded, otherwise false</returns>
         public bool TryGetValue(IPEndPoint key, out IClientAPI value)
         {
-            return m_dict2.TryGetValue(key, out value);
+            try { return m_dict2.TryGetValue(key, out value); }
+            catch (Exception)
+            {
+                value = null;
+                return false;
+            }
         }
 
         /// <summary>
@@ -204,7 +203,20 @@ namespace OpenSim.Framework
         /// <param name="action">Action to perform on each element</param>
         public void ForEach(Action<IClientAPI> action)
         {
-            Parallel.ForEach<IClientAPI>(m_dict.Values, action);
+            IClientAPI[] localArray = m_array;
+            Parallel.ForEach<IClientAPI>(localArray, action);
+        }
+
+        /// <summary>
+        /// Performs a given task synchronously for each of the elements in
+        /// the collection
+        /// </summary>
+        /// <param name="action">Action to perform on each element</param>
+        public void ForEachSync(Action<IClientAPI> action)
+        {
+            IClientAPI[] localArray = m_array;
+            for (int i = 0; i < localArray.Length; i++)
+                action(localArray[i]);
         }
     }
 }

@@ -933,7 +933,7 @@ namespace OpenSim
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
                         {
-                            scene.ClientManager.ForEach(
+                            scene.ClientManager.ForEachSync(
                                 delegate(IClientAPI client)
                                 {
                                     connections.AppendFormat("{0}: {1} ({2}) from {3} on circuit {4}\n",
