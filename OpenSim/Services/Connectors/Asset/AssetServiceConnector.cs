@@ -298,7 +298,7 @@ namespace OpenSim.Services.Connectors
                 return;
             }
 
-            AssetBase asset = asset = m_Cache.Get(assetID.ToString());
+            AssetBase asset = m_Cache.Get(assetID.ToString());
 
             if (asset == null)
             {
