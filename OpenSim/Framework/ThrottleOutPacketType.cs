@@ -31,13 +31,23 @@ namespace OpenSim.Framework
 {
     public enum ThrottleOutPacketType : int
     {
-        Unknown = -1, // Also doubles as 'do not throttle'
+        /// <summary>Unthrottled packets</summary>
+        Unknown = -1,
+        /// <summary>Packets that are being resent</summary>
         Resend = 0,
+        /// <summary>Terrain data</summary>
         Land = 1,
+        /// <summary>Wind data</summary>
         Wind = 2,
+        /// <summary>Cloud data</summary>
         Cloud = 3,
-        Task = 4,
-        Texture = 5,
-        Asset = 6,
+        /// <summary>Texture assets</summary>
+        Texture = 4,
+        /// <summary>Non-texture assets</summary>
+        Asset = 5,
+        /// <summary>Avatar and primitive data</summary>
+        State = 6,
+        /// <summary>Any packets that do not fit into the other throttles</summary>
+        Task = 7,
     }
 }

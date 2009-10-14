@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.ObjectData[0].ID = localID;
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
-            OutPacket(kill, ThrottleOutPacketType.Task);
+            OutPacket(kill, ThrottleOutPacketType.State);
         }
 
         /// <summary>
@@ -1817,7 +1817,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             sendXfer.XferID.ID = xferID;
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
-            OutPacket(sendXfer, ThrottleOutPacketType.Task);
+            OutPacket(sendXfer, ThrottleOutPacketType.Asset);
         }
 
         public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
@@ -2099,7 +2099,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.AgentData.SessionID = SessionId;
             packet.Header.Reliable = false;
             packet.Header.Zerocoded = true;
-            OutPacket(packet, ThrottleOutPacketType.Task);
+            OutPacket(packet, ThrottleOutPacketType.State);
         }
 
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
@@ -3122,7 +3122,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
-            OutPacket(avp, ThrottleOutPacketType.Task);
+            OutPacket(avp, ThrottleOutPacketType.State);
         }
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
@@ -3262,6 +3262,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 terse.Header.Reliable = false;
                 terse.Header.Zerocoded = true;
+                // FIXME: Move this to ThrottleOutPacketType.State when the real prioritization code is committed
                 OutPacket(terse, ThrottleOutPacketType.Task);
 
                 if (m_avatarTerseUpdates.Count == 0)
@@ -3506,7 +3507,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.Task);
+                OutPacket(outPacket, ThrottleOutPacketType.State);
 
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
                     lock (m_primFullUpdateTimer)
@@ -3596,7 +3597,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 outPacket.Header.Reliable = false;
                 outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.Task);
+                OutPacket(outPacket, ThrottleOutPacketType.State);
 
                 if (m_primTerseUpdates.Count == 0)
                     lock (m_primTerseUpdateTimer)
