@@ -339,12 +339,6 @@ namespace OpenSim.Client.MXP.PacketHandler
                                 m_clients.Add(client);
                                 m_log.Debug("[MXP ClientStack]: Created ClientView.");
 
-
-                                m_log.Debug("[MXP ClientStack]: Adding ClientView to Scene...");
-                                scene.ClientManager.Add(client.AgentId, client.RemoteEndPoint, client);
-                                m_log.Debug("[MXP ClientStack]: Added ClientView to Scene.");
-
-
                                 client.MXPSendSynchronizationBegin(m_scenes[new UUID(joinRequestMessage.BubbleId)].SceneContents.GetTotalObjectsCount());
 
                                 m_log.Debug("[MXP ClientStack]: Starting ClientView...");

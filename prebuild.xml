@@ -3497,7 +3497,6 @@
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Serialization"/>
-      <Reference name="OpenSim.Framework.Serialization.External"/>
       <Reference name="log4net.dll"/>
       <Reference name="nunit.framework.dll" />
 

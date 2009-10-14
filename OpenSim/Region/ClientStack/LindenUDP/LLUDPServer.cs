@@ -646,7 +646,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 client.OnConnectionClosed += ConnectionClosedHandler;
 
                 // Start the IClientAPI
-                m_scene.ClientManager.Add(client);
                 client.Start();
             }
             else
@@ -658,10 +657,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void RemoveClient(LLUDPClient udpClient)
         {
-            // Remove this client from the scene ClientManager
+            // Remove this client from the scene
             IClientAPI client;
             if (m_scene.ClientManager.TryGetValue(udpClient.AgentID, out client))
-                Util.FireAndForget(delegate(object o) { client.Close(); });
+                client.Close();
         }
 
         private void AcknowledgePacket(LLUDPClient client, uint ack, int currentTime, bool fromResend)
@@ -810,19 +809,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void LogoutHandler(IClientAPI client)
         {
             client.OnLogout -= LogoutHandler;
-
             client.SendLogoutPacket();
-
-            if (client is LLClientView)
-                RemoveClient(((LLClientView)client).UDPClient);
         }
 
         private void ConnectionClosedHandler(IClientAPI client)
         {
             client.OnConnectionClosed -= ConnectionClosedHandler;
-
-            if (client is LLClientView)
-                RemoveClient(((LLClientView)client).UDPClient);
+            RemoveClient(((LLClientView)client).UDPClient);
         }
     }
 }

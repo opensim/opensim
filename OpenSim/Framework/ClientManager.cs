@@ -134,6 +134,20 @@ namespace OpenSim.Framework
             }
         }
 
+        public void Remove(UUID key)
+        {
+            lock (m_writeLock)
+            {
+                IClientAPI client;
+
+                if (m_dict.TryGetValue(key, out client))
+                {
+                    m_dict = m_dict.Delete(key);
+                    m_dict2 = m_dict2.Delete(client.RemoteEndPoint);
+                }
+            }
+        }
+
         /// <summary>
         /// Resets the client collection
         /// </summary>

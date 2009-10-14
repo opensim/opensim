@@ -2363,6 +2363,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
+            ClientManager.Add(client);
+
             CheckHeartbeat();
             SubscribeToClientEvents(client);
             ScenePresence presence;
@@ -3002,7 +3004,9 @@ namespace OpenSim.Region.Framework.Scenes
                     agentTransactions.RemoveAgentAssetTransactions(agentID);
                 }
 
+                // Remove the avatar from the scene
                 m_sceneGraph.RemoveScenePresence(agentID);
+                ClientManager.Remove(agentID);
 
                 try
                 {

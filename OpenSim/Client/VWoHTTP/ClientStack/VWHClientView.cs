@@ -207,6 +207,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             get { throw new System.NotImplementedException(); }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
         public event GenericMessage OnGenericMessage = delegate { };
         public event ImprovedInstantMessage OnInstantMessage = delegate { };
         public event ChatMessage OnChatFromClient = delegate { };

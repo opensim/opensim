@@ -324,6 +324,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region Properties
 
         public LLUDPClient UDPClient { get { return m_udpClient; } }
+        public IPEndPoint RemoteEndPoint { get { return m_udpClient.RemoteEndPoint; } }
         public UUID SecureSessionId { get { return m_secureSessionId; } }
         public IScene Scene { get { return m_scene; } }
         public UUID SessionId { get { return m_sessionId; } }
@@ -431,7 +432,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Remove ourselves from the scene
             m_scene.RemoveClient(AgentId);
-            m_scene.ClientManager.Remove(this);
 
             //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //GC.Collect();
@@ -586,11 +586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         # region Setup
 
-        /// <summary>
-        /// Starts up the timers to check the client and resend unacked packets
-        /// Adds the client to the OpenSim.Region.Framework.Scenes.Scene
-        /// </summary>
-        protected virtual void InitNewClient()
+        public virtual void Start()
         {
             m_avatarTerseUpdateTimer = new Timer(m_avatarTerseUpdateRate);
             m_avatarTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
@@ -607,59 +603,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene.AddNewClient(this);
 
             RefreshGroupMembership();
-        }
-
-        public virtual void Start()
-        {
-            // This sets up all the timers
-            InitNewClient();
-        }
-
-        /// <summary>
-        /// Run a user session.  This method lies at the base of the entire client thread.
-        /// </summary>
-        protected void RunUserSession()
-        {
-            try
-            {
-                
-            }
-            catch (Exception e)
-            {
-                if (e is ThreadAbortException)
-                    throw;
-
-                if (StatsManager.SimExtraStats != null)
-                    StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-
-                // Don't let a failure in an individual client thread crash the whole sim.
-                m_log.ErrorFormat(
-                    "[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.", Name, AgentId);
-                m_log.Error(e.ToString());
-
-                try
-                {
-                    // Make an attempt to alert the user that their session has crashed
-                    AgentAlertMessagePacket packet
-                        = BuildAgentAlertPacket(
-                            "Unfortunately the session for this client on the server has crashed.\n"
-                                + "Any further actions taken will not be processed.\n"
-                                + "Please relog", true);
-
-                    OutPacket(packet, ThrottleOutPacketType.Unknown);
-
-                    // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
-                    // listeners yet, though.
-                    Logout(this);
-                }
-                catch (Exception e2)
-                {
-                    if (e2 is ThreadAbortException)
-                        throw;
-
-                    m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
-                }
-            }
         }
 
         # endregion

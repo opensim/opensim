@@ -833,6 +833,11 @@ namespace OpenSim.Region.Examples.SimpleModule
             set { m_circuitCode = value; }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode); }
+        }
+
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
         {
 
