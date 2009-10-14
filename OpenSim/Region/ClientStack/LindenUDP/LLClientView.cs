@@ -433,13 +433,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Remove ourselves from the scene
             m_scene.RemoveClient(AgentId);
 
-            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
-            //GC.Collect();
-            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
-
-            // FIXME: Is this still necessary?
-            //Thread.Sleep(2000);
-
             // Shut down timers. Thread Context of this method is murky.   Lock all timers
             if (m_avatarTerseUpdateTimer.Enabled)
                 lock (m_avatarTerseUpdateTimer)
@@ -461,6 +454,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Disable UDP handling for this client
             m_udpClient.Shutdown();
+
+            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //GC.Collect();
+            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
         }
 
         public void Kick(string message)

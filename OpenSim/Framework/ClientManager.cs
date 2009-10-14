@@ -121,20 +121,10 @@ namespace OpenSim.Framework
         /// <summary>
         /// Remove a client from the collection
         /// </summary>
-        /// <param name="value">Reference to the client object</param>
-        public void Remove(IClientAPI value)
-        {
-            lock (m_writeLock)
-            {
-                if (m_dict.ContainsKey(value.AgentId))
-                    m_dict = m_dict.Delete(value.AgentId);
-
-                if (m_dict2.ContainsKey(value.RemoteEndPoint))
-                    m_dict2 = m_dict2.Delete(value.RemoteEndPoint);
-            }
-        }
-
-        public void Remove(UUID key)
+        /// <param name="key">UUID of the client to remove</param>
+        /// <returns>True if a client was removed, or false if the given UUID
+        /// was not present in the collection</returns>
+        public bool Remove(UUID key)
         {
             lock (m_writeLock)
             {
@@ -144,6 +134,11 @@ namespace OpenSim.Framework
                 {
                     m_dict = m_dict.Delete(key);
                     m_dict2 = m_dict2.Delete(client.RemoteEndPoint);
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
         }

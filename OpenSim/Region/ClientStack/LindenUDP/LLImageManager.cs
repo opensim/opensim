@@ -213,13 +213,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_syncRoot)
             {
-
                 if (m_priorityQueue.Count > 0)
                 {
-                    try
-                    {
-                        image = m_priorityQueue.FindMax();
-                    }
+                    try { image = m_priorityQueue.FindMax(); }
                     catch (Exception) { }
                 }
             }

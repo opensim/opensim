@@ -80,7 +80,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Packets we have sent that need to be ACKed by the client</summary>
         public readonly UnackedPacketCollection NeedAcks = new UnackedPacketCollection();
         /// <summary>ACKs that are queued up, waiting to be sent to the client</summary>
-        public readonly LocklessQueue<uint> PendingAcks = new LocklessQueue<uint>();
+        public readonly OpenSim.Framework.LocklessQueue<uint> PendingAcks = new OpenSim.Framework.LocklessQueue<uint>();
 
         /// <summary>Current packet sequence number</summary>
         public int CurrentSequence;
@@ -127,13 +127,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Throttle rate defaults and limits</summary>
         private readonly ThrottleRates defaultThrottleRates;
         /// <summary>Outgoing queues for throttled packets</summary>
-        private readonly LocklessQueue<OutgoingPacket>[] packetOutboxes = new LocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
+        private readonly OpenSim.Framework.LocklessQueue<OutgoingPacket>[] packetOutboxes = new OpenSim.Framework.LocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
         /// <summary>A container that can hold one packet for each outbox, used to store
         /// dequeued packets that are being held for throttling</summary>
         private readonly OutgoingPacket[] nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
         /// <summary>An optimization to store the length of dequeued packets being held
         /// for throttling. This avoids expensive calls to Packet.Length</summary>
         private readonly int[] nextPacketLengths = new int[THROTTLE_CATEGORY_COUNT];
+        /// <summary>Flags to prevent queue empty callbacks from repeatedly firing
+        /// before the callbacks have a chance to put packets in the queue</summary>
+        private readonly bool[] queueEmptySent = new bool[THROTTLE_CATEGORY_COUNT];
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer udpServer;
 
@@ -156,7 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             defaultThrottleRates = rates;
 
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
-                packetOutboxes[i] = new LocklessQueue<OutgoingPacket>();
+                packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
 
             throttle = new TokenBucket(parentThrottle, 0, 0);
             throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
@@ -182,6 +185,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Shutdown()
         {
             IsConnected = false;
+            NeedAcks.Clear();
+            for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
+            {
+                packetOutboxes[i].Clear();
+                nextPackets[i] = null;
+            }
+            OnPacketStats = null;
+            OnQueueEmpty = null;
         }
 
         /// <summary>
@@ -322,7 +333,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (category >= 0 && category < packetOutboxes.Length)
             {
-                LocklessQueue<OutgoingPacket> queue = packetOutboxes[category];
+                OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = packetOutboxes[category];
                 TokenBucket bucket = throttleCategories[category];
 
                 if (throttleCategories[category].RemoveTokens(packet.Buffer.DataLength))
@@ -354,7 +365,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool DequeueOutgoing()
         {
             OutgoingPacket packet;
-            LocklessQueue<OutgoingPacket> queue;
+            OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
             bool packetSent = false;
 
@@ -382,6 +393,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     queue = packetOutboxes[i];
                     if (queue.Dequeue(out packet))
                     {
+                        // Reset the flag for firing this queue's OnQueueEmpty callback
+                        // now that we have dequeued a packet
+                        queueEmptySent[i] = false;
+
                         // A packet was pulled off the queue. See if we have
                         // enough tokens in the bucket to send it out
                         if (bucket.RemoveTokens(packet.Buffer.DataLength))
@@ -397,13 +412,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             nextPackets[i] = packet;
                             nextPacketLengths[i] = packet.Buffer.DataLength;
                         }
+
+                        // If the queue is empty after this dequeue, fire the queue
+                        // empty callback now so it has a chance to fill before we 
+                        // get back here
+                        if (queue.Count == 0)
+                            FireQueueEmpty(i);
                     }
                     else
                     {
                         // No packets in this queue. Fire the queue empty callback
-                        QueueEmpty callback = OnQueueEmpty;
-                        if (callback != null)
-                            callback((ThrottleOutPacketType)i);
+                        // if it has not been called recently
+                        FireQueueEmpty(i);
                     }
                 }
             }
@@ -432,8 +452,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Always round retransmission timeout up to two seconds
             RTO = Math.Max(2000, (int)(SRTT + Math.Max(G, K * RTTVAR)));
-            //Logger.Debug("Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
+            //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
             //    RTTVAR + " based on new RTT of " + r + "ms");
+        }
+
+        private void FireQueueEmpty(int queueIndex)
+        {
+            if (!queueEmptySent[queueIndex])
+            {
+                queueEmptySent[queueIndex] = true;
+
+                QueueEmpty callback = OnQueueEmpty;
+                if (callback != null)
+                    Util.FireAndForget(delegate(object o) { callback((ThrottleOutPacketType)(int)o); }, queueIndex);
+            }
         }
     }
 }

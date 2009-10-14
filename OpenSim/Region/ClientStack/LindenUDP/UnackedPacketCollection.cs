@@ -103,6 +103,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
+        /// Removes all elements from the collection
+        /// </summary>
+        public void Clear()
+        {
+            lock (SyncRoot)
+                packets.Clear();
+        }
+
+        /// <summary>
         /// Gets the packet with the lowest sequence number
         /// </summary>
         /// <returns>The packet with the lowest sequence number, or null if the

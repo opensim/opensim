@@ -332,8 +332,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void ResendUnacked(LLUDPClient udpClient)
         {
-            if (udpClient.NeedAcks.Count > 0)
+            if (udpClient.IsConnected && udpClient.NeedAcks.Count > 0)
             {
+                // Disconnect an agent if no packets are received for some time
+                //FIXME: Make 60 an .ini setting
+                if (Environment.TickCount - udpClient.TickLastPacketReceived > 1000 * 60)
+                {
+                    m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
+
+                    RemoveClient(udpClient);
+                    return;
+                }
+
+                // Get a list of all of the packets that have been sitting unacked longer than udpClient.RTO
                 List<OutgoingPacket> expiredPackets = udpClient.NeedAcks.GetExpiredPackets(udpClient.RTO);
 
                 if (expiredPackets != null)
@@ -343,48 +354,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         OutgoingPacket outgoingPacket = expiredPackets[i];
 
-                        // FIXME: Make this an .ini setting
-                        if (outgoingPacket.ResendCount < 3)
-                        {
-                            //Logger.Debug(String.Format("Resending packet #{0} (attempt {1}), {2}ms have passed",
-                            //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount));
+                        //m_log.DebugFormat("[LLUDPSERVER]: Resending packet #{0} (attempt {1}), {2}ms have passed",
+                        //    outgoingPacket.SequenceNumber, outgoingPacket.ResendCount, Environment.TickCount - outgoingPacket.TickCount);
 
-                            // Set the resent flag
-                            outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
-                            outgoingPacket.Category = ThrottleOutPacketType.Resend;
+                        // Set the resent flag
+                        outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
+                        outgoingPacket.Category = ThrottleOutPacketType.Resend;
 
-                            // The TickCount will be set to the current time when the packet
-                            // is actually sent out again
-                            outgoingPacket.TickCount = 0;
+                        // The TickCount will be set to the current time when the packet
+                        // is actually sent out again
+                        outgoingPacket.TickCount = 0;
 
-                            // Bump up the resend count on this packet
-                            Interlocked.Increment(ref outgoingPacket.ResendCount);
-                            //Interlocked.Increment(ref Stats.ResentPackets);
+                        // Bump up the resend count on this packet
+                        Interlocked.Increment(ref outgoingPacket.ResendCount);
+                        //Interlocked.Increment(ref Stats.ResentPackets);
 
-                            // Queue or (re)send the packet
-                            if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
-                                SendPacketFinal(outgoingPacket);
-                        }
-                        else
-                        {
-                            m_log.DebugFormat("[LLUDPSERVER]: Dropping packet #{0} for agent {1} after {2} failed attempts",
-                                outgoingPacket.SequenceNumber, outgoingPacket.Client.RemoteEndPoint, outgoingPacket.ResendCount);
-
-                            lock (udpClient.NeedAcks.SyncRoot)
-                                udpClient.NeedAcks.RemoveUnsafe(outgoingPacket.SequenceNumber);
-
-                            //Interlocked.Increment(ref Stats.DroppedPackets);
-
-                            // Disconnect an agent if no packets are received for some time
-                            //FIXME: Make 60 an .ini setting
-                            if (Environment.TickCount - udpClient.TickLastPacketReceived > 1000 * 60)
-                            {
-                                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
-
-                                RemoveClient(udpClient);
-                                return;
-                            }
-                        }
+                        // Requeue or resend the packet
+                        if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
+                            SendPacketFinal(outgoingPacket);
                     }
                 }
             }
@@ -402,6 +389,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
             LLUDPClient udpClient = outgoingPacket.Client;
+
+            if (!udpClient.IsConnected)
+                return;
 
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount;
@@ -481,14 +471,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (MalformedDataException)
             {
-                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse packet:\n{0}",
-                    Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
+                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse packet from {0}:\n{1}",
+                    buffer.RemoteEndPoint, Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
             }
 
             // Fail-safe check
             if (packet == null)
             {
-                m_log.Warn("[LLUDPSERVER]: Couldn't build a message from the incoming data");
+                m_log.Warn("[LLUDPSERVER]: Couldn't build a message from incoming data " + buffer.DataLength +
+                    " bytes long from " + buffer.RemoteEndPoint);
                 return;
             }
 
@@ -512,6 +503,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             udpClient = ((LLClientView)client).UDPClient;
+
+            if (!udpClient.IsConnected)
+                return;
 
             #endregion Packet to Client Mapping
 
@@ -643,7 +637,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // Create the LLClientView
                 LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                 client.OnLogout += LogoutHandler;
-                client.OnConnectionClosed += ConnectionClosedHandler;
 
                 // Start the IClientAPI
                 client.Start();
@@ -745,17 +738,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             LLUDPClient udpClient = ((LLClientView)client).UDPClient;
 
-                            if (udpClient.DequeueOutgoing())
-                                packetSent = true;
-                            if (resendUnacked)
-                                ResendUnacked(udpClient);
-                            if (sendAcks)
+                            if (udpClient.IsConnected)
                             {
-                                SendAcks(udpClient);
-                                udpClient.SendPacketStats();
+                                if (udpClient.DequeueOutgoing())
+                                    packetSent = true;
+                                if (resendUnacked)
+                                    ResendUnacked(udpClient);
+                                if (sendAcks)
+                                {
+                                    SendAcks(udpClient);
+                                    udpClient.SendPacketStats();
+                                }
+                                if (sendPings)
+                                    SendPing(udpClient);
                             }
-                            if (sendPings)
-                                SendPing(udpClient);
                         }
                     }
                 );
@@ -808,14 +804,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void LogoutHandler(IClientAPI client)
         {
-            client.OnLogout -= LogoutHandler;
             client.SendLogoutPacket();
-        }
-
-        private void ConnectionClosedHandler(IClientAPI client)
-        {
-            client.OnConnectionClosed -= ConnectionClosedHandler;
-            RemoveClient(((LLClientView)client).UDPClient);
         }
     }
 }
