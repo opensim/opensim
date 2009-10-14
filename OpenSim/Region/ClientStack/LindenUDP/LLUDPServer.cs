@@ -147,7 +147,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
             }
 
-            // TODO: Config support for throttling the entire connection
             m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
             m_throttleRates = new ThrottleRates(configSource);
         }

@@ -41,13 +41,14 @@ namespace OpenSim.Framework
         Wind = 2,
         /// <summary>Cloud data</summary>
         Cloud = 3,
-        /// <summary>Texture assets</summary>
-        Texture = 4,
-        /// <summary>Non-texture assets</summary>
-        Asset = 5,
-        /// <summary>Avatar and primitive data</summary>
-        State = 6,
         /// <summary>Any packets that do not fit into the other throttles</summary>
-        Task = 7,
+        Task = 4,
+        /// <summary>Texture assets</summary>
+        Texture = 5,
+        /// <summary>Non-texture assets</summary>
+        Asset = 6,
+        /// <summary>Avatar and primitive data</summary>
+        /// <remarks>This is a sub-category of Task</remarks>
+        State = 7,
     }
 }

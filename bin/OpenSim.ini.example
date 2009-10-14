@@ -357,19 +357,19 @@
     ; net.core.rmem_max=X")
     ;client_socket_rcvbuf_size = 8388608
     
-    ; Maximum outbound bits per second for a single scene. This can be used to
+    ; Maximum outbound bytes per second for a single scene. This can be used to
     ; throttle total outbound UDP traffic for a simulator. The default value is
     ; 0, meaning no throttling at the scene level. The example given here is
     ; 20 megabits
-    ;scene_throttle_max_bps = 20971520
+    ;scene_throttle_max_bps = 2621440
 
     ; Maximum bits per second to send to any single client. This will override 
     ; the user's viewer preference settings. The default value is 0, meaning no
     ; aggregate throttling on clients (only per-category throttling). The
     ; example given here is 1.5 megabits
-    ;client_throttle_max_bps = 1572864
+    ;client_throttle_max_bps = 196608
     
-    ; Per-client bits per second rates for the various throttle categories.
+    ; Per-client bytes per second rates for the various throttle categories.
     ; These are default values that will be overriden by clients
     ;resend_default = 12500
     ;land_default = 500
@@ -378,16 +378,19 @@
     ;task_default = 500
     ;texture_default = 500
     ;asset_default = 500
+    ;state_default = 500
     
-    ; Per-client maximum burst rates in bits per second for the various throttle
-    ; categories. These are default values that will be overriden by clients
+    ; Per-client maximum burst rates in bytes per second for the various
+    ; throttle categories. These are default values that will be overriden by
+    ; clients
     ;resend_limit = 18750
     ;land_limit = 29750
     ;wind_limit = 18750
     ;cloud_limit = 18750
-    ;task_limit = 55750
+    ;task_limit = 18750
     ;texture_limit = 55750
     ;asset_limit = 27500
+    ;state_limit = 37000
 
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
