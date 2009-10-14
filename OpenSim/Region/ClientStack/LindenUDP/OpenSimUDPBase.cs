@@ -73,6 +73,7 @@ namespace OpenMetaverse
         /// </summary>
         /// <param name="bindAddress">Local IP address to bind the server to</param>
         /// <param name="port">Port to listening for incoming UDP packets on</param>
+        /// 
         public OpenSimUDPBase(IPAddress bindAddress, int port)
         {
             m_localBindAddress = bindAddress;
@@ -82,25 +83,31 @@ namespace OpenMetaverse
         /// <summary>
         /// Start the UDP server
         /// </summary>
+        /// <param name="recvBufferSize">The size of the receive buffer for 
+        /// the UDP socket. This value is passed up to the operating system 
+        /// and used in the system networking stack. Use zero to leave this
+        /// value as the default</param>
         /// <remarks>This method will attempt to set the SIO_UDP_CONNRESET flag
         /// on the socket to get newer versions of Windows to behave in a sane
         /// manner (not throwing an exception when the remote side resets the
         /// connection). This call is ignored on Mono where the flag is not
         /// necessary</remarks>
-        public void Start()
+        public void Start(int recvBufferSize)
         {
             if (m_shutdownFlag)
             {
                 const int SIO_UDP_CONNRESET = -1744830452;
 
                 IPEndPoint ipep = new IPEndPoint(m_localBindAddress, m_udpPort);
+
                 m_udpSocket = new Socket(
                     AddressFamily.InterNetwork,
                     SocketType.Dgram,
                     ProtocolType.Udp);
+
                 try
                 {
-                    // this udp socket flag is not supported under mono, 
+                    // This udp socket flag is not supported under mono, 
                     // so we'll catch the exception and continue
                     m_udpSocket.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
                     m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag set");
@@ -109,6 +116,10 @@ namespace OpenMetaverse
                 {
                     m_log.Debug("[UDPBASE]: SIO_UDP_CONNRESET flag not supported on this platform, ignoring");
                 }
+
+                if (recvBufferSize != 0)
+                    m_udpSocket.ReceiveBufferSize = recvBufferSize;
+
                 m_udpSocket.Bind(ipep);
 
                 // we're not shutting down, we're starting up

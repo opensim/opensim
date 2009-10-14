@@ -72,14 +72,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_imageManager = imageManager;
         }
 
-        public bool SendPackets(LLClientView client, int maxpack)
+        /// <summary>
+        /// Sends packets for this texture to a client until packetsToSend is 
+        /// hit or the transfer completes
+        /// </summary>
+        /// <param name="client">Reference to the client that the packets are destined for</param>
+        /// <param name="packetsToSend">Maximum number of packets to send during this call</param>
+        /// <param name="packetsSent">Number of packets sent during this call</param>
+        /// <returns>True if the transfer completes at the current discard level, otherwise false</returns>
+        public bool SendPackets(LLClientView client, int packetsToSend, out int packetsSent)
         {
-            if (client == null)
-                return false;
+            packetsSent = 0;
 
             if (m_currentPacket <= m_stopPacket)
             {
-                int count = 0;
                 bool sendMore = true;
 
                 if (!m_sentInfo || (m_currentPacket == 0))
@@ -88,25 +94,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     m_sentInfo = true;
                     ++m_currentPacket;
-                    ++count;
+                    ++packetsSent;
                 }
                 if (m_currentPacket < 2)
                 {
                     m_currentPacket = 2;
                 }
                 
-                while (sendMore && count < maxpack && m_currentPacket <= m_stopPacket)
+                while (sendMore && packetsSent < packetsToSend && m_currentPacket <= m_stopPacket)
                 {
                     sendMore = SendPacket(client);
                     ++m_currentPacket;
-                    ++count;
+                    ++packetsSent;
                 }
-
-                if (m_currentPacket > m_stopPacket)
-                    return true;
             }
 
-            return false;
+            return (m_currentPacket > m_stopPacket);
         }
 
         public void RunUpdate()

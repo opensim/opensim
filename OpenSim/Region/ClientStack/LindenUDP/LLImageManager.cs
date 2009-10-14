@@ -162,32 +162,38 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public bool ProcessImageQueue(int count, int maxpack)
+        public bool ProcessImageQueue(int packetsToSend)
         {
-            J2KImage imagereq;
-            int numCollected = 0;
-
             m_lastloopprocessed = DateTime.Now.Ticks;
+            int packetsSent = 0;
 
-            // This can happen during Close()
-            if (m_client == null)
-                return false;
-
-            while ((imagereq = GetHighestPriorityImage()) != null)
+            while (packetsSent < packetsToSend)
             {
-                if (imagereq.IsDecoded == true)
+                J2KImage image = GetHighestPriorityImage();
+
+                // If null was returned, the texture priority queue is currently empty
+                if (image == null)
+                    return false;
+
+                if (image.IsDecoded)
                 {
-                    ++numCollected;
+                    int sent;
+                    bool imageDone = image.SendPackets(m_client, packetsToSend - packetsSent, out sent);
 
-                    if (imagereq.SendPackets(m_client, maxpack))
-                    {
-                        // Send complete. Destroy any knowledge of this transfer
-                        RemoveImageFromQueue(imagereq);
-                    }
+                    packetsSent += sent;
+
+                    // If the send is complete, destroy any knowledge of this transfer
+                    if (imageDone)
+                        RemoveImageFromQueue(image);
                 }
-
-                if (numCollected == count)
-                    break;
+                else
+                {
+                    // TODO: This is a limitation of how LLImageManager is currently
+                    // written. Undecoded textures should not be going into the priority
+                    // queue, because a high priority undecoded texture will clog up the
+                    // pipeline for a client
+                    return true;
+                }
             }
 
             return m_priorityQueue.Count > 0;
@@ -199,10 +205,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Close()
         {
             m_shuttingdown = true;
-            m_priorityQueue = null;
-            m_j2kDecodeModule = null;
-            m_assetCache = null;
-            m_client = null;
         }
 
         #region Priority Queue Helpers

@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using log4net;
 using OpenSim.Framework;
 using OpenMetaverse;
 
@@ -59,6 +60,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public sealed class LLUDPClient
     {
+        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // FIXME: Make this a config setting
         /// <summary>Percentage of the task throttle category that is allocated to avatar and prim
         /// state updates</summary>
@@ -136,9 +139,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>A container that can hold one packet for each outbox, used to store
         /// dequeued packets that are being held for throttling</summary>
         private readonly OutgoingPacket[] nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
-        /// <summary>An optimization to store the length of dequeued packets being held
-        /// for throttling. This avoids expensive calls to Packet.Length</summary>
-        private readonly int[] nextPacketLengths = new int[THROTTLE_CATEGORY_COUNT];
+        /// <summary>Flags to prevent queue empty callbacks from stacking up on
+        /// top of each other</summary>
+        private readonly bool[] onQueueEmptyRunning = new bool[THROTTLE_CATEGORY_COUNT];
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer udpServer;
 
@@ -163,7 +166,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
                 packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
 
-            throttle = new TokenBucket(parentThrottle, 0, 0);
+            throttle = new TokenBucket(parentThrottle, rates.TotalLimit, rates.Total);
             throttleCategories = new TokenBucket[THROTTLE_CATEGORY_COUNT];
             throttleCategories[(int)ThrottleOutPacketType.Resend] = new TokenBucket(throttle, rates.ResendLimit, rates.Resend);
             throttleCategories[(int)ThrottleOutPacketType.Land] = new TokenBucket(throttle, rates.LandLimit, rates.Land);
@@ -401,10 +404,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // This bucket was empty the last time we tried to send a packet,
                     // leaving a dequeued packet still waiting to be sent out. Try to
                     // send it again
-                    if (bucket.RemoveTokens(nextPacketLengths[i]))
+                    OutgoingPacket nextPacket = nextPackets[i];
+                    if (bucket.RemoveTokens(nextPacket.Buffer.DataLength))
                     {
                         // Send the packet
-                        udpServer.SendPacketFinal(nextPackets[i]);
+                        udpServer.SendPacketFinal(nextPacket);
                         nextPackets[i] = null;
                         packetSent = true;
                     }
@@ -426,23 +430,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         else
                         {
-                            // Save the dequeued packet and the length calculation for
-                            // the next iteration
+                            // Save the dequeued packet for the next iteration
                             nextPackets[i] = packet;
-                            nextPacketLengths[i] = packet.Buffer.DataLength;
                         }
 
                         // If the queue is empty after this dequeue, fire the queue
                         // empty callback now so it has a chance to fill before we 
                         // get back here
                         if (queue.Count == 0)
-                            FireQueueEmpty(i);
+                            BeginFireQueueEmpty(i);
                     }
                     else
                     {
                         // No packets in this queue. Fire the queue empty callback
                         // if it has not been called recently
-                        FireQueueEmpty(i);
+                        BeginFireQueueEmpty(i);
                     }
                 }
             }
@@ -450,6 +452,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return packetSent;
         }
 
+        /// <summary>
+        /// Called when an ACK packet is received and a round-trip time for a
+        /// packet is calculated. This is used to calculate the smoothed
+        /// round-trip time, round trip time variance, and finally the
+        /// retransmission timeout
+        /// </summary>
+        /// <param name="r">Round-trip time of a single packet and its
+        /// acknowledgement</param>
         public void UpdateRoundTrip(float r)
         {
             const float ALPHA = 0.125f;
@@ -475,11 +485,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //    RTTVAR + " based on new RTT of " + r + "ms");
         }
 
-        private void FireQueueEmpty(int queueIndex)
+        /// <summary>
+        /// Does an early check to see if this queue empty callback is already
+        /// running, then asynchronously firing the event
+        /// </summary>
+        /// <param name="throttleIndex">Throttle category to fire the callback
+        /// for</param>
+        private void BeginFireQueueEmpty(int throttleIndex)
         {
+            if (!onQueueEmptyRunning[throttleIndex])
+                Util.FireAndForget(FireQueueEmpty, throttleIndex);
+        }
+
+        /// <summary>
+        /// Checks to see if this queue empty callback is already running,
+        /// then firing the event
+        /// </summary>
+        /// <param name="o">Throttle category to fire the callback for, stored
+        /// as an object to match the WaitCallback delegate signature</param>
+        private void FireQueueEmpty(object o)
+        {
+            int i = (int)o;
+            ThrottleOutPacketType type = (ThrottleOutPacketType)i;
             QueueEmpty callback = OnQueueEmpty;
+
             if (callback != null)
-                Util.FireAndForget(delegate(object o) { callback((ThrottleOutPacketType)(int)o); }, queueIndex);
+            {
+                if (!onQueueEmptyRunning[i])
+                {
+                    onQueueEmptyRunning[i] = true;
+                    try { callback(type); }
+                    catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
+                    onQueueEmptyRunning[i] = false;
+                }
+            }
         }
     }
 }

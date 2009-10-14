@@ -64,12 +64,17 @@ namespace OpenSim.Services.AssetService
                 string loaderArgs = assetConfig.GetString("AssetLoaderArgs",
                         String.Empty);
 
-                m_log.InfoFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
-                m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
-                        delegate(AssetBase a)
-                        {
-                            Store(a);
-                        });
+                bool assetLoaderEnabled = assetConfig.GetBoolean("AssetLoaderEnabled", true);
+
+                if (assetLoaderEnabled)
+                {
+                    m_log.InfoFormat("[ASSET]: Loading default asset set from {0}", loaderArgs);
+                    m_AssetLoader.ForEachDefaultXmlAsset(loaderArgs,
+                            delegate(AssetBase a)
+                            {
+                                Store(a);
+                            });
+                }
                 
                 m_log.Info("[ASSET CONNECTOR]: Local asset service enabled");
             }

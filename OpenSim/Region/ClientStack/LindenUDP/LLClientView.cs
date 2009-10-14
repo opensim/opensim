@@ -313,10 +313,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_primFullUpdatesPerPacket = 14;
         protected int m_primTerseUpdateRate = 10;
         protected int m_primFullUpdateRate = 14;
-        protected int m_textureSendLimit   = 20;
-        protected int m_textureDataLimit   = 10;
         protected int m_avatarTerseUpdateRate = 50;
         protected int m_avatarTerseUpdatesPerPacket = 5;
+        /// <summary>Number of texture packets to put on the queue each time the
+        /// OnQueueEmpty event is triggered for the texture category</summary>
+        protected int m_textureSendLimit = 20;
         protected IAssetService m_assetService;
 
         #endregion Class Members
@@ -3453,7 +3454,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void ProcessTextureRequests()
         {
             if (m_imageManager != null)
-                m_imageManager.ProcessImageQueue(m_textureSendLimit, m_textureDataLimit);
+                m_imageManager.ProcessImageQueue(m_textureSendLimit);
         }
 
         void ProcessPrimFullUpdates(object sender, ElapsedEventArgs e)

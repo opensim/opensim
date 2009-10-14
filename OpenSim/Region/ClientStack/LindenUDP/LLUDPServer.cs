@@ -109,6 +109,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Location m_location;
         /// <summary>The measured resolution of Environment.TickCount</summary>
         private float m_tickCountResolution;
+        /// <summary>The size of the receive buffer for the UDP socket. This value
+        /// is passed up to the operating system and used in the system networking
+        /// stack. Use zero to leave this value as the default</summary>
+        private int m_recvBufferSize;
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public float TickCountResolution { get { return m_tickCountResolution; } }
@@ -135,6 +139,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_circuitManager = circuitManager;
 
+            IConfig config = configSource.Configs["ClientStack.LindenUDP"];
+            if (config != null)
+            {
+                m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
+            }
+
             // TODO: Config support for throttling the entire connection
             m_throttle = new TokenBucket(null, 0, 0);
             m_throttleRates = new ThrottleRates(configSource);
@@ -145,7 +155,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene == null)
                 throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
 
-            base.Start();
+            base.Start(m_recvBufferSize);
 
             // Start the incoming packet processing thread
             Thread incomingThread = new Thread(IncomingPacketHandler);
