@@ -59,6 +59,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private C5.IntervalHeap<J2KImage> m_priorityQueue = new C5.IntervalHeap<J2KImage>(10, new J2KImageComparer());
         private object m_syncRoot = new object();
 
+        private IHyperAssetService m_hyperAssets;
+
         public LLClientView Client { get { return m_client; } }
         public AssetBase MissingImage { get { return m_missingImage; } }
 
@@ -74,6 +76,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Error("[ClientView] - Couldn't set missing image asset, falling back to missing image packet. This is known to crash the client");
 
             m_j2kDecodeModule = pJ2kDecodeModule;
+            m_hyperAssets = client.Scene.RequestModuleInterface<IHyperAssetService>();
         }
 
         /// <summary>
@@ -146,6 +149,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         imgrequest = new J2KImage(this);
                         imgrequest.J2KDecoder = m_j2kDecodeModule;
                         imgrequest.AssetService = m_assetCache;
+                        imgrequest.AgentID = m_client.AgentId;
+                        imgrequest.HyperAssets = m_hyperAssets;
                         imgrequest.DiscardLevel = newRequest.DiscardLevel;
                         imgrequest.StartPacket = Math.Max(1, newRequest.PacketNumber);
                         imgrequest.Priority = newRequest.Priority;

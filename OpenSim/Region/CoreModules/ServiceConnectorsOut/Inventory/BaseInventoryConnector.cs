@@ -159,6 +159,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         /// <returns>true if the item was successfully added</returns>
         public bool AddItem(InventoryItemBase item)
         {
+            if (item == null)
+                return false;
+
             if (item.Folder == UUID.Zero)
             {
                 InventoryFolderBase f = GetFolderForType(item.Owner, (AssetType)item.AssetType);
