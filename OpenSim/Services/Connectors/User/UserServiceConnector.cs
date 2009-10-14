@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+//        private string m_ServerURI = String.Empty;
 
         public UserServicesConnector()
         {
@@ -53,7 +53,7 @@ namespace OpenSim.Services.Connectors
 
         public UserServicesConnector(string serverURI)
         {
-            m_ServerURI = serverURI.TrimEnd('/');
+//            m_ServerURI = serverURI.TrimEnd('/');
         }
 
         public UserServicesConnector(IConfigSource source)
@@ -78,7 +78,7 @@ namespace OpenSim.Services.Connectors
                 m_log.Error("[USER CONNECTOR]: No Server URI named in section UserService");
                 throw new Exception("User connector init error");
             }
-            m_ServerURI = serviceURI;
+            //m_ServerURI = serviceURI;
         }
 
         public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
