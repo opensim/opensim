@@ -1804,6 +1804,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (crossedBordery.BorderLine.Z > 0)
                     {
                         pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
                     }
                     else
                         pos.Y = ((pos.Y + Constants.RegionSize));
