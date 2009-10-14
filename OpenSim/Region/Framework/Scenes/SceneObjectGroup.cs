@@ -1234,6 +1234,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (m_targets)
                     m_targets.Clear();
+                m_scene.RemoveGroupTarget(this);
             }
 
             ScheduleGroupForFullUpdate();
@@ -1864,12 +1865,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_rootPart.UpdateFlag = 1;
                     lastPhysGroupPos = AbsolutePosition;
                 }
-                //foreach (SceneObjectPart part in m_parts.Values)
-                    //{
-                        //if (part.UpdateFlag == 0) part.UpdateFlag = 1;
-                    //}
-
-                checkAtTargets();
 
                 if (UsePhysics && ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
@@ -3114,6 +3109,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_targets.Add(handle, waypoint);
             }
+            m_scene.AddGroupTarget(this);
             return (int)handle;
         }
         
@@ -3121,12 +3117,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_targets)
             {
-                if (m_targets.ContainsKey((uint)handle))
-                    m_targets.Remove((uint)handle);
+                m_targets.Remove((uint)handle);
+                if (m_targets.Count == 0)
+                    m_scene.RemoveGroupTarget(this);
             }
         }
 
-        private void checkAtTargets()
+        public void checkAtTargets()
         {
             if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
             {

@@ -117,6 +117,8 @@ namespace OpenSim.Region.Framework.Scenes
         private volatile bool m_backingup = false;
 
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
+        
+        private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
 
         protected string m_simulatorVersion = "OpenSimulator Server";
 
@@ -246,8 +248,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
-        private int m_update_entities = 1; // Run through all objects checking for updates
-        private int m_update_entitiesquick = 200; // Run through objects that have scheduled updates checking for updates
+        private int m_update_objects = 1; // Update objects which have scheduled themselves for updates
         private int m_update_presences = 1; // Update scene presence movements
         private int m_update_events = 1;
         private int m_update_backup = 200;
@@ -979,28 +980,7 @@ namespace OpenSim.Region.Framework.Scenes
                 maintc = Environment.TickCount;
 
                 TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
-                // Aquire a lock so only one update call happens at once
-                //updateLock.WaitOne();
                 float physicsFPS = 0;
-                //m_log.Info("sadfadf" + m_neighbours.Count.ToString());
-                int agentsInScene = m_sceneGraph.GetRootAgentCount() + m_sceneGraph.GetChildAgentCount();
-
-                if (agentsInScene > 21)
-                {
-                    if (m_update_entities == 1)
-                    {
-                        m_update_entities = 5;
-                        StatsReporter.SetUpdateMS(6000);
-                    }
-                }
-                else
-                {
-                    if (m_update_entities == 5)
-                    {
-                        m_update_entities = 1;
-                        StatsReporter.SetUpdateMS(3000);
-                    }
-                }
 
                 frameMS = Environment.TickCount;
                 try
@@ -1013,30 +993,17 @@ namespace OpenSim.Region.Framework.Scenes
                         m_frame = 0;
 
                     otherMS = Environment.TickCount;
-                    // run through all entities looking for updates (slow)
-                    if (m_frame % m_update_entities == 0)
-                    {
-                        /* // Adam Experimental
-                        if (m_updateEntitiesThread == null)
-                        {
-                            m_updateEntitiesThread = new Thread(m_sceneGraph.UpdateEntities);
 
-                            ThreadTracker.Add(m_updateEntitiesThread);
-                        }
+                    // Check if any objects have reached their targets
+                    CheckAtTargets();
+ 
+                    // Update SceneObjectGroups that have scheduled themselves for updates
+                    // Objects queue their updates onto all scene presences
+                    if (m_frame % m_update_objects == 0)
+                        m_sceneGraph.UpdateObjectGroups();
 
-                        if (m_updateEntitiesThread.ThreadState == ThreadState.Stopped)
-                            m_updateEntitiesThread.Start();
-                        */
-
-                        m_sceneGraph.UpdateEntities();
-                    }
-
-                    // run through entities that have scheduled themselves for
-                    // updates looking for updates(faster)
-                    if (m_frame % m_update_entitiesquick == 0)
-                        m_sceneGraph.ProcessUpdates();
-
-                    // Run through scenepresences looking for updates
+                    // Run through all ScenePresences looking for updates
+                    // Presence updates and queued object updates for each presence are sent to clients
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
@@ -1139,6 +1106,31 @@ namespace OpenSim.Region.Framework.Scenes
                     Thread.Sleep(maintc);
             }
         }
+
+
+        public void AddGroupTarget(SceneObjectGroup grp)
+        {
+            lock(m_groupsWithTargets)
+                m_groupsWithTargets[grp.UUID] = grp;
+        }
+
+        public void RemoveGroupTarget(SceneObjectGroup grp)
+        {
+            lock(m_groupsWithTargets)
+                m_groupsWithTargets.Remove(grp.UUID);
+        }
+
+        private void CheckAtTargets()
+        {
+            lock (m_groupsWithTargets)
+            {
+                foreach (KeyValuePair<UUID, SceneObjectGroup> kvp in m_groupsWithTargets)
+                {
+                    kvp.Value.checkAtTargets();
+                }
+            }
+        }
+
 
         /// <summary>
         /// Send out simstats data to all clients
