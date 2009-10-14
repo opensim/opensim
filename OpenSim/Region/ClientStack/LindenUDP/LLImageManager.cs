@@ -184,7 +184,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     int sent;
                     bool imageDone = image.SendPackets(m_client, packetsToSend - packetsSent, out sent);
-
                     packetsSent += sent;
 
                     // If the send is complete, destroy any knowledge of this transfer
@@ -234,20 +233,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             image.PriorityQueueHandle = null;
 
             lock (m_syncRoot)
-                try
-                {
-                    m_priorityQueue.Add(ref image.PriorityQueueHandle, image);
-                }
+                try { m_priorityQueue.Add(ref image.PriorityQueueHandle, image); }
                 catch (Exception) { }
         }
 
         void RemoveImageFromQueue(J2KImage image)
         {
             lock (m_syncRoot)
-                try
-                {
-                    m_priorityQueue.Delete(image.PriorityQueueHandle);
-                }
+                try { m_priorityQueue.Delete(image.PriorityQueueHandle); }
                 catch (Exception) { }
         }
 

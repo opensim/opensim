@@ -138,15 +138,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #endregion Environment.TickCount Measurement
 
             m_circuitManager = circuitManager;
+            int sceneThrottleBps = 0;
 
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
             {
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
+                sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
             }
 
             // TODO: Config support for throttling the entire connection
-            m_throttle = new TokenBucket(null, 0, 0);
+            m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
             m_throttleRates = new ThrottleRates(configSource);
         }
 
