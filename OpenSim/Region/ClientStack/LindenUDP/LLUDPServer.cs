@@ -113,6 +113,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// is passed up to the operating system and used in the system networking
         /// stack. Use zero to leave this value as the default</summary>
         private int m_recvBufferSize;
+        /// <summary>Flag to process packets asynchronously or synchronously</summary>
+        private bool m_asyncPacketHandling;
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public float TickCountResolution { get { return m_tickCountResolution; } }
@@ -143,6 +145,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IConfig config = configSource.Configs["ClientStack.LindenUDP"];
             if (config != null)
             {
+                m_asyncPacketHandling = config.GetBoolean("async_packet_handling", false);
                 m_recvBufferSize = config.GetInt("client_socket_rcvbuf_size", 0);
                 sceneThrottleBps = config.GetInt("scene_throttle_max_bps", 0);
             }
@@ -156,7 +159,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (m_scene == null)
                 throw new InvalidOperationException("[LLUDPSERVER]: Cannot LLUDPServer.Start() without an IScene reference");
 
-            base.Start(m_recvBufferSize);
+            m_log.Info("[LLUDPSERVER]: Starting the LLUDP server in " + (m_asyncPacketHandling ? "asynchronous" : "synchronous") + " mode");
+
+            base.Start(m_recvBufferSize, m_asyncPacketHandling);
 
             // Start the incoming packet processing thread
             Thread incomingThread = new Thread(IncomingPacketHandler);

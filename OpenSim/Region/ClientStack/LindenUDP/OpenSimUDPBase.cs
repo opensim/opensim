@@ -62,6 +62,9 @@ namespace OpenMetaverse
         /// <summary>UDP socket, used in either client or server mode</summary>
         private Socket m_udpSocket;
 
+        /// <summary>Flag to process packets asynchronously or synchronously</summary>
+        private bool m_asyncPacketHandling;
+
         /// <summary>The all important shutdown flag</summary>
         private volatile bool m_shutdownFlag = true;
 
@@ -73,7 +76,6 @@ namespace OpenMetaverse
         /// </summary>
         /// <param name="bindAddress">Local IP address to bind the server to</param>
         /// <param name="port">Port to listening for incoming UDP packets on</param>
-        /// 
         public OpenSimUDPBase(IPAddress bindAddress, int port)
         {
             m_localBindAddress = bindAddress;
@@ -87,13 +89,19 @@ namespace OpenMetaverse
         /// the UDP socket. This value is passed up to the operating system 
         /// and used in the system networking stack. Use zero to leave this
         /// value as the default</param>
+        /// <param name="asyncPacketHandling">Set this to true to start
+        /// receiving more packets while current packet handler callbacks are
+        /// still running. Setting this to false will complete each packet
+        /// callback before the next packet is processed</param>
         /// <remarks>This method will attempt to set the SIO_UDP_CONNRESET flag
         /// on the socket to get newer versions of Windows to behave in a sane
         /// manner (not throwing an exception when the remote side resets the
         /// connection). This call is ignored on Mono where the flag is not
         /// necessary</remarks>
-        public void Start(int recvBufferSize)
+        public void Start(int recvBufferSize, bool asyncPacketHandling)
         {
+            m_asyncPacketHandling = asyncPacketHandling;
+
             if (m_shutdownFlag)
             {
                 const int SIO_UDP_CONNRESET = -1744830452;
@@ -209,8 +217,10 @@ namespace OpenMetaverse
             // to AsyncBeginReceive
             if (!m_shutdownFlag)
             {
-                // start another receive - this keeps the server going!
-                AsyncBeginReceive();
+                // Asynchronous mode will start another receive before the
+                // callback for this packet is even fired. Very parallel :-)
+                if (m_asyncPacketHandling)
+                    AsyncBeginReceive();
 
                 // get the buffer that was created in AsyncBeginReceive
                 // this is the received data
@@ -230,7 +240,15 @@ namespace OpenMetaverse
                 }
                 catch (SocketException) { }
                 catch (ObjectDisposedException) { }
-                //finally { wrappedBuffer.Dispose(); }
+                finally
+                {
+                    //wrappedBuffer.Dispose();
+
+                    // Synchronous mode waits until the packet callback completes
+                    // before starting the receive to fetch another packet
+                    if (!m_asyncPacketHandling)
+                        AsyncBeginReceive();
+                }
 
             }
         }

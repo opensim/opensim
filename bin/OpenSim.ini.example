@@ -341,7 +341,13 @@
 
 
 [ClientStack.LindenUDP]
-    ; the client socket receive buffer size determines how many
+    ; Set this to true to process incoming packets asynchronously. Networking is
+    ; already separated from packet handling with a queue, so this will only
+    ; affect whether networking internals such as packet decoding and 
+    ; acknowledgement accounting are done synchronously or asynchronously
+    async_packet_handling = false
+
+    ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
     ; whatever the underlying operating system has as default; for
