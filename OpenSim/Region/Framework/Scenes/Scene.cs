@@ -57,6 +57,12 @@ namespace OpenSim.Region.Framework.Scenes
 
     public partial class Scene : SceneBase
     {
+        public enum UpdatePrioritizationSchemes {
+            Time = 0,
+            Distance = 1,
+            SimpleAngularDistance = 2,
+        }
+
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
 
@@ -268,8 +274,9 @@ namespace OpenSim.Region.Framework.Scenes
         private volatile bool shuttingdown = false;
 
         private int m_lastUpdate = Environment.TickCount;
-        private int m_maxPrimsPerFrame = 200;
         private bool m_firstHeartbeat = true;
+
+        private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
 
         private object m_deleting_scene_object = new object();
 
@@ -281,6 +288,8 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Properties
+
+        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return this.m_update_prioritization_scheme; } }
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -324,12 +333,6 @@ namespace OpenSim.Region.Framework.Scenes
         public object SyncRoot
         {
             get { return m_sceneGraph.m_syncRoot; }
-        }
-
-        public int MaxPrimsPerFrame
-        {
-            get { return m_maxPrimsPerFrame; }
-            set { m_maxPrimsPerFrame = value; }
         }
 
         /// <summary>
@@ -509,7 +512,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
 
-                m_maxPrimsPerFrame = startupConfig.GetInt("MaxPrimsPerFrame", 200);
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
                 {
@@ -518,6 +520,28 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+
+                IConfig interest_management_config = m_config.Configs["InterestManagement"];
+                if (interest_management_config != null)
+                {
+                    string update_prioritization_scheme = interest_management_config.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
+                    switch (update_prioritization_scheme)
+                    {
+                        case "time":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+                            break;
+                        case "distance":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Distance;
+                            break;
+                        case "simpleangulardistance":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.SimpleAngularDistance;
+                            break;
+                        default:
+                            m_log.Warn("[SCENE]: UpdatePrioritizationScheme was not recognized, setting to default settomg of Time");
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+                            break;
+                    }
+                }
             }
             catch
             {

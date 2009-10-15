@@ -1164,7 +1164,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject land
                 = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if (land.LandData.OwnerID != m_host.ObjectOwner)
+            if (land.LandData.OwnerID != m_host.OwnerID)
                 return;
 
             land.SetMediaUrl(url);
@@ -1182,7 +1182,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ILandObject land
                 = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if (land.LandData.OwnerID != m_host.ObjectOwner)
+            if (land.LandData.OwnerID != m_host.OwnerID)
             {
                 OSSLError("osSetParcelSIPAddress: Sorry, you need to own the land to use this function");
                 return;

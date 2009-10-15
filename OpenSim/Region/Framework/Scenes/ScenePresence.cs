@@ -403,12 +403,6 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_parentPosition = value; }
         }
 
-        public int MaxPrimsPerFrame
-        {
-            get { return m_sceneViewer.MaxPrimsPerFrame; }
-            set { m_sceneViewer.MaxPrimsPerFrame = value; }
-        }
-
         /// <summary>
         /// Absolute position of this avatar in 'region cordinates'
         /// </summary>
@@ -2457,8 +2451,8 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 pos = m_pos;
                 pos.Z -= m_appearance.HipOffset;
 
-                remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue),
-                    LocalId, pos, Velocity, m_bodyRot, m_uuid);
+                remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
+                    pos, m_velocity, m_rotation, m_uuid, GetUpdatePriority(remoteClient)));
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
@@ -2563,9 +2557,9 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 pos = m_pos;
             pos.Z -= m_appearance.HipOffset;
 
-            remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
+            remoteAvatar.m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.GetBytes(),
-                                                            m_parentID, rot);
+                                                            m_parentID, rot));
             m_scene.StatsReporter.AddAgentUpdates(1);
         }
 
@@ -2634,8 +2628,8 @@ namespace OpenSim.Region.Framework.Scenes
             Vector3 pos = m_pos;
             pos.Z -= m_appearance.HipOffset;
 
-            m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                                               m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot);
+            m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
+                                               m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot));
 
             if (!m_isChildAgent)
             {
@@ -2741,8 +2735,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Quaternion rot = m_bodyRot;
-            m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot);
+            m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
+                m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot));
 
         }
 
@@ -3869,6 +3863,42 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}", e.ToString());
                 }
             }
+        }
+
+        public double GetUpdatePriority(IClientAPI client)
+        {
+            switch (Scene.UpdatePrioritizationScheme)
+            {
+                case Scene.UpdatePrioritizationSchemes.Time:
+                    return GetPriorityByTime();
+                case Scene.UpdatePrioritizationSchemes.Distance:
+                    return GetPriorityByDistance(client);
+                case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
+                    return GetPriorityByDistance(client);
+                default:
+                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
+            }
+        }
+
+        private double GetPriorityByTime()
+        {
+            return DateTime.Now.ToOADate();
+        }
+
+        private double GetPriorityByDistance(IClientAPI client)
+        {
+            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
+            if (presence != null)
+            {
+                return GetPriorityByDistance((presence.IsChildAgent) ?
+                    presence.AbsolutePosition : presence.CameraPosition);
+            }
+            return double.NaN;
+        }
+
+        private double GetPriorityByDistance(Vector3 position)
+        {
+            return Vector3.Distance(AbsolutePosition, position);
         }
     }
 }

@@ -35,8 +35,8 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
         string Description { get; set; }
 
         UUID UUID { get; }
-        UUID ObjectOwner { get; }
-        UUID ObjectCreator { get; }
+        UUID OwnerID { get; }
+        UUID CreatorID { get; }
         Vector3 AbsolutePosition { get; }
 
         string SitName { get; set; }

@@ -2400,10 +2400,10 @@ if (m_shape != null) {
                 //isattachment = ParentGroup.RootPart.IsAttachment;
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
+            remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
-                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius);
+                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, ParentGroup.GetUpdatePriority(remoteClient)));
         }
 
         /// <summary>
@@ -3794,12 +3794,12 @@ if (m_shape != null) {
 
             // Causes this thread to dig into the Client Thread Data.
             // Remember your locking here!
-            remoteClient.SendPrimTerseUpdate(m_regionHandle,
+            remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
                     RotationOffset, Velocity,
                     RotationalVelocity, state, FromItemID,
-                    OwnerID, (int)AttachmentPoint);
+                    OwnerID, (int)AttachmentPoint, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 
         public void AddScriptLPS(int count)

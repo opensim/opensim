@@ -34,7 +34,6 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void Reset();
         void Close();
-        int MaxPrimsPerFrame { get; set; }
         void QueuePartForUpdate(SceneObjectPart part);
         void SendPrimUpdates();
     }

@@ -2875,7 +2875,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            return m_host.ObjectOwner.ToString();
+            return m_host.OwnerID.ToString();
         }
 
         public void llInstantMessage(string user, string message)
@@ -5634,7 +5634,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
                         if (parcel != null)
                         {
-                            if (m_host.ObjectOwner == parcel.LandData.OwnerID ||
+                            if (m_host.OwnerID == parcel.LandData.OwnerID ||
                                 (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.LandData.GroupID
                                 && parcel.LandData.IsGroupOwned) || World.Permissions.IsGod(m_host.OwnerID))
                             {
@@ -7157,7 +7157,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             ILandObject land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if (land.LandData.OwnerID != m_host.ObjectOwner)
+            if (land.LandData.OwnerID != m_host.OwnerID)
                 return;
 
             land.SetMusicUrl(url);
@@ -7215,7 +7215,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_String llGetCreator()
         {
             m_host.AddScriptLPS(1);
-            return m_host.ObjectCreator.ToString();
+            return m_host.CreatorID.ToString();
         }
 
         public LSL_String llGetTimestamp()
@@ -8396,7 +8396,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
             if (null != dm)
                 dm.SendUrlToUser(
-                    new UUID(avatar_id), m_host.Name, m_host.UUID, m_host.ObjectOwner, false, message, url);
+                    new UUID(avatar_id), m_host.Name, m_host.UUID, m_host.OwnerID, false, message, url);
 
             ConditionalScriptSleep(10000);
         }
@@ -8411,7 +8411,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // according to the docs, this command only works if script owner and land owner are the same
             // lets add estate owners and gods, too, and use the generic permission check.
             ILandObject landObject = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (!World.Permissions.CanEditParcel(m_host.ObjectOwner, landObject)) return;
+            if (!World.Permissions.CanEditParcel(m_host.OwnerID, landObject)) return;
 
             bool update = false; // send a ParcelMediaUpdate (and possibly change the land's media URL)?
             byte loop = 0;
@@ -9081,9 +9081,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             Vector3 velocity = m_host.Velocity;
             Quaternion rotation = m_host.RotationOffset;
             string ownerName = String.Empty;
-            ScenePresence scenePresence = World.GetScenePresence(m_host.ObjectOwner);
+            ScenePresence scenePresence = World.GetScenePresence(m_host.OwnerID);
             if (scenePresence == null)
-                ownerName = resolveName(m_host.ObjectOwner);
+                ownerName = resolveName(m_host.OwnerID);
             else
                 ownerName = scenePresence.Name;
 
@@ -9108,7 +9108,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
             httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
             httpHeaders["X-SecondLife-Owner-Name"] = ownerName;
-            httpHeaders["X-SecondLife-Owner-Key"] = m_host.ObjectOwner.ToString();
+            httpHeaders["X-SecondLife-Owner-Key"] = m_host.OwnerID.ToString();
             string userAgent = config.Configs["Network"].GetString("user_agent", null);
             if (userAgent != null)
                 httpHeaders["User-Agent"] = userAgent;

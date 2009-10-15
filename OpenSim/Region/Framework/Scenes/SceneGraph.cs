@@ -613,7 +613,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
             newAvatar.IsChildAgent = true;
-            newAvatar.MaxPrimsPerFrame = m_parentScene.MaxPrimsPerFrame;
 
             AddScenePresence(newAvatar);
 

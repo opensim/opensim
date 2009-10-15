@@ -1817,7 +1817,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, UUID AgentID, uint RequestFlags)
         {
 
-            remoteClient.SendObjectPropertiesFamilyData(RequestFlags, RootPart.UUID, RootPart.ObjectOwner, RootPart.GroupID, RootPart.BaseMask,
+            remoteClient.SendObjectPropertiesFamilyData(RequestFlags, RootPart.UUID, RootPart.OwnerID, RootPart.GroupID, RootPart.BaseMask,
                                                         RootPart.OwnerMask, RootPart.GroupMask, RootPart.EveryoneMask, RootPart.NextOwnerMask,
                                                         RootPart.OwnershipCost, RootPart.ObjectSaleType, RootPart.SalePrice, RootPart.Category,
                                                         RootPart.CreatorID, RootPart.Name, RootPart.Description);
@@ -3342,6 +3342,78 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             return true;
+        }
+
+        public double GetUpdatePriority(IClientAPI client)
+        {
+            switch (Scene.UpdatePrioritizationScheme)
+            {
+                case Scene.UpdatePrioritizationSchemes.Time:
+                    return GetPriorityByTime();
+                case Scene.UpdatePrioritizationSchemes.Distance:
+                    return GetPriorityByDistance(client);
+                case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
+                    return GetPriorityBySimpleAngularDistance(client);
+                default:
+                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
+            }
+        }
+
+        private double GetPriorityByTime()
+        {
+            return DateTime.Now.ToOADate();
+        }
+
+        private double GetPriorityByDistance(IClientAPI client)
+        {
+            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
+            if (presence != null)
+            {
+                return GetPriorityByDistance((presence.IsChildAgent) ?
+                    presence.AbsolutePosition : presence.CameraPosition);
+            }
+            return double.NaN;
+        }
+
+        private double GetPriorityBySimpleAngularDistance(IClientAPI client)
+        {
+            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
+            if (presence != null)
+            {
+                return GetPriorityBySimpleAngularDistance((presence.IsChildAgent) ?
+                    presence.AbsolutePosition : presence.CameraPosition);
+            }
+            return double.NaN;
+        }
+
+        public double GetPriorityByDistance(Vector3 position)
+        {
+            return Vector3.Distance(AbsolutePosition, position);
+        }
+
+        public double GetPriorityBySimpleAngularDistance(Vector3 position)
+        {
+            double distance = Vector3.Distance(position, AbsolutePosition);
+            if (distance >= double.Epsilon)
+            {
+                float height;
+                Vector3 box = GetAxisAlignedBoundingBox(out height);
+
+                double angle = box.X / distance;
+                double max = angle;
+
+                angle = box.Y / distance;
+                if (max < angle)
+                    max = angle;
+
+                angle = box.Z / distance;
+                if (max < angle)
+                    max = angle;
+
+                return -max;
+            }
+            else
+                return double.MinValue;
         }
     }
 }
