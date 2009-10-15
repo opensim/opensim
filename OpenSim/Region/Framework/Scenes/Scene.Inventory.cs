@@ -2402,11 +2402,11 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if (ava != null)
+                
+                if (m_AvatarFactory != null)
                 {
                     m_log.InfoFormat("[SCENE INVENTORY]: Saving avatar attachment. AgentID:{0} ItemID:{1} AttachmentPoint:{2}", remoteClient.AgentId, itemID, AttachmentPt);
-                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
                 }
             }
         }

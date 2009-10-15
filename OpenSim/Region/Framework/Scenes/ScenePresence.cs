@@ -3841,6 +3841,9 @@ namespace OpenSim.Region.Framework.Scenes
             List<int> attPoints = m_appearance.GetAttachedPoints();
             foreach (int p in attPoints)
             {
+                if (m_isDeleted)
+                    return;
+
                 UUID itemID = m_appearance.GetAttachedItem(p);
                 UUID assetID = m_appearance.GetAttachedAsset(p);
 
@@ -3866,9 +3869,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_log.ErrorFormat("[ATTACHMENT]: Unable to rez attachment: {0}", e.ToString());
                 }
-
             }
-
         }
     }
 }
