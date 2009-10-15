@@ -43,6 +43,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using Timer=System.Timers.Timer;
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
@@ -58,470 +59,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
-        // LLClientView Only
-        public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
-
-        /// <summary>Used to adjust Sun Orbit values so Linden based viewers properly position sun</summary>
-        private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
-
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
-
-        private readonly LLUDPServer m_udpServer;
-        private readonly LLUDPClient m_udpClient;
-        private readonly UUID m_sessionId;
-        private readonly UUID m_secureSessionId;
-        private readonly UUID m_agentId;
-        private readonly uint m_circuitCode;
-        private readonly byte[] m_channelVersion = Utils.EmptyBytes;
-        private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
-        private readonly IGroupsModule m_GroupsModule;
-
-        private int m_cachedTextureSerial;
-        private Timer m_avatarTerseUpdateTimer;
-        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private Timer m_primTerseUpdateTimer;
-        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private Timer m_primFullUpdateTimer;
-        private List<ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates = new List<ObjectUpdatePacket.ObjectDataBlock>();
-        private int m_moneyBalance;
-        private int m_animationSequenceNumber = 1;
-        private bool m_SendLogoutPacketWhenClosing = true;
-        private AgentUpdateArgs lastarg;
-        private bool m_IsActive = true;
-
-        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
-        protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
-        protected IScene m_scene;
-        protected LLImageManager m_imageManager;
-        protected string m_firstName;
-        protected string m_lastName;
-        protected Thread m_clientThread;
-        protected Vector3 m_startpos;
-        protected EndPoint m_userEndPoint;
-        protected UUID m_activeGroupID = UUID.Zero;
-        protected string m_activeGroupName = String.Empty;
-        protected ulong m_activeGroupPowers;
-        protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
-        protected int m_terrainCheckerCount;
-
-        // LL uses these limits, apparently. Compressed terse would be 23, but we don't have that yet
-        protected int m_primTerseUpdatesPerPacket = 10;
-        protected int m_primFullUpdatesPerPacket = 14;
-        protected int m_primTerseUpdateRate = 10;
-        protected int m_primFullUpdateRate = 14;
-        protected int m_textureSendLimit   = 20;
-        protected int m_textureDataLimit   = 10;
-        protected int m_avatarTerseUpdateRate = 50;
-        protected int m_avatarTerseUpdatesPerPacket = 5;
-        protected int m_packetMTU = 1400;
-        protected IAssetService m_assetService;
-
-        #region Properties
-
-        public UUID SecureSessionId { get { return m_secureSessionId; } }
-        public IScene Scene { get { return m_scene; } }
-        public UUID SessionId { get { return m_sessionId; } }
-        public Vector3 StartPos
-        {
-            get { return m_startpos; }
-            set { m_startpos = value; }
-        }
-        public UUID AgentId { get { return m_agentId; } }
-        public UUID ActiveGroupId { get { return m_activeGroupID; } }
-        public string ActiveGroupName { get { return m_activeGroupName; } }
-        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
-        public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
-        /// <summary>
-        /// First name of the agent/avatar represented by the client
-        /// </summary>
-        public string FirstName { get { return m_firstName; } }
-        /// <summary>
-        /// Last name of the agent/avatar represented by the client
-        /// </summary>
-        public string LastName { get { return m_lastName; } }
-        /// <summary>
-        /// Full name of the client (first name and last name)
-        /// </summary>
-        public string Name { get { return FirstName + " " + LastName; } }
-        public uint CircuitCode { get { return m_circuitCode; } }
-        public int MoneyBalance { get { return m_moneyBalance; } }
-        public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
-        public bool IsActive
-        {
-            get { return m_IsActive; }
-            set { m_IsActive = value; }
-        }
-        public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
-
-        #endregion Properties
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public LLClientView(EndPoint remoteEP, IScene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
-            UUID agentId, UUID sessionId, uint circuitCode)
-        {
-            RegisterInterface<IClientIM>(this);
-            RegisterInterface<IClientChat>(this);
-            RegisterInterface<IClientIPEndpoint>(this);
-            
-            InitDefaultAnimations();
-
-            m_scene = scene;
-            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
-            m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
-            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
-            m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
-            m_agentId = agentId;
-            m_sessionId = sessionId;
-            m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
-            m_circuitCode = circuitCode;
-            m_userEndPoint = remoteEP;
-            m_firstName = sessionInfo.LoginInfo.First;
-            m_lastName = sessionInfo.LoginInfo.Last;
-            m_startpos = sessionInfo.LoginInfo.StartPos;
-            m_moneyBalance = 1000;
-
-            m_udpServer = udpServer;
-            m_udpClient = udpClient;
-            m_udpClient.OnQueueEmpty += HandleQueueEmpty;
-            m_udpClient.OnPacketStats += PopulateStats;
-
-            RegisterLocalPacketHandlers();
-        }
-
-        public void SetDebugPacketLevel(int newDebug)
-        {
-        }
-
-        #region Client Methods
-
-        /// <summary>
-        /// Close down the client view.  This *must* be the last method called, since the last  #
-        /// statement of CloseCleanup() aborts the thread.
-        /// </summary>
-        /// <param name="shutdownCircuit"></param>
-        public void Close(bool shutdownCircuit)
-        {
-            m_log.DebugFormat(
-                "[CLIENT]: Close has been called with shutdownCircuit = {0} for {1} attached to scene {2}",
-                shutdownCircuit, Name, m_scene.RegionInfo.RegionName);
-
-            if (m_imageManager != null)
-                m_imageManager.Close();
-
-            if (m_udpServer != null)
-                m_udpServer.Flush();
-
-            // raise an event on the packet server to Shutdown the circuit
-            // Now, if we raise the event then the packet server will call this method itself, so don't try cleanup
-            // here otherwise we'll end up calling it twice.
-            // FIXME: In truth, I might be wrong but this whole business of calling this method twice (with different args) looks
-            // horribly tangly.  Hopefully it should be possible to greatly simplify it.
-            if (shutdownCircuit)
-            {
-                if (OnConnectionClosed != null)
-                    OnConnectionClosed(this);
-            }
-            else
-            {
-                CloseCleanup(shutdownCircuit);
-            }
-        }
-
-        private void CloseCleanup(bool shutdownCircuit)
-        {
-            m_scene.RemoveClient(AgentId);
-
-            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
-            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
-
-            // Send the STOP packet
-            DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
-            OutPacket(disable, ThrottleOutPacketType.Unknown);
-
-            Thread.Sleep(2000);
-
-            // Shut down timers. Thread Context of this method is murky.   Lock all timers
-            if (m_avatarTerseUpdateTimer.Enabled)
-                lock (m_avatarTerseUpdateTimer)
-                    m_avatarTerseUpdateTimer.Stop();
-            if (m_primTerseUpdateTimer.Enabled)
-                lock (m_primTerseUpdateTimer)
-                    m_primTerseUpdateTimer.Stop();
-            if (m_primFullUpdateTimer.Enabled)
-                lock (m_primFullUpdateTimer)
-                    m_primFullUpdateTimer.Stop();
-
-            // This is just to give the client a reasonable chance of
-            // flushing out all it's packets.  There should probably
-            // be a better mechanism here
-
-            // We can't reach into other scenes and close the connection
-            // We need to do this over grid communications
-            //m_scene.CloseAllAgents(CircuitCode);
-
-            // If we're not shutting down the circuit, then this is the last time we'll go here.
-            // If we are shutting down the circuit, the UDP Server will come back here with
-            // ShutDownCircuit = false
-            if (!(shutdownCircuit))
-            {
-                GC.Collect();
-                m_imageManager = null;
-                // Sends a KillPacket object, with which, the
-                // blockingqueue dequeues and sees it's a killpacket
-                // and terminates within the context of the client thread.
-                // This ensures that it's done from within the context
-                // of the client thread regardless of where Close() is called.
-                KillEndDone();
-            }
-
-            IsActive = false;
-
-            m_avatarTerseUpdateTimer.Close();
-            m_primTerseUpdateTimer.Close();
-            m_primFullUpdateTimer.Close();
-
-            //m_udpServer.OnPacketStats -= PopulateStats;
-            m_udpClient.Shutdown();
-
-            // wait for thread stoped
-            // m_clientThread.Join();
-
-            // delete circuit code
-            //m_networkServer.CloseClient(this);
-        }
-
-        public void Kick(string message)
-        {
-            if (!ChildAgentStatus())
-            {
-                KickUserPacket kupack = (KickUserPacket)PacketPool.Instance.GetPacket(PacketType.KickUser);
-                kupack.UserInfo.AgentID = AgentId;
-                kupack.UserInfo.SessionID = SessionId;
-                kupack.TargetBlock.TargetIP = 0;
-                kupack.TargetBlock.TargetPort = 0;
-                kupack.UserInfo.Reason = Utils.StringToBytes(message);
-                OutPacket(kupack, ThrottleOutPacketType.Task);
-                // You must sleep here or users get no message!
-                Thread.Sleep(500);
-            }
-        }
-
-        public void Stop()
-        {
-            // Shut down timers.  Thread Context is Murky, lock all timers!
-            if (m_avatarTerseUpdateTimer.Enabled)
-                lock (m_avatarTerseUpdateTimer)
-                    m_avatarTerseUpdateTimer.Stop();
-
-            if (m_primTerseUpdateTimer.Enabled)
-                lock (m_primTerseUpdateTimer)
-                    m_primTerseUpdateTimer.Stop();
-
-            if (m_primFullUpdateTimer.Enabled)
-                lock (m_primFullUpdateTimer)
-                    m_primFullUpdateTimer.Stop();
-        }
-
-        #endregion Client Methods
-
-        #region Packet Handling
-
-        public void PopulateStats(int inPackets, int outPackets, int unAckedBytes)
-        {
-            NetworkStats handlerNetworkStatsUpdate = OnNetworkStatsUpdate;
-            if (handlerNetworkStatsUpdate != null)
-            {
-                handlerNetworkStatsUpdate(inPackets, outPackets, unAckedBytes);
-            }
-        }
-
-        public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
-        {
-            bool result = false;
-            lock (PacketHandlers)
-            {
-                if (!PacketHandlers.ContainsKey(packetType))
-                {
-                    PacketHandlers.Add(packetType, handler);
-                    result = true;
-                }
-            }
-            return result;
-        }
-
-        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler)
-        {
-            bool result = false;
-            lock (m_packetHandlers)
-            {
-                if (!m_packetHandlers.ContainsKey(packetType))
-                {
-                    m_packetHandlers.Add(packetType, handler);
-                    result = true;
-                }
-            }
-            return result;
-        }
-
-        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
-        {
-            MethodName = MethodName.ToLower().Trim();
-
-            bool result = false;
-            lock (m_genericPacketHandlers)
-            {
-                if (!m_genericPacketHandlers.ContainsKey(MethodName))
-                {
-                    m_genericPacketHandlers.Add(MethodName, handler);
-                    result = true;
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Try to process a packet using registered packet handlers
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <returns>True if a handler was found which successfully processed the packet.</returns>
-        protected virtual bool ProcessPacketMethod(Packet packet)
-        {
-            bool result = false;
-            PacketMethod method;
-            if (m_packetHandlers.TryGetValue(packet.Type, out method))
-            {
-                //there is a local handler for this packet type
-                result = method(this, packet);
-            }
-            else
-            {
-                //there is not a local handler so see if there is a Global handler
-                bool found;
-                lock (PacketHandlers)
-                {
-                    found = PacketHandlers.TryGetValue(packet.Type, out method);
-                }
-                if (found)
-                {
-                    result = method(this, packet);
-                }
-            }
-            return result;
-        }
-
-        /*protected void DebugPacket(string direction, Packet packet)
-        {
-            string info;
-
-            if (m_debugPacketLevel < 255 && packet.Type == PacketType.AgentUpdate)
-                return;
-            if (m_debugPacketLevel < 254 && packet.Type == PacketType.ViewerEffect)
-                return;
-            if (m_debugPacketLevel < 253 && (
-                                     packet.Type == PacketType.CompletePingCheck ||
-                                     packet.Type == PacketType.StartPingCheck
-                                 ))
-                return;
-            if (m_debugPacketLevel < 252 && packet.Type == PacketType.PacketAck)
-                return;
-
-            if (m_debugPacketLevel > 1)
-            {
-                info = packet.ToString();
-            }
-            else
-            {
-                info = packet.Type.ToString();
-            }
-
-            Console.WriteLine(m_circuitCode + ":" + direction + ": " + info);
-        }*/
-
-        #endregion Packet Handling
-
-        # region Setup
-
-        /// <summary>
-        /// Starts up the timers to check the client and resend unacked packets
-        /// Adds the client to the OpenSim.Region.Framework.Scenes.Scene
-        /// </summary>
-        protected virtual void InitNewClient()
-        {
-            m_avatarTerseUpdateTimer = new Timer(m_avatarTerseUpdateRate);
-            m_avatarTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
-            m_avatarTerseUpdateTimer.AutoReset = false;
-
-            m_primTerseUpdateTimer = new Timer(m_primTerseUpdateRate);
-            m_primTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimTerseUpdates);
-            m_primTerseUpdateTimer.AutoReset = false;
-
-            m_primFullUpdateTimer = new Timer(m_primFullUpdateRate);
-            m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
-            m_primFullUpdateTimer.AutoReset = false;
-
-            m_scene.AddNewClient(this);
-
-            RefreshGroupMembership();
-        }
-
-        public virtual void Start()
-        {
-            // This sets up all the timers
-            InitNewClient();
-        }
-
-        /// <summary>
-        /// Run a user session.  This method lies at the base of the entire client thread.
-        /// </summary>
-        protected void RunUserSession()
-        {
-            try
-            {
-                
-            }
-            catch (Exception e)
-            {
-                if (e is ThreadAbortException)
-                    throw;
-
-                if (StatsManager.SimExtraStats != null)
-                    StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-
-                // Don't let a failure in an individual client thread crash the whole sim.
-                m_log.ErrorFormat(
-                    "[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.", Name, AgentId);
-                m_log.Error(e.ToString());
-
-                try
-                {
-                    // Make an attempt to alert the user that their session has crashed
-                    AgentAlertMessagePacket packet
-                        = BuildAgentAlertPacket(
-                            "Unfortunately the session for this client on the server has crashed.\n"
-                                + "Any further actions taken will not be processed.\n"
-                                + "Please relog", true);
-
-                    m_udpServer.SendPacket(m_agentId, packet, ThrottleOutPacketType.Unknown, false);
-
-                    // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
-                    // listeners yet, though.
-                    Logout(this);
-                }
-                catch (Exception e2)
-                {
-                    if (e2 is ThreadAbortException)
-                        throw;
-
-                    m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
-                }
-            }
-        }
-
-        # endregion
-
         #region Events
 
         public event GenericMessage OnGenericMessage;
@@ -722,6 +259,355 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event PlacesQuery OnPlacesQuery;
 
         #endregion Events
+
+        #region Class Members
+
+        // LLClientView Only
+        public delegate void BinaryGenericMessage(Object sender, string method, byte[][] args);
+
+        /// <summary>Used to adjust Sun Orbit values so Linden based viewers properly position sun</summary>
+        private const float m_sunPainDaHalfOrbitalCutoff = 4.712388980384689858f;
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected static Dictionary<PacketType, PacketMethod> PacketHandlers = new Dictionary<PacketType, PacketMethod>(); //Global/static handlers for all clients
+
+        private readonly LLUDPServer m_udpServer;
+        private readonly LLUDPClient m_udpClient;
+        private readonly UUID m_sessionId;
+        private readonly UUID m_secureSessionId;
+        private readonly UUID m_agentId;
+        private readonly uint m_circuitCode;
+        private readonly byte[] m_channelVersion = Utils.EmptyBytes;
+        private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
+        private readonly IGroupsModule m_GroupsModule;
+
+        private int m_cachedTextureSerial;
+        private Timer m_avatarTerseUpdateTimer;
+        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+        private Timer m_primTerseUpdateTimer;
+        private List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates = new List<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+        private Timer m_primFullUpdateTimer;
+        private List<ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates = new List<ObjectUpdatePacket.ObjectDataBlock>();
+        private int m_moneyBalance;
+        private int m_animationSequenceNumber = 1;
+        private bool m_SendLogoutPacketWhenClosing = true;
+        private AgentUpdateArgs lastarg;
+        private bool m_IsActive = true;
+
+        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
+        protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
+        protected IScene m_scene;
+        protected LLImageManager m_imageManager;
+        protected string m_firstName;
+        protected string m_lastName;
+        protected Thread m_clientThread;
+        protected Vector3 m_startpos;
+        protected EndPoint m_userEndPoint;
+        protected UUID m_activeGroupID = UUID.Zero;
+        protected string m_activeGroupName = String.Empty;
+        protected ulong m_activeGroupPowers;
+        protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
+        protected int m_terrainCheckerCount;
+
+        // LL uses these limits, apparently. Compressed terse would be 23, but we don't have that yet
+        protected int m_primTerseUpdatesPerPacket = 10;
+        protected int m_primFullUpdatesPerPacket = 14;
+        protected int m_primTerseUpdateRate = 10;
+        protected int m_primFullUpdateRate = 14;
+        protected int m_avatarTerseUpdateRate = 50;
+        protected int m_avatarTerseUpdatesPerPacket = 5;
+        /// <summary>Number of texture packets to put on the queue each time the
+        /// OnQueueEmpty event is triggered for the texture category</summary>
+        protected int m_textureSendLimit = 20;
+        protected IAssetService m_assetService;
+        private IHyperAssetService m_hyperAssets;
+
+
+        #endregion Class Members
+
+        #region Properties
+
+        public LLUDPClient UDPClient { get { return m_udpClient; } }
+        public IPEndPoint RemoteEndPoint { get { return m_udpClient.RemoteEndPoint; } }
+        public UUID SecureSessionId { get { return m_secureSessionId; } }
+        public IScene Scene { get { return m_scene; } }
+        public UUID SessionId { get { return m_sessionId; } }
+        public Vector3 StartPos
+        {
+            get { return m_startpos; }
+            set { m_startpos = value; }
+        }
+        public UUID AgentId { get { return m_agentId; } }
+        public UUID ActiveGroupId { get { return m_activeGroupID; } }
+        public string ActiveGroupName { get { return m_activeGroupName; } }
+        public ulong ActiveGroupPowers { get { return m_activeGroupPowers; } }
+        public bool IsGroupMember(UUID groupID) { return m_groupPowers.ContainsKey(groupID); }
+        /// <summary>
+        /// First name of the agent/avatar represented by the client
+        /// </summary>
+        public string FirstName { get { return m_firstName; } }
+        /// <summary>
+        /// Last name of the agent/avatar represented by the client
+        /// </summary>
+        public string LastName { get { return m_lastName; } }
+        /// <summary>
+        /// Full name of the client (first name and last name)
+        /// </summary>
+        public string Name { get { return FirstName + " " + LastName; } }
+        public uint CircuitCode { get { return m_circuitCode; } }
+        public int MoneyBalance { get { return m_moneyBalance; } }
+        public int NextAnimationSequenceNumber { get { return m_animationSequenceNumber++; } }
+        public bool IsActive
+        {
+            get { return m_IsActive; }
+            set { m_IsActive = value; }
+        }
+        public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
+
+        #endregion Properties
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        public LLClientView(EndPoint remoteEP, IScene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
+            UUID agentId, UUID sessionId, uint circuitCode)
+        {
+            RegisterInterface<IClientIM>(this);
+            RegisterInterface<IClientChat>(this);
+            RegisterInterface<IClientIPEndpoint>(this);
+            
+            InitDefaultAnimations();
+
+            m_scene = scene;
+            m_assetService = m_scene.RequestModuleInterface<IAssetService>();
+            m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
+            m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
+            m_imageManager = new LLImageManager(this, m_assetService, Scene.RequestModuleInterface<IJ2KDecoder>());
+            m_channelVersion = Utils.StringToBytes(scene.GetSimulatorVersion());
+            m_agentId = agentId;
+            m_sessionId = sessionId;
+            m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
+            m_circuitCode = circuitCode;
+            m_userEndPoint = remoteEP;
+            m_firstName = sessionInfo.LoginInfo.First;
+            m_lastName = sessionInfo.LoginInfo.Last;
+            m_startpos = sessionInfo.LoginInfo.StartPos;
+            m_moneyBalance = 1000;
+
+            m_udpServer = udpServer;
+            m_udpClient = udpClient;
+            m_udpClient.OnQueueEmpty += HandleQueueEmpty;
+            m_udpClient.OnPacketStats += PopulateStats;
+
+            RegisterLocalPacketHandlers();
+        }
+
+        public void SetDebugPacketLevel(int newDebug)
+        {
+        }
+
+        #region Client Methods
+
+        /// <summary>
+        /// Shut down the client view
+        /// </summary>
+        public void Close()
+        {
+            m_log.DebugFormat(
+                "[CLIENT]: Close has been called for {0} attached to scene {1}",
+                Name, m_scene.RegionInfo.RegionName);
+
+            // Send the STOP packet
+            DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
+            OutPacket(disable, ThrottleOutPacketType.Unknown);
+
+            IsActive = false;
+
+            // Shutdown the image manager
+            if (m_imageManager != null)
+                m_imageManager.Close();
+
+            // Fire the callback for this connection closing
+            if (OnConnectionClosed != null)
+                OnConnectionClosed(this);
+
+            // Flush all of the packets out of the UDP server for this client
+            if (m_udpServer != null)
+                m_udpServer.Flush(m_udpClient);
+
+            // Remove ourselves from the scene
+            m_scene.RemoveClient(AgentId);
+
+            // Shut down timers. Thread Context of this method is murky.   Lock all timers
+            if (m_avatarTerseUpdateTimer.Enabled)
+                lock (m_avatarTerseUpdateTimer)
+                    m_avatarTerseUpdateTimer.Stop();
+            if (m_primTerseUpdateTimer.Enabled)
+                lock (m_primTerseUpdateTimer)
+                    m_primTerseUpdateTimer.Stop();
+            if (m_primFullUpdateTimer.Enabled)
+                lock (m_primFullUpdateTimer)
+                    m_primFullUpdateTimer.Stop();
+
+            // We can't reach into other scenes and close the connection
+            // We need to do this over grid communications
+            //m_scene.CloseAllAgents(CircuitCode);
+
+            m_avatarTerseUpdateTimer.Dispose();
+            m_primTerseUpdateTimer.Dispose();
+            m_primFullUpdateTimer.Dispose();
+
+            // Disable UDP handling for this client
+            m_udpClient.Shutdown();
+
+            //m_log.InfoFormat("[CLIENTVIEW] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
+            //GC.Collect();
+            //m_log.InfoFormat("[CLIENTVIEW] Memory post GC {0}", System.GC.GetTotalMemory(true));
+        }
+
+        public void Kick(string message)
+        {
+            if (!ChildAgentStatus())
+            {
+                KickUserPacket kupack = (KickUserPacket)PacketPool.Instance.GetPacket(PacketType.KickUser);
+                kupack.UserInfo.AgentID = AgentId;
+                kupack.UserInfo.SessionID = SessionId;
+                kupack.TargetBlock.TargetIP = 0;
+                kupack.TargetBlock.TargetPort = 0;
+                kupack.UserInfo.Reason = Utils.StringToBytes(message);
+                OutPacket(kupack, ThrottleOutPacketType.Task);
+                // You must sleep here or users get no message!
+                Thread.Sleep(500);
+            }
+        }
+
+        public void Stop()
+        {
+            // Shut down timers.  Thread Context is Murky, lock all timers!
+            if (m_avatarTerseUpdateTimer.Enabled)
+                lock (m_avatarTerseUpdateTimer)
+                    m_avatarTerseUpdateTimer.Stop();
+
+            if (m_primTerseUpdateTimer.Enabled)
+                lock (m_primTerseUpdateTimer)
+                    m_primTerseUpdateTimer.Stop();
+
+            if (m_primFullUpdateTimer.Enabled)
+                lock (m_primFullUpdateTimer)
+                    m_primFullUpdateTimer.Stop();
+        }
+
+        #endregion Client Methods
+
+        #region Packet Handling
+
+        public void PopulateStats(int inPackets, int outPackets, int unAckedBytes)
+        {
+            NetworkStats handlerNetworkStatsUpdate = OnNetworkStatsUpdate;
+            if (handlerNetworkStatsUpdate != null)
+            {
+                handlerNetworkStatsUpdate(inPackets, outPackets, unAckedBytes);
+            }
+        }
+
+        public static bool AddPacketHandler(PacketType packetType, PacketMethod handler)
+        {
+            bool result = false;
+            lock (PacketHandlers)
+            {
+                if (!PacketHandlers.ContainsKey(packetType))
+                {
+                    PacketHandlers.Add(packetType, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler)
+        {
+            bool result = false;
+            lock (m_packetHandlers)
+            {
+                if (!m_packetHandlers.ContainsKey(packetType))
+                {
+                    m_packetHandlers.Add(packetType, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        public bool AddGenericPacketHandler(string MethodName, GenericMessage handler)
+        {
+            MethodName = MethodName.ToLower().Trim();
+
+            bool result = false;
+            lock (m_genericPacketHandlers)
+            {
+                if (!m_genericPacketHandlers.ContainsKey(MethodName))
+                {
+                    m_genericPacketHandlers.Add(MethodName, handler);
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Try to process a packet using registered packet handlers
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns>True if a handler was found which successfully processed the packet.</returns>
+        protected virtual bool ProcessPacketMethod(Packet packet)
+        {
+            bool result = false;
+            PacketMethod method;
+            if (m_packetHandlers.TryGetValue(packet.Type, out method))
+            {
+                //there is a local handler for this packet type
+                result = method(this, packet);
+            }
+            else
+            {
+                //there is not a local handler so see if there is a Global handler
+                bool found;
+                lock (PacketHandlers)
+                {
+                    found = PacketHandlers.TryGetValue(packet.Type, out method);
+                }
+                if (found)
+                {
+                    result = method(this, packet);
+                }
+            }
+            return result;
+        }
+
+        #endregion Packet Handling
+
+        # region Setup
+
+        public virtual void Start()
+        {
+            m_avatarTerseUpdateTimer = new Timer(m_avatarTerseUpdateRate);
+            m_avatarTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessAvatarTerseUpdates);
+            m_avatarTerseUpdateTimer.AutoReset = false;
+
+            m_primTerseUpdateTimer = new Timer(m_primTerseUpdateRate);
+            m_primTerseUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimTerseUpdates);
+            m_primTerseUpdateTimer.AutoReset = false;
+
+            m_primFullUpdateTimer = new Timer(m_primFullUpdateRate);
+            m_primFullUpdateTimer.Elapsed += new ElapsedEventHandler(ProcessPrimFullUpdates);
+            m_primFullUpdateTimer.AutoReset = false;
+
+            m_scene.AddNewClient(this);
+
+            RefreshGroupMembership();
+        }
+
+        # endregion
 
         public void ActivateGesture(UUID assetId, UUID gestureId)
         {
@@ -1342,7 +1228,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.ObjectData[0].ID = localID;
             kill.Header.Reliable = true;
             kill.Header.Zerocoded = true;
-            OutPacket(kill, ThrottleOutPacketType.Task);
+            OutPacket(kill, ThrottleOutPacketType.State);
         }
 
         /// <summary>
@@ -1936,7 +1822,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             sendXfer.XferID.ID = xferID;
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
-            OutPacket(sendXfer, ThrottleOutPacketType.Task);
+            OutPacket(sendXfer, ThrottleOutPacketType.Asset);
         }
 
         public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
@@ -2218,7 +2104,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.AgentData.SessionID = SessionId;
             packet.Header.Reliable = false;
             packet.Header.Zerocoded = true;
-            OutPacket(packet, ThrottleOutPacketType.Task);
+            OutPacket(packet, ThrottleOutPacketType.State);
         }
 
         public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] charterMember,
@@ -3241,7 +3127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
-            OutPacket(avp, ThrottleOutPacketType.Task);
+            OutPacket(avp, ThrottleOutPacketType.State);
         }
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)
@@ -3366,7 +3252,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_avatarTerseUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -3381,6 +3267,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 terse.Header.Reliable = false;
                 terse.Header.Zerocoded = true;
+                // FIXME: Move this to ThrottleOutPacketType.State when the real prioritization code is committed
                 OutPacket(terse, ThrottleOutPacketType.Task);
 
                 if (m_avatarTerseUpdates.Count == 0)
@@ -3571,7 +3458,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void ProcessTextureRequests()
         {
             if (m_imageManager != null)
-                m_imageManager.ProcessImageQueue(m_textureSendLimit, m_textureDataLimit);
+                m_imageManager.ProcessImageQueue(m_textureSendLimit);
         }
 
         void ProcessPrimFullUpdates(object sender, ElapsedEventArgs e)
@@ -3610,7 +3497,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_primFullUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -3625,7 +3512,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.Task);
+                OutPacket(outPacket, ThrottleOutPacketType.State);
 
                 if (m_primFullUpdates.Count == 0 && m_primFullUpdateTimer.Enabled)
                     lock (m_primFullUpdateTimer)
@@ -3698,7 +3585,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     int length = 0;
                     m_primTerseUpdates[count].ToBytes(blockbuffer, ref length);
                     length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > m_packetMTU)
+                    if (size + length > Packet.MTU)
                         break;
                     size += length;
                 }
@@ -3715,7 +3602,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 outPacket.Header.Reliable = false;
                 outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.Task);
+                OutPacket(outPacket, ThrottleOutPacketType.State);
 
                 if (m_primTerseUpdates.Count == 0)
                     lock (m_primTerseUpdateTimer)
@@ -4801,7 +4688,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
         {
-
             ObjectGroupPacket ogpack = (ObjectGroupPacket)Pack;
             if (ogpack.AgentData.SessionID != SessionId) return false;
 
@@ -7013,7 +6899,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     #endregion
 
                     //handlerTextureRequest = null;
-
                     for (int i = 0; i < imageRequest.RequestImage.Length; i++)
                     {
                         if (OnRequestTexture != null)
@@ -7024,7 +6909,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             args.PacketNumber = imageRequest.RequestImage[i].Packet;
                             args.Priority = imageRequest.RequestImage[i].DownloadPriority;
                             args.requestSequence = imageRequest.Header.Sequence;
-
                             //handlerTextureRequest = OnRequestTexture;
 
                             //if (handlerTextureRequest != null)
@@ -7047,10 +6931,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // Validate inventory transfers
                     // Has to be done here, because AssetCache can't do it
                     //
-                    
+                    UUID taskID = UUID.Zero;
                     if (transfer.TransferInfo.SourceType == 3)
                     {
-                        UUID taskID = new UUID(transfer.TransferInfo.Params, 48);
+                        taskID = new UUID(transfer.TransferInfo.Params, 48);
                         UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
                         UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
                         if (!(((Scene)m_scene).Permissions.BypassPermissions()))
@@ -7121,7 +7005,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     //m_assetCache.AddAssetRequest(this, transfer);
 
-                    MakeAssetRequest(transfer);
+                    MakeAssetRequest(transfer, taskID);
 
                     /* RequestAsset = OnRequestAsset;
                          if (RequestAsset != null)
@@ -10250,7 +10134,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void KillEndDone()
         {
-            m_udpClient.Shutdown();
         }
 
         #region IClientCore
@@ -10293,14 +10176,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             Kick(reason);
             Thread.Sleep(1000);
-            Close(true);
+            Close();
         }
 
         public void Disconnect()
         {
-            Close(true);
+            Close();
         }
-
 
         #endregion
 
@@ -10330,7 +10212,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return String.Empty;
         }
 
-        public void MakeAssetRequest(TransferRequestPacket transferRequest)
+        public void MakeAssetRequest(TransferRequestPacket transferRequest, UUID taskID)
         {
             UUID requestID = UUID.Zero;
             if (transferRequest.TransferInfo.SourceType == 2)
@@ -10342,12 +10224,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
-                //m_log.Debug("asset request " + requestID);
+                //m_log.Debug("[XXX] inventory asset request " + requestID);
+                //if (taskID == UUID.Zero) // Agent
+                //    if (m_scene is HGScene)
+                //    {
+                //        m_log.Debug("[XXX] hg asset request " + requestID);
+                //        // We may need to fetch the asset from the user's asset server into the local asset server
+                //        HGAssetMapper mapper = ((HGScene)m_scene).AssetMapper;
+                //        mapper.Get(requestID, AgentId);
+                //    }
             }
 
             //check to see if asset is in local cache, if not we need to request it from asset server.
             //m_log.Debug("asset request " + requestID);
-            
+
             m_assetService.Get(requestID.ToString(), transferRequest, AssetReceived);
 
         }
@@ -10358,12 +10248,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             UUID requestID = UUID.Zero;
             byte source = 2;
-            if (transferRequest.TransferInfo.SourceType == 2)
+            if ((transferRequest.TransferInfo.SourceType == 2) || (transferRequest.TransferInfo.SourceType == 2222))
             {
                 //direct asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 0);
             }
-            else if (transferRequest.TransferInfo.SourceType == 3)
+            else if ((transferRequest.TransferInfo.SourceType == 3) || (transferRequest.TransferInfo.SourceType == 3333))
             {
                 //inventory asset request
                 requestID = new UUID(transferRequest.TransferInfo.Params, 80);
@@ -10371,10 +10261,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 //m_log.Debug("asset request " + requestID);
             }
 
-            // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
             {
+                if ((m_hyperAssets != null) && (transferRequest.TransferInfo.SourceType < 2000))
+                {
+                    // Try the user's inventory, but only if it's different from the regions'
+                    string userAssets = m_hyperAssets.GetUserAssetServer(AgentId);
+                    if ((userAssets != string.Empty) && (userAssets != m_hyperAssets.GetSimAssetServer()))
+                    {
+                        m_log.DebugFormat("[CLIENT]: asset {0} not found in local asset storage. Trying user's storage.", id);
+                        if (transferRequest.TransferInfo.SourceType == 2)
+                            transferRequest.TransferInfo.SourceType = 2222; // marker
+                        else if (transferRequest.TransferInfo.SourceType == 3)
+                            transferRequest.TransferInfo.SourceType = 3333; // marker
+
+                        m_assetService.Get(userAssets + "/" + id, transferRequest, AssetReceived);
+                        return;
+                    }
+                }
+
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
+                
+                // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
                 return;
             }
 

@@ -393,6 +393,11 @@ namespace OpenSim.Tests.Common.Mock
             set { m_circuitCode = value; }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode); }
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -865,7 +870,7 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
             m_scene.RemoveClient(AgentId);
         }

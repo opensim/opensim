@@ -408,7 +408,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual InventoryItemBase GiveInventoryItem(
             UUID recipient, UUID senderId, UUID itemId, UUID recipientFolderId)
         {
-            Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
+            //Console.WriteLine("Scene.Inventory.cs: GiveInventoryItem");
 
             InventoryItemBase item = new InventoryItemBase(itemId, senderId);
             item = InventoryService.GetItem(item);
@@ -472,7 +472,8 @@ namespace OpenSim.Region.Framework.Scenes
                 itemCopy.SalePrice = item.SalePrice;
                 itemCopy.SaleType = item.SaleType;
 
-                InventoryService.AddItem(itemCopy);
+                if (InventoryService.AddItem(itemCopy))
+                    TransferInventoryAssets(itemCopy, senderId, recipient);
 
                 if (!Permissions.BypassPermissions())
                 {
@@ -492,6 +493,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return null;
             }
 
+        }
+
+        protected virtual void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
+        {
         }
 
         /// <summary>

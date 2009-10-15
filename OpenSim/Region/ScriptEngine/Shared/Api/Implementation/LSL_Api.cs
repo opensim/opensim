@@ -863,7 +863,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             World.Entities.TryGetValue(objecUUID, out SensedObject);
 
             if (SensedObject == null)
+            {
+                IGroupsModule groups = World.RequestModuleInterface<IGroupsModule>();
+                if (groups != null)
+                {
+                    GroupRecord gr = groups.GetGroupRecord(objecUUID);
+                    if (gr != null)
+                        return gr.GroupName;
+                }
                 return String.Empty;
+            }
+
             return SensedObject.Name;
         }
 

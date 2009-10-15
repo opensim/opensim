@@ -89,6 +89,7 @@ namespace OpenSim.Framework
             }
 
             threadFinishEvent.WaitOne();
+            threadFinishEvent.Close();
 
             if (exception != null)
                 throw new Exception(exception.Message, exception);
@@ -148,6 +149,7 @@ namespace OpenSim.Framework
             }
 
             threadFinishEvent.WaitOne();
+            threadFinishEvent.Close();
 
             if (exception != null)
                 throw new Exception(exception.Message, exception);
@@ -199,6 +201,7 @@ namespace OpenSim.Framework
             }
 
             threadFinishEvent.WaitOne();
+            threadFinishEvent.Close();
 
             if (exception != null)
                 throw new Exception(exception.Message, exception);

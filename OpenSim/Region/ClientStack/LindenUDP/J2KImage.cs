@@ -31,6 +31,7 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using log4net;
 using System.Reflection;
@@ -54,6 +55,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public UUID TextureID;
         public IJ2KDecoder J2KDecoder;
         public IAssetService AssetService;
+        public UUID AgentID;
+        public IHyperAssetService HyperAssets;
         public OpenJPEG.J2KLayerInfo[] Layers;
         public bool IsDecoded;
         public bool HasAsset;
@@ -72,14 +75,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_imageManager = imageManager;
         }
 
-        public bool SendPackets(LLClientView client, int maxpack)
+        /// <summary>
+        /// Sends packets for this texture to a client until packetsToSend is 
+        /// hit or the transfer completes
+        /// </summary>
+        /// <param name="client">Reference to the client that the packets are destined for</param>
+        /// <param name="packetsToSend">Maximum number of packets to send during this call</param>
+        /// <param name="packetsSent">Number of packets sent during this call</param>
+        /// <returns>True if the transfer completes at the current discard level, otherwise false</returns>
+        public bool SendPackets(LLClientView client, int packetsToSend, out int packetsSent)
         {
-            if (client == null)
-                return false;
+            packetsSent = 0;
 
             if (m_currentPacket <= m_stopPacket)
             {
-                int count = 0;
                 bool sendMore = true;
 
                 if (!m_sentInfo || (m_currentPacket == 0))
@@ -88,25 +97,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     m_sentInfo = true;
                     ++m_currentPacket;
-                    ++count;
+                    ++packetsSent;
                 }
                 if (m_currentPacket < 2)
                 {
                     m_currentPacket = 2;
                 }
                 
-                while (sendMore && count < maxpack && m_currentPacket <= m_stopPacket)
+                while (sendMore && packetsSent < packetsToSend && m_currentPacket <= m_stopPacket)
                 {
                     sendMore = SendPacket(client);
                     ++m_currentPacket;
-                    ++count;
+                    ++packetsSent;
                 }
-
-                if (m_currentPacket > m_stopPacket)
-                    return true;
             }
 
-            return false;
+            return (m_currentPacket > m_stopPacket);
         }
 
         public void RunUpdate()
@@ -370,6 +376,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UUID assetID = UUID.Zero;
             if (asset != null)
                 assetID = asset.FullID;
+            else if ((HyperAssets != null) && (sender != HyperAssets))
+            {
+                // Try the user's inventory, but only if it's different from the regions'
+                string userAssets = HyperAssets.GetUserAssetServer(AgentID);
+                if ((userAssets != string.Empty) && (userAssets != HyperAssets.GetSimAssetServer()))
+                {
+                    m_log.DebugFormat("[J2KIMAGE]: texture {0} not found in local asset storage. Trying user's storage.", id);
+                    AssetService.Get(userAssets + "/" + id, HyperAssets, AssetReceived);
+                    return;
+                }
+            }
 
             AssetDataCallback(assetID, asset);
 

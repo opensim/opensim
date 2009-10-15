@@ -390,6 +390,32 @@ namespace OpenSim.Region.Framework.Scenes
                 EventManager.TriggerScriptReset(part.LocalId, itemID);
             }
         }
+
+        void ProcessViewerEffect(IClientAPI remoteClient, List<ViewerEffectEventHandlerArg> args)
+        {
+            // TODO: don't create new blocks if recycling an old packet
+            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
+            for (int i = 0; i < args.Count; i++)
+            {
+                ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
+                effect.AgentID = args[i].AgentID;
+                effect.Color = args[i].Color;
+                effect.Duration = args[i].Duration;
+                effect.ID = args[i].ID;
+                effect.Type = args[i].Type;
+                effect.TypeData = args[i].TypeData;
+                effectBlock.Add(effect);
+            }
+            ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
+
+            ClientManager.ForEach(
+                delegate(IClientAPI client)
+                {
+                    if (client.AgentId != remoteClient.AgentId)
+                        client.SendViewerEffect(effectBlockArray);
+                }
+            );
+        }
         
         /// <summary>
         /// Handle a fetch inventory request from the client

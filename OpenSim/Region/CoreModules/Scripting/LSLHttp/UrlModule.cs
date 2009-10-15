@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         public string body;
         public int responseCode;
         public string responseBody;
-        public ManualResetEvent ev;
+        //public ManualResetEvent ev;
         public bool requestDone;
         public int startTime;
         public string uri;
@@ -456,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     requestData.headers["x-query-string"] = queryString;
                     requestData.headers["x-script-url"] = url.url;
 
-                    requestData.ev = new ManualResetEvent(false);
+                    //requestData.ev = new ManualResetEvent(false);
                     lock (url.requests)
                     {
                         url.requests.Add(requestID, requestData);

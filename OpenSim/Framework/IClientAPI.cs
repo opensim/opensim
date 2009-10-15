@@ -561,6 +561,8 @@ namespace OpenSim.Framework
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
 
+        IPEndPoint RemoteEndPoint { get; }
+
         event GenericMessage OnGenericMessage;
 
         // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
@@ -802,7 +804,7 @@ namespace OpenSim.Framework
 
         void InPacket(object NewPack);
         void ProcessInPacket(Packet NewPack);
-        void Close(bool ShutdownCircuit);
+        void Close();
         void Kick(string message);
         
         /// <summary>

@@ -813,7 +813,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
         }
 
@@ -831,6 +831,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
             get { return m_circuitCode; }
             set { m_circuitCode = value; }
+        }
+
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return new IPEndPoint(IPAddress.Loopback, (ushort)m_circuitCode); }
         }
 
         public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)

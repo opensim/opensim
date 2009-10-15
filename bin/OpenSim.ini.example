@@ -341,26 +341,13 @@
 
 
 [ClientStack.LindenUDP]
-    ; This is the multiplier applied to all client throttles for outgoing UDP network data
-    ; If it is set to 1, then we obey the throttle settings as given to us by the client.  If it is set to 3, for example, then we
-    ; multiply that setting by 3 (e.g. if the client gives us a setting of 250 kilobits per second then we
-    ; will actually push down data at a maximum rate of 750 kilobits per second).
-    ;
-    ; In principle, setting a multiplier greater than 1 will allow data to be pushed down to a client much faster
-    ; than its UI allows the setting to go.  This may be okay in some situations, such as standalone OpenSim
-    ; applications on a LAN.  However, the greater the multipler, the higher the risk of packet drop, resulting
-    ; in symptoms such as missing terrain or objects.  A much better solution is to change the client UI to allow
-    ; higher network bandwidth settings directly, though this isn't always possible.
-    ;
-    ; Currently this setting is 2 by default because we currently send much more texture data than is strictly
-    ; necessary.  A setting of 1 could result in slow texture transfer.  This will be fixed when the transfer
-    ; of textures at different levels of quality is improved.
-    ;
-    ; Pre r7113, this setting was not exposed but was effectively 8.  You may want to try this if you encounter
-    ; unexpected difficulties
-    client_throttle_multiplier = 2;
+    ; Set this to true to process incoming packets asynchronously. Networking is
+    ; already separated from packet handling with a queue, so this will only
+    ; affect whether networking internals such as packet decoding and 
+    ; acknowledgement accounting are done synchronously or asynchronously
+    async_packet_handling = false
 
-    ; the client socket receive buffer size determines how many
+    ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
     ; whatever the underlying operating system has as default; for
@@ -374,12 +361,42 @@
     ; by the system's settings for the maximum client receive buffer
     ; size (on linux systems you can set that with "sysctl -w
     ; net.core.rmem_max=X")
-    ;
-    ; client_socket_rcvbuf_size = 8388608
+    ;client_socket_rcvbuf_size = 8388608
+    
+    ; Maximum outbound bytes per second for a single scene. This can be used to
+    ; throttle total outbound UDP traffic for a simulator. The default value is
+    ; 0, meaning no throttling at the scene level. The example given here is
+    ; 20 megabits
+    ;scene_throttle_max_bps = 2621440
 
-    ; Maximum bits per second to send to any single client. This will override the user's viewer preference settings.
-
-    ; client_throttle_max_bps = 1500000
+    ; Maximum bits per second to send to any single client. This will override 
+    ; the user's viewer preference settings. The default value is 0, meaning no
+    ; aggregate throttling on clients (only per-category throttling). The
+    ; example given here is 1.5 megabits
+    ;client_throttle_max_bps = 196608
+    
+    ; Per-client bytes per second rates for the various throttle categories.
+    ; These are default values that will be overriden by clients
+    ;resend_default = 12500
+    ;land_default = 500
+    ;wind_default = 500
+    ;cloud_default = 50
+    ;task_default = 500
+    ;texture_default = 500
+    ;asset_default = 500
+    ;state_default = 500
+    
+    ; Per-client maximum burst rates in bytes per second for the various
+    ; throttle categories. These are default values that will be overriden by
+    ; clients
+    ;resend_limit = 18750
+    ;land_limit = 29750
+    ;wind_limit = 18750
+    ;cloud_limit = 18750
+    ;task_limit = 18750
+    ;texture_limit = 55750
+    ;asset_limit = 27500
+    ;state_limit = 37000
 
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
@@ -1381,6 +1398,10 @@
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
+    
+    ; Disable this to prevent the default asset set from being inserted into the
+    ; asset store each time the region starts
+    AssetLoaderEnabled = true
 
 [GridService]
     ;; default standalone, overridable in StandaloneCommon.ini

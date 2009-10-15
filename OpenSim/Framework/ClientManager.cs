@@ -28,193 +28,195 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using log4net;
+using System.Net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 
 namespace OpenSim.Framework
 {
-    public delegate void ForEachClientDelegate(IClientAPI client);
-
+    /// <summary>
+    /// Maps from client AgentID and RemoteEndPoint values to IClientAPI
+    /// references for all of the connected clients
+    /// </summary>
     public class ClientManager
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /// <summary>A dictionary mapping from <seealso cref="UUID"/>
+        /// to <seealso cref="IClientAPI"/> references</summary>
+        private Dictionary<UUID, IClientAPI> m_dict1;
+        /// <summary>A dictionary mapping from <seealso cref="IPEndPoint"/>
+        /// to <seealso cref="IClientAPI"/> references</summary>
+        private Dictionary<IPEndPoint, IClientAPI> m_dict2;
+        /// <summary>An immutable collection of <seealso cref="IClientAPI"/>
+        /// references</summary>
+        private IClientAPI[] m_array;
+        /// <summary>Synchronization object for writing to the collections</summary>
+        private object m_syncRoot = new object();
 
-        private Dictionary<uint, IClientAPI> m_clients;
+        /// <summary>Number of clients in the collection</summary>
+        public int Count { get { return m_dict1.Count; } }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public ClientManager()
         {
-            m_clients = new Dictionary<uint, IClientAPI>();
+            m_dict1 = new Dictionary<UUID, IClientAPI>();
+            m_dict2 = new Dictionary<IPEndPoint, IClientAPI>();
+            m_array = new IClientAPI[0];
         }
 
-        public void ForEachClient(ForEachClientDelegate whatToDo)
+        /// <summary>
+        /// Add a client reference to the collection if it does not already
+        /// exist
+        /// </summary>
+        /// <param name="value">Reference to the client object</param>
+        /// <returns>True if the client reference was successfully added,
+        /// otherwise false if the given key already existed in the collection</returns>
+        public bool Add(IClientAPI value)
         {
-            IClientAPI[] LocalClients;
-            lock (m_clients)
+            lock (m_syncRoot)
             {
-                LocalClients = new IClientAPI[m_clients.Count];
-                m_clients.Values.CopyTo(LocalClients, 0);
+                if (m_dict1.ContainsKey(value.AgentId) || m_dict2.ContainsKey(value.RemoteEndPoint))
+                    return false;
+
+                m_dict1[value.AgentId] = value;
+                m_dict2[value.RemoteEndPoint] = value;
+
+                IClientAPI[] oldArray = m_array;
+                int oldLength = oldArray.Length;
+
+                IClientAPI[] newArray = new IClientAPI[oldLength + 1];
+                for (int i = 0; i < oldLength; i++)
+                    newArray[i] = oldArray[i];
+                newArray[oldLength] = value;
+
+                m_array = newArray;
             }
 
-            for (int i = 0; i < LocalClients.Length; i++)
+            return true;
+        }
+
+        /// <summary>
+        /// Remove a client from the collection
+        /// </summary>
+        /// <param name="key">UUID of the client to remove</param>
+        /// <returns>True if a client was removed, or false if the given UUID
+        /// was not present in the collection</returns>
+        public bool Remove(UUID key)
+        {
+            lock (m_syncRoot)
             {
-                try
+                IClientAPI value;
+                if (m_dict1.TryGetValue(key, out value))
                 {
-                    whatToDo(LocalClients[i]);
-                }
-                catch (Exception e)
-                {
-                    m_log.Warn("[CLIENT]: Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
+                    m_dict1.Remove(key);
+                    m_dict2.Remove(value.RemoteEndPoint);
+
+                    IClientAPI[] oldArray = m_array;
+                    int oldLength = oldArray.Length;
+
+                    IClientAPI[] newArray = new IClientAPI[oldLength - 1];
+                    int j = 0;
+                    for (int i = 0; i < oldLength; i++)
+                    {
+                        if (oldArray[i] != value)
+                            newArray[j++] = oldArray[i];
+                    }
+
+                    m_array = newArray;
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        public void Remove(uint id)
+        /// <summary>
+        /// Resets the client collection
+        /// </summary>
+        public void Clear()
         {
-            lock (m_clients)
+            lock (m_syncRoot)
             {
-                m_clients.Remove(id);
-            }
-        }
-
-        public void Add(uint id, IClientAPI client)
-        {
-            lock (m_clients)
-            {
-                m_clients.Add(id, client);
+                m_dict1.Clear();
+                m_dict2.Clear();
+                m_array = new IClientAPI[0];
             }
         }
 
         /// <summary>
-        /// Pass incoming packet to client.
+        /// Checks if a UUID is in the collection
         /// </summary>
-        /// <param name="circuitCode">uint identifying the connection/client.</param>
-        /// <param name="packet">object containing the packet.</param>
-        public void InPacket(uint circuitCode, object packet)
+        /// <param name="key">UUID to check for</param>
+        /// <returns>True if the UUID was found in the collection, otherwise false</returns>
+        public bool ContainsKey(UUID key)
         {
-            IClientAPI client;
-            bool tryGetRet = false;
-            
-            lock (m_clients)
-                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            
-            if (tryGetRet)
+            return m_dict1.ContainsKey(key);
+        }
+
+        /// <summary>
+        /// Checks if an endpoint is in the collection
+        /// </summary>
+        /// <param name="key">Endpoint to check for</param>
+        /// <returns>True if the endpoint was found in the collection, otherwise false</returns>
+        public bool ContainsKey(IPEndPoint key)
+        {
+            return m_dict2.ContainsKey(key);
+        }
+
+        /// <summary>
+        /// Attempts to fetch a value out of the collection
+        /// </summary>
+        /// <param name="key">UUID of the client to retrieve</param>
+        /// <param name="value">Retrieved client, or null on lookup failure</param>
+        /// <returns>True if the lookup succeeded, otherwise false</returns>
+        public bool TryGetValue(UUID key, out IClientAPI value)
+        {
+            try { return m_dict1.TryGetValue(key, out value); }
+            catch (Exception)
             {
-                client.InPacket(packet);
+                value = null;
+                return false;
             }
         }
 
-        public void CloseAllAgents(uint circuitCode)
+        /// <summary>
+        /// Attempts to fetch a value out of the collection
+        /// </summary>
+        /// <param name="key">Endpoint of the client to retrieve</param>
+        /// <param name="value">Retrieved client, or null on lookup failure</param>
+        /// <returns>True if the lookup succeeded, otherwise false</returns>
+        public bool TryGetValue(IPEndPoint key, out IClientAPI value)
         {
-            IClientAPI client;
-            bool tryGetRet = false;
-            lock (m_clients)
-                tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            if (tryGetRet)
+            try { return m_dict2.TryGetValue(key, out value); }
+            catch (Exception)
             {
-                CloseAllCircuits(client.AgentId);
+                value = null;
+                return false;
             }
         }
 
-        public void CloseAllCircuits(UUID agentId)
+        /// <summary>
+        /// Performs a given task in parallel for each of the elements in the
+        /// collection
+        /// </summary>
+        /// <param name="action">Action to perform on each element</param>
+        public void ForEach(Action<IClientAPI> action)
         {
-            uint[] circuits = GetAllCircuits(agentId);
-            // We're using a for loop here so changes to the circuits don't cause it to completely fail.
-
-            for (int i = 0; i < circuits.Length; i++)
-            {
-                IClientAPI client;
-                try
-                {
-                    bool tryGetRet = false;
-                    lock (m_clients)
-                        tryGetRet = m_clients.TryGetValue(circuits[i], out client);
-                    if (tryGetRet)
-                    {
-                        Remove(client.CircuitCode);
-                        client.Close(false);
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error(string.Format("[CLIENT]: Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
-                }
-            }
+            IClientAPI[] localArray = m_array;
+            Parallel.ForEach<IClientAPI>(localArray, action);
         }
 
-        // [Obsolete("Using Obsolete to drive development is invalid.  Obsolete presumes that something new has already been created to replace this.")]
-        public uint[] GetAllCircuits(UUID agentId)
+        /// <summary>
+        /// Performs a given task synchronously for each of the elements in
+        /// the collection
+        /// </summary>
+        /// <param name="action">Action to perform on each element</param>
+        public void ForEachSync(Action<IClientAPI> action)
         {
-            List<uint> circuits = new List<uint>();
-            // Wasteful, I know
-            IClientAPI[] LocalClients = new IClientAPI[0];
-            lock (m_clients)
-            {
-                LocalClients = new IClientAPI[m_clients.Count];
-                m_clients.Values.CopyTo(LocalClients, 0);
-            }
-
-            for (int i = 0; i < LocalClients.Length; i++)
-            {
-                if (LocalClients[i].AgentId == agentId)
-                {
-                    circuits.Add(LocalClients[i].CircuitCode);
-                }
-            }
-            return circuits.ToArray();
-        }
-
-        public List<uint> GetAllCircuitCodes()
-        {
-            List<uint> circuits;
-
-            lock (m_clients)
-            {
-                circuits = new List<uint>(m_clients.Keys);
-            }
-
-            return circuits;
-        }
-
-        public void ViewerEffectHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args)
-        {
-            // TODO: don't create new blocks if recycling an old packet
-            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
-                effect.AgentID = args[i].AgentID;
-                effect.Color = args[i].Color;
-                effect.Duration = args[i].Duration;
-                effect.ID = args[i].ID;
-                effect.Type = args[i].Type;
-                effect.TypeData = args[i].TypeData;
-                effectBlock.Add(effect);
-            }
-            ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
-
-            IClientAPI[] LocalClients;
-            lock (m_clients)
-            {
-                LocalClients = new IClientAPI[m_clients.Count];
-                m_clients.Values.CopyTo(LocalClients, 0);
-            }
-
-            for (int i = 0; i < LocalClients.Length; i++)
-            {
-                if (LocalClients[i].AgentId != sender.AgentId)
-                {
-                    LocalClients[i].SendViewerEffect(effectBlockArray);
-                }
-            }
-        }
-
-        public bool TryGetClient(uint circuitId, out IClientAPI user)
-        {
-            lock (m_clients)
-            {
-                return m_clients.TryGetValue(circuitId, out user);
-            }
+            IClientAPI[] localArray = m_array;
+            for (int i = 0; i < localArray.Length; i++)
+                action(localArray[i]);
         }
     }
 }

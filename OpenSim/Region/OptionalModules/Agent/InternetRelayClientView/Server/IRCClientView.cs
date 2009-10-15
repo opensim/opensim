@@ -634,6 +634,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             get { return (uint)Util.RandomClass.Next(0,int.MaxValue); }
         }
+
+        public IPEndPoint RemoteEndPoint
+        {
+            get { return (IPEndPoint)m_client.Client.RemoteEndPoint; }
+        }
+
 #pragma warning disable 67
         public event GenericMessage OnGenericMessage;
         public event ImprovedInstantMessage OnInstantMessage;
@@ -843,7 +849,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             
         }
 
-        public void Close(bool ShutdownCircuit)
+        public void Close()
         {
             Disconnect();
         }

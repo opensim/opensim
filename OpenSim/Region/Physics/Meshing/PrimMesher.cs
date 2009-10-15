@@ -69,7 +69,7 @@ namespace PrimMesher
 
         public Quat Identity()
         {
-            return new Quat(0.0f, 0.0f, 0.0f, 1.1f);
+            return new Quat(0.0f, 0.0f, 0.0f, 1.0f);
         }
 
         public float Length()

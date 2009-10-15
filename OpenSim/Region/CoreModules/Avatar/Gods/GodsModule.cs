@@ -36,6 +36,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
     public class GodsModule : IRegionModule, IGodsModule
     {
+        /// <summary>Special UUID for actions that apply to all agents</summary>
+        private static readonly UUID ALL_AGENTS = new UUID("44e87126-e794-4ded-05b3-7c42da3d5cdb");
+
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
         
@@ -99,8 +102,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         /// <param name="reason">The message to send to the user after it's been turned into a field</param>
         public void KickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason)
         {
-            // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
-            UUID kickUserID = new UUID("44e87126e7944ded05b37c42da3d5cdb");
+            UUID kickUserID = ALL_AGENTS;
             
             ScenePresence sp = m_scene.GetScenePresence(agentID);
 
@@ -110,15 +112,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                 {
                     if (agentID == kickUserID)
                     {
-                        m_scene.ClientManager.ForEachClient(
+                        string reasonStr = Utils.BytesToString(reason);
+
+                        m_scene.ClientManager.ForEach(
                             delegate(IClientAPI controller)
                             {
                                 if (controller.AgentId != godID)
-                                    controller.Kick(Utils.BytesToString(reason));
+                                    controller.Kick(reasonStr);
                             }
                         );
 
-                        // This is a bit crude.   It seems the client will be null before it actually stops the thread
+                        // This is a bit crude. It seems the client will be null before it actually stops the thread
                         // The thread will kill itself eventually :/
                         // Is there another way to make sure *all* clients get this 'inter region' message?
                         m_scene.ForEachScenePresence(
@@ -128,7 +132,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                                 {
                                     // Possibly this should really be p.Close() though that method doesn't send a close
                                     // to the client
-                                    p.ControllingClient.Close(true);
+                                    p.ControllingClient.Close();
                                 }
                             }
                         );
@@ -138,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                         m_scene.SceneGraph.removeUserCount(!sp.IsChildAgent);
 
                         sp.ControllingClient.Kick(Utils.BytesToString(reason));
-                        sp.ControllingClient.Close(true);
+                        sp.ControllingClient.Close();
                     }
                 }
                 else

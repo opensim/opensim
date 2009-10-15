@@ -77,7 +77,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected RegionInfo m_regInfo;
         protected Scene m_parentScene;
-        protected Dictionary<UUID, EntityBase> m_updateList = new Dictionary<UUID, EntityBase>();
+        protected Dictionary<UUID, SceneObjectGroup> m_updateList = new Dictionary<UUID, SceneObjectGroup>();
         protected int m_numRootAgents = 0;
         protected int m_numPrim = 0;
         protected int m_numChildAgents = 0;
@@ -152,16 +152,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (_PhyScene.IsThreaded)
             {
                 _PhyScene.GetResults();
-            }
-        }
-
-        protected internal void UpdateEntities()
-        {
-            List<EntityBase> updateEntities = GetEntities();
-
-            foreach (EntityBase entity in updateEntities)
-            {
-                entity.Update();
             }
         }
 
@@ -365,12 +355,12 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Add an entity to the list of prims to process on the next update
+        /// Add an object to the list of prims to process on the next update
         /// </summary>
         /// <param name="obj">
-        /// A <see cref="EntityBase"/>
+        /// A <see cref="SceneObjectGroup"/>
         /// </param>
-        protected internal void AddToUpdateList(EntityBase obj)
+        protected internal void AddToUpdateList(SceneObjectGroup obj)
         {
             lock (m_updateList)
             {
@@ -381,18 +371,18 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Process all pending updates
         /// </summary>
-        protected internal void ProcessUpdates()
+        protected internal void UpdateObjectGroups()
         {
-            Dictionary<UUID, EntityBase> updates;
+            Dictionary<UUID, SceneObjectGroup> updates;
             // Some updates add more updates to the updateList. 
             // Get the current list of updates and clear the list before iterating
             lock (m_updateList)
             {
-                updates = new Dictionary<UUID, EntityBase>(m_updateList);
+                updates = new Dictionary<UUID, SceneObjectGroup>(m_updateList);
                 m_updateList.Clear();
             }
-            // Go through all timers
-            foreach (KeyValuePair<UUID, EntityBase> kvp in updates)
+            // Go through all updates
+            foreach (KeyValuePair<UUID, SceneObjectGroup> kvp in updates)
             {
                 // Don't abort the whole update if one entity happens to give us an exception.
                 try

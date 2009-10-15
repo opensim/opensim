@@ -146,6 +146,7 @@ namespace OpenSim.Framework.Communications
                 // If the operation isn't done, wait for it
                 AsyncWaitHandle.WaitOne();
                 AsyncWaitHandle.Close();
+                m_waitHandle.Close();
                 m_waitHandle = null; // Allow early GC
             }
 
