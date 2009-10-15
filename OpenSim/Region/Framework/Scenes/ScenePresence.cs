@@ -2507,8 +2507,9 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> avatars = m_scene.GetAvatars();
             for (int i = 0; i < avatars.Count; i++)
             {
-                if (avatars[i] != this)
-                {
+                // Requested by LibOMV.   Send Course Location on self.
+                //if (avatars[i] != this)
+                //{
                     if (avatars[i].ParentID != 0)
                     {
                         // sitting avatar
@@ -2530,7 +2531,7 @@ namespace OpenSim.Region.Framework.Scenes
                         CoarseLocations.Add(avatars[i].m_pos);
                         AvatarUUIDs.Add(avatars[i].UUID);
                     }
-                }
+                //}
             }
 
             m_controllingClient.SendCoarseLocationUpdate(AvatarUUIDs, CoarseLocations);
