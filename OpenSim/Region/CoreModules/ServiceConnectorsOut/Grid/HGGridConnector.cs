@@ -154,6 +154,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
+            // Yikes!! Remove this as soon as user services get refactored
+            LocalAssetServerURI = scene.CommsManager.NetworkServersInfo.UserURL;
+            LocalInventoryServerURI = scene.CommsManager.NetworkServersInfo.InventoryURL;
+            LocalUserServerURI = scene.CommsManager.NetworkServersInfo.UserURL;
+            HGNetworkServersInfo.Init(LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI);
+
         }
 
         public void RemoveRegion(Scene scene)
@@ -173,9 +179,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_Initialized)
             {
                 m_aScene = scene;
-                LocalAssetServerURI = m_aScene.CommsManager.NetworkServersInfo.UserURL;
-                LocalInventoryServerURI = m_aScene.CommsManager.NetworkServersInfo.InventoryURL;
-                LocalUserServerURI = m_aScene.CommsManager.NetworkServersInfo.UserURL;
 
                 m_HypergridServiceConnector = new HypergridServiceConnector(scene.AssetService);
 
@@ -188,9 +191,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     "Unlink a hypergrid region", hgCommands.RunCommand);
                 MainConsole.Instance.Commands.AddCommand("HGGridServicesConnector", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
                     "Set local coordinate to map HG regions to", hgCommands.RunCommand);
-
-                // Yikes!! Remove this as soon as user services get refactored
-                HGNetworkServersInfo.Init(LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI);
 
                 m_Initialized = true;
             }
