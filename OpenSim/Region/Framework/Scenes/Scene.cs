@@ -1194,15 +1194,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Perform delegate action on all clients subscribing to updates from this region.
-        /// </summary>
-        /// <returns></returns>
-        public void Broadcast(Action<IClientAPI> whatToDo)
-        {
-            ForEachScenePresence(delegate(ScenePresence presence) { whatToDo(presence.ControllingClient); });
-        }
-
-        /// <summary>
         /// Backup the scene.  This acts as the main method of the backup thread.
         /// </summary>
         /// <returns></returns>
@@ -3048,17 +3039,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
-                Broadcast(delegate(IClientAPI client)
-                          {
-                              try
-                              {
-                                  client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                              }
-                              catch (NullReferenceException)
-                              {
-                                  //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-                              }
-                          });
+                ForEachClient(
+                    delegate(IClientAPI client)
+                    {
+                        //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                        try { client.SendKillObject(avatar.RegionHandle, avatar.LocalId); }
+                        catch (NullReferenceException) { }
+                    });
 
                 ForEachScenePresence(
                     delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -3143,7 +3130,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
             }
-            Broadcast(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
+            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
         }
 
         #endregion
@@ -4211,7 +4198,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            m_sceneGraph.ForEachClient(action);
+            ClientManager.ForEach(action);
         }
 
         public void ForEachSOG(Action<SceneObjectGroup> action)

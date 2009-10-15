@@ -853,16 +853,6 @@ if (m_shape != null) {
                 return m_offsetPosition + m_groupPosition; }
         }
 
-        public UUID ObjectCreator
-        {
-            get { return _creatorID; }
-        }
-
-        public UUID ObjectOwner
-        {
-            get { return _ownerID; }
-        }
-
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
@@ -1440,7 +1430,7 @@ if (m_shape != null) {
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe._lastOwnerID = ObjectOwner;
+            dupe._lastOwnerID = OwnerID;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);

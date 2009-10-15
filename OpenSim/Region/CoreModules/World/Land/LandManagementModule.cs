@@ -1061,7 +1061,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 {
                     land.LandData.OwnerID = ownerID;
 
-                    m_scene.Broadcast(SendParcelOverlay);
+                    m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(remote_client);
                 }
             }
@@ -1083,7 +1083,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-                    m_scene.Broadcast(SendParcelOverlay);
+                    m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(remote_client);
                 }
             }
@@ -1107,7 +1107,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
                     land.LandData.IsGroupOwned = false;
-                    m_scene.Broadcast(SendParcelOverlay);
+                    m_scene.ForEachClient(SendParcelOverlay);
                     land.SendLandUpdateToClient(remote_client);
                 }
             }

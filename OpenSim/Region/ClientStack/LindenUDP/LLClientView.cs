@@ -51,6 +51,44 @@ using Nini.Config;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
+    #region Enums
+
+    /// <summary>
+    /// Specifies the fields that have been changed when sending a prim or
+    /// avatar update
+    /// </summary>
+    [Flags]
+    public enum PrimUpdateFlags : uint
+    {
+        None = 0,
+        AttachmentPoint = 1 << 0,
+        Material = 1 << 1,
+        ClickAction = 1 << 2,
+        Scale = 1 << 3,
+        ParentID = 1 << 4,
+        PrimFlags = 1 << 5,
+        PrimData = 1 << 6,
+        MediaURL = 1 << 7,
+        ScratchPad = 1 << 8,
+        Textures = 1 << 9,
+        TextureAnim = 1 << 10,
+        NameValue = 1 << 11,
+        Position = 1 << 12,
+        Rotation = 1 << 13,
+        Velocity = 1 << 14,
+        Acceleration = 1 << 15,
+        AngularVelocity = 1 << 16,
+        CollisionPlane = 1 << 17,
+        Text = 1 << 18,
+        Particles = 1 << 19,
+        ExtraData = 1 << 20,
+        Sound = 1 << 21,
+        Joint = 1 << 22,
+        FullUpdate = UInt32.MaxValue
+    }
+
+    #endregion Enums
+
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 
     /// <summary>
@@ -3159,6 +3197,195 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
+        #region Prim/Avatar Updates
+
+        /*void SendObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
+        {
+            bool canUseCompressed, canUseImproved;
+            UpdateFlagsToPacketType(creatorFlags, updateFlags, out canUseCompressed, out canUseImproved);
+
+            if (!canUseImproved && !canUseCompressed)
+                SendFullObjectUpdate(obj, creatorFlags, updateFlags);
+            else if (!canUseImproved)
+                SendObjectUpdateCompressed(obj, creatorFlags, updateFlags);
+            else
+                SendImprovedTerseObjectUpdate(obj, creatorFlags, updateFlags);
+        }
+
+        void SendFullObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
+        {
+            IClientAPI owner;
+            if (m_scene.ClientManager.TryGetValue(obj.OwnerID, out owner) && owner is LLClientView)
+            {
+                LLClientView llOwner = (LLClientView)owner;
+
+                // Send an update out to the owner
+                ObjectUpdatePacket updateToOwner = new ObjectUpdatePacket();
+                updateToOwner.RegionData.RegionHandle = obj.RegionHandle;
+                //updateToOwner.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
+                updateToOwner.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+                updateToOwner.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags | creatorFlags | PrimFlags.ObjectYouOwner, 0);
+
+                m_udpServer.SendPacket(llOwner.UDPClient, updateToOwner, ThrottleOutPacketType.State, true);
+            }
+
+            // Send an update out to everyone else
+            ObjectUpdatePacket updateToOthers = new ObjectUpdatePacket();
+            updateToOthers.RegionData.RegionHandle = obj.RegionHandle;
+            //updateToOthers.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
+            updateToOthers.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
+            updateToOthers.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags, 0);
+
+            m_scene.ClientManager.ForEach(
+                delegate(IClientAPI client)
+                {
+                    if (client.AgentId != obj.OwnerID && client is LLClientView)
+                    {
+                        LLClientView llClient = (LLClientView)client;
+                        m_udpServer.SendPacket(llClient.UDPClient, updateToOthers, ThrottleOutPacketType.State, true);
+                    }
+                }
+            );
+        }
+
+        void SendObjectUpdateCompressed(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
+        {
+        }
+
+        void SendImprovedTerseObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
+        {
+        }
+
+        void UpdateFlagsToPacketType(PrimFlags creatorFlags, PrimUpdateFlags updateFlags, out bool canUseCompressed, out bool canUseImproved)
+        {
+            canUseCompressed = true;
+            canUseImproved = true;
+
+            if ((updateFlags & PrimUpdateFlags.FullUpdate) == PrimUpdateFlags.FullUpdate || creatorFlags != PrimFlags.None)
+            {
+                canUseCompressed = false;
+                canUseImproved = false;
+            }
+            else
+            {
+                if ((updateFlags & PrimUpdateFlags.Velocity) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Acceleration) != 0 ||
+                    (updateFlags & PrimUpdateFlags.CollisionPlane) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Joint) != 0)
+                {
+                    canUseCompressed = false;
+                }
+
+                if ((updateFlags & PrimUpdateFlags.PrimFlags) != 0 ||
+                    (updateFlags & PrimUpdateFlags.ParentID) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Scale) != 0 ||
+                    (updateFlags & PrimUpdateFlags.PrimData) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Text) != 0 ||
+                    (updateFlags & PrimUpdateFlags.NameValue) != 0 ||
+                    (updateFlags & PrimUpdateFlags.ExtraData) != 0 ||
+                    (updateFlags & PrimUpdateFlags.TextureAnim) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Sound) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Particles) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Material) != 0 ||
+                    (updateFlags & PrimUpdateFlags.ClickAction) != 0 ||
+                    (updateFlags & PrimUpdateFlags.MediaURL) != 0 ||
+                    (updateFlags & PrimUpdateFlags.Joint) != 0)
+                {
+                    canUseImproved = false;
+                }
+            }
+        }
+
+        static ObjectUpdatePacket.ObjectDataBlock BuildUpdateBlockFromPrim(SceneObjectPart prim, UUID assetID, PrimFlags flags, uint crc)
+        {
+            byte[] objectData = new byte[60];
+            prim.OffsetPosition.ToBytes(objectData, 0);
+            prim.Velocity.ToBytes(objectData, 12);
+            prim.Acceleration.ToBytes(objectData, 24);
+            prim.RotationOffset.ToBytes(objectData, 36);
+            prim.AngularVelocity.ToBytes(objectData, 48);
+
+            ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
+            update.ClickAction = (byte)prim.ClickAction;
+            update.CRC = crc;
+            update.ExtraParams = prim.Shape.ExtraParams ?? Utils.EmptyBytes;
+            update.Flags = (byte)flags;
+            update.FullID = prim.UUID;
+            update.ID = prim.LocalId;
+            //update.JointAxisOrAnchor = Vector3.Zero; // These are deprecated
+            //update.JointPivot = Vector3.Zero;
+            //update.JointType = 0;
+            update.Material = prim.Material;
+            update.MediaURL = Utils.EmptyBytes; // FIXME: Support this in OpenSim
+            if (prim.IsAttachment)
+                update.NameValue = Util.StringToBytes256("AttachItemID STRING RW SV " + assetID);
+            else
+                update.NameValue = Utils.EmptyBytes;
+            update.ObjectData = objectData;
+            update.ParentID = prim.ParentID;
+            update.PathBegin = prim.Shape.PathBegin;
+            update.PathCurve = prim.Shape.PathCurve;
+            update.PathEnd = prim.Shape.PathEnd;
+            update.PathRadiusOffset = prim.Shape.PathRadiusOffset;
+            update.PathRevolutions = prim.Shape.PathRevolutions;
+            update.PathScaleX = prim.Shape.PathScaleX;
+            update.PathScaleY = prim.Shape.PathScaleY;
+            update.PathShearX = prim.Shape.PathShearX;
+            update.PathShearY = prim.Shape.PathShearY;
+            update.PathSkew = prim.Shape.PathSkew;
+            update.PathTaperX = prim.Shape.PathTaperX;
+            update.PathTaperY = prim.Shape.PathTaperY;
+            update.PathTwist = prim.Shape.PathTwist;
+            update.PathTwistBegin = prim.Shape.PathTwistBegin;
+            update.PCode = prim.Shape.PCode;
+            update.ProfileBegin = prim.Shape.ProfileBegin;
+            update.ProfileCurve = prim.Shape.ProfileCurve;
+            update.ProfileEnd = prim.Shape.ProfileEnd;
+            update.ProfileHollow = prim.Shape.ProfileHollow;
+            update.PSBlock = prim.ParticleSystem ?? Utils.EmptyBytes;
+            update.TextColor = new Color4(prim.Color).GetBytes(true);
+            update.TextureAnim = prim.TextureAnimation ?? Utils.EmptyBytes;
+            update.TextureEntry = prim.Shape.TextureEntry ?? Utils.EmptyBytes;
+            update.Scale = prim.Scale;
+            update.State = prim.Shape.State;
+            update.Text = Util.StringToBytes256(prim.Text);
+            update.UpdateFlags = (uint)flags;
+
+            if (prim.Sound != UUID.Zero)
+            {
+                update.Sound = prim.Sound;
+                update.OwnerID = prim.OwnerID;
+                update.Gain = (float)prim.SoundGain;
+                update.Radius = (float)prim.SoundRadius;
+            }
+
+            switch ((PCode)prim.Shape.PCode)
+            {
+                case PCode.Grass:
+                case PCode.Tree:
+                case PCode.NewTree:
+                    update.Data = new byte[] { prim.Shape.State };
+                    break;
+                default:
+                    // TODO: Support ScratchPad
+                    //if (prim.ScratchPad != null)
+                    //{
+                    //    update.Data = new byte[prim.ScratchPad.Length];
+                    //    Buffer.BlockCopy(prim.ScratchPad, 0, update.Data, 0, update.Data.Length);
+                    //}
+                    //else
+                    //{
+                    //    update.Data = Utils.EmptyBytes;
+                    //}
+                    update.Data = Utils.EmptyBytes;
+                    break;
+            }
+
+            return update;
+        }*/
+
+        #endregion Prim/Avatar Updates
+
         #region Avatar Packet/data sending Methods
 
         /// <summary>
@@ -3365,7 +3592,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             if (primShape.PCode == 9 && primShape.State != 0 && parentID == 0)
                 return;
-
+            
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = Quaternion.Identity;
 

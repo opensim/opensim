@@ -1107,23 +1107,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
         }
 
-        protected internal void ForEachClient(Action<IClientAPI> action)
-        {
-            List<ScenePresence> splist = GetScenePresences();
-            foreach (ScenePresence presence in splist)
-            {
-                try
-                {
-                    action(presence.ControllingClient);
-                }
-                catch (Exception e)
-                {
-                    // Catch it and move on. This includes situations where splist has inconsistent info
-                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachClient: ", e.Message);
-                }
-            }
-        }
-
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);

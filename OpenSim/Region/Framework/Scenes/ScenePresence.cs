@@ -2455,11 +2455,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_perfMonMS = Environment.TickCount;
 
                 Vector3 pos = m_pos;
-                Vector3 vel = Velocity;
-                Quaternion rot = m_bodyRot;
                 pos.Z -= m_appearance.HipOffset;
-                remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId, new Vector3(pos.X, pos.Y, pos.Z),
-                                                   new Vector3(vel.X, vel.Y, vel.Z), rot, m_uuid);
+
+                remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue),
+                    LocalId, pos, Velocity, m_bodyRot, m_uuid);
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
@@ -2473,7 +2472,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_perfMonMS = Environment.TickCount;
 
-            m_scene.Broadcast(SendTerseUpdateToClient);
+            m_scene.ForEachClient(SendTerseUpdateToClient);
 
             m_lastVelocity = m_velocity;
             lastPhysPos = AbsolutePosition;
@@ -2774,7 +2773,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_isChildAgent)
                 return;
 
-            m_scene.Broadcast(
+            m_scene.ForEachClient(
                 delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId, objectIDs); });
         }
 
