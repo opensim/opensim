@@ -2481,7 +2481,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (aCircuit == null || aCircuit.child == false)
                 {
                     sp.IsChildAgent = false;
-                    sp.RezAttachments();
+                    Util.FireAndForget(delegate(object o) { sp.RezAttachments(); });
                 }
             }
 
