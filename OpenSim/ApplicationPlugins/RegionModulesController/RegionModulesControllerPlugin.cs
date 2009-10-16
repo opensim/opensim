@@ -286,20 +286,14 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             //
             foreach (ISharedRegionModule module in sharedlist)
             {
-                if (!module.ToString().Contains("RegionCombinerModule"))
-                {
-                    m_log.Debug("[REGIONMODULE]: Calling RegionLoaded for " + module);
-                    module.RegionLoaded(scene);
-                }
-                else
-                {
-                    m_log.Debug("[REGIONMODULE]: Skipping RegionCombinerModule");
-                }
+                try { module.RegionLoaded(scene); }
+                catch (Exception ex) { m_log.Error("[REGIONMODULE]: Exception while loading shared region module " + module + ": " + ex.Message, ex); }
             }
 
             foreach (INonSharedRegionModule module in list)
             {
-                module.RegionLoaded(scene);
+                try { module.RegionLoaded(scene); }
+                catch (Exception ex) { m_log.Error("[REGIONMODULE]: Exception while loading non-shared region module " + module + ": " + ex.Message, ex); }
             }
         }
 
