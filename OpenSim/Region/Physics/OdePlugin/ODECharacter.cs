@@ -1109,12 +1109,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             try
             {
                 vec = d.BodyGetPosition(Body);
-                //throw new NullReferenceException("foo!");
+                
             }
             catch (NullReferenceException)
             {
-                vec = new d.Vector3(Position.X, Position.Y, Position.Z);
-                base.RaiseOutOfBounds(_position);
+                vec = new d.Vector3(_position.X, _position.Y, _position.Z);
+                base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
+                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar: {0}", m_name);
             }
             
 
