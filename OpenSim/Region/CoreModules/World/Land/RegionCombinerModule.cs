@@ -81,8 +81,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void RegionLoaded(Scene scene)
         {
-            if (!enabledYN)
-                return;
+            if (enabledYN)
+                RegionLoadedDoWork(scene);
+        }
+
+        private void RegionLoadedDoWork(Scene scene)
+        {
 /* 
             // For testing on a single instance
             if (scene.RegionInfo.RegionLocX == 1004 && scene.RegionInfo.RegionLocY == 1000)
