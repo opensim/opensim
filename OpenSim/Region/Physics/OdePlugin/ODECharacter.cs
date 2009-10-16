@@ -1105,7 +1105,19 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void UpdatePositionAndVelocity()
         {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            d.Vector3 vec = d.BodyGetPosition(Body);
+            d.Vector3 vec;
+            try
+            {
+                vec = d.BodyGetPosition(Body);
+                
+            }
+            catch (NullReferenceException)
+            {
+                vec = new d.Vector3(_position.X, _position.Y, _position.Z);
+                base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
+                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar: {0}", m_name);
+            }
+            
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
             if (vec.X < 0.0f) vec.X = 0.0f;
@@ -1137,7 +1149,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
             {
                 m_lastUpdateSent = false;
-                vec = d.BodyGetLinearVel(Body);
+                try
+                {
+                    vec = d.BodyGetLinearVel(Body);
+                }
+                catch (NullReferenceException)
+                {
+                    vec.X = _velocity.X;
+                    vec.Y = _velocity.Y;
+                    vec.Z = _velocity.Z;
+                }
                 _velocity.X = (vec.X);
                 _velocity.Y = (vec.Y);
 

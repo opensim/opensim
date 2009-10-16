@@ -908,6 +908,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (PhysicsActor != null)
             {
                 m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                m_physicsActor.OnOutOfBounds -= OutOfBoundsCall;
                 m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 m_physicsActor.UnSubscribeEvents();
                 m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
@@ -3410,9 +3411,18 @@ namespace OpenSim.Region.Framework.Scenes
             scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+            m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
             m_physicsActor.LocalID = LocalId;
             
+        }
+
+        private void OutOfBoundsCall(PhysicsVector pos)
+        {
+            bool flying = m_physicsActor.Flying;
+            RemoveFromPhysicalScene();
+
+            AddToPhysicalScene(flying);
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.
