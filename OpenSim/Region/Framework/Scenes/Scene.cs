@@ -542,6 +542,8 @@ namespace OpenSim.Region.Framework.Scenes
                             break;
                     }
                 }
+
+                m_log.Info("[SCENE]: Using the " + m_update_prioritization_scheme + " prioritization scheme");
             }
             catch
             {

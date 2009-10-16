@@ -1385,6 +1385,14 @@
     ;
     ;TextureDataLimit = 5
 
+[InterestManagement]
+    ; This section controls how state updates are prioritized for each client
+    UpdatePrioritizationScheme = Distance
+    ReprioritizeUpdate = true
+    RootUpdateReprioritizationDistance = 10.0
+    ChildUpdateReprioritizationDistance = 20.0
+    ReprioritizeUpdatesInterval = 5000.0
+
 ;;
 ;; These are defaults that are overwritten below in [Architecture].
 ;; These defaults allow OpenSim to work out of the box with
