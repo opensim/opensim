@@ -3124,7 +3124,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             avp.Sender.IsTrial = false;
             avp.Sender.ID = agentID;
-            OutPacket(avp, ThrottleOutPacketType.State);
+            OutPacket(avp, ThrottleOutPacketType.Task);
         }
 
         public void SendAnimations(UUID[] animations, int[] seqs, UUID sourceAgentId, UUID[] objectIDs)

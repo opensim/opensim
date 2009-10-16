@@ -170,7 +170,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 ThrottleOutPacketType type = (ThrottleOutPacketType)i;
 
+                // Initialize the packet outboxes, where packets sit while they are waiting for tokens
                 m_packetOutboxes[i] = new OpenSim.Framework.LocklessQueue<OutgoingPacket>();
+                // Initialize the token buckets that control the throttling for each category
                 m_throttleCategories[i] = new TokenBucket(m_throttle, rates.GetLimit(type), rates.GetRate(type));
             }
 
@@ -293,36 +295,54 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int state = (int)((float)task * STATE_TASK_PERCENTAGE);
             task -= state;
 
-            int ceiling = Int32.MaxValue;
-            if (m_defaultThrottleRates.Total != 0)
-            {
-                ceiling = m_defaultThrottleRates.Total;
-                if (ceiling < Packet.MTU) ceiling = Packet.MTU;
-            }
-
-            resend = Utils.Clamp(resend, Packet.MTU, ceiling);
-            land = Utils.Clamp(land, Packet.MTU, ceiling);
-            wind = Utils.Clamp(wind, Packet.MTU, ceiling);
-            cloud = Utils.Clamp(cloud, Packet.MTU, ceiling);
-            task = Utils.Clamp(task, Packet.MTU, ceiling);
-            texture = Utils.Clamp(texture, Packet.MTU, ceiling);
-            asset = Utils.Clamp(asset, Packet.MTU, ceiling);
-            state = Utils.Clamp(state, Packet.MTU, ceiling);
+            // Make sure none of the throttles are set below our packet MTU,
+            // otherwise a throttle could become permanently clogged
+            resend = Math.Max(resend, Packet.MTU);
+            land = Math.Max(land, Packet.MTU);
+            wind = Math.Max(wind, Packet.MTU);
+            cloud = Math.Max(cloud, Packet.MTU);
+            task = Math.Max(task, Packet.MTU);
+            texture = Math.Max(texture, Packet.MTU);
+            asset = Math.Max(asset, Packet.MTU);
+            state = Math.Max(state, Packet.MTU);
 
             int total = resend + land + wind + cloud + task + texture + asset + state;
-            int taskTotal = task + state;
 
             m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
                 AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
 
-            SetThrottle(ThrottleOutPacketType.Resend, resend, resend);
-            SetThrottle(ThrottleOutPacketType.Land, land, land);
-            SetThrottle(ThrottleOutPacketType.Wind, wind, wind);
-            SetThrottle(ThrottleOutPacketType.Cloud, cloud, cloud);
-            SetThrottle(ThrottleOutPacketType.Task, task, taskTotal);
-            SetThrottle(ThrottleOutPacketType.Texture, texture, texture);
-            SetThrottle(ThrottleOutPacketType.Asset, asset, asset);
-            SetThrottle(ThrottleOutPacketType.State, state, taskTotal);
+            // Update the token buckets with new throttle values
+            TokenBucket bucket;
+
+            bucket = m_throttle;
+            bucket.MaxBurst = total;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
+            bucket.DripRate = bucket.MaxBurst = resend;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
+            bucket.DripRate = bucket.MaxBurst = land;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
+            bucket.DripRate = bucket.MaxBurst = wind;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
+            bucket.DripRate = bucket.MaxBurst = cloud;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
+            bucket.DripRate = bucket.MaxBurst = asset;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
+            bucket.DripRate = task + state + texture;
+            bucket.MaxBurst = task + state + texture;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.State];
+            bucket.DripRate = state + texture;
+            bucket.MaxBurst = state + texture;
+
+            bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
+            bucket.DripRate = texture;
+            bucket.MaxBurst = texture;
         }
 
         public byte[] GetThrottlesPacked()
@@ -340,17 +360,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Buffer.BlockCopy(Utils.FloatToBytes((float)m_throttleCategories[(int)ThrottleOutPacketType.Asset].DripRate), 0, data, i, 4); i += 4;
 
             return data;
-        }
-
-        public void SetThrottle(ThrottleOutPacketType category, int rate, int maxBurst)
-        {
-            int i = (int)category;
-            if (i >= 0 && i < m_throttleCategories.Length)
-            {
-                TokenBucket bucket = m_throttleCategories[(int)category];
-                bucket.DripRate = rate;
-                bucket.MaxBurst = maxBurst;
-            }
         }
 
         public bool EnqueueOutgoing(OutgoingPacket packet)

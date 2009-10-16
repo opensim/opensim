@@ -401,6 +401,7 @@ namespace OpenSim.Data.MySQL
             Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
             Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
             SceneObjectGroup grp = null;
+            int count = 0;
 
             lock (m_Connection)
             {
@@ -463,6 +464,10 @@ namespace OpenSim.Data.MySQL
                                 if (link != 0)
                                     prim.LinkNum = link;
                             }
+
+                            ++count;
+                            if (count % 5000 == 0)
+                                m_log.Debug("[REGION DB]: Loaded " + count + " prims...");
                         }
                     }
 
