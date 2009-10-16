@@ -270,6 +270,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             int dataLength = data.Length;
             bool doZerocode = (data[0] & Helpers.MSG_ZEROCODED) != 0;
+            bool doCopy = true;
 
             // Frequency analysis of outgoing packet sizes shows a large clump of packets at each end of the spectrum.
             // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
@@ -282,7 +283,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Zerocode if needed
             if (doZerocode)
             {
-                try { dataLength = Helpers.ZeroEncode(data, dataLength, buffer.Data); }
+                try
+                {
+                    dataLength = Helpers.ZeroEncode(data, dataLength, buffer.Data);
+                    doCopy = false;
+                }
                 catch (IndexOutOfRangeException)
                 {
                     // The packet grew larger than the bufferSize while zerocoding.
@@ -291,18 +296,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.Debug("[LLUDPSERVER]: Packet exceeded buffer size during zerocoding for " + type + ". DataLength=" + dataLength +
                         " and BufferLength=" + buffer.Data.Length + ". Removing MSG_ZEROCODED flag");
                     data[0] = (byte)(data[0] & ~Helpers.MSG_ZEROCODED);
-                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
                 }
             }
-            else
+
+            // If the packet data wasn't already copied during zerocoding, copy it now
+            if (doCopy)
             {
-                Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
+                if (dataLength <= buffer.Data.Length)
+                {
+                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
+                }
+                else
+                {
+                    m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
+                        type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
+                    return;
+                }
             }
+
             buffer.DataLength = dataLength;
 
             #region Queue or Send
 
-            // Look up the UDPClient this is going to
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
 
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
