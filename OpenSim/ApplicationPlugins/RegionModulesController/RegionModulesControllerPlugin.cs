@@ -268,7 +268,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 deferredlist.Add(module);
             }
 
-            foreach (INonSharedRegionModule module in deferredlist)
+            foreach (IRegionModuleBase module in deferredlist)
             {
                 module.AddRegion(scene);
                 scene.AddRegionModule(module.Name, module);
@@ -284,13 +284,13 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             // and unneccessary caching logic repeated in all modules.
             // The extra function stub is just that much cleaner
             //
-            foreach (ISharedRegionModule module in sharedlist)
+            foreach (IRegionModuleBase module in sharedlist)
             {
                 try { module.RegionLoaded(scene); }
                 catch (Exception ex) { m_log.Error("[REGIONMODULE]: Exception while loading shared region module " + module + ": " + ex.Message, ex); }
             }
 
-            foreach (INonSharedRegionModule module in list)
+            foreach (IRegionModuleBase module in list)
             {
                 try { module.RegionLoaded(scene); }
                 catch (Exception ex) { m_log.Error("[REGIONMODULE]: Exception while loading non-shared region module " + module + ": " + ex.Message, ex); }
