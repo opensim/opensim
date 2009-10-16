@@ -44,6 +44,7 @@ using System.Xml;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -1269,14 +1270,32 @@ namespace OpenSim.Framework
 
         #region FireAndForget Threading Pattern
 
+        /// <summary>
+        /// Created to work around a limitation in Mono with nested delegates
+        /// </summary>
+        private class FireAndForgetWrapper
+        {
+            public void FireAndForget(System.Threading.WaitCallback callback)
+            {
+                callback.BeginInvoke(null, EndFireAndForget, callback);
+            }
+
+            public void FireAndForget(System.Threading.WaitCallback callback, object obj)
+            {
+                callback.BeginInvoke(obj, EndFireAndForget, callback);
+            }
+        }
+
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
-            callback.BeginInvoke(null, EndFireAndForget, callback);
+            FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+            wrapper.FireAndForget(callback);
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            callback.BeginInvoke(obj, EndFireAndForget, callback);
+            FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+            wrapper.FireAndForget(callback, obj);
         }
 
         private static void EndFireAndForget(IAsyncResult ar)
