@@ -9969,11 +9969,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 Utils.BytesToString(avatarNotesUpdate.Data.Notes));
                     break;
 
-//                case PacketType.AvatarInterestsUpdate:
-//                    AvatarInterestsUpdatePacket avatarInterestUpdate =
-//                            (AvatarInterestsUpdatePacket)Pack;
-//
-//                    break;
+                case PacketType.AvatarInterestsUpdate:
+                    AvatarInterestsUpdatePacket avatarInterestUpdate =
+                            (AvatarInterestsUpdatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (avatarInterestUpdate.AgentData.SessionID != SessionId ||
+                            avatarInterestUpdate.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
+                    AvatarInterestUpdate handlerAvatarInterestUpdate = OnAvatarInterestUpdate;
+                    if (handlerAvatarInterestUpdate != null)
+                        handlerAvatarInterestUpdate(this,
+                            avatarInterestUpdate.PropertiesData.WantToMask,
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.WantToText),
+                            avatarInterestUpdate.PropertiesData.SkillsMask,
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
+                    break;
 
                 case PacketType.PlacesQuery:
                     PlacesQueryPacket placesQueryPacket =
