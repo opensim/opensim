@@ -1063,7 +1063,7 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
-                    if (loginsdisabled && ((m_frame % 20) == 0))
+                    if (loginsdisabled && (m_frame > 20))
                     {
                         m_log.Debug("[REGION]: Enabling Logins");
                         loginsdisabled = false;
