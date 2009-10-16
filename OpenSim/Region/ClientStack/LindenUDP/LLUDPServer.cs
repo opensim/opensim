@@ -89,6 +89,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLUDPServer : OpenSimUDPBase
     {
+        /// <summary>Maximum transmission unit, or UDP packet size, for the LLUDP protocol</summary>
+        public const int MTU = 1400;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Handlers for incoming packets</summary>
@@ -272,7 +275,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
             // there are a decent number of packets in the 1000-1140 byte range. We allocate one of two sizes of data here
             // to accomodate for both common scenarios and provide ample room for ACK appending in both
-            int bufferSize = (dataLength > 180) ? Packet.MTU : 200;
+            int bufferSize = (dataLength > 180) ? LLUDPServer.MTU : 200;
 
             UDPPacketBuffer buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
 
@@ -569,9 +572,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // client.BytesSinceLastACK. Lockless thread safety
             int bytesSinceLastACK = Interlocked.Exchange(ref udpClient.BytesSinceLastACK, 0);
             bytesSinceLastACK += buffer.DataLength;
-            if (bytesSinceLastACK > Packet.MTU * 2)
+            if (bytesSinceLastACK > LLUDPServer.MTU * 2)
             {
-                bytesSinceLastACK -= Packet.MTU * 2;
+                bytesSinceLastACK -= LLUDPServer.MTU * 2;
                 SendAcks(udpClient);
             }
             Interlocked.Add(ref udpClient.BytesSinceLastACK, bytesSinceLastACK);

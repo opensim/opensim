@@ -297,14 +297,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Make sure none of the throttles are set below our packet MTU,
             // otherwise a throttle could become permanently clogged
-            resend = Math.Max(resend, Packet.MTU);
-            land = Math.Max(land, Packet.MTU);
-            wind = Math.Max(wind, Packet.MTU);
-            cloud = Math.Max(cloud, Packet.MTU);
-            task = Math.Max(task, Packet.MTU);
-            texture = Math.Max(texture, Packet.MTU);
-            asset = Math.Max(asset, Packet.MTU);
-            state = Math.Max(state, Packet.MTU);
+            resend = Math.Max(resend, LLUDPServer.MTU);
+            land = Math.Max(land, LLUDPServer.MTU);
+            wind = Math.Max(wind, LLUDPServer.MTU);
+            cloud = Math.Max(cloud, LLUDPServer.MTU);
+            task = Math.Max(task, LLUDPServer.MTU);
+            texture = Math.Max(texture, LLUDPServer.MTU);
+            asset = Math.Max(asset, LLUDPServer.MTU);
+            state = Math.Max(state, LLUDPServer.MTU);
 
             int total = resend + land + wind + cloud + task + texture + asset + state;
 
@@ -404,9 +404,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TokenBucket bucket;
             bool packetSent = false;
 
+            //string queueDebugOutput = String.Empty; // Serious debug business
+
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 bucket = m_throttleCategories[i];
+                //queueDebugOutput += m_packetOutboxes[i].Count + " ";  // Serious debug business
 
                 if (m_nextPackets[i] != null)
                 {
@@ -458,6 +461,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
+            //m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
             return packetSent;
         }
 

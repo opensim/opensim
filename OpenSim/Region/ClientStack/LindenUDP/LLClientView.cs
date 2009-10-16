@@ -347,10 +347,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
         protected int m_terrainCheckerCount;
 
-        // LL uses these limits, apparently. Compressed terse would be 23, but we don't have that yet
-        protected int m_primTerseUpdatesPerPacket = 10;
-        protected int m_primFullUpdatesPerPacket = 14;
-        protected int m_avatarTerseUpdatesPerPacket = 5;
+        // These numbers are guesses at a decent tradeoff between responsiveness
+        // of the interest list and throughput. Lower is more responsive, higher
+        // is better throughput
+        protected int m_primTerseUpdatesPerPacket = 25;
+        protected int m_primFullUpdatesPerPacket = 100;
+        protected int m_avatarTerseUpdatesPerPacket = 10;
         /// <summary>Number of texture packets to put on the queue each time the
         /// OnQueueEmpty event is triggered for the texture category</summary>
         protected int m_textureSendLimit = 20;
@@ -3415,33 +3417,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 terse.RegionData.TimeDilation =
                         (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-                int max = m_avatarTerseUpdatesPerPacket;
-                if (max > m_avatarTerseUpdates.Count)
-                    max = m_avatarTerseUpdates.Count;
-
-                int count = 0;
-                int size = 0;
-
-                byte[] zerobuffer = new byte[1024];
-                byte[] blockbuffer = new byte[1024];
-
-                Queue<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> updates = new Queue<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-
-                for (count = 0 ; count < max ; count++)
-                {
-                    int length = 0;
-                    m_avatarTerseUpdates.Peek().ToBytes(blockbuffer, ref length);
-                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > Packet.MTU)
-                        break;
-                    size += length;
-                    updates.Enqueue(m_avatarTerseUpdates.Dequeue());
-                }
+                int count = Math.Min(m_avatarTerseUpdates.Count, m_avatarTerseUpdatesPerPacket);
 
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[count];
-
-                for (int i = 0 ; i < count ; i++)
-                    terse.ObjectData[i] = updates.Dequeue();
+                for (int i = 0; i < count; i++)
+                    terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
 
                 terse.Header.Reliable = false;
                 terse.Header.Zerocoded = true;
@@ -3656,34 +3636,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.RegionData.TimeDilation =
                         (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-                int max = m_primFullUpdates.Count;
-                if (max > m_primFullUpdatesPerPacket)
-                    max = m_primFullUpdatesPerPacket;
+                int count = Math.Min(m_primFullUpdates.Count, m_primFullUpdatesPerPacket);
 
-                int count = 0;
-                int size = 0;
-
-                byte[] zerobuffer = new byte[1024];
-                byte[] blockbuffer = new byte[1024];
-
-                Queue<ObjectUpdatePacket.ObjectDataBlock> updates = new Queue<ObjectUpdatePacket.ObjectDataBlock>();
-
-                for (count = 0 ; count < max ; count++)
-                {
-                    int length = 0;
-                    m_primFullUpdates.Peek().ToBytes(blockbuffer, ref length);
-                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > Packet.MTU)
-                        break;
-                    size += length;
-                    updates.Enqueue(m_primFullUpdates.Dequeue());
-                }
-
-                outPacket.ObjectData =
-                        new ObjectUpdatePacket.ObjectDataBlock[count];
-
-                for (int index = 0 ; index < count ; index++)
-                    outPacket.ObjectData[index] = updates.Dequeue();
+                outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[count];
+                for (int i = 0; i < count; i++)
+                    outPacket.ObjectData[i] = m_primFullUpdates.Dequeue();
 
                 outPacket.Header.Zerocoded = true;
                 OutPacket(outPacket, ThrottleOutPacketType.State);
@@ -3733,35 +3690,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.RegionData.TimeDilation =
                         (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
-                int max = m_primTerseUpdates.Count;
-                if (max > m_primTerseUpdatesPerPacket)
-                    max = m_primTerseUpdatesPerPacket;
+                int count = Math.Min(m_primTerseUpdates.Count, m_primTerseUpdatesPerPacket);
 
-                int count = 0;
-                int size = 0;
-
-                byte[] zerobuffer = new byte[1024];
-                byte[] blockbuffer = new byte[1024];
-
-                Queue<ImprovedTerseObjectUpdatePacket.ObjectDataBlock> updates = new Queue<ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-
-                for (count = 0 ; count < max ; count++)
-                {
-                    int length = 0;
-                    m_primTerseUpdates.Peek().ToBytes(blockbuffer, ref length);
-                    length = Helpers.ZeroEncode(blockbuffer, length, zerobuffer);
-                    if (size + length > Packet.MTU)
-                        break;
-                    size += length;
-                    updates.Enqueue(m_primTerseUpdates.Dequeue());
-                }
-
-                outPacket.ObjectData =
-                        new ImprovedTerseObjectUpdatePacket.
-                        ObjectDataBlock[count];
-
-                for (int index = 0 ; index < count ; index++)
-                    outPacket.ObjectData[index] = updates.Dequeue();
+                outPacket.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[count];
+                for (int i = 0; i < count; i++)
+                    outPacket.ObjectData[i] = m_primTerseUpdates.Dequeue();
 
                 outPacket.Header.Reliable = false;
                 outPacket.Header.Zerocoded = true;
