@@ -3461,11 +3461,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 new CoarseLocationUpdatePacket.IndexBlock();
             loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
             loc.AgentData = new CoarseLocationUpdatePacket.AgentDataBlock[total];
-
+            int selfindex = -1;
             for (int i = 0; i < total; i++)
             {
                 CoarseLocationUpdatePacket.LocationBlock lb =
                     new CoarseLocationUpdatePacket.LocationBlock();
+                
                 lb.X = (byte)CoarseLocations[i].X;
                 lb.Y = (byte)CoarseLocations[i].Y;
 
@@ -3473,8 +3474,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 loc.Location[i] = lb;
                 loc.AgentData[i] = new CoarseLocationUpdatePacket.AgentDataBlock();
                 loc.AgentData[i].AgentID = users[i];
+                if (users[i] == AgentId)
+                    selfindex = i;
             }
-            ib.You = -1;
+            ib.You = (short)selfindex;
             ib.Prey = -1;
             loc.Index = ib;
             loc.Header.Reliable = false;
@@ -10122,11 +10125,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 Utils.BytesToString(avatarNotesUpdate.Data.Notes));
                     break;
 
-//                case PacketType.AvatarInterestsUpdate:
-//                    AvatarInterestsUpdatePacket avatarInterestUpdate =
-//                            (AvatarInterestsUpdatePacket)Pack;
-//
-//                    break;
+                case PacketType.AvatarInterestsUpdate:
+                    AvatarInterestsUpdatePacket avatarInterestUpdate =
+                            (AvatarInterestsUpdatePacket)Pack;
+
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (avatarInterestUpdate.AgentData.SessionID != SessionId ||
+                            avatarInterestUpdate.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+
+                    AvatarInterestUpdate handlerAvatarInterestUpdate = OnAvatarInterestUpdate;
+                    if (handlerAvatarInterestUpdate != null)
+                        handlerAvatarInterestUpdate(this,
+                            avatarInterestUpdate.PropertiesData.WantToMask,
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.WantToText),
+                            avatarInterestUpdate.PropertiesData.SkillsMask,
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
+                            Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
+                    break;
 
                 case PacketType.PlacesQuery:
                     PlacesQueryPacket placesQueryPacket =
