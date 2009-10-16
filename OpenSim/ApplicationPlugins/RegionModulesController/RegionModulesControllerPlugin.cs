@@ -286,6 +286,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             //
             foreach (ISharedRegionModule module in sharedlist)
             {
+                m_log.Debug("[REGIONMODULE]: Calling RegionLoaded for " + module);
                 module.RegionLoaded(scene);
             }
 
