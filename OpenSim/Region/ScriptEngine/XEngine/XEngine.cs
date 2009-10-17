@@ -604,9 +604,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (warnings != null && warnings.Length != 0)
                 {
-                    if (presence != null && (!postOnRez))
-                        presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
-
                     foreach (string warning in warnings)
                     {
                         try
@@ -615,10 +612,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             string text = "Warning:\n" + warning;
                             if (text.Length > 1000)
                                 text = text.Substring(0, 1000);
-                            World.SimChat(Utils.StringToBytes(text),
-                                          ChatTypeEnum.DebugChannel, 2147483647,
-                                          part.AbsolutePosition,
-                                          part.Name, part.UUID, false);
+                            if (!ShowScriptSaveResponse(item.OwnerID,
+                                    assetID, text, true))
+                            {
+                                if (presence != null && (!postOnRez))
+                                    presence.ControllingClient.SendAgentAlertMessage("Script saved with warnings, check debug window!", false);
+
+                                World.SimChat(Utils.StringToBytes(text),
+                                              ChatTypeEnum.DebugChannel, 2147483647,
+                                              part.AbsolutePosition,
+                                              part.Name, part.UUID, false);
+                            }
                         }
                         catch (Exception e2) // LEGIT: User Scripting
                         {
@@ -634,8 +638,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             catch (Exception e)
             {
-                if (presence != null && (!postOnRez))
-                    presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
                 try
                 {
                     // DISPLAY ERROR INWORLD
@@ -645,10 +647,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     string text = "Error compiling script '" + item.Name + "':\n" + e.Message.ToString();
                     if (text.Length > 1000)
                         text = text.Substring(0, 1000);
-                    World.SimChat(Utils.StringToBytes(text),
-                                  ChatTypeEnum.DebugChannel, 2147483647,
-                                  part.AbsolutePosition,
-                                  part.Name, part.UUID, false);
+                    if (!ShowScriptSaveResponse(item.OwnerID,
+                            assetID, text, false))
+                    {
+                        if (presence != null && (!postOnRez))
+                            presence.ControllingClient.SendAgentAlertMessage("Script saved with errors, check debug window!", false);
+                        World.SimChat(Utils.StringToBytes(text),
+                                      ChatTypeEnum.DebugChannel, 2147483647,
+                                      part.AbsolutePosition,
+                                      part.Name, part.UUID, false);
+                    }
                 }
                 catch (Exception e2) // LEGIT: User Scripting
                 {
@@ -731,6 +739,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
                             part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, part.ParentGroup.RootPart.AbsolutePosition.ToString());
+
+                    if (presence != null)
+                    {
+                        ShowScriptSaveResponse(item.OwnerID,
+                                assetID, "Compile successful", true);
+                    }
 
                     instance.AppDomain = appDomain;
                     instance.LineMap = linemap;
@@ -1249,6 +1263,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return true;
 
             return instance.CanBeDeleted();
+        }
+
+        private bool ShowScriptSaveResponse(UUID ownerID, UUID assetID, string text, bool compiled)
+        {
+            return false;
         }
     }
 }

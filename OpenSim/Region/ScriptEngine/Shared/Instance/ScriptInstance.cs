@@ -353,15 +353,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     // m_log.ErrorFormat("[Script] Unable to load script state from xml: {0}\n"+e.ToString(), xml);
                 }
             }
-            else
-            {
-                ScenePresence presence = m_Engine.World.GetScenePresence(part.OwnerID);
+//            else
+//            {
+//                ScenePresence presence = m_Engine.World.GetScenePresence(part.OwnerID);
 
-                if (presence != null && (!postOnRez))
-                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
+//                if (presence != null && (!postOnRez))
+//                    presence.ControllingClient.SendAgentAlertMessage("Compile successful", false);
 
-//                // m_log.ErrorFormat("[Script] Unable to load script state, file not found");
-            }
+//            }
         }
 
         public void Init()
