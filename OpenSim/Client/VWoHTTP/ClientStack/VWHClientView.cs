@@ -402,6 +402,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event PickInfoUpdate OnPickInfoUpdate = delegate { };
         public event AvatarNotesUpdate OnAvatarNotesUpdate = delegate { };
         public event MuteListRequest OnMuteListRequest = delegate { };
+        public event AvatarInterestUpdate OnAvatarInterestUpdate = delegate { };
         public event PlacesQuery OnPlacesQuery = delegate { };
 
 
@@ -1109,6 +1110,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         }
 
         public void SendAvatarClassifiedReply(UUID targetID, Dictionary<UUID, string> classifieds)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void SendAvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages)
         {
             throw new System.NotImplementedException();
         }
