@@ -3412,10 +3412,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void OutOfBoundsCall(PhysicsVector pos)
         {
-            bool flying = m_physicsActor.Flying;
-            RemoveFromPhysicalScene();
+            //bool flying = m_physicsActor.Flying;
+            //RemoveFromPhysicalScene();
 
-            AddToPhysicalScene(flying);
+            //AddToPhysicalScene(flying);
+            if (ControllingClient != null)
+                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.",true);
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.
