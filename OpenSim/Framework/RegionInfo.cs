@@ -821,7 +821,7 @@ namespace OpenSim.Framework
                                                 "Scope ID for this region", ScopeID.ToString(), true);
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Region Type", String.Empty, true);
+                                                "Free form string describing the type of region", String.Empty, true);
         }
 
         public void loadConfigurationOptions()
