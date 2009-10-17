@@ -303,6 +303,7 @@ namespace OpenSim.Framework
         private int m_physPrimMax = 0;
         private bool m_clampPrimSize = false;
         private int m_objectCapacity = 0;
+        private string m_productName = String.Empty;
 
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
@@ -476,6 +477,11 @@ namespace OpenSim.Framework
         public byte AccessLevel
         {
             get { return (byte)Util.ConvertMaturityToAccessLevel((uint)RegionSettings.Maturity); }
+        }
+
+        public string ProductName
+        {
+            get { return m_productName; }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -654,8 +660,8 @@ namespace OpenSim.Framework
 
             MasterAvatarAssignedUUID = new UUID(masterAvatarUUID);
 
+            m_productName = config.GetString("ProductName", String.Empty);
 
-            
             // Prim stuff
             //
             m_nonphysPrimMax = config.GetInt("NonphysicalPrimMax", 256);
@@ -721,6 +727,9 @@ namespace OpenSim.Framework
 
             if (ScopeID != UUID.Zero)
                 config.Set("ScopeID", ScopeID.ToString());
+
+            if (ProductName != String.Empty)
+                config.Set("ProductName", ProductName);
         }
 
         public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
@@ -810,6 +819,9 @@ namespace OpenSim.Framework
             
             configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Scope ID for this region", ScopeID.ToString(), true);
+
+            configMember.addConfigurationOption("product_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Product Name", String.Empty, true);
         }
 
         public void loadConfigurationOptions()
@@ -873,6 +885,9 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("scope_id", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Scope ID for this region", UUID.Zero.ToString(), true);
+
+            configMember.addConfigurationOption("product_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Product Name", String.Empty, true);
         }
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
@@ -953,6 +968,9 @@ namespace OpenSim.Framework
                 case "scope_id":
                     ScopeID = (UUID)configuration_result;
                     break;
+                case "product_name":
+                    m_productName = (string)configuration_result;
+                    break;
             }
 
             return true;
@@ -988,6 +1006,8 @@ namespace OpenSim.Framework
             args["allow_alt_ports"] = OSD.FromBoolean(m_allow_alternate_ports);
             if ((proxyUrl != null) && !proxyUrl.Equals(""))
                 args["proxy_url"] = OSD.FromString(proxyUrl);
+            if (ProductName != String.Empty)
+                args["product_name"] = OSD.FromString(ProductName);
 
             return args;
         }
@@ -1035,6 +1055,8 @@ namespace OpenSim.Framework
                 m_allow_alternate_ports = args["allow_alt_ports"].AsBoolean();
             if (args["proxy_url"] != null)
                 proxyUrl = args["proxy_url"].AsString();
+            if (args["product_name"] != null)
+                m_productName = args["product_name"].AsString();
         }
 
         public static RegionInfo Create(UUID regionID, string regionName, uint regX, uint regY, string externalHostName, uint httpPort, uint simPort, uint remotingPort, string serverURI)
