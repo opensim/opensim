@@ -50,4 +50,4 @@ MasterAvatarUUID = "00000000-0000-0000-0000-000000000000"
 ; * Product name (used in search from viewer 1.23
 ; *
 
-; ProductName = "Mainland"
+; RegionType = "Mainland"
