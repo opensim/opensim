@@ -3426,7 +3426,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 terse.Header.Reliable = false;
                 terse.Header.Zerocoded = true;
 
-                OutPacket(terse, ThrottleOutPacketType.State);
+                OutPacket(terse, ThrottleOutPacketType.Task);
             }
         }
 
@@ -3582,14 +3582,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketType queue)
         {
+            int count = 0;
+
             switch (queue)
             {
                 case ThrottleOutPacketType.Texture:
                     ProcessTextureRequests();
                     break;
-                case ThrottleOutPacketType.State:
-                    int count = 0;
-
+                case ThrottleOutPacketType.Task:
                     lock (m_avatarTerseUpdates.SyncRoot)
                         count = m_avatarTerseUpdates.Count;
                     if (count > 0)
@@ -3597,7 +3597,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ProcessAvatarTerseUpdates();
                         return;
                     }
-
+                    break;
+                case ThrottleOutPacketType.State:
                     lock (m_primFullUpdates.SyncRoot)
                         count = m_primFullUpdates.Count;
                     if (count > 0)
