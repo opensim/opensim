@@ -10604,7 +10604,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         else
                         {
-                            m_log.Warn("[LLClientView] UpdatePriorityHandle returned false, dropping update");
+                            m_log.Warn("[LLCLIENTVIEW]: UpdatePriorityHandler returned false, dropping update");
                             lookup.Heap.Remove(lookup.Handle);
                             this.lookup_table.Remove(item.LocalID);
                         }
