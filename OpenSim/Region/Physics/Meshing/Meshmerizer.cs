@@ -289,6 +289,9 @@ namespace OpenSim.Region.Physics.Meshing
                         ManagedImage managedImage;  // we never use this
                         OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
 
+                        // Remove the reference to the encoded JPEG2000 data so it can be GCed
+                        primShape.SculptData = Utils.EmptyBytes;
+
                         if (cacheSculptMaps)
                         {
                             try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
