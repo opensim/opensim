@@ -67,8 +67,8 @@ namespace OpenSim.Framework
                     return m_pqueue.Dequeue();
                 
                 if (m_queue.Count > 0)
-					return m_queue.Dequeue();
-				return default(T);
+                    return m_queue.Dequeue();
+                return default(T);
             }
         }
 
@@ -121,7 +121,7 @@ namespace OpenSim.Framework
             {
                 m_pqueue.Clear();
                 m_queue.Clear();
-				Monitor.Pulse(m_queueSync);
+                Monitor.Pulse(m_queueSync);
             }
         }
     }

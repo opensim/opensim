@@ -1116,13 +1116,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddGroupTarget(SceneObjectGroup grp)
         {
-            lock(m_groupsWithTargets)
+            lock (m_groupsWithTargets)
                 m_groupsWithTargets[grp.UUID] = grp;
         }
 
         public void RemoveGroupTarget(SceneObjectGroup grp)
         {
-            lock(m_groupsWithTargets)
+            lock (m_groupsWithTargets)
                 m_groupsWithTargets.Remove(grp.UUID);
         }
 

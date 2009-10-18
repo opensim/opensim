@@ -119,7 +119,7 @@ namespace OpenSim.Data.MSSQL
                     updateBuilder.AppendFormat("{0} = @{0}",field);
 
                     first = false;
-                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));                    
+                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));
                 }
 
                 updateBuilder.Append(" where UUID = @principalID");
@@ -135,7 +135,7 @@ namespace OpenSim.Data.MSSQL
 
                     insertBuilder.AppendFormat("insert into {0} (UUID, ", m_Realm);
                     insertBuilder.Append(String.Join(", ", fields));
-                    insertBuilder.Append(") values ( @principalID, @");
+                    insertBuilder.Append(") values (@principalID, @");
                     insertBuilder.Append(String.Join(", @", fields));
                     insertBuilder.Append(")");
 

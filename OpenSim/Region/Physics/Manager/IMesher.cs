@@ -48,7 +48,7 @@ namespace OpenSim.Region.Physics.Manager
         int[] getIndexListAsIntLocked();
         float[] getVertexListAsFloatLocked();
         void getIndexListAsPtrToIntArray(out IntPtr indices, out int triStride, out int indexCount);
-        void getVertexListAsPtrToFloatArray( out IntPtr vertexList, out int vertexStride, out int vertexCount );
+        void getVertexListAsPtrToFloatArray(out IntPtr vertexList, out int vertexStride, out int vertexCount);
         void releaseSourceMeshData();
         void releasePinned();
         void Append(IMesh newMesh);
