@@ -620,6 +620,10 @@ namespace OpenSim.Tests.Common.Mock
         {
         }
 
+        public virtual void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        {
+        }
+
         public void FlushPrimUpdates()
         {
         }

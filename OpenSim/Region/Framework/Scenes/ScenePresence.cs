@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Timers;
 using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
@@ -172,6 +173,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         // Position of agent's camera in world (region cordinates)
         protected Vector3 m_CameraCenter = Vector3.Zero;
+        protected Vector3 m_lastCameraCenter = Vector3.Zero;
+
+        protected Timer m_reprioritization_timer;
+        protected bool m_reprioritizing = false;
+        protected bool m_reprioritization_called = false;
 
         // Use these three vectors to figure out what the agent is looking at
         // Convert it to a Matrix and/or Quaternion
@@ -639,7 +645,14 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
 
-            AbsolutePosition = m_controllingClient.StartPos;
+            AbsolutePosition = posLastSignificantMove = m_CameraCenter =
+                m_lastCameraCenter = m_controllingClient.StartPos;
+
+            m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
+            m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
+            m_reprioritization_timer.AutoReset = false;
+
+
             AdjustKnownSeeds();
 
             TrySetMovementAnimation("STAND"); // TODO: I think, this won't send anything, as we are still a child here...
@@ -1219,6 +1232,11 @@ namespace OpenSim.Region.Framework.Scenes
             // Camera location in world.  We'll need to raytrace
             // from this location from time to time.
             m_CameraCenter = agentData.CameraCenter;
+            if (Vector3.Distance(m_lastCameraCenter, m_CameraCenter) >= Scene.RootReprioritizationDistance)
+            {
+                ReprioritizeUpdates();
+                m_lastCameraCenter = m_CameraCenter;
+            }
 
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
@@ -2823,7 +2841,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
-            if (Util.GetDistanceTo(AbsolutePosition,m_LastChildAgentUpdatePosition) > 32)
+            if (Util.GetDistanceTo(AbsolutePosition, m_LastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance)
             {
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
                 cadu.ActiveGroupID = UUID.Zero.Guid;
@@ -3117,6 +3135,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_DrawDistance = cAgentData.Far;
             if (cAgentData.Position != new Vector3(-1, -1, -1)) // UGH!!
                 m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
+
+            if (Vector3.Distance(AbsolutePosition, posLastSignificantMove) >= Scene.ChildReprioritizationDistance)
+            {
+                posLastSignificantMove = AbsolutePosition;
+                ReprioritizeUpdates();
+            }
 
             // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
             m_CameraCenter = cAgentData.Center;
@@ -3498,6 +3522,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_knownChildRegions.Clear();
             }
+
+            lock (m_reprioritization_timer)
+            {
+                m_reprioritization_timer.Enabled = false;
+                m_reprioritization_timer.Elapsed -= new ElapsedEventHandler(Reprioritize);
+            }
+            // I don't get it but mono crashes when you try to dispose of this timer,
+            // unsetting the elapsed callback should be enough to allow for cleanup however.
+            //m_reprioritizationTimer.Dispose();
+
             m_sceneViewer.Close();
 
             RemoveFromPhysicalScene();
@@ -3912,6 +3946,80 @@ namespace OpenSim.Region.Framework.Scenes
         private double GetPriorityByDistance(Vector3 position)
         {
             return Vector3.Distance(AbsolutePosition, position);
+        }
+
+        private double GetSOGUpdatePriority(SceneObjectGroup sog)
+        {
+            switch (Scene.UpdatePrioritizationScheme)
+            {
+                case Scene.UpdatePrioritizationSchemes.Time:
+                    throw new InvalidOperationException("UpdatePrioritizationScheme for time not supported for reprioritization");
+                case Scene.UpdatePrioritizationSchemes.Distance:
+                    return sog.GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
+                case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
+                    return sog.GetPriorityBySimpleAngularDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
+                default:
+                    throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
+            }
+        }
+
+        private double UpdatePriority(UpdatePriorityData data)
+        {
+            EntityBase entity;
+            SceneObjectGroup group;
+
+            if (Scene.Entities.TryGetValue(data.localID, out entity))
+            {
+                group = entity as SceneObjectGroup;
+                if (group != null)
+                    return GetSOGUpdatePriority(group);
+
+                ScenePresence presence = entity as ScenePresence;
+                if (presence == null)
+                    throw new InvalidOperationException("entity found is neither SceneObjectGroup nor ScenePresence");
+                switch (Scene.UpdatePrioritizationScheme)
+                {
+                    case Scene.UpdatePrioritizationSchemes.Time:
+                        throw new InvalidOperationException("UpdatePrioritization for time not supported for reprioritization");
+                    case Scene.UpdatePrioritizationSchemes.Distance:
+                    case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
+                        return GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
+                    default:
+                        throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
+                }
+            }
+            else
+            {
+                group = Scene.SceneGraph.GetGroupByPrim(data.localID);
+                if (group != null)
+                    return GetSOGUpdatePriority(group);
+            }
+            return double.NaN;
+        }
+
+        private void ReprioritizeUpdates()
+        {
+            if (Scene.IsReprioritizationEnabled && Scene.UpdatePrioritizationScheme != Scene.UpdatePrioritizationSchemes.Time)
+            {
+                lock (m_reprioritization_timer)
+                {
+                    if (!m_reprioritizing)
+                        m_reprioritization_timer.Enabled = m_reprioritizing = true;
+                    else
+                        m_reprioritization_called = true;
+                }
+            }
+        }
+
+        private void Reprioritize(object sender, ElapsedEventArgs e)
+        {
+            m_controllingClient.ReprioritizeUpdates(StateUpdateTypes.All, UpdatePriority);
+
+            lock (m_reprioritization_timer)
+            {
+                m_reprioritization_timer.Enabled = m_reprioritizing = m_reprioritization_called;
+                m_reprioritization_called = false;
+            }
         }
     }
 }

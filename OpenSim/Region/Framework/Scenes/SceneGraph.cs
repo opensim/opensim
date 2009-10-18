@@ -846,7 +846,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="localID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(uint localID)
+        public SceneObjectGroup GetGroupByPrim(uint localID)
         {
             if (Entities.ContainsKey(localID))
                 return Entities[localID] as SceneObjectGroup;

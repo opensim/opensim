@@ -616,6 +616,10 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
+        public virtual void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        {
+        }
+
         public void FlushPrimUpdates()
         {
         }

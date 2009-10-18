@@ -527,6 +527,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public virtual void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        {
+        }
+
         public void FlushPrimUpdates()
         {
         }

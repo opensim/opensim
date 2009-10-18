@@ -1042,6 +1042,10 @@ namespace OpenSim.Client.MXP.ClientStack
             Session.Send(me);
         }
 
+        public void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        {
+        }
+
         public void FlushPrimUpdates()
         {
         }

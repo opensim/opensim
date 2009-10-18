@@ -3582,37 +3582,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void HandleQueueEmpty(ThrottleOutPacketType queue)
         {
-            int count = 0;
-
             switch (queue)
             {
                 case ThrottleOutPacketType.Texture:
                     ProcessTextureRequests();
                     break;
                 case ThrottleOutPacketType.Task:
-                    lock (m_avatarTerseUpdates.SyncRoot)
-                        count = m_avatarTerseUpdates.Count;
-                    if (count > 0)
+                    if (Monitor.TryEnter(m_avatarTerseUpdates.SyncRoot, 1))
                     {
-                        ProcessAvatarTerseUpdates();
-                        return;
+                        try
+                        {
+                            if (m_avatarTerseUpdates.Count > 0)
+                            {
+
+                                ProcessAvatarTerseUpdates();
+                                return;
+                            }
+                        }
+                        finally { Monitor.Exit(m_avatarTerseUpdates.SyncRoot); }
                     }
                     break;
                 case ThrottleOutPacketType.State:
-                    lock (m_primFullUpdates.SyncRoot)
-                        count = m_primFullUpdates.Count;
-                    if (count > 0)
+                    if (Monitor.TryEnter(m_primFullUpdates.SyncRoot, 1))
                     {
-                        ProcessPrimFullUpdates();
-                        return;
+                        try
+                        {
+                            if (m_primFullUpdates.Count > 0)
+                            {
+                                ProcessPrimFullUpdates();
+                                return;
+                            }
+                        }
+                        finally { Monitor.Exit(m_primFullUpdates.SyncRoot); }
                     }
 
-                    lock (m_primTerseUpdates.SyncRoot)
-                        count = m_primTerseUpdates.Count;
-                    if (count > 0)
+                    if (Monitor.TryEnter(m_primTerseUpdates.SyncRoot, 1))
                     {
-                        ProcessPrimTerseUpdates();
-                        return;
+                        try
+                        {
+                            if (m_primTerseUpdates.Count > 0)
+                            {
+                                ProcessPrimTerseUpdates();
+                                return;
+                            }
+                        }
+                        finally { Monitor.Exit(m_primTerseUpdates.SyncRoot); }
                     }
                     break;
             }
@@ -3700,6 +3714,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.Header.Reliable = false;
                 outPacket.Header.Zerocoded = true;
                 OutPacket(outPacket, ThrottleOutPacketType.State);
+            }
+        }
+
+        public void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
+        {
+            PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>.UpdatePriorityHandler terse_update_priority_handler =
+                delegate(ref double priority, uint local_id)
+                {
+                    priority = handler(new UpdatePriorityData(priority, local_id));
+                    return priority != double.NaN;
+                };
+            PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>.UpdatePriorityHandler update_priority_handler =
+                delegate(ref double priority, uint local_id)
+                {
+                    priority = handler(new UpdatePriorityData(priority, local_id));
+                    return priority != double.NaN;
+                };
+
+            if ((type & StateUpdateTypes.AvatarTerse) != 0) {
+                lock (m_avatarTerseUpdates.SyncRoot)
+                    m_avatarTerseUpdates.Reprioritize(terse_update_priority_handler);
+            }
+
+            if ((type & StateUpdateTypes.PrimitiveFull) != 0) {
+                lock (m_primFullUpdates.SyncRoot)
+                    m_primFullUpdates.Reprioritize(update_priority_handler);
+            }
+
+            if ((type & StateUpdateTypes.PrimitiveTerse) != 0) {
+                lock (m_primTerseUpdates.SyncRoot)
+                    m_primTerseUpdates.Reprioritize(terse_update_priority_handler);
             }
         }
 
@@ -10465,6 +10510,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #region PriorityQueue
         private class PriorityQueue<TPriority, TValue>
         {
+            internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
+
             private MinHeap<MinHeapItem>[] heaps = new MinHeap<MinHeapItem>[1];
             private Dictionary<uint, LookupItem> lookup_table = new Dictionary<uint, LookupItem>();
             private Comparison<TPriority> comparison;
@@ -10537,6 +10584,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
                 throw new InvalidOperationException(string.Format("The {0} is empty", this.GetType().ToString()));
+            }
+
+            internal void Reprioritize(UpdatePriorityHandler handler)
+            {
+                MinHeapItem item;
+                TPriority priority;
+
+                foreach (LookupItem lookup in new List<LookupItem>(this.lookup_table.Values))
+                {
+                    if (lookup.Heap.TryGetValue(lookup.Handle, out item))
+                    {
+                        priority = item.Priority;
+                        if (handler(ref priority, item.LocalID))
+                        {
+                            if (lookup.Heap.ContainsHandle(lookup.Handle))
+                                lookup.Heap[lookup.Handle] =
+                                    new MinHeapItem(priority, item.Value, item.LocalID);
+                        }
+                        else
+                        {
+                            m_log.Warn("[LLClientView] UpdatePriorityHandle returned false, dropping update");
+                            lookup.Heap.Remove(lookup.Handle);
+                            this.lookup_table.Remove(item.LocalID);
+                        }
+                    }
+                }
             }
 
             #region MinHeapItem

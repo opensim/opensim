@@ -448,6 +448,8 @@ namespace OpenSim.Framework
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
+    public delegate double UpdatePriorityHandler(UpdatePriorityData data);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -742,6 +744,29 @@ namespace OpenSim.Framework
         public byte SoundFlags { get { return this.m_SoundFlags; } }
         public double SoundRadius { get { return this.m_SoundRadius; } }
         public double priority { get { return this.m_priority; } }
+    }
+
+    public struct UpdatePriorityData {
+        private double m_priority;
+        private uint m_localID;
+
+        public UpdatePriorityData(double priority, uint localID) {
+            this.m_priority = priority;
+            this.m_localID = localID;
+        }
+
+        public double priority { get { return this.m_priority; } }
+        public uint localID { get { return this.m_localID; } }
+    }
+
+    [Flags]
+    public enum StateUpdateTypes
+    {
+        None = 0,
+        AvatarTerse = 1,
+        PrimitiveTerse = AvatarTerse << 1,
+        PrimitiveFull = PrimitiveTerse << 1,
+        All = AvatarTerse | PrimitiveTerse | PrimitiveFull,
     }
 
     public interface IClientAPI
@@ -1117,6 +1142,8 @@ namespace OpenSim.Framework
         void SendPrimitiveToClient(SendPrimitiveData data);
 
         void SendPrimTerseUpdate(SendPrimitiveTerseData data);
+
+        void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
                                         List<InventoryFolderBase> folders, bool fetchFolders,

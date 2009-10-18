@@ -278,6 +278,10 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_firstHeartbeat = true;
 
         private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+        private bool m_reprioritization_enabled = true;
+        private double m_reprioritization_interval = 2000.0;
+        private double m_root_reprioritization_distance = 5.0;
+        private double m_child_reprioritization_distance = 10.0;
 
         private object m_deleting_scene_object = new object();
 
@@ -291,6 +295,10 @@ namespace OpenSim.Region.Framework.Scenes
         #region Properties
 
         public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return this.m_update_prioritization_scheme; } }
+        public bool IsReprioritizationEnabled { get { return m_reprioritization_enabled; } }
+        public double ReprioritizationInterval { get { return m_reprioritization_interval; } }
+        public double RootReprioritizationDistance { get { return m_root_reprioritization_distance; } }
+        public double ChildReprioritizationDistance { get { return m_child_reprioritization_distance; } }
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -542,6 +550,11 @@ namespace OpenSim.Region.Framework.Scenes
                             m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
                             break;
                     }
+
+                    m_reprioritization_enabled = interest_management_config.GetBoolean("ReprioritizationEnabled", true);
+                    m_reprioritization_interval = interest_management_config.GetDouble("ReprioritizationInterval", 5000.0);
+                    m_root_reprioritization_distance = interest_management_config.GetDouble("RootReprioritizationDistance", 10.0);
+                    m_child_reprioritization_distance = interest_management_config.GetDouble("ChildReprioritizationDistance", 20.0);
                 }
 
                 m_log.Info("[SCENE]: Using the " + m_update_prioritization_scheme + " prioritization scheme");
