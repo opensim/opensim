@@ -3402,34 +3402,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
                 CreateAvatarImprovedBlock(data.localID, data.position, data.velocity, rotation);
-                
+
             lock (m_avatarTerseUpdates.SyncRoot)
                 m_avatarTerseUpdates.Enqueue(data.priority, terseBlock, data.localID);
+
+            // If we received an update about our own avatar, process the avatar update priority queue immediately
+            if (data.agentid == m_agentId)
+                ProcessAvatarTerseUpdates();
         }
 
         private void ProcessAvatarTerseUpdates()
         {
+            ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+            terse.Header.Reliable = false;
+            terse.Header.Zerocoded = true;
+
+            //terse.RegionData = new ImprovedTerseObjectUpdatePacket.RegionDataBlock();
+            terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
+            terse.RegionData.TimeDilation = (ushort)(Scene.TimeDilation * ushort.MaxValue);
+
             lock (m_avatarTerseUpdates.SyncRoot)
             {
-                ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
-
-                terse.RegionData = new ImprovedTerseObjectUpdatePacket.RegionDataBlock();
-
-                terse.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
-                terse.RegionData.TimeDilation =
-                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
-
                 int count = Math.Min(m_avatarTerseUpdates.Count, m_avatarTerseUpdatesPerPacket);
+                if (count == 0)
+                    return;
 
                 terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[count];
                 for (int i = 0; i < count; i++)
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
-
-                terse.Header.Reliable = false;
-                terse.Header.Zerocoded = true;
-
-                OutPacket(terse, ThrottleOutPacketType.Task);
             }
+
+            OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
@@ -3642,26 +3645,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void ProcessPrimFullUpdates()
         {
+            ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
+            outPacket.Header.Zerocoded = true;
+
+            //outPacket.RegionData = new ObjectUpdatePacket.RegionDataBlock();
+            outPacket.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
+            outPacket.RegionData.TimeDilation = (ushort)(Scene.TimeDilation * ushort.MaxValue);
+
             lock (m_primFullUpdates.SyncRoot)
             {
-                ObjectUpdatePacket outPacket =
-                        (ObjectUpdatePacket)PacketPool.Instance.GetPacket(
-                        PacketType.ObjectUpdate);
-
-                outPacket.RegionData.RegionHandle =
-                        Scene.RegionInfo.RegionHandle;
-                outPacket.RegionData.TimeDilation =
-                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
-
                 int count = Math.Min(m_primFullUpdates.Count, m_primFullUpdatesPerPacket);
+                if (count == 0)
+                    return;
 
                 outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[count];
                 for (int i = 0; i < count; i++)
                     outPacket.ObjectData[i] = m_primFullUpdates.Dequeue();
-
-                outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.State);
             }
+
+            OutPacket(outPacket, ThrottleOutPacketType.State);
         }
 
         /// <summary>
@@ -3695,28 +3697,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         void ProcessPrimTerseUpdates()
         {
+            ImprovedTerseObjectUpdatePacket outPacket = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
+            outPacket.Header.Reliable = false;
+            outPacket.Header.Zerocoded = true;
+
+            outPacket.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
+            outPacket.RegionData.TimeDilation = (ushort)(Scene.TimeDilation * ushort.MaxValue);
+
             lock (m_primTerseUpdates.SyncRoot)
             {
-                ImprovedTerseObjectUpdatePacket outPacket =
-                        (ImprovedTerseObjectUpdatePacket)
-                        PacketPool.Instance.GetPacket(
-                        PacketType.ImprovedTerseObjectUpdate);
-
-                outPacket.RegionData.RegionHandle =
-                        Scene.RegionInfo.RegionHandle;
-                outPacket.RegionData.TimeDilation =
-                        (ushort)(Scene.TimeDilation * ushort.MaxValue);
-
                 int count = Math.Min(m_primTerseUpdates.Count, m_primTerseUpdatesPerPacket);
+                if (count == 0)
+                    return;
 
                 outPacket.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[count];
                 for (int i = 0; i < count; i++)
                     outPacket.ObjectData[i] = m_primTerseUpdates.Dequeue();
-
-                outPacket.Header.Reliable = false;
-                outPacket.Header.Zerocoded = true;
-                OutPacket(outPacket, ThrottleOutPacketType.State);
             }
+
+            OutPacket(outPacket, ThrottleOutPacketType.State);
         }
 
         public void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler)
