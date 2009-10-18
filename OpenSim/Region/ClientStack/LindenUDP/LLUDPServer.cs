@@ -572,6 +572,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     for (int i = 0; i < ackPacket.Packets.Length; i++)
                         AcknowledgePacket(udpClient, ackPacket.Packets[i].ID, now, packet.Header.Resent);
                 }
+
+                // We don't need to do anything else with PacketAck packets
+                return;
             }
 
             #endregion ACK Receiving
@@ -579,20 +582,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region ACK Sending
 
             if (packet.Header.Reliable)
+            {
                 udpClient.PendingAcks.Enqueue(packet.Header.Sequence);
 
-            // This is a somewhat odd sequence of steps to pull the client.BytesSinceLastACK value out,
-            // add the current received bytes to it, test if 2*MTU bytes have been sent, if so remove
-            // 2*MTU bytes from the value and send ACKs, and finally add the local value back to
-            // client.BytesSinceLastACK. Lockless thread safety
-            int bytesSinceLastACK = Interlocked.Exchange(ref udpClient.BytesSinceLastACK, 0);
-            bytesSinceLastACK += buffer.DataLength;
-            if (bytesSinceLastACK > LLUDPServer.MTU * 2)
-            {
-                bytesSinceLastACK -= LLUDPServer.MTU * 2;
-                SendAcks(udpClient);
+                // This is a somewhat odd sequence of steps to pull the client.BytesSinceLastACK value out,
+                // add the current received bytes to it, test if 2*MTU bytes have been sent, if so remove
+                // 2*MTU bytes from the value and send ACKs, and finally add the local value back to
+                // client.BytesSinceLastACK. Lockless thread safety
+                int bytesSinceLastACK = Interlocked.Exchange(ref udpClient.BytesSinceLastACK, 0);
+                bytesSinceLastACK += buffer.DataLength;
+                if (bytesSinceLastACK > LLUDPServer.MTU * 2)
+                {
+                    bytesSinceLastACK -= LLUDPServer.MTU * 2;
+                    SendAcks(udpClient);
+                }
+                Interlocked.Add(ref udpClient.BytesSinceLastACK, bytesSinceLastACK);
             }
-            Interlocked.Add(ref udpClient.BytesSinceLastACK, bytesSinceLastACK);
 
             #endregion ACK Sending
 
@@ -612,12 +617,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Incoming Packet Accounting
 
-            // Don't bother clogging up the queue with PacketAck packets that are already handled here
-            if (packet.Type != PacketType.PacketAck)
+            #region Ping Check Handling
+
+            if (packet.Type == PacketType.StartPingCheck)
             {
-                // Inbox insertion
-                packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
+                // We don't need to do anything else with ping checks
+                StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
+
+                CompletePingCheckPacket completePing = new CompletePingCheckPacket();
+                completePing.PingID.PingID = startPing.PingID.PingID;
+                SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+                return;
             }
+            else if (packet.Type == PacketType.CompletePingCheck)
+            {
+                // We don't currently track client ping times
+                return;
+            }
+
+            #endregion Ping Check Handling
+
+            // Inbox insertion
+            packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
         }
 
         protected override void PacketSent(UDPPacketBuffer buffer, int bytesSent)

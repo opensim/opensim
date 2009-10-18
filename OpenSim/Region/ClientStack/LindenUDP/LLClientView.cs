@@ -295,6 +295,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event MuteListRequest OnMuteListRequest;
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
         public event PlacesQuery OnPlacesQuery;
+        public event AgentFOV OnAgentFOV;
 
         #endregion Events
 
@@ -346,6 +347,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected ulong m_activeGroupPowers;
         protected Dictionary<UUID,ulong> m_groupPowers = new Dictionary<UUID, ulong>();
         protected int m_terrainCheckerCount;
+        protected uint m_agentFOVCounter;
 
         // These numbers are guesses at a decent tradeoff between responsiveness
         // of the interest list and throughput. Lower is more responsive, higher
@@ -8871,19 +8873,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #endregion
 
+                case PacketType.AgentFOV:
+                    AgentFOVPacket fovPacket = (AgentFOVPacket)Pack;
+
+                    if (fovPacket.FOVBlock.GenCounter > m_agentFOVCounter)
+                    {
+                        m_agentFOVCounter = fovPacket.FOVBlock.GenCounter;
+                        AgentFOV handlerAgentFOV = OnAgentFOV;
+                        if (handlerAgentFOV != null)
+                        {
+                            handlerAgentFOV(this, fovPacket.FOVBlock.VerticalAngle);
+                        }
+                    }
+                    break;
 
                     #region unimplemented handlers
-
-                case PacketType.StartPingCheck:
-                    StartPingCheckPacket pingStart = (StartPingCheckPacket)Pack;
-                    CompletePingCheckPacket pingComplete = new CompletePingCheckPacket();
-                    pingComplete.PingID.PingID = pingStart.PingID.PingID;
-                    m_udpServer.SendPacket(m_udpClient, pingComplete, ThrottleOutPacketType.Unknown, false);
-                    break;
-
-                case PacketType.CompletePingCheck:
-                    // TODO: Do stats tracking or something with these?
-                    break;
 
                 case PacketType.ViewerStats:
                     // TODO: handle this packet

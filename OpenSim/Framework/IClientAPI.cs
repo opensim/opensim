@@ -448,6 +448,8 @@ namespace OpenSim.Framework
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
+    public delegate void AgentFOV(IClientAPI client, float verticalAngle);
+
     public delegate double UpdatePriorityHandler(UpdatePriorityData data);
 
     #endregion
