@@ -1664,6 +1664,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!_characters.Contains(chr))
                 {
                     _characters.Add(chr);
+                    if (chr.bad)
+                        m_log.DebugFormat("[PHYSICS] Added BAD actor {0} to characters list", chr.m_uuid);
                 }
             }
         }
@@ -2581,7 +2583,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 lock (_taintedActors)
                 {
                     if (!(_taintedActors.Contains(taintedchar)))
+                    {
                         _taintedActors.Add(taintedchar);
+                        if (taintedchar.bad)
+                            m_log.DebugFormat("[PHYSICS]: Added BAD actor {0} to tainted actors", taintedchar.m_uuid);
+                    }
                 }
             }
         }
