@@ -716,8 +716,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (base.IsRunning)
             {
-                if (packetInbox.Dequeue(100, ref incomingPacket))
-                    Util.FireAndForget(ProcessInPacket, incomingPacket);
+                try
+                {
+                    if (packetInbox.Dequeue(100, ref incomingPacket))
+                        Util.FireAndForget(ProcessInPacket, incomingPacket);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[LLUDPSERVER]: Error in the incoming packet handler loop: " + ex.Message, ex);
+                }
             }
 
             if (packetInbox.Count > 0)
