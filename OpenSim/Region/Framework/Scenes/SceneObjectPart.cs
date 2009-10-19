@@ -3791,15 +3791,15 @@ if (m_shape != null) {
                 if (ParentGroup.RootPart == this)
                     lPos = AbsolutePosition;
             }
-
+            
             // Causes this thread to dig into the Client Thread Data.
             // Remember your locking here!
             remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
-                    RotationOffset, Velocity,
+                    RotationOffset, Velocity, Acceleration,
                     RotationalVelocity, state, FromItemID,
-                    OwnerID, (int)AttachmentPoint, ParentGroup.GetUpdatePriority(remoteClient)));
+                    OwnerID, (int)AttachmentPoint, null, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 
         public void AddScriptLPS(int count)

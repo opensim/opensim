@@ -1160,15 +1160,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
-            lock (m_agentUpdates)
+            const int AGENT_UPDATE_TIMEOUT_MS = 1000 * 3;
+
+            if (System.Threading.Monitor.TryEnter(m_agentUpdates, AGENT_UPDATE_TIMEOUT_MS))
             {
-                if (m_updatesAllowed)
+                try
                 {
-                    RealHandleAgentUpdate(remoteClient, agentData);
-                    return;
+                    if (m_updatesAllowed)
+                    {
+                        RealHandleAgentUpdate(remoteClient, agentData);
+                        return;
+                    }
+
+                    m_agentUpdates.Add(agentData);
                 }
-                
-                m_agentUpdates.Add(agentData);
+                finally { System.Threading.Monitor.Exit(m_agentUpdates); }
             }
         }
 
@@ -2471,7 +2477,7 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Z -= m_appearance.HipOffset;
 
                 remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
-                    pos, m_velocity, m_rotation, m_uuid, GetUpdatePriority(remoteClient)));
+                    pos, m_velocity, Vector3.Zero, m_rotation, Vector4.Zero, m_uuid, null, GetUpdatePriority(remoteClient)));
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
@@ -3504,7 +3510,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Close()
         {
-
             lock (m_attachments)
             {
                 // Delete attachments from scene
@@ -3535,7 +3540,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneViewer.Close();
 
             RemoveFromPhysicalScene();
-            GC.Collect();
         }
 
         public ScenePresence()

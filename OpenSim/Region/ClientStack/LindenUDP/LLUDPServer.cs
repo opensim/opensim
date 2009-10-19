@@ -733,10 +733,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            IncomingPacket incomingPacket = null;
-
             while (base.IsRunning)
             {
+                IncomingPacket incomingPacket = null;
+
                 try
                 {
                     if (packetInbox.Dequeue(100, ref incomingPacket))

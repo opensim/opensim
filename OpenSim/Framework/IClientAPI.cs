@@ -523,124 +523,100 @@ namespace OpenSim.Framework
 
     public struct SendAvatarData
     {
-        private ulong m_regionHandle;
-        private string m_firstName;
-        private string m_lastName;
-        private string m_grouptitle;
-        private UUID m_avatarID;
-        private uint m_avatarLocalID;
-        private Vector3 m_Pos;
-        private byte[] m_textureEntry;
-        private uint m_parentID;
-        private Quaternion m_rotation;
+        public readonly ulong RegionHandle;
+        public readonly string FirstName;
+        public readonly string LastName;
+        public readonly string GroupTitle;
+        public readonly UUID AvatarID;
+        public readonly uint AvatarLocalID;
+        public readonly Vector3 Position;
+        public readonly byte[] TextureEntry;
+        public readonly uint ParentID;
+        public readonly Quaternion Rotation;
 
-        public SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID,
-                            uint avatarLocalID,
-                            Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation)
+        public SendAvatarData(ulong regionHandle, string firstName, string lastName, string groupTitle, UUID avatarID,
+            uint avatarLocalID, Vector3 position, byte[] textureEntry, uint parentID, Quaternion rotation)
         {
-            this.m_regionHandle = regionHandle;
-            this.m_firstName = firstName;
-            this.m_lastName = lastName;
-            this.m_grouptitle = grouptitle;
-            this.m_avatarID = avatarID;
-            this.m_avatarLocalID = avatarLocalID;
-            this.m_Pos = Pos;
-            this.m_textureEntry = textureEntry;
-            this.m_parentID = parentID;
-            this.m_rotation = rotation;
+            RegionHandle = regionHandle;
+            FirstName = firstName;
+            LastName = lastName;
+            GroupTitle = groupTitle;
+            AvatarID = avatarID;
+            AvatarLocalID = avatarLocalID;
+            Position = position;
+            TextureEntry = textureEntry;
+            ParentID = parentID;
+            Rotation = rotation;
         }
-
-        public ulong regionHandle { get { return this.m_regionHandle; } }
-        public string firstName { get { return this.m_firstName; } }
-        public string lastName { get { return this.m_lastName; } }
-        public string grouptitle { get { return this.m_grouptitle; } }
-        public UUID avatarID { get { return this.m_avatarID; } }
-        public uint avatarLocalID { get { return this.m_avatarLocalID; } }
-        public Vector3 Pos { get { return this.m_Pos; } }
-        public byte[] textureEntry { get { return this.m_textureEntry; } }
-        public uint parentID { get { return this.m_parentID; } }
-        public Quaternion rotation { get { return this.m_rotation; } }
     }
 
     public struct SendAvatarTerseData
     {
-        private ulong m_regionHandle;
-        private ushort m_timeDilation;
-        private uint m_localID;
-        private Vector3 m_position;
-        private Vector3 m_velocity;
-        private Quaternion m_rotation;
-        private UUID m_agentid;
-        private double m_priority;
+        public readonly ulong RegionHandle;
+        public readonly ushort TimeDilation;
+        public readonly uint LocalID;
+        public readonly Vector3 Position;
+        public readonly Vector3 Velocity;
+        public readonly Vector3 Acceleration;
+        public readonly Quaternion Rotation;
+        public readonly Vector4 CollisionPlane;
+        public readonly UUID AgentID;
+        public readonly byte[] TextureEntry;
+        public readonly double Priority;
 
-        public SendAvatarTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                   Vector3 velocity, Quaternion rotation, UUID agentid, double priority)
+        public SendAvatarTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity,
+            Vector3 acceleration, Quaternion rotation, Vector4 collisionPlane, UUID agentid, byte[] textureEntry, double priority)
         {
-            this.m_regionHandle = regionHandle;
-            this.m_timeDilation = timeDilation;
-            this.m_localID = localID;
-            this.m_position = position;
-            this.m_velocity = velocity;
-            this.m_rotation = rotation;
-            this.m_agentid = agentid;
-            this.m_priority = priority;
+            RegionHandle = regionHandle;
+            TimeDilation = timeDilation;
+            LocalID = localID;
+            Position = position;
+            Velocity = velocity;
+            Acceleration = acceleration;
+            Rotation = rotation;
+            CollisionPlane = collisionPlane;
+            AgentID = agentid;
+            TextureEntry = textureEntry;
+            Priority = priority;
         }
-
-        public ulong regionHandle { get { return this.m_regionHandle; } }
-        public ushort timeDilation { get { return this.m_timeDilation; } }
-        public uint localID { get { return this.m_localID; } }
-        public Vector3 position { get { return this.m_position; } }
-        public Vector3 velocity { get { return this.m_velocity; } }
-        public Quaternion rotation { get { return this.m_rotation; } }
-        public UUID agentid { get { return this.m_agentid; } }
-        public double priority { get { return this.m_priority; } }
     }
 
     public struct SendPrimitiveTerseData
     {
-        private ulong m_regionHandle;
-        private ushort m_timeDilation;
-        private uint m_localID;
-        private Vector3 m_position;
-        private Quaternion m_rotation;
-        private Vector3 m_velocity;
-        private Vector3 m_rotationalvelocity;
-        private byte m_state;
-        private UUID m_AssetId;
-        private UUID m_owner;
-        private int m_attachPoint;
-        private double m_priority;
+        public readonly ulong RegionHandle;
+        public readonly ushort TimeDilation;
+        public readonly uint LocalID;
+        public readonly Vector3 Position;
+        public readonly Quaternion Rotation;
+        public readonly Vector3 Velocity;
+        public readonly Vector3 Acceleration;
+        public readonly Vector3 AngularVelocity;
+        public readonly byte State;
+        public readonly UUID AssetID;
+        public readonly UUID OwnerID;
+        public readonly int AttachPoint;
+        public readonly byte[] TextureEntry;
+        public readonly double Priority;
 
         public SendPrimitiveTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                 Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state,
-                                 UUID AssetId, UUID owner, int attachPoint, double priority)
+            Quaternion rotation, Vector3 velocity, Vector3 acceleration, Vector3 rotationalvelocity, byte state,
+            UUID assetID, UUID ownerID, int attachPoint, byte[] textureEntry, double priority)
         {
-            this.m_regionHandle = regionHandle;
-            this.m_timeDilation = timeDilation;
-            this.m_localID = localID;
-            this.m_position = position;
-            this.m_rotation = rotation;
-            this.m_velocity = velocity;
-            this.m_rotationalvelocity = rotationalvelocity;
-            this.m_state = state;
-            this.m_AssetId = AssetId;
-            this.m_owner = owner;
-            this.m_attachPoint = attachPoint;
-            this.m_priority = priority;
+            RegionHandle = regionHandle;
+            TimeDilation = timeDilation;
+            LocalID = localID;
+            Position = position;
+            Rotation = rotation;
+            Velocity = velocity;
+            Acceleration = acceleration;
+            AngularVelocity = rotationalvelocity;
+            State = state;
+            AssetID = assetID;
+            OwnerID = ownerID;
+            AttachPoint = attachPoint;
+            TextureEntry = textureEntry;
+            Priority = priority;
         }
-
-        public ulong regionHandle { get { return this.m_regionHandle; } }
-        public ushort timeDilation { get { return this.m_timeDilation; } }
-        public uint localID { get { return this.m_localID; } }
-        public Vector3 position { get { return this.m_position; } }
-        public Quaternion rotation { get { return this.m_rotation; } }
-        public Vector3 velocity { get { return this.m_velocity; } }
-        public Vector3 rotationalvelocity { get { return this.m_rotationalvelocity; } }
-        public byte state { get { return this.m_state; } }
-        public UUID AssetId { get { return this.m_AssetId; } }
-        public UUID owner { get { return this.m_owner; } }
-        public int attachPoint { get { return this.m_attachPoint; } }
-        public double priority { get { return this.m_priority; } }
     }
 
     public struct SendPrimitiveData
@@ -654,7 +630,7 @@ namespace OpenSim.Framework
         private Vector3 m_acc;
         private Quaternion m_rotation;
         private Vector3 m_rvel;
-        private uint m_flags;
+        private PrimFlags m_flags;
         private UUID m_objectID;
         private UUID m_ownerID;
         private string m_text;
@@ -699,7 +675,7 @@ namespace OpenSim.Framework
             this.m_acc = acc;
             this.m_rotation = rotation;
             this.m_rvel = rvel;
-            this.m_flags = flags;
+            this.m_flags = (PrimFlags)flags;
             this.m_objectID = objectID;
             this.m_ownerID = ownerID;
             this.m_text = text;
@@ -728,7 +704,7 @@ namespace OpenSim.Framework
         public Vector3 acc { get { return this.m_acc; } }
         public Quaternion rotation { get { return this.m_rotation; } }
         public Vector3 rvel { get { return this.m_rvel; } }
-        public uint flags { get { return this.m_flags; } }
+        public PrimFlags flags { get { return this.m_flags; } }
         public UUID objectID { get { return this.m_objectID; } }
         public UUID ownerID { get { return this.m_ownerID; } }
         public string text { get { return this.m_text; } }

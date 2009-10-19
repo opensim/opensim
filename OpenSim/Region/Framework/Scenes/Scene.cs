@@ -357,13 +357,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_defaultScriptEngine; }
         }
 
-        // Reference to all of the agents in the scene (root and child)
-        protected Dictionary<UUID, ScenePresence> m_scenePresences
-        {
-            get { return m_sceneGraph.ScenePresences; }
-            set { m_sceneGraph.ScenePresences = value; }
-        }
-
         public EntityManager Entities
         {
             get { return m_sceneGraph.Entities; }
@@ -1183,14 +1176,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
-            List<ScenePresence> StatSendAgents = GetScenePresences();
-            foreach (ScenePresence agent in StatSendAgents)
-            {
-                if (!agent.IsChildAgent)
+            ForEachScenePresence(
+                delegate(ScenePresence agent)
                 {
-                    agent.ControllingClient.SendSimStats(stats);
+                    if (!agent.IsChildAgent)
+                        agent.ControllingClient.SendSimStats(stats);
                 }
-            }
+            );
         }
 
         /// <summary>
@@ -3501,10 +3493,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence presence;
 
-            lock (m_scenePresences)
-            {
-                m_scenePresences.TryGetValue(agentID, out presence);
-            }
+            lock (m_sceneGraph.ScenePresences)
+                m_sceneGraph.ScenePresences.TryGetValue(agentID, out presence);
 
             if (presence != null)
             {
@@ -3714,12 +3704,9 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp = null;
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
-                    sp = m_scenePresences[remoteClient.AgentId];
-            }
+            ScenePresence sp;
+            lock (m_sceneGraph.ScenePresences)
+                m_sceneGraph.ScenePresences.TryGetValue(remoteClient.AgentId, out sp);
 
             if (sp != null)
             {
@@ -4168,7 +4155,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             // We don't want to try to send messages if there are no avatars.
-            if (m_scenePresences != null)
+            if (m_sceneGraph != null && m_sceneGraph.ScenePresences != null)
             {
                 try
                 {

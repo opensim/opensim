@@ -999,16 +999,16 @@ namespace OpenSim.Client.MXP.ClientStack
         public void SendAvatarData(SendAvatarData data)
         {
             //ScenePresence presence=((Scene)this.Scene).GetScenePresence(avatarID);
-            UUID ownerID = data.avatarID;
-            MXPSendAvatarData(data.firstName + " " + data.lastName, ownerID, UUID.Zero, data.avatarID, data.avatarLocalID, data.Pos, data.rotation);
+            UUID ownerID = data.AvatarID;
+            MXPSendAvatarData(data.FirstName + " " + data.LastName, ownerID, UUID.Zero, data.AvatarID, data.AvatarLocalID, data.Position, data.Rotation);
         }
 
         public void SendAvatarTerseUpdate(SendAvatarTerseData data)
         {
             MovementEventMessage me = new MovementEventMessage();
-            me.ObjectIndex = data.localID;
-            me.Location = ToOmVector(data.position);
-            me.Orientation = ToOmQuaternion(data.rotation);
+            me.ObjectIndex = data.LocalID;
+            me.Location = ToOmVector(data.Position);
+            me.Orientation = ToOmQuaternion(data.Rotation);
 
             Session.Send(me);
         }
@@ -1030,15 +1030,17 @@ namespace OpenSim.Client.MXP.ClientStack
 
         public void SendPrimitiveToClient(SendPrimitiveData data)
         {
-            MXPSendPrimitive(data.localID, data.ownerID, data.acc, data.rvel, data.primShape, data.pos, data.objectID, data.vel, data.rotation, data.flags, data.text, data.color, data.parentID, data.particleSystem, data.clickAction, data.material, data.textureanim);
+            MXPSendPrimitive(data.localID, data.ownerID, data.acc, data.rvel, data.primShape, data.pos, data.objectID, data.vel,
+                data.rotation, (uint)data.flags, data.text, data.color, data.parentID, data.particleSystem, data.clickAction,
+                data.material, data.textureanim);
         }
 
         public void SendPrimTerseUpdate(SendPrimitiveTerseData data)
         {
             MovementEventMessage me = new MovementEventMessage();
-            me.ObjectIndex = data.localID;
-            me.Location = ToOmVector(data.position);
-            me.Orientation = ToOmQuaternion(data.rotation);
+            me.ObjectIndex = data.LocalID;
+            me.Location = ToOmVector(data.Position);
+            me.Orientation = ToOmQuaternion(data.Rotation);
             Session.Send(me);
         }
 
