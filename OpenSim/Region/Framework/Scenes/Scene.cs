@@ -128,6 +128,7 @@ namespace OpenSim.Region.Framework.Scenes
         public CommunicationsManager CommsManager;
 
         protected SceneCommunicationService m_sceneGridService;
+        public bool loginsdisabled = true;
 
         public SceneCommunicationService SceneGridService
         {
@@ -1062,6 +1063,11 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
+                    if (loginsdisabled && (m_frame > 20))
+                    {
+                        m_log.Debug("[REGION]: Enabling Logins");
+                        loginsdisabled = false;
+                    }
                 }
                 catch (NotImplementedException)
                 {
@@ -1110,13 +1116,13 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddGroupTarget(SceneObjectGroup grp)
         {
-            lock(m_groupsWithTargets)
+            lock (m_groupsWithTargets)
                 m_groupsWithTargets[grp.UUID] = grp;
         }
 
         public void RemoveGroupTarget(SceneObjectGroup grp)
         {
-            lock(m_groupsWithTargets)
+            lock (m_groupsWithTargets)
                 m_groupsWithTargets.Remove(grp.UUID);
         }
 
@@ -3227,6 +3233,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, out string reason)
         {
+            if (loginsdisabled)
+            {
+                reason = "Logins Disabled";
+                return false;
+            }
             // Don't disable this log message - it's too helpful
             m_log.InfoFormat(
                 "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5})",

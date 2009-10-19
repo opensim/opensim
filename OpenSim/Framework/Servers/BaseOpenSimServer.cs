@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Servers
                 foreach (ProcessThread t in threads)
                 {
                     sb.Append("ID: " + t.Id + ", TotalProcessorTime: " + t.TotalProcessorTime + ", TimeRunning: " +
-                        (DateTime.Now - t.StartTime) + ", Pri: " + t.CurrentPriority + ", State: " + t.ThreadState );
+                        (DateTime.Now - t.StartTime) + ", Pri: " + t.CurrentPriority + ", State: " + t.ThreadState);
                     if (t.ThreadState == System.Diagnostics.ThreadState.Wait)
                         sb.Append(", Reason: " + t.WaitReason + Environment.NewLine);
                     else

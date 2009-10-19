@@ -792,6 +792,7 @@ namespace OpenSim.Framework
         event PickGodDelete OnPickGodDelete;
         event PickInfoUpdate OnPickInfoUpdate;
         event AvatarNotesUpdate OnAvatarNotesUpdate;
+        event AvatarInterestUpdate OnAvatarInterestUpdate;
 
         event MuteListRequest OnMuteListRequest;
 

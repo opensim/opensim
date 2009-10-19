@@ -62,7 +62,7 @@ namespace OpenSim.Data.MSSQL
                 conn.Open();
                 Migration m = new Migration(conn, GetType().Assembly, "GridStore");
                 m.Update();
-            }    
+            }
          }
 
         public List<RegionData> Get(string regionName, UUID scopeID)
@@ -98,7 +98,7 @@ namespace OpenSim.Data.MSSQL
                     return null;
 
                 return ret[0];
-            }            
+            }
         }
 
         public RegionData Get(UUID regionID, UUID scopeID)
@@ -251,7 +251,7 @@ namespace OpenSim.Data.MSSQL
                     {
                         string insert = "insert into [" + m_Realm + "] ([uuid], [ScopeID], [locX], [locY], [sizeX], [sizeY], [regionName], [" +
                                 String.Join("], [", fields) +
-                                "]) values ( @regionID, @scopeID, @posX, @posY, @sizeX, @sizeY, @regionName, @" + String.Join(", @", fields) + ")";
+                                "]) values (@regionID, @scopeID, @posX, @posY, @sizeX, @sizeY, @regionName, @" + String.Join(", @", fields) + ")";
 
                         cmd.CommandText = insert;
 

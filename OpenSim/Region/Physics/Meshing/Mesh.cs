@@ -70,7 +70,7 @@ namespace OpenSim.Region.Physics.Meshing
                 throw new NotSupportedException("Attempt to Add to a pinned Mesh");
             // If a vertex of the triangle is not yet in the vertices list,
             // add it and set its index to the current index count
-            if( !m_vertices.ContainsKey(triangle.v1) )
+            if (!m_vertices.ContainsKey(triangle.v1))
                 m_vertices[triangle.v1] = m_vertices.Count;
             if (!m_vertices.ContainsKey(triangle.v2))
                 m_vertices[triangle.v2] = m_vertices.Count;
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         private float[] getVertexListAsFloat()
         {
-            if(m_vertices == null)
+            if (m_vertices == null)
                 throw new NotSupportedException();
             float[] result = new float[m_vertices.Count * 3];
             foreach (KeyValuePair<Vertex, int> kvp in m_vertices)
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         public float[] getVertexListAsFloatLocked()
         {
-            if( m_pinnedVertexes.IsAllocated )
+            if (m_pinnedVertexes.IsAllocated)
                 return (float[])(m_pinnedVertexes.Target);
 
             float[] result = getVertexListAsFloat();

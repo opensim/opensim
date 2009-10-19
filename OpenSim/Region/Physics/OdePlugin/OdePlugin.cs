@@ -243,6 +243,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
         private readonly List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
+        private readonly HashSet<OdeCharacter> _badCharacter = new HashSet<OdeCharacter>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private bool m_NINJA_physics_joints_enabled = false;
@@ -1678,6 +1679,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
         }
+        public void BadCharacter(OdeCharacter chr)
+        {
+            lock (_badCharacter)
+            {
+                if (!_badCharacter.Contains(chr))
+                    _badCharacter.Add(chr);
+            }
+        }
 
         public override void RemoveAvatar(PhysicsActor actor)
         {
@@ -2987,6 +2996,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
+                lock (_badCharacter)
+                {
+                    if (_badCharacter.Count > 0)
+                    {
+                        foreach (OdeCharacter chr in _badCharacter)
+                        {
+                            RemoveCharacter(chr);
+                        }
+                        _badCharacter.Clear();
+                    }
+                }
+
                 lock (_activeprims)
                 {
                     //if (timeStep < 0.2f)
@@ -3792,7 +3813,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public void start(int unused)
-        {            
+        {
             ds.SetViewpoint(ref xyz, ref hpr);
         }
 #endif
