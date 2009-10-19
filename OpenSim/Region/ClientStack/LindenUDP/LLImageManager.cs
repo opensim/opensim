@@ -51,7 +51,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_shuttingdown;
-        private long m_lastloopprocessed;
         private AssetBase m_missingImage;
         private LLClientView m_client; //Client we're assigned to
         private IAssetService m_assetCache; //Asset Cache
@@ -169,7 +168,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool ProcessImageQueue(int packetsToSend)
         {
-            m_lastloopprocessed = DateTime.Now.Ticks;
             int packetsSent = 0;
 
             while (packetsSent < packetsToSend)

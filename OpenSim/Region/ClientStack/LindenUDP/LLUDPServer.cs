@@ -107,7 +107,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Manages authentication for agent circuits</summary>
         private AgentCircuitManager m_circuitManager;
         /// <summary>Reference to the scene this UDP server is attached to</summary>
-        private IScene m_scene;
+        private Scene m_scene;
         /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
         private Location m_location;
         /// <summary>The measured resolution of Environment.TickCount</summary>
@@ -184,15 +184,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void AddScene(IScene scene)
         {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-                m_location = new Location(m_scene.RegionInfo.RegionHandle);
-            }
-            else
+            if (m_scene != null)
             {
                 m_log.Error("[LLUDPSERVER]: AddScene() called on an LLUDPServer that already has a scene");
+                return;
             }
+
+            if (!(scene is Scene))
+            {
+                m_log.Error("[LLUDPSERVER]: AddScene() called with an unrecognized scene type " + scene.GetType());
+                return;
+            }
+
+            m_scene = (Scene)scene;
+            m_location = new Location(m_scene.RegionInfo.RegionHandle);
         }
 
         public bool HandlesRegion(Location x)
@@ -794,7 +799,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     elapsed500MS = 0;
                 }
 
-                m_scene.ClientManager.ForEach(
+                m_scene.ClientManager.ForEachSync(
                     delegate(IClientAPI client)
                     {
                         if (client is LLClientView)

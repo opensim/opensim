@@ -228,6 +228,10 @@ namespace OpenSim.Region.Framework.Scenes
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
+        public IAvatarFactory AvatarFactory
+        {
+            get { return m_AvatarFactory; }
+        }
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IInterregionCommsOut m_interregionCommsOut;

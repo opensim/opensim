@@ -1273,7 +1273,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Created to work around a limitation in Mono with nested delegates
         /// </summary>
-        private class FireAndForgetWrapper
+        /*private class FireAndForgetWrapper
         {
             public void FireAndForget(System.Threading.WaitCallback callback)
             {
@@ -1284,21 +1284,23 @@ namespace OpenSim.Framework
             {
                 callback.BeginInvoke(obj, EndFireAndForget, callback);
             }
-        }
+        }*/
 
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
-            FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
-            wrapper.FireAndForget(callback);
+            //FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+            //wrapper.FireAndForget(callback);
+            System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, null);
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
-            wrapper.FireAndForget(callback, obj);
+            //FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+            //wrapper.FireAndForget(callback, obj);
+            System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
         }
 
-        private static void EndFireAndForget(IAsyncResult ar)
+        /*private static void EndFireAndForget(IAsyncResult ar)
         {
             System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
 
@@ -1306,7 +1308,7 @@ namespace OpenSim.Framework
             catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
 
             ar.AsyncWaitHandle.Close();
-        }
+        }*/
 
         #endregion FireAndForget Threading Pattern
     }

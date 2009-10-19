@@ -506,8 +506,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// for</param>
         private void BeginFireQueueEmpty(int throttleIndex)
         {
-            if (!m_onQueueEmptyRunning[throttleIndex])
-                Util.FireAndForget(FireQueueEmpty, throttleIndex);
+            // Unknown is -1 and Resend is 0. Make sure we are only firing the 
+            // callback for categories other than those
+            if (throttleIndex > 0)
+            {
+                if (!m_onQueueEmptyRunning[throttleIndex])
+                    Util.FireAndForget(FireQueueEmpty, throttleIndex);
+            }
         }
 
         /// <summary>

@@ -93,40 +93,31 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_lock)
-                {
-                    return m_eb_uuid.Count;
-                }
+                return m_eb_uuid.Count;
             }
         }
 
         public bool ContainsKey(UUID id)
         {
-            lock (m_lock)
+            try
             {
-                try
-                {
-                    return m_eb_uuid.ContainsKey(id);
-                }
-                catch
-                {
-                    return false;
-                }
+                return m_eb_uuid.ContainsKey(id);
+            }
+            catch
+            {
+                return false;
             }
         }
 
         public bool ContainsKey(uint localID)
         {
-            lock (m_lock)
+            try
             {
-                try
-                {
-                    return m_eb_localID.ContainsKey(localID);
-                }
-                catch
-                {
-                    return false;
-                }
+                return m_eb_localID.ContainsKey(localID);
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -136,7 +127,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 try
                 {
-                    bool a = m_eb_uuid.Remove(m_eb_localID[localID].UUID);
+                    bool a = false;
+                    EntityBase entity;
+                    if (m_eb_localID.TryGetValue(localID, out entity))
+                        a = m_eb_uuid.Remove(entity.UUID);
+
                     bool b = m_eb_localID.Remove(localID);
                     return a && b;
                 }
@@ -154,7 +149,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 try 
                 {
-                    bool a = m_eb_localID.Remove(m_eb_uuid[id].LocalId);
+                    bool a = false;
+                    EntityBase entity;
+                    if (m_eb_uuid.TryGetValue(id, out entity))
+                        a = m_eb_localID.Remove(entity.LocalId);
+
                     bool b = m_eb_uuid.Remove(id);
                     return a && b;
                 }
@@ -206,14 +205,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (m_lock)
                 {
-                    try
-                    {
-                        return m_eb_uuid[id];
-                    }
-                    catch
-                    {
+                    EntityBase entity;
+                    if (m_eb_uuid.TryGetValue(id, out entity))
+                        return entity;
+                    else
                         return null;
-                    }
                 }
             }
             set
@@ -228,14 +224,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (m_lock)
                 {
-                    try
-                    {
-                        return m_eb_localID[localID];
-                    }
-                    catch
-                    {
+                    EntityBase entity;
+                    if (m_eb_localID.TryGetValue(localID, out entity))
+                        return entity;
+                    else
                         return null;
-                    }
                 }
             }
             set

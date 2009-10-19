@@ -321,12 +321,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
-        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates =
-            new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates =
-            new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
-        private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates =
-            new PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>();
+        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
+        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates;
+        private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates;
         private int m_moneyBalance;
         private int m_animationSequenceNumber = 1;
         private bool m_SendLogoutPacketWhenClosing = true;
@@ -335,7 +332,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
-        protected IScene m_scene;
+        protected Scene m_scene;
         protected LLImageManager m_imageManager;
         protected string m_firstName;
         protected string m_lastName;
@@ -408,16 +405,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Constructor
         /// </summary>
-        public LLClientView(EndPoint remoteEP, IScene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
+        public LLClientView(EndPoint remoteEP, Scene scene, LLUDPServer udpServer, LLUDPClient udpClient, AuthenticateResponse sessionInfo,
             UUID agentId, UUID sessionId, uint circuitCode)
         {
             RegisterInterface<IClientIM>(this);
             RegisterInterface<IClientChat>(this);
             RegisterInterface<IClientIPEndpoint>(this);
-            
+
             InitDefaultAnimations();
 
             m_scene = scene;
+
+            m_avatarTerseUpdates = new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+            m_primTerseUpdates = new PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock>();
+            m_primFullUpdates = new PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock>(m_scene.Entities.Count);
+
             m_assetService = m_scene.RequestModuleInterface<IAssetService>();
             m_hyperAssets = m_scene.RequestModuleInterface<IHyperAssetService>();
             m_GroupsModule = scene.RequestModuleInterface<IGroupsModule>();
@@ -3288,10 +3290,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             Quaternion rotation = data.Rotation;
-
-            if (rotation.X == rotation.Y &&
-                rotation.Y == rotation.Z &&
-                rotation.Z == rotation.W && rotation.W == 0.0f)
+            if (rotation.W == 0.0f && rotation.X == 0.0f && rotation.Y == 0.0f && rotation.Z == 0.0f)
                 rotation = Quaternion.Identity;
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock = CreateImprovedTerseBlock(data);
@@ -3377,14 +3376,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             Quaternion rotation = data.rotation;
+            if (rotation.W == 0.0f && rotation.X == 0.0f && rotation.Y == 0.0f && rotation.Z == 0.0f)
+                rotation = Quaternion.Identity;
 
             if (data.AttachPoint > 30 && data.ownerID != AgentId) // Someone else's HUD
                 return;
-            if (data.primShape.PCode == 9 && data.primShape.State != 0 && data.parentID == 0)
+            if (data.primShape.State != 0 && data.parentID == 0 && data.primShape.PCode == 9)
                 return;
-
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0.0f)
-                rotation = Quaternion.Identity;
 
             ObjectUpdatePacket.ObjectDataBlock objectData = CreatePrimUpdateBlock(data);
 
@@ -3397,7 +3395,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             outPacket.Header.Zerocoded = true;
 
-            //outPacket.RegionData = new ObjectUpdatePacket.RegionDataBlock();
             outPacket.RegionData.RegionHandle = Scene.RegionInfo.RegionHandle;
             outPacket.RegionData.TimeDilation = (ushort)(Scene.TimeDilation * ushort.MaxValue);
 
@@ -3424,12 +3421,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             Quaternion rotation = data.Rotation;
+            if (rotation.W == 0.0f && rotation.X == 0.0f && rotation.Y == 0.0f && rotation.Z == 0.0f)
+                rotation = Quaternion.Identity;
 
             if (data.AttachPoint > 30 && data.OwnerID != AgentId) // Someone else's HUD
                 return;
-
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
-                rotation = Quaternion.Identity;
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock objectData = CreateImprovedTerseBlock(data);
 
@@ -10238,10 +10234,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
 
-            private MinHeap<MinHeapItem>[] heaps = new MinHeap<MinHeapItem>[1];
-            private Dictionary<uint, LookupItem> lookup_table = new Dictionary<uint, LookupItem>();
-            private Comparison<TPriority> comparison;
-            private object sync_root = new object();
+            private MinHeap<MinHeapItem>[] m_heaps = new MinHeap<MinHeapItem>[1];
+            private Dictionary<uint, LookupItem> m_lookupTable;
+            private Comparison<TPriority> m_comparison;
+            private object m_syncRoot = new object();
 
             internal PriorityQueue() :
                 this(MinHeap<MinHeapItem>.DEFAULT_CAPACITY, Comparer<TPriority>.Default) { }
@@ -10255,19 +10251,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this(capacity, new Comparison<TPriority>(comparer.Compare)) { }
             internal PriorityQueue(int capacity, Comparison<TPriority> comparison)
             {
-                for (int i = 0; i < heaps.Length; ++i)
-                    heaps[i] = new MinHeap<MinHeapItem>(capacity);
-                this.comparison = comparison;
+                m_lookupTable = new Dictionary<uint, LookupItem>(capacity);
+
+                for (int i = 0; i < m_heaps.Length; ++i)
+                    m_heaps[i] = new MinHeap<MinHeapItem>(capacity);
+                this.m_comparison = comparison;
             }
 
-            internal object SyncRoot { get { return this.sync_root; } }
+            internal object SyncRoot { get { return this.m_syncRoot; } }
             internal int Count
             {
                 get
                 {
                     int count = 0;
-                    for (int i = 0; i < heaps.Length; ++i)
-                        count = heaps[i].Count;
+                    for (int i = 0; i < m_heaps.Length; ++i)
+                        count = m_heaps[i].Count;
                     return count;
                 }
             }
@@ -10276,36 +10274,36 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 LookupItem item;
 
-                if (lookup_table.TryGetValue(local_id, out item))
+                if (m_lookupTable.TryGetValue(local_id, out item))
                 {
-                    item.Heap[item.Handle] = new MinHeapItem(priority, value, local_id, this.comparison);
+                    item.Heap[item.Handle] = new MinHeapItem(priority, value, local_id, this.m_comparison);
                     return false;
                 }
                 else
                 {
-                    item.Heap = heaps[0];
-                    item.Heap.Add(new MinHeapItem(priority, value, local_id, this.comparison), ref item.Handle);
-                    lookup_table.Add(local_id, item);
+                    item.Heap = m_heaps[0];
+                    item.Heap.Add(new MinHeapItem(priority, value, local_id, this.m_comparison), ref item.Handle);
+                    m_lookupTable.Add(local_id, item);
                     return true;
                 }
             }
 
             internal TValue Peek()
             {
-                for (int i = 0; i < heaps.Length; ++i)
-                    if (heaps[i].Count > 0)
-                        return heaps[i].Min().Value;
+                for (int i = 0; i < m_heaps.Length; ++i)
+                    if (m_heaps[i].Count > 0)
+                        return m_heaps[i].Min().Value;
                 throw new InvalidOperationException(string.Format("The {0} is empty", this.GetType().ToString()));
             }
 
             internal TValue Dequeue()
             {
-                for (int i = 0; i < heaps.Length; ++i)
+                for (int i = 0; i < m_heaps.Length; ++i)
                 {
-                    if (heaps[i].Count > 0)
+                    if (m_heaps[i].Count > 0)
                     {
-                        MinHeapItem item = heaps[i].RemoveMin();
-                        lookup_table.Remove(item.LocalID);
+                        MinHeapItem item = m_heaps[i].RemoveMin();
+                        m_lookupTable.Remove(item.LocalID);
                         return item.Value;
                     }
                 }
@@ -10317,7 +10315,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 MinHeapItem item;
                 TPriority priority;
 
-                foreach (LookupItem lookup in new List<LookupItem>(this.lookup_table.Values))
+                foreach (LookupItem lookup in new List<LookupItem>(this.m_lookupTable.Values))
                 {
                     if (lookup.Heap.TryGetValue(lookup.Handle, out item))
                     {
@@ -10332,7 +10330,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             m_log.Warn("[LLCLIENTVIEW]: UpdatePriorityHandler returned false, dropping update");
                             lookup.Heap.Remove(lookup.Handle);
-                            this.lookup_table.Remove(item.LocalID);
+                            this.m_lookupTable.Remove(item.LocalID);
                         }
                     }
                 }

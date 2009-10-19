@@ -147,9 +147,10 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
 
-            if (m_scene.Entities.ContainsKey(client.AgentId))
+            EntityBase presenceEntity;
+            if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
-                SendLandUpdate((ScenePresence)m_scene.Entities[client.AgentId], true);
+                SendLandUpdate((ScenePresence)presenceEntity, true);
                 SendParcelOverlay(client);
             }
         }

@@ -2351,12 +2351,6 @@ namespace OpenSim.Region.Framework.Scenes
                 item = InventoryService.GetItem(item);
 
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if (ava != null)
-                {
-                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-
             }
             return att.UUID;
         }
@@ -2402,12 +2396,6 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-                
-                if (m_AvatarFactory != null)
-                {
-                    m_log.InfoFormat("[SCENE INVENTORY]: Saving avatar attachment. AgentID:{0} ItemID:{1} AttachmentPoint:{2}", remoteClient.AgentId, itemID, AttachmentPt);
-                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
             }
         }
 
@@ -2447,12 +2435,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (TryGetAvatar(remoteClient.AgentId, out presence))
             {
                 presence.Appearance.DetachAttachment(itemID);
-                IAvatarFactory ava = RequestModuleInterface<IAvatarFactory>();
-                if (ava != null)
-                {
-                    ava.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
 
+                // Save avatar attachment information
+                if (m_AvatarFactory != null)
+                {
+                    m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", ItemID: " + itemID);
+                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
             }
 
             m_sceneGraph.DetachSingleAttachmentToInv(itemID, remoteClient);

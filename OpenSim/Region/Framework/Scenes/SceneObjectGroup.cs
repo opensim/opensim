@@ -899,7 +899,7 @@ namespace OpenSim.Region.Framework.Scenes
                 SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 
                 avatar.AddAttachment(this);
-                m_log.DebugFormat("[SOG]: Added att {0} to avie {1}", UUID, avatar.UUID);
+                m_log.Debug("[SOG]: Added attachment " + UUID + " to avatar " + avatar.UUID);
 
                 if (!silent)
                 {

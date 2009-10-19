@@ -467,7 +467,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
         {
             // If we can't take it, we can't attach it!
-            //
             SceneObjectPart part = m_parentScene.GetSceneObjectPart(objectLocalID);
             if (part == null)
                 return;
@@ -477,9 +476,16 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Calls attach with a Zero position
-            //
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
             m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
+
+            // Save avatar attachment information
+            ScenePresence presence;
+            if (m_parentScene.AvatarFactory != null && m_parentScene.TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", AttachmentPoint: " + AttachmentPt);
+                m_parentScene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+            }
         }
 
         public SceneObjectGroup RezSingleAttachment(
@@ -574,7 +580,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
 
-                    group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
+                    group.SetAttachmentPoint((byte)AttachmentPt);
                     group.AbsolutePosition = attachPos;
 
                     // Saves and gets itemID
