@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Serialization.External
     public class LandDataSerializer
     {
         protected static UTF8Encoding m_utf8Encoding = new UTF8Encoding();
-        
+
         /// <summary>
         /// Reify/deserialize landData
         /// </summary>
@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Serialization.External
         {
             return Deserialize(m_utf8Encoding.GetString(serializedLandData, 0, serializedLandData.Length));
         }
-        
+
         /// <summary>
         /// Reify/deserialize landData
         /// </summary>
@@ -62,10 +62,10 @@ namespace OpenSim.Framework.Serialization.External
         public static LandData Deserialize(string serializedLandData)
         {
             LandData landData = new LandData();
-            
+
             StringReader sr = new StringReader(serializedLandData);
             XmlTextReader xtr = new XmlTextReader(sr);
-            
+
             xtr.ReadStartElement("LandData");
 
             landData.Area           = Convert.ToInt32(                 xtr.ReadElementString("Area"));
@@ -106,7 +106,7 @@ namespace OpenSim.Framework.Serialization.External
                     pae.Time       = Convert.ToDateTime(                   xtr.ReadElementString("Time"));
                     pae.Flags      = (AccessList)Convert.ToUInt32(         xtr.ReadElementString("AccessList"));
                     xtr.ReadEndElement();
-                    
+
                     landData.ParcelAccessList.Add(pae);
                 }
             }
@@ -122,13 +122,13 @@ namespace OpenSim.Framework.Serialization.External
             landData.OtherCleanTime = Convert.ToInt32(                     xtr.ReadElementString("OtherCleanTime"));
 
             xtr.ReadEndElement();
-            
+
             xtr.Close();
             sr.Close();
-            
+
             return landData;
         }
-        
+
         public static string Serialize(LandData landData)
         {
             StringWriter sw = new StringWriter();
@@ -137,8 +137,8 @@ namespace OpenSim.Framework.Serialization.External
 
             xtw.WriteStartDocument();
             xtw.WriteStartElement("LandData");
-            
-            xtw.WriteElementString("Area",           Convert.ToString(landData.Area));            
+
+            xtw.WriteElementString("Area",           Convert.ToString(landData.Area));
             xtw.WriteElementString("AuctionID",      Convert.ToString(landData.AuctionID));
             xtw.WriteElementString("AuthBuyerID",    landData.AuthBuyerID.ToString());
             xtw.WriteElementString("Category",       Convert.ToString((sbyte)landData.Category));
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Serialization.External
                 xtw.WriteEndElement();
             }
             xtw.WriteEndElement();
-            
+
             xtw.WriteElementString("PassHours",       Convert.ToString(landData.PassHours));
             xtw.WriteElementString("PassPrice",       Convert.ToString(landData.PassPrice));
             xtw.WriteElementString("SalePrice",       Convert.ToString(landData.SalePrice));
@@ -184,7 +184,7 @@ namespace OpenSim.Framework.Serialization.External
 
             xtw.Close();
             sw.Close();
-            
+
             return sw.ToString();
         }
     }
