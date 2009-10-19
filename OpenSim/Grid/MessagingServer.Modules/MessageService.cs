@@ -149,7 +149,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
                 friendlistupdater.OnGetRegionData += m_regionModule.GetRegionInfo;
                 friendlistupdater.OnDone += PresenceUpdateDone;
                 WaitCallback cb = new WaitCallback(friendlistupdater.go);
-                ThreadPool.QueueUserWorkItem(cb);
+                ThreadPool.UnsafeQueueUserWorkItem(cb, null);
             }
             else
             {

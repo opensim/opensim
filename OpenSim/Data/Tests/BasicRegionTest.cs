@@ -323,7 +323,6 @@ namespace OpenSim.Data.Tests
             sop.ObjectFlags = 0;
 
             SceneObjectGroup sog = new SceneObjectGroup(sop);
-            sog.SetScene(scene); // Reguired by nhibernate database module.
             
             // Inserts group in DB
             db.StoreObject(sog,region3);

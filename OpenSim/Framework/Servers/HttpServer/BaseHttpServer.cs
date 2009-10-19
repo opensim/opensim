@@ -1609,7 +1609,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //while (true)
                 //{
                 //    context = m_httpListener.GetContext();
-                //    ThreadPool.QueueUserWorkItem(new WaitCallback(HandleRequest), context);
+                //    ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(HandleRequest), context);
                // }
             }
             catch (Exception e)

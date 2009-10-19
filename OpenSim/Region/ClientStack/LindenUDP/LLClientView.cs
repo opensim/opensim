@@ -791,7 +791,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
-            ThreadPool.QueueUserWorkItem(DoSendLayerData, map);
+            ThreadPool.UnsafeQueueUserWorkItem(DoSendLayerData, map);
         }
 
         /// <summary>
@@ -912,7 +912,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="windSpeeds">16x16 array of wind speeds</param>
         public virtual void SendWindData(Vector2[] windSpeeds)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendWindData), (object)windSpeeds);
+            ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(DoSendWindData), (object)windSpeeds);
         }
 
         /// <summary>
@@ -921,7 +921,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="windSpeeds">16x16 array of cloud densities</param>
         public virtual void SendCloudData(float[] cloudDensity)
         {
-            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendCloudData), (object)cloudDensity);
+            ThreadPool.UnsafeQueueUserWorkItem(new WaitCallback(DoSendCloudData), (object)cloudDensity);
         }
 
         /// <summary>

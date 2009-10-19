@@ -313,11 +313,11 @@ namespace Flotsam.RegionModules.AssetCache
 
                         }
 
-                        ThreadPool.QueueUserWorkItem(
+                        ThreadPool.UnsafeQueueUserWorkItem(
                             delegate
                             {
                                 WriteFileCache(filename, asset);
-                            }
+                            }, null
                         );
                     }
                 }

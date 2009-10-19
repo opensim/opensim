@@ -403,7 +403,7 @@ namespace OpenSim.Framework.Communications
             /// In case, we are invoked asynchroneously this object will keep track of the state
             /// </summary>
             AsyncResult<Stream> ar = new AsyncResult<Stream>(callback, state);
-            ThreadPool.QueueUserWorkItem(RequestHelper, ar);
+            ThreadPool.UnsafeQueueUserWorkItem(RequestHelper, ar);
             return ar;
         }
 
