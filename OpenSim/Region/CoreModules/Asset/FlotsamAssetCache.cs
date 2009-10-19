@@ -730,7 +730,7 @@ namespace Flotsam.RegionModules.AssetCache
                         int fileCount = GetFileCacheCount(m_CacheDirectory);
                         m_log.InfoFormat("[FLOTSAM ASSET CACHE] File Cache : {0} assets", fileCount);
 
-                        foreach ( string s in Directory.GetFiles(m_CacheDirectory, "*.fac" ) )
+                        foreach (string s in Directory.GetFiles(m_CacheDirectory, "*.fac"))
                         {
                             m_log.Info("[FLOTSAM ASSET CACHE] Deep Scans were performed on the following regions:");
 
@@ -770,7 +770,7 @@ namespace Flotsam.RegionModules.AssetCache
                             int assetsCached = CacheScenes();
                             m_log.InfoFormat("[FLOTSAM ASSET CACHE] Completed Scene Caching, {0} assets found.", assetsCached);
 
-                        });                        
+                        });
 
                         break;
 

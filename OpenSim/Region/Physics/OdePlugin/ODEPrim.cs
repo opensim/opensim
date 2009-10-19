@@ -816,8 +816,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             IntPtr vertices, indices;
             int vertexCount, indexCount;
             int vertexStride, triStride;
-            mesh.getVertexListAsPtrToFloatArray( out vertices, out vertexStride, out vertexCount ); // Note, that vertices are fixed in unmanaged heap
-            mesh.getIndexListAsPtrToIntArray( out indices, out triStride, out indexCount ); // Also fixed, needs release after usage
+            mesh.getVertexListAsPtrToFloatArray(out vertices, out vertexStride, out vertexCount); // Note, that vertices are fixed in unmanaged heap
+            mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
 
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
 

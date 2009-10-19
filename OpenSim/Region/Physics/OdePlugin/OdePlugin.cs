@@ -3805,7 +3805,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public void start(int unused)
-        {            
+        {
             ds.SetViewpoint(ref xyz, ref hpr);
         }
 #endif

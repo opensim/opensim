@@ -46,14 +46,14 @@ namespace OpenSim.Tests.Common.Mock
             m_scene = scene;
         }
 
-        public List<ILandObject> ParcelsNearPoint(Vector3 position) 
-        { 
-            return new List<ILandObject>(); 
+        public List<ILandObject> ParcelsNearPoint(Vector3 position)
+        {
+            return new List<ILandObject>();
         }
 
-        public List<ILandObject> AllParcels() 
-        { 
-            return new List<ILandObject>(); 
+        public List<ILandObject> AllParcels()
+        {
+            return new List<ILandObject>();
         }
 
         protected ILandObject GetNoLand()
@@ -63,18 +63,18 @@ namespace OpenSim.Tests.Common.Mock
             return obj;
         }
 
-        public ILandObject GetLandObject(int x, int y) 
-        {             
+        public ILandObject GetLandObject(int x, int y)
+        {
             return GetNoLand();
         }
 
-        public ILandObject GetLandObject(int localID) 
-        { 
+        public ILandObject GetLandObject(int localID)
+        {
             return GetNoLand();
         }
 
-        public ILandObject GetLandObject(float x, float y) 
-        { 
+        public ILandObject GetLandObject(float x, float y)
+        {
             return GetNoLand();
         }
 

@@ -54,7 +54,7 @@ namespace OpenSim.Data.MSSQL
                 conn.Open();
                 Migration m = new Migration(conn, GetType().Assembly, "UserStore");
                 m.Update();
-            }            
+            }
         }
 
         public List<UserAccountData> Query(UUID principalID, UUID scopeID, string query)
@@ -134,7 +134,7 @@ namespace OpenSim.Data.MSSQL
                     updateBuilder.AppendFormat("{0} = @{0}", field);
 
                     first = false;
-                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));                    
+                    cmd.Parameters.Add(m_database.CreateParameter("@" + field, data.Data[field]));
                 }
 
                 updateBuilder.Append(" where UUID = @principalID");
@@ -153,7 +153,7 @@ namespace OpenSim.Data.MSSQL
                     StringBuilder insertBuilder = new StringBuilder();
                     insertBuilder.AppendFormat("insert into {0} (UUID, ScopeID, ", m_Realm);
                     insertBuilder.Append(String.Join(", ", fields));
-                    insertBuilder.Append(") values ( @principalID, @scopeID, @");
+                    insertBuilder.Append(") values (@principalID, @scopeID, @");
                     insertBuilder.Append(String.Join(", @", fields));
                     insertBuilder.Append(")");
 
