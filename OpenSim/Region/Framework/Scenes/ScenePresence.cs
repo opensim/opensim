@@ -128,8 +128,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_setAlwaysRun;
 
-        private bool m_updatesAllowed = true;
-        private List<AgentUpdateArgs> m_agentUpdates = new List<AgentUpdateArgs>();
         private string m_movementAnimation = "DEFAULT";
         private long m_animPersistUntil = 0;
         private bool m_allowFalling = false;
@@ -1090,34 +1088,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         }
 
-        // These methods allow to queue up agent updates (like key presses)
-        // until all attachment scripts are running and the animations from
-        // AgentDataUpdate have been started. It is essential for combat
-        // devices, weapons and AOs that keypresses are not processed
-        // until scripts that are potentially interested in them are
-        // up and running and that animations a script knows to be running
-        // from before a crossing are running again
-        //
-        public void LockAgentUpdates()
-        {
-            m_updatesAllowed = false;
-        }
-
-        public void UnlockAgentUpdates()
-        {
-            lock (m_agentUpdates)
-            {
-                if (m_updatesAllowed == false)
-                {
-                    foreach (AgentUpdateArgs a in m_agentUpdates)
-                        RealHandleAgentUpdate(ControllingClient, a);
-                    m_agentUpdates.Clear();
-                    m_updatesAllowed = true;
-                }
-            }
-        }
-
-
         /// <summary>
         /// Callback for the Camera view block check.  Gets called with the results of the camera view block test
         /// hitYN is true when there's something in the way.
@@ -1155,30 +1125,12 @@ namespace OpenSim.Region.Framework.Scenes
             } 
         }
 
+        Array m_dirControlFlags = Enum.GetValues(typeof(Dir_ControlFlags));
+
         /// <summary>
         /// This is the event handler for client movement.   If a client is moving, this event is triggering.
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
-        {
-            const int AGENT_UPDATE_TIMEOUT_MS = 1000 * 3;
-
-            if (System.Threading.Monitor.TryEnter(m_agentUpdates, AGENT_UPDATE_TIMEOUT_MS))
-            {
-                try
-                {
-                    if (m_updatesAllowed)
-                    {
-                        RealHandleAgentUpdate(remoteClient, agentData);
-                        return;
-                    }
-
-                    m_agentUpdates.Add(agentData);
-                }
-                finally { System.Threading.Monitor.Exit(m_agentUpdates); }
-            }
-        }
-
-        private void RealHandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //if (m_isChildAgent)
             //{
@@ -1186,18 +1138,17 @@ namespace OpenSim.Region.Framework.Scenes
             //    return;
             //}
 
-            
-            m_movementUpdateCount++;
-            if (m_movementUpdateCount >= int.MaxValue)
-                m_movementUpdateCount = 1;
+            m_perfMonMS = Environment.TickCount;
 
+            ++m_movementUpdateCount;
+            if (m_movementUpdateCount < 1)
+                m_movementUpdateCount = 1;
 
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
             //m_log.Debug("agentPos:" + AbsolutePosition.ToString());
 
             // This is irritating.  Really.
-
             if (!AbsolutePosition.IsFinite())
             {
                 RemoveFromPhysicalScene();
@@ -1218,19 +1169,17 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_LastFinitePos = m_pos;
             }
-            //m_physicsActor.AddForce(new PhysicsVector(999999999, 99999999, 999999999999999), true);
 
+            //m_physicsActor.AddForce(new PhysicsVector(999999999, 99999999, 999999999999999), true);
 
             //ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
             //if (land != null)
             //{
-                //if (land.landData.landingType == (byte)1 && land.landData.userLocation != Vector3.Zero)
-                //{
-                //    agent.startpos = land.landData.userLocation;
-                //}
+            //if (land.landData.landingType == (byte)1 && land.landData.userLocation != Vector3.Zero)
+            //{
+            //    agent.startpos = land.landData.userLocation;
             //}
-
-            m_perfMonMS = Environment.TickCount;
+            //}
 
             uint flags = agentData.ControlFlags;
             Quaternion bodyRotation = agentData.BodyRotation;
@@ -1253,7 +1202,7 @@ namespace OpenSim.Region.Framework.Scenes
             // The Agent's Draw distance setting
             m_DrawDistance = agentData.Far;
 
-            if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
                 StandUp();
             }
@@ -1261,14 +1210,13 @@ namespace OpenSim.Region.Framework.Scenes
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
 
-            m_followCamAuto = ((m_CameraUpAxis.Z > 0.959f && m_CameraUpAxis.Z < 0.98f) 
+            m_followCamAuto = ((m_CameraUpAxis.Z > 0.959f && m_CameraUpAxis.Z < 0.98f)
                && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
 
             //m_log.DebugFormat("[FollowCam]: {0}", m_followCamAuto);
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
             if ((m_movementUpdateCount % NumMovementsBetweenRayCast) == 0 && m_scene.PhysicsScene.SupportsRayCast())
             {
-
                 if (m_followCamAuto)
                 {
                     Vector3 headadjustment = new Vector3(0, 0, 0.3f);
@@ -1276,13 +1224,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_mouseLook = (flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
-
-            
-
+            m_mouseLook = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
             m_leftButtonDown = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
-
-           
 
             lock (scriptedcontrols)
             {
@@ -1290,10 +1233,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     SendControlToScripts(flags);
                     flags = RemoveIgnoredControls(flags, IgnoredControls);
-
                 }
             }
-            
+
             if (PhysicsActor == null)
             {
                 return;
@@ -1302,7 +1244,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_autopilotMoving)
                 CheckAtSitTarget();
 
-            if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
@@ -1335,13 +1277,13 @@ namespace OpenSim.Region.Framework.Scenes
                         PhysicsActor.Flying = false;
                     else
                         PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-                    
+
                     if (PhysicsActor.Flying != oldflying)
                     {
                         update_movementflag = true;
                     }
                 }
-                
+
                 if (q != m_bodyRot)
                 {
                     m_bodyRot = q;
@@ -1357,15 +1299,15 @@ namespace OpenSim.Region.Framework.Scenes
 
                     // use camera up angle when in mouselook and not flying or when holding the left mouse button down and not flying
                     // this prevents 'jumping' in inappropriate situations.
-                    if ((m_mouseLook && !m_physicsActor.Flying) || (m_leftButtonDown && !m_physicsActor.Flying)) 
+                    if ((m_mouseLook && !m_physicsActor.Flying) || (m_leftButtonDown && !m_physicsActor.Flying))
                         dirVectors = GetWalkDirectionVectors();
                     else
                         dirVectors = Dir_Vectors;
 
 
-                    foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
+                    foreach (Dir_ControlFlags DCF in m_dirControlFlags)
                     {
-                        if ((flags & (uint) DCF) != 0)
+                        if ((flags & (uint)DCF) != 0)
                         {
                             bResetMoveToPosition = true;
                             DCFlagKeyPressed = true;
@@ -1377,18 +1319,18 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 // Why did I get this?
                             }
-                            
-                            if ((m_movementflag & (uint) DCF) == 0)
+
+                            if ((m_movementflag & (uint)DCF) == 0)
                             {
-                                m_movementflag += (byte) (uint) DCF;
+                                m_movementflag += (byte)(uint)DCF;
                                 update_movementflag = true;
                             }
                         }
                         else
                         {
-                            if ((m_movementflag & (uint) DCF) != 0)
+                            if ((m_movementflag & (uint)DCF) != 0)
                             {
-                                m_movementflag -= (byte) (uint) DCF;
+                                m_movementflag -= (byte)(uint)DCF;
                                 update_movementflag = true;
                             }
                             else
@@ -1479,14 +1421,12 @@ namespace OpenSim.Region.Framework.Scenes
                             }
                             catch (Exception)
                             {
-
                                 //Avoid system crash, can be slower but...
                             }
-
                         }
                     }
                 }
-                
+
                 // Cause the avatar to stop flying if it's colliding
                 // with something with the down arrow pressed.
 
@@ -1494,8 +1434,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_physicsActor != null && m_physicsActor.Flying && !m_forceFly)
                 {
                     // Are the landing controls requirements filled?
-                    bool controlland = (((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                        ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                    bool controlland = (((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
+                                        ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
                     // Are the collision requirements fulfilled?
                     bool colliding = (m_physicsActor.IsColliding == true);
@@ -1508,10 +1448,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (update_movementflag || (update_rotation && DCFlagKeyPressed))
                 {
-//                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
-//                    m_log.DebugFormat(
-//                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
-                    
+                    //                    m_log.DebugFormat("{0} {1}", update_movementflag, (update_rotation && DCFlagKeyPressed));
+                    //                    m_log.DebugFormat(
+                    //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
+
                     AddNewMovement(agent_control_v3, q);
 
                     if (update_movementflag)

@@ -98,7 +98,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>True when this connection is alive, otherwise false</summary>
         public bool IsConnected = true;
         /// <summary>True when this connection is paused, otherwise false</summary>
-        public bool IsPaused = true;
+        public bool IsPaused;
         /// <summary>Environment.TickCount when the last packet was received for this client</summary>
         public int TickLastPacketReceived;
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed for this client</summary>
