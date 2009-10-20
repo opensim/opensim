@@ -118,6 +118,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_recvBufferSize;
         /// <summary>Flag to process packets asynchronously or synchronously</summary>
         private bool m_asyncPacketHandling;
+        /// <summary>Track whether or not a packet was sent in the
+        /// OutgoingPacketHandler loop so we know when to sleep</summary>
+        private bool m_packetSentLastLoop;
 
         /// <summary>The measured resolution of Environment.TickCount</summary>
         public float TickCountResolution { get { return m_tickCountResolution; } }
@@ -745,10 +748,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (base.IsRunning)
             {
-                IncomingPacket incomingPacket = null;
-
                 try
                 {
+                    IncomingPacket incomingPacket = null;
+
                     if (packetInbox.Dequeue(100, ref incomingPacket))
                         Util.FireAndForget(ProcessInPacket, incomingPacket);
                 }
@@ -769,82 +772,69 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
-            int now = Environment.TickCount;
-            int elapsedMS = 0;
-            int elapsed100MS = 0;
-            int elapsed500MS = 0;
-
             while (base.IsRunning)
             {
                 try
                 {
-                    bool resendUnacked = false;
-                    bool sendAcks = false;
-                    bool sendPings = false;
-                    bool packetSent = false;
+                    m_packetSentLastLoop = false;
 
-                    elapsedMS += Environment.TickCount - now;
+                    m_scene.ClientManager.ForEachSync(ClientOutgoingPacketHandler);
 
-                    // Check for pending outgoing resends every 100ms
-                    if (elapsedMS >= 100)
-                    {
-                        resendUnacked = true;
-                        elapsedMS -= 100;
-                        ++elapsed100MS;
-                    }
-                    // Check for pending outgoing ACKs every 500ms
-                    if (elapsed100MS >= 5)
-                    {
-                        sendAcks = true;
-                        elapsed100MS = 0;
-                        ++elapsed500MS;
-                    }
-                    // Send pings to clients every 5000ms
-                    if (elapsed500MS >= 10)
-                    {
-                        sendPings = true;
-                        elapsed500MS = 0;
-                    }
-
-                    m_scene.ClientManager.ForEachSync(
-                        delegate(IClientAPI client)
-                        {
-                            try
-                            {
-                                if (client is LLClientView)
-                                {
-                                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
-
-                                    if (udpClient.IsConnected)
-                                    {
-                                        if (udpClient.DequeueOutgoing())
-                                            packetSent = true;
-                                        if (resendUnacked)
-                                            ResendUnacked(udpClient);
-                                        if (sendAcks)
-                                        {
-                                            SendAcks(udpClient);
-                                            udpClient.SendPacketStats();
-                                        }
-                                        if (sendPings)
-                                            SendPing(udpClient);
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name + " threw an exception: " + ex.Message, ex);
-                            }
-                        }
-                    );
-
-                    if (!packetSent)
+                    // If no packets at all were sent, sleep to avoid chewing up CPU cycles
+                    // when there is nothing to do
+                    if (!m_packetSentLastLoop)
                         Thread.Sleep(20);
                 }
                 catch (Exception ex)
                 {
                     m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
                 }
+            }
+        }
+
+        private void ClientOutgoingPacketHandler(IClientAPI client)
+        {
+            try
+            {
+                if (client is LLClientView)
+                {
+                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+
+                    int thisTick = Environment.TickCount & Int32.MaxValue;
+                    int elapsedMS = thisTick - udpClient.TickLastOutgoingPacketHandler;
+
+                    if (udpClient.IsConnected)
+                    {
+                        // Check for pending outgoing resends every 100ms
+                        if (elapsedMS >= 100)
+                        {
+                            ResendUnacked(udpClient);
+
+                            // Check for pending outgoing ACKs every 500ms
+                            if (elapsedMS >= 500)
+                            {
+                                SendAcks(udpClient);
+
+                                // Send pings to clients every 5000ms
+                                if (elapsedMS >= 5000)
+                                {
+                                    SendPing(udpClient);
+                                }
+                            }
+                        }
+
+                        // Dequeue any outgoing packets that are within the throttle limits
+                        if (udpClient.DequeueOutgoing())
+                            m_packetSentLastLoop = true;
+                    }
+
+                    udpClient.TickLastOutgoingPacketHandler = thisTick;
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name +
+                    " threw an exception: " + ex.Message, ex);
             }
         }
 

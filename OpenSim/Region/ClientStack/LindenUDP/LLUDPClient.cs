@@ -101,6 +101,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool IsPaused = true;
         /// <summary>Environment.TickCount when the last packet was received for this client</summary>
         public int TickLastPacketReceived;
+        /// <summary>Environment.TickCount of the last time the outgoing packet handler executed for this client</summary>
+        public int TickLastOutgoingPacketHandler;
 
         /// <summary>Timer granularity. This is set to the measured resolution of Environment.TickCount</summary>
         public readonly float G;
@@ -320,27 +322,32 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bucket.MaxBurst = total;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Resend];
-            bucket.DripRate = bucket.MaxBurst = resend;
+            bucket.DripRate = resend;
+            bucket.MaxBurst = resend;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Land];
-            bucket.DripRate = bucket.MaxBurst = land;
+            bucket.DripRate = land;
+            bucket.MaxBurst = land;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Wind];
-            bucket.DripRate = bucket.MaxBurst = wind;
+            bucket.DripRate = wind;
+            bucket.MaxBurst = wind;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Cloud];
-            bucket.DripRate = bucket.MaxBurst = cloud;
+            bucket.DripRate = cloud;
+            bucket.MaxBurst = cloud;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Asset];
-            bucket.DripRate = bucket.MaxBurst = asset;
+            bucket.DripRate = asset;
+            bucket.MaxBurst = asset;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Task];
-            bucket.DripRate = task + state + texture;
-            bucket.MaxBurst = task + state + texture;
+            bucket.DripRate = task + state;
+            bucket.MaxBurst = task + state;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.State];
-            bucket.DripRate = state + texture;
-            bucket.MaxBurst = state + texture;
+            bucket.DripRate = state;
+            bucket.MaxBurst = state;
 
             bucket = m_throttleCategories[(int)ThrottleOutPacketType.Texture];
             bucket.DripRate = texture;
