@@ -1263,11 +1263,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetScale(SceneObjectPart part, LSL_Vector scale)
         {
             // TODO: this needs to trigger a persistance save as well
-
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
-
-            if (scale.x < 0.01 || scale.y < 0.01 || scale.z < 0.01)
+            //  scale.x < 0.01 in a manner which handles rounding errors
+            if (Math.Round(scale.x - 0.01)  > 0.0 || Math.Round(scale.y - 0.01) > 0.0 || Math.Round(scale.z - 0.01) > 0.0)
                 return;
 
             if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
@@ -1279,12 +1278,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (scale.z > World.m_maxPhys)
                     scale.z = World.m_maxPhys;
             }
+
             if (scale.x > World.m_maxNonphys)
                 scale.x = World.m_maxNonphys;
             if (scale.y > World.m_maxNonphys)
                 scale.y = World.m_maxNonphys;
             if (scale.z > World.m_maxNonphys)
                 scale.z = World.m_maxNonphys;
+
             Vector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
             tmp.Y = (float)scale.y;
