@@ -4285,12 +4285,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ObjectUpdatePacket.ObjectDataBlock CreateAvatarUpdateBlock(SendAvatarData data)
         {
-            byte[] objectData = new byte[60];
-            data.Position.ToBytes(objectData, 0);
-            //data.Velocity.ToBytes(objectData, 12);
-            //data.Acceleration.ToBytes(objectData, 24);
-            data.Rotation.ToBytes(objectData, 36);
-            //data.AngularVelocity.ToBytes(objectData, 48);
+            byte[] objectData = new byte[76];
+
+            Vector4.UnitW.ToBytes(objectData, 0); // TODO: Collision plane support
+            data.Position.ToBytes(objectData, 16);
+            //data.Velocity.ToBytes(objectData, 28);
+            //data.Acceleration.ToBytes(objectData, 40);
+            data.Rotation.ToBytes(objectData, 52);
+            //data.AngularVelocity.ToBytes(objectData, 64);
 
             ObjectUpdatePacket.ObjectDataBlock update = new ObjectUpdatePacket.ObjectDataBlock();
 
