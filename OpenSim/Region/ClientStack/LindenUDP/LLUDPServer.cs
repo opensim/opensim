@@ -776,61 +776,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             while (base.IsRunning)
             {
-                bool resendUnacked = false;
-                bool sendAcks = false;
-                bool sendPings = false;
-                bool packetSent = false;
-
-                elapsedMS += Environment.TickCount - now;
-
-                // Check for pending outgoing resends every 100ms
-                if (elapsedMS >= 100)
+                try
                 {
-                    resendUnacked = true;
-                    elapsedMS -= 100;
-                    ++elapsed100MS;
-                }
-                // Check for pending outgoing ACKs every 500ms
-                if (elapsed100MS >= 5)
-                {
-                    sendAcks = true;
-                    elapsed100MS = 0;
-                    ++elapsed500MS;
-                }
-                // Send pings to clients every 5000ms
-                if (elapsed500MS >= 10)
-                {
-                    sendPings = true;
-                    elapsed500MS = 0;
-                }
+                    bool resendUnacked = false;
+                    bool sendAcks = false;
+                    bool sendPings = false;
+                    bool packetSent = false;
 
-                m_scene.ClientManager.ForEachSync(
-                    delegate(IClientAPI client)
+                    elapsedMS += Environment.TickCount - now;
+
+                    // Check for pending outgoing resends every 100ms
+                    if (elapsedMS >= 100)
                     {
-                        if (client is LLClientView)
-                        {
-                            LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+                        resendUnacked = true;
+                        elapsedMS -= 100;
+                        ++elapsed100MS;
+                    }
+                    // Check for pending outgoing ACKs every 500ms
+                    if (elapsed100MS >= 5)
+                    {
+                        sendAcks = true;
+                        elapsed100MS = 0;
+                        ++elapsed500MS;
+                    }
+                    // Send pings to clients every 5000ms
+                    if (elapsed500MS >= 10)
+                    {
+                        sendPings = true;
+                        elapsed500MS = 0;
+                    }
 
-                            if (udpClient.IsConnected)
+                    m_scene.ClientManager.ForEachSync(
+                        delegate(IClientAPI client)
+                        {
+                            try
                             {
-                                if (udpClient.DequeueOutgoing())
-                                    packetSent = true;
-                                if (resendUnacked)
-                                    ResendUnacked(udpClient);
-                                if (sendAcks)
+                                if (client is LLClientView)
                                 {
-                                    SendAcks(udpClient);
-                                    udpClient.SendPacketStats();
+                                    LLUDPClient udpClient = ((LLClientView)client).UDPClient;
+
+                                    if (udpClient.IsConnected)
+                                    {
+                                        if (udpClient.DequeueOutgoing())
+                                            packetSent = true;
+                                        if (resendUnacked)
+                                            ResendUnacked(udpClient);
+                                        if (sendAcks)
+                                        {
+                                            SendAcks(udpClient);
+                                            udpClient.SendPacketStats();
+                                        }
+                                        if (sendPings)
+                                            SendPing(udpClient);
+                                    }
                                 }
-                                if (sendPings)
-                                    SendPing(udpClient);
+                            }
+                            catch (Exception ex)
+                            {
+                                m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler iteration for " + client.Name + " threw an exception: " + ex.Message, ex);
                             }
                         }
-                    }
-                );
+                    );
 
-                if (!packetSent)
-                    Thread.Sleep(20);
+                    if (!packetSent)
+                        Thread.Sleep(20);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
+                }
             }
         }
 
