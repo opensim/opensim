@@ -98,7 +98,7 @@ namespace OpenSim.Framework
 
         public override int GetHashCode()
         {
-            return X.GetHashCode() * 29 + Y.GetHashCode();
+            return X.GetHashCode() ^ Y.GetHashCode();
         }
 
         public object Clone()
