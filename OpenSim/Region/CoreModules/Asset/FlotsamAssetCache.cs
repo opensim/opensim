@@ -61,24 +61,23 @@ namespace Flotsam.RegionModules.AssetCache
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
+        private bool m_Enabled;
 
         private const string m_ModuleName = "FlotsamAssetCache";
         private const string m_DefaultCacheDirectory = m_ModuleName;
         private string m_CacheDirectory = m_DefaultCacheDirectory;
 
-
-        private List<char> m_InvalidChars = new List<char>();
+        private readonly List<char> m_InvalidChars = new List<char>();
 
         private int m_LogLevel = 1;
         private ulong m_HitRateDisplay = 1; // How often to display hit statistics, given in requests
 
-        private static ulong m_Requests = 0;
-        private static ulong m_RequestsForInprogress = 0;
-        private static ulong m_DiskHits = 0;
-        private static ulong m_MemoryHits = 0;
-        private static double m_HitRateMemory = 0.0;
-        private static double m_HitRateFile = 0.0;
+        private static ulong m_Requests;
+        private static ulong m_RequestsForInprogress;
+        private static ulong m_DiskHits;
+        private static ulong m_MemoryHits;
+        private static double m_HitRateMemory;
+        private static double m_HitRateFile;
 
 #if WAIT_ON_INPROGRESS_REQUESTS
         private Dictionary<string, ManualResetEvent> m_CurrentlyWriting = new Dictionary<string, ManualResetEvent>();
@@ -87,7 +86,7 @@ namespace Flotsam.RegionModules.AssetCache
         private List<string> m_CurrentlyWriting = new List<string>();
 #endif
 
-        private ExpiringCache<string, AssetBase> m_MemoryCache = new ExpiringCache<string, AssetBase>();
+        private ExpiringCache<string, AssetBase> m_MemoryCache;
         private bool m_MemoryCacheEnabled = true;
 
         // Expiration is expressed in hours.
@@ -101,12 +100,12 @@ namespace Flotsam.RegionModules.AssetCache
         private static int m_CacheDirectoryTierLen = 3;
         private static int m_CacheWarnAt = 30000;
 
-        private System.Timers.Timer m_CachCleanTimer = new System.Timers.Timer();
+        private System.Timers.Timer m_CacheCleanTimer;
 
-        private IAssetService m_AssetService = null;
+        private IAssetService m_AssetService;
         private List<Scene> m_Scenes = new List<Scene>();
 
-        private bool m_DeepScanBeforePurge = false;
+        private bool m_DeepScanBeforePurge;
 
         public FlotsamAssetCache()
         {
@@ -128,14 +127,15 @@ namespace Flotsam.RegionModules.AssetCache
         {
             IConfig moduleConfig = source.Configs["Modules"];
             
-
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AssetCaching", "");
+                string name = moduleConfig.GetString("AssetCaching", String.Empty);
 
                 if (name == Name)
                 {
+                    m_MemoryCache = new ExpiringCache<string, AssetBase>();
                     m_Enabled = true;
+
                     m_log.InfoFormat("[FLOTSAM ASSET CACHE]: {0} enabled", this.Name);
 
                     IConfig assetConfig = source.Configs["AssetCache"];
@@ -163,21 +163,11 @@ namespace Flotsam.RegionModules.AssetCache
                     m_FileExpirationCleanupTimer = TimeSpan.FromHours(assetConfig.GetDouble("FileCleanupTimer", m_DefaultFileExpiration));
                     if ((m_FileExpiration > TimeSpan.Zero) && (m_FileExpirationCleanupTimer > TimeSpan.Zero))
                     {
-                        m_CachCleanTimer.Interval = m_FileExpirationCleanupTimer.TotalMilliseconds;
-                        m_CachCleanTimer.AutoReset = true;
-                        m_CachCleanTimer.Elapsed += CleanupExpiredFiles;
-                        m_CachCleanTimer.Enabled = true;
-                        lock (m_CachCleanTimer)
-                        {
-                            m_CachCleanTimer.Start();
-                        }
-                    }
-                    else
-                    {
-                        lock (m_CachCleanTimer)
-                        {
-                            m_CachCleanTimer.Enabled = false;
-                        }
+                        m_CacheCleanTimer = new System.Timers.Timer(m_FileExpirationCleanupTimer.TotalMilliseconds);
+                        m_CacheCleanTimer.AutoReset = true;
+                        m_CacheCleanTimer.Elapsed += CleanupExpiredFiles;
+                        lock (m_CacheCleanTimer)
+                            m_CacheCleanTimer.Start();
                     }
 
                     m_CacheDirectoryTiers = assetConfig.GetInt("CacheDirectoryTiers", 1);
@@ -208,7 +198,6 @@ namespace Flotsam.RegionModules.AssetCache
                     MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache clear",  "fcache clear [file] [memory]", "Remove all assets in the file and/or memory cache", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache assets", "fcache assets", "Attempt a deep scan and cache of all assets in all scenes", HandleConsoleCommand);
                     MainConsole.Instance.Commands.AddCommand(this.Name, true, "fcache expire", "fcache expire <datetime>", "Purge cached assets older then the specified date/time", HandleConsoleCommand);
-
                 }
             }
         }

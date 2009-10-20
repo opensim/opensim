@@ -45,11 +45,13 @@ namespace OpenSim.Region.CoreModules.Asset
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
-        private ICache m_Cache = new GlynnTucker.Cache.SimpleMemoryCache();
+        private bool m_Enabled;
+        private ICache m_Cache;
+        private ulong m_Hits;
+        private ulong m_Requests;
 
         // Instrumentation
-        private uint m_DebugRate = 0;
+        private uint m_DebugRate;
 
         public Type ReplaceableInterface 
         {
@@ -72,6 +74,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
                 if (name == Name)
                 {
+                    m_Cache = new GlynnTucker.Cache.SimpleMemoryCache();
                     m_Enabled = true;
 
                     m_log.Info("[ASSET CACHE]: GlynnTucker asset cache enabled");
@@ -80,7 +83,6 @@ namespace OpenSim.Region.CoreModules.Asset
                     IConfig cacheConfig = source.Configs["AssetCache"];
                     if (cacheConfig != null)
                         m_DebugRate = (uint)cacheConfig.GetInt("DebugRate", 0);
-
                 }
             }
         }
@@ -117,24 +119,6 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_Cache.AddOrUpdate(asset.ID, asset);
         }
 
-        private ulong m_Hits = 0;
-        private ulong m_Requests = 0;
-        private void Debug(Object asset)
-        {
-            // Temporary instrumentation to measure the hit/miss rate
-            if (m_DebugRate > 0)
-            {
-                m_Requests++;
-                if (asset != null)
-                    m_Hits++;
-
-                if ((m_Requests % m_DebugRate) == 0)
-                    m_log.DebugFormat("[ASSET CACHE]: Hit Rate {0} / {1} == {2}%", m_Hits, m_Requests, ((float)m_Hits / m_Requests) * 100);
-
-            }
-            // End instrumentation
-        }
-
         public AssetBase Get(string id)
         {
             Object asset = null;
@@ -155,6 +139,21 @@ namespace OpenSim.Region.CoreModules.Asset
         public void Clear()
         {
             m_Cache.Clear();
+        }
+
+        private void Debug(Object asset)
+        {
+            // Temporary instrumentation to measure the hit/miss rate
+            if (m_DebugRate > 0)
+            {
+                ++m_Requests;
+                if (asset != null)
+                    ++m_Hits;
+
+                if ((m_Requests % m_DebugRate) == 0)
+                    m_log.DebugFormat("[ASSET CACHE]: Hit Rate {0} / {1} == {2}%", m_Hits, m_Requests, ((float)m_Hits / (float)m_Requests) * 100.0f);
+            }
+            // End instrumentation
         }
     }
 }
