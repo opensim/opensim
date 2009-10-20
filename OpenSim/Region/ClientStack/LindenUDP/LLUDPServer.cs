@@ -372,23 +372,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void ResendUnacked(LLUDPClient udpClient)
         {
-            if (udpClient.IsConnected && udpClient.NeedAcks.Count > 0)
+            if (!udpClient.IsConnected)
+                return;
+
+            // Disconnect an agent if no packets are received for some time
+            //FIXME: Make 60 an .ini setting
+            if (Environment.TickCount - udpClient.TickLastPacketReceived > 1000 * 60)
             {
-                // Disconnect an agent if no packets are received for some time
-                //FIXME: Make 60 an .ini setting
-                if (Environment.TickCount - udpClient.TickLastPacketReceived > 1000 * 60)
-                {
-                    m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
+                m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
 
-                    RemoveClient(udpClient);
-                    return;
-                }
+                RemoveClient(udpClient);
+                return;
+            }
 
+            if (udpClient.NeedAcks.Count > 0)
+            {
                 // Get a list of all of the packets that have been sitting unacked longer than udpClient.RTO
                 List<OutgoingPacket> expiredPackets = udpClient.NeedAcks.GetExpiredPackets(udpClient.RTO);
 
                 if (expiredPackets != null)
                 {
+                    m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID);
+
                     // Resend packets
                     for (int i = 0; i < expiredPackets.Count; i++)
                     {
