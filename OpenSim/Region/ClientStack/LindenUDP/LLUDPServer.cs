@@ -790,12 +790,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // client. m_packetSent will be set to true if a packet is sent
                     m_scene.ClientManager.ForEachSync(ClientOutgoingPacketHandler);
 
-                    // If a packet was sent, only do a minimum length context switch to allow
-                    // other parts of the code to do work. If nothing was sent, sleep for the
-                    // minimum amount of time before a token bucket could get more tokens
-                    if (m_packetSent)
-                        Thread.Sleep(0);
-                    else
+                    // If nothing was sent, sleep for the minimum amount of time before a
+                    // token bucket could get more tokens
+                    if (!m_packetSent)
                         Thread.Sleep((int)TickCountResolution);
                 }
                 catch (Exception ex)
