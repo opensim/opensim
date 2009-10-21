@@ -552,6 +552,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
             }
 
+            // HACK: Try spending some extra time here to slow down OnQueueEmpty calls
+            System.Threading.Thread.Sleep(100);
+
             m_onQueueEmptyRunning[i] = false;
         }
     }
