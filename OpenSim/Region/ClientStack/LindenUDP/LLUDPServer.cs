@@ -125,6 +125,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// whether or not to sleep</summary>
         private bool m_packetSent;
 
+        /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
+        private int m_tickLastOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
+        private int m_elapsedMSOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of 100 millisecond periods elapsed in the outgoing packet handler executed</summary>
+        private int m_elapsed100MSOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of 500 millisecond periods elapsed in the outgoing packet handler executed</summary>
+        private int m_elapsed500MSOutgoingPacketHandler;
+
+        /// <summary>Flag to signal when clients should check for resends</summary>
+        private bool m_resendUnacked;
+        /// <summary>Flag to signal when clients should send ACKs</summary>
+        private bool m_sendAcks;
+        /// <summary>Flag to signal when clients should send pings</summary>
+        private bool m_sendPing;
+
         public Socket Server { get { return null; } }
 
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
@@ -786,6 +802,46 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_packetSent = false;
 
+                    #region Update Timers
+
+                    m_resendUnacked = false;
+                    m_sendAcks = false;
+                    m_sendPing = false;
+
+                    // Update elapsed time
+                    int thisTick = Environment.TickCount & Int32.MaxValue;
+                    if (m_tickLastOutgoingPacketHandler > thisTick)
+                        m_elapsedMSOutgoingPacketHandler += ((Int32.MaxValue - m_tickLastOutgoingPacketHandler) + thisTick);
+                    else
+                        m_elapsedMSOutgoingPacketHandler += (thisTick - m_tickLastOutgoingPacketHandler);
+
+                    m_tickLastOutgoingPacketHandler = thisTick;
+
+                    // Check for pending outgoing resends every 100ms
+                    if (m_elapsedMSOutgoingPacketHandler >= 100)
+                    {
+                        m_resendUnacked = true;
+                        m_elapsedMSOutgoingPacketHandler = 0;
+                        m_elapsed100MSOutgoingPacketHandler += 1;
+                    }
+
+                    // Check for pending outgoing ACKs every 500ms
+                    if (m_elapsed100MSOutgoingPacketHandler >= 5)
+                    {
+                        m_sendAcks = true;
+                        m_elapsed100MSOutgoingPacketHandler = 0;
+                        m_elapsed500MSOutgoingPacketHandler += 1;
+                    }
+
+                    // Send pings to clients every 5000ms
+                    if (m_elapsed500MSOutgoingPacketHandler >= 10)
+                    {
+                        m_sendPing = true;
+                        m_elapsed500MSOutgoingPacketHandler = 0;
+                    }
+
+                    #endregion Update Timers
+
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
                     m_scene.ClientManager.ForEachSync(ClientOutgoingPacketHandler);
@@ -810,44 +866,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     LLUDPClient udpClient = ((LLClientView)client).UDPClient;
 
-                    // Update ElapsedMSOutgoingPacketHandler
-                    int thisTick = Environment.TickCount & Int32.MaxValue;
-                    if (udpClient.TickLastOutgoingPacketHandler > thisTick)
-                        udpClient.ElapsedMSOutgoingPacketHandler += ((Int32.MaxValue - udpClient.TickLastOutgoingPacketHandler) + thisTick);
-                    else
-                        udpClient.ElapsedMSOutgoingPacketHandler += (thisTick - udpClient.TickLastOutgoingPacketHandler);
-
                     if (udpClient.IsConnected)
                     {
-                        // Check for pending outgoing resends every 100ms
-                        if (udpClient.ElapsedMSOutgoingPacketHandler >= 100)
-                        {
+                        if (m_resendUnacked)
                             ResendUnacked(udpClient);
-                            udpClient.ElapsedMSOutgoingPacketHandler = 0;
-                            udpClient.Elapsed100MSOutgoingPacketHandler += 1;
-                        }
 
-                        // Check for pending outgoing ACKs every 500ms
-                        if (udpClient.Elapsed100MSOutgoingPacketHandler >= 5)
-                        {
+                        if (m_sendAcks)
                             SendAcks(udpClient);
-                            udpClient.Elapsed100MSOutgoingPacketHandler = 0;
-                            udpClient.Elapsed500MSOutgoingPacketHandler += 1;
-                        }
 
-                        // Send pings to clients every 5000ms
-                        if (udpClient.Elapsed500MSOutgoingPacketHandler >= 10)
-                        {
+                        if (m_sendPing)
                             SendPing(udpClient);
-                            udpClient.Elapsed500MSOutgoingPacketHandler = 0;
-                        }
 
                         // Dequeue any outgoing packets that are within the throttle limits
                         if (udpClient.DequeueOutgoing())
                             m_packetSent = true;
                     }
-
-                    udpClient.TickLastOutgoingPacketHandler = thisTick;
                 }
             }
             catch (Exception ex)

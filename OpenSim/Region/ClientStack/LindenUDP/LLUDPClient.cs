@@ -103,14 +103,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool IsPaused;
         /// <summary>Environment.TickCount when the last packet was received for this client</summary>
         public int TickLastPacketReceived;
-        /// <summary>Environment.TickCount of the last time the outgoing packet handler executed for this client</summary>
-        public int TickLastOutgoingPacketHandler;
-        /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler executed for this client</summary>
-        public int ElapsedMSOutgoingPacketHandler;
-        /// <summary>Keeps track of the number of 100 millisecond periods elapsed in the outgoing packet handler executed for this client</summary>
-        public int Elapsed100MSOutgoingPacketHandler;
-        /// <summary>Keeps track of the number of 500 millisecond periods elapsed in the outgoing packet handler executed for this client</summary>
-        public int Elapsed500MSOutgoingPacketHandler;
 
         /// <summary>Smoothed round-trip time. A smoothed average of the round-trip time for sending a
         /// reliable packet to the client and receiving an ACK</summary>
@@ -191,9 +183,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
-            ElapsedMSOutgoingPacketHandler = 0;
-            Elapsed100MSOutgoingPacketHandler = 0;
-            Elapsed500MSOutgoingPacketHandler = 0;
         }
 
         /// <summary>
@@ -553,7 +542,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // HACK: Try spending some extra time here to slow down OnQueueEmpty calls
-            System.Threading.Thread.Sleep(100);
+            //System.Threading.Thread.Sleep(100);
 
             m_onQueueEmptyRunning[i] = false;
         }

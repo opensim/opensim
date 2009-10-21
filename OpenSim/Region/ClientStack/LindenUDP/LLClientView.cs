@@ -3558,7 +3558,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ProcessTextureRequests();
                     break;
                 case ThrottleOutPacketType.Task:
-                    if (Monitor.TryEnter(m_avatarTerseUpdates.SyncRoot, 1))
+                    if (Monitor.TryEnter(m_avatarTerseUpdates.SyncRoot))
                     {
                         try
                         {
@@ -3573,7 +3573,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
                 case ThrottleOutPacketType.State:
-                    if (Monitor.TryEnter(m_primFullUpdates.SyncRoot, 1))
+                    if (Monitor.TryEnter(m_primFullUpdates.SyncRoot))
                     {
                         try
                         {
@@ -3586,7 +3586,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         finally { Monitor.Exit(m_primFullUpdates.SyncRoot); }
                     }
 
-                    if (Monitor.TryEnter(m_primTerseUpdates.SyncRoot, 1))
+                    if (Monitor.TryEnter(m_primTerseUpdates.SyncRoot))
                     {
                         try
                         {
