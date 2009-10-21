@@ -541,7 +541,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (throttleIndex > 0)
             {
                 if (!m_onQueueEmptyRunning[throttleIndex])
+                {
+                    m_onQueueEmptyRunning[throttleIndex] = true;
                     Util.FireAndForget(FireQueueEmpty, throttleIndex);
+                }
             }
         }
 
@@ -559,14 +562,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (callback != null)
             {
-                if (!m_onQueueEmptyRunning[i])
-                {
-                    m_onQueueEmptyRunning[i] = true;
-                    try { callback(type); }
-                    catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
-                    m_onQueueEmptyRunning[i] = false;
-                }
+                try { callback(type); }
+                catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
             }
+
+            m_onQueueEmptyRunning[i] = false;
         }
     }
 }
