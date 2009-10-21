@@ -93,7 +93,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 {
                     // Get the config string
                     string moduleString =
-                            modulesConfig.GetString(node.Id, String.Empty);
+                            modulesConfig.GetString("Setup_" + node.Id, String.Empty);
 
                     // We have a selector
                     if (moduleString != String.Empty)
@@ -121,6 +121,31 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 }
                 else if (node.Type.GetInterface(typeof(INonSharedRegionModule).ToString()) != null)
                 {
+                    // Get the config string
+                    string moduleString =
+                            modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                    // We have a selector
+                    if (moduleString != String.Empty)
+                    {
+                        // Allow disabling modules even if they don't have
+                        // support for it
+                        if (moduleString == "disabled")
+                            continue;
+
+                        // Split off port, if present
+                        string[] moduleParts = moduleString.Split(new char[] {'/'}, 2);
+                        // Format is [port/][class]
+                        string className = moduleParts[0];
+                        if (moduleParts.Length > 1)
+                            className = moduleParts[1];
+
+                        // Match the class name if given
+                        if (className != String.Empty &&
+                                node.Type.ToString() != className)
+                            continue;
+                    }
+
                     m_log.DebugFormat("[REGIONMODULES]: Found non-shared region module {0}, class {1}", node.Id, node.Type);
                     m_nonSharedModules.Add(node);
                 }
@@ -137,11 +162,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             //
             foreach (TypeExtensionNode node in m_sharedModules)
             {
-                Object[] ctorArgs = new Object[] {0};
+                Object[] ctorArgs = new Object[] {(uint)0};
 
                 // Read the config again
                 string moduleString =
-                        modulesConfig.GetString(node.Id, String.Empty);
+                        modulesConfig.GetString("Setup_" + node.Id, String.Empty);
 
                 // Get the port number, if there is one
                 if (moduleString != String.Empty)
@@ -302,7 +327,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
                 // Read the config
                 string moduleString =
-                        modulesConfig.GetString(node.Id, String.Empty);
+                        modulesConfig.GetString("Setup_" + node.Id, String.Empty);
 
                 // Get the port number, if there is one
                 if (moduleString != String.Empty)

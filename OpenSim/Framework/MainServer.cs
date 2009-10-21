@@ -42,8 +42,10 @@ namespace OpenSim.Framework
             set { instance = value; }
         }
 
-        public IHttpServer GetHttpServer(uint port)
+        public static IHttpServer GetHttpServer(uint port)
         {
+            if (port == 0)
+                return Instance;
             if (port == Instance.Port)
                 return Instance;
 
