@@ -1228,10 +1228,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             StartPingCheckPacket pc = (StartPingCheckPacket)PacketPool.Instance.GetPacket(PacketType.StartPingCheck);
             pc.Header.Reliable = false;
 
-            OutgoingPacket oldestPacket = m_udpClient.NeedAcks.GetOldest();
-
             pc.PingID.PingID = seq;
-            pc.PingID.OldestUnacked = (oldestPacket != null) ? oldestPacket.SequenceNumber : 0;
+            // We *could* get OldestUnacked, but it would hurt performance and not provide any benefit
+            pc.PingID.OldestUnacked = 0;
 
             OutPacket(pc, ThrottleOutPacketType.Unknown);
         }
@@ -3320,8 +3319,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If we received an update about our own avatar, process the avatar update priority queue immediately
             if (data.AgentID == m_agentId)
                 ProcessAvatarTerseUpdates();
-            else
-                m_udpServer.SignalOutgoingPacketHandler();
         }
 
         private void ProcessAvatarTerseUpdates()
@@ -3409,8 +3406,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primFullUpdates.SyncRoot)
                 m_primFullUpdates.Enqueue(data.priority, objectData, data.localID);
-
-            m_udpServer.SignalOutgoingPacketHandler();
         }
 
         void ProcessPrimFullUpdates()
@@ -3454,8 +3449,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primTerseUpdates.SyncRoot)
                 m_primTerseUpdates.Enqueue(data.Priority, objectData, data.LocalID);
-
-            m_udpServer.SignalOutgoingPacketHandler();
         }
 
         void ProcessPrimTerseUpdates()

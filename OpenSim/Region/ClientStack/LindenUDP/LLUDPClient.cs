@@ -202,7 +202,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void Shutdown()
         {
             IsConnected = false;
-            NeedAcks.Clear();
             for (int i = 0; i < THROTTLE_CATEGORY_COUNT; i++)
             {
                 m_packetOutboxes[i].Clear();
@@ -394,7 +393,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     // Not enough tokens in the bucket, queue this packet
                     queue.Enqueue(packet);
-                    m_udpServer.SignalOutgoingPacketHandler();
                     return true;
                 }
             }
@@ -411,15 +409,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <remarks>This function is only called from a synchronous loop in the
         /// UDPServer so we don't need to bother making this thread safe</remarks>
-        /// <returns>The minimum amount of time before the next packet
-        /// can be sent to this client</returns>
-        public int DequeueOutgoing()
+        /// <returns>True if any packets were sent, otherwise false</returns>
+        public bool DequeueOutgoing()
         {
             OutgoingPacket packet;
             OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
-            int dataLength;
-            int minTimeout = Int32.MaxValue;
+            bool packetSent = false;
 
             //string queueDebugOutput = String.Empty; // Serious debug business
 
@@ -434,18 +430,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // leaving a dequeued packet still waiting to be sent out. Try to
                     // send it again
                     OutgoingPacket nextPacket = m_nextPackets[i];
-                    dataLength = nextPacket.Buffer.DataLength;
-                    if (bucket.RemoveTokens(dataLength))
+                    if (bucket.RemoveTokens(nextPacket.Buffer.DataLength))
                     {
                         // Send the packet
                         m_udpServer.SendPacketFinal(nextPacket);
                         m_nextPackets[i] = null;
-                        minTimeout = 0;
-                    }
-                    else if (minTimeout != 0)
-                    {
-                        // Check the minimum amount of time we would have to wait before this packet can be sent out
-                        minTimeout = Math.Min(minTimeout, ((dataLength - bucket.Content) / bucket.DripPerMS) + 1);
+                        packetSent = true;
                     }
                 }
                 else
@@ -457,23 +447,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // A packet was pulled off the queue. See if we have
                         // enough tokens in the bucket to send it out
-                        dataLength = packet.Buffer.DataLength;
-                        if (bucket.RemoveTokens(dataLength))
+                        if (bucket.RemoveTokens(packet.Buffer.DataLength))
                         {
                             // Send the packet
                             m_udpServer.SendPacketFinal(packet);
-                            minTimeout = 0;
+                            packetSent = true;
                         }
                         else
                         {
                             // Save the dequeued packet for the next iteration
                             m_nextPackets[i] = packet;
-
-                            if (minTimeout != 0)
-                            {
-                                // Check the minimum amount of time we would have to wait before this packet can be sent out
-                                minTimeout = Math.Min(minTimeout, ((dataLength - bucket.Content) / bucket.DripPerMS) + 1);
-                            }
                         }
 
                         // If the queue is empty after this dequeue, fire the queue
@@ -492,7 +475,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
-            return minTimeout;
+            return packetSent;
         }
 
         /// <summary>
