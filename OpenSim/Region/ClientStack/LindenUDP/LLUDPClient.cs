@@ -505,8 +505,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
             }
 
-            // Always round retransmission timeout up to two seconds
-            RTO = Math.Max(2000, (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR)));
+            RTO = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
+
+            // Clamp the retransmission timeout to manageable values
+            RTO = Utils.Clamp(RTO, 3000, 10000);
+
             //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
             //    RTTVAR + " based on new RTT of " + r + "ms");
         }

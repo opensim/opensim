@@ -85,6 +85,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="sequenceNumber">Sequence number of the packet to
         /// acknowledge</param>
         /// <param name="currentTime">Current value of Environment.TickCount</param>
+        /// <remarks>This does not immediately acknowledge the packet, it only
+        /// queues the ack so it can be handled in a thread-safe way later</remarks>
         public void Remove(uint sequenceNumber, int currentTime, bool fromResend)
         {
             m_pendingRemoves.Enqueue(new PendingAck(sequenceNumber, currentTime, fromResend));
@@ -108,7 +110,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (m_packets.Count > 0)
             {
-                int now = Environment.TickCount;
+                int now = Environment.TickCount & Int32.MaxValue;
 
                 foreach (OutgoingPacket packet in m_packets.Values)
                 {
@@ -123,10 +125,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             expiredPackets = new List<OutgoingPacket>();
                         expiredPackets.Add(packet);
                     }
-                    else
+                    /*else
                     {
                         break;
-                    }
+                    }*/
                 }
             }
 

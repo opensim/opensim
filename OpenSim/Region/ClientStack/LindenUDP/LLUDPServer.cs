@@ -381,7 +381,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Disconnect an agent if no packets are received for some time
             //FIXME: Make 60 an .ini setting
-            if (Environment.TickCount - udpClient.TickLastPacketReceived > 1000 * 60)
+            if ((Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > 1000 * 60)
             {
                 m_log.Warn("[LLUDPSERVER]: Ack timeout, disconnecting " + udpClient.AgentID);
 
@@ -439,9 +439,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!udpClient.IsConnected)
                 return;
 
-            // Keep track of when this packet was sent out (right now)
-            outgoingPacket.TickCount = Environment.TickCount;
-
             #region ACK Appending
 
             int dataLength = buffer.DataLength;
@@ -494,6 +491,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Put the UDP payload on the wire
             AsyncBeginSend(buffer);
+
+            // Keep track of when this packet was sent out (right now)
+            outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
 
         protected override void PacketReceived(UDPPacketBuffer buffer)
@@ -536,7 +536,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
-                AddNewClient((UseCircuitCodePacket)packet, (IPEndPoint)buffer.RemoteEndPoint);
+                Util.FireAndForget(
+                    delegate(object o)
+                    {
+                        IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
+
+                        // Begin the process of adding the client to the simulator
+                        AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
+
+                        // Acknowledge the UseCircuitCode packet
+                        SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
+                    }
+                );
+                return;
             }
 
             // Determine which agent this packet came from
@@ -558,10 +570,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsReceived);
 
-            #region ACK Receiving
-
-            int now = Environment.TickCount;
+            int now = Environment.TickCount & Int32.MaxValue;
             udpClient.TickLastPacketReceived = now;
+
+            #region ACK Receiving
 
             // Handle appended ACKs
             if (packet.Header.AppendedAcks && packet.Header.AckList != null)
@@ -648,6 +660,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected override void PacketSent(UDPPacketBuffer buffer, int bytesSent)
         {
+        }
+
+        private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
+        {
+            PacketAckPacket ack = new PacketAckPacket();
+            ack.Header.Reliable = false;
+            ack.Packets = new PacketAckPacket.PacketsBlock[1];
+            ack.Packets[0] = new PacketAckPacket.PacketsBlock();
+            ack.Packets[0].ID = sequenceNumber;
+
+            byte[] packetData = ack.ToBytes();
+            int length = packetData.Length;
+
+            UDPPacketBuffer buffer = new UDPPacketBuffer(remoteEndpoint, length);
+            buffer.DataLength = length;
+
+            Buffer.BlockCopy(packetData, 0, buffer.Data, 0, length);
+
+            AsyncBeginSend(buffer);
         }
 
         private bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)
