@@ -98,6 +98,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
+        /// The speed limit of this bucket in bytes per millisecond
+        /// </summary>
+        public int DripPerMS
+        {
+            get { return tokensPerMS; }
+        }
+
+        /// <summary>
         /// The number of bytes that can be sent at this moment. This is the
         /// current number of tokens in the bucket
         /// <remarks>If this bucket has a parent bucket that does not have
@@ -106,11 +114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         public int Content
         {
-            get
-            {
-                Drip();
-                return content;
-            }
+            get { return content; }
         }
 
         #endregion Properties
@@ -182,7 +186,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// call to Drip
         /// </summary>
         /// <returns>True if tokens were added to the bucket, otherwise false</returns>
-        private bool Drip()
+        public bool Drip()
         {
             if (tokensPerMS == 0)
             {

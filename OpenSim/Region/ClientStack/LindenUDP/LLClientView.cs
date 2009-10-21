@@ -3320,6 +3320,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // If we received an update about our own avatar, process the avatar update priority queue immediately
             if (data.AgentID == m_agentId)
                 ProcessAvatarTerseUpdates();
+            else
+                m_udpServer.SignalOutgoingPacketHandler();
         }
 
         private void ProcessAvatarTerseUpdates()
@@ -3407,6 +3409,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primFullUpdates.SyncRoot)
                 m_primFullUpdates.Enqueue(data.priority, objectData, data.localID);
+
+            m_udpServer.SignalOutgoingPacketHandler();
         }
 
         void ProcessPrimFullUpdates()
@@ -3450,6 +3454,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primTerseUpdates.SyncRoot)
                 m_primTerseUpdates.Enqueue(data.Priority, objectData, data.LocalID);
+
+            m_udpServer.SignalOutgoingPacketHandler();
         }
 
         void ProcessPrimTerseUpdates()

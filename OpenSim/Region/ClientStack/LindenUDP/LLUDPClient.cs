@@ -105,9 +105,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int TickLastPacketReceived;
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed for this client</summary>
         public int TickLastOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler executed for this client</summary>
+        public int ElapsedMSOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of 100 millisecond periods elapsed in the outgoing packet handler executed for this client</summary>
+        public int Elapsed100MSOutgoingPacketHandler;
+        /// <summary>Keeps track of the number of 500 millisecond periods elapsed in the outgoing packet handler executed for this client</summary>
+        public int Elapsed500MSOutgoingPacketHandler;
 
-        /// <summary>Timer granularity. This is set to the measured resolution of Environment.TickCount</summary>
-        public readonly float G;
         /// <summary>Smoothed round-trip time. A smoothed average of the round-trip time for sending a
         /// reliable packet to the client and receiving an ACK</summary>
         public float SRTT;
@@ -182,15 +186,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_throttleCategories[i] = new TokenBucket(m_throttle, rates.GetLimit(type), rates.GetRate(type));
             }
 
-            // Set the granularity variable used for retransmission calculations to
-            // the measured resolution of Environment.TickCount
-            G = server.TickCountResolution;
-
             // Default the retransmission timeout to three seconds
             RTO = 3000;
 
             // Initialize this to a sane value to prevent early disconnects
-            TickLastPacketReceived = Environment.TickCount;
+            TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
+            ElapsedMSOutgoingPacketHandler = 0;
+            Elapsed100MSOutgoingPacketHandler = 0;
+            Elapsed500MSOutgoingPacketHandler = 0;
         }
 
         /// <summary>
@@ -391,6 +394,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     // Not enough tokens in the bucket, queue this packet
                     queue.Enqueue(packet);
+                    m_udpServer.SignalOutgoingPacketHandler();
                     return true;
                 }
             }
@@ -407,13 +411,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <remarks>This function is only called from a synchronous loop in the
         /// UDPServer so we don't need to bother making this thread safe</remarks>
-        /// <returns>True if any packets were sent, otherwise false</returns>
-        public bool DequeueOutgoing()
+        /// <returns>The minimum amount of time before the next packet
+        /// can be sent to this client</returns>
+        public int DequeueOutgoing()
         {
             OutgoingPacket packet;
             OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
-            bool packetSent = false;
+            int dataLength;
+            int minTimeout = Int32.MaxValue;
 
             //string queueDebugOutput = String.Empty; // Serious debug business
 
@@ -428,12 +434,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // leaving a dequeued packet still waiting to be sent out. Try to
                     // send it again
                     OutgoingPacket nextPacket = m_nextPackets[i];
-                    if (bucket.RemoveTokens(nextPacket.Buffer.DataLength))
+                    dataLength = nextPacket.Buffer.DataLength;
+                    if (bucket.RemoveTokens(dataLength))
                     {
                         // Send the packet
                         m_udpServer.SendPacketFinal(nextPacket);
                         m_nextPackets[i] = null;
-                        packetSent = true;
+                        minTimeout = 0;
+                    }
+                    else if (minTimeout != 0)
+                    {
+                        // Check the minimum amount of time we would have to wait before this packet can be sent out
+                        minTimeout = Math.Min(minTimeout, ((dataLength - bucket.Content) / bucket.DripPerMS) + 1);
                     }
                 }
                 else
@@ -445,16 +457,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         // A packet was pulled off the queue. See if we have
                         // enough tokens in the bucket to send it out
-                        if (bucket.RemoveTokens(packet.Buffer.DataLength))
+                        dataLength = packet.Buffer.DataLength;
+                        if (bucket.RemoveTokens(dataLength))
                         {
                             // Send the packet
                             m_udpServer.SendPacketFinal(packet);
-                            packetSent = true;
+                            minTimeout = 0;
                         }
                         else
                         {
                             // Save the dequeued packet for the next iteration
                             m_nextPackets[i] = packet;
+
+                            if (minTimeout != 0)
+                            {
+                                // Check the minimum amount of time we would have to wait before this packet can be sent out
+                                minTimeout = Math.Min(minTimeout, ((dataLength - bucket.Content) / bucket.DripPerMS) + 1);
+                            }
                         }
 
                         // If the queue is empty after this dequeue, fire the queue
@@ -473,7 +492,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             //m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
-            return packetSent;
+            return minTimeout;
         }
 
         /// <summary>
@@ -504,7 +523,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Always round retransmission timeout up to two seconds
-            RTO = Math.Max(2000, (int)(SRTT + Math.Max(G, K * RTTVAR)));
+            RTO = Math.Max(2000, (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR)));
             //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
             //    RTTVAR + " based on new RTT of " + r + "ms");
         }
