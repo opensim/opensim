@@ -4660,7 +4660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return 0;
             }
@@ -4685,7 +4685,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return 0.0;
             }
@@ -4712,7 +4712,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return String.Empty;
             }
@@ -4726,7 +4726,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return "";
             }
@@ -4740,7 +4740,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return new LSL_Vector(0, 0, 0);
             }
@@ -4761,7 +4761,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 index = src.Length + index;
             }
-            if (index >= src.Length)
+            if (index >= src.Length || index < 0)
             {
                 return new LSL_Rotation(0, 0, 0, 1);
             }
@@ -5844,7 +5844,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (int i = 0; i < rules.Length; i += 2)
                 {
-                    switch ((int)rules.Data[i])
+                    switch (Convert.ToInt32(rules.Data[i]))
                     {
                         case (int)ScriptBaseClass.PSYS_PART_FLAGS:
                             prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);

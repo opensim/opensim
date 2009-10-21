@@ -978,10 +978,11 @@ namespace OpenSim.Framework
 
         public void SaveLastMapUUID(UUID mapUUID)
         {
-            if (null == configMember) return;
-
             lastMapUUID = mapUUID;
             lastMapRefresh = Util.UnixTimeSinceEpoch().ToString();
+
+            if (configMember == null)
+                return;
 
             configMember.forceSetConfigurationOption("lastmap_uuid", mapUUID.ToString());
             configMember.forceSetConfigurationOption("lastmap_refresh", lastMapRefresh);

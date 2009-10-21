@@ -1244,18 +1244,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: Updating scene title for {0} with title: {1}", AgentID, Title);
 
             ScenePresence presence = null;
-            lock (m_sceneList)
-            {
-                foreach (Scene scene in m_sceneList)
-                {
-                    presence = scene.GetScenePresence(AgentID);
-                    if (presence != null)
-                    {
-                        presence.Grouptitle = Title;
 
-                        // FixMe: Ter suggests a "Schedule" method that I can't find.
-                        presence.SendFullUpdateToAllClients();
-                    }
+            foreach (Scene scene in m_sceneList)
+            {
+                presence = scene.GetScenePresence(AgentID);
+                if (presence != null)
+                {
+                    presence.Grouptitle = Title;
+
+                    // FixMe: Ter suggests a "Schedule" method that I can't find.
+                    presence.SendFullUpdateToAllClients();
                 }
             }
         }
