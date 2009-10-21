@@ -33,6 +33,8 @@ using OpenSim.Framework;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
 
+using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     #region Delegates

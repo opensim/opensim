@@ -147,6 +147,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 int now = Environment.TickCount;
                 foreach (OutgoingPacket packet in packets.Values)
                 {
+                    // TickCount of zero means a packet is in the resend queue 
+                    // but hasn't actually been sent over the wire yet
                     if (packet.TickCount == 0)
                         continue;
 

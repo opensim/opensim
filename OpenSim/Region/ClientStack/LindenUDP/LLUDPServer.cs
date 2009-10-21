@@ -39,6 +39,8 @@ using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Scenes;
 using OpenMetaverse;
 
+using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
+
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     /// <summary>
