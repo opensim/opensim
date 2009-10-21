@@ -125,10 +125,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             expiredPackets = new List<OutgoingPacket>();
                         expiredPackets.Add(packet);
                     }
-                    /*else
-                    {
-                        break;
-                    }*/
                 }
             }
 

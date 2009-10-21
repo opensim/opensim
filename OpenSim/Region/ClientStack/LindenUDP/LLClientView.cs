@@ -3558,45 +3558,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ProcessTextureRequests();
                     break;
                 case ThrottleOutPacketType.Task:
-                    if (Monitor.TryEnter(m_avatarTerseUpdates.SyncRoot))
+                    lock (m_avatarTerseUpdates.SyncRoot)
                     {
-                        try
-                        {
-                            if (m_avatarTerseUpdates.Count > 0)
-                            {
-
-                                ProcessAvatarTerseUpdates();
-                                return;
-                            }
-                        }
-                        finally { Monitor.Exit(m_avatarTerseUpdates.SyncRoot); }
+                        if (m_avatarTerseUpdates.Count > 0)
+                            ProcessAvatarTerseUpdates();
                     }
                     break;
                 case ThrottleOutPacketType.State:
-                    if (Monitor.TryEnter(m_primFullUpdates.SyncRoot))
+                    lock (m_primFullUpdates.SyncRoot)
                     {
-                        try
-                        {
-                            if (m_primFullUpdates.Count > 0)
-                            {
-                                ProcessPrimFullUpdates();
-                                return;
-                            }
-                        }
-                        finally { Monitor.Exit(m_primFullUpdates.SyncRoot); }
+                        if (m_primFullUpdates.Count > 0)
+                            ProcessPrimFullUpdates();
                     }
 
-                    if (Monitor.TryEnter(m_primTerseUpdates.SyncRoot))
+                    lock (m_primTerseUpdates.SyncRoot)
                     {
-                        try
-                        {
-                            if (m_primTerseUpdates.Count > 0)
-                            {
-                                ProcessPrimTerseUpdates();
-                                return;
-                            }
-                        }
-                        finally { Monitor.Exit(m_primTerseUpdates.SyncRoot); }
+                        if (m_primTerseUpdates.Count > 0)
+                            ProcessPrimTerseUpdates();
                     }
                     break;
             }
@@ -10344,7 +10322,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             if (lookup.Heap.ContainsHandle(lookup.Handle))
                                 lookup.Heap[lookup.Handle] =
-                                    new MinHeapItem(priority, item.Value, item.LocalID);
+                                    new MinHeapItem(priority, item.Value, item.LocalID, this.m_comparison);
                         }
                         else
                         {

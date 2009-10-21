@@ -535,14 +535,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ThrottleOutPacketType type = (ThrottleOutPacketType)i;
             QueueEmpty callback = OnQueueEmpty;
 
+            int start = Environment.TickCount;
+
             if (callback != null)
             {
                 try { callback(type); }
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
             }
 
-            // HACK: Try spending some extra time here to slow down OnQueueEmpty calls
-            //System.Threading.Thread.Sleep(100);
+            // Make sure all queue empty calls take at least a measurable amount of time,
+            // otherwise we'll peg a CPU trying to fire these too fast
+            if (Environment.TickCount == start)
+                System.Threading.Thread.Sleep((int)m_udpServer.TickCountResolution);
 
             m_onQueueEmptyRunning[i] = false;
         }
