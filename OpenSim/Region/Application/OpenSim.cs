@@ -67,7 +67,7 @@ namespace OpenSim
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
-            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 15));
+            int stpMaxThreads = 15;
 
             if (startupConfig != null)
             {
@@ -100,7 +100,12 @@ namespace OpenSim
                 FireAndForgetMethod asyncCallMethod;
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
+
+                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
             }
+
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
+                Util.InitThreadPool(stpMaxThreads);
 
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }

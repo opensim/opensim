@@ -38,8 +38,15 @@
     
     ; Sets the method that OpenSim will use to fire asynchronous
     ; events. Valid values are UnsafeQueueUserWorkItem,
-    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread
-    ; async_call_method = SmartThreadPool
+    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread.
+    ; SmartThreadPool is reported to work well on Mono/Linux, but 
+    ; UnsafeQueueUserWorkItem has been benchmarked with better
+    ; performance on .NET/Windows
+    ;async_call_method = SmartThreadPool
+    
+    ; Max threads to allocate on the FireAndForget thread pool
+    ; when running with the SmartThreadPool option above
+    MaxPoolThreads = 15
 
     ; ##
     ; ## CLIENTS
@@ -50,9 +57,6 @@
 
     ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
-
-    ; Max threads to allocate on the FireAndForget pool
-    MaxPoolThreads = 15
 
     ; ##
     ; ## REGIONS
