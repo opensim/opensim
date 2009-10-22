@@ -99,17 +99,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            m_ScriptDelayFactor = m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
-            m_MinTimerInterval = m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
-            m_automaticLinkPermission = m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
-            m_scriptConsoleChannel = m_ScriptEngine.Config.GetInt("ScriptConsoleChannel", 0);
-            m_scriptConsoleChannelEnabled = (m_scriptConsoleChannel != 0);
-            m_notecardLineReadCharsMax = m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
+            m_ScriptDelayFactor =
+                m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor =
+                m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_MinTimerInterval =
+                m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
+            m_automaticLinkPermission =
+                m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
+            m_notecardLineReadCharsMax =
+                m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
 
-            m_TransferModule = m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_TransferModule =
+                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             if (m_UrlModule != null)
             {
@@ -1263,12 +1267,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetScale(SceneObjectPart part, LSL_Vector scale)
         {
             // TODO: this needs to trigger a persistance save as well
-
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
-
-            if (scale.x < 0.01 || scale.y < 0.01 || scale.z < 0.01)
-                return;
+            if (scale.x < 0.01)
+				scale.x = 0.01;
+            if (scale.y < 0.01)
+				scale.y = 0.01;
+            if (scale.z < 0.01)
+				scale.z = 0.01;
 
             if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
@@ -1279,12 +1285,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (scale.z > World.m_maxPhys)
                     scale.z = World.m_maxPhys;
             }
+
             if (scale.x > World.m_maxNonphys)
                 scale.x = World.m_maxNonphys;
             if (scale.y > World.m_maxNonphys)
                 scale.y = World.m_maxNonphys;
             if (scale.z > World.m_maxNonphys)
                 scale.z = World.m_maxNonphys;
+
             Vector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
             tmp.Y = (float)scale.y;
@@ -1975,7 +1983,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             part.UpdateRotation(rot);
             // Update rotation does not move the object in the physics scene if it's a linkset.
-            part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
+
+//KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
+//          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
         }
 
         /// <summary>
@@ -6759,15 +6769,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // try to let this work as in SL...
                         if (part.ParentID == 0)
                         {
-                            // special case: If we are root, rotate
-                            // complete SOG to new rotation
+                            // special case: If we are root, rotate complete SOG to new rotation
                             SetRot(part, Rot2Quaternion(q));
                         }
                         else
                         {
-                            // we are a child. The rotation values
-                            // will be set to the one of root modified
-                            // by rot, as in SL. Don't ask.
+                            // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
                             SceneObjectGroup group = part.ParentGroup;
                             if (group != null) // a bit paranoid, maybe
                             {
