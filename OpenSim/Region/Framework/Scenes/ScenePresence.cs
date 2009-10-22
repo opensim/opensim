@@ -2517,15 +2517,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_appearance.Texture == null)
                 return;
 
-            // Note: because Quaternion is a struct, it can't be null
-            Quaternion rot = m_bodyRot;
-
             Vector3 pos = m_pos;
             pos.Z -= m_appearance.HipOffset;
 
             remoteAvatar.m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
-                                                            LocalId, m_pos, m_appearance.Texture.GetBytes(),
-                                                            m_parentID, rot));
+                                                            LocalId, pos, m_appearance.Texture.GetBytes(),
+                                                            m_parentID, m_bodyRot));
             m_scene.StatsReporter.AddAgentUpdates(1);
         }
 
