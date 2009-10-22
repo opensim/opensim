@@ -827,7 +827,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = x1; i <= x2; i++)
                 SendLayerData(i, y1, map);
 
-            // Column    
+            // Column
             for (int j = y1 + 1; j <= y2; j++)
                 SendLayerData(x2, j, map);
      
