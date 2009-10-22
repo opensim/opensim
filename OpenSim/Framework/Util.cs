@@ -1345,7 +1345,7 @@ namespace OpenSim.Framework
                     wrapper.FireAndForget(callback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
-                    if (m_ThreadPool != null)
+                    if (m_ThreadPool == null)
                         m_ThreadPool = new SmartThreadPool(2000, 15, 2);
                     m_ThreadPool.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
                     break;
