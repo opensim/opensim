@@ -50,11 +50,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// are waiting on ACKs for</param>
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     /// <summary>
-    /// Fired when the queue for a packet category is empty. This event can be
-    /// hooked to put more data on the empty queue
+    /// Fired when the queue for one or more packet categories is empty. This 
+    /// event can be hooked to put more data on the empty queues
     /// </summary>
-    /// <param name="category">Category of the packet queue that is empty</param>
-    public delegate void QueueEmpty(ThrottleOutPacketType category);
+    /// <param name="category">Categories of the packet queues that are empty</param>
+    public delegate void QueueEmpty(ThrottleOutPacketTypeFlags categories);
 
     #endregion Delegates
 
@@ -128,6 +128,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private int m_packetsReceivedReported;
         /// <summary>Total number of sent packets that we have reported to the OnPacketStats event(s)</summary>
         private int m_packetsSentReported;
+        /// <summary>Holds the Environment.TickCount value of when the next OnQueueEmpty can be fired</summary>
+        private int m_nextOnQueueEmpty = 1;
 
         /// <summary>Throttle bucket for this agent's connection</summary>
         private readonly TokenBucket m_throttle;
@@ -140,9 +142,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>A container that can hold one packet for each outbox, used to store
         /// dequeued packets that are being held for throttling</summary>
         private readonly OutgoingPacket[] m_nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
-        /// <summary>Flags to prevent queue empty callbacks from stacking up on
-        /// top of each other</summary>
-        private readonly bool[] m_onQueueEmptyRunning = new bool[THROTTLE_CATEGORY_COUNT];
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer m_udpServer;
 
@@ -405,6 +404,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OpenSim.Framework.LocklessQueue<OutgoingPacket> queue;
             TokenBucket bucket;
             bool packetSent = false;
+            ThrottleOutPacketTypeFlags emptyCategories = 0;
 
             //string queueDebugOutput = String.Empty; // Serious debug business
 
@@ -452,16 +452,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // empty callback now so it has a chance to fill before we 
                         // get back here
                         if (queue.Count == 0)
-                            BeginFireQueueEmpty(i);
+                            emptyCategories |= CategoryToFlag(i);
                     }
                     else
                     {
                         // No packets in this queue. Fire the queue empty callback
                         // if it has not been called recently
-                        BeginFireQueueEmpty(i);
+                        emptyCategories |= CategoryToFlag(i);
                     }
                 }
             }
+
+            if (emptyCategories != 0)
+                BeginFireQueueEmpty(emptyCategories);
 
             //m_log.Info("[LLUDPCLIENT]: Queues: " + queueDebugOutput); // Serious debug business
             return packetSent;
@@ -509,49 +512,90 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="throttleIndex">Throttle category to fire the callback
         /// for</param>
-        private void BeginFireQueueEmpty(int throttleIndex)
+        private void BeginFireQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
-            // Unknown is -1 and Resend is 0. Make sure we are only firing the 
-            // callback for categories other than those
-            if (throttleIndex > 0)
+            if (m_nextOnQueueEmpty != 0 && (Environment.TickCount & Int32.MaxValue) >= m_nextOnQueueEmpty)
             {
-                if (!m_onQueueEmptyRunning[throttleIndex])
-                {
-                    m_onQueueEmptyRunning[throttleIndex] = true;
-                    Util.FireAndForget(FireQueueEmpty, throttleIndex);
-                }
+                // Use a value of 0 to signal that FireQueueEmpty is running
+                m_nextOnQueueEmpty = 0;
+                // Asynchronously run the callback
+                Util.FireAndForget(FireQueueEmpty, categories);
             }
         }
 
         /// <summary>
-        /// Checks to see if this queue empty callback is already running,
-        /// then firing the event
+        /// Fires the OnQueueEmpty callback and sets the minimum time that it
+        /// can be called again
         /// </summary>
-        /// <param name="o">Throttle category to fire the callback for, stored
-        /// as an object to match the WaitCallback delegate signature</param>
+        /// <param name="o">Throttle categories to fire the callback for,
+        /// stored as an object to match the WaitCallback delegate
+        /// signature</param>
         private void FireQueueEmpty(object o)
         {
             const int MIN_CALLBACK_MS = 30;
 
-            int i = (int)o;
-            ThrottleOutPacketType type = (ThrottleOutPacketType)i;
+            ThrottleOutPacketTypeFlags categories = (ThrottleOutPacketTypeFlags)o;
             QueueEmpty callback = OnQueueEmpty;
-
+            
             int start = Environment.TickCount & Int32.MaxValue;
 
             if (callback != null)
             {
-                try { callback(type); }
-                catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
+                try { callback(categories); }
+                catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + categories + ") threw an exception: " + e.Message, e); }
             }
 
-            // Make sure all queue empty calls take at least some amount of time,
-            // otherwise we'll peg a CPU trying to fire these too fast
-            int elapsedMS = (Environment.TickCount & Int32.MaxValue) - start;
-            if (elapsedMS < MIN_CALLBACK_MS)
-                System.Threading.Thread.Sleep(MIN_CALLBACK_MS - elapsedMS);
+            m_nextOnQueueEmpty = start + MIN_CALLBACK_MS;
+            if (m_nextOnQueueEmpty == 0)
+                m_nextOnQueueEmpty = 1;
+        }
 
-            m_onQueueEmptyRunning[i] = false;
+        /// <summary>
+        /// Converts a <seealso cref="ThrottleOutPacketType"/> integer to a
+        /// flag value
+        /// </summary>
+        /// <param name="i">Throttle category to convert</param>
+        /// <returns>Flag representation of the throttle category</returns>
+        private static ThrottleOutPacketTypeFlags CategoryToFlag(int i)
+        {
+            ThrottleOutPacketType category = (ThrottleOutPacketType)i;
+
+            /*
+             * Land = 1,
+        /// <summary>Wind data</summary>
+        Wind = 2,
+        /// <summary>Cloud data</summary>
+        Cloud = 3,
+        /// <summary>Any packets that do not fit into the other throttles</summary>
+        Task = 4,
+        /// <summary>Texture assets</summary>
+        Texture = 5,
+        /// <summary>Non-texture assets</summary>
+        Asset = 6,
+        /// <summary>Avatar and primitive data</summary>
+        /// <remarks>This is a sub-category of Task</remarks>
+        State = 7,
+             */
+
+            switch (category)
+            {
+                case ThrottleOutPacketType.Land:
+                    return ThrottleOutPacketTypeFlags.Land;
+                case ThrottleOutPacketType.Wind:
+                    return ThrottleOutPacketTypeFlags.Wind;
+                case ThrottleOutPacketType.Cloud:
+                    return ThrottleOutPacketTypeFlags.Cloud;
+                case ThrottleOutPacketType.Task:
+                    return ThrottleOutPacketTypeFlags.Task;
+                case ThrottleOutPacketType.Texture:
+                    return ThrottleOutPacketTypeFlags.Texture;
+                case ThrottleOutPacketType.Asset:
+                    return ThrottleOutPacketTypeFlags.Asset;
+                case ThrottleOutPacketType.State:
+                    return ThrottleOutPacketTypeFlags.State;
+                default:
+                    return 0;
+            }
         }
     }
 }

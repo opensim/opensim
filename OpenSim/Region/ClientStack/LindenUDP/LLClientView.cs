@@ -3550,33 +3550,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(attach, ThrottleOutPacketType.Task);
         }
 
-        void HandleQueueEmpty(ThrottleOutPacketType queue)
+        void HandleQueueEmpty(ThrottleOutPacketTypeFlags categories)
         {
-            switch (queue)
+            if ((categories & ThrottleOutPacketTypeFlags.Task) != 0)
             {
-                case ThrottleOutPacketType.Texture:
-                    ProcessTextureRequests();
-                    break;
-                case ThrottleOutPacketType.Task:
-                    lock (m_avatarTerseUpdates.SyncRoot)
-                    {
-                        if (m_avatarTerseUpdates.Count > 0)
-                            ProcessAvatarTerseUpdates();
-                    }
-                    break;
-                case ThrottleOutPacketType.State:
-                    lock (m_primFullUpdates.SyncRoot)
-                    {
-                        if (m_primFullUpdates.Count > 0)
-                            ProcessPrimFullUpdates();
-                    }
+                lock (m_avatarTerseUpdates.SyncRoot)
+                {
+                    if (m_avatarTerseUpdates.Count > 0)
+                        ProcessAvatarTerseUpdates();
+                }
+            }
 
-                    lock (m_primTerseUpdates.SyncRoot)
-                    {
-                        if (m_primTerseUpdates.Count > 0)
-                            ProcessPrimTerseUpdates();
-                    }
-                    break;
+            if ((categories & ThrottleOutPacketTypeFlags.State) != 0)
+            {
+                lock (m_primFullUpdates.SyncRoot)
+                {
+                    if (m_primFullUpdates.Count > 0)
+                        ProcessPrimFullUpdates();
+                }
+
+                lock (m_primTerseUpdates.SyncRoot)
+                {
+                    if (m_primTerseUpdates.Count > 0)
+                        ProcessPrimTerseUpdates();
+                }
+            }
+
+            if ((categories & ThrottleOutPacketTypeFlags.Texture) != 0)
+            {
+                ProcessTextureRequests();
             }
         }
 

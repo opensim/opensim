@@ -424,10 +424,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     outgoingPacket.Buffer.Data[0] = (byte)(outgoingPacket.Buffer.Data[0] | Helpers.MSG_RESENT);
                     outgoingPacket.Category = ThrottleOutPacketType.Resend;
 
-                    // The TickCount will be set to the current time when the packet
-                    // is actually sent out again
-                    outgoingPacket.TickCount = 0;
-
                     // Bump up the resend count on this packet
                     Interlocked.Increment(ref outgoingPacket.ResendCount);
                     //Interlocked.Increment(ref Stats.ResentPackets);

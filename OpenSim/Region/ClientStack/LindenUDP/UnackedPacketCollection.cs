@@ -123,6 +123,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         if (expiredPackets == null)
                             expiredPackets = new List<OutgoingPacket>();
+
+                        // The TickCount will be set to the current time when the packet
+                        // is actually sent out again
+                        packet.TickCount = 0;
+
                         expiredPackets.Add(packet);
                     }
                 }
