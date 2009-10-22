@@ -1,18 +1,5 @@
-/*
- * Revised August 26 2009 by Kitto Flora. ODEDynamics.cs replaces
- * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
- * ODEPrim.cs contains methods dealing with Prim editing, Prim
- * characteristics and Kinetic motion.
- * ODEDynamics.cs contains methods dealing with Prim Physical motion
- * (dynamics) and the associated settings. Old Linear and angular
- * motors for dynamic motion have been replace with  MoveLinear()
- * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
- * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
- * switch between 'VEHICLE' parameter use and general dynamics
- * settings use.
- * Copyright (c) Contributors, http://opensimulator.org/
+/* Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -34,6 +21,20 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * Revised August 26 2009 by Kitto Flora. ODEDynamics.cs replaces
+ * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
+ * ODEPrim.cs contains methods dealing with Prim editing, Prim
+ * characteristics and Kinetic motion.
+ * ODEDynamics.cs contains methods dealing with Prim Physical motion
+ * (dynamics) and the associated settings. Old Linear and angular
+ * motors for dynamic motion have been replace with  MoveLinear()
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
+ * switch between 'VEHICLE' parameter use and general dynamics
+ * settings use.
  */
 using System;
 using System.Collections.Generic;
