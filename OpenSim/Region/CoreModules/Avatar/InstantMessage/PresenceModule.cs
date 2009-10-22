@@ -274,8 +274,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
                 m_RootAgents[agentID] = scene;
             }
+
             // inform messaging server that agent changed the region
-            NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
+            Util.FireAndForget(
+                delegate(object o)
+                {
+                    NotifyMessageServerOfAgentLocation(agentID, scene.RegionInfo.RegionID, scene.RegionInfo.RegionHandle);
+                }
+            );
         }
 
         private void OnEconomyDataRequest(UUID agentID)
