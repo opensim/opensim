@@ -1265,9 +1265,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // TODO: this needs to trigger a persistance save as well
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
-            //  scale.x < 0.01 in a manner which handles rounding errors
-            if (Math.Round(scale.x - 0.01)  > 0.0 || Math.Round(scale.y - 0.01) > 0.0 || Math.Round(scale.z - 0.01) > 0.0)
-                return;
+            if (scale.x < 0.01)
+				scale.x = 0.01;
+            if (scale.y < 0.01)
+				scale.y = 0.01;
+            if (scale.z < 0.01)
+				scale.z = 0.01;
 
             if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {
