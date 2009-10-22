@@ -42,6 +42,9 @@
     ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
 
+    ; Max threads to allocate on the FireAndForget pool
+    MaxPoolThreads = 30
+
     ; ##
     ; ## REGIONS
     ; ##

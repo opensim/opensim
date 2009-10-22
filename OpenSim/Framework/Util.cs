@@ -41,12 +41,14 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using Amib.Threading;
 
 namespace OpenSim.Framework
 {
@@ -55,6 +57,8 @@ namespace OpenSim.Framework
     /// </summary>
     public class Util
     {
+        private static SmartThreadPool m_ThreadPool = null;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
@@ -1293,22 +1297,28 @@ namespace OpenSim.Framework
             System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, null);
         }
 
-        public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
+        public static void SetMaxThreads(int maxThreads)
         {
-            //FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
-            //wrapper.FireAndForget(callback, obj);
-            System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.IdleTimeout = 2000; // 2 seconds
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 5;
+            startInfo.StackSize = 524288;
+            startInfo.ThreadPriority = ThreadPriority.Normal;
+
+            startInfo.StartSuspended = false;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
-        /*private static void EndFireAndForget(IAsyncResult ar)
+        public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
-
-            try { callback.EndInvoke(ar); }
-            catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
-
-            ar.AsyncWaitHandle.Close();
-        }*/
+            m_ThreadPool.QueueWorkItem(new WorkItemCallback(delegate(object o)
+                {
+                    callback(o);
+                    return null;
+                }), obj);
+        }
 
         #endregion FireAndForget Threading Pattern
     }
