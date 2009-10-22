@@ -31,6 +31,15 @@
 
     ; To run a script every few minutes, set the script filename here
     ; timer_Script = "filename"
+    
+    ; ##
+    ; ## SYSTEM
+    ; ##
+    
+    ; Sets the method that OpenSim will use to fire asynchronous
+    ; events. Valid values are UnsafeQueueUserWorkItem,
+    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread
+    async_call_method = UnsafeQueueUserWorkItem
 
     ; ##
     ; ## CLIENTS

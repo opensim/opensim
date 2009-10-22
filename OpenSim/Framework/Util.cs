@@ -51,6 +51,18 @@ using OpenMetaverse.StructuredData;
 namespace OpenSim.Framework
 {
     /// <summary>
+    /// The method used by Util.FireAndForget for asynchronously firing events
+    /// </summary>
+    public enum FireAndForgetMethod
+    {
+        UnsafeQueueUserWorkItem,
+        QueueUserWorkItem,
+        BeginInvoke,
+        SmartThreadPool,
+        Thread,
+    }
+
+    /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
     public class Util
@@ -70,7 +82,9 @@ namespace OpenSim.Framework
 
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-        
+
+        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.UnsafeQueueUserWorkItem;
+
         /// <summary>
         /// Linear interpolates B<->C using percent A
         /// </summary>
@@ -1273,7 +1287,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Created to work around a limitation in Mono with nested delegates
         /// </summary>
-        /*private class FireAndForgetWrapper
+        private class FireAndForgetWrapper
         {
             public void FireAndForget(System.Threading.WaitCallback callback)
             {
@@ -1284,31 +1298,49 @@ namespace OpenSim.Framework
             {
                 callback.BeginInvoke(obj, EndFireAndForget, callback);
             }
-        }*/
+
+            private static void EndFireAndForget(IAsyncResult ar)
+            {
+                System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
+
+                try { callback.EndInvoke(ar); }
+                catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
+
+                ar.AsyncWaitHandle.Close();
+            }
+        }
 
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
-            //FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
-            //wrapper.FireAndForget(callback);
-            System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, null);
+            FireAndForget(callback, null);
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            //FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
-            //wrapper.FireAndForget(callback, obj);
-            System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+            switch (FireAndForgetMethod)
+            {
+                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
+                    System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    break;
+                case FireAndForgetMethod.QueueUserWorkItem:
+                    System.Threading.ThreadPool.QueueUserWorkItem(callback, obj);
+                    break;
+                case FireAndForgetMethod.BeginInvoke:
+                    FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+                    wrapper.FireAndForget(callback, obj);
+                    break;
+                case FireAndForgetMethod.SmartThreadPool:
+                    Amib.Threading.SmartThreadPool stp = Singleton.GetInstance<Amib.Threading.SmartThreadPool>();
+                    stp.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
+                    break;
+                case FireAndForgetMethod.Thread:
+                    System.Threading.Thread thread = new System.Threading.Thread(delegate(object o) { callback(o); });
+                    thread.Start(obj);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
-
-        /*private static void EndFireAndForget(IAsyncResult ar)
-        {
-            System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
-
-            try { callback.EndInvoke(ar); }
-            catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
-
-            ar.AsyncWaitHandle.Close();
-        }*/
 
         #endregion FireAndForget Threading Pattern
     }

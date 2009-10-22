@@ -90,10 +90,17 @@ namespace OpenSim
                             appender.File = fileName;
                             appender.ActivateOptions();
                         }
-                        m_log.InfoFormat("[LOGGING] Logging started to file {0}", appender.File);
+                        m_log.InfoFormat("[LOGGING]: Logging started to file {0}", appender.File);
                     }
                 }
+
+                string asyncCallMethodStr = startupConfig.GetString("async_call_method", String.Empty);
+                FireAndForgetMethod asyncCallMethod;
+                if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
+                    Util.FireAndForgetMethod = asyncCallMethod;
             }
+
+            m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
 
         /// <summary>

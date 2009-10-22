@@ -66,7 +66,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.UnsafeQueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;
@@ -122,7 +122,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.UnsafeQueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.UnsafeQueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;

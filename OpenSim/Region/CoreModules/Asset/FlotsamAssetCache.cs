@@ -302,12 +302,8 @@ namespace Flotsam.RegionModules.AssetCache
 
                         }
 
-                        ThreadPool.UnsafeQueueUserWorkItem(
-                            delegate
-                            {
-                                WriteFileCache(filename, asset);
-                            }, null
-                        );
+                        Util.FireAndForget(
+                            delegate { WriteFileCache(filename, asset); });
                     }
                 }
                 catch (Exception e)
