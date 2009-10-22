@@ -67,9 +67,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             m_client = client;
             m_scene = scene;
-            
-            Thread loopThread = new Thread(InternalLoop);
-            loopThread.Start();
+
+            Watchdog.StartThread(InternalLoop, "IRCClientView", ThreadPriority.Normal, false);
         }
 
         private void SendServerCommand(string command)
@@ -102,7 +101,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             try
             {
-                string strbuf = "";
+                string strbuf = String.Empty;
 
                 while (m_connected && m_client.Connected)
                 {
@@ -140,6 +139,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     }
 
                     Thread.Sleep(0);
+                    Watchdog.UpdateThread();
                 }
             }
             catch (IOException)
@@ -156,6 +156,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
                 m_log.Warn("[IRCd] Disconnected client.");
             }
+
+            Watchdog.RemoveThread();
         }
 
         private void ProcessInMessage(string message, string command)

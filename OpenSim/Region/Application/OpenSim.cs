@@ -172,6 +172,9 @@ namespace OpenSim
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
 
+            // Hook up to the watchdog timer
+            Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
+
             PrintFileToConsole("startuplogo.txt");
 
             // For now, start at the 'root' level by default
@@ -382,6 +385,14 @@ namespace OpenSim
             {
                 RunCommandScript(m_timedScript);
             }
+        }
+
+        private void WatchdogTimeoutHandler(System.Threading.Thread thread, int lastTick)
+        {
+            int now = Environment.TickCount & Int32.MaxValue;
+
+            m_log.ErrorFormat("[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago",
+                thread.Name, thread.ThreadState, now - lastTick);
         }
 
         #region Console Commands

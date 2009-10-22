@@ -187,14 +187,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             base.Start(m_recvBufferSize, m_asyncPacketHandling);
 
-            // Start the incoming packet processing thread
-            Thread incomingThread = new Thread(IncomingPacketHandler);
-            incomingThread.Name = "Incoming Packets (" + m_scene.RegionInfo.RegionName + ")";
-            incomingThread.Start();
-
-            Thread outgoingThread = new Thread(OutgoingPacketHandler);
-            outgoingThread.Name = "Outgoing Packets (" + m_scene.RegionInfo.RegionName + ")";
-            outgoingThread.Start();
+            // Start the packet processing threads
+            Watchdog.StartThread(IncomingPacketHandler, "Incoming Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false);
+            Watchdog.StartThread(OutgoingPacketHandler, "Outgoing Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false);
         }
 
         public new void Stop()
@@ -775,11 +770,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     m_log.Error("[LLUDPSERVER]: Error in the incoming packet handler loop: " + ex.Message, ex);
                 }
+
+                Watchdog.UpdateThread();
             }
 
             if (packetInbox.Count > 0)
                 m_log.Warn("[LLUDPSERVER]: IncomingPacketHandler is shutting down, dropping " + packetInbox.Count + " packets");
             packetInbox.Clear();
+
+            Watchdog.RemoveThread();
         }
 
         private void OutgoingPacketHandler()
@@ -842,12 +841,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // token bucket could get more tokens
                     if (!m_packetSent)
                         Thread.Sleep((int)TickCountResolution);
+
+                    Watchdog.UpdateThread();
                 }
                 catch (Exception ex)
                 {
                     m_log.Error("[LLUDPSERVER]: OutgoingPacketHandler loop threw an exception: " + ex.Message, ex);
                 }
             }
+
+            Watchdog.RemoveThread();
         }
 
         private void ClientOutgoingPacketHandler(IClientAPI client)

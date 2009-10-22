@@ -81,8 +81,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected Timer m_restartWaitTimer = new Timer();
 
-        protected Thread m_updateEntitiesThread;
-
         public SimStatsReporter StatsReporter;
 
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
@@ -945,11 +943,8 @@ namespace OpenSim.Region.Framework.Scenes
                 HeartbeatThread = null;
             }
             m_lastUpdate = Environment.TickCount;
-            HeartbeatThread = new Thread(new ParameterizedThreadStart(Heartbeat));
-            HeartbeatThread.SetApartmentState(ApartmentState.MTA);
-            HeartbeatThread.Name = string.Format("Heartbeat for region {0}", RegionInfo.RegionName);
-            HeartbeatThread.Priority = ThreadPriority.AboveNormal;
-            HeartbeatThread.Start();
+
+            HeartbeatThread = Watchdog.StartThread(Heartbeat, "Heartbeat for region " + RegionInfo.RegionName, ThreadPriority.Normal, false);
         }
 
         /// <summary>
@@ -976,12 +971,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Performs per-frame updates regularly
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Heartbeat(object sender)
+        private void Heartbeat()
         {
             if (!Monitor.TryEnter(m_heartbeatLock))
+            {
+                Watchdog.RemoveThread();
                 return;
+            }
 
             try
             {
@@ -998,6 +994,8 @@ namespace OpenSim.Region.Framework.Scenes
                 Monitor.Pulse(m_heartbeatLock);
                 Monitor.Exit(m_heartbeatLock);
             }
+
+            Watchdog.RemoveThread();
         }
 
         /// <summary>
@@ -1146,6 +1144,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if ((maintc < (m_timespan * 1000)) && maintc > 0)
                     Thread.Sleep(maintc);
+
+                Watchdog.UpdateThread();
             }
         }
 
