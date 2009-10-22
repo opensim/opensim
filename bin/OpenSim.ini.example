@@ -1396,12 +1396,13 @@
     ;TextureDataLimit = 5
 
 [InterestManagement]
-    ; This section controls how state updates are prioritized for each client
-    UpdatePrioritizationScheme = Distance
-    ReprioritizeUpdate = true
-    RootUpdateReprioritizationDistance = 10.0
-    ChildUpdateReprioritizationDistance = 20.0
-    ReprioritizeUpdatesInterval = 5000.0
+     ; This section controls how state updates are prioritized for each client
+     ; Valid values are Time, Distance, and SimpleAngularDistance
+     UpdatePrioritizationScheme = Distance;
+     ReprioritizationEnabled = true;
+     ReprioritizationInterval = 2000.0;
+     RootReprioritizationDistance = 10.0;
+     ChildReprioritizationDistance = 20.0;
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].
