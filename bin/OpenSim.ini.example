@@ -43,7 +43,7 @@
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
 
     ; Max threads to allocate on the FireAndForget pool
-    MaxPoolThreads = 30
+    MaxPoolThreads = 15
 
     ; ##
     ; ## REGIONS

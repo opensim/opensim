@@ -1302,7 +1302,7 @@ namespace OpenSim.Framework
             STPStartInfo startInfo = new STPStartInfo();
             startInfo.IdleTimeout = 2000; // 2 seconds
             startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = 5;
+            startInfo.MinWorkerThreads = 2;
             startInfo.StackSize = 524288;
             startInfo.ThreadPriority = ThreadPriority.Normal;
 

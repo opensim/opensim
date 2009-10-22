@@ -67,7 +67,7 @@ namespace OpenSim
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
-            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 30));
+            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 15));
 
             if (startupConfig != null)
             {
