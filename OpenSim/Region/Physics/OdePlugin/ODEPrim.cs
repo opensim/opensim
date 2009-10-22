@@ -1564,6 +1564,8 @@ Console.WriteLine(" JointCreateFixed");
             	}
             	else
             	{
+//Console.WriteLine("Move " +  m_primName);           	
+            		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
 	                if (d.BodyIsEnabled(Body) && !m_angularlock.IsIdentical(PhysicsVector.Zero, 0.003f))
 	                {
@@ -1592,6 +1594,7 @@ Console.WriteLine(" JointCreateFixed");
 
 	                if (m_usePID)
 	                {
+//Console.WriteLine("PID " +  m_primName);           	
                     	// KF - this is for object move? eg. llSetPos() ?
 	                    //if (!d.BodyIsEnabled(Body))
 	                    //d.BodySetForce(Body, 0f, 0f, 0f);
@@ -1663,6 +1666,8 @@ Console.WriteLine(" JointCreateFixed");
 	                // Hover PID Controller needs to be mutually exlusive to MoveTo PID controller
 	                if (m_useHoverPID && !m_usePID)
 	                {
+//Console.WriteLine("Hover " +  m_primName);           	
+	                
 	                    // If we're using the PID controller, then we have no gravity
 	                    fz = (-1 * _parent_scene.gravityz) * m_mass;
 
@@ -1779,6 +1784,7 @@ Console.WriteLine(" JointCreateFixed");
     	                if (fy < nmin)
     	                    fy = nmin;
     	                d.BodyAddForce(Body, fx, fy, fz);
+//Console.WriteLine("AddForce " + fx + "," + fy + "," + fz);    	                
     	            }
 				}		
             }
@@ -1786,6 +1792,8 @@ Console.WriteLine(" JointCreateFixed");
             {	// is not physical, or is not a body or is selected
               //  _zeroPosition = d.BodyGetPosition(Body);
                 return;
+//Console.WriteLine("Nothing " +  m_primName);           	
+               
             }
         }
 
