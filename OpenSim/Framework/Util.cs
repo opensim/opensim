@@ -1324,18 +1324,10 @@ namespace OpenSim.Framework
         {
             if (maxThreads < 2)
                 throw new ArgumentOutOfRangeException("maxThreads", "maxThreads must be greater than 2");
-
             if (m_ThreadPool != null)
-                return;
+                throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.IdleTimeout = 2000; // 2 seconds
-            startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = 2;
-            startInfo.ThreadPriority = ThreadPriority.Normal;
-            startInfo.StartSuspended = false;
-
-            m_ThreadPool = new SmartThreadPool(startInfo);
+            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
@@ -1343,20 +1335,22 @@ namespace OpenSim.Framework
             switch (FireAndForgetMethod)
             {
                 case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                    System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
                     break;
                 case FireAndForgetMethod.QueueUserWorkItem:
-                    System.Threading.ThreadPool.QueueUserWorkItem(callback, obj);
+                    ThreadPool.QueueUserWorkItem(callback, obj);
                     break;
                 case FireAndForgetMethod.BeginInvoke:
                     FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
                     wrapper.FireAndForget(callback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
+                    if (m_ThreadPool != null)
+                        m_ThreadPool = new SmartThreadPool(2000, 15, 2);
                     m_ThreadPool.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
                     break;
                 case FireAndForgetMethod.Thread:
-                    System.Threading.Thread thread = new System.Threading.Thread(delegate(object o) { callback(o); });
+                    Thread thread = new Thread(delegate(object o) { callback(o); });
                     thread.Start(obj);
                     break;
                 default:
