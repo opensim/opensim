@@ -2522,7 +2522,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             remoteAvatar.m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, pos, m_appearance.Texture.GetBytes(),
-                                                            m_parentID, m_bodyRot));
+                                                            m_parentID, m_rotation));
             m_scene.StatsReporter.AddAgentUpdates(1);
         }
 
