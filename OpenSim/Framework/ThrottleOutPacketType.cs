@@ -51,4 +51,16 @@ namespace OpenSim.Framework
         /// <remarks>This is a sub-category of Task</remarks>
         State = 7,
     }
+
+    [Flags]
+    public enum ThrottleOutPacketTypeFlags
+    {
+        Land = 1 << 0,
+        Wind = 1 << 1,
+        Cloud = 1 << 2,
+        Task = 1 << 3,
+        Texture = 1 << 4,
+        Asset = 1 << 5,
+        State = 1 << 6,
+    }
 }

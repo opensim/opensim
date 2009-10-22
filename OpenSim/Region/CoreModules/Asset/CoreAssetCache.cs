@@ -44,10 +44,8 @@ namespace OpenSim.Region.CoreModules.Asset
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
-        private Cache m_Cache = new Cache(CacheMedium.Memory,
-                                          CacheStrategy.Aggressive,
-                                          CacheFlags.AllowUpdate);
+        private bool m_Enabled;
+        private Cache m_Cache;
 
         public string Name
         {
@@ -77,6 +75,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         return;
                     }
 
+                    m_Cache = new Cache(CacheMedium.Memory, CacheStrategy.Aggressive, CacheFlags.AllowUpdate);
                     m_Enabled = true;
 
                     m_log.Info("[ASSET CACHE]: Core asset cache enabled");

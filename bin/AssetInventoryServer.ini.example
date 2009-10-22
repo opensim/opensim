@@ -104,11 +104,9 @@ frontends = ReferenceFrontend,OpenSimAssetFrontend,OpenSimInventoryFrontend,Brow
 ; supported by OpenSim is supported.
 asset_database_provider = "OpenSim.Data.SQLite.dll"
 ;asset_database_provider = "OpenSim.Data.MySQL.dll"
-;asset_database_provider = "OpenSim.Data.NHibernate.dll"
 
 inventory_database_provider = "OpenSim.Data.SQLite.dll"
 ;inventory_database_provider = "OpenSim.Data.MySQL.dll"
-;inventory_database_provider = "OpenSim.Data.NHibernate.dll"
 
 ; Database connection string used by the database backend.
 
@@ -119,7 +117,3 @@ inventory_database_connect = "URI=file:Inventory.db,version=3"
 ; For MySQL
 ;asset_database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"
 ;inventory_database_connect = "Server=localhost; Database=opensim; User=changeme; Password=changeme;"
-
-; For NHibernate
-;asset_database_connect = "SQLiteDialect;SQLite20Driver;Data Source=file:Asset.db;Version=3"
-;inventory_database_connect = "SQLiteDialect;SQLite20Driver;Data Source=file:Asset.db;Version=3"

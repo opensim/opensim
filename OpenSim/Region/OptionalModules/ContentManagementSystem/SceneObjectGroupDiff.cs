@@ -188,7 +188,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             // MISC COMPARISONS (UUID, Byte)
             if (first.ClickAction != second.ClickAction)
                 result |= Diff.CLICKACTION;
-            if (first.ObjectOwner != second.ObjectOwner)
+            if (first.OwnerID != second.OwnerID)
                 result |= Diff.OBJECTOWNER;
 
 

@@ -57,6 +57,12 @@ namespace OpenSim.Region.Framework.Scenes
 
     public partial class Scene : SceneBase
     {
+        public enum UpdatePrioritizationSchemes {
+            Time = 0,
+            Distance = 1,
+            SimpleAngularDistance = 2,
+        }
+
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
 
@@ -222,6 +228,10 @@ namespace OpenSim.Region.Framework.Scenes
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
+        public IAvatarFactory AvatarFactory
+        {
+            get { return m_AvatarFactory; }
+        }
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IInterregionCommsOut m_interregionCommsOut;
@@ -269,8 +279,13 @@ namespace OpenSim.Region.Framework.Scenes
         private volatile bool shuttingdown = false;
 
         private int m_lastUpdate = Environment.TickCount;
-        private int m_maxPrimsPerFrame = 200;
         private bool m_firstHeartbeat = true;
+
+        private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+        private bool m_reprioritization_enabled = true;
+        private double m_reprioritization_interval = 2000.0;
+        private double m_root_reprioritization_distance = 5.0;
+        private double m_child_reprioritization_distance = 10.0;
 
         private object m_deleting_scene_object = new object();
 
@@ -282,6 +297,12 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Properties
+
+        public UpdatePrioritizationSchemes UpdatePrioritizationScheme { get { return this.m_update_prioritization_scheme; } }
+        public bool IsReprioritizationEnabled { get { return m_reprioritization_enabled; } }
+        public double ReprioritizationInterval { get { return m_reprioritization_interval; } }
+        public double RootReprioritizationDistance { get { return m_root_reprioritization_distance; } }
+        public double ChildReprioritizationDistance { get { return m_child_reprioritization_distance; } }
 
         public AgentCircuitManager AuthenticateHandler
         {
@@ -327,12 +348,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_sceneGraph.m_syncRoot; }
         }
 
-        public int MaxPrimsPerFrame
-        {
-            get { return m_maxPrimsPerFrame; }
-            set { m_maxPrimsPerFrame = value; }
-        }
-
         /// <summary>
         /// This is for llGetRegionFPS
         /// </summary>
@@ -344,13 +359,6 @@ namespace OpenSim.Region.Framework.Scenes
         public string DefaultScriptEngine
         {
             get { return m_defaultScriptEngine; }
-        }
-
-        // Reference to all of the agents in the scene (root and child)
-        protected Dictionary<UUID, ScenePresence> m_scenePresences
-        {
-            get { return m_sceneGraph.ScenePresences; }
-            set { m_sceneGraph.ScenePresences = value; }
         }
 
         public EntityManager Entities
@@ -510,7 +518,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
 
-                m_maxPrimsPerFrame = startupConfig.GetInt("MaxPrimsPerFrame", 200);
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
                 {
@@ -519,6 +526,35 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_strictAccessControl = startupConfig.GetBoolean("StrictAccessControl", m_strictAccessControl);
+
+                IConfig interest_management_config = m_config.Configs["InterestManagement"];
+                if (interest_management_config != null)
+                {
+                    string update_prioritization_scheme = interest_management_config.GetString("UpdatePrioritizationScheme", "Time").Trim().ToLower();
+                    switch (update_prioritization_scheme)
+                    {
+                        case "time":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+                            break;
+                        case "distance":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Distance;
+                            break;
+                        case "simpleangulardistance":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.SimpleAngularDistance;
+                            break;
+                        default:
+                            m_log.Warn("[SCENE]: UpdatePrioritizationScheme was not recognized, setting to default settomg of Time");
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
+                            break;
+                    }
+
+                    m_reprioritization_enabled = interest_management_config.GetBoolean("ReprioritizationEnabled", true);
+                    m_reprioritization_interval = interest_management_config.GetDouble("ReprioritizationInterval", 5000.0);
+                    m_root_reprioritization_distance = interest_management_config.GetDouble("RootReprioritizationDistance", 10.0);
+                    m_child_reprioritization_distance = interest_management_config.GetDouble("ChildReprioritizationDistance", 20.0);
+                }
+
+                m_log.Info("[SCENE]: Using the " + m_update_prioritization_scheme + " prioritization scheme");
             }
             catch
             {
@@ -1144,14 +1180,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="stats">Stats on the Simulator's performance</param>
         private void SendSimStatsPackets(SimStats stats)
         {
-            List<ScenePresence> StatSendAgents = GetScenePresences();
-            foreach (ScenePresence agent in StatSendAgents)
-            {
-                if (!agent.IsChildAgent)
+            ForEachScenePresence(
+                delegate(ScenePresence agent)
                 {
-                    agent.ControllingClient.SendSimStats(stats);
+                    if (!agent.IsChildAgent)
+                        agent.ControllingClient.SendSimStats(stats);
                 }
-            }
+            );
         }
 
         /// <summary>
@@ -1197,15 +1232,6 @@ namespace OpenSim.Region.Framework.Scenes
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
-        }
-
-        /// <summary>
-        /// Perform delegate action on all clients subscribing to updates from this region.
-        /// </summary>
-        /// <returns></returns>
-        public void Broadcast(Action<IClientAPI> whatToDo)
-        {
-            ForEachScenePresence(delegate(ScenePresence presence) { whatToDo(presence.ControllingClient); });
         }
 
         /// <summary>
@@ -3054,17 +3080,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_eventManager.TriggerOnRemovePresence(agentID);
-                Broadcast(delegate(IClientAPI client)
-                          {
-                              try
-                              {
-                                  client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
-                              }
-                              catch (NullReferenceException)
-                              {
-                                  //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
-                              }
-                          });
+                ForEachClient(
+                    delegate(IClientAPI client)
+                    {
+                        //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
+                        try { client.SendKillObject(avatar.RegionHandle, avatar.LocalId); }
+                        catch (NullReferenceException) { }
+                    });
 
                 ForEachScenePresence(
                     delegate(ScenePresence presence) { presence.CoarseLocationChange(); });
@@ -3149,7 +3171,7 @@ namespace OpenSim.Region.Framework.Scenes
                         return;
                 }
             }
-            Broadcast(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
+            ForEachClient(delegate(IClientAPI client) { client.SendKillObject(m_regionHandle, localID); });
         }
 
         #endregion
@@ -3475,10 +3497,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence presence;
 
-            lock (m_scenePresences)
-            {
-                m_scenePresences.TryGetValue(agentID, out presence);
-            }
+            lock (m_sceneGraph.ScenePresences)
+                m_sceneGraph.ScenePresences.TryGetValue(agentID, out presence);
 
             if (presence != null)
             {
@@ -3688,12 +3708,9 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp = null;
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
-                    sp = m_scenePresences[remoteClient.AgentId];
-            }
+            ScenePresence sp;
+            lock (m_sceneGraph.ScenePresences)
+                m_sceneGraph.ScenePresences.TryGetValue(remoteClient.AgentId, out sp);
 
             if (sp != null)
             {
@@ -4142,7 +4159,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             // We don't want to try to send messages if there are no avatars.
-            if (m_scenePresences != null)
+            if (m_sceneGraph != null && m_sceneGraph.ScenePresences != null)
             {
                 try
                 {
@@ -4222,7 +4239,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            m_sceneGraph.ForEachClient(action);
+            ClientManager.ForEach(action);
         }
 
         public void ForEachSOG(Action<SceneObjectGroup> action)

@@ -1975,7 +1975,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override int GetHashCode()
             {
-                return Convert.ToInt32(value);
+                return value.GetHashCode();
             }
 
 

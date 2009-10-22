@@ -841,16 +841,6 @@ if (m_shape != null) {
                 return m_offsetPosition + m_groupPosition; }
         }
 
-        public UUID ObjectCreator
-        {
-            get { return _creatorID; }
-        }
-
-        public UUID ObjectOwner
-        {
-            get { return _ownerID; }
-        }
-
         public SceneObjectGroup ParentGroup
         {
             get { return m_parentGroup; }
@@ -1427,7 +1417,7 @@ if (m_shape != null) {
             // Move afterwards ResetIDs as it clears the localID
             dupe.LocalId = localID;
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe._lastOwnerID = ObjectOwner;
+            dupe._lastOwnerID = OwnerID;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
@@ -2388,10 +2378,10 @@ if (m_shape != null) {
                 //isattachment = ParentGroup.RootPart.IsAttachment;
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
+            remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
-                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius);
+                                               AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, ParentGroup.GetUpdatePriority(remoteClient)));
         }
 
         /// <summary>
@@ -3764,13 +3754,15 @@ if (m_shape != null) {
                 if (ParentGroup.RootPart == this)
                     lPos = AbsolutePosition;
             }
-
-            remoteClient.SendPrimTerseUpdate(m_regionHandle,
+            
+            // Causes this thread to dig into the Client Thread Data.
+            // Remember your locking here!
+            remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
                     (ushort)(m_parentGroup.GetTimeDilation() *
                     (float)ushort.MaxValue), LocalId, lPos,
-                    RotationOffset, Velocity,
+                    RotationOffset, Velocity, Acceleration,
                     RotationalVelocity, state, FromItemID,
-                    OwnerID, (int)AttachmentPoint);
+                    OwnerID, (int)AttachmentPoint, null, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 
         public void AddScriptLPS(int count)

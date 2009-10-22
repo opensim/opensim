@@ -30,24 +30,36 @@ using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Mono.Addins;
+using Nini.Config;
 using OpenSim;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.ApplicationPlugins.RegionModulesController
 {
-    public class RegionModulesControllerPlugin : IRegionModulesController, IApplicationPlugin
+    public class RegionModulesControllerPlugin : IRegionModulesController,
+            IApplicationPlugin
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // Logger
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenSimBase m_openSim; // for getting the config
+        // Config access
+        private OpenSimBase m_openSim;
 
+        // Our name
         private string m_name;
 
-        private List<Type> m_nonSharedModules = new List<Type>();
-        private List<Type> m_sharedModules = new List<Type>();
+        // Internal lists to collect information about modules present
+        private List<TypeExtensionNode> m_nonSharedModules =
+                new List<TypeExtensionNode>();
+        private List<TypeExtensionNode> m_sharedModules =
+                new List<TypeExtensionNode>();
 
-        private List<ISharedRegionModule> m_sharedInstances = new List<ISharedRegionModule>();
+        // List of shared module instances, for adding to Scenes
+        private List<ISharedRegionModule> m_sharedInstances =
+                new List<ISharedRegionModule>();
 
 #region IApplicationPlugin implementation
 
@@ -57,40 +69,136 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             m_openSim = openSim;
             openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
 
+            // Who we are
             string id = AddinManager.CurrentAddin.Id;
-            int pos = id.LastIndexOf(".");
-            if (pos == -1) m_name = id;
-            else m_name = id.Substring(pos + 1);
 
-            //ExtensionNodeList list = AddinManager.GetExtensionNodes("/OpenSim/RegionModules");
-            // load all the (new) region-module classes
-            foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
+            // Make friendly name
+            int pos = id.LastIndexOf(".");
+            if (pos == -1)
+                m_name = id;
+            else
+                m_name = id.Substring(pos + 1);
+
+            // The [Modules] section in the ini file
+            IConfig modulesConfig =
+                    openSim.ConfigSource.Source.Configs["Modules"];
+            if (modulesConfig == null)
+                modulesConfig = openSim.ConfigSource.Source.AddConfig("Modules");
+
+            // Scan modules and load all that aren't disabled
+            foreach (TypeExtensionNode node in
+                    AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
             {
-                // TODO why does node.Type.isSubclassOf(typeof(ISharedRegionModule)) not work?
                 if (node.Type.GetInterface(typeof(ISharedRegionModule).ToString()) != null)
                 {
+                    // Get the config string
+                    string moduleString =
+                            modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                    // We have a selector
+                    if (moduleString != String.Empty)
+                    {
+                        // Allow disabling modules even if they don't have
+                        // support for it
+                        if (moduleString == "disabled")
+                            continue;
+
+                        // Split off port, if present
+                        string[] moduleParts = moduleString.Split(new char[] {'/'}, 2);
+                        // Format is [port/][class]
+                        string className = moduleParts[0];
+                        if (moduleParts.Length > 1)
+                            className = moduleParts[1];
+
+                        // Match the class name if given
+                        if (className != String.Empty &&
+                                node.Type.ToString() != className)
+                            continue;
+                    }
+
                     m_log.DebugFormat("[REGIONMODULES]: Found shared region module {0}, class {1}", node.Id, node.Type);
-                    m_sharedModules.Add(node.Type);
+                    m_sharedModules.Add(node);
                 }
                 else if (node.Type.GetInterface(typeof(INonSharedRegionModule).ToString()) != null)
                 {
+                    // Get the config string
+                    string moduleString =
+                            modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                    // We have a selector
+                    if (moduleString != String.Empty)
+                    {
+                        // Allow disabling modules even if they don't have
+                        // support for it
+                        if (moduleString == "disabled")
+                            continue;
+
+                        // Split off port, if present
+                        string[] moduleParts = moduleString.Split(new char[] {'/'}, 2);
+                        // Format is [port/][class]
+                        string className = moduleParts[0];
+                        if (moduleParts.Length > 1)
+                            className = moduleParts[1];
+
+                        // Match the class name if given
+                        if (className != String.Empty &&
+                                node.Type.ToString() != className)
+                            continue;
+                    }
+
                     m_log.DebugFormat("[REGIONMODULES]: Found non-shared region module {0}, class {1}", node.Id, node.Type);
-                    m_nonSharedModules.Add(node.Type);
+                    m_nonSharedModules.Add(node);
                 }
                 else
                     m_log.DebugFormat("[REGIONMODULES]: Found unknown type of module {0}, class {1}", node.Id, node.Type);
             }
 
-            // now we've got all the region-module classes loaded, create one instance of every ISharedRegionModule,
-            // initialize and postinitialize it. This Initialise we are in is called before LoadRegion.PostInitialise
-            // is called (which loads the regions), so we don't have any regions in the server yet.
-            foreach (Type type in m_sharedModules)
+            // Load and init the module. We try a constructor with a port
+            // if a port was given, fall back to one without if there is
+            // no port or the more specific constructor fails.
+            // This will be removed, so that any module capable of using a port
+            // must provide a constructor with a port in the future.
+            // For now, we do this so migration is easy.
+            //
+            foreach (TypeExtensionNode node in m_sharedModules)
             {
-                ISharedRegionModule module = (ISharedRegionModule)Activator.CreateInstance(type);
+                Object[] ctorArgs = new Object[] {(uint)0};
+
+                // Read the config again
+                string moduleString =
+                        modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                // Get the port number, if there is one
+                if (moduleString != String.Empty)
+                {
+                    // Get the port number from the string
+                    string[] moduleParts = moduleString.Split(new char[] {'/'},
+                            2);
+                    if (moduleParts.Length > 1)
+                        ctorArgs[0] = Convert.ToUInt32(moduleParts[0]);
+                }
+
+                // Try loading and initilaizing the module, using the
+                // port if appropriate
+                ISharedRegionModule module = null;
+
+                try
+                {
+                    module = (ISharedRegionModule)Activator.CreateInstance(
+                            node.Type, ctorArgs);
+                }
+                catch
+                {
+                    module = (ISharedRegionModule)Activator.CreateInstance(
+                            node.Type);
+                }
+
+                // OK, we're up and running
                 m_sharedInstances.Add(module);
                 module.Initialise(openSim.ConfigSource.Source);
             }
 
+            // Immediately run PostInitialise on shared modules
             foreach (ISharedRegionModule module in m_sharedInstances)
             {
                 module.PostInitialise();
@@ -105,6 +213,8 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
 #region IPlugin implementation
 
+        // We don't do that here
+        //
         public void Initialise ()
         {
             throw new System.NotImplementedException();
@@ -114,9 +224,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
 #region IDisposable implementation
 
+        // Cleanup
+        //
         public void Dispose ()
         {
-            // we expect that all regions have been removed already
+            // We expect that all regions have been removed already
             while (m_sharedInstances.Count > 0)
             {
                 m_sharedInstances[0].Close();
@@ -147,6 +259,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
 #region IRegionModulesController implementation
 
+        // The root of all evil.
+        // This is where we handle adding the modules to scenes when they
+        // load. This means that here we deal with replaceable interfaces,
+        // nonshared modules, etc.
+        //
         public void AddRegionToModules (Scene scene)
         {
             Dictionary<Type, ISharedRegionModule> deferredSharedModules =
@@ -154,12 +271,26 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             Dictionary<Type, INonSharedRegionModule> deferredNonSharedModules =
                     new Dictionary<Type, INonSharedRegionModule>();
 
+            // We need this to see if a module has already been loaded and
+            // has defined a replaceable interface. It's a generic call,
+            // so this can't be used directly. It will be used later
             Type s = scene.GetType();
             MethodInfo mi = s.GetMethod("RequestModuleInterface");
 
-            List<ISharedRegionModule> sharedlist = new List<ISharedRegionModule>();
+            // This will hold the shared modules we actually load
+            List<ISharedRegionModule> sharedlist =
+                    new List<ISharedRegionModule>();
+
+            // Iterate over the shared modules that have been loaded
+            // Add them to the new Scene
             foreach (ISharedRegionModule module in m_sharedInstances)
             {
+                // Here is where we check if a replaceable interface
+                // is defined. If it is, the module is checked against
+                // the interfaces already defined. If the interface is
+                // defined, we simply skip the module. Else, if the module
+                // defines a replaceable interface, we add it to the deferred
+                // list.
                 Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
@@ -185,11 +316,41 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 sharedlist.Add(module);
             }
 
-            List<INonSharedRegionModule> list = new List<INonSharedRegionModule>();
-            foreach (Type type in m_nonSharedModules)
-            {
-                INonSharedRegionModule module = (INonSharedRegionModule)Activator.CreateInstance(type);
+            IConfig modulesConfig =
+                    m_openSim.ConfigSource.Source.Configs["Modules"];
 
+            // Scan for, and load, nonshared modules
+            List<INonSharedRegionModule> list = new List<INonSharedRegionModule>();
+            foreach (TypeExtensionNode node in m_nonSharedModules)
+            {
+                Object[] ctorArgs = new Object[] {0};
+
+                // Read the config
+                string moduleString =
+                        modulesConfig.GetString("Setup_" + node.Id, String.Empty);
+
+                // Get the port number, if there is one
+                if (moduleString != String.Empty)
+                {
+                    // Get the port number from the string
+                    string[] moduleParts = moduleString.Split(new char[] {'/'},
+                            2);
+                    if (moduleParts.Length > 1)
+                        ctorArgs[0] = Convert.ToUInt32(moduleParts[0]);
+                }
+
+                // Actually load it
+                INonSharedRegionModule module = null;
+                try
+                {
+                    module = (INonSharedRegionModule)Activator.CreateInstance(node.Type, ctorArgs);
+                }
+                catch
+                {
+                    module = (INonSharedRegionModule)Activator.CreateInstance(node.Type);
+                }
+
+                // Check for replaceable interfaces
                 Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
@@ -209,11 +370,16 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to non-shared module {1}",
                                   scene.RegionInfo.RegionName, module.Name);
 
+                // Initialise the module
                 module.Initialise(m_openSim.ConfigSource.Source);
 
                 list.Add(module);
             }
 
+            // Now add the modules that we found to the scene. If a module
+            // wishes to override a replaceable interface, it needs to
+            // register it in Initialise, so that the deferred module
+            // won't load.
             foreach (INonSharedRegionModule module in list)
             {
                 module.AddRegion(scene);
@@ -223,9 +389,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             // Now all modules without a replaceable base interface are loaded
             // Replaceable modules have either been skipped, or omitted.
             // Now scan the deferred modules here
-
             foreach (ISharedRegionModule module in deferredSharedModules.Values)
             {
+                // Determine if the interface has been replaced
                 Type replaceableInterface = module.ReplaceableInterface;
                 MethodInfo mii = mi.MakeGenericMethod(replaceableInterface);
 
@@ -238,15 +404,20 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 m_log.DebugFormat("[REGIONMODULE]: Adding scene {0} to shared module {1} (deferred)",
                                   scene.RegionInfo.RegionName, module.Name);
 
+                // Not replaced, load the module
                 module.AddRegion(scene);
                 scene.AddRegionModule(module.Name, module);
 
                 sharedlist.Add(module);
             }
 
-            List<INonSharedRegionModule> deferredlist = new List<INonSharedRegionModule>();
+            // Same thing for nonshared modules, load them unless overridden
+            List<INonSharedRegionModule> deferredlist =
+                    new List<INonSharedRegionModule>();
+
             foreach (INonSharedRegionModule module in deferredNonSharedModules.Values)
             {
+                // Check interface override
                 Type replaceableInterface = module.ReplaceableInterface;
                 if (replaceableInterface != null)
                 {
@@ -268,6 +439,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 deferredlist.Add(module);
             }
 
+            // Finally, load valid deferred modules
             foreach (INonSharedRegionModule module in deferredlist)
             {
                 module.AddRegion(scene);

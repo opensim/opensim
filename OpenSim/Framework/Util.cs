@@ -41,19 +41,36 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using Amib.Threading;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// The method used by Util.FireAndForget for asynchronously firing events
+    /// </summary>
+    public enum FireAndForgetMethod
+    {
+        UnsafeQueueUserWorkItem,
+        QueueUserWorkItem,
+        BeginInvoke,
+        SmartThreadPool,
+        Thread,
+    }
+
     /// <summary>
     /// Miscellaneous utility functions
     /// </summary>
     public class Util
     {
+        private static SmartThreadPool m_ThreadPool = null;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
@@ -69,7 +86,9 @@ namespace OpenSim.Framework
 
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
-        
+
+        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
+
         /// <summary>
         /// Linear interpolates B<->C using percent A
         /// </summary>
@@ -1269,24 +1288,78 @@ namespace OpenSim.Framework
 
         #region FireAndForget Threading Pattern
 
+        /// <summary>
+        /// Created to work around a limitation in Mono with nested delegates
+        /// </summary>
+        private class FireAndForgetWrapper
+        {
+            public void FireAndForget(System.Threading.WaitCallback callback)
+            {
+                callback.BeginInvoke(null, EndFireAndForget, callback);
+            }
+
+            public void FireAndForget(System.Threading.WaitCallback callback, object obj)
+            {
+                callback.BeginInvoke(obj, EndFireAndForget, callback);
+            }
+
+            private static void EndFireAndForget(IAsyncResult ar)
+            {
+                System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
+
+                try { callback.EndInvoke(ar); }
+                catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
+
+                ar.AsyncWaitHandle.Close();
+            }
+        }
+
         public static void FireAndForget(System.Threading.WaitCallback callback)
         {
-            callback.BeginInvoke(null, EndFireAndForget, callback);
+            FireAndForget(callback, null);
+        }
+
+        public static void SetMaxThreads(int maxThreads)
+        {
+            if (m_ThreadPool != null)
+                return;
+
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.IdleTimeout = 2000; // 2 seconds
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 2;
+            startInfo.StackSize = 524288;
+            startInfo.ThreadPriority = ThreadPriority.Normal;
+
+            startInfo.StartSuspended = false;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
-            callback.BeginInvoke(obj, EndFireAndForget, callback);
-        }
-
-        private static void EndFireAndForget(IAsyncResult ar)
-        {
-            System.Threading.WaitCallback callback = (System.Threading.WaitCallback)ar.AsyncState;
-
-            try { callback.EndInvoke(ar); }
-            catch (Exception ex) { m_log.Error("[UTIL]: Asynchronous method threw an exception: " + ex.Message, ex); }
-
-            ar.AsyncWaitHandle.Close();
+            switch (FireAndForgetMethod)
+            {
+                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
+                    System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    break;
+                case FireAndForgetMethod.QueueUserWorkItem:
+                    System.Threading.ThreadPool.QueueUserWorkItem(callback, obj);
+                    break;
+                case FireAndForgetMethod.BeginInvoke:
+                    FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
+                    wrapper.FireAndForget(callback, obj);
+                    break;
+                case FireAndForgetMethod.SmartThreadPool:
+                    m_ThreadPool.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
+                    break;
+                case FireAndForgetMethod.Thread:
+                    System.Threading.Thread thread = new System.Threading.Thread(delegate(object o) { callback(o); });
+                    thread.Start(obj);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         #endregion FireAndForget Threading Pattern

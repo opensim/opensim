@@ -259,7 +259,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                     if (e.InnerException != null)
                         m_log.Error("[MRM] " + e.InnerException);
 
-                    m_scene.Broadcast(delegate(IClientAPI user)
+                    m_scene.ForEachClient(delegate(IClientAPI user)
                     {
                         user.SendAlertMessage(
                             "MRM UnAuthorizedAccess: " + e);
@@ -268,7 +268,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 catch (Exception e)
                 {
                     m_log.Info("[MRM] Error: " + e);
-                    m_scene.Broadcast(delegate(IClientAPI user)
+                    m_scene.ForEachClient(delegate(IClientAPI user)
                                           {
                                               user.SendAlertMessage(
                                                   "Compile error while building MRM script, check OpenSim console for more information.");

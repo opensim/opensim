@@ -36,7 +36,7 @@ namespace OpenSim.Framework
     /// </summary>
     public static class Parallel
     {
-        private static readonly int processorCount = System.Environment.ProcessorCount;
+        public static readonly int ProcessorCount = System.Environment.ProcessorCount;
 
         /// <summary>
         /// Executes a for loop in which iterations may run in parallel
@@ -46,7 +46,7 @@ namespace OpenSim.Framework
         /// <param name="body">Method body to run for each iteration of the loop</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> body)
         {
-            For(processorCount, fromInclusive, toExclusive, body);
+            For(ProcessorCount, fromInclusive, toExclusive, body);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.QueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;
@@ -103,7 +103,7 @@ namespace OpenSim.Framework
         /// <param name="body">Method body to run for each object in the collection</param>
         public static void ForEach<T>(IEnumerable<T> enumerable, Action<T> body)
         {
-            ForEach<T>(processorCount, enumerable, body);
+            ForEach<T>(ProcessorCount, enumerable, body);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.QueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;
@@ -161,7 +161,7 @@ namespace OpenSim.Framework
         /// <param name="actions">A series of method bodies to execute</param>
         public static void Invoke(params Action[] actions)
         {
-            Invoke(processorCount, actions);
+            Invoke(ProcessorCount, actions);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
 
             for (int i = 0; i < threadCount; i++)
             {
-                ThreadPool.QueueUserWorkItem(
+                Util.FireAndForget(
                     delegate(object o)
                     {
                         int threadIndex = (int)o;

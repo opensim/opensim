@@ -31,6 +31,15 @@
 
     ; To run a script every few minutes, set the script filename here
     ; timer_Script = "filename"
+    
+    ; ##
+    ; ## SYSTEM
+    ; ##
+    
+    ; Sets the method that OpenSim will use to fire asynchronous
+    ; events. Valid values are UnsafeQueueUserWorkItem,
+    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread
+    ; async_call_method = SmartThreadPool
 
     ; ##
     ; ## CLIENTS
@@ -41,6 +50,9 @@
 
     ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
+
+    ; Max threads to allocate on the FireAndForget pool
+    MaxPoolThreads = 15
 
     ; ##
     ; ## REGIONS
@@ -258,12 +270,9 @@
     ; Inventory database provider
     inventory_plugin = "OpenSim.Data.SQLite.dll"
     ; inventory_plugin = "OpenSim.Data.MySQL.dll"
-    ; inventory_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
 
     ; Inventory source SQLite example
     inventory_source = "URI=file:inventoryStore.db,version=3"
-    ; Inventory Source NHibernate example (DIALECT;DRIVER;CONNECTSTRING)
-    ; inventory_source = "SQLiteDialect;SqliteClientDriver;URI=file:Inventory.db,version=3"
     ; Inventory Source MySQL example
     ;inventory_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
 
@@ -277,12 +286,9 @@
     ;
     userDatabase_plugin = "OpenSim.Data.SQLite.dll"
     ; userDatabase_plugin = "OpenSim.Data.MySQL.dll"
-    ; userDatabase_plugin = "OpenSim.Data.NHibernate.dll" ; for nhibernate
 
     ; User source SQLite example
     user_source = "URI=file:userprofiles.db,version=3"
-    ; User Source NHibernate Example (DIALECT;DRIVER;CONNECTSTRING)
-    ; user_source = "SQLiteDialect;SqliteClientDriver;URI=file:User.db,version=3"
     ; User Source MySQL example
     ;user_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
 
@@ -1384,6 +1390,14 @@
     ; each of the selected textures. Default is 5.
     ;
     ;TextureDataLimit = 5
+
+[InterestManagement]
+    ; This section controls how state updates are prioritized for each client
+    UpdatePrioritizationScheme = Distance
+    ReprioritizeUpdate = true
+    RootUpdateReprioritizationDistance = 10.0
+    ChildUpdateReprioritizationDistance = 20.0
+    ReprioritizeUpdatesInterval = 5000.0
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

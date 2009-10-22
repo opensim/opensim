@@ -871,12 +871,15 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (IScriptModule e in engines)
                     {
-                        string n = e.GetAssemblyName(item.ItemID);
-                        if (n != "")
+                        if (e != null)
                         {
-                            if (!ret.Contains(n))
-                                ret.Add(n);
-                            break;
+                            string n = e.GetAssemblyName(item.ItemID);
+                            if (n != String.Empty)
+                            {
+                                if (!ret.Contains(n))
+                                    ret.Add(n);
+                                break;
+                            }
                         }
                     }
                 }
@@ -898,12 +901,15 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (IScriptModule e in engines)
                     {
-                        string n = e.GetXMLState(item.ItemID);
-                        if (n != "")
+                        if (e != null)
                         {
-                            if (!ret.ContainsKey(item.ItemID))
-                                ret[item.ItemID] = n;
-                            break;
+                            string n = e.GetXMLState(item.ItemID);
+                            if (n != String.Empty)
+                            {
+                                if (!ret.ContainsKey(item.ItemID))
+                                    ret[item.ItemID] = n;
+                                break;
+                            }
                         }
                     }
                 }

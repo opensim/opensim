@@ -1095,7 +1095,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // The reason is so we don't cause the thread to freeze waiting
             // for the 1 second it costs to start a thread manually.
             if (!threadrunning)
-                ThreadPool.QueueUserWorkItem(new WaitCallback(this.StartThread));
+                Util.FireAndForget(this.StartThread);
 
             lock (m_rootAgents)
             {

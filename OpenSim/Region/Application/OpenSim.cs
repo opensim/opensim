@@ -67,6 +67,8 @@ namespace OpenSim
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
+            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 15));
+
             if (startupConfig != null)
             {
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");
@@ -90,10 +92,17 @@ namespace OpenSim
                             appender.File = fileName;
                             appender.ActivateOptions();
                         }
-                        m_log.InfoFormat("[LOGGING] Logging started to file {0}", appender.File);
+                        m_log.InfoFormat("[LOGGING]: Logging started to file {0}", appender.File);
                     }
                 }
+
+                string asyncCallMethodStr = startupConfig.GetString("async_call_method", String.Empty);
+                FireAndForgetMethod asyncCallMethod;
+                if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
+                    Util.FireAndForgetMethod = asyncCallMethod;
             }
+
+            m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
 
         /// <summary>
@@ -628,8 +637,20 @@ namespace OpenSim
                         break;
 
                     case "save":
-                        m_log.Info("Saving configuration file: " + Application.iniFilePath);
-                        m_config.Save(Application.iniFilePath);
+                        if (cmdparams.Length < 2)
+                        {
+                            m_log.Error("SYNTAX: " + n + " SAVE FILE");
+                            return;
+                        }
+
+                        if (Application.iniFilePath == cmdparams[1])
+                        {
+                            m_log.Error("FILE can not be "+Application.iniFilePath);
+                            return;
+                        }
+
+                        m_log.Info("Saving configuration file: " + cmdparams[1]);
+                        m_config.Save(cmdparams[1]);
                         break;
                 }
             }

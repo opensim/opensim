@@ -26,17 +26,36 @@
  */
 
 using OpenSim.Framework.Servers.HttpServer;
+using System.Collections.Generic;
 
 namespace OpenSim.Framework
 {
     public class MainServer
     {
         private static BaseHttpServer instance;
+        private static Dictionary<uint, BaseHttpServer> m_Servers =
+                new Dictionary<uint, BaseHttpServer>();
 
         public static BaseHttpServer Instance
         {
             get { return instance; }
             set { instance = value; }
+        }
+
+        public static IHttpServer GetHttpServer(uint port)
+        {
+            if (port == 0)
+                return Instance;
+            if (port == Instance.Port)
+                return Instance;
+
+            if (m_Servers.ContainsKey(port))
+                return m_Servers[port];
+
+            m_Servers[port] = new BaseHttpServer(port);
+            m_Servers[port].Start();
+
+            return m_Servers[port];
         }
     }
 }

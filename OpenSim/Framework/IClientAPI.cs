@@ -448,6 +448,10 @@ namespace OpenSim.Framework
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
+    public delegate void AgentFOV(IClientAPI client, float verticalAngle);
+
+    public delegate double UpdatePriorityHandler(UpdatePriorityData data);
+
     #endregion
 
     public struct DirPlacesReplyData
@@ -515,6 +519,232 @@ namespace OpenSim.Framework
         public UUID parcelID;
         public string name;
         public float dwell;
+    }
+
+    public struct SendAvatarData
+    {
+        public readonly ulong RegionHandle;
+        public readonly string FirstName;
+        public readonly string LastName;
+        public readonly string GroupTitle;
+        public readonly UUID AvatarID;
+        public readonly uint AvatarLocalID;
+        public readonly Vector3 Position;
+        public readonly byte[] TextureEntry;
+        public readonly uint ParentID;
+        public readonly Quaternion Rotation;
+
+        public SendAvatarData(ulong regionHandle, string firstName, string lastName, string groupTitle, UUID avatarID,
+            uint avatarLocalID, Vector3 position, byte[] textureEntry, uint parentID, Quaternion rotation)
+        {
+            RegionHandle = regionHandle;
+            FirstName = firstName;
+            LastName = lastName;
+            GroupTitle = groupTitle;
+            AvatarID = avatarID;
+            AvatarLocalID = avatarLocalID;
+            Position = position;
+            TextureEntry = textureEntry;
+            ParentID = parentID;
+            Rotation = rotation;
+        }
+    }
+
+    public struct SendAvatarTerseData
+    {
+        public readonly ulong RegionHandle;
+        public readonly ushort TimeDilation;
+        public readonly uint LocalID;
+        public readonly Vector3 Position;
+        public readonly Vector3 Velocity;
+        public readonly Vector3 Acceleration;
+        public readonly Quaternion Rotation;
+        public readonly Vector4 CollisionPlane;
+        public readonly UUID AgentID;
+        public readonly byte[] TextureEntry;
+        public readonly double Priority;
+
+        public SendAvatarTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position, Vector3 velocity,
+            Vector3 acceleration, Quaternion rotation, Vector4 collisionPlane, UUID agentid, byte[] textureEntry, double priority)
+        {
+            RegionHandle = regionHandle;
+            TimeDilation = timeDilation;
+            LocalID = localID;
+            Position = position;
+            Velocity = velocity;
+            Acceleration = acceleration;
+            Rotation = rotation;
+            CollisionPlane = collisionPlane;
+            AgentID = agentid;
+            TextureEntry = textureEntry;
+            Priority = priority;
+        }
+    }
+
+    public struct SendPrimitiveTerseData
+    {
+        public readonly ulong RegionHandle;
+        public readonly ushort TimeDilation;
+        public readonly uint LocalID;
+        public readonly Vector3 Position;
+        public readonly Quaternion Rotation;
+        public readonly Vector3 Velocity;
+        public readonly Vector3 Acceleration;
+        public readonly Vector3 AngularVelocity;
+        public readonly byte State;
+        public readonly UUID AssetID;
+        public readonly UUID OwnerID;
+        public readonly int AttachPoint;
+        public readonly byte[] TextureEntry;
+        public readonly double Priority;
+
+        public SendPrimitiveTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
+            Quaternion rotation, Vector3 velocity, Vector3 acceleration, Vector3 rotationalvelocity, byte state,
+            UUID assetID, UUID ownerID, int attachPoint, byte[] textureEntry, double priority)
+        {
+            RegionHandle = regionHandle;
+            TimeDilation = timeDilation;
+            LocalID = localID;
+            Position = position;
+            Rotation = rotation;
+            Velocity = velocity;
+            Acceleration = acceleration;
+            AngularVelocity = rotationalvelocity;
+            State = state;
+            AssetID = assetID;
+            OwnerID = ownerID;
+            AttachPoint = attachPoint;
+            TextureEntry = textureEntry;
+            Priority = priority;
+        }
+    }
+
+    public struct SendPrimitiveData
+    {
+        private ulong m_regionHandle;
+        private ushort m_timeDilation;
+        private uint m_localID;
+        private PrimitiveBaseShape m_primShape;
+        private Vector3 m_pos;
+        private Vector3 m_vel;
+        private Vector3 m_acc;
+        private Quaternion m_rotation;
+        private Vector3 m_rvel;
+        private PrimFlags m_flags;
+        private UUID m_objectID;
+        private UUID m_ownerID;
+        private string m_text;
+        private byte[] m_color;
+        private uint m_parentID;
+        private byte[] m_particleSystem;
+        private byte m_clickAction;
+        private byte m_material;
+        private byte[] m_textureanim;
+        private bool m_attachment;
+        private uint m_AttachPoint;
+        private UUID m_AssetId;
+        private UUID m_SoundId;
+        private double m_SoundVolume;
+        private byte m_SoundFlags;
+        private double m_SoundRadius;
+        private double m_priority;
+
+        public SendPrimitiveData(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
+                                   Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
+                                   uint flags, UUID objectID, UUID ownerID, string text, byte[] color,
+                                   uint parentID, byte[] particleSystem, byte clickAction, byte material, double priority) :
+            this(regionHandle, timeDilation, localID, primShape, pos, vel, acc, rotation, rvel, flags, objectID,
+            ownerID, text, color, parentID, particleSystem, clickAction, material, new byte[0], false, 0, UUID.Zero,
+            UUID.Zero, 0, 0, 0, priority) { }
+
+        public SendPrimitiveData(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
+                                   Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
+                                   uint flags,
+                                   UUID objectID, UUID ownerID, string text, byte[] color, uint parentID,
+                                   byte[] particleSystem,
+                                   byte clickAction, byte material, byte[] textureanim, bool attachment,
+                                   uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags,
+                                   double SoundRadius, double priority)
+        {
+            this.m_regionHandle = regionHandle;
+            this.m_timeDilation = timeDilation;
+            this.m_localID = localID;
+            this.m_primShape = primShape;
+            this.m_pos = pos;
+            this.m_vel = vel;
+            this.m_acc = acc;
+            this.m_rotation = rotation;
+            this.m_rvel = rvel;
+            this.m_flags = (PrimFlags)flags;
+            this.m_objectID = objectID;
+            this.m_ownerID = ownerID;
+            this.m_text = text;
+            this.m_color = color;
+            this.m_parentID = parentID;
+            this.m_particleSystem = particleSystem;
+            this.m_clickAction = clickAction;
+            this.m_material = material;
+            this.m_textureanim = textureanim;
+            this.m_attachment = attachment;
+            this.m_AttachPoint = AttachPoint;
+            this.m_AssetId = AssetId;
+            this.m_SoundId = SoundId;
+            this.m_SoundVolume = SoundVolume;
+            this.m_SoundFlags = SoundFlags;
+            this.m_SoundRadius = SoundRadius;
+            this.m_priority = priority;
+        }
+
+        public ulong regionHandle { get { return this.m_regionHandle; } }
+        public ushort timeDilation { get { return this.m_timeDilation; } }
+        public uint localID { get { return this.m_localID; } }
+        public PrimitiveBaseShape primShape { get { return this.m_primShape; } }
+        public Vector3 pos { get { return this.m_pos; } }
+        public Vector3 vel { get { return this.m_vel; } }
+        public Vector3 acc { get { return this.m_acc; } }
+        public Quaternion rotation { get { return this.m_rotation; } }
+        public Vector3 rvel { get { return this.m_rvel; } }
+        public PrimFlags flags { get { return this.m_flags; } }
+        public UUID objectID { get { return this.m_objectID; } }
+        public UUID ownerID { get { return this.m_ownerID; } }
+        public string text { get { return this.m_text; } }
+        public byte[] color { get { return this.m_color; } }
+        public uint parentID { get { return this.m_parentID; } }
+        public byte[] particleSystem { get { return this.m_particleSystem; } }
+        public byte clickAction { get { return this.m_clickAction; } }
+        public byte material { get { return this.m_material; } }
+        public byte[] textureanim { get { return this.m_textureanim; } }
+        public bool attachment { get { return this.m_attachment; } }
+        public uint AttachPoint { get { return this.m_AttachPoint; } }
+        public UUID AssetId { get { return this.m_AssetId; } }
+        public UUID SoundId { get { return this.m_SoundId; } }
+        public double SoundVolume { get { return this.m_SoundVolume; } }
+        public byte SoundFlags { get { return this.m_SoundFlags; } }
+        public double SoundRadius { get { return this.m_SoundRadius; } }
+        public double priority { get { return this.m_priority; } }
+    }
+
+    public struct UpdatePriorityData {
+        private double m_priority;
+        private uint m_localID;
+
+        public UpdatePriorityData(double priority, uint localID) {
+            this.m_priority = priority;
+            this.m_localID = localID;
+        }
+
+        public double priority { get { return this.m_priority; } }
+        public uint localID { get { return this.m_localID; } }
+    }
+
+    [Flags]
+    public enum StateUpdateTypes
+    {
+        None = 0,
+        AvatarTerse = 1,
+        PrimitiveTerse = AvatarTerse << 1,
+        PrimitiveFull = PrimitiveTerse << 1,
+        All = AvatarTerse | PrimitiveTerse | PrimitiveFull,
     }
 
     public interface IClientAPI
@@ -878,37 +1108,20 @@ namespace OpenSim.Framework
         void SendMoneyBalance(UUID transaction, bool success, byte[] description, int balance);
         void SendPayPrice(UUID objectID, int[] payPrice);
 
-        void SendAvatarData(ulong regionHandle, string firstName, string lastName, string grouptitle, UUID avatarID,
-                            uint avatarLocalID,
-                            Vector3 Pos, byte[] textureEntry, uint parentID, Quaternion rotation);
+        void SendAvatarData(SendAvatarData data);
 
-        void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                   Vector3 velocity, Quaternion rotation, UUID agentid);
+        void SendAvatarTerseUpdate(SendAvatarTerseData data);
 
         void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations);
 
         void AttachObject(uint localID, Quaternion rotation, byte attachPoint, UUID ownerID);
         void SetChildAgentThrottle(byte[] throttle);
 
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
-                                   Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
-                                   uint flags,
-                                   UUID objectID, UUID ownerID, string text, byte[] color, uint parentID,
-                                   byte[] particleSystem,
-                                   byte clickAction, byte material, byte[] textureanim, bool attachment,
-                                   uint AttachPoint, UUID AssetId, UUID SoundId, double SoundVolume, byte SoundFlags,
-                                   double SoundRadius);
+        void SendPrimitiveToClient(SendPrimitiveData data);
 
+        void SendPrimTerseUpdate(SendPrimitiveTerseData data);
 
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
-                                   Vector3 pos, Vector3 vel, Vector3 acc, Quaternion rotation, Vector3 rvel,
-                                   uint flags, UUID objectID, UUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, byte clickAction, byte material);
-
-
-        void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-                                 Quaternion rotation, Vector3 velocity, Vector3 rotationalvelocity, byte state,
-                                 UUID AssetId, UUID owner, int attachPoint);
+        void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
                                         List<InventoryFolderBase> folders, bool fetchFolders,

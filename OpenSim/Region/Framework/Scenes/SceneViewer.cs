@@ -45,14 +45,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected Dictionary<UUID, ScenePartUpdate> m_updateTimes = new Dictionary<UUID, ScenePartUpdate>();
 
-        protected int m_maxPrimsPerFrame = 200;
-
-        public int MaxPrimsPerFrame
-        {
-            get { return m_maxPrimsPerFrame; }
-            set { m_maxPrimsPerFrame = value; }
-        }
-
         public SceneViewer()
         {
         }
@@ -82,16 +74,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_pendingObjects = new Queue<SceneObjectGroup>();
 
-                    List<EntityBase> ents = new List<EntityBase>(m_presence.Scene.Entities);
-                    if (!m_presence.IsChildAgent) // Proximity sort makes no sense for
-                    {                    // Child agents
-                        ents.Sort(delegate(EntityBase a, EntityBase b)
-                        {
-                            return Vector3.Distance(m_presence.AbsolutePosition, a.AbsolutePosition).CompareTo(Vector3.Distance(m_presence.AbsolutePosition, b.AbsolutePosition));
-                        });
-                    }
-                  
-                    foreach (EntityBase e in ents)
+                    foreach (EntityBase e in m_presence.Scene.Entities)
                     {
                         if (e is SceneObjectGroup)
                             m_pendingObjects.Enqueue((SceneObjectGroup)e);
@@ -99,7 +82,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            while (m_pendingObjects != null && m_pendingObjects.Count > 0 && m_partsUpdateQueue.Count < m_maxPrimsPerFrame)
+            while (m_pendingObjects != null && m_pendingObjects.Count > 0)
             {
                 SceneObjectGroup g = m_pendingObjects.Dequeue();
 
@@ -183,8 +166,6 @@ namespace OpenSim.Region.Framework.Scenes
                             m_presence.GenerateClientFlags(part.UUID));
                 }
             }
-
-            m_presence.ControllingClient.FlushPrimUpdates();
         }
 
         public void Reset()

@@ -756,7 +756,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void sendRegionHandshakeToAll()
         {
-            m_scene.Broadcast(sendRegionHandshake);
+            m_scene.ForEachClient(sendRegionHandshake);
         }
 
         public void handleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)

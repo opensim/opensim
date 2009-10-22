@@ -467,7 +467,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
         {
             // If we can't take it, we can't attach it!
-            //
             SceneObjectPart part = m_parentScene.GetSceneObjectPart(objectLocalID);
             if (part == null)
                 return;
@@ -477,9 +476,16 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Calls attach with a Zero position
-            //
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
             m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
+
+            // Save avatar attachment information
+            ScenePresence presence;
+            if (m_parentScene.AvatarFactory != null && m_parentScene.TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", AttachmentPoint: " + AttachmentPt);
+                m_parentScene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+            }
         }
 
         public SceneObjectGroup RezSingleAttachment(
@@ -574,7 +580,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
 
-                    group.SetAttachmentPoint(Convert.ToByte(AttachmentPt));
+                    group.SetAttachmentPoint((byte)AttachmentPt);
                     group.AbsolutePosition = attachPos;
 
                     // Saves and gets itemID
@@ -613,7 +619,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
             newAvatar.IsChildAgent = true;
-            newAvatar.MaxPrimsPerFrame = m_parentScene.MaxPrimsPerFrame;
 
             AddScenePresence(newAvatar);
 
@@ -847,7 +852,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="localID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(uint localID)
+        public SceneObjectGroup GetGroupByPrim(uint localID)
         {
             if (Entities.ContainsKey(localID))
                 return Entities[localID] as SceneObjectGroup;
@@ -1105,23 +1110,6 @@ namespace OpenSim.Region.Framework.Scenes
                 return group.GetPartsFullID(localID);
             else
                 return UUID.Zero;
-        }
-
-        protected internal void ForEachClient(Action<IClientAPI> action)
-        {
-            List<ScenePresence> splist = GetScenePresences();
-            foreach (ScenePresence presence in splist)
-            {
-                try
-                {
-                    action(presence.ControllingClient);
-                }
-                catch (Exception e)
-                {
-                    // Catch it and move on. This includes situations where splist has inconsistent info
-                    m_log.WarnFormat("[SCENE]: Problem processing action in ForEachClient: ", e.Message);
-                }
-            }
         }
 
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)

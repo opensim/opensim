@@ -155,14 +155,6 @@ namespace OpenSim.Region.CoreModules.Asset
         private int m_hitCount;
 
         /// <summary>
-        /// Initialize asset cache module with default parameters.
-        /// </summary>
-        public void Initialize()
-        {
-            Initialize(DefaultMaxSize, DefaultMaxCount, DefaultExpirationTime);
-        }
-
-        /// <summary>
         /// Initialize asset cache module, with custom parameters.
         /// </summary>
         /// <param name="maximalSize">
@@ -174,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// <param name="expirationTime">
         /// Asset's expiration time.
         /// </param>
-        public void Initialize(long maximalSize, int maximalCount, TimeSpan expirationTime)
+        protected void Initialize(long maximalSize, int maximalCount, TimeSpan expirationTime)
         {
             if (maximalSize <= 0 || maximalCount <= 0)
             {

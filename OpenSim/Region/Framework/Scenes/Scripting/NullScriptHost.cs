@@ -68,12 +68,12 @@ namespace OpenSim.Region.Framework.Scenes.Scripting
             get { return UUID.Zero; }
         }
 
-        public UUID ObjectOwner
+        public UUID OwnerID
         {
             get { return UUID.Zero; }
         }
 
-        public UUID ObjectCreator
+        public UUID CreatorID
         {
             get { return UUID.Zero; }
         }

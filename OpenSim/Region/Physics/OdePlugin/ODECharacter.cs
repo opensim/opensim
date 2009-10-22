@@ -139,8 +139,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
+        // unique UUID of this character object
+        public UUID m_uuid;
+        public bool bad = false;
+
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
+            m_uuid = UUID.Random();
+
             // ode = dode;
             _velocity = new PhysicsVector();
             _target_velocity = new PhysicsVector();
@@ -223,11 +229,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override uint LocalID
         {
             set { m_localID = value; }
-        }
-
-        public override int GetHashCode()
-        {
-            return (int)m_localID;
         }
 
         public override bool Grabbed
@@ -1112,10 +1113,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (NullReferenceException)
             {
+                bad = true;
                 _parent_scene.BadCharacter(this);
                 vec = new d.Vector3(_position.X, _position.Y, _position.Z);
                 base.RaiseOutOfBounds(_position); // Tells ScenePresence that there's a problem!
-                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar: {0}", m_name);
+                m_log.WarnFormat("[ODEPLUGIN]: Avatar Null reference for Avatar {0}, physical actor {1}", m_name, m_uuid);
             }
             
 

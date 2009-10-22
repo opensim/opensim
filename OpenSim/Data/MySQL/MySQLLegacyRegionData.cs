@@ -68,12 +68,20 @@ namespace OpenSim.Data.MySQL
 
             // Clean dropped attachments
             //
-            MySqlCommand cmd = m_Connection.CreateCommand();
-            cmd.CommandText = "delete from prims, primshapes using prims " +
-                    "left join primshapes on prims.uuid = primshapes.uuid " +
-                    "where PCode = 9 and State <> 0";
-            ExecuteNonQuery(cmd);
-            cmd.Dispose();
+            try
+            {
+                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                {
+                    cmd.CommandText = "delete from prims, primshapes using prims " +
+                            "left join primshapes on prims.uuid = primshapes.uuid " +
+                            "where PCode = 9 and State <> 0";
+                    ExecuteNonQuery(cmd);
+                }
+            }
+            catch (MySqlException ex)
+            {
+                m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
+            }
         }
 
         private IDataReader ExecuteReader(MySqlCommand c)
@@ -395,25 +403,23 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
+        public List<SceneObjectGroup> LoadObjects(UUID regionID)
         {
-            UUID lastGroupID = UUID.Zero;
+            const int ROWS_PER_QUERY = 5000;
+
+            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>(ROWS_PER_QUERY);
             Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
-            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
-            SceneObjectGroup grp = null;
+            int count = 0;
+
+            #region Prim Loading
 
             lock (m_Connection)
             {
                 using (MySqlCommand cmd = m_Connection.CreateCommand())
                 {
-                    cmd.CommandText = "select *, " +
-                        "case when prims.UUID = SceneGroupID " +
-                        "then 0 else 1 end as sort from prims " +
-                        "left join primshapes on prims.UUID = primshapes.UUID " +
-                        "where RegionUUID = ?RegionUUID " +
-                        "order by SceneGroupID asc, sort asc, LinkNumber asc";
-
-                    cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
+                    cmd.CommandText =
+                        "SELECT * FROM prims LEFT JOIN primshapes ON prims.UUID = primshapes.UUID WHERE RegionUUID = ?RegionUUID";
+                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
                     using (IDataReader reader = ExecuteReader(cmd))
                     {
@@ -425,51 +431,60 @@ namespace OpenSim.Data.MySQL
                             else
                                 prim.Shape = BuildShape(reader);
 
+                            UUID parentID = new UUID(reader["SceneGroupID"].ToString());
+                            if (parentID != prim.UUID)
+                                prim.ParentUUID = parentID;
+
                             prims[prim.UUID] = prim;
 
-                            UUID groupID = new UUID(reader["SceneGroupID"].ToString());
-
-                            if (groupID != lastGroupID) // New SOG
-                            {
-                                if (grp != null)
-                                    objects[grp.UUID] = grp;
-
-                                lastGroupID = groupID;
-
-                                // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
-                                // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
-                                // this case, force the UUID to be the same as the group UUID so that at least these can be
-                                // deleted (we need to change the UUID so that any other prims in the linkset can also be 
-                                // deleted).
-                                if (prim.UUID != groupID && groupID != UUID.Zero)
-                                {
-                                    m_log.WarnFormat(
-                                        "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID",
-                                        prim.Name, prim.UUID, prim.GroupPosition, groupID);
-
-                                    prim.UUID = groupID;
-                                }
-
-                                grp = new SceneObjectGroup(prim);
-                            }
-                            else
-                            {
-                                // Black magic to preserve link numbers
-                                //
-                                int link = prim.LinkNum;
-
-                                grp.AddPart(prim);
-
-                                if (link != 0)
-                                    prim.LinkNum = link;
-                            }
+                            ++count;
+                            if (count % ROWS_PER_QUERY == 0)
+                                m_log.Debug("[REGION DB]: Loaded " + count + " prims...");
                         }
                     }
-
-                    if (grp != null)
-                        objects[grp.UUID] = grp;
                 }
             }
+
+            #endregion Prim Loading
+
+            #region SceneObjectGroup Creation
+
+            // Create all of the SOGs from the root prims first
+            foreach (SceneObjectPart prim in prims.Values)
+            {
+                if (prim.ParentUUID == UUID.Zero)
+                    objects[prim.UUID] = new SceneObjectGroup(prim);
+            }
+
+            // Add all of the children objects to the SOGs
+            foreach (SceneObjectPart prim in prims.Values)
+            {
+                SceneObjectGroup sog;
+                if (prim.UUID != prim.ParentUUID)
+                {
+                    if (objects.TryGetValue(prim.ParentUUID, out sog))
+                    {
+                        int originalLinkNum = prim.LinkNum;
+
+                        sog.AddPart(prim);
+
+                        // SceneObjectGroup.AddPart() tries to be smart and automatically set the LinkNum.
+                        // We override that here
+                        if (originalLinkNum != 0)
+                            prim.LinkNum = originalLinkNum;
+                    }
+                    else
+                    {
+                        m_log.Warn("[REGION DB]: Database contains an orphan child prim " + prim.UUID + " pointing to missing parent " + prim.ParentUUID);
+                    }
+                }
+            }
+
+            #endregion SceneObjectGroup Creation
+
+            m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
+
+            #region Prim Inventory Loading
 
             // Instead of attempting to LoadItems on every prim,
             // most of which probably have no items... get a 
@@ -480,7 +495,7 @@ namespace OpenSim.Data.MySQL
             {
                 using (MySqlCommand itemCmd = m_Connection.CreateCommand())
                 {
-                    itemCmd.CommandText = "select distinct primID from primitems";
+                    itemCmd.CommandText = "SELECT DISTINCT primID FROM primitems";
                     using (IDataReader itemReader = ExecuteReader(itemCmd))
                     {
                         while (itemReader.Read())
@@ -489,9 +504,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 UUID primID = new UUID(itemReader["primID"].ToString());
                                 if (prims.ContainsKey(primID))
-                                {
                                     primsWithInventory.Add(prims[primID]);
-                                }
                             }
                         }
                     }
@@ -499,9 +512,14 @@ namespace OpenSim.Data.MySQL
             }
 
             foreach (SceneObjectPart prim in primsWithInventory)
+            {
                 LoadItems(prim);
+            }
 
-            m_log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
+            #endregion Prim Inventory Loading
+
+            m_log.DebugFormat("[REGION DB]: Loaded inventory from {0} objects", primsWithInventory.Count);
+
             return new List<SceneObjectGroup>(objects.Values);
         }
 
@@ -798,137 +816,137 @@ namespace OpenSim.Data.MySQL
         private SceneObjectPart BuildPrim(IDataReader row)
         {
             SceneObjectPart prim = new SceneObjectPart();
-            prim.UUID = new UUID((String) row["UUID"]);
+            prim.UUID = new UUID((string)row["UUID"]);
             // explicit conversion of integers is required, which sort
             // of sucks.  No idea if there is a shortcut here or not.
-            prim.CreationDate = Convert.ToInt32(row["CreationDate"]);
+            prim.CreationDate = (int)row["CreationDate"];
             if (row["Name"] != DBNull.Value)
-                prim.Name = (String)row["Name"];
+                prim.Name = (string)row["Name"];
             else
-                prim.Name = string.Empty;
-            // various text fields
-            prim.Text = (String) row["Text"];
-            prim.Color = Color.FromArgb(Convert.ToInt32(row["ColorA"]),
-                                        Convert.ToInt32(row["ColorR"]),
-                                        Convert.ToInt32(row["ColorG"]),
-                                        Convert.ToInt32(row["ColorB"]));
-            prim.Description = (String) row["Description"];
-            prim.SitName = (String) row["SitName"];
-            prim.TouchName = (String) row["TouchName"];
-            // permissions
-            prim.ObjectFlags = Convert.ToUInt32(row["ObjectFlags"]);
-            prim.CreatorID = new UUID((String) row["CreatorID"]);
-            prim.OwnerID = new UUID((String) row["OwnerID"]);
-            prim.GroupID = new UUID((String) row["GroupID"]);
-            prim.LastOwnerID = new UUID((String) row["LastOwnerID"]);
-            prim.OwnerMask = Convert.ToUInt32(row["OwnerMask"]);
-            prim.NextOwnerMask = Convert.ToUInt32(row["NextOwnerMask"]);
-            prim.GroupMask = Convert.ToUInt32(row["GroupMask"]);
-            prim.EveryoneMask = Convert.ToUInt32(row["EveryoneMask"]);
-            prim.BaseMask = Convert.ToUInt32(row["BaseMask"]);
-            // vectors
+                prim.Name = String.Empty;
+            // Various text fields
+            prim.Text = (string)row["Text"];
+            prim.Color = Color.FromArgb((int)row["ColorA"],
+                                        (int)row["ColorR"],
+                                        (int)row["ColorG"],
+                                        (int)row["ColorB"]);
+            prim.Description = (string)row["Description"];
+            prim.SitName = (string)row["SitName"];
+            prim.TouchName = (string)row["TouchName"];
+            // Permissions
+            prim.ObjectFlags = (uint)(int)row["ObjectFlags"];
+            prim.CreatorID = new UUID((string)row["CreatorID"]);
+            prim.OwnerID = new UUID((string)row["OwnerID"]);
+            prim.GroupID = new UUID((string)row["GroupID"]);
+            prim.LastOwnerID = new UUID((string)row["LastOwnerID"]);
+            prim.OwnerMask = (uint)(int)row["OwnerMask"];
+            prim.NextOwnerMask = (uint)(int)row["NextOwnerMask"];
+            prim.GroupMask = (uint)(int)row["GroupMask"];
+            prim.EveryoneMask = (uint)(int)row["EveryoneMask"];
+            prim.BaseMask = (uint)(int)row["BaseMask"];
+            // Vectors
             prim.OffsetPosition = new Vector3(
-                Convert.ToSingle(row["PositionX"]),
-                Convert.ToSingle(row["PositionY"]),
-                Convert.ToSingle(row["PositionZ"])
+                (float)(double)row["PositionX"],
+                (float)(double)row["PositionY"],
+                (float)(double)row["PositionZ"]
                 );
             prim.GroupPosition = new Vector3(
-                Convert.ToSingle(row["GroupPositionX"]),
-                Convert.ToSingle(row["GroupPositionY"]),
-                Convert.ToSingle(row["GroupPositionZ"])
+                (float)(double)row["GroupPositionX"],
+                (float)(double)row["GroupPositionY"],
+                (float)(double)row["GroupPositionZ"]
                 );
             prim.Velocity = new Vector3(
-                Convert.ToSingle(row["VelocityX"]),
-                Convert.ToSingle(row["VelocityY"]),
-                Convert.ToSingle(row["VelocityZ"])
+                (float)(double)row["VelocityX"],
+                (float)(double)row["VelocityY"],
+                (float)(double)row["VelocityZ"]
                 );
             prim.AngularVelocity = new Vector3(
-                Convert.ToSingle(row["AngularVelocityX"]),
-                Convert.ToSingle(row["AngularVelocityY"]),
-                Convert.ToSingle(row["AngularVelocityZ"])
+                (float)(double)row["AngularVelocityX"],
+                (float)(double)row["AngularVelocityY"],
+                (float)(double)row["AngularVelocityZ"]
                 );
             prim.Acceleration = new Vector3(
-                Convert.ToSingle(row["AccelerationX"]),
-                Convert.ToSingle(row["AccelerationY"]),
-                Convert.ToSingle(row["AccelerationZ"])
+                (float)(double)row["AccelerationX"],
+                (float)(double)row["AccelerationY"],
+                (float)(double)row["AccelerationZ"]
                 );
             // quaternions
             prim.RotationOffset = new Quaternion(
-                Convert.ToSingle(row["RotationX"]),
-                Convert.ToSingle(row["RotationY"]),
-                Convert.ToSingle(row["RotationZ"]),
-                Convert.ToSingle(row["RotationW"])
+                (float)(double)row["RotationX"],
+                (float)(double)row["RotationY"],
+                (float)(double)row["RotationZ"],
+                (float)(double)row["RotationW"]
                 );
             prim.SitTargetPositionLL = new Vector3(
-                Convert.ToSingle(row["SitTargetOffsetX"]),
-                Convert.ToSingle(row["SitTargetOffsetY"]),
-                Convert.ToSingle(row["SitTargetOffsetZ"])
+                (float)(double)row["SitTargetOffsetX"],
+                (float)(double)row["SitTargetOffsetY"],
+                (float)(double)row["SitTargetOffsetZ"]
                 );
             prim.SitTargetOrientationLL = new Quaternion(
-                Convert.ToSingle(row["SitTargetOrientX"]),
-                Convert.ToSingle(row["SitTargetOrientY"]),
-                Convert.ToSingle(row["SitTargetOrientZ"]),
-                Convert.ToSingle(row["SitTargetOrientW"])
+                (float)(double)row["SitTargetOrientX"],
+                (float)(double)row["SitTargetOrientY"],
+                (float)(double)row["SitTargetOrientZ"],
+                (float)(double)row["SitTargetOrientW"]
                 );
 
-            prim.PayPrice[0] = Convert.ToInt32(row["PayPrice"]);
-            prim.PayPrice[1] = Convert.ToInt32(row["PayButton1"]);
-            prim.PayPrice[2] = Convert.ToInt32(row["PayButton2"]);
-            prim.PayPrice[3] = Convert.ToInt32(row["PayButton3"]);
-            prim.PayPrice[4] = Convert.ToInt32(row["PayButton4"]);
+            prim.PayPrice[0] = (int)row["PayPrice"];
+            prim.PayPrice[1] = (int)row["PayButton1"];
+            prim.PayPrice[2] = (int)row["PayButton2"];
+            prim.PayPrice[3] = (int)row["PayButton3"];
+            prim.PayPrice[4] = (int)row["PayButton4"];
 
             prim.Sound = new UUID(row["LoopedSound"].ToString());
-            prim.SoundGain = Convert.ToSingle(row["LoopedSoundGain"]);
+            prim.SoundGain = (float)(double)row["LoopedSoundGain"];
             prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
             if (!(row["TextureAnimation"] is DBNull))
-                prim.TextureAnimation = (Byte[])row["TextureAnimation"];
+                prim.TextureAnimation = (byte[])row["TextureAnimation"];
             if (!(row["ParticleSystem"] is DBNull))
-                prim.ParticleSystem = (Byte[])row["ParticleSystem"];
+                prim.ParticleSystem = (byte[])row["ParticleSystem"];
 
             prim.RotationalVelocity = new Vector3(
-                Convert.ToSingle(row["OmegaX"]),
-                Convert.ToSingle(row["OmegaY"]),
-                Convert.ToSingle(row["OmegaZ"])
+                (float)(double)row["OmegaX"],
+                (float)(double)row["OmegaY"],
+                (float)(double)row["OmegaZ"]
                 );
 
             prim.SetCameraEyeOffset(new Vector3(
-                Convert.ToSingle(row["CameraEyeOffsetX"]),
-                Convert.ToSingle(row["CameraEyeOffsetY"]),
-                Convert.ToSingle(row["CameraEyeOffsetZ"])
+                (float)(double)row["CameraEyeOffsetX"],
+                (float)(double)row["CameraEyeOffsetY"],
+                (float)(double)row["CameraEyeOffsetZ"]
                 ));
 
             prim.SetCameraAtOffset(new Vector3(
-                Convert.ToSingle(row["CameraAtOffsetX"]),
-                Convert.ToSingle(row["CameraAtOffsetY"]),
-                Convert.ToSingle(row["CameraAtOffsetZ"])
+                (float)(double)row["CameraAtOffsetX"],
+                (float)(double)row["CameraAtOffsetY"],
+                (float)(double)row["CameraAtOffsetZ"]
                 ));
 
-            if (Convert.ToInt16(row["ForceMouselook"]) != 0)
+            if ((sbyte)row["ForceMouselook"] != 0)
                 prim.SetForceMouselook(true);
 
-            prim.ScriptAccessPin = Convert.ToInt32(row["ScriptAccessPin"]);
+            prim.ScriptAccessPin = (int)row["ScriptAccessPin"];
 
-            if (Convert.ToInt16(row["AllowedDrop"]) != 0)
+            if ((sbyte)row["AllowedDrop"] != 0)
                 prim.AllowedDrop = true;
 
-            if (Convert.ToInt16(row["DieAtEdge"]) != 0)
+            if ((sbyte)row["DieAtEdge"] != 0)
                 prim.DIE_AT_EDGE = true;
 
-            prim.SalePrice = Convert.ToInt32(row["SalePrice"]);
-            prim.ObjectSaleType = unchecked((byte)Convert.ToSByte(row["SaleType"]));
+            prim.SalePrice = (int)row["SalePrice"];
+            prim.ObjectSaleType = unchecked((byte)(sbyte)row["SaleType"]);
 
-            prim.Material = unchecked((byte)Convert.ToSByte(row["Material"]));
+            prim.Material = unchecked((byte)(sbyte)row["Material"]);
 
             if (!(row["ClickAction"] is DBNull))
-                prim.ClickAction = unchecked((byte)Convert.ToSByte(row["ClickAction"]));
+                prim.ClickAction = unchecked((byte)(sbyte)row["ClickAction"]);
 
             prim.CollisionSound = new UUID(row["CollisionSound"].ToString());
-            prim.CollisionSoundVolume = Convert.ToSingle(row["CollisionSoundVolume"]);
+            prim.CollisionSoundVolume = (float)(double)row["CollisionSoundVolume"];
             
-            if (Convert.ToInt16(row["PassTouches"]) != 0)
+            if ((sbyte)row["PassTouches"] != 0)
                 prim.PassTouches = true;
-            prim.LinkNum = Convert.ToInt32(row["LinkNumber"]);
+            prim.LinkNum = (int)row["LinkNumber"];
 
             return prim;
         }

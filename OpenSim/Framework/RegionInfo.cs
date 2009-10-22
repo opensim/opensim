@@ -821,7 +821,7 @@ namespace OpenSim.Framework
                                                 "Scope ID for this region", ScopeID.ToString(), true);
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Region Type", String.Empty, true);
+                                                "Free form string describing the type of region", String.Empty, true);
         }
 
         public void loadConfigurationOptions()
@@ -978,10 +978,11 @@ namespace OpenSim.Framework
 
         public void SaveLastMapUUID(UUID mapUUID)
         {
-            if (null == configMember) return;
-
             lastMapUUID = mapUUID;
             lastMapRefresh = Util.UnixTimeSinceEpoch().ToString();
+
+            if (configMember == null)
+                return;
 
             configMember.forceSetConfigurationOption("lastmap_uuid", mapUUID.ToString());
             configMember.forceSetConfigurationOption("lastmap_refresh", lastMapRefresh);
