@@ -2417,7 +2417,7 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Z -= m_appearance.HipOffset;
 
                 remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
-                    pos, m_velocity, Vector3.Zero, m_rotation, Vector4.Zero, m_uuid, null, GetUpdatePriority(remoteClient)));
+                    pos, m_velocity, Vector3.Zero, m_bodyRot, Vector4.UnitW, m_uuid, null, GetUpdatePriority(remoteClient)));
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
@@ -2522,7 +2522,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             remoteAvatar.m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, pos, m_appearance.Texture.GetBytes(),
-                                                            m_parentID, m_rotation));
+                                                            m_parentID, m_bodyRot));
             m_scene.StatsReporter.AddAgentUpdates(1);
         }
 
@@ -2585,14 +2585,11 @@ namespace OpenSim.Region.Framework.Scenes
             // the inventory arrives
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
-            // Note: because Quaternion is a struct, it can't be null
-            Quaternion rot = m_bodyRot;
-
             Vector3 pos = m_pos;
             pos.Z -= m_appearance.HipOffset;
 
             m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                                               m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot));
+                                               pos, m_appearance.Texture.GetBytes(), m_parentID, m_bodyRot));
 
             if (!m_isChildAgent)
             {
@@ -2697,9 +2694,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_startAnimationSet = true;
             }
 
-            Quaternion rot = m_bodyRot;
+            Vector3 pos = m_pos;
+            pos.Z -= m_appearance.HipOffset;
+
             m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
-                m_pos, m_appearance.Texture.GetBytes(), m_parentID, rot));
+                pos, m_appearance.Texture.GetBytes(), m_parentID, m_bodyRot));
 
         }
 

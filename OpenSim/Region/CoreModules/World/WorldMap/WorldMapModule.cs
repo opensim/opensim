@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly string DEFAULT_WORLD_MAP_EXPORT_PATH = "exportmap.jpg";
-
+        private static readonly UUID STOP_UUID = UUID.Random();
         private static readonly string m_mapLayerPath = "0001/";
 
         private OpenSim.Framework.BlockingQueue<MapRequestState> requests = new OpenSim.Framework.BlockingQueue<MapRequestState>();
@@ -349,7 +349,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private void StopThread()
         {
             MapRequestState st = new MapRequestState();
-            st.agentID=UUID.Zero;
+            st.agentID=STOP_UUID;
             st.EstateID=0;
             st.flags=0;
             st.godlike=false;
@@ -437,25 +437,26 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 while (true)
                 {
-                    MapRequestState st = requests.Dequeue();
+                    MapRequestState st = requests.Dequeue(1000);
 
                     // end gracefully
-                    if (st.agentID == UUID.Zero)
-                    {
+                    if (st.agentID == STOP_UUID)
                         break;
-                    }
 
-                    bool dorequest = true;
-                    lock (m_rootAgents)
+                    if (st.agentID != UUID.Zero)
                     {
-                        if (!m_rootAgents.Contains(st.agentID))
-                            dorequest = false;
-                    }
+                        bool dorequest = true;
+                        lock (m_rootAgents)
+                        {
+                            if (!m_rootAgents.Contains(st.agentID))
+                                dorequest = false;
+                        }
 
-                    if (dorequest)
-                    {
-                        OSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
-                        RequestMapItemsCompleted(response);
+                        if (dorequest)
+                        {
+                            OSDMap response = RequestMapItemsAsync("", st.agentID, st.flags, st.EstateID, st.godlike, st.itemtype, st.regionhandle);
+                            RequestMapItemsCompleted(response);
+                        }
                     }
 
                     Watchdog.UpdateThread();
