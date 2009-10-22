@@ -67,6 +67,8 @@ namespace OpenSim
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
+            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 15));
+
             if (startupConfig != null)
             {
                 m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", "startup_commands.txt");

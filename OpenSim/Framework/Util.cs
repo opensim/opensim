@@ -41,12 +41,14 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Threading;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using BclExtras;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using Amib.Threading;
 
 namespace OpenSim.Framework
 {
@@ -67,6 +69,8 @@ namespace OpenSim.Framework
     /// </summary>
     public class Util
     {
+        private static SmartThreadPool m_ThreadPool = null;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
@@ -83,7 +87,7 @@ namespace OpenSim.Framework
         public static readonly Regex UUIDPattern 
             = new Regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.UnsafeQueueUserWorkItem;
+        public static FireAndForgetMethod FireAndForgetMethod = FireAndForgetMethod.SmartThreadPool;
 
         /// <summary>
         /// Linear interpolates B<->C using percent A
@@ -1315,6 +1319,23 @@ namespace OpenSim.Framework
             FireAndForget(callback, null);
         }
 
+        public static void SetMaxThreads(int maxThreads)
+        {
+            if (m_ThreadPool != null)
+                return;
+
+            STPStartInfo startInfo = new STPStartInfo();
+            startInfo.IdleTimeout = 2000; // 2 seconds
+            startInfo.MaxWorkerThreads = maxThreads;
+            startInfo.MinWorkerThreads = 2;
+            startInfo.StackSize = 524288;
+            startInfo.ThreadPriority = ThreadPriority.Normal;
+
+            startInfo.StartSuspended = false;
+
+            m_ThreadPool = new SmartThreadPool(startInfo);
+        }
+
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             switch (FireAndForgetMethod)
@@ -1330,8 +1351,7 @@ namespace OpenSim.Framework
                     wrapper.FireAndForget(callback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
-                    Amib.Threading.SmartThreadPool stp = Singleton.GetInstance<Amib.Threading.SmartThreadPool>();
-                    stp.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
+                    m_ThreadPool.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
                     break;
                 case FireAndForgetMethod.Thread:
                     System.Threading.Thread thread = new System.Threading.Thread(delegate(object o) { callback(o); });
