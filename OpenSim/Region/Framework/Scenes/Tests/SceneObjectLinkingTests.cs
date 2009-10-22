@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp1.Rotation = (Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
 
             // <180,0,0>
-            grp2.UpdateGroupRotation(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
+            grp2.UpdateGroupRotationR(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
             
             // Required for linking
             grp1.RootPart.UpdateFlag = 0;
@@ -157,13 +157,13 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             grp1.Rotation = (Quaternion.CreateFromEulers(90 * Utils.DEG_TO_RAD, 0, 0));
 
             // <180,0,0>
-            grp2.UpdateGroupRotation(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
+            grp2.UpdateGroupRotationR(Quaternion.CreateFromEulers(180 * Utils.DEG_TO_RAD, 0, 0));
 
             // <270,0,0>
             grp3.Rotation = (Quaternion.CreateFromEulers(270 * Utils.DEG_TO_RAD, 0, 0));
 
             // <0,90,0>
-            grp4.UpdateGroupRotation(Quaternion.CreateFromEulers(0, 90 * Utils.DEG_TO_RAD, 0));
+            grp4.UpdateGroupRotationR(Quaternion.CreateFromEulers(0, 90 * Utils.DEG_TO_RAD, 0));
 
             // Required for linking
             grp1.RootPart.UpdateFlag = 0;

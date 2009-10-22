@@ -99,17 +99,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_localID = localID;
             m_itemID = itemID;
 
-            m_ScriptDelayFactor = m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
-            m_ScriptDistanceFactor = m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
-            m_MinTimerInterval = m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
-            m_automaticLinkPermission = m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
-            m_scriptConsoleChannel = m_ScriptEngine.Config.GetInt("ScriptConsoleChannel", 0);
-            m_scriptConsoleChannelEnabled = (m_scriptConsoleChannel != 0);
-            m_notecardLineReadCharsMax = m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
+            m_ScriptDelayFactor =
+                m_ScriptEngine.Config.GetFloat("ScriptDelayFactor", 1.0f);
+            m_ScriptDistanceFactor =
+                m_ScriptEngine.Config.GetFloat("ScriptDistanceLimitFactor", 1.0f);
+            m_MinTimerInterval =
+                m_ScriptEngine.Config.GetFloat("MinTimerInterval", 0.5f);
+            m_automaticLinkPermission =
+                m_ScriptEngine.Config.GetBoolean("AutomaticLinkPermission", false);
+            m_notecardLineReadCharsMax =
+                m_ScriptEngine.Config.GetInt("NotecardLineReadCharsMax", 255);
             if (m_notecardLineReadCharsMax > 65535)
                 m_notecardLineReadCharsMax = 65535;
 
-            m_TransferModule = m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
+            m_TransferModule =
+                    m_ScriptEngine.World.RequestModuleInterface<IMessageTransferModule>();
             m_UrlModule = m_ScriptEngine.World.RequestModuleInterface<IUrlModule>();
             if (m_UrlModule != null)
             {
@@ -1979,7 +1983,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             part.UpdateRotation(rot);
             // Update rotation does not move the object in the physics scene if it's a linkset.
-            part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
+
+//KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
+//          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
         }
 
         /// <summary>
@@ -6763,15 +6769,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // try to let this work as in SL...
                         if (part.ParentID == 0)
                         {
-                            // special case: If we are root, rotate
-                            // complete SOG to new rotation
+                            // special case: If we are root, rotate complete SOG to new rotation
                             SetRot(part, Rot2Quaternion(q));
                         }
                         else
                         {
-                            // we are a child. The rotation values
-                            // will be set to the one of root modified
-                            // by rot, as in SL. Don't ask.
+                            // we are a child. The rotation values will be set to the one of root modified by rot, as in SL. Don't ask.
                             SceneObjectGroup group = part.ParentGroup;
                             if (group != null) // a bit paranoid, maybe
                             {

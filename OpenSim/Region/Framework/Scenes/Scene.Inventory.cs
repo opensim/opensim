@@ -2271,7 +2271,7 @@ namespace OpenSim.Region.Framework.Scenes
                         group.ClearPartAttachmentData();
                     }
                     
-                    group.UpdateGroupRotation(rot);
+                    group.UpdateGroupRotationR(rot);
                     
                     //group.ApplyPhysics(m_physicalPrim);
                     if (group.RootPart.PhysActor != null && group.RootPart.PhysActor.IsPhysical && vel != Vector3.Zero)

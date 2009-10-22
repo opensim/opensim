@@ -2934,7 +2934,7 @@ namespace OpenSim.Region.Framework.Scenes
                             // SceneObjectGroup obj = m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
                             m_sceneGraph.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, worldRot);
                             //obj.Rotation = worldRot;
-                            //obj.UpdateGroupRotation(worldRot);
+                            //obj.UpdateGroupRotationR(worldRot);
                         }
                         else
                         {
@@ -4601,7 +4601,7 @@ namespace OpenSim.Region.Framework.Scenes
                         Quaternion q = trackedBody.RotationOffset * joint.LocalRotation;
 
                         jointProxyObject.ParentGroup.UpdateGroupPosition(proxyPos); // schedules the entire group for a terse update
-                        jointProxyObject.ParentGroup.UpdateGroupRotation(q); // schedules the entire group for a terse update
+                        jointProxyObject.ParentGroup.UpdateGroupRotationR(q); // schedules the entire group for a terse update
                     }
                     break;
             }
