@@ -674,10 +674,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
         }
 
-        protected override void PacketSent(UDPPacketBuffer buffer, int bytesSent)
-        {
-        }
-
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
         {
             PacketAckPacket ack = new PacketAckPacket();

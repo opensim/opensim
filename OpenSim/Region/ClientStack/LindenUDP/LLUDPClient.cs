@@ -531,11 +531,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// as an object to match the WaitCallback delegate signature</param>
         private void FireQueueEmpty(object o)
         {
+            const int MIN_CALLBACK_MS = 30;
+
             int i = (int)o;
             ThrottleOutPacketType type = (ThrottleOutPacketType)i;
             QueueEmpty callback = OnQueueEmpty;
 
-            int start = Environment.TickCount;
+            int start = Environment.TickCount & Int32.MaxValue;
 
             if (callback != null)
             {
@@ -543,10 +545,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception e) { m_log.Error("[LLUDPCLIENT]: OnQueueEmpty(" + type + ") threw an exception: " + e.Message, e); }
             }
 
-            // Make sure all queue empty calls take at least a measurable amount of time,
+            // Make sure all queue empty calls take at least some amount of time,
             // otherwise we'll peg a CPU trying to fire these too fast
-            if (Environment.TickCount == start)
-                System.Threading.Thread.Sleep((int)m_udpServer.TickCountResolution);
+            int elapsedMS = (Environment.TickCount & Int32.MaxValue) - start;
+            if (elapsedMS < MIN_CALLBACK_MS)
+                System.Threading.Thread.Sleep(MIN_CALLBACK_MS - elapsedMS);
 
             m_onQueueEmptyRunning[i] = false;
         }

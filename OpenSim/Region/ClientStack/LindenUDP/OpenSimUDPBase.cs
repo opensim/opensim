@@ -45,13 +45,6 @@ namespace OpenMetaverse
         /// </summary>
         /// <param name="buffer">Incoming packet buffer</param>
         protected abstract void PacketReceived(UDPPacketBuffer buffer);
-        
-        /// <summary>
-        /// This method is called when an outgoing packet is sent
-        /// </summary>
-        /// <param name="buffer">Outgoing packet buffer</param>
-        /// <param name="bytesSent">Number of bytes written to the wire</param>
-        protected abstract void PacketSent(UDPPacketBuffer buffer, int bytesSent);
 
         /// <summary>UDP port to bind to in server mode</summary>
         protected int m_udpPort;
@@ -279,8 +272,6 @@ namespace OpenMetaverse
             {
                 UDPPacketBuffer buf = (UDPPacketBuffer)result.AsyncState;
                 int bytesSent = m_udpSocket.EndSendTo(result);
-
-                PacketSent(buf, bytesSent);
             }
             catch (SocketException) { }
             catch (ObjectDisposedException) { }
