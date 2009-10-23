@@ -52,10 +52,10 @@ namespace OpenSim.Client.MXP
 
         private IConfigSource m_config;
         private int m_port = 1253;
+        private Timer m_ticker;
 
         private readonly Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
-        private readonly Timer m_ticker = new Timer(100);
-        private bool m_shutdown = false;
+        private bool m_shutdown;
 
         public void Initialise(Scene scene, IConfigSource source)
         {
@@ -78,6 +78,7 @@ namespace OpenSim.Client.MXP
 
                 m_server = new MXPPacketServer(m_port, m_scenes,m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate",true));
 
+                m_ticker = new Timer(100);
                 m_ticker.AutoReset = false;
                 m_ticker.Elapsed += ticker_Elapsed;
 

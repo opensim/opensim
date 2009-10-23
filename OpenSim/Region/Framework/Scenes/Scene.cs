@@ -891,6 +891,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.InfoFormat("[SCENE]: Closing down the single simulator: {0}", RegionInfo.RegionName);
 
+            m_restartTimer.Stop();
+            m_restartTimer.Close();
+
             // Kick all ROOT agents with the message, 'The simulator is going down'
             ForEachScenePresence(delegate(ScenePresence avatar)
                                  {

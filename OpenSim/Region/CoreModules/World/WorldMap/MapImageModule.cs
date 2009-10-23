@@ -98,27 +98,29 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             }
             terrainRenderer.Initialise(m_scene, m_config);
 
-            Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize);
-            //long t = System.Environment.TickCount;
-            //for (int i = 0; i < 10; ++i) {
+            using (Bitmap mapbmp = new Bitmap((int)Constants.RegionSize, (int)Constants.RegionSize))
+            {
+                //long t = System.Environment.TickCount;
+                //for (int i = 0; i < 10; ++i) {
                 terrainRenderer.TerrainToBitmap(mapbmp);
-            //}
-            //t = System.Environment.TickCount - t;
-            //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
+                //}
+                //t = System.Environment.TickCount - t;
+                //m_log.InfoFormat("[MAPTILE] generation of 10 maptiles needed {0} ms", t);
 
 
-            if (drawPrimVolume)
-            {
-                DrawObjectVolume(m_scene, mapbmp);
-            }
+                if (drawPrimVolume)
+                {
+                    DrawObjectVolume(m_scene, mapbmp);
+                }
 
-            try
-            {
-                imageData = OpenJPEG.EncodeFromImage(mapbmp, true);
-            }
-            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
-            {
-                m_log.Error("Failed generating terrain map: " + e);
+                try
+                {
+                    imageData = OpenJPEG.EncodeFromImage(mapbmp, true);
+                }
+                catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+                {
+                    m_log.Error("Failed generating terrain map: " + e);
+                }
             }
 
             return imageData;

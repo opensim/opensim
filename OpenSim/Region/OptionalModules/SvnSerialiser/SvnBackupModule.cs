@@ -45,13 +45,13 @@ namespace OpenSim.Region.Modules.SvnSerialiser
     public class SvnBackupModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly List<Scene> m_scenes = new List<Scene>();
-        private readonly Timer m_timer = new Timer();
 
-        private bool m_enabled = false;
-        private bool m_installBackupOnLoad = false;
+        private List<Scene> m_scenes;
+        private Timer m_timer;
+        private bool m_enabled;
+        private bool m_installBackupOnLoad;
         private IRegionSerialiserModule m_serialiser;
-        private bool m_svnAutoSave = false;
+        private bool m_svnAutoSave;
         private SvnClient m_svnClient;
         private string m_svndir = "SVNmodule" + Slash.DirectorySeparatorChar + "repo";
         private string m_svnpass = "password";
@@ -204,6 +204,9 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void Initialise(Scene scene, IConfigSource source)
         {
+            m_scenes = new List<Scene>();
+            m_timer = new Timer();
+
             try
             {
                 if (!source.Configs["SVN"].GetBoolean("Enabled", false))
