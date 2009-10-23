@@ -407,6 +407,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 //m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
 
+                // Backoff the RTO
+                udpClient.RTO = Math.Min(udpClient.RTO * 2, 60000);
+
                 // Resend packets
                 for (int i = 0; i < expiredPackets.Count; i++)
                 {
