@@ -304,8 +304,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int total = resend + land + wind + cloud + task + texture + asset + state;
 
-            m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
-                AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
+            //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
+            //    AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
 
             // Update the token buckets with new throttle values
             TokenBucket bucket;
