@@ -115,11 +115,11 @@ namespace OpenSim.Grid.GridServer
 
         protected virtual void LoadPlugins()
         {
-            PluginLoader<IGridPlugin> loader =
-                new PluginLoader<IGridPlugin>(new GridPluginInitialiser(this));
-
-            loader.Load("/OpenSim/GridServer");
-            m_plugins = loader.Plugins;
+            using (PluginLoader<IGridPlugin> loader = new PluginLoader<IGridPlugin>(new GridPluginInitialiser(this)))
+            {
+                loader.Load("/OpenSim/GridServer");
+                m_plugins = loader.Plugins;
+            }
         }
 
         public override void ShutdownSpecific()

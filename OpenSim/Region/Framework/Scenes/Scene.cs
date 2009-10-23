@@ -1223,10 +1223,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (!m_backingup)
             {
                 m_backingup = true;
-
-                System.ComponentModel.BackgroundWorker backupWorker = new System.ComponentModel.BackgroundWorker();
-                backupWorker.DoWork += delegate(object sender, System.ComponentModel.DoWorkEventArgs e) { Backup(); };
-                backupWorker.RunWorkerAsync();
+                Util.FireAndForget(BackupWaitCallback);
             }
         }
 
@@ -1236,6 +1233,14 @@ namespace OpenSim.Region.Framework.Scenes
         private void UpdateEvents()
         {
             m_eventManager.TriggerOnFrame();
+        }
+
+        /// <summary>
+        /// Wrapper for Backup() that can be called with Util.FireAndForget()
+        /// </summary>
+        private void BackupWaitCallback(object o)
+        {
+            Backup();
         }
 
         /// <summary>

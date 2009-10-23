@@ -814,6 +814,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // on to en-US to avoid number parsing issues
             Culture.SetCurrentCulture();
 
+            // Typecast the function to an Action<IClientAPI> once here to avoid allocating a new
+            // Action generic every round
+            Action<IClientAPI> clientPacketHandler = ClientOutgoingPacketHandler;
+
             while (base.IsRunning)
             {
                 try
@@ -862,7 +866,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
-                    m_scene.ClientManager.ForEachSync(ClientOutgoingPacketHandler);
+                    m_scene.ClientManager.ForEachSync(clientPacketHandler);
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens

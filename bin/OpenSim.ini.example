@@ -1396,11 +1396,11 @@
 [InterestManagement]
      ; This section controls how state updates are prioritized for each client
      ; Valid values are Time, Distance, SimpleAngularDistance, and FrontBack
-     UpdatePrioritizationScheme = FrontBack;
-     ReprioritizationEnabled = true;
-     ReprioritizationInterval = 2000.0;
-     RootReprioritizationDistance = 10.0;
-     ChildReprioritizationDistance = 20.0;
+     UpdatePrioritizationScheme = FrontBack
+     ReprioritizationEnabled = true
+     ReprioritizationInterval = 2000.0
+     RootReprioritizationDistance = 10.0
+     ChildReprioritizationDistance = 20.0
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].
