@@ -239,6 +239,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private readonly HashSet<OdePrim> _prims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _activeprims = new HashSet<OdePrim>();
         private readonly HashSet<OdePrim> _taintedPrimH = new HashSet<OdePrim>();
+        private readonly Object _taintedPrimLock = new Object();
         private readonly List<OdePrim> _taintedPrimL = new List<OdePrim>();
         private readonly HashSet<OdeCharacter> _taintedActors = new HashSet<OdeCharacter>();
         private readonly List<d.ContactGeom> _perloopContact = new List<d.ContactGeom>();
@@ -2572,7 +2573,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (prim is OdePrim)
             {
                 OdePrim taintedprim = ((OdePrim) prim);
-                lock (_taintedPrimH)
+                lock (_taintedPrimLock)
                 {
                     if (!(_taintedPrimH.Contains(taintedprim))) 
         			{
@@ -2700,7 +2701,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 // Modify other objects in the scene.
                                 processedtaints = false;
 
-                                lock (_taintedPrimL)
+                                lock (_taintedPrimLock)
                                 {
                                     foreach (OdePrim prim in _taintedPrimL)
                                     {
