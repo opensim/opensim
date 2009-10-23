@@ -3135,7 +3135,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Tools.lslc" path="OpenSim/Tools/Compiler" type="Exe">
+    <Project frameworkVersion="v3_5" name="OpenSim.Tools.lslc" path="OpenSim/Tools/Compiler" type="Exe">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
