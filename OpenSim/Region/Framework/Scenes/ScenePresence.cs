@@ -297,6 +297,21 @@ namespace OpenSim.Region.Framework.Scenes
             get { return Util.Axes2Rot(m_CameraAtAxis, m_CameraLeftAxis, m_CameraUpAxis); }
         }
 
+        public Vector3 CameraAtAxis
+        {
+            get { return m_CameraAtAxis; }
+        }
+
+        public Vector3 CameraLeftAxis
+        {
+            get { return m_CameraLeftAxis; }
+        }
+
+        public Vector3 CameraUpAxis
+        {
+            get { return m_CameraUpAxis; }
+        }
+
         public Vector3 Lookat
         {
             get
@@ -3867,6 +3882,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return GetPriorityByDistance(client);
                 case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
                     return GetPriorityByDistance(client);
+                case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
+                    return GetPriorityByFrontBack(client);
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined.");
             }
@@ -3888,9 +3905,32 @@ namespace OpenSim.Region.Framework.Scenes
             return double.NaN;
         }
 
+        private double GetPriorityByFrontBack(IClientAPI client)
+        {
+            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
+            if (presence != null)
+            {
+                return GetPriorityByFrontBack(presence.CameraPosition, presence.CameraAtAxis);
+            }
+            return double.NaN;
+        }
+
         private double GetPriorityByDistance(Vector3 position)
         {
             return Vector3.Distance(AbsolutePosition, position);
+        }
+
+        private double GetPriorityByFrontBack(Vector3 camPosition, Vector3 camAtAxis)
+        {
+            // Distance
+            double priority = Vector3.Distance(camPosition, AbsolutePosition);
+
+            // Plane equation
+            float d = -Vector3.Dot(camPosition, camAtAxis);
+            float p = Vector3.Dot(camAtAxis, AbsolutePosition) + d;
+            if (p < 0.0f) priority *= 2.0f;
+
+            return priority;
         }
 
         private double GetSOGUpdatePriority(SceneObjectGroup sog)
@@ -3903,6 +3943,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return sog.GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
                 case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
                     return sog.GetPriorityBySimpleAngularDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
+                case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
+                    return sog.GetPriorityByFrontBack(CameraPosition, CameraAtAxis);
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
             }
@@ -3929,6 +3971,8 @@ namespace OpenSim.Region.Framework.Scenes
                     case Scene.UpdatePrioritizationSchemes.Distance:
                     case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
                         return GetPriorityByDistance((IsChildAgent) ? AbsolutePosition : CameraPosition);
+                    case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
+                        return GetPriorityByFrontBack(CameraPosition, CameraAtAxis);
                     default:
                         throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
                 }

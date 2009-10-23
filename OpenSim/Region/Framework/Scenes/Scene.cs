@@ -61,6 +61,7 @@ namespace OpenSim.Region.Framework.Scenes
             Time = 0,
             Distance = 1,
             SimpleAngularDistance = 2,
+            FrontBack = 3,
         }
 
         public delegate void SynchronizeSceneHandler(Scene scene);
@@ -539,6 +540,9 @@ namespace OpenSim.Region.Framework.Scenes
                             break;
                         case "simpleangulardistance":
                             m_update_prioritization_scheme = UpdatePrioritizationSchemes.SimpleAngularDistance;
+                            break;
+                        case "frontback":
+                            m_update_prioritization_scheme = UpdatePrioritizationSchemes.FrontBack;
                             break;
                         default:
                             m_log.Warn("[SCENE]: UpdatePrioritizationScheme was not recognized, setting to default settomg of Time");
