@@ -1397,8 +1397,8 @@
 
 [InterestManagement]
      ; This section controls how state updates are prioritized for each client
-     ; Valid values are Time, Distance, and SimpleAngularDistance
-     UpdatePrioritizationScheme = Distance;
+     ; Valid values are Time, Distance, SimpleAngularDistance, and FrontBack
+     UpdatePrioritizationScheme = FrontBack;
      ReprioritizationEnabled = true;
      ReprioritizationInterval = 2000.0;
      RootReprioritizationDistance = 10.0;

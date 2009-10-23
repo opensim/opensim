@@ -493,8 +493,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Vector3 GroupScale()
         {
-            Vector3 minScale = new Vector3(Constants.RegionSize,Constants.RegionSize,Constants.RegionSize);
-            Vector3 maxScale = new Vector3(0f,0f,0f);
+            Vector3 minScale = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionSize);
+            Vector3 maxScale = Vector3.Zero;
             Vector3 finalScale = new Vector3(0.5f, 0.5f, 0.5f);
 
             lock (m_parts)
@@ -577,7 +577,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-
                     Vector3 worldPos = part.GetWorldPosition();
                     Vector3 offset = worldPos - AbsolutePosition;
                     Quaternion worldRot;
@@ -3366,6 +3365,8 @@ namespace OpenSim.Region.Framework.Scenes
                     return GetPriorityByDistance(client);
                 case Scene.UpdatePrioritizationSchemes.SimpleAngularDistance:
                     return GetPriorityBySimpleAngularDistance(client);
+                case Scenes.Scene.UpdatePrioritizationSchemes.FrontBack:
+                    return GetPriorityByFrontBack(client);
                 default:
                     throw new InvalidOperationException("UpdatePrioritizationScheme not defined");
             }
@@ -3398,6 +3399,16 @@ namespace OpenSim.Region.Framework.Scenes
             return double.NaN;
         }
 
+        private double GetPriorityByFrontBack(IClientAPI client)
+        {
+            ScenePresence presence = Scene.GetScenePresence(client.AgentId);
+            if (presence != null)
+            {
+                return GetPriorityByFrontBack(presence.CameraPosition, presence.CameraAtAxis);
+            }
+            return double.NaN;
+        }
+
         public double GetPriorityByDistance(Vector3 position)
         {
             return Vector3.Distance(AbsolutePosition, position);
@@ -3426,6 +3437,22 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
                 return double.MinValue;
+        }
+
+        public double GetPriorityByFrontBack(Vector3 camPosition, Vector3 camAtAxis)
+        {
+            // Distance
+            double priority = Vector3.Distance(camPosition, AbsolutePosition);
+
+            // Scale
+            //priority -= GroupScale().Length();
+
+            // Plane equation
+            float d = -Vector3.Dot(camPosition, camAtAxis);
+            float p = Vector3.Dot(camAtAxis, AbsolutePosition) + d;
+            if (p < 0.0f) priority *= 2.0f;
+
+            return priority;
         }
     }
 }
