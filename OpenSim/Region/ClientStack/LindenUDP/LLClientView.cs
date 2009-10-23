@@ -346,15 +346,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_terrainCheckerCount;
         protected uint m_agentFOVCounter;
 
-        // These numbers are guesses at a decent tradeoff between responsiveness
-        // of the interest list and throughput. Lower is more responsive, higher
-        // is better throughput
-        protected int m_primTerseUpdatesPerPacket = 25;
-        protected int m_primFullUpdatesPerPacket = 100;
-        protected int m_avatarTerseUpdatesPerPacket = 10;
-        /// <summary>Number of texture packets to put on the queue each time the
-        /// OnQueueEmpty event is triggered for the texture category</summary>
-        protected int m_textureSendLimit = 20;
         protected IAssetService m_assetService;
         private IHyperAssetService m_hyperAssets;
 
@@ -3333,7 +3324,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_avatarTerseUpdates.SyncRoot)
             {
-                int count = Math.Min(m_avatarTerseUpdates.Count, m_avatarTerseUpdatesPerPacket);
+                int count = Math.Min(m_avatarTerseUpdates.Count, m_udpServer.AvatarTerseUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3418,7 +3409,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primFullUpdates.SyncRoot)
             {
-                int count = Math.Min(m_primFullUpdates.Count, m_primFullUpdatesPerPacket);
+                int count = Math.Min(m_primFullUpdates.Count, m_udpServer.PrimFullUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3462,7 +3453,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primTerseUpdates.SyncRoot)
             {
-                int count = Math.Min(m_primTerseUpdates.Count, m_primTerseUpdatesPerPacket);
+                int count = Math.Min(m_primTerseUpdates.Count, m_udpServer.PrimTerseUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3585,7 +3576,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void ProcessTextureRequests()
         {
             if (m_imageManager != null)
-                m_imageManager.ProcessImageQueue(m_textureSendLimit);
+                m_imageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
