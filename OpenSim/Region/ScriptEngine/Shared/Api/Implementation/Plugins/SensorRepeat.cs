@@ -516,16 +516,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
-            foreach (SenseRepeatClass ts in SenseRepeaters)
+            lock (SenseRepeatListLock)
             {
-                if (ts.itemID == itemID)
+                foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
-                    data.Add(ts.interval);
-                    data.Add(ts.name);
-                    data.Add(ts.keyID);
-                    data.Add(ts.type);
-                    data.Add(ts.range);
-                    data.Add(ts.arc);
+                    if (ts.itemID == itemID)
+                    {
+                        data.Add(ts.interval);
+                        data.Add(ts.name);
+                        data.Add(ts.keyID);
+                        data.Add(ts.type);
+                        data.Add(ts.range);
+                        data.Add(ts.arc);
+                    }
                 }
             }
             return data.ToArray();
