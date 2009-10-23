@@ -1182,8 +1182,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
 //                    part.Inventory.RemoveScriptInstances();
 
-                    List<ScenePresence> avatars = Scene.GetScenePresences();
-                    for (int i = 0; i < avatars.Count; i++)
+                    ScenePresence[] avatars = Scene.GetScenePresences();
+                    for (int i = 0; i < avatars.Length; i++)
                     {
                         if (avatars[i].ParentID == LocalId)
                         {

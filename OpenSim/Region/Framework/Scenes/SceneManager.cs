@@ -411,41 +411,46 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="newDebug"></param>
         public void SetDebugPacketLevelOnCurrentScene(int newDebug)
         {
-            ForEachCurrentScene(delegate(Scene scene)
-                                {
-                                    List<ScenePresence> scenePresences = scene.GetScenePresences();
+            ForEachCurrentScene(
+                delegate(Scene scene)
+                {
+                    ScenePresence[] scenePresences = scene.GetScenePresences();
 
-                                    foreach (ScenePresence scenePresence in scenePresences)
-                                    {
-                                        if (!scenePresence.IsChildAgent)
-                                        {
-                                            m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
-                                                              scenePresence.Firstname,
-                                                              scenePresence.Lastname,
-                                                              newDebug);
+                    for (int i = 0; i < scenePresences.Length; i++)
+                    {
+                        ScenePresence scenePresence = scenePresences[i];
 
-                                            scenePresence.ControllingClient.SetDebugPacketLevel(newDebug);
-                                        }
-                                    }
-                                });
+                        if (!scenePresence.IsChildAgent)
+                        {
+                            m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
+                                              scenePresence.Firstname,
+                                              scenePresence.Lastname,
+                                              newDebug);
+
+                            scenePresence.ControllingClient.SetDebugPacketLevel(newDebug);
+                        }
+                    }
+                }
+            );
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()
         {
             List<ScenePresence> avatars = new List<ScenePresence>();
 
-            ForEachCurrentScene(delegate(Scene scene)
-            {
-                List<ScenePresence> scenePresences = scene.GetScenePresences();
-
-                foreach (ScenePresence scenePresence in scenePresences)
+            ForEachCurrentScene(
+                delegate(Scene scene)
                 {
-                    if (!scenePresence.IsChildAgent)
+                    ScenePresence[] scenePresences = scene.GetScenePresences();
+
+                    for (int i = 0; i < scenePresences.Length; i++)
                     {
-                        avatars.Add(scenePresence);
+                        ScenePresence scenePresence = scenePresences[i];
+                        if (!scenePresence.IsChildAgent)
+                            avatars.Add(scenePresence);
                     }
                 }
-            });
+            );
 
             return avatars;
         }
@@ -456,7 +461,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ForEachCurrentScene(delegate(Scene scene)
             {
-                List<ScenePresence> scenePresences = scene.GetScenePresences();
+                ScenePresence[] scenePresences = scene.GetScenePresences();
                 presences.AddRange(scenePresences);
             });
 

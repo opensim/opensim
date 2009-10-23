@@ -96,12 +96,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             else
             {
                 bool foundResult = false;
-                string resultstring = "";
-                List<ScenePresence> allav = DeadAvatar.Scene.GetScenePresences();
+                string resultstring = String.Empty;
+                ScenePresence[] allav = DeadAvatar.Scene.GetScenePresences();
                 try
                 {
-                    foreach (ScenePresence av in allav)
+                    for (int i = 0; i < allav.Length; i++)
                     {
+                        ScenePresence av = allav[i];
+
                         if (av.LocalId == killerObjectLocalID)
                         {
                             av.ControllingClient.SendAlertMessage("You fragged " + DeadAvatar.Firstname + " " + DeadAvatar.Lastname);

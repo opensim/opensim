@@ -253,7 +253,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected int m_fps = 10;
         protected int m_frame = 0;
         protected float m_timespan = 0.089f;
-        protected DateTime m_lastupdate = DateTime.Now;
+        protected DateTime m_lastupdate = DateTime.UtcNow;
 
         private int m_update_physics = 1;
         private int m_update_entitymovement = 1;
@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.Framework.Scenes
 //#endif
                 maintc = Environment.TickCount;
 
-                TimeSpan SinceLastFrame = DateTime.Now - m_lastupdate;
+                TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
                 float physicsFPS = 0;
 
                 frameMS = Environment.TickCount;
@@ -1137,7 +1137,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     m_timedilation = tmpval;
 
-                    m_lastupdate = DateTime.Now;
+                    m_lastupdate = DateTime.UtcNow;
                 }
                 maintc = Environment.TickCount - maintc;
                 maintc = (int)(m_timespan * 1000) - maintc;
@@ -3496,9 +3496,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             ScenePresence presence;
-
-            lock (m_sceneGraph.ScenePresences)
-                m_sceneGraph.ScenePresences.TryGetValue(agentID, out presence);
+            m_sceneGraph.TryGetAvatar(agentID, out presence);
 
             if (presence != null)
             {
@@ -3709,8 +3707,7 @@ namespace OpenSim.Region.Framework.Scenes
                                             Vector3 lookAt, uint teleportFlags)
         {
             ScenePresence sp;
-            lock (m_sceneGraph.ScenePresences)
-                m_sceneGraph.ScenePresences.TryGetValue(remoteClient.AgentId, out sp);
+            m_sceneGraph.TryGetAvatar(remoteClient.AgentId, out sp);
 
             if (sp != null)
             {
@@ -4112,7 +4109,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This list is a new object, so it can be iterated over without locking.
         /// </summary>
         /// <returns></returns>
-        public List<ScenePresence> GetScenePresences()
+        public ScenePresence[] GetScenePresences()
         {
             return m_sceneGraph.GetScenePresences();
         }
@@ -4159,15 +4156,13 @@ namespace OpenSim.Region.Framework.Scenes
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
             // We don't want to try to send messages if there are no avatars.
-            if (m_sceneGraph != null && m_sceneGraph.ScenePresences != null)
+            if (m_sceneGraph != null)
             {
                 try
                 {
-                    List<ScenePresence> presenceList = GetScenePresences();
-                    foreach (ScenePresence presence in presenceList)
-                    {
-                        action(presence);
-                    }
+                    ScenePresence[] presences = GetScenePresences();
+                    for (int i = 0; i < presences.Length; i++)
+                        action(presences[i]);
                 }
                 catch (Exception e)
                 {

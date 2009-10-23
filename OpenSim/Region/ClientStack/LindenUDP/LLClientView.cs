@@ -4434,6 +4434,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void RegisterLocalPacketHandlers()
         {
             AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
@@ -4445,6 +4446,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region Packet Handlers
+
+        private bool HandleAgentUpdate(IClientAPI sener, Packet Pack)
+        {
+            if (OnAgentUpdate != null)
+            {
+                bool update = false;
+                AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+
+                #region Packet Session and User Check
+                if (agenUpdate.AgentData.SessionID != SessionId || agenUpdate.AgentData.AgentID != AgentId)
+                    return false;
+                #endregion
+
+                AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
+
+                // We can only check when we have something to check
+                // against.
+
+                if (lastarg != null)
+                {
+                    update =
+                       (
+                        (x.BodyRotation != lastarg.BodyRotation) ||
+                        (x.CameraAtAxis != lastarg.CameraAtAxis) ||
+                        (x.CameraCenter != lastarg.CameraCenter) ||
+                        (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
+                        (x.CameraUpAxis != lastarg.CameraUpAxis) ||
+                        (x.ControlFlags != lastarg.ControlFlags) ||
+                        (x.Far != lastarg.Far) ||
+                        (x.Flags != lastarg.Flags) ||
+                        (x.State != lastarg.State) ||
+                        (x.HeadRotation != lastarg.HeadRotation) ||
+                        (x.SessionID != lastarg.SessionID) ||
+                        (x.AgentID != lastarg.AgentID)
+                       );
+                }
+                else
+                    update = true;
+
+                // These should be ordered from most-likely to
+                // least likely to change. I've made an initial
+                // guess at that.
+
+                if (update)
+                {
+                    AgentUpdateArgs arg = new AgentUpdateArgs();
+                    arg.AgentID = x.AgentID;
+                    arg.BodyRotation = x.BodyRotation;
+                    arg.CameraAtAxis = x.CameraAtAxis;
+                    arg.CameraCenter = x.CameraCenter;
+                    arg.CameraLeftAxis = x.CameraLeftAxis;
+                    arg.CameraUpAxis = x.CameraUpAxis;
+                    arg.ControlFlags = x.ControlFlags;
+                    arg.Far = x.Far;
+                    arg.Flags = x.Flags;
+                    arg.HeadRotation = x.HeadRotation;
+                    arg.SessionID = x.SessionID;
+                    arg.State = x.State;
+                    UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+                    lastarg = arg; // save this set of arguments for nexttime
+                    if (handlerAgentUpdate != null)
+                        OnAgentUpdate(this, arg);
+
+                    handlerAgentUpdate = null;
+                }
+            }
+
+            return true;
+        }
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
         {
@@ -5629,77 +5699,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     handlerCompleteMovementToRegion = null;
 
-                    break;
-
-                case PacketType.AgentUpdate:
-                    if (OnAgentUpdate != null)
-                    {
-                        bool update = false;
-                        AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
-
-                        #region Packet Session and User Check
-                        if (m_checkPackets)
-                        {
-                            if (agenUpdate.AgentData.SessionID != SessionId ||
-                                agenUpdate.AgentData.AgentID != AgentId)
-                                break;
-                        }
-                        #endregion
-
-                        AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
-
-                        // We can only check when we have something to check
-                        // against.
-
-                        if (lastarg != null)
-                        {
-                            update =
-                               (
-                                (x.BodyRotation != lastarg.BodyRotation) ||
-                                (x.CameraAtAxis != lastarg.CameraAtAxis) ||
-                                (x.CameraCenter != lastarg.CameraCenter) ||
-                                (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
-                                (x.CameraUpAxis != lastarg.CameraUpAxis) ||
-                                (x.ControlFlags != lastarg.ControlFlags) ||
-                                (x.Far != lastarg.Far) ||
-                                (x.Flags != lastarg.Flags) ||
-                                (x.State != lastarg.State) ||
-                                (x.HeadRotation != lastarg.HeadRotation) ||
-                                (x.SessionID != lastarg.SessionID) ||
-                                (x.AgentID != lastarg.AgentID)
-                               );
-                        }
-                        else
-                            update = true;
-
-                        // These should be ordered from most-likely to
-                        // least likely to change. I've made an initial
-                        // guess at that.
-
-                        if (update)
-                        {
-                            AgentUpdateArgs arg = new AgentUpdateArgs();
-                            arg.AgentID = x.AgentID;
-                            arg.BodyRotation = x.BodyRotation;
-                            arg.CameraAtAxis = x.CameraAtAxis;
-                            arg.CameraCenter = x.CameraCenter;
-                            arg.CameraLeftAxis = x.CameraLeftAxis;
-                            arg.CameraUpAxis = x.CameraUpAxis;
-                            arg.ControlFlags = x.ControlFlags;
-                            arg.Far = x.Far;
-                            arg.Flags = x.Flags;
-                            arg.HeadRotation = x.HeadRotation;
-                            arg.SessionID = x.SessionID;
-                            arg.State = x.State;
-                            UpdateAgent handlerAgentUpdate = OnAgentUpdate;
-                            lastarg = arg; // save this set of arguments for nexttime
-                            if (handlerAgentUpdate != null)
-                                OnAgentUpdate(this, arg);
-
-                            handlerAgentUpdate = null;
-                        }
-
-                    }
                     break;
 
                 case PacketType.AgentAnimation:

@@ -869,14 +869,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_isChildAgent = false;
 
-            List<ScenePresence> AnimAgents = m_scene.GetScenePresences();
-            foreach (ScenePresence p in AnimAgents)
+            ScenePresence[] animAgents = m_scene.GetScenePresences();
+            for (int i = 0; i < animAgents.Length; i++)
             {
-                if (p != this)
-                    p.SendAnimPackToClient(ControllingClient);
-            }
-            m_scene.EventManager.TriggerOnMakeRootAgent(this);
+                ScenePresence presence = animAgents[i];
 
+                if (presence != this)
+                    presence.SendAnimPackToClient(ControllingClient);
+            }
+
+            m_scene.EventManager.TriggerOnMakeRootAgent(this);
         }
 
         /// <summary>
@@ -2533,9 +2535,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_perfMonMS = Environment.TickCount;
 
-            List<ScenePresence> avatars = m_scene.GetScenePresences();
-            foreach (ScenePresence avatar in avatars)
+            ScenePresence[] avatars = m_scene.GetScenePresences();
+
+            for (int i = 0; i < avatars.Length; i++)
             {
+                ScenePresence avatar = avatars[i];
+
                 // only send if this is the root (children are only "listening posts" in a foreign region)
                 if (!IsChildAgent)
                 {
@@ -2553,7 +2558,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
+            m_scene.StatsReporter.AddAgentUpdates(avatars.Length);
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
             //SendAnimPack();

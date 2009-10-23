@@ -1077,8 +1077,8 @@ if (m_shape != null) {
 
         private void SendObjectPropertiesToClient(UUID AgentID)
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 // Ugly reference :(
                 if (avatars[i].UUID == AgentID)
@@ -1140,8 +1140,8 @@ if (m_shape != null) {
         /// </summary>
         public void AddFullUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 avatars[i].SceneViewer.QueuePartForUpdate(this);
             }
@@ -1165,8 +1165,8 @@ if (m_shape != null) {
         /// Terse updates
         public void AddTerseUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 avatars[i].SceneViewer.QueuePartForUpdate(this);
             }
@@ -1894,24 +1894,24 @@ if (m_shape != null) {
                         }
                         else
                         {
-                            List<ScenePresence> avlist = m_parentGroup.Scene.GetScenePresences();
-                            if (avlist != null)
+                            ScenePresence[] avlist = m_parentGroup.Scene.GetScenePresences();
+
+                            for (int i = 0; i < avlist.Length; i++)
                             {
-                                foreach (ScenePresence av in avlist)
+                                ScenePresence av = avlist[i];
+
+                                if (av.LocalId == localId)
                                 {
-                                    if (av.LocalId == localId)
-                                    {
-                                        DetectedObject detobj = new DetectedObject();
-                                        detobj.keyUUID = av.UUID;
-                                        detobj.nameStr = av.ControllingClient.Name;
-                                        detobj.ownerUUID = av.UUID;
-                                        detobj.posVector = av.AbsolutePosition;
-                                        detobj.rotQuat = av.Rotation;
-                                        detobj.velVector = av.Velocity;
-                                        detobj.colliderType = 0;
-                                        detobj.groupUUID = av.ControllingClient.ActiveGroupId;
-                                        colliding.Add(detobj);
-                                    }
+                                    DetectedObject detobj = new DetectedObject();
+                                    detobj.keyUUID = av.UUID;
+                                    detobj.nameStr = av.ControllingClient.Name;
+                                    detobj.ownerUUID = av.UUID;
+                                    detobj.posVector = av.AbsolutePosition;
+                                    detobj.rotQuat = av.Rotation;
+                                    detobj.velVector = av.Velocity;
+                                    detobj.colliderType = 0;
+                                    detobj.groupUUID = av.ControllingClient.ActiveGroupId;
+                                    colliding.Add(detobj);
                                 }
                             }
                         }
@@ -1965,26 +1965,25 @@ if (m_shape != null) {
                         }
                         else
                         {
-                            List<ScenePresence> avlist = m_parentGroup.Scene.GetScenePresences();
-                            if (avlist != null)
+                            ScenePresence[] avlist = m_parentGroup.Scene.GetScenePresences();
+                            
+                            for (int i = 0; i < avlist.Length; i++)
                             {
-                                foreach (ScenePresence av in avlist)
-                                {
-                                    if (av.LocalId == localId)
-                                    {
-                                        DetectedObject detobj = new DetectedObject();
-                                        detobj.keyUUID = av.UUID;
-                                        detobj.nameStr = av.Name;
-                                        detobj.ownerUUID = av.UUID;
-                                        detobj.posVector = av.AbsolutePosition;
-                                        detobj.rotQuat = av.Rotation;
-                                        detobj.velVector = av.Velocity;
-                                        detobj.colliderType = 0;
-                                        detobj.groupUUID = av.ControllingClient.ActiveGroupId;
-                                        colliding.Add(detobj);
-                                    }
-                                }
+                                ScenePresence av = avlist[i];
 
+                                if (av.LocalId == localId)
+                                {
+                                    DetectedObject detobj = new DetectedObject();
+                                    detobj.keyUUID = av.UUID;
+                                    detobj.nameStr = av.Name;
+                                    detobj.ownerUUID = av.UUID;
+                                    detobj.posVector = av.AbsolutePosition;
+                                    detobj.rotQuat = av.Rotation;
+                                    detobj.velVector = av.Velocity;
+                                    detobj.colliderType = 0;
+                                    detobj.groupUUID = av.ControllingClient.ActiveGroupId;
+                                    colliding.Add(detobj);
+                                }
                             }
                         }
                     }
@@ -2035,24 +2034,24 @@ if (m_shape != null) {
                         }
                         else
                         {
-                            List<ScenePresence> avlist = m_parentGroup.Scene.GetScenePresences();
-                            if (avlist != null)
+                            ScenePresence[] avlist = m_parentGroup.Scene.GetScenePresences();
+
+                            for (int i = 0; i < avlist.Length; i++)
                             {
-                                foreach (ScenePresence av in avlist)
+                                ScenePresence av = avlist[i];
+
+                                if (av.LocalId == localId)
                                 {
-                                    if (av.LocalId == localId)
-                                    {
-                                        DetectedObject detobj = new DetectedObject();
-                                        detobj.keyUUID = av.UUID;
-                                        detobj.nameStr = av.Name;
-                                        detobj.ownerUUID = av.UUID;
-                                        detobj.posVector = av.AbsolutePosition;
-                                        detobj.rotQuat = av.Rotation;
-                                        detobj.velVector = av.Velocity;
-                                        detobj.colliderType = 0;
-                                        detobj.groupUUID = av.ControllingClient.ActiveGroupId;
-                                        colliding.Add(detobj);
-                                    }
+                                    DetectedObject detobj = new DetectedObject();
+                                    detobj.keyUUID = av.UUID;
+                                    detobj.nameStr = av.Name;
+                                    detobj.ownerUUID = av.UUID;
+                                    detobj.posVector = av.AbsolutePosition;
+                                    detobj.rotQuat = av.Rotation;
+                                    detobj.velVector = av.Velocity;
+                                    detobj.colliderType = 0;
+                                    detobj.groupUUID = av.ControllingClient.ActiveGroupId;
+                                    colliding.Add(detobj);
                                 }
                             }
                         }
@@ -2312,8 +2311,8 @@ if (m_shape != null) {
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 // Ugly reference :(
                 m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
@@ -2323,8 +2322,8 @@ if (m_shape != null) {
 
         public void SendFullUpdateToAllClientsExcept(UUID agentID)
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 // Ugly reference :(
                 if (avatars[i].UUID != agentID)
@@ -2467,8 +2466,8 @@ if (m_shape != null) {
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
+            ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
+            for (int i = 0; i < avatars.Length; i++)
             {
                 SendTerseUpdateToClient(avatars[i].ControllingClient);
             }

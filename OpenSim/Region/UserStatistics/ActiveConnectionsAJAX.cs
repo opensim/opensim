@@ -68,11 +68,11 @@ namespace OpenSim.Region.UserStatistics
             HTMLUtil.OL_O(ref output, "");
             foreach (Scene scene in all_scenes)
             {
-                List<ScenePresence> avatarInScene = scene.GetScenePresences();
+                ScenePresence[] avatarInScene = scene.GetScenePresences();
 
-                HTMLUtil.LI_O(ref output, "");
+                HTMLUtil.LI_O(ref output, String.Empty);
                 output.Append(scene.RegionInfo.RegionName);
-                HTMLUtil.OL_O(ref output, "");
+                HTMLUtil.OL_O(ref output, String.Empty);
                 foreach (ScenePresence av in avatarInScene)
                 {
                     Dictionary<string,string> queues = new Dictionary<string, string>();
@@ -81,7 +81,7 @@ namespace OpenSim.Region.UserStatistics
                         IStatsCollector isClient = (IStatsCollector) av.ControllingClient;
                         queues = decodeQueueReport(isClient.Report());
                     }
-                    HTMLUtil.LI_O(ref output, "");
+                    HTMLUtil.LI_O(ref output, String.Empty);
                     output.Append(av.Name);
                     output.Append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
                     output.Append((av.IsChildAgent ? "Child" : "Root"));
@@ -96,12 +96,12 @@ namespace OpenSim.Region.UserStatistics
                                                     (int) av.AbsolutePosition.Z));
                     }
                     Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
-                    
-                    HTMLUtil.UL_O(ref output, "");
+
+                    HTMLUtil.UL_O(ref output, String.Empty);
 
                     foreach (string throttlename in throttles.Keys)
                     {
-                        HTMLUtil.LI_O(ref output, "");
+                        HTMLUtil.LI_O(ref output, String.Empty);
                         output.Append(throttlename);
                         output.Append(":");
                         output.Append(throttles[throttlename].ToString());
