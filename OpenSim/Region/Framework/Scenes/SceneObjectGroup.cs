@@ -1334,7 +1334,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 (parcel.LandData.GroupID != GroupID ||
                                 parcel.LandData.GroupID == UUID.Zero))
                         {
-                            if ((DateTime.Now - RootPart.Rezzed).TotalMinutes >
+                            if ((DateTime.UtcNow - RootPart.Rezzed).TotalMinutes >
                                     parcel.LandData.OtherCleanTime)
                             {
                                 DetachFromBackup();

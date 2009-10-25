@@ -144,6 +144,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly OutgoingPacket[] m_nextPackets = new OutgoingPacket[THROTTLE_CATEGORY_COUNT];
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer m_udpServer;
+        /// <summary>Locks access to the variables used while calculating round-trip
+        /// packet times and the retransmission timeout</summary>
+        private readonly object m_roundTripCalcLock = new object();
 
         /// <summary>
         /// Default constructor
@@ -484,26 +487,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             const float BETA = 0.25f;
             const float K = 4.0f;
 
-            if (RTTVAR == 0.0f)
+            lock (m_roundTripCalcLock)
             {
-                // First RTT measurement
-                SRTT = r;
-                RTTVAR = r * 0.5f;
-            }
-            else
-            {
-                // Subsequence RTT measurement
-                RTTVAR = (1.0f - BETA) * RTTVAR + BETA * Math.Abs(SRTT - r);
-                SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
-            }
+                if (RTTVAR == 0.0f)
+                {
+                    // First RTT measurement
+                    SRTT = r;
+                    RTTVAR = r * 0.5f;
+                }
+                else
+                {
+                    // Subsequence RTT measurement
+                    RTTVAR = (1.0f - BETA) * RTTVAR + BETA * Math.Abs(SRTT - r);
+                    SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
+                }
 
-            RTO = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
+                int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
 
-            // Clamp the retransmission timeout to manageable values
-            RTO = Utils.Clamp(RTO, 3000, 60000);
+                // Clamp the retransmission timeout to manageable values
+                rto = Utils.Clamp(RTO, 3000, 60000);
+
+                RTO = rto;
+            }
 
             //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
             //    RTTVAR + " based on new RTT of " + r + "ms");
+        }
+
+        /// <summary>
+        /// Exponential backoff of the retransmission timeout, per section 5.5
+        /// of RFC 2988
+        /// </summary>
+        public void BackoffRTO()
+        {
+            lock (m_roundTripCalcLock)
+            {
+                // Reset SRTT and RTTVAR, we assume they are bogus since things
+                // didn't work out and we're backing off the timeout
+                SRTT = 0.0f;
+                RTTVAR = 0.0f;
+
+                // Double the retransmission timeout
+                RTO = Math.Min(RTO * 2, 60000);
+            }
         }
 
         /// <summary>

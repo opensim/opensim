@@ -4246,7 +4246,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            ClientManager.ForEach(action);
+            ClientManager.ForEachSync(action);
         }
 
         public void ForEachSOG(Action<SceneObjectGroup> action)

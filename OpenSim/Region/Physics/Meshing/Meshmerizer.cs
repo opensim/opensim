@@ -281,7 +281,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if (idata == null)
                 {
-                    if (primShape.SculptData.Length == 0)
+                    if (primShape.SculptData == null || primShape.SculptData.Length == 0)
                         return null;
 
                     try

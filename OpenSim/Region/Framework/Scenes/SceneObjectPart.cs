@@ -102,16 +102,16 @@ namespace OpenSim.Region.Framework.Scenes
 
         #region Fields
 
-        public bool AllowedDrop = false;
+        public bool AllowedDrop;
 
         [XmlIgnore]
-        public bool DIE_AT_EDGE = false;
+        public bool DIE_AT_EDGE;
 
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
-        public int[] PayPrice = {-2,-2,-2,-2,-2};
+        public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
         [XmlIgnore]
-        public PhysicsActor PhysActor = null;
+        public PhysicsActor PhysActor;
 
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -130,55 +130,56 @@ namespace OpenSim.Region.Framework.Scenes
         public double SoundRadius;
         
         [XmlIgnore]
-        public uint TimeStampFull = 0;
+        public uint TimeStampFull;
         
         [XmlIgnore]
-        public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
+        public uint TimeStampLastActivity; // Will be used for AutoReturn
         
         [XmlIgnore]
-        public uint TimeStampTerse = 0;
-        
+        public uint TimeStampTerse;
+
         [XmlIgnore]
-        public UUID FromItemID = UUID.Zero;
+        public UUID FromItemID;
                
         /// <value>
         /// The UUID of the user inventory item from which this object was rezzed if this is a root part.
         /// If UUID.Zero then either this is not a root part or there is no connection with a user inventory item.
         /// </value>
-        private UUID m_fromUserInventoryItemID = UUID.Zero;
+        private UUID m_fromUserInventoryItemID;
         
         [XmlIgnore]
         public UUID FromUserInventoryItemID
         {
             get { return m_fromUserInventoryItemID; }
         }
-        
-        [XmlIgnore]
-        public bool IsAttachment = false;
-        
-        [XmlIgnore]
-        public scriptEvents AggregateScriptEvents = 0;
-        
-        [XmlIgnore]
-        public UUID AttachedAvatar = UUID.Zero;
-        
-        [XmlIgnore]
-        public Vector3 AttachedPos = Vector3.Zero;
-        
-        [XmlIgnore]
-        public uint AttachmentPoint = (byte)0;
-        
-        [XmlIgnore]
-        public PhysicsVector RotationAxis = new PhysicsVector(1f,1f,1f);
 
         [XmlIgnore]
-        public bool VolumeDetectActive = false; // XmlIgnore set to avoid problems with persistance until I come to care for this
-                                                // Certainly this must be a persistant setting finally
+        public bool IsAttachment;
 
         [XmlIgnore]
-        public bool IsWaitingForFirstSpinUpdatePacket = false;
+        public scriptEvents AggregateScriptEvents;
+
         [XmlIgnore]
-        public Quaternion SpinOldOrientation = new Quaternion();
+        public UUID AttachedAvatar;
+
+        [XmlIgnore]
+        public Vector3 AttachedPos;
+
+        [XmlIgnore]
+        public uint AttachmentPoint;
+        
+        [XmlIgnore]
+        public PhysicsVector RotationAxis = new PhysicsVector(1f, 1f, 1f);
+
+        [XmlIgnore]
+        public bool VolumeDetectActive; // XmlIgnore set to avoid problems with persistance until I come to care for this
+                                        // Certainly this must be a persistant setting finally
+
+        [XmlIgnore]
+        public bool IsWaitingForFirstSpinUpdatePacket;
+
+        [XmlIgnore]
+        public Quaternion SpinOldOrientation = Quaternion.Identity;
 
         /// <summary>
         /// This part's inventory
@@ -191,34 +192,32 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPartInventory m_inventory;
 
         [XmlIgnore]
-        public bool Undoing = false;
+        public bool Undoing;
 
         [XmlIgnore]
-        private PrimFlags LocalFlags = 0;
+        private PrimFlags LocalFlags;
         [XmlIgnore]
         private float m_damage = -1.0f;
         private byte[] m_TextureAnimation;
-        private byte m_clickAction = 0;
+        private byte m_clickAction;
         private Color m_color = Color.Black;
         private string m_description = String.Empty;
         private readonly List<uint> m_lastColliders = new List<uint>();
-        // private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
-        private int m_linkNum = 0;
+        private int m_linkNum;
         [XmlIgnore]
-        private int m_scriptAccessPin = 0;
+        private int m_scriptAccessPin;
         [XmlIgnore]
         private readonly Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
         private string m_sitName = String.Empty;
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
-        private Vector3 m_sitTargetPosition = Vector3.Zero;
+        private Vector3 m_sitTargetPosition;
         private string m_sitAnimation = "SIT";
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
         private UUID _creatorID;
 
-
-        private bool m_passTouches = false;
+        private bool m_passTouches;
 
         /// <summary>
         /// Only used internally to schedule client updates.
@@ -236,28 +235,28 @@ namespace OpenSim.Region.Framework.Scenes
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected Vector3 m_groupPosition;
         protected uint m_localId;
-        protected Material m_material = (Material)3; // Wood
+        protected Material m_material = OpenMetaverse.Material.Wood;
         protected string m_name;
         protected Vector3 m_offsetPosition;
 
         // FIXME, TODO, ERROR: 'ParentGroup' can't be in here, move it out.
         protected SceneObjectGroup m_parentGroup;
-        protected byte[] m_particleSystem = new byte[0];
+        protected byte[] m_particleSystem = Utils.EmptyBytes;
         protected ulong m_regionHandle;
         protected Quaternion m_rotationOffset;
-        protected PrimitiveBaseShape m_shape = null;
+        protected PrimitiveBaseShape m_shape;
         protected UUID m_uuid;
         protected Vector3 m_velocity;
 
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
-        private Vector3 m_cameraEyeOffset = new Vector3(0.0f, 0.0f, 0.0f);
-        private Vector3 m_cameraAtOffset = new Vector3(0.0f, 0.0f, 0.0f);
-        private bool m_forceMouselook = false;
+        private Vector3 m_cameraEyeOffset;
+        private Vector3 m_cameraAtOffset;
+        private bool m_forceMouselook;
 
         // TODO: Collision sound should have default.
-        private UUID m_collisionSound = UUID.Zero;
-        private float m_collisionSoundVolume = 0.0f;
+        private UUID m_collisionSound;
+        private float m_collisionSoundVolume;
 
         #endregion Fields
 
@@ -269,9 +268,9 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectPart()
         {
             // It's not necessary to persist this
-            m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];
-            Rezzed = DateTime.Now;
+            m_TextureAnimation = Utils.EmptyBytes;
+            m_particleSystem = Utils.EmptyBytes;
+            Rezzed = DateTime.UtcNow;
             
             m_inventory = new SceneObjectPartInventory(this);
         }
@@ -290,8 +289,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_name = "Primitive";
 
-            Rezzed = DateTime.Now;
-            _creationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            Rezzed = DateTime.UtcNow;
+            _creationDate = (int)Utils.DateTimeToUnixTime(Rezzed);
             _ownerID = ownerID;
             _creatorID = _ownerID;
             _lastOwnerID = UUID.Zero;
@@ -299,19 +298,19 @@ namespace OpenSim.Region.Framework.Scenes
             Shape = shape;
             // Todo: Add More Object Parameter from above!
             _ownershipCost = 0;
-            _objectSaleType = (byte) 0;
+            _objectSaleType = 0;
             _salePrice = 0;
-            _category = (uint) 0;
+            _category = 0;
             _lastOwnerID = _creatorID;
             // End Todo: ///
             GroupPosition = groupPosition;
             OffsetPosition = offsetPosition;
             RotationOffset = rotationOffset;
-            Velocity = new Vector3(0, 0, 0);
-            AngularVelocity = new Vector3(0, 0, 0);
-            Acceleration = new Vector3(0, 0, 0);
-            m_TextureAnimation = new byte[0];
-            m_particleSystem = new byte[0];
+            Velocity = Vector3.Zero;
+            AngularVelocity = Vector3.Zero;
+            Acceleration = Vector3.Zero;
+            m_TextureAnimation = Utils.EmptyBytes;
+            m_particleSystem = Utils.EmptyBytes;
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -3548,7 +3547,7 @@ if (m_shape != null) {
             // in SL.
             //
             if (ParentGroup.RootPart != this)
-                ParentGroup.RootPart.Rezzed = DateTime.Now;
+                ParentGroup.RootPart.Rezzed = DateTime.UtcNow;
 
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();

@@ -167,9 +167,6 @@ namespace OpenSim.Data.MySQL
                                 asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                             }
                         }
-
-                        if (asset != null)
-                            UpdateAccessTime(asset);
                     }
                     catch (Exception e)
                     {
