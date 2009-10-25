@@ -307,6 +307,26 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override Quaternion APIDTarget 
+        { 
+        	set { return; }
+        }
+        
+        public override bool APIDActive
+        { 
+        	set { return; }
+        }
+        
+        public override float APIDStrength
+        { 
+        	set { return; }
+        }
+        
+        public override float APIDDamping
+        { 
+        	set { return; }
+        }
+
         public override void SubscribeEvents(int ms)
         {
         }

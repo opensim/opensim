@@ -119,7 +119,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
         private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height 
-        private float m_VehicleBuoyancy = 0f;			//KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
+        private float m_VehicleBuoyancy = 0f;			// Set by VEHICLE_BUOYANCY, for a vehicle.
         			// Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity) 
         			// KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
         			// Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity. 
@@ -478,7 +478,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 	        Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);	// rotq = rotation of object
 	        m_dir *= rotq;							// apply obj rotation to velocity vector
 
-			// add Gravity andBuoyancy
+			// add Gravity and Buoyancy
 			// KF: So far I have found no good method to combine a script-requested
 			// .Z velocity and gravity. Therefore only 0g will used script-requested
 			// .Z velocity. >0g (m_VehicleBuoyancy < 1) will used modified gravity only.

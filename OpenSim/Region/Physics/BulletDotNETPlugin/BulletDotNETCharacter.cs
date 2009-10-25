@@ -627,6 +627,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             set { return; }
         }
+        
+        public override Quaternion APIDTarget { set { return; } }
+        public override bool APIDActive { set { return; } }
+        public override float APIDStrength { set { return; } }
+        public override float APIDDamping { set { return; } }
+        
 
         /// <summary>
         /// Adds the force supplied to the Target Velocity

@@ -2694,11 +2694,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // Orient the object to the angle calculated
             llSetRot(rot);
         }
+        
+        public void llRotLookAt(LSL_Rotation target, double strength, double damping)
+        {
+            m_host.AddScriptLPS(1);
+//            NotImplemented("llRotLookAt");
+            m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+            
+        }
+
 
         public void llStopLookAt()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopLookAt");
+//            NotImplemented("llStopLookAt");
+            m_host.StopLookAt();
         }
 
         public void llSetTimerEvent(double sec)
@@ -3040,12 +3050,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSoundPreload(string sound)
         {
             m_host.AddScriptLPS(1);
-        }
-
-        public void llRotLookAt(LSL_Rotation target, double strength, double damping)
-        {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llRotLookAt");
         }
 
         public LSL_Integer llStringLength(string str)

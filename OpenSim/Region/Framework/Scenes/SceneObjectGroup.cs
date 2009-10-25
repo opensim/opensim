@@ -1727,6 +1727,45 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public void rotLookAt(Quaternion target, float strength, float damping)
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (IsAttachment)
+                {
+                /*
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null)
+                    {
+                    Rotate the Av?
+                    } */
+                }
+                else
+                {
+                    if (rootpart.PhysActor != null)
+                    {
+                        rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
+                        rootpart.PhysActor.APIDStrength = strength;
+                        rootpart.PhysActor.APIDDamping = damping;
+                        rootpart.PhysActor.APIDActive = true;
+                    }
+                }
+            }
+        }
+        public void stopLookAt()
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.APIDActive = false;
+                }
+            }
+        
+        }
+
         /// <summary>
         /// Uses a PID to attempt to clamp the object on the Z axis at the given height over tau seconds.
         /// </summary>

@@ -2187,6 +2187,11 @@ if (m_shape != null) {
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
+        
+        public void RotLookAt(Quaternion target, float strength, float damping)
+        {
+            m_parentGroup.rotLookAt(target, strength, damping);
+        }
 
         /// <summary>
         /// Schedules this prim for a full update
@@ -2662,6 +2667,13 @@ if (m_shape != null) {
             SetText(text);
         }
 
+        public void StopLookAt()
+        {
+            m_parentGroup.stopLookAt();
+
+            m_parentGroup.ScheduleGroupForTerseUpdate();        
+        }        
+        
         public void StopMoveToTarget()
         {
             m_parentGroup.stopMoveToTarget();

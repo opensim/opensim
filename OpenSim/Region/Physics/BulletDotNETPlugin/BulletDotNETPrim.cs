@@ -566,6 +566,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
 
+        public override Quaternion APIDTarget { set { return; } }
+        public override bool APIDActive { set { return; } }
+        public override float APIDStrength { set { return; } }
+        public override float APIDDamping { set { return; } }
+        
 
         public override void AddForce(PhysicsVector force, bool pushforce)
         {
