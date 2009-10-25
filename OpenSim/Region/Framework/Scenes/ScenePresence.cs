@@ -2693,7 +2693,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (m_scene.AssetService.Get(face.TextureID.ToString()) == null)
                         {
-                            m_log.Warn("[APPEARANCE]: Missing baked texture " + face.TextureID + " (" + (AppearanceManager.TextureIndex)j + ") for avatar " + this.Name);
+                            m_log.Warn("[APPEARANCE]: Missing baked texture " + face.TextureID + " (" + j + ") for avatar " + this.Name);
                             this.ControllingClient.SendRebakeAvatarTextures(face.TextureID);
                         }
                     }
