@@ -271,7 +271,7 @@ namespace pCampBot
                 string[] bodyparts = Directory.GetFiles(saveDir, "*.bodypart", SearchOption.TopDirectoryOnly);
                 InventoryFolder clothfolder = FindClothingFolder();
                 UUID transid = UUID.Random();
-                List<InventoryItem> listwearables = new List<InventoryItem>();
+                List<InventoryBase> listwearables = new List<InventoryBase>();
                 
                 for (int i = 0; i < clothing.Length; i++)
                 {
