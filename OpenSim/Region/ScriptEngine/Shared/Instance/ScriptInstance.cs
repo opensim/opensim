@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private StateSource m_stateSource;
         private bool m_postOnRez;
         private bool m_startedFromSavedState = false;
-        private string m_CurrentState = String.Empty;
+        private int m_CurrentStateHash;
         private UUID m_RegionID = UUID.Zero;
 
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -252,16 +252,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_Apis[api] = am.CreateApi(api);
                 m_Apis[api].Initialize(engine, part, m_LocalID, itemID);
-            }
+	    }
 
-            try
-            {
-                m_Script = (IScript)dom.CreateInstanceAndUnwrap(
-                    Path.GetFileNameWithoutExtension(assembly),
-                    "SecondLife.Script");
+	    try
+	    {
+		    if (dom != System.AppDomain.CurrentDomain)
+			    m_Script = (IScript)dom.CreateInstanceAndUnwrap(
+					    Path.GetFileNameWithoutExtension(assembly),
+					    "SecondLife.Script");
+		    else
+			    m_Script = (IScript)Assembly.Load(
+					    Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
+					    "SecondLife.Script");
+
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+                //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
 //                lease.Register(this);
             }
             catch (Exception)
@@ -893,7 +899,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             string xml = ScriptSerializer.Serialize(this);
 
-            if (m_CurrentState != xml)
+            // Compare hash of the state we just just created with the state last written to disk
+            // If the state is different, update the disk file.
+            if(xml.GetHashCode() != m_CurrentStateHash)
             {
                 try
                 {
@@ -911,7 +919,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 //{
                 //    throw new Exception("Completed persistence save, but no file was created");
                 //}
-                m_CurrentState = xml;
+                m_CurrentStateHash = xml.GetHashCode();
             }
         }
 

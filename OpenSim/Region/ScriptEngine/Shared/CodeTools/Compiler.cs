@@ -74,7 +74,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private string FilePrefix;
         private string ScriptEnginesPath = "ScriptEngines";
         // mapping between LSL and C# line/column numbers
-        private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
         private ICodeConverter LSL_Converter;
 
         private List<string> m_warnings = new List<string>();
@@ -91,6 +90,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
         public IScriptEngine m_scriptEngine;
+        private Dictionary<string, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>> m_lineMaps =
+            new Dictionary<string, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>>();
+
         public Compiler(IScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
@@ -271,16 +273,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// </summary>
         /// <param name="Script">LSL script</param>
         /// <returns>Filename to .dll assembly</returns>
-        public object PerformScriptCompile(string Script, string asset, UUID ownerUUID)
+        public void PerformScriptCompile(string Script, string asset, UUID ownerUUID, 
+            out string assembly, out Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>> linemap)
         {
-            m_positionMap = null;
+            linemap = null;
             m_warnings.Clear();
-                
-            string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
+
+            assembly = Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
                     FilePrefix + "_compiled_" + asset + ".dll"));
-//            string OutFile = Path.Combine(ScriptEnginesPath,
-//                    FilePrefix + "_compiled_" + asset + ".dll");
 
             if (!Directory.Exists(ScriptEnginesPath))
             {
@@ -305,51 +306,53 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
             }
 
+            // Don't recompile if we already have it
+            // Performing 3 file exists tests for every script can still be slow
+            if (File.Exists(assembly) && File.Exists(assembly + ".text") && File.Exists(assembly + ".map"))
+            {
+                // If we have already read this linemap file, then it will be in our dictionary. 
+                // Don't build another copy of the dictionary (saves memory) and certainly
+                // don't keep reading the same file from disk multiple times. 
+                if (!m_lineMaps.ContainsKey(assembly))
+                    m_lineMaps[assembly] = ReadMapFile(assembly + ".map");
+                linemap = m_lineMaps[assembly];
+                return;
+            }
+
             if (Script == String.Empty)
             {
-                if (File.Exists(OutFile))
-                    return OutFile;
-
                 throw new Exception("Cannot find script assembly and no script text present");
             }
 
-            // Don't recompile if we already have it
-            //
-            if (File.Exists(OutFile) && File.Exists(OutFile+".text") && File.Exists(OutFile+".map"))
-            {
-                ReadMapFile(OutFile+".map");
-                return OutFile;
-            }
-
-            enumCompileType l = DefaultCompileLanguage;
+            enumCompileType language = DefaultCompileLanguage;
 
             if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))
-                l = enumCompileType.cs;
+                language = enumCompileType.cs;
             if (Script.StartsWith("//vb", true, CultureInfo.InvariantCulture))
             {
-                l = enumCompileType.vb;
+                language = enumCompileType.vb;
                 // We need to remove //vb, it won't compile with that
 
                 Script = Script.Substring(4, Script.Length - 4);
             }
             if (Script.StartsWith("//lsl", true, CultureInfo.InvariantCulture))
-                l = enumCompileType.lsl;
+                language = enumCompileType.lsl;
 
             if (Script.StartsWith("//js", true, CultureInfo.InvariantCulture))
-                l = enumCompileType.js;
+                language = enumCompileType.js;
 
             if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
-                l = enumCompileType.yp;
+                language = enumCompileType.yp;
 
-            if (!AllowedCompilers.ContainsKey(l.ToString()))
+            if (!AllowedCompilers.ContainsKey(language.ToString()))
             {
                 // Not allowed to compile to this language!
                 string errtext = String.Empty;
-                errtext += "The compiler for language \"" + l.ToString() + "\" is not in list of allowed compilers. Script will not be executed!";
+                errtext += "The compiler for language \"" + language.ToString() + "\" is not in list of allowed compilers. Script will not be executed!";
                 throw new Exception(errtext);
             }
 
-            if (m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)l) == false) {
+            if (m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)language) == false) {
                 // Not allowed to compile to this language!
                 string errtext = String.Empty;
                 errtext += ownerUUID + " is not in list of allowed users for this scripting language. Script will not be executed!";
@@ -358,7 +361,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             
             string compileScript = Script;
 
-            if (l == enumCompileType.lsl)
+            if (language == enumCompileType.lsl)
             {
                 // Its LSL, convert it to C#
                 LSL_Converter = (ICodeConverter)new CSCodeGenerator();
@@ -370,16 +373,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     AddWarning(warning);
                 }
 
-                m_positionMap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+                linemap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+                // Write the linemap to a file and save it in our dictionary for next time. 
+                m_lineMaps[assembly] = linemap;
+                WriteMapFile(assembly + ".map", linemap);
             }
 
-            if (l == enumCompileType.yp)
+            if (language == enumCompileType.yp)
             {
                 // Its YP, convert it to C#
                 compileScript = YP_Converter.Convert(Script);
             }
 
-            switch (l)
+            switch (language)
             {
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
@@ -396,7 +402,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     break;
             }
 
-            return CompileFromDotNetText(compileScript, l, asset);
+            assembly = CompileFromDotNetText(compileScript, language, asset, assembly);
+            return;
         }
 
         public string[] GetWarnings()
@@ -468,18 +475,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// </summary>
         /// <param name="Script">CS script</param>
         /// <returns>Filename to .dll assembly</returns>
-        internal string CompileFromDotNetText(string Script, enumCompileType lang, string asset)
+        internal string CompileFromDotNetText(string Script, enumCompileType lang, string asset, string assembly)
         {
             string ext = "." + lang.ToString();
 
             // Output assembly name
             scriptCompileCounter++;
-            string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
-                    m_scriptEngine.World.RegionInfo.RegionID.ToString(),
-                    FilePrefix + "_compiled_" + asset + ".dll"));
             try
             {
-                File.Delete(OutFile);
+                File.Delete(assembly);
             }
             catch (Exception e) // NOTLEGIT - Should be just FileIOException
             {
@@ -492,7 +496,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (WriteScriptSourceToDebugFile)
             {
                 string srcFileName = FilePrefix + "_source_" +
-                        Path.GetFileNameWithoutExtension(OutFile) + ext;
+                        Path.GetFileNameWithoutExtension(assembly) + ext;
                 try
                 {
                     File.WriteAllText(Path.Combine(Path.Combine(
@@ -528,7 +532,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
 
             parameters.GenerateExecutable = false;
-            parameters.OutputAssembly = OutFile;
+            parameters.OutputAssembly = assembly;
             parameters.IncludeDebugInformation = CompileWithDebugInformation;
             //parameters.WarningLevel = 1; // Should be 4?
             parameters.TreatWarningsAsErrors = false;
@@ -609,7 +613,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                     if (severity == "Error")
                     {
-                        lslPos = FindErrorPosition(CompErr.Line, CompErr.Column);
+                        lslPos = FindErrorPosition(CompErr.Line, CompErr.Column, m_lineMaps[assembly]);
                         string text = CompErr.ErrorText;
 
                         // Use LSL type names
@@ -635,14 +639,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //  the compile may not be immediately apparent. Wait a 
             //  reasonable amount of time before giving up on it.
 
-            if (!File.Exists(OutFile))
+            if (!File.Exists(assembly))
             {
-                for (int i=0; i<20 && !File.Exists(OutFile); i++)
+                for (int i=0; i<20 && !File.Exists(assembly); i++)
                 {
                     System.Threading.Thread.Sleep(250);
                 }
                 // One final chance...
-                if (!File.Exists(OutFile))
+                if (!File.Exists(assembly))
                 {
                     errtext = String.Empty;
                     errtext += "No compile error. But not able to locate compiled file.";
@@ -658,7 +662,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             //
             // Read the binary file into a buffer
             //
-            FileInfo fi = new FileInfo(OutFile);
+            FileInfo fi = new FileInfo(assembly);
 
             if (fi == null)
             {
@@ -671,7 +675,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             try
             {
-                FileStream fs = File.Open(OutFile, FileMode.Open, FileAccess.Read);
+                FileStream fs = File.Open(assembly, FileMode.Open, FileAccess.Read);
                 fs.Read(data, 0, data.Length);
                 fs.Close();
             }
@@ -690,34 +694,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             Byte[] buf = enc.GetBytes(filetext);
 
-            FileStream sfs = File.Create(OutFile+".text");
+            FileStream sfs = File.Create(assembly+".text");
             sfs.Write(buf, 0, buf.Length);
             sfs.Close();
 
-            string posmap = String.Empty;
-            if (m_positionMap != null)
-            {
-                foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
-                {
-                    KeyValuePair<int, int> k = kvp.Key;
-                    KeyValuePair<int, int> v = kvp.Value;
-                    posmap += String.Format("{0},{1},{2},{3}\n",
-                            k.Key, k.Value, v.Key, v.Value);
-                }
-            }
-
-            buf = enc.GetBytes(posmap);
-
-            FileStream mfs = File.Create(OutFile+".map");
-            mfs.Write(buf, 0, buf.Length);
-            mfs.Close();
-
-            return OutFile;
-        }
-
-        public KeyValuePair<int, int> FindErrorPosition(int line, int col)
-        {
-            return FindErrorPosition(line, col, m_positionMap);
+            return assembly;
         }
 
         private class kvpSorter : IComparer<KeyValuePair<int,int>>
@@ -791,27 +772,32 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             return message;
         }
 
-        public Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> LineMap()
+
+        private static void WriteMapFile(string filename, Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
-            if (m_positionMap == null)
-                return null;
-            
-            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> ret =
-                new Dictionary<KeyValuePair<int,int>, KeyValuePair<int, int>>();
-            
-            foreach (KeyValuePair<int, int> kvp in m_positionMap.Keys)
-                ret.Add(kvp, m_positionMap[kvp]);
-            
-            return ret;
+            string mapstring = String.Empty;
+            foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in linemap)
+            {
+                KeyValuePair<int, int> k = kvp.Key;
+                KeyValuePair<int, int> v = kvp.Value;
+                mapstring += String.Format("{0},{1},{2},{3}\n", k.Key, k.Value, v.Key, v.Value);
+            }
+
+            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+            Byte[] mapbytes = enc.GetBytes(mapstring);
+            FileStream mfs = File.Create(filename);
+            mfs.Write(mapbytes, 0, mapbytes.Length);
+            mfs.Close();
         }
 
-        private void ReadMapFile(string filename)
+
+        private static Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>> ReadMapFile(string filename)
         {
+            Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
             try
             {
                 StreamReader r = File.OpenText(filename);
-
-                m_positionMap = new Dictionary<KeyValuePair<int,int>, KeyValuePair<int, int>>();
+                linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
                 
                 string line;
                 while ((line = r.ReadLine()) != null)
@@ -825,12 +811,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     KeyValuePair<int, int> k = new KeyValuePair<int, int>(kk, kv);
                     KeyValuePair<int, int> v = new KeyValuePair<int, int>(vk, vv);
 
-                    m_positionMap[k] = v;
+                    linemap[k] = v;
                 }
             }
             catch
             {
+                linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
             }
+            return linemap;
         }
     }
 }
