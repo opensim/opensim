@@ -174,6 +174,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             float[] result = getVertexListAsFloat();
             m_pinnedVertexes = GCHandle.Alloc(result, GCHandleType.Pinned);
+            // Inform the garbage collector of this unmanaged allocation so it can schedule
+            // the next GC round more intelligently
+            GC.AddMemoryPressure(Buffer.ByteLength(result));
 
             return result;
         }
@@ -223,6 +226,9 @@ namespace OpenSim.Region.Physics.Meshing
         
             int[] result = getIndexListAsInt();
             m_pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
+            // Inform the garbage collector of this unmanaged allocation so it can schedule
+            // the next GC round more intelligently
+            GC.AddMemoryPressure(Buffer.ByteLength(result));
 
             return result;
         }
