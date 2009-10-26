@@ -38,9 +38,20 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
     public class XferModule : IRegionModule, IXfer
     {
         private Scene m_scene;
+        private Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
+        private List<XferRequest> RequestTime = new List<XferRequest>();
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
+        
 
+        public struct XferRequest
+        {
+            public IClientAPI remoteClient;
+            public ulong xferID;
+            public string fileName;
+            public DateTime timeStamp;
+        }
+       
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -86,6 +97,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     NewFiles.Add(fileName, data);
                 }
             }
+
+            if (Requests.ContainsKey(fileName))
+            {
+                RequestXfer(Requests[fileName].remoteClient, Requests[fileName].xferID, fileName);
+                Requests.Remove(fileName);
+            }
+
             return true;
         }
 
@@ -105,7 +123,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         /// <param name="fileName"></param>
         public void RequestXfer(IClientAPI remoteClient, ulong xferID, string fileName)
         {
-            
             lock (NewFiles)
             {
                 if (NewFiles.ContainsKey(fileName))
@@ -114,6 +131,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     {
                         byte[] fileData = NewFiles[fileName];
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
+
                         Transfers.Add(xferID, transaction);
                         NewFiles.Remove(fileName);
 
@@ -122,6 +140,30 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             Transfers.Remove(xferID);
                         }
                     }
+                }
+                else
+                {
+                    if (RequestTime.Count > 0)
+                    {
+                        TimeSpan ts = new TimeSpan(DateTime.UtcNow.Ticks - RequestTime[0].timeStamp.Ticks);
+                        if (ts.TotalSeconds > 30)
+                        {
+                            Requests.Remove(RequestTime[0].fileName);
+                            RequestTime.RemoveAt(0);
+                        }
+                    }
+
+                    if (!Requests.ContainsKey(fileName))
+                    {
+                        XferRequest nRequest = new XferRequest();
+                        nRequest.remoteClient = remoteClient;
+                        nRequest.xferID = xferID;
+                        nRequest.fileName = fileName;
+                        nRequest.timeStamp = DateTime.UtcNow;
+                        Requests.Add(fileName, nRequest);
+                        RequestTime.Add(nRequest);
+                    }
+                    
                 }
             }
         }
@@ -177,7 +219,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                     Array.Copy(Utils.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
                     Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
-
                     complete = true;
                 }
                 else
