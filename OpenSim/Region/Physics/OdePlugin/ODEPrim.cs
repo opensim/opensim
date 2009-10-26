@@ -801,6 +801,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_collisionscore = 0;
         }
 
+        private static Dictionary<IMesh, IntPtr> m_MeshToTriMeshMap = new Dictionary<IMesh, IntPtr>();
+
         public void setMesh(OdeScene parent_scene, IMesh mesh)
         {
             // This sleeper is there to moderate how long it takes between
@@ -832,19 +834,24 @@ namespace OpenSim.Region.Physics.OdePlugin
             mesh.getIndexListAsPtrToIntArray(out indices, out triStride, out indexCount); // Also fixed, needs release after usage
 
             mesh.releaseSourceMeshData(); // free up the original mesh data to save memory
+            if (m_MeshToTriMeshMap.ContainsKey(mesh))
+            {
+                _triMeshData = m_MeshToTriMeshMap[mesh];
+            }
+            else
+            {
+                _triMeshData = d.GeomTriMeshDataCreate();
 
-            _triMeshData = d.GeomTriMeshDataCreate();
-
-            d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
-            d.GeomTriMeshDataPreprocess(_triMeshData);
+                d.GeomTriMeshDataBuildSimple(_triMeshData, vertices, vertexStride, vertexCount, indices, indexCount, triStride);
+                d.GeomTriMeshDataPreprocess(_triMeshData);
+                m_MeshToTriMeshMap[mesh] = _triMeshData;
+            }
 
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
-
             try
             {
                 if (prim_geom == IntPtr.Zero)
                 {
-//Console.WriteLine(" setMesh 1");               
                     SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
                 }
             }
@@ -853,6 +860,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_log.Error("[PHYSICS]: MESH LOCKED");
                 return;
             }
+
 
            // if (IsPhysical && Body == (IntPtr) 0)
            // {
