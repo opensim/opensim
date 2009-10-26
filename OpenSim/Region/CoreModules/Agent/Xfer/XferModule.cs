@@ -38,15 +38,20 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
     public class XferModule : IRegionModule, IXfer
     {
         private Scene m_scene;
+        private Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
+        private List<XferRequest> RequestTime = new List<XferRequest>();
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
-        public Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
+        
+
         public struct XferRequest
         {
             public IClientAPI remoteClient;
             public ulong xferID;
+            public string fileName;
+            public DateTime timeStamp;
         }
-
+       
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -138,13 +143,27 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 }
                 else
                 {
+                    if (RequestTime.Count > 0)
+                    {
+                        TimeSpan ts = new TimeSpan(DateTime.UtcNow.Ticks - RequestTime[0].timeStamp.Ticks);
+                        if (ts.TotalSeconds > 30)
+                        {
+                            Requests.Remove(RequestTime[0].fileName);
+                            RequestTime.RemoveAt(0);
+                        }
+                    }
+
                     if (!Requests.ContainsKey(fileName))
                     {
                         XferRequest nRequest = new XferRequest();
                         nRequest.remoteClient = remoteClient;
                         nRequest.xferID = xferID;
+                        nRequest.fileName = fileName;
+                        nRequest.timeStamp = DateTime.UtcNow;
                         Requests.Add(fileName, nRequest);
+                        RequestTime.Add(nRequest);
                     }
+                    
                 }
             }
         }
