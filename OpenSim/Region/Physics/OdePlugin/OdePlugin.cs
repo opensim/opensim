@@ -2705,8 +2705,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     foreach (OdePrim prim in _taintedPrimL)
                                     {
-       
-                                    
                                         if (prim.m_taintremove)
                                         {
 //Console.WriteLine("Simulate calls RemovePrimThreadLocked");                                          
@@ -2719,6 +2717,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         }
                                         processedtaints = true;
                                         prim.m_collisionscore = 0;
+
+                                        // This loop can block up the Heartbeat for a very long time on large regions.
+                                        // We need to let the Watchdog know that the Heartbeat is not dead
+                                        // NOTE: This is currently commented out, but if things like OAR loading are 
+                                        // timing the heartbeat out we will need to uncomment it
+                                        //Watchdog.UpdateThread();
                                     }
 
                                     if (SupportsNINJAJoints)

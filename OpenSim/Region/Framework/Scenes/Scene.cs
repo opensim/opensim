@@ -1025,6 +1025,7 @@ namespace OpenSim.Region.Framework.Scenes
                 float physicsFPS = 0;
 
                 frameMS = Environment.TickCount;
+
                 try
                 {
                     // Increment the frame counter
@@ -1152,6 +1153,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if ((maintc < (m_timespan * 1000)) && maintc > 0)
                     Thread.Sleep(maintc);
 
+                // Tell the watchdog that this thread is still alive
                 Watchdog.UpdateThread();
             }
         }

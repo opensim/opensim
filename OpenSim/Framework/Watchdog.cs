@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using log4net;
 
 namespace OpenSim.Framework
 {
@@ -66,6 +67,7 @@ namespace OpenSim.Framework
         /// stopped or has not called UpdateThread() in time</summary>
         public static event WatchdogTimeout OnWatchdogTimeout;
 
+        private static readonly ILog m_log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static Dictionary<int, ThreadWatchdogInfo> m_threads;
         private static System.Timers.Timer m_watchdogTimer;
 
@@ -95,9 +97,6 @@ namespace OpenSim.Framework
             thread.IsBackground = isBackground;
             thread.Start();
 
-            lock (m_threads)
-                m_threads.Add(thread.ManagedThreadId, new ThreadWatchdogInfo(thread));
-
             return thread;
         }
 
@@ -110,24 +109,6 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// Marks a thread as alive
-        /// </summary>
-        /// <param name="threadID">The ManagedThreadId of the thread to mark as
-        /// alive</param>
-        public static void UpdateThread(int threadID)
-        {
-            ThreadWatchdogInfo threadInfo;
-
-            lock (m_threads)
-            {
-                if (m_threads.TryGetValue(threadID, out threadInfo))
-                {
-                    threadInfo.LastTick = Environment.TickCount & Int32.MaxValue;
-                }
-            }
-        }
-
-        /// <summary>
         /// Stops watchdog tracking on the current thread
         /// </summary>
         /// <returns>True if the thread was removed from the list of tracked
@@ -137,17 +118,36 @@ namespace OpenSim.Framework
             return RemoveThread(Thread.CurrentThread.ManagedThreadId);
         }
 
-        /// <summary>
-        /// Stops watchdog tracking on a thread
-        /// </summary>
-        /// <param name="threadID">The ManagedThreadId of the thread to stop
-        /// tracking</param>
-        /// <returns>True if the thread was removed from the list of tracked
-        /// threads, otherwise false</returns>
-        public static bool RemoveThread(int threadID)
+        private static void AddThread(ThreadWatchdogInfo threadInfo)
+        {
+            m_log.Debug("[WATCHDOG]: Started tracking thread \"" + threadInfo.Thread.Name + "\" (ID " + threadInfo.Thread.ManagedThreadId + ")");
+
+            lock (m_threads)
+                m_threads.Add(threadInfo.Thread.ManagedThreadId, threadInfo);
+        }
+
+        private static bool RemoveThread(int threadID)
         {
             lock (m_threads)
                 return m_threads.Remove(threadID);
+        }
+
+        private static void UpdateThread(int threadID)
+        {
+            ThreadWatchdogInfo threadInfo;
+
+            // Although TryGetValue is not a thread safe operation, we use a try/catch here instead
+            // of a lock for speed. Adding/removing threads is a very rare operation compared to
+            // UpdateThread(), and a single UpdateThread() failure here and there won't break
+            // anything
+            try
+            {
+                if (m_threads.TryGetValue(threadID, out threadInfo))
+                    threadInfo.LastTick = Environment.TickCount & Int32.MaxValue;
+                else
+                    AddThread(new ThreadWatchdogInfo(Thread.CurrentThread));
+            }
+            catch { }
         }
 
         private static void WatchdogTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -160,7 +160,7 @@ namespace OpenSim.Framework
 
                 lock (m_threads)
                 {
-                    int now = Environment.TickCount;
+                    int now = Environment.TickCount & Int32.MaxValue;
 
                     foreach (ThreadWatchdogInfo threadInfo in m_threads.Values)
                     {
