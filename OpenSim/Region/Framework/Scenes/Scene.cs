@@ -106,11 +106,11 @@ namespace OpenSim.Region.Framework.Scenes
         public bool m_physicalPrim;
         public float m_maxNonphys = 256;
         public float m_maxPhys = 10;
-        public bool m_clampPrimSize = false;
-        public bool m_trustBinaries = false;
-        public bool m_allowScriptCrossings = false;
-        public bool m_useFlySlow = false;
-        public bool m_usePreJump = false;
+        public bool m_clampPrimSize;
+        public bool m_trustBinaries;
+        public bool m_allowScriptCrossings;
+        public bool m_useFlySlow;
+        public bool m_usePreJump;
         public bool m_seeIntoRegionFromNeighbor;
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
@@ -118,11 +118,11 @@ namespace OpenSim.Region.Framework.Scenes
         public int MaxUndoCount = 5;
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
-        private int m_incrementsof15seconds = 0;
-        private volatile bool m_backingup = false;
+        private int m_incrementsof15seconds;
+        private volatile bool m_backingup;
+        private bool m_useAsyncWhenPossible = true;
 
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
-        
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
 
         protected string m_simulatorVersion = "OpenSimulator Server";
@@ -142,8 +142,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public IXfer XferManager;
 
-        protected IAssetService m_AssetService = null;
-        protected IAuthorizationService m_AuthorizationService = null;
+        protected IAssetService m_AssetService;
+        protected IAuthorizationService m_AuthorizationService;
 
         private Object m_heartbeatLock = new Object();
 
@@ -184,7 +184,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IInventoryService m_InventoryService = null;
+        protected IInventoryService m_InventoryService;
 
         public IInventoryService InventoryService
         {
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected IGridService m_GridService = null;
+        protected IGridService m_GridService;
 
         public IGridService GridService
         {
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Central Update Loop
 
         protected int m_fps = 10;
-        protected int m_frame = 0;
+        protected int m_frame;
         protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.UtcNow;
 
@@ -265,17 +265,17 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_update_terrain = 50;
         private int m_update_land = 1;
 
-        private int frameMS = 0;
-        private int physicsMS2 = 0;
-        private int physicsMS = 0;
-        private int otherMS = 0;
+        private int frameMS;
+        private int physicsMS2;
+        private int physicsMS;
+        private int otherMS;
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
         private string m_defaultScriptEngine;
-        private int m_LastLogin = 0;
-        private Thread HeartbeatThread = null;
-        private volatile bool shuttingdown = false;
+        private int m_LastLogin;
+        private Thread HeartbeatThread;
+        private volatile bool shuttingdown;
 
         private int m_lastUpdate = Environment.TickCount;
         private bool m_firstHeartbeat = true;
@@ -478,6 +478,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // Region config overrides global config
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
+
+                // Should we try to run loops synchronously or asynchronously?
+                m_useAsyncWhenPossible = startupConfig.GetBoolean("use_async_when_possible", true);
 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
@@ -4253,7 +4256,10 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            ClientManager.ForEachSync(action);
+            if (m_useAsyncWhenPossible)
+                ClientManager.ForEach(action);
+            else
+                ClientManager.ForEachSync(action);
         }
 
         public void ForEachSOG(Action<SceneObjectGroup> action)

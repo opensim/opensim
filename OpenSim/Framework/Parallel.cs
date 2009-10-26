@@ -118,6 +118,7 @@ namespace OpenSim.Framework
             int counter = threadCount;
             AutoResetEvent threadFinishEvent = new AutoResetEvent(false);
             IEnumerator<T> enumerator = enumerable.GetEnumerator();
+            object syncRoot = new object();
             Exception exception = null;
 
             for (int i = 0; i < threadCount; i++)
@@ -131,7 +132,7 @@ namespace OpenSim.Framework
                         {
                             T entry;
 
-                            lock (enumerator)
+                            lock (syncRoot)
                             {
                                 if (!enumerator.MoveNext())
                                     break;

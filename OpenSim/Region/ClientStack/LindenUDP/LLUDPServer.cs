@@ -262,7 +262,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 for (int i = 0; i < packetCount; i++)
                 {
                     byte[] data = datas[i];
-                    m_scene.ClientManager.ForEach(
+                    m_scene.ForEachClient(
                         delegate(IClientAPI client)
                         {
                             if (client is LLClientView)
@@ -274,7 +274,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             else
             {
                 byte[] data = packet.ToBytes();
-                m_scene.ClientManager.ForEach(
+                m_scene.ForEachClient(
                     delegate(IClientAPI client)
                     {
                         if (client is LLClientView)
