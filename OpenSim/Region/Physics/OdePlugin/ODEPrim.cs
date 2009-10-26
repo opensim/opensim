@@ -57,44 +57,43 @@ namespace OpenSim.Region.Physics.OdePlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private PhysicsVector _position;
-        private PhysicsVector _velocity;
-        private PhysicsVector _torque = new PhysicsVector(0,0,0);
-        private PhysicsVector m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
-        private PhysicsVector m_lastposition = new PhysicsVector(0.0f, 0.0f, 0.0f);
+        private Vector3 _position;
+        private Vector3 _velocity;
+        private Vector3 _torque;
+        private Vector3 m_lastVelocity;
+        private Vector3 m_lastposition;
         private Quaternion m_lastorientation = new Quaternion();
-        private PhysicsVector m_rotationalVelocity;
-        private PhysicsVector _size;
-        private PhysicsVector _acceleration;
+        private Vector3 m_rotationalVelocity;
+        private Vector3 _size;
+        private Vector3 _acceleration;
         // private d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
         private Quaternion _orientation;
-        private PhysicsVector m_taintposition;
-        private PhysicsVector m_taintsize;
-        private PhysicsVector m_taintVelocity = new PhysicsVector(0, 0, 0);
-        private PhysicsVector m_taintTorque = new PhysicsVector(0, 0, 0);
+        private Vector3 m_taintposition;
+        private Vector3 m_taintsize;
+        private Vector3 m_taintVelocity;
+        private Vector3 m_taintTorque;
         private Quaternion m_taintrot;
-        private PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
-        private PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
+        private Vector3 m_angularlock = Vector3.One;
+        private Vector3 m_taintAngularLock = Vector3.One;
         private IntPtr Amotor = IntPtr.Zero;
 
-        private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
-        // private PhysicsVector m_taintPIDTarget = new PhysicsVector(0, 0, 0);
-        private float m_PIDTau = 0f;
+        private Vector3 m_PIDTarget;
+        private float m_PIDTau;
         private float PID_D = 35f;
         private float PID_G = 25f;
-        private bool m_usePID = false;
+        private bool m_usePID;
 
         // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // and are for non-VEHICLES only.
-         
-        private float m_PIDHoverHeight = 0f;
-        private float m_PIDHoverTau = 0f;
-        private bool m_useHoverPID = false;
+
+        private float m_PIDHoverHeight;
+        private float m_PIDHoverTau;
+        private bool m_useHoverPID;
         private PIDHoverType m_PIDHoverType = PIDHoverType.Ground;
-        private float m_targetHoverHeight = 0f;
-        private float m_groundHeight = 0f;
-        private float m_waterHeight = 0f;
-        private float m_buoyancy = 0f;				//KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
+        private float m_targetHoverHeight;
+        private float m_groundHeight;
+        private float m_waterHeight;
+        private float m_buoyancy;				//KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
 
         // private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
@@ -105,11 +104,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                         | CollisionCategories.Body
                                                         | CollisionCategories.Character
                                                         );
-        private bool m_taintshape = false;
-        private bool m_taintPhysics = false;
+        private bool m_taintshape;
+        private bool m_taintPhysics;
         private bool m_collidesLand = true;
-        private bool m_collidesWater = false;
-        public bool m_returnCollisions = false;
+        private bool m_collidesWater;
+        public bool m_returnCollisions;
 
         // Default we're a Geometry
         private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
@@ -117,85 +116,83 @@ namespace OpenSim.Region.Physics.OdePlugin
         // Default, Collide with Other Geometries, spaces and Bodies
         private CollisionCategories m_collisionFlags = m_default_collisionFlags;
 
-        public bool m_taintremove = false;
-        public bool m_taintdisable = false;
-        public bool m_disabled = false;
-        public bool m_taintadd = false;
-        public bool m_taintselected = false;
-        public bool m_taintCollidesWater = false;
+        public bool m_taintremove;
+        public bool m_taintdisable;
+        public bool m_disabled;
+        public bool m_taintadd;
+        public bool m_taintselected;
+        public bool m_taintCollidesWater;
 
-        public uint m_localID = 0;
+        public uint m_localID;
 
         //public GCHandle gc;
         private CollisionLocker ode;
 
         private bool m_taintforce = false;
         private bool m_taintaddangularforce = false;
-        private PhysicsVector m_force = new PhysicsVector(0.0f, 0.0f, 0.0f);
-        private List<PhysicsVector> m_forcelist = new List<PhysicsVector>();
-        private List<PhysicsVector> m_angularforcelist = new List<PhysicsVector>();
+        private Vector3 m_force;
+        private List<Vector3> m_forcelist = new List<Vector3>();
+        private List<Vector3> m_angularforcelist = new List<Vector3>();
 
         private IMesh _mesh;
         private PrimitiveBaseShape _pbs;
         private OdeScene _parent_scene;
-        public IntPtr m_targetSpace = (IntPtr) 0;
+        public IntPtr m_targetSpace = IntPtr.Zero;
         public IntPtr prim_geom;
         public IntPtr prev_geom;
         public IntPtr _triMeshData;
 
-        private IntPtr _linkJointGroup = (IntPtr)0;
-        private PhysicsActor _parent = null;
-        private PhysicsActor m_taintparent = null;
+        private IntPtr _linkJointGroup = IntPtr.Zero;
+        private PhysicsActor _parent;
+        private PhysicsActor m_taintparent;
 
         private List<OdePrim> childrenPrim = new List<OdePrim>();
 
-        private bool iscolliding = false;
-        private bool m_isphysical = false;
-        private bool m_isSelected = false;
+        private bool iscolliding;
+        private bool m_isphysical;
+        private bool m_isSelected;
 
-        internal bool m_isVolumeDetect = false; // If true, this prim only detects collisions but doesn't collide actively
+        internal bool m_isVolumeDetect; // If true, this prim only detects collisions but doesn't collide actively
 
-        private bool m_throttleUpdates = false;
-        private int throttleCounter = 0;
-        public int m_interpenetrationcount = 0;
-        public float m_collisionscore = 0;
-        public int m_roundsUnderMotionThreshold = 0;
-        private int m_crossingfailures = 0;
+        private bool m_throttleUpdates;
+        private int throttleCounter;
+        public int m_interpenetrationcount;
+        public float m_collisionscore;
+        public int m_roundsUnderMotionThreshold;
+        private int m_crossingfailures;
 
-        public bool outofBounds = false;
+        public bool outofBounds;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
 
-        public bool _zeroFlag = false;
-        private bool m_lastUpdateSent = false;
+        public bool _zeroFlag;
+        private bool m_lastUpdateSent;
 
-        public IntPtr Body = (IntPtr) 0;
+        public IntPtr Body = IntPtr.Zero;
         public String m_primName;
-//        private String m_primName;
-        private PhysicsVector _target_velocity;
+        private Vector3 _target_velocity;
         public d.Mass pMass;
 
-        public int m_eventsubscription = 0;
-        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        public int m_eventsubscription;
+        private CollisionEventUpdate CollisionEventsThisFrame;
 
-        private IntPtr m_linkJoint = (IntPtr)0;
+        private IntPtr m_linkJoint = IntPtr.Zero;
 
-        public volatile bool childPrim = false;
+        public volatile bool childPrim;
 
         private ODEDynamics m_vehicle;
 
         internal int m_material = (int)Material.Wood;
 
-        public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
+        public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
         {
-            _target_velocity = new PhysicsVector(0, 0, 0);
             m_vehicle = new ODEDynamics();
             //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
-            _velocity = new PhysicsVector();
-            if (!PhysicsVector.isFinite(pos))
+            if (!pos.IsFinite())
             {
-                pos = new PhysicsVector(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), parent_scene.GetTerrainHeightAtXY(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f)) + 0.5f);
+                pos = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f),
+                    parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
                 m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
             }
             _position = pos;
@@ -210,9 +207,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             prim_geom = IntPtr.Zero;
             prev_geom = IntPtr.Zero;
 
-            if (!PhysicsVector.isFinite(pos))
+            if (!pos.IsFinite())
             {
-                size = new PhysicsVector(0.5f, 0.5f, 0.5f);
+                size = new Vector3(0.5f, 0.5f, 0.5f);
                 m_log.Warn("[PHYSICS]: Got nonFinite Object create Size");
             }
 
@@ -222,8 +219,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             _size = size;
             m_taintsize = _size;
-            _acceleration = new PhysicsVector();
-            m_rotationalVelocity = PhysicsVector.Zero;
 
             if (!QuaternionIsFinite(rotation))
             {
@@ -388,7 +383,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0.0f)) && _parent == null)
                 {
                     createAMotor(m_angularlock);
                 }
@@ -882,7 +877,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             
             if (prim_geom != IntPtr.Zero)
             {
-	        	 if (!_position.IsIdentical(m_taintposition,0f))
+	        	 if (!_position.ApproxEquals(m_taintposition, 0f))
 	                    changemove(timestep);
 
 	             if (m_taintrot != _orientation)
@@ -907,7 +902,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changePhysicsStatus(timestep);
                 //
 
-                if (!_size.IsIdentical(m_taintsize,0))
+                if (!_size.ApproxEquals(m_taintsize,0f))
                     changesize(timestep);
                 //
 
@@ -921,7 +916,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintaddangularforce)
                     changeAddAngularForce(timestep);
 
-                if (!m_taintTorque.IsIdentical(PhysicsVector.Zero, 0.001f))
+                if (!m_taintTorque.ApproxEquals(Vector3.Zero, 0.001f))
                     changeSetTorque(timestep);
 
                 if (m_taintdisable)
@@ -930,7 +925,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintselected != m_isSelected)
                     changeSelectedStatus(timestep);
 
-                if (!m_taintVelocity.IsIdentical(PhysicsVector.Zero, 0.001f))
+                if (!m_taintVelocity.ApproxEquals(Vector3.Zero, 0.001f))
                     changevelocity(timestep);
 
                 if (m_taintparent != _parent)
@@ -939,7 +934,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
 
-                if (!m_angularlock.IsIdentical(m_taintAngularLock,0))
+                if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
                     changeAngularLock(timestep);
  
             }
@@ -959,7 +954,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //If we have a parent then we're not authorative here
                 if (_parent == null)
                 {
-                    if (!m_taintAngularLock.IsIdentical(new PhysicsVector(1f,1f,1f), 0))
+                    if (!m_taintAngularLock.ApproxEquals(Vector3.One, 0f))
                     {
                         //d.BodySetFiniteRotationMode(Body, 0);
                         //d.BodySetFiniteRotationAxis(Body,m_taintAngularLock.X,m_taintAngularLock.Y,m_taintAngularLock.Z);
@@ -976,7 +971,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
             // Store this for later in case we get turned into a separate body
-            m_angularlock = new PhysicsVector(m_taintAngularLock.X, m_taintAngularLock.Y, m_taintAngularLock.Z);
+            m_angularlock = m_taintAngularLock;
             
         }
 
@@ -1120,7 +1115,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 prm.m_disabled = false;
 
                                 // The body doesn't already have a finite rotation mode set here
-                                if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
                                 {
                                     prm.createAMotor(m_angularlock);
                                 }
@@ -1163,7 +1158,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_disabled = false;
 
                             // The body doesn't already have a finite rotation mode set here
-                            if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+                            if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
                             {
                                 createAMotor(m_angularlock);
                             }
@@ -1347,7 +1342,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintshape = false;
             m_taintforce = false;
             m_taintdisable = false;
-            m_taintVelocity = PhysicsVector.Zero;
+            m_taintVelocity = Vector3.Zero;
         }
 
         public void CreateGeom(IntPtr m_targetSpace, IMesh _mesh)
@@ -1576,7 +1571,7 @@ Console.WriteLine(" JointCreateFixed");
 //Console.WriteLine("Move " +  m_primName);           	
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
-	                if (d.BodyIsEnabled(Body) && !m_angularlock.IsIdentical(PhysicsVector.Zero, 0.003f))
+	                if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
 	                {
 	                    d.Vector3 avel2 = d.BodyGetAngularVel(Body);
 	                    if (m_angularlock.X == 1)
@@ -1633,7 +1628,7 @@ Console.WriteLine(" JointCreateFixed");
 
 	                    d.Vector3 pos = d.BodyGetPosition(Body);
 	                    _target_velocity =
-	                        new PhysicsVector(
+                            new Vector3(
 	                            (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
 	                            (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
 	                            (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
@@ -1641,7 +1636,7 @@ Console.WriteLine(" JointCreateFixed");
 
 	                    //  if velocity is zero, use position control; otherwise, velocity control
 
-	                    if (_target_velocity.IsIdentical(PhysicsVector.Zero,0.1f))
+	                    if (_target_velocity.ApproxEquals(Vector3.Zero,0.1f))
 	                    {
 	                        //  keep track of where we stopped.  No more slippin' & slidin'
 	
@@ -1726,13 +1721,13 @@ Console.WriteLine(" JointCreateFixed");
 
 
 	                    _target_velocity =
-    	                    new PhysicsVector(0.0f, 0.0f,
+                            new Vector3(0.0f, 0.0f,
     	                        (m_targetHoverHeight - pos.Z) * ((PID_G - m_PIDHoverTau) * timestep)
     	                        );
 
     	                //  if velocity is zero, use position control; otherwise, velocity control
 
-    	                if (_target_velocity.IsIdentical(PhysicsVector.Zero, 0.1f))
+    	                if (_target_velocity.ApproxEquals(Vector3.Zero, 0.1f))
     	                {
     	                    //  keep track of where we stopped.  No more slippin' & slidin'
 	
@@ -1821,7 +1816,7 @@ Console.WriteLine(" JointCreateFixed");
                 d.BodySetQuaternion(Body, ref myrot);
 	            if (m_isphysical)
 	            {
-	                if (!m_angularlock.IsIdentical(new PhysicsVector(1, 1, 1), 0))
+                    if (!m_angularlock.ApproxEquals(Vector3.One, 0f))
 	                    createAMotor(m_angularlock);
 	            }
 	        }
@@ -2130,7 +2125,7 @@ Console.WriteLine(" JointCreateFixed");
                     //m_log.Info("[PHYSICS]: dequeing forcelist");
                     if (IsPhysical)
                     {
-                        PhysicsVector iforce = new PhysicsVector();
+                        Vector3 iforce = Vector3.Zero;
                         for (int i = 0; i < m_forcelist.Count; i++)
                         {
                             iforce = iforce + (m_forcelist[i] * 100);
@@ -2160,8 +2155,8 @@ Console.WriteLine(" JointCreateFixed");
                     d.BodySetTorque(Body, m_taintTorque.X, m_taintTorque.Y, m_taintTorque.Z);
                 }
             }
-            
-            m_taintTorque = new PhysicsVector(0, 0, 0);
+
+            m_taintTorque = Vector3.Zero;
         }
 
         public void changeAddAngularForce(float timestamp)
@@ -2173,7 +2168,7 @@ Console.WriteLine(" JointCreateFixed");
                     //m_log.Info("[PHYSICS]: dequeing forcelist");
                     if (IsPhysical)
                     {
-                        PhysicsVector iforce = new PhysicsVector();
+                        Vector3 iforce = Vector3.Zero;
                         for (int i = 0; i < m_angularforcelist.Count; i++)
                         {
                             iforce = iforce + (m_angularforcelist[i] * 100);
@@ -2207,7 +2202,7 @@ Console.WriteLine(" JointCreateFixed");
                 
                 //resetCollisionAccounting();
             }
-            m_taintVelocity = PhysicsVector.Zero;
+            m_taintVelocity = Vector3.Zero;
         }
 
         public override bool IsPhysical
@@ -2216,7 +2211,7 @@ Console.WriteLine(" JointCreateFixed");
             set { 
                   m_isphysical = value;
                   if (!m_isphysical) // Zero the remembered last velocity
-                      m_lastVelocity = new PhysicsVector(0.0f, 0.0f, 0.0f);
+                      m_lastVelocity = Vector3.Zero;
                 }
         }
 
@@ -2261,7 +2256,7 @@ Console.WriteLine(" JointCreateFixed");
             get { return _zeroFlag; }
         }
 
-        public override PhysicsVector Position
+        public override Vector3 Position
         {
             get { return _position; }
 
@@ -2270,12 +2265,12 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override PhysicsVector Size
+        public override Vector3 Size
         {
             get { return _size; }
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     _size = value;
                 }
@@ -2291,13 +2286,13 @@ Console.WriteLine(" JointCreateFixed");
             get { return CalculateMass(); }
         }
 
-        public override PhysicsVector Force
+        public override Vector3 Force
         {
-            //get { return PhysicsVector.Zero; }
+            //get { return Vector3.Zero; }
             get { return m_force; }
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     m_force = value;
                 }
@@ -2319,7 +2314,7 @@ Console.WriteLine(" JointCreateFixed");
             m_vehicle.ProcessFloatVehicleParam((Vehicle) param, value);
         }
 
-        public override void VehicleVectorParam(int param, PhysicsVector value)
+        public override void VehicleVectorParam(int param, Vector3 value)
         {
             m_vehicle.ProcessVectorVehicleParam((Vehicle) param, value);
         }
@@ -2337,14 +2332,14 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override PhysicsVector CenterOfMass
+        public override Vector3 CenterOfMass
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
-        public override PhysicsVector GeometricCenter
+        public override Vector3 GeometricCenter
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
         public override PrimitiveBaseShape Shape
@@ -2356,13 +2351,13 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override PhysicsVector Velocity
+        public override Vector3 Velocity
         {
             get
             {
                 // Averate previous velocity with the new one so
                 // client object interpolation works a 'little' better
-                PhysicsVector returnVelocity = new PhysicsVector();
+                Vector3 returnVelocity = Vector3.Zero;
                 returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
                 returnVelocity.Y = (m_lastVelocity.Y + _velocity.Y)/2;
                 returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
@@ -2370,7 +2365,7 @@ Console.WriteLine(" JointCreateFixed");
             }
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     _velocity = value;
 
@@ -2385,19 +2380,19 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override PhysicsVector Torque
+        public override Vector3 Torque
         {
             get
             {
                 if (!m_isphysical || Body == IntPtr.Zero)
-                    return new PhysicsVector(0,0,0);
+                    return Vector3.Zero;
 
                 return _torque;
             }
 
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     m_taintTorque = value;
                     _parent_scene.AddPhysicsActorTaint(this);
@@ -2449,20 +2444,20 @@ Console.WriteLine(" JointCreateFixed");
             return true;
         }
 
-        public override PhysicsVector Acceleration
+        public override Vector3 Acceleration
         {
             get { return _acceleration; }
         }
 
 
-        public void SetAcceleration(PhysicsVector accel)
+        public void SetAcceleration(Vector3 accel)
         {
             _acceleration = accel;
         }
 
-        public override void AddForce(PhysicsVector force, bool pushforce)
+        public override void AddForce(Vector3 force, bool pushforce)
         {
-            if (PhysicsVector.isFinite(force))
+            if (force.IsFinite())
             {
                 m_forcelist.Add(force);
                 m_taintforce = true;
@@ -2474,9 +2469,9 @@ Console.WriteLine(" JointCreateFixed");
             //m_log.Info("[PHYSICS]: Added Force:" + force.ToString() +  " to prim at " + Position.ToString());
         }
 
-        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        public override void AddAngularForce(Vector3 force, bool pushforce)
         {
-            if (PhysicsVector.isFinite(force))
+            if (force.IsFinite())
             {
                 m_angularforcelist.Add(force);
                 m_taintaddangularforce = true;
@@ -2487,23 +2482,23 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override PhysicsVector RotationalVelocity
+        public override Vector3 RotationalVelocity
         {
             get
             {
-                PhysicsVector pv = new PhysicsVector(0, 0, 0);
+                Vector3 pv = Vector3.Zero;
                 if (_zeroFlag)
                     return pv;
                 m_lastUpdateSent = false;
 
-                if (m_rotationalVelocity.IsIdentical(pv, 0.2f))
+                if (m_rotationalVelocity.ApproxEquals(pv, 0.2f))
                     return pv;
 
                 return m_rotationalVelocity;
             }
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     m_rotationalVelocity = value;
                 }
@@ -2544,16 +2539,16 @@ Console.WriteLine(" JointCreateFixed");
             m_taintparent = null;
         }
 
-        public override void LockAngularMotion(PhysicsVector axis)
+        public override void LockAngularMotion(Vector3 axis)
         {
             // reverse the zero/non zero values for ODE.
-            if (PhysicsVector.isFinite(axis))
+            if (axis.IsFinite())
             {
                 axis.X = (axis.X > 0) ? 1f : 0f;
                 axis.Y = (axis.Y > 0) ? 1f : 0f;
                 axis.Z = (axis.Z > 0) ? 1f : 0f;
                 m_log.DebugFormat("[axislock]: <{0},{1},{2}>", axis.X, axis.Y, axis.Z);
-                m_taintAngularLock = new PhysicsVector(axis.X, axis.Y, axis.Z);
+                m_taintAngularLock = axis;
             }
             else
             {
@@ -2566,7 +2561,7 @@ Console.WriteLine(" JointCreateFixed");
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             if (_parent == null)
             {
-                PhysicsVector pv = new PhysicsVector(0, 0, 0);
+                Vector3 pv = Vector3.Zero;
                 bool lastZeroFlag = _zeroFlag;
                 if (Body != (IntPtr)0) // FIXME -> or if it is a joint
                 {
@@ -2575,9 +2570,9 @@ Console.WriteLine(" JointCreateFixed");
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
                     d.Vector3 rotvel = d.BodyGetAngularVel(Body);
                     d.Vector3 torque = d.BodyGetTorque(Body);
-                    _torque.setValues(torque.X, torque.Y, torque.Z);
-                    PhysicsVector l_position = new PhysicsVector();
-                    Quaternion l_orientation = new Quaternion();
+                    _torque = new Vector3(torque.X, torque.Y, torque.Z);
+                    Vector3 l_position = Vector3.Zero;
+                    Quaternion l_orientation = Quaternion.Identity;
 
                     //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
                     //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
@@ -2712,16 +2707,16 @@ Console.WriteLine(" JointCreateFixed");
                         _velocity.Z = vel.Z;
 
                         _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
-                        _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
+                        _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
 
-                        if (_velocity.IsIdentical(pv, 0.5f))
+                        if (_velocity.ApproxEquals(pv, 0.5f))
                         {
                             m_rotationalVelocity = pv;
                         }
                         else
                         {
-                            m_rotationalVelocity.setValues(rotvel.X, rotvel.Y, rotvel.Z);
+                            m_rotationalVelocity = new Vector3(rotvel.X, rotvel.Y, rotvel.Z);
                         }
 
                         //m_log.Debug("ODE: " + m_rotationalVelocity.ToString());
@@ -2769,15 +2764,15 @@ Console.WriteLine(" JointCreateFixed");
             }
         }
 
-        public override void SetMomentum(PhysicsVector momentum)
+        public override void SetMomentum(Vector3 momentum)
         {
         }
 
-        public override PhysicsVector PIDTarget 
+        public override Vector3 PIDTarget 
         { 
             set
             {
-                if (PhysicsVector.isFinite(value))
+                if (value.IsFinite())
                 {
                     m_PIDTarget = value;
                 }
@@ -2793,7 +2788,7 @@ Console.WriteLine(" JointCreateFixed");
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
 
-        private void createAMotor(PhysicsVector axis)
+        private void createAMotor(Vector3 axis)
         {
             if (Body == IntPtr.Zero)
                 return;

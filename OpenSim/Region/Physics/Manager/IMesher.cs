@@ -28,13 +28,14 @@
 using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {
     public interface IMesher
     {
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod);
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod, bool isPhysical);
+        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod);
+        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
     }
 
     public interface IVertex
@@ -43,7 +44,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public interface IMesh
     {
-        List<PhysicsVector> getVertexList();
+        List<Vector3> getVertexList();
         int[] getIndexListAsInt();
         int[] getIndexListAsIntLocked();
         float[] getVertexListAsFloatLocked();

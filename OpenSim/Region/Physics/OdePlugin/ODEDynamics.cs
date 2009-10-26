@@ -232,7 +232,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }//end ProcessFloatVehicleParam
 
-        internal void ProcessVectorVehicleParam(Vehicle pParam, PhysicsVector pValue)
+        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             switch (pParam)
             {

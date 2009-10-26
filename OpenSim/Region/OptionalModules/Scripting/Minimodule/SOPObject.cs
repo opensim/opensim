@@ -525,8 +525,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.GeometricCenter;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.GeometricCenter;
+                return tmp;
             }
         }
 
@@ -534,8 +534,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.CenterOfMass;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.CenterOfMass;
+                return tmp;
             }
         }
 
@@ -543,15 +543,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.RotationalVelocity;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.RotationalVelocity;
+                return tmp;
             }
             set
             {
                 if (!CanEdit())
                     return;
 
-                GetSOP().PhysActor.RotationalVelocity = new PhysicsVector(value.X, value.Y, value.Z);
+                GetSOP().PhysActor.RotationalVelocity = value;
             }
         }
 
@@ -559,15 +559,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.Velocity;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.Velocity;
+                return tmp;
             }
             set
             {
                 if (!CanEdit())
                     return;
 
-                GetSOP().PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                GetSOP().PhysActor.Velocity = value;
             }
         }
 
@@ -575,15 +575,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.Torque;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.Torque;
+                return tmp;
             }
             set
             {
                 if (!CanEdit())
                     return;
 
-                GetSOP().PhysActor.Torque = new PhysicsVector(value.X, value.Y, value.Z);
+                GetSOP().PhysActor.Torque = value;
             }
         }
 
@@ -591,8 +591,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.Acceleration;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.Acceleration;
+                return tmp;
             }
         }
 
@@ -600,15 +600,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         {
             get
             {
-                PhysicsVector tmp = GetSOP().PhysActor.Force;
-                return new Vector3(tmp.X, tmp.Y, tmp.Z);
+                Vector3 tmp = GetSOP().PhysActor.Force;
+                return tmp;
             }
             set
             {
                 if (!CanEdit())
                     return;
 
-                GetSOP().PhysActor.Force = new PhysicsVector(value.X, value.Y, value.Z);
+                GetSOP().PhysActor.Force = value;
             }
         }
 
@@ -627,7 +627,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (!CanEdit())
                 return;
 
-            GetSOP().PhysActor.AddForce(new PhysicsVector(force.X, force.Y, force.Z), pushforce);
+            GetSOP().PhysActor.AddForce(force, pushforce);
         }
 
         public void AddAngularForce(Vector3 force, bool pushforce)
@@ -635,7 +635,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (!CanEdit())
                 return;
 
-            GetSOP().PhysActor.AddAngularForce(new PhysicsVector(force.X, force.Y, force.Z), pushforce);
+            GetSOP().PhysActor.AddAngularForce(force, pushforce);
         }
 
         public void SetMomentum(Vector3 momentum)
@@ -643,7 +643,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (!CanEdit())
                 return;
 
-            GetSOP().PhysActor.SetMomentum(new PhysicsVector(momentum.X, momentum.Y, momentum.Z));
+            GetSOP().PhysActor.SetMomentum(momentum);
         }
 
         #endregion

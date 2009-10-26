@@ -264,10 +264,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 avatar.ControllingClient.SendAlertMessage(
                     "You are not allowed on this parcel because you are banned. Please go away.");
 
-                avatar.PhysicsActor.Position =
-                    new PhysicsVector(avatar.lastKnownAllowedPosition.X, avatar.lastKnownAllowedPosition.Y,
-                                      avatar.lastKnownAllowedPosition.Z);
-                avatar.PhysicsActor.Velocity = new PhysicsVector(0, 0, 0);
+                avatar.PhysicsActor.Position = avatar.lastKnownAllowedPosition;
+                avatar.PhysicsActor.Velocity = Vector3.Zero;
             }
             else
             {

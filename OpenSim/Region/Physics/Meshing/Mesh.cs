@@ -31,6 +31,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using OpenSim.Region.Physics.Manager;
 using PrimMesher;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -141,12 +142,12 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
-        public List<PhysicsVector> getVertexList()
+        public List<Vector3> getVertexList()
         {
-            List<PhysicsVector> result = new List<PhysicsVector>();
+            List<Vector3> result = new List<Vector3>();
             foreach (Vertex v in m_vertices.Keys)
             {
-                result.Add(v);
+                result.Add(new Vector3(v.X, v.Y, v.Z));
             }
             return result;
         }

@@ -33,30 +33,52 @@ using OpenMetaverse;
 using OpenSim.Region.Physics.Manager;
 using OpenSim.Region.Physics.Meshing;
 
-public class Vertex : PhysicsVector, IComparable<Vertex>
+public class Vertex : IComparable<Vertex>
 {
-    public Vertex(float x, float y, float z)
-        : base(x, y, z)
+    Vector3 vector;
+
+    public float X
     {
+        get { return vector.X; }
+        set { vector.X = value; }
+    }
+
+    public float Y
+    {
+        get { return vector.Y; }
+        set { vector.Y = value; }
+    }
+
+    public float Z
+    {
+        get { return vector.Z; }
+        set { vector.Z = value; }
+    }
+
+    public Vertex(float x, float y, float z)
+    {
+        vector.X = x;
+        vector.Y = y;
+        vector.Z = z;
     }
 
     public Vertex normalize()
     {
-        float tlength = length();
-        if (tlength != 0)
+        float tlength = vector.Length();
+        if (tlength != 0f)
         {
             float mul = 1.0f / tlength;
-            return new Vertex(X * mul, Y * mul, Z * mul);
+            return new Vertex(vector.X * mul, vector.Y * mul, vector.Z * mul);
         }
         else
         {
-            return new Vertex(0, 0, 0);
+            return new Vertex(0f, 0f, 0f);
         }
     }
 
     public Vertex cross(Vertex v)
     {
-        return new Vertex(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
+        return new Vertex(vector.Y * v.Z - vector.Z * v.Y, vector.Z * v.X - vector.X * v.Z, vector.X * v.Y - vector.Y * v.X);
     }
 
     // disable warning: mono compiler moans about overloading
@@ -160,9 +182,9 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         return X * v.X + Y * v.Y + Z * v.Z;
     }
 
-    public Vertex(PhysicsVector v)
-        : base(v.X, v.Y, v.Z)
+    public Vertex(Vector3 v)
     {
+        vector = v;
     }
 
     public Vertex Clone()
@@ -175,11 +197,15 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         return new Vertex((float) Math.Cos(angle), (float) Math.Sin(angle), 0.0f);
     }
 
+    public float Length()
+    {
+        return vector.Length();
+    }
 
     public virtual bool Equals(Vertex v, float tolerance)
     {
-        PhysicsVector diff = this - v;
-        float d = diff.length();
+        Vertex diff = this - v;
+        float d = diff.Length();
         if (d < tolerance)
             return true;
 
@@ -369,22 +395,22 @@ public class Triangle
         return s1 + ";" + s2 + ";" + s3;
     }
 
-    public PhysicsVector getNormal()
+    public Vector3 getNormal()
     {
         // Vertices
 
         // Vectors for edges
-        PhysicsVector e1;
-        PhysicsVector e2;
+        Vector3 e1;
+        Vector3 e2;
 
-        e1 = new PhysicsVector(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
-        e2 = new PhysicsVector(v1.X - v3.X, v1.Y - v3.Y, v1.Z - v3.Z);
+        e1 = new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+        e2 = new Vector3(v1.X - v3.X, v1.Y - v3.Y, v1.Z - v3.Z);
 
         // Cross product for normal
-        PhysicsVector n = PhysicsVector.cross(e1, e2);
+        Vector3 n = Vector3.Cross(e1, e2);
 
         // Length
-        float l = n.length();
+        float l = n.Length();
 
         // Normalized "normal"
         n = n/l;

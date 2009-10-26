@@ -2047,7 +2047,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     if (local != 0)
                         force *= llGetRot();
 
-                    m_host.ParentGroup.RootPart.SetForce(new PhysicsVector((float)force.x, (float)force.y, (float)force.z));
+                    m_host.ParentGroup.RootPart.SetForce(new Vector3((float)force.x, (float)force.y, (float)force.z));
                 }
             }
         }
@@ -2062,7 +2062,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 if (!m_host.ParentGroup.IsDeleted)
                 {
-                    PhysicsVector tmpForce = m_host.ParentGroup.RootPart.GetForce();
+                    Vector3 tmpForce = m_host.ParentGroup.RootPart.GetForce();
                     force.x = tmpForce.X;
                     force.y = tmpForce.Y;
                     force.z = tmpForce.Z;
@@ -4180,7 +4180,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 applied_linear_impulse *= m_host.GetWorldRotation();
                             }
-                            pusheeav.PhysicsActor.AddForce(new PhysicsVector(applied_linear_impulse.X, applied_linear_impulse.Y, applied_linear_impulse.Z), true);
+                            pusheeav.PhysicsActor.AddForce(applied_linear_impulse, true);
                         }
                     }
                 }
@@ -6088,7 +6088,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (!m_host.ParentGroup.IsDeleted)
                 {
                     m_host.ParentGroup.RootPart.SetVehicleVectorParam(param,
-                        new PhysicsVector((float)vec.x, (float)vec.y, (float)vec.z));
+                        new Vector3((float)vec.x, (float)vec.y, (float)vec.z));
                 }
             }
         }

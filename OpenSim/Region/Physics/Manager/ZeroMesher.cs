@@ -27,6 +27,7 @@
 
 using System;
 using OpenSim.Framework;
+using OpenMetaverse;
 
 /*
  * This is the zero mesher.
@@ -60,12 +61,12 @@ namespace OpenSim.Region.Physics.Manager
 
     public class ZeroMesher : IMesher
     {
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
             return CreateMesh(primName, primShape, size, lod, false);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod, bool isPhysical)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
             // Remove the reference to the encoded JPEG2000 data so it can be GCed
             primShape.SculptData = OpenMetaverse.Utils.EmptyBytes;

@@ -167,9 +167,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         [XmlIgnore]
         public uint AttachmentPoint;
-        
+
         [XmlIgnore]
-        public PhysicsVector RotationAxis = new PhysicsVector(1f, 1f, 1f);
+        public Vector3 RotationAxis = Vector3.One;
 
         [XmlIgnore]
         public bool VolumeDetectActive; // XmlIgnore set to avoid problems with persistance until I come to care for this
@@ -537,13 +537,13 @@ namespace OpenSim.Region.Framework.Scenes
                         // Root prim actually goes at Position
                         if (_parentID == 0)
                         {
-                            PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                            PhysActor.Position = value;
                         }
                         else
                         {
                             // To move the child prim in respect to the group position and rotation we have to calculate
                             Vector3 resultingposition = GetWorldPosition();
-                            PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                            PhysActor.Position = resultingposition;
                             Quaternion resultingrot = GetWorldRotation();
                             PhysActor.Orientation = resultingrot;
                         }
@@ -585,7 +585,7 @@ namespace OpenSim.Region.Framework.Scenes
                      if (_parentID != 0 && PhysActor != null)
                     {
                         Vector3 resultingposition = GetWorldPosition();
-                        PhysActor.Position = new PhysicsVector(resultingposition.X, resultingposition.Y, resultingposition.Z);
+                        PhysActor.Position = resultingposition;
                         Quaternion resultingrot = GetWorldRotation();
                         PhysActor.Orientation = resultingrot;
 
@@ -675,7 +675,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (PhysActor.IsPhysical)
                     {
-                        PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        PhysActor.Velocity = value;
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
@@ -817,7 +817,7 @@ if (m_shape != null) {
                     {
                         if (m_parentGroup.Scene.PhysicsScene != null)
                         {
-                            PhysActor.Size = new PhysicsVector(m_shape.Scale.X, m_shape.Scale.Y, m_shape.Scale.Z);
+                            PhysActor.Size = m_shape.Scale;
                             m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                         }
                     }
@@ -1225,7 +1225,7 @@ if (m_shape != null) {
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
         public void ApplyImpulse(Vector3 impulsei, bool localGlobalTF)
         {
-            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+            Vector3 impulse = impulsei;
 
             if (localGlobalTF)
             {
@@ -1233,7 +1233,7 @@ if (m_shape != null) {
                 Quaternion AXgrot = grot;
                 Vector3 AXimpulsei = impulsei;
                 Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
+                impulse = newimpulse;
             }
 
             if (m_parentGroup != null)
@@ -1251,7 +1251,7 @@ if (m_shape != null) {
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
         public void ApplyAngularImpulse(Vector3 impulsei, bool localGlobalTF)
         {
-            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+            Vector3 impulse = impulsei;
 
             if (localGlobalTF)
             {
@@ -1259,7 +1259,7 @@ if (m_shape != null) {
                 Quaternion AXgrot = grot;
                 Vector3 AXimpulsei = impulsei;
                 Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
+                impulse = newimpulse;
             }
 
             if (m_parentGroup != null)
@@ -1277,7 +1277,7 @@ if (m_shape != null) {
         /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
         public void SetAngularImpulse(Vector3 impulsei, bool localGlobalTF)
         {
-            PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
+            Vector3 impulse = impulsei;
 
             if (localGlobalTF)
             {
@@ -1285,7 +1285,7 @@ if (m_shape != null) {
                 Quaternion AXgrot = grot;
                 Vector3 AXimpulsei = impulsei;
                 Vector3 newimpulse = AXimpulsei * AXgrot;
-                impulse = new PhysicsVector(newimpulse.X, newimpulse.Y, newimpulse.Z);
+                impulse = newimpulse;
             }
 
             if (m_parentGroup != null)
@@ -1333,8 +1333,8 @@ if (m_shape != null) {
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                         Name,
                         Shape,
-                        new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z),
-                        new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                        AbsolutePosition,
+                        Scale,
                         RotationOffset,
                         RigidBody);
 
@@ -1523,7 +1523,7 @@ if (m_shape != null) {
                     PhysicsJoint joint;
 
                     joint = m_parentGroup.Scene.PhysicsScene.RequestJointCreation(Name, jointType,
-                        new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z),
+                        AbsolutePosition,
                         this.RotationOffset,
                         Description,
                         bodyNames,
@@ -1708,12 +1708,12 @@ if (m_shape != null) {
             }
         }
 
-        public PhysicsVector GetForce()
+        public Vector3 GetForce()
         {
             if (PhysActor != null)
                 return PhysActor.Force;
             else
-                return new PhysicsVector();
+                return Vector3.Zero;
         }
 
         public void GetProperties(IClientAPI client)
@@ -2078,7 +2078,7 @@ if (m_shape != null) {
             }
         }
 
-        public void PhysicsOutOfBounds(PhysicsVector pos)
+        public void PhysicsOutOfBounds(Vector3 pos)
         {
             m_log.Error("[PHYSICS]: Physical Object went out of bounds.");
             
@@ -2564,7 +2564,7 @@ if (m_shape != null) {
             }
         }
 
-        public void SetForce(PhysicsVector force)
+        public void SetForce(Vector3 force)
         {
             if (PhysActor != null)
             {
@@ -2588,7 +2588,7 @@ if (m_shape != null) {
             }
         }
 
-        public void SetVehicleVectorParam(int param, PhysicsVector value)
+        public void SetVehicleVectorParam(int param, Vector3 value)
         {
             if (PhysActor != null)
             {
@@ -3430,8 +3430,8 @@ if (m_shape != null) {
                     PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
                         Name,
                         Shape,
-                        new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z),
-                        new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
+                        AbsolutePosition,
+                        Scale,
                         RotationOffset,
                         UsePhysics);
 

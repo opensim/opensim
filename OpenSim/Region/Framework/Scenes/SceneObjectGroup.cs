@@ -1479,8 +1479,8 @@ namespace OpenSim.Region.Framework.Scenes
                 dupe.RootPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
                     dupe.RootPart.Name,
                     pbs,
-                    new PhysicsVector(dupe.RootPart.AbsolutePosition.X, dupe.RootPart.AbsolutePosition.Y, dupe.RootPart.AbsolutePosition.Z),
-                    new PhysicsVector(dupe.RootPart.Scale.X, dupe.RootPart.Scale.Y, dupe.RootPart.Scale.Z),
+                    dupe.RootPart.AbsolutePosition,
+                    dupe.RootPart.Scale,
                     dupe.RootPart.RotationOffset,
                     dupe.RootPart.PhysActor.IsPhysical);
 
@@ -1595,7 +1595,7 @@ namespace OpenSim.Region.Framework.Scenes
             */
         }
 
-        public void applyImpulse(PhysicsVector impulse)
+        public void applyImpulse(Vector3 impulse)
         {
             // We check if rootpart is null here because scripts don't delete if you delete the host.
             // This means that unfortunately, we can pass a null physics actor to Simulate!
@@ -1622,7 +1622,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void applyAngularImpulse(PhysicsVector impulse)
+        public void applyAngularImpulse(Vector3 impulse)
         {
             // We check if rootpart is null here because scripts don't delete if you delete the host.
             // This means that unfortunately, we can pass a null physics actor to Simulate!
@@ -1641,7 +1641,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void setAngularImpulse(PhysicsVector impulse)
+        public void setAngularImpulse(Vector3 impulse)
         {
             // We check if rootpart is null here because scripts don't delete if you delete the host.
             // This means that unfortunately, we can pass a null physics actor to Simulate!
@@ -1672,8 +1672,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!IsAttachment)
                     {
-                        PhysicsVector torque = rootpart.PhysActor.Torque;
-                        return new Vector3(torque.X, torque.Y, torque.Z);
+                        Vector3 torque = rootpart.PhysActor.Torque;
+                        return torque;
                     }
                 }
             }
@@ -1706,7 +1706,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (rootpart.PhysActor != null)
                     {
-                        rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
+                        rootpart.PhysActor.PIDTarget = target;
                         rootpart.PhysActor.PIDTau = tau;
                         rootpart.PhysActor.PIDActive = true;
                     }
@@ -2374,7 +2374,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_rootPart.PhysActor.IsPhysical)
                     {
                         Vector3 llmoveforce = pos - AbsolutePosition;
-                        PhysicsVector grabforce = new PhysicsVector(llmoveforce.X, llmoveforce.Y, llmoveforce.Z);
+                        Vector3 grabforce = llmoveforce;
                         grabforce = (grabforce / 10) * m_rootPart.PhysActor.Mass;
                         m_rootPart.PhysActor.AddForce(grabforce,true);
                         m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
@@ -2479,7 +2479,7 @@ namespace OpenSim.Region.Framework.Scenes
                           rotationAxis.Normalize();
 
                           //m_log.Error("SCENE OBJECT GROUP]: rotation axis is " + rotationAxis);
-                          PhysicsVector spinforce = new PhysicsVector(rotationAxis.X, rotationAxis.Y, rotationAxis.Z);
+                          Vector3 spinforce = new Vector3(rotationAxis.X, rotationAxis.Y, rotationAxis.Z);
                           spinforce = (spinforce/8) * m_rootPart.PhysActor.Mass; // 8 is an arbitrary torque scaling factor
                           m_rootPart.PhysActor.AddAngularForce(spinforce,true);
                           m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
@@ -2706,8 +2706,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (scale.Z > m_scene.m_maxPhys)
                             scale.Z = m_scene.m_maxPhys;
                     }
-                    part.PhysActor.Size =
-                        new PhysicsVector(scale.X, scale.Y, scale.Z);
+                    part.PhysActor.Size = scale;
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
                 //if (part.UUID != m_rootPart.UUID)
@@ -2851,8 +2850,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (part.PhysActor != null)
                 {
-                    part.PhysActor.Size =
-                        new PhysicsVector(prevScale.X, prevScale.Y, prevScale.Z);
+                    part.PhysActor.Size = prevScale;
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
 

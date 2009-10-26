@@ -54,7 +54,7 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
 
         }
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size, bool isFlying)
+        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
         {
             BasicActor act = new BasicActor();
             act.Position = position;
@@ -77,20 +77,20 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         }
 
 /*
-        public override PhysicsActor AddPrim(PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        public override PhysicsActor AddPrim(Vector3 position, Vector3 size, Quaternion rotation)
         {
             return null;
         }
 */
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation)
         {
             return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position,
-                                                  PhysicsVector size, Quaternion rotation, bool isPhysical)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
+                                                  Vector3 size, Quaternion rotation, bool isPhysical)
         {
             return null;
         }
@@ -105,26 +105,28 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             for (int i = 0; i < _actors.Count; ++i)
             {
                 BasicActor actor = _actors[i];
+                Vector3 actorPosition = actor.Position;
+                Vector3 actorVelocity = actor.Velocity;
 
-                actor.Position.X += actor.Velocity.X*timeStep;
-                actor.Position.Y += actor.Velocity.Y*timeStep;
+                actorPosition.X += actor.Velocity.X*timeStep;
+                actorPosition.Y += actor.Velocity.Y*timeStep;
 
                 if (actor.Position.Y < 0)
                 {
-                    actor.Position.Y = 0.1F;
+                    actorPosition.Y = 0.1F;
                 }
                 else if (actor.Position.Y >= Constants.RegionSize)
                 {
-                    actor.Position.Y = ((int)Constants.RegionSize - 0.1f);
+                    actorPosition.Y = ((int)Constants.RegionSize - 0.1f);
                 }
 
                 if (actor.Position.X < 0)
                 {
-                    actor.Position.X = 0.1F;
+                    actorPosition.X = 0.1F;
                 }
                 else if (actor.Position.X >= Constants.RegionSize)
                 {
-                    actor.Position.X = ((int)Constants.RegionSize - 0.1f);
+                    actorPosition.X = ((int)Constants.RegionSize - 0.1f);
                 }
 
                 float height = _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + actor.Size.Z;
@@ -133,23 +135,27 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
                     if (actor.Position.Z + (actor.Velocity.Z*timeStep) <
                         _heightMap[(int)actor.Position.Y * Constants.RegionSize + (int)actor.Position.X] + 2)
                     {
-                        actor.Position.Z = height;
-                        actor.Velocity.Z = 0;
+                        actorPosition.Z = height;
+                        actorVelocity.Z = 0;
                         actor.IsColliding = true;
                     }
                     else
                     {
-                        actor.Position.Z += actor.Velocity.Z*timeStep;
+                        actorPosition.Z += actor.Velocity.Z*timeStep;
                         actor.IsColliding = false;
                     }
                 }
                 else
                 {
-                    actor.Position.Z = height;
-                    actor.Velocity.Z = 0;
+                    actorPosition.Z = height;
+                    actorVelocity.Z = 0;
                     actor.IsColliding = true;
                 }
+
+                actor.Position = actorPosition;
+                actor.Velocity = actorVelocity;
             }
+
             return fps;
         }
 

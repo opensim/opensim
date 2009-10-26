@@ -434,7 +434,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         lock (m_scene.SyncRoot)
                         {
-                            m_physicsActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+                            m_physicsActor.Position = value;
                         }
                     }
                     catch (Exception e)
@@ -474,7 +474,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         lock (m_scene.SyncRoot)
                         {
-                            m_physicsActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                            m_physicsActor.Velocity = value;
                         }
                     }
                     catch (Exception e)
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_avHeight = height;
             if (PhysicsActor != null && !IsChildAgent)
             {
-                PhysicsVector SetSize = new PhysicsVector(0.45f, 0.6f, m_avHeight);
+                Vector3 SetSize = new Vector3(0.45f, 0.6f, m_avHeight);
                 PhysicsActor.Size = SetSize;
             }
         }
@@ -3345,20 +3345,18 @@ namespace OpenSim.Region.Framework.Scenes
             
             PhysicsScene scene = m_scene.PhysicsScene;
 
-            PhysicsVector pVec =
-                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                  AbsolutePosition.Z);
+            Vector3 pVec = AbsolutePosition;
 
             // Old bug where the height was in centimeters instead of meters
             if (m_avHeight == 127.0f)
             {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f),
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new Vector3(0f, 0f, 1.56f),
                                                  isFlying);
             }
             else
             {
                 m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec,
-                                                 new PhysicsVector(0, 0, m_avHeight), isFlying);
+                                                 new Vector3(0f, 0f, m_avHeight), isFlying);
             }
             scene.AddPhysicsActorTaint(m_physicsActor);
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
@@ -3369,7 +3367,7 @@ namespace OpenSim.Region.Framework.Scenes
             
         }
 
-        private void OutOfBoundsCall(PhysicsVector pos)
+        private void OutOfBoundsCall(Vector3 pos)
         {
             //bool flying = m_physicsActor.Flying;
             //RemoveFromPhysicalScene();
@@ -3592,7 +3590,7 @@ namespace OpenSim.Region.Framework.Scenes
             */
         }
 
-        internal void PushForce(PhysicsVector impulse)
+        internal void PushForce(Vector3 impulse)
         {
             if (PhysicsActor != null)
             {

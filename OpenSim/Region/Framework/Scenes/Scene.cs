@@ -4606,7 +4606,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 case PhysicsJointType.Ball:
                     {
-                        PhysicsVector jointAnchor = PhysicsScene.GetJointAnchor(joint);
+                        Vector3 jointAnchor = PhysicsScene.GetJointAnchor(joint);
                         Vector3 proxyPos = new Vector3(jointAnchor.X, jointAnchor.Y, jointAnchor.Z);
                         jointProxyObject.ParentGroup.UpdateGroupPosition(proxyPos); // schedules the entire group for a terse update
                     }
@@ -4614,7 +4614,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 case PhysicsJointType.Hinge:
                     {
-                        PhysicsVector jointAnchor = PhysicsScene.GetJointAnchor(joint);
+                        Vector3 jointAnchor = PhysicsScene.GetJointAnchor(joint);
 
                         // Normally, we would just ask the physics scene to return the axis for the joint.
                         // Unfortunately, ODE sometimes returns <0,0,0> for the joint axis, which should
