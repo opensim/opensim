@@ -970,12 +970,12 @@ namespace OpenSim
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
                         {
-                            scene.ClientManager.ForEachSync(
+                            scene.ForEachClient(
                                 delegate(IClientAPI client)
                                 {
                                     connections.AppendFormat("{0}: {1} ({2}) from {3} on circuit {4}\n",
                                         scene.RegionInfo.RegionName, client.Name, client.AgentId, client.RemoteEndPoint, client.CircuitCode);
-                                }
+                                }, false
                             );
                         }
                     );

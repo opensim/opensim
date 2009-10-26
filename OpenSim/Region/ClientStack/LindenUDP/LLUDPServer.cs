@@ -583,10 +583,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Determine which agent this packet came from
             IClientAPI client;
-            if (!m_scene.ClientManager.TryGetValue(address, out client) || !(client is LLClientView))
+            if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
             {
-                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address +
-                    " in " + m_scene.RegionInfo.RegionName + ", currently tracking " + m_scene.ClientManager.Count + " clients");
+                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 
@@ -764,8 +763,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Create the LLUDPClient
             LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
+            IClientAPI existingClient;
 
-            if (!m_scene.ClientManager.ContainsKey(agentID))
+            if (!m_scene.TryGetClient(agentID, out existingClient))
             {
                 // Create the LLClientView
                 LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
@@ -785,7 +785,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // Remove this client from the scene
             IClientAPI client;
-            if (m_scene.ClientManager.TryGetValue(udpClient.AgentID, out client))
+            if (m_scene.TryGetClient(udpClient.AgentID, out client))
                 client.Close();
         }
 
@@ -877,7 +877,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
-                    m_scene.ClientManager.ForEachSync(clientPacketHandler);
+                    m_scene.ForEachClient(clientPacketHandler, false);
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens
@@ -942,7 +942,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Make sure this client is still alive
-            if (m_scene.ClientManager.TryGetValue(udpClient.AgentID, out client))
+            if (m_scene.TryGetClient(udpClient.AgentID, out client))
             {
                 try
                 {

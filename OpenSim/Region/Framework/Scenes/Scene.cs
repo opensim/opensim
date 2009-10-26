@@ -2482,7 +2482,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
-            ClientManager.Add(client);
+            m_clientManager.Add(client);
 
             CheckHeartbeat();
             SubscribeToClientEvents(client);
@@ -3121,7 +3121,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // Remove the avatar from the scene
                 m_sceneGraph.RemoveScenePresence(agentID);
-                ClientManager.Remove(agentID);
+                m_clientManager.Remove(agentID);
 
                 try
                 {
@@ -4256,10 +4256,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            if (m_useAsyncWhenPossible)
-                ClientManager.ForEach(action);
+            ForEachClient(action, m_useAsyncWhenPossible);
+        }
+
+        public void ForEachClient(Action<IClientAPI> action, bool doAsynchronous)
+        {
+            if (doAsynchronous)
+                m_clientManager.ForEach(action);
             else
-                ClientManager.ForEachSync(action);
+                m_clientManager.ForEachSync(action);
+        }
+
+        public bool TryGetClient(UUID avatarID, out IClientAPI client)
+        {
+            return m_clientManager.TryGetValue(avatarID, out client);
+        }
+
+        public bool TryGetClient(System.Net.IPEndPoint remoteEndPoint, out IClientAPI client)
+        {
+            return m_clientManager.TryGetValue(remoteEndPoint, out client);
         }
 
         public void ForEachSOG(Action<SceneObjectGroup> action)
