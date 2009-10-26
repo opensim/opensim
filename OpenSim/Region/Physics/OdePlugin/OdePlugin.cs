@@ -2707,12 +2707,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     {
                                         if (prim.m_taintremove)
                                         {
-//Console.WriteLine("Simulate calls RemovePrimThreadLocked");                                          
+                                            //Console.WriteLine("Simulate calls RemovePrimThreadLocked");                                          
                                             RemovePrimThreadLocked(prim);
                                         }
                                         else
                                         {
-//Console.WriteLine("Simulate calls ProcessTaints");                                        
+                                            //Console.WriteLine("Simulate calls ProcessTaints");                                        
                                             prim.ProcessTaints(timeStep);
                                         }
                                         processedtaints = true;
