@@ -570,18 +570,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // UseCircuitCode handling
             if (packet.Type == PacketType.UseCircuitCode)
             {
-                Util.FireAndForget(
-                    delegate(object o)
-                    {
-                        IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
+                m_log.Debug("[LLUDPSERVER]: Handling UseCircuitCode packet from " + buffer.RemoteEndPoint);
+                object[] array = new object[] { buffer, packet };
 
-                        // Begin the process of adding the client to the simulator
-                        AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
+                if (m_asyncPacketHandling)
+                    Util.FireAndForget(HandleUseCircuitCode, array);
+                else
+                    HandleUseCircuitCode(array);
 
-                        // Acknowledge the UseCircuitCode packet
-                        SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
-                    }
-                );
                 return;
             }
 
@@ -690,6 +686,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             // Inbox insertion
             packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
+        }
+
+        private void HandleUseCircuitCode(object o)
+        {
+            object[] array = (object[])o;
+            UDPPacketBuffer buffer = (UDPPacketBuffer)array[0];
+            UseCircuitCodePacket packet = (UseCircuitCodePacket)array[1];
+
+            IPEndPoint remoteEndPoint = (IPEndPoint)buffer.RemoteEndPoint;
+
+            // Begin the process of adding the client to the simulator
+            AddNewClient((UseCircuitCodePacket)packet, remoteEndPoint);
+
+            // Acknowledge the UseCircuitCode packet
+            SendAckImmediate(remoteEndPoint, packet.Header.Sequence);
         }
 
         private void SendAckImmediate(IPEndPoint remoteEndpoint, uint sequenceNumber)
