@@ -4158,6 +4158,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 pack.Data = dataBlock;
             }
+            else
+            {
+                pack.Data = new ParcelObjectOwnersReplyPacket.DataBlock[0];
+            }
             pack.Header.Zerocoded = true;
             this.OutPacket(pack, ThrottleOutPacketType.Task);
         }
