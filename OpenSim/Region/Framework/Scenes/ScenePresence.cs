@@ -93,12 +93,13 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
 
-        
+        private Vector3 m_lastPosition;
+        private Quaternion m_lastRotation;
+        private Vector3 m_lastVelocity;
 
         private bool m_updateflag;
         private byte m_movementflag;
         private readonly List<NewForce> m_forcesList = new List<NewForce>();
-        private short m_updateCount;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID = UUID.Zero;
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
@@ -145,11 +146,8 @@ namespace OpenSim.Region.Framework.Scenes
         public string JID = string.Empty;
 
         // Agent moves with a PID controller causing a force to be exerted.
-        private bool m_newForce;
         private bool m_newCoarseLocations = true;
         private float m_health = 100f;
-
-        private Vector3 m_lastVelocity = Vector3.Zero;
 
         // Default AV Height
         private float m_avHeight = 127.0f;
@@ -158,16 +156,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected ulong crossingFromRegion;
 
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
-        
-        /// <value>
-        /// The avatar position last sent to clients
-        /// </value>
-        private Vector3 lastPhysPos = Vector3.Zero;
-        
-        /// <value>
-        /// The avatar body rotation last sent to clients 
-        /// </value>
-        private Quaternion lastPhysRot = Quaternion.Identity;
 
         // Position of agent's camera in world (region cordinates)
         protected Vector3 m_CameraCenter = Vector3.Zero;
@@ -1123,18 +1111,18 @@ namespace OpenSim.Region.Framework.Scenes
                     CameraConstraintActive = true;
                     //m_log.DebugFormat("[RAYCASTRESULT]: {0}, {1}, {2}, {3}", hitYN, collisionPoint, localid, distance);
                     
-                    Vector3 normal = Vector3.Normalize(new Vector3(0,0,collisionPoint.Z) - collisionPoint);
+                    Vector3 normal = Vector3.Normalize(new Vector3(0f, 0f, collisionPoint.Z) - collisionPoint);
                     ControllingClient.SendCameraConstraint(new Vector4(normal.X, normal.Y, normal.Z, -1 * Vector3.Distance(new Vector3(0,0,collisionPoint.Z),collisionPoint)));
                 }
                 else 
                 {
-                    if (((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02)
-                         || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)
-                         || lastPhysRot != m_bodyRot))
+                    if ((m_pos - m_lastPosition).Length() > 0.02f ||
+                        (m_velocity - m_lastVelocity).Length() > 0.02f ||
+                        m_bodyRot != m_lastRotation)
                     {
                         if (CameraConstraintActive)
                         {
-                            ControllingClient.SendCameraConstraint(new Vector4(0, 0.5f, 0.9f, -3000f));
+                            ControllingClient.SendCameraConstraint(new Vector4(0f, 0.5f, 0.9f, -3000f));
                             CameraConstraintActive = false;
                         }
                     }
@@ -2373,6 +2361,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {
+            const float VELOCITY_TOLERANCE = 0.01f;
+            const float POSITION_TOLERANCE = 10.0f;
+
             SendPrimUpdates();
 
             if (m_newCoarseLocations)
@@ -2383,28 +2374,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
-                if (m_newForce) // user movement 'forces' (ie commands to move)
+                // Throw away duplicate or insignificant updates
+                if (m_bodyRot != m_lastRotation ||
+                    (m_velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
+                    (m_pos - m_lastPosition).Length() > POSITION_TOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
-                    m_updateCount = 0;
-                }
-                else if (m_movementflag != 0) // scripted movement (?)
-                {
-                    m_updateCount++;
-                    if (m_updateCount > 3)
-                    {
-                        SendTerseUpdateToAllClients();
-                        m_updateCount = 0;
-                    }
-                }
-                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) 
-                         || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)
-                         || lastPhysRot != m_bodyRot)
-                {
-                    // Send Terse Update to all clients updates lastPhysPos and m_lastVelocity
-                    // doing the above assures us that we know what we sent the clients last
-                    SendTerseUpdateToAllClients();
-                    m_updateCount = 0;
+
+                    // Update the "last" values
+                    m_lastPosition = m_pos;
+                    m_lastRotation = m_bodyRot;
+                    m_lastVelocity = m_velocity;
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
@@ -2447,15 +2427,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendTerseUpdateToAllClients()
         {
             m_perfMonMS = Environment.TickCount;
-
+            
             m_scene.ForEachClient(SendTerseUpdateToClient);
 
-            m_lastVelocity = m_velocity;
-            lastPhysPos = AbsolutePosition;
-            lastPhysRot = m_bodyRot;
-
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
-
         }
 
         public void SendCoarseLocations()
@@ -3316,7 +3291,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void UpdateMovement()
         {
-            m_newForce = false;
             lock (m_forcesList)
             {
                 if (m_forcesList.Count > 0)
@@ -3338,7 +3312,6 @@ namespace OpenSim.Region.Framework.Scenes
                         // Ignoring this causes no movement to be sent to the physics engine...
                         // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
                     }
-                    m_newForce = true;
 
                     m_forcesList.Clear();
                 }

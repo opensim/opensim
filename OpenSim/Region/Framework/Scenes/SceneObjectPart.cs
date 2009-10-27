@@ -248,6 +248,12 @@ namespace OpenSim.Region.Framework.Scenes
         protected UUID m_uuid;
         protected Vector3 m_velocity;
 
+        protected Vector3 m_lastPosition;
+        protected Quaternion m_lastRotation;
+        protected Vector3 m_lastVelocity;
+        protected Vector3 m_lastAcceleration;
+        protected Vector3 m_lastAngularVelocity;
+
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
         private Vector3 m_cameraEyeOffset;
@@ -2387,18 +2393,36 @@ if (m_shape != null) {
         /// </summary>
         public void SendScheduledUpdates()
         {
-            if (m_updateFlag == 1) //some change has been made so update the clients
-            {
-                AddTerseUpdateToAllAvatars();
-                ClearUpdateSchedule();
+            const float VELOCITY_TOLERANCE = 0.01f;
+            const float POSITION_TOLERANCE = 10.0f;
 
-                // This causes the Scene to 'poll' physical objects every couple of frames
-                // bad, so it's been replaced by an event driven method.
-                //if ((ObjectFlags & (uint)PrimFlags.Physics) != 0)
-                //{
-                // Only send the constant terse updates on physical objects!
-                //ScheduleTerseUpdate();
-                //}
+            if (m_updateFlag == 1)
+            {
+                // Throw away duplicate or insignificant updates
+                if (RotationOffset != m_lastRotation ||
+                    Acceleration != m_lastAcceleration ||
+                    (Velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
+                    (RotationalVelocity - m_lastAngularVelocity).Length() > VELOCITY_TOLERANCE ||
+                    (OffsetPosition - m_lastPosition).Length() > POSITION_TOLERANCE)
+                {
+                    AddTerseUpdateToAllAvatars();
+                    ClearUpdateSchedule();
+
+                    // This causes the Scene to 'poll' physical objects every couple of frames
+                    // bad, so it's been replaced by an event driven method.
+                    //if ((ObjectFlags & (uint)PrimFlags.Physics) != 0)
+                    //{
+                    // Only send the constant terse updates on physical objects!
+                    //ScheduleTerseUpdate();
+                    //}
+
+                    // Update the "last" values
+                    m_lastPosition = OffsetPosition;
+                    m_lastRotation = RotationOffset;
+                    m_lastVelocity = Velocity;
+                    m_lastAcceleration = Acceleration;
+                    m_lastAngularVelocity = RotationalVelocity;
+                }
             }
             else
             {

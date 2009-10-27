@@ -6756,11 +6756,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (OnRequestTexture != null)
                         {
                             TextureRequestArgs args = new TextureRequestArgs();
-                            args.RequestedAssetID = imageRequest.RequestImage[i].Image;
-                            args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
-                            args.PacketNumber = imageRequest.RequestImage[i].Packet;
-                            args.Priority = imageRequest.RequestImage[i].DownloadPriority;
+
+                            RequestImagePacket.RequestImageBlock block = imageRequest.RequestImage[i];
+
+                            args.RequestedAssetID = block.Image;
+                            args.DiscardLevel = block.DiscardLevel;
+                            args.PacketNumber = block.Packet;
+                            args.Priority = block.DownloadPriority;
                             args.requestSequence = imageRequest.Header.Sequence;
+
+                            // NOTE: This is not a built in part of the LLUDP protocol, but we double the
+                            // priority of avatar textures to get avatars rezzing in faster than the
+                            // surrounding scene
+                            if ((ImageType)block.Type == ImageType.Baked)
+                                args.Priority *= 2.0f;
+
                             //handlerTextureRequest = OnRequestTexture;
 
                             //if (handlerTextureRequest != null)
