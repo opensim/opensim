@@ -49,7 +49,7 @@
     ; in parallel. Running in parallel should increase performance
     ; on a multi-core system, but will make debugging more
     ; difficult if something deadlocks or times out
-    use_async_when_possible = true
+    use_async_when_possible = false
     
     ; Max threads to allocate on the FireAndForget thread pool
     ; when running with the SmartThreadPool option above
