@@ -282,9 +282,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
         private bool m_reprioritization_enabled = true;
-        private double m_reprioritization_interval = 2000.0;
-        private double m_root_reprioritization_distance = 5.0;
-        private double m_child_reprioritization_distance = 10.0;
+        private double m_reprioritization_interval = 5000.0;
+        private double m_root_reprioritization_distance = 10.0;
+        private double m_child_reprioritization_distance = 20.0;
 
         private object m_deleting_scene_object = new object();
 
