@@ -4264,6 +4264,8 @@ namespace OpenSim.Region.Framework.Scenes
             // FIXME: Asynchronous iteration is disabled until we have a threading model that
             // can support calling this function from an async packet handler without
             // potentially deadlocking
+            m_clientManager.ForEachSync(action);
+
             //if (doAsynchronous)
             //    m_clientManager.ForEach(action);
             //else
