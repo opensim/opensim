@@ -346,15 +346,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected int m_terrainCheckerCount;
         protected uint m_agentFOVCounter;
 
-        // These numbers are guesses at a decent tradeoff between responsiveness
-        // of the interest list and throughput. Lower is more responsive, higher
-        // is better throughput
-        protected int m_primTerseUpdatesPerPacket = 25;
-        protected int m_primFullUpdatesPerPacket = 100;
-        protected int m_avatarTerseUpdatesPerPacket = 10;
-        /// <summary>Number of texture packets to put on the queue each time the
-        /// OnQueueEmpty event is triggered for the texture category</summary>
-        protected int m_textureSendLimit = 20;
         protected IAssetService m_assetService;
         private IHyperAssetService m_hyperAssets;
 
@@ -827,7 +818,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             for (int i = x1; i <= x2; i++)
                 SendLayerData(i, y1, map);
 
-            // Column    
+            // Column
             for (int j = y1 + 1; j <= y2; j++)
                 SendLayerData(x2, j, map);
      
@@ -2114,12 +2105,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
             ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
-            packet.Effect = effectBlocks;
+            packet.Header.Reliable = false;
+            packet.Header.Zerocoded = true;
 
             packet.AgentData.AgentID = AgentId;
             packet.AgentData.SessionID = SessionId;
-            packet.Header.Reliable = false;
-            packet.Header.Zerocoded = true;
+
+            packet.Effect = effectBlocks;
+            
             OutPacket(packet, ThrottleOutPacketType.State);
         }
 
@@ -3333,7 +3326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_avatarTerseUpdates.SyncRoot)
             {
-                int count = Math.Min(m_avatarTerseUpdates.Count, m_avatarTerseUpdatesPerPacket);
+                int count = Math.Min(m_avatarTerseUpdates.Count, m_udpServer.AvatarTerseUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3418,7 +3411,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primFullUpdates.SyncRoot)
             {
-                int count = Math.Min(m_primFullUpdates.Count, m_primFullUpdatesPerPacket);
+                int count = Math.Min(m_primFullUpdates.Count, m_udpServer.PrimFullUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3462,7 +3455,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             lock (m_primTerseUpdates.SyncRoot)
             {
-                int count = Math.Min(m_primTerseUpdates.Count, m_primTerseUpdatesPerPacket);
+                int count = Math.Min(m_primTerseUpdates.Count, m_udpServer.PrimTerseUpdatesPerPacket);
                 if (count == 0)
                     return;
 
@@ -3585,7 +3578,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         void ProcessTextureRequests()
         {
             if (m_imageManager != null)
-                m_imageManager.ProcessImageQueue(m_textureSendLimit);
+                m_imageManager.ProcessImageQueue(m_udpServer.TextureSendLimit);
         }
 
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
@@ -4167,6 +4160,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 pack.Data = dataBlock;
             }
+            else
+            {
+                pack.Data = new ParcelObjectOwnersReplyPacket.DataBlock[0];
+            }
             pack.Header.Zerocoded = true;
             this.OutPacket(pack, ThrottleOutPacketType.Task);
         }
@@ -4434,6 +4431,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void RegisterLocalPacketHandlers()
         {
             AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
             AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
@@ -4445,6 +4443,75 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region Packet Handlers
+
+        private bool HandleAgentUpdate(IClientAPI sener, Packet Pack)
+        {
+            if (OnAgentUpdate != null)
+            {
+                bool update = false;
+                AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
+
+                #region Packet Session and User Check
+                if (agenUpdate.AgentData.SessionID != SessionId || agenUpdate.AgentData.AgentID != AgentId)
+                    return false;
+                #endregion
+
+                AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
+
+                // We can only check when we have something to check
+                // against.
+
+                if (lastarg != null)
+                {
+                    update =
+                       (
+                        (x.BodyRotation != lastarg.BodyRotation) ||
+                        (x.CameraAtAxis != lastarg.CameraAtAxis) ||
+                        (x.CameraCenter != lastarg.CameraCenter) ||
+                        (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
+                        (x.CameraUpAxis != lastarg.CameraUpAxis) ||
+                        (x.ControlFlags != lastarg.ControlFlags) ||
+                        (x.Far != lastarg.Far) ||
+                        (x.Flags != lastarg.Flags) ||
+                        (x.State != lastarg.State) ||
+                        (x.HeadRotation != lastarg.HeadRotation) ||
+                        (x.SessionID != lastarg.SessionID) ||
+                        (x.AgentID != lastarg.AgentID)
+                       );
+                }
+                else
+                    update = true;
+
+                // These should be ordered from most-likely to
+                // least likely to change. I've made an initial
+                // guess at that.
+
+                if (update)
+                {
+                    AgentUpdateArgs arg = new AgentUpdateArgs();
+                    arg.AgentID = x.AgentID;
+                    arg.BodyRotation = x.BodyRotation;
+                    arg.CameraAtAxis = x.CameraAtAxis;
+                    arg.CameraCenter = x.CameraCenter;
+                    arg.CameraLeftAxis = x.CameraLeftAxis;
+                    arg.CameraUpAxis = x.CameraUpAxis;
+                    arg.ControlFlags = x.ControlFlags;
+                    arg.Far = x.Far;
+                    arg.Flags = x.Flags;
+                    arg.HeadRotation = x.HeadRotation;
+                    arg.SessionID = x.SessionID;
+                    arg.State = x.State;
+                    UpdateAgent handlerAgentUpdate = OnAgentUpdate;
+                    lastarg = arg; // save this set of arguments for nexttime
+                    if (handlerAgentUpdate != null)
+                        OnAgentUpdate(this, arg);
+
+                    handlerAgentUpdate = null;
+                }
+            }
+
+            return true;
+        }
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
         {
@@ -5631,77 +5698,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     break;
 
-                case PacketType.AgentUpdate:
-                    if (OnAgentUpdate != null)
-                    {
-                        bool update = false;
-                        AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
-
-                        #region Packet Session and User Check
-                        if (m_checkPackets)
-                        {
-                            if (agenUpdate.AgentData.SessionID != SessionId ||
-                                agenUpdate.AgentData.AgentID != AgentId)
-                                break;
-                        }
-                        #endregion
-
-                        AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
-
-                        // We can only check when we have something to check
-                        // against.
-
-                        if (lastarg != null)
-                        {
-                            update =
-                               (
-                                (x.BodyRotation != lastarg.BodyRotation) ||
-                                (x.CameraAtAxis != lastarg.CameraAtAxis) ||
-                                (x.CameraCenter != lastarg.CameraCenter) ||
-                                (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
-                                (x.CameraUpAxis != lastarg.CameraUpAxis) ||
-                                (x.ControlFlags != lastarg.ControlFlags) ||
-                                (x.Far != lastarg.Far) ||
-                                (x.Flags != lastarg.Flags) ||
-                                (x.State != lastarg.State) ||
-                                (x.HeadRotation != lastarg.HeadRotation) ||
-                                (x.SessionID != lastarg.SessionID) ||
-                                (x.AgentID != lastarg.AgentID)
-                               );
-                        }
-                        else
-                            update = true;
-
-                        // These should be ordered from most-likely to
-                        // least likely to change. I've made an initial
-                        // guess at that.
-
-                        if (update)
-                        {
-                            AgentUpdateArgs arg = new AgentUpdateArgs();
-                            arg.AgentID = x.AgentID;
-                            arg.BodyRotation = x.BodyRotation;
-                            arg.CameraAtAxis = x.CameraAtAxis;
-                            arg.CameraCenter = x.CameraCenter;
-                            arg.CameraLeftAxis = x.CameraLeftAxis;
-                            arg.CameraUpAxis = x.CameraUpAxis;
-                            arg.ControlFlags = x.ControlFlags;
-                            arg.Far = x.Far;
-                            arg.Flags = x.Flags;
-                            arg.HeadRotation = x.HeadRotation;
-                            arg.SessionID = x.SessionID;
-                            arg.State = x.State;
-                            UpdateAgent handlerAgentUpdate = OnAgentUpdate;
-                            lastarg = arg; // save this set of arguments for nexttime
-                            if (handlerAgentUpdate != null)
-                                OnAgentUpdate(this, arg);
-
-                            handlerAgentUpdate = null;
-                        }
-
-                    }
-                    break;
-
                 case PacketType.AgentAnimation:
                     AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
 
@@ -6762,11 +6758,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (OnRequestTexture != null)
                         {
                             TextureRequestArgs args = new TextureRequestArgs();
-                            args.RequestedAssetID = imageRequest.RequestImage[i].Image;
-                            args.DiscardLevel = imageRequest.RequestImage[i].DiscardLevel;
-                            args.PacketNumber = imageRequest.RequestImage[i].Packet;
-                            args.Priority = imageRequest.RequestImage[i].DownloadPriority;
+
+                            RequestImagePacket.RequestImageBlock block = imageRequest.RequestImage[i];
+
+                            args.RequestedAssetID = block.Image;
+                            args.DiscardLevel = block.DiscardLevel;
+                            args.PacketNumber = block.Packet;
+                            args.Priority = block.DownloadPriority;
                             args.requestSequence = imageRequest.Header.Sequence;
+
+                            // NOTE: This is not a built in part of the LLUDP protocol, but we double the
+                            // priority of avatar textures to get avatars rezzing in faster than the
+                            // surrounding scene
+                            if ((ImageType)block.Type == ImageType.Baked)
+                                args.Priority *= 2.0f;
+
                             //handlerTextureRequest = OnRequestTexture;
 
                             //if (handlerTextureRequest != null)

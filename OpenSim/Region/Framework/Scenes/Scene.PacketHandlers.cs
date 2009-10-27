@@ -394,7 +394,7 @@ namespace OpenSim.Region.Framework.Scenes
         void ProcessViewerEffect(IClientAPI remoteClient, List<ViewerEffectEventHandlerArg> args)
         {
             // TODO: don't create new blocks if recycling an old packet
-            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
+            ViewerEffectPacket.EffectBlock[] effectBlockArray = new ViewerEffectPacket.EffectBlock[args.Count];
             for (int i = 0; i < args.Count; i++)
             {
                 ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
@@ -404,11 +404,10 @@ namespace OpenSim.Region.Framework.Scenes
                 effect.ID = args[i].ID;
                 effect.Type = args[i].Type;
                 effect.TypeData = args[i].TypeData;
-                effectBlock.Add(effect);
+                effectBlockArray[i] = effect;
             }
-            ViewerEffectPacket.EffectBlock[] effectBlockArray = effectBlock.ToArray();
 
-            ClientManager.ForEach(
+            ForEachClient(
                 delegate(IClientAPI client)
                 {
                     if (client.AgentId != remoteClient.AgentId)

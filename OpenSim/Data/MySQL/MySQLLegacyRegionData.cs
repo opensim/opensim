@@ -66,22 +66,26 @@ namespace OpenSim.Data.MySQL
             Migration m = new Migration(m_Connection, assem, "RegionStore");
             m.Update();
 
+            // NOTE: This is a very slow query that times out on regions with a lot of prims.
+            // I'm told that it is no longer relevant so it's commented out now, but if it
+            // is relevant it should be added as a console command instead of part of the
+            // startup phase
             // Clean dropped attachments
             //
-            try
-            {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
-                {
-                    cmd.CommandText = "delete from prims, primshapes using prims " +
-                            "left join primshapes on prims.uuid = primshapes.uuid " +
-                            "where PCode = 9 and State <> 0";
-                    ExecuteNonQuery(cmd);
-                }
-            }
-            catch (MySqlException ex)
-            {
-                m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
-            }
+            //try
+            //{
+            //    using (MySqlCommand cmd = m_Connection.CreateCommand())
+            //    {
+            //        cmd.CommandText = "delete from prims, primshapes using prims " +
+            //                "left join primshapes on prims.uuid = primshapes.uuid " +
+            //                "where PCode = 9 and State <> 0";
+            //        ExecuteNonQuery(cmd);
+            //    }
+            //}
+            //catch (MySqlException ex)
+            //{
+            //    m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
+            //}
         }
 
         private IDataReader ExecuteReader(MySqlCommand c)
@@ -1430,37 +1434,36 @@ namespace OpenSim.Data.MySQL
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new Vector3(
-                Convert.ToSingle(row["ScaleX"]),
-                Convert.ToSingle(row["ScaleY"]),
-                Convert.ToSingle(row["ScaleZ"])
-                );
+                (float)(double)row["ScaleX"],
+                (float)(double)row["ScaleY"],
+                (float)(double)row["ScaleZ"]
+            );
             // paths
-            s.PCode = Convert.ToByte(row["PCode"]);
-            s.PathBegin = Convert.ToUInt16(row["PathBegin"]);
-            s.PathEnd = Convert.ToUInt16(row["PathEnd"]);
-            s.PathScaleX = Convert.ToByte(row["PathScaleX"]);
-            s.PathScaleY = Convert.ToByte(row["PathScaleY"]);
-            s.PathShearX = Convert.ToByte(row["PathShearX"]);
-            s.PathShearY = Convert.ToByte(row["PathShearY"]);
-            s.PathSkew = Convert.ToSByte(row["PathSkew"]);
-            s.PathCurve = Convert.ToByte(row["PathCurve"]);
-            s.PathRadiusOffset = Convert.ToSByte(row["PathRadiusOffset"]);
-            s.PathRevolutions = Convert.ToByte(row["PathRevolutions"]);
-            s.PathTaperX = Convert.ToSByte(row["PathTaperX"]);
-            s.PathTaperY = Convert.ToSByte(row["PathTaperY"]);
-            s.PathTwist = Convert.ToSByte(row["PathTwist"]);
-            s.PathTwistBegin = Convert.ToSByte(row["PathTwistBegin"]);
+            s.PCode = (byte)(int)row["PCode"];
+            s.PathBegin = (ushort)(int)row["PathBegin"];
+            s.PathEnd = (ushort)(int)row["PathEnd"];
+            s.PathScaleX = (byte)(int)row["PathScaleX"];
+            s.PathScaleY = (byte)(int)row["PathScaleY"];
+            s.PathShearX = (byte)(int)row["PathShearX"];
+            s.PathShearY = (byte)(int)row["PathShearY"];
+            s.PathSkew = (sbyte)(int)row["PathSkew"];
+            s.PathCurve = (byte)(int)row["PathCurve"];
+            s.PathRadiusOffset = (sbyte)(int)row["PathRadiusOffset"];
+            s.PathRevolutions = (byte)(int)row["PathRevolutions"];
+            s.PathTaperX = (sbyte)(int)row["PathTaperX"];
+            s.PathTaperY = (sbyte)(int)row["PathTaperY"];
+            s.PathTwist = (sbyte)(int)row["PathTwist"];
+            s.PathTwistBegin = (sbyte)(int)row["PathTwistBegin"];
             // profile
-            s.ProfileBegin = Convert.ToUInt16(row["ProfileBegin"]);
-            s.ProfileEnd = Convert.ToUInt16(row["ProfileEnd"]);
-            s.ProfileCurve = Convert.ToByte(row["ProfileCurve"]);
-            s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
-            byte[] textureEntry = (byte[]) row["Texture"];
-            s.TextureEntry = textureEntry;
+            s.ProfileBegin = (ushort)(int)row["ProfileBegin"];
+            s.ProfileEnd = (ushort)(int)row["ProfileEnd"];
+            s.ProfileCurve = (byte)(int)row["ProfileCurve"];
+            s.ProfileHollow = (ushort)(int)row["ProfileHollow"];
+            s.TextureEntry = (byte[])row["Texture"];
 
-            s.ExtraParams = (byte[]) row["ExtraParams"];
+            s.ExtraParams = (byte[])row["ExtraParams"];
 
-            s.State = Convert.ToByte(row["State"]);
+            s.State = (byte)(int)row["State"];
 
             return s;
         }

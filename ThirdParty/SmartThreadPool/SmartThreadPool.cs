@@ -499,7 +499,11 @@ namespace Amib.Threading
                     }
 
                     // Create a new thread
-                    Thread workerThread = new Thread(new ThreadStart(ProcessQueuedItems), _stpStartInfo.StackSize);
+                    Thread workerThread;
+                    if (_stpStartInfo.StackSize > 0)
+                        workerThread = new Thread(ProcessQueuedItems, _stpStartInfo.StackSize);
+                    else
+                        workerThread = new Thread(ProcessQueuedItems);
 
                     // Configure the new thread and start it
                     workerThread.Name = "STP " + Name + " Thread #" + _threadCounter;

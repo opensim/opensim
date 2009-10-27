@@ -62,7 +62,6 @@ namespace OpenSim.Framework
         RegionInfo RegionInfo { get; }
         RegionStatus RegionStatus { get; set; }
 
-        ClientManager ClientManager { get; }
         IConfigSource Config { get; }
 
         float TimeDilation { get; }

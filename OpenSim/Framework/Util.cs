@@ -69,8 +69,6 @@ namespace OpenSim.Framework
     /// </summary>
     public class Util
     {
-        private static SmartThreadPool m_ThreadPool = null;
-
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static uint nextXferID = 5000;
@@ -79,6 +77,9 @@ namespace OpenSim.Framework
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
+        /// <summary>Thread pool used for Util.FireAndForget if
+        /// FireAndForgetMethod.SmartThreadPool is used</summary>
+        private static SmartThreadPool m_ThreadPool;
 
         // Unix-epoch starts at January 1st 1970, 00:00:00 UTC. And all our times in the server are (or at least should be) in UTC.
         private static readonly DateTime unixEpoch =
@@ -1319,21 +1320,35 @@ namespace OpenSim.Framework
             FireAndForget(callback, null);
         }
 
-        public static void SetMaxThreads(int maxThreads)
+        public static void InitThreadPool(int maxThreads)
         {
+            if (maxThreads < 2)
+                throw new ArgumentOutOfRangeException("maxThreads", "maxThreads must be greater than 2");
             if (m_ThreadPool != null)
-                return;
+                throw new InvalidOperationException("SmartThreadPool is already initialized");
 
-            STPStartInfo startInfo = new STPStartInfo();
-            startInfo.IdleTimeout = 2000; // 2 seconds
-            startInfo.MaxWorkerThreads = maxThreads;
-            startInfo.MinWorkerThreads = 2;
-            startInfo.StackSize = 524288;
-            startInfo.ThreadPriority = ThreadPriority.Normal;
+            m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
+        }
 
-            startInfo.StartSuspended = false;
+        public static int FireAndForgetCount()
+        {
+            const int MAX_SYSTEM_THREADS = 200;
 
-            m_ThreadPool = new SmartThreadPool(startInfo);
+            switch (FireAndForgetMethod)
+            {
+                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
+                case FireAndForgetMethod.QueueUserWorkItem:
+                case FireAndForgetMethod.BeginInvoke:
+                    int workerThreads, iocpThreads;
+                    ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads);
+                    return workerThreads;
+                case FireAndForgetMethod.SmartThreadPool:
+                    return m_ThreadPool.MaxThreads - m_ThreadPool.InUseThreads;
+                case FireAndForgetMethod.Thread:
+                    return MAX_SYSTEM_THREADS - System.Diagnostics.Process.GetCurrentProcess().Threads.Count;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
@@ -1341,25 +1356,37 @@ namespace OpenSim.Framework
             switch (FireAndForgetMethod)
             {
                 case FireAndForgetMethod.UnsafeQueueUserWorkItem:
-                    System.Threading.ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
+                    ThreadPool.UnsafeQueueUserWorkItem(callback, obj);
                     break;
                 case FireAndForgetMethod.QueueUserWorkItem:
-                    System.Threading.ThreadPool.QueueUserWorkItem(callback, obj);
+                    ThreadPool.QueueUserWorkItem(callback, obj);
                     break;
                 case FireAndForgetMethod.BeginInvoke:
                     FireAndForgetWrapper wrapper = Singleton.GetInstance<FireAndForgetWrapper>();
                     wrapper.FireAndForget(callback, obj);
                     break;
                 case FireAndForgetMethod.SmartThreadPool:
-                    m_ThreadPool.QueueWorkItem(delegate(object o) { callback(o); return null; }, obj);
+                    if (m_ThreadPool == null)
+                        m_ThreadPool = new SmartThreadPool(2000, 15, 2);
+                    m_ThreadPool.QueueWorkItem(SmartThreadPoolCallback, new object[] { callback, obj });
                     break;
                 case FireAndForgetMethod.Thread:
-                    System.Threading.Thread thread = new System.Threading.Thread(delegate(object o) { callback(o); });
+                    Thread thread = new Thread(delegate(object o) { callback(o); });
                     thread.Start(obj);
                     break;
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private static object SmartThreadPoolCallback(object o)
+        {
+            object[] array = (object[])o;
+            WaitCallback callback = (WaitCallback)array[0];
+            object obj = array[1];
+
+            callback(obj);
+            return null;
         }
 
         #endregion FireAndForget Threading Pattern

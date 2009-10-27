@@ -162,11 +162,11 @@ namespace OpenSim
 
         protected virtual void LoadPlugins()
         {
-            PluginLoader<IApplicationPlugin> loader =
-                new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this));
-
-            loader.Load("/OpenSim/Startup");
-            m_plugins = loader.Plugins;
+            using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this)))
+            {
+                loader.Load("/OpenSim/Startup");
+                m_plugins = loader.Plugins;
+            }
         }
 
         protected override List<string> GetHelpTopics()

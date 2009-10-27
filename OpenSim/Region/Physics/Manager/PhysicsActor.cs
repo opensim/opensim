@@ -32,8 +32,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {
-    public delegate void PositionUpdate(PhysicsVector position);
-    public delegate void VelocityUpdate(PhysicsVector velocity);
+    public delegate void PositionUpdate(Vector3 position);
+    public delegate void VelocityUpdate(Vector3 velocity);
     public delegate void OrientationUpdate(Quaternion orientation);
 
     public enum ActorTypes : int
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Physics.Manager
     {
         public delegate void RequestTerseUpdate();
         public delegate void CollisionUpdate(EventArgs e);
-        public delegate void OutOfBounds(PhysicsVector pos);
+        public delegate void OutOfBounds(Vector3 pos);
 
 // disable warning: public events
 #pragma warning disable 67
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract bool Stopped { get; }
 
-        public abstract PhysicsVector Size { get; set; }
+        public abstract Vector3 Size { get; set; }
 
         public abstract PrimitiveBaseShape Shape { set; }
 
@@ -144,7 +144,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void delink();
 
-        public abstract void LockAngularMotion(PhysicsVector axis);
+        public abstract void LockAngularMotion(Vector3 axis);
 
         public virtual void RequestPhysicsterseUpdate()
         {
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Physics.Manager
             }
         }
 
-        public virtual void RaiseOutOfBounds(PhysicsVector pos)
+        public virtual void RaiseOutOfBounds(Vector3 pos)
         {
             // Make a temporary copy of the event to avoid possibility of
             // a race condition if the last subscriber unsubscribes
@@ -187,23 +187,23 @@ namespace OpenSim.Region.Physics.Manager
             
         }
 
-        public abstract PhysicsVector Position { get; set; }
+        public abstract Vector3 Position { get; set; }
         public abstract float Mass { get; }
-        public abstract PhysicsVector Force { get; set; }
+        public abstract Vector3 Force { get; set; }
 
         public abstract int VehicleType { get; set; }
         public abstract void VehicleFloatParam(int param, float value);
-        public abstract void VehicleVectorParam(int param, PhysicsVector value);
+        public abstract void VehicleVectorParam(int param, Vector3 value);
         public abstract void VehicleRotationParam(int param, Quaternion rotation);
 
         public abstract void SetVolumeDetect(int param);    // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
 
-        public abstract PhysicsVector GeometricCenter { get; }
-        public abstract PhysicsVector CenterOfMass { get; }
-        public abstract PhysicsVector Velocity { get; set; }
-        public abstract PhysicsVector Torque { get; set; }
+        public abstract Vector3 GeometricCenter { get; }
+        public abstract Vector3 CenterOfMass { get; }
+        public abstract Vector3 Velocity { get; set; }
+        public abstract Vector3 Torque { get; set; }
         public abstract float CollisionScore { get; set;}
-        public abstract PhysicsVector Acceleration { get; }
+        public abstract Vector3 Acceleration { get; }
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
         public abstract bool IsPhysical { get; set; }
@@ -214,12 +214,12 @@ namespace OpenSim.Region.Physics.Manager
         public abstract bool CollidingGround { get; set; }
         public abstract bool CollidingObj { get; set; }
         public abstract bool FloatOnWater { set; }
-        public abstract PhysicsVector RotationalVelocity { get; set; }
+        public abstract Vector3 RotationalVelocity { get; set; }
         public abstract bool Kinematic { get; set; }
         public abstract float Buoyancy { get; set; }
 
         // Used for MoveTo
-        public abstract PhysicsVector PIDTarget { set;}
+        public abstract Vector3 PIDTarget { set; }
         public abstract bool  PIDActive { set;}
         public abstract float PIDTau { set; }
 
@@ -251,9 +251,9 @@ namespace OpenSim.Region.Physics.Manager
             get{ return false; }
         }
 
-        public override PhysicsVector Position
+        public override Vector3 Position
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -301,9 +301,9 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override PhysicsVector Size
+        public override Vector3 Size
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -312,9 +312,9 @@ namespace OpenSim.Region.Physics.Manager
             get { return 0f; }
         }
 
-        public override PhysicsVector Force
+        public override Vector3 Force
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -329,7 +329,7 @@ namespace OpenSim.Region.Physics.Manager
 
         }
 
-        public override void VehicleVectorParam(int param, PhysicsVector value)
+        public override void VehicleVectorParam(int param, Vector3 value)
         {
 
         }
@@ -349,14 +349,14 @@ namespace OpenSim.Region.Physics.Manager
             
         }
 
-        public override PhysicsVector CenterOfMass
+        public override Vector3 CenterOfMass
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
-        public override PhysicsVector GeometricCenter
+        public override Vector3 GeometricCenter
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
         public override PrimitiveBaseShape Shape
@@ -364,15 +364,15 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override PhysicsVector Velocity
+        public override Vector3 Velocity
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
-        public override PhysicsVector Torque
+        public override Vector3 Torque
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -392,9 +392,9 @@ namespace OpenSim.Region.Physics.Manager
             set { }
         }
 
-        public override PhysicsVector Acceleration
+        public override Vector3 Acceleration
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
         public override bool IsPhysical
@@ -441,26 +441,26 @@ namespace OpenSim.Region.Physics.Manager
         {
         }
 
-        public override void LockAngularMotion(PhysicsVector axis)
+        public override void LockAngularMotion(Vector3 axis)
         {
         }
 
-        public override void AddForce(PhysicsVector force, bool pushforce)
+        public override void AddForce(Vector3 force, bool pushforce)
         {
         }
 
-        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        public override void AddAngularForce(Vector3 force, bool pushforce)
         {
             
         }
 
-        public override PhysicsVector RotationalVelocity
+        public override Vector3 RotationalVelocity
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
-        public override PhysicsVector PIDTarget { set { return; } }
+        public override Vector3 PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
 
@@ -475,7 +475,7 @@ namespace OpenSim.Region.Physics.Manager
         public override float APIDDamping { set { return; } }
         
 
-        public override void SetMomentum(PhysicsVector momentum)
+        public override void SetMomentum(Vector3 momentum)
         {
         }
 

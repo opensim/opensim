@@ -128,7 +128,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (m_repliesRequired == 0)
             {
                 m_requestState = RequestState.Completed;
-                PerformAssetsRequestCallback();
+                PerformAssetsRequestCallback(null);
                 return;
             }
             
@@ -246,9 +246,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         
                         // We want to stop using the asset cache thread asap 
                         // as we now need to do the work of producing the rest of the archive
-                        Thread newThread = new Thread(PerformAssetsRequestCallback);
-                        newThread.Name = "OpenSimulator archiving thread post assets receipt";
-                        newThread.Start();
+                        Util.FireAndForget(PerformAssetsRequestCallback);
                     }
                     else
                     {
@@ -265,7 +263,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Perform the callback on the original requester of the assets
         /// </summary>
-        protected void PerformAssetsRequestCallback()
+        protected void PerformAssetsRequestCallback(object o)
         {
             try
             {

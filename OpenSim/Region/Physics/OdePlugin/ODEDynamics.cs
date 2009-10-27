@@ -38,6 +38,19 @@
  * 
  */
 
+/* Revised Aug, Sept 2009 by Kitto Flora. ODEDynamics.cs replaces
+ * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
+ * ODEPrim.cs contains methods dealing with Prim editing, Prim
+ * characteristics and Kinetic motion.
+ * ODEDynamics.cs contains methods dealing with Prim Physical motion
+ * (dynamics) and the associated settings. Old Linear and angular
+ * motors for dynamic motion have been replace with  MoveLinear()
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
+ * switch between 'VEHICLE' parameter use and general dynamics
+ * settings use.
+ */ 
+
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -232,7 +245,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }//end ProcessFloatVehicleParam
 
-        internal void ProcessVectorVehicleParam(Vehicle pParam, PhysicsVector pValue)
+        internal void ProcessVectorVehicleParam(Vehicle pParam, Vector3 pValue)
         {
             switch (pParam)
             {

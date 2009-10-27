@@ -36,19 +36,16 @@ namespace OpenSim.Region.Physics.POSPlugin
 {
     public class POSPrim : PhysicsActor
     {
-        private PhysicsVector _position;
-        private PhysicsVector _velocity;
-        private PhysicsVector _acceleration;
-        private PhysicsVector _size;
-        private PhysicsVector m_rotationalVelocity = PhysicsVector.Zero;
+        private Vector3 _position;
+        private Vector3 _velocity;
+        private Vector3 _acceleration;
+        private Vector3 _size;
+        private Vector3 m_rotationalVelocity = Vector3.Zero;
         private Quaternion _orientation;
         private bool iscolliding;
 
         public POSPrim()
         {
-            _velocity = new PhysicsVector();
-            _position = new PhysicsVector();
-            _acceleration = new PhysicsVector();
         }
 
         public override int PhysicsActorType
@@ -57,7 +54,7 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
-        public override PhysicsVector RotationalVelocity
+        public override Vector3 RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
@@ -98,13 +95,13 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return false; }
         }
 
-        public override PhysicsVector Position
+        public override Vector3 Position
         {
             get { return _position; }
             set { _position = value; }
         }
 
-        public override PhysicsVector Size
+        public override Vector3 Size
         {
             get { return _size; }
             set { _size = value; }
@@ -115,9 +112,9 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return 0f; }
         }
 
-        public override PhysicsVector Force
+        public override Vector3 Force
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -132,7 +129,7 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         }
 
-        public override void VehicleVectorParam(int param, PhysicsVector value)
+        public override void VehicleVectorParam(int param, Vector3 value)
         {
 
         }
@@ -147,14 +144,14 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         }
 
-        public override PhysicsVector CenterOfMass
+        public override Vector3 CenterOfMass
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
-        public override PhysicsVector GeometricCenter
+        public override Vector3 GeometricCenter
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
         public override PrimitiveBaseShape Shape
@@ -173,7 +170,7 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { return; }
         }
 
-        public override PhysicsVector Velocity
+        public override Vector3 Velocity
         {
             get { return _velocity; }
             set { _velocity = value; }
@@ -191,7 +188,7 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { _orientation = value; }
         }
 
-        public override PhysicsVector Acceleration
+        public override Vector3 Acceleration
         {
             get { return _acceleration; }
         }
@@ -202,26 +199,26 @@ namespace OpenSim.Region.Physics.POSPlugin
             set { }
         }
 
-        public void SetAcceleration(PhysicsVector accel)
+        public void SetAcceleration(Vector3 accel)
         {
             _acceleration = accel;
         }
 
-        public override void AddForce(PhysicsVector force, bool pushforce)
+        public override void AddForce(Vector3 force, bool pushforce)
         {
         }
 
-        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        public override void AddAngularForce(Vector3 force, bool pushforce)
         {
         }
 
-        public override PhysicsVector Torque
+        public override Vector3 Torque
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
-        public override void SetMomentum(PhysicsVector momentum)
+        public override void SetMomentum(Vector3 momentum)
         {
         }
 
@@ -255,7 +252,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
-        public override void LockAngularMotion(PhysicsVector axis)
+        public override void LockAngularMotion(Vector3 axis)
         {
         }
 
@@ -268,7 +265,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
-        public override PhysicsVector PIDTarget
+        public override Vector3 PIDTarget
         {
             set { return; }
         }

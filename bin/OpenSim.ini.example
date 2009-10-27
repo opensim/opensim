@@ -38,8 +38,22 @@
     
     ; Sets the method that OpenSim will use to fire asynchronous
     ; events. Valid values are UnsafeQueueUserWorkItem,
-    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread
-    ; async_call_method = SmartThreadPool
+    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread.
+    ; SmartThreadPool is reported to work well on Mono/Linux, but 
+    ; UnsafeQueueUserWorkItem has been benchmarked with better
+    ; performance on .NET/Windows
+    ;async_call_method = SmartThreadPool
+    
+    ; There are several operations on large collections (such as
+    ; the current avatar list) that can be run synchronously or
+    ; in parallel. Running in parallel should increase performance
+    ; on a multi-core system, but will make debugging more
+    ; difficult if something deadlocks or times out
+    use_async_when_possible = false
+    
+    ; Max threads to allocate on the FireAndForget thread pool
+    ; when running with the SmartThreadPool option above
+    MaxPoolThreads = 15
 
     ; ##
     ; ## CLIENTS
@@ -50,9 +64,6 @@
 
     ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
-
-    ; Max threads to allocate on the FireAndForget pool
-    MaxPoolThreads = 15
 
     ; ##
     ; ## REGIONS
@@ -207,7 +218,6 @@
     ; ## SCRIPT ENGINE
     ; ##
 
-    ;DefaultScriptEngine = "ScriptEngine.DotNetEngine"
     DefaultScriptEngine = "XEngine"
 
     ; ##
@@ -351,8 +361,9 @@
     ; already separated from packet handling with a queue, so this will only
     ; affect whether networking internals such as packet decoding and 
     ; acknowledgement accounting are done synchronously or asynchronously
-    async_packet_handling = false
-
+    ;
+    ;async_packet_handling = false
+    
     ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
@@ -367,22 +378,26 @@
     ; by the system's settings for the maximum client receive buffer
     ; size (on linux systems you can set that with "sysctl -w
     ; net.core.rmem_max=X")
+    ;
     ;client_socket_rcvbuf_size = 8388608
     
     ; Maximum outbound bytes per second for a single scene. This can be used to
     ; throttle total outbound UDP traffic for a simulator. The default value is
     ; 0, meaning no throttling at the scene level. The example given here is
     ; 20 megabits
+    ;
     ;scene_throttle_max_bps = 2621440
 
     ; Maximum bits per second to send to any single client. This will override 
     ; the user's viewer preference settings. The default value is 0, meaning no
     ; aggregate throttling on clients (only per-category throttling). The
     ; example given here is 1.5 megabits
+    ;
     ;client_throttle_max_bps = 196608
     
     ; Per-client bytes per second rates for the various throttle categories.
     ; These are default values that will be overriden by clients
+    ;
     ;resend_default = 12500
     ;land_default = 500
     ;wind_default = 500
@@ -395,6 +410,7 @@
     ; Per-client maximum burst rates in bytes per second for the various
     ; throttle categories. These are default values that will be overriden by
     ; clients
+    ;
     ;resend_limit = 18750
     ;land_limit = 29750
     ;wind_limit = 18750
@@ -403,6 +419,28 @@
     ;texture_limit = 55750
     ;asset_limit = 27500
     ;state_limit = 37000
+    
+    ; Configures how ObjectUpdates are aggregated. These numbers
+    ; do not literally mean how many updates will be put in each
+    ; packet that goes over the wire, as packets are 
+    ; automatically split on a 1400 byte boundary. These control
+    ; the balance between responsiveness of interest list updates
+    ; and total throughput. Higher numbers will ensure more full-
+    ; sized packets and faster sending of data, but more delay in
+    ; updating interest lists
+    ;
+    ;PrimTerseUpdatesPerPacket = 25
+    ;AvatarTerseUpdatesPerPacket = 10
+    ;PrimFullUpdatesPerPacket = 100
+
+    ; TextureSendLimit determines how many packets will be put on
+    ; the outgoing queue each cycle. Like the settings above, this
+    ; is a balance between responsiveness to priority updates and
+    ; total throughput. Higher numbers will give a better
+    ; throughput at the cost of reduced responsiveness to client
+    ; priority changes or transfer aborts
+    ;
+    ;TextureSendLimit = 20
 
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
@@ -787,136 +825,11 @@
     ; Density of tree population
     tree_density = 1000.0
 
+
 [VectorRender]
 
     ; the font to use for rendering text (default: Arial)
     ; font_name = "Arial"
-
-[ScriptEngine.DotNetEngine]
-    Enabled = true
-
-    ScriptDelayFactor = 1.0
-    ScriptDistanceLimitFactor = 1.0
-
-    ; Maximum length of notecard line read
-    ; Increasing this to large values potentially opens
-    ; up the system to malicious scripters
-    ; NotecardLineReadCharsMax = 255
-
-    ;
-    ; These settings are specific to DotNetEngine script engine
-    ; Other script engines based on OpenSim.Region.ScriptEngine.Common.dll will have almost identical settings, but in another section of this config file.
-    ;
-
-    ; When a script receives an event the event is queued.
-    ; Any free thread will start executing this event. One script can only have one event executed simultaneously.
-    ; If you have only one thread, and one script has a loop or does a lot of work, then no other scripts can run at the same time.
-    ; Same if you have 10 threads, then only 10 scripts can be run simultaneously.
-    ; But because most scripts exit after their task, the threads are free to go on to the next script.
-
-    ; Refresh ScriptEngine config options (these settings) every xx seconds
-    ; 0 = Do not refresh
-    ; Set it to number of seconds between refresh, for example 30.
-    ; Will allow you to change ScriptEngine settings while server is running just by using "CONFIG SET" on console
-    ; For example to increase or decrease number of threads: CONFIG SET NumberOfScriptThreads 10
-    ; NOTE! Disabled for now. Feature does not work.
-    RefreshConfig=0
-
-    ; Number of threads to use for script event execution
-    ; Threads are shared across all regions
-    NumberOfScriptThreads=2
-
-    ; Script event execution thread priority inside application.
-    ; Valid values: Lowest, BelowNormal, Normal, AboveNormal, Highest
-    ScriptThreadPriority=BelowNormal
-
-    ; How long MAX should a script event be allowed to run (per event execution)?
-    ; Do not set this too low (like 50ms) as there are some time wasted in simply executing a function
-    ; There is also a small speed penalty for every kill that is made
-    MaxEventExecutionTimeMs=5000
-
-    ; Should we enable the max script event execution thread to look for scripts that exceed their timeslice?
-    EnforceMaxEventExecutionTime=true
-
-    ; Should we stop the script completely when time exceeds?
-    ; This is useful if you have a high <MaxEventExecutionTimeMs> and want to deactivate scripts that go wrong
-    ; Note that for example physics engine can slow down the system and make scripts spend more time
-    DeactivateScriptOnTimeout=false
-
-    ; If no scripts have executed in this pass how long should we sleep before checking again
-    ; Impact:
-    ; Too low and you will waste lots of CPU
-    ; Too high and people touching object or similar will have to wait up to this amount of time before script responding
-    SleepTimeIfNoScriptExecutionMs=50
-
-    ; AppDomains are used for two things:
-    ; * Security: Scripts inside AppDomains are limited in permissions.
-    ; * Script unloading: When a script is deactivated it can not be unloaded. Only whole AppDomains can be unloaded.
-    ;                     AppDomains are therefore only unloaded once ALL active scripts inside it has been deactivated (removed from prims).
-    ; Each AppDomain has some memory overhead. But leaving dead scripts in memory also has memory overhead.
-    ScriptsPerAppDomain=1
-
-    ; MaintenanceLoop
-    ; How often to run maintenance loop
-    ; Maintenance loop is doing: script compile/load, script unload, reload config, adjust running config and enforce max execution time
-    MaintenanceLoopms=50
-
-    ; How many maintenanceloops between each of these.
-    ; (if 2 then function will be executed every MaintenanceLoopms*2 ms)
-    ; Script loading/unloading
-
-    ; How long load/unload thread should sleep if there is nothing to do
-    ; Higher value makes it respond slower when scripts are added/removed from prims
-    ; But once active it will process all in queue before sleeping again
-    MaintenanceLoopTicks_ScriptLoadUnload=1
-
-    ; Other tasks
-    ; check if we need to reload config, adjust running config and enforce max execution time
-    MaintenanceLoopTicks_Other=10
-
-    ; Allow the use of os* functions (some are dangerous)
-    ; Default is false
-    AllowOSFunctions = false
-
-    ; Threat level to allow if os functions are enabled
-    ; One of None, VeryLow, Low, Moderate, High, VeryHigh, Severe
-    ; Default is VeryLow
-    OSFunctionThreatLevel = VeryLow
-
-    ; Maximum number of items in load/unload queue before we start rejecting loads
-    ; Note that we will only be rejecting load. Unloads will still be able to queue.
-    LoadUnloadMaxQueueSize=100
-
-    ; Maximum number of (LSL) events that can be queued before new events are ignored.
-    EventExecutionMaxQueueSize=300
-
-    ; Async LL command sleep
-    ; If no async LL commands are waiting, how long should thread sleep before checking again
-    ; Async LL commands are LSL-commands that causes an event to be fired back with result
-    ; currently unused
-    ; AsyncLLCommandLoopms=50
-
-    ; When script is converted from LSL to C#, or just plain compiled, a copy of the script source will be put in the ScriptEngine folder
-    WriteScriptSourceToDebugFile=false
-
-    ; Specify default script compiler
-    ; If you do not specify //cs, //vb, //js or //lsl tag as the first characters of your script then the default compiler will be chosen
-    ; Valid languages are: lsl, cs, js and vb
-    DefaultCompileLanguage=lsl
-
-    ; Specify what compilers are allowed to be used
-    ; Note vb only works on Windows for now (Mono lacks VB compile support)
-    ; Valid languages are: lsl, cs, js and vb
-    ; AllowedCompilers=lsl,cs,js,vb.  *warning*, non lsl languages have access to static methods such as System.IO.File.  Enable at your own risk.
-    AllowedCompilers=lsl
-
-    ; Compile scripts with debugging
-    ; Probably a thousand times slower, but gives you a line number when something goes wrong.
-    CompileWithDebugInformation=true
-
-    ; Remove old scripts on next startup
-    ; currently unused
-    ;CleanUpOldScriptsOnStartup=true
 
 
 [LL-Functions]
@@ -1361,43 +1274,14 @@
     ;RecycleDataBlocks = true;
 
 
-[LLClient]
-    ; Resend packets markes as reliable until they are received
-    ;
-    ;ReliableIsImportant = false
-
-    ; Maximum number of times to resend packets marked reliable
-    ;
-    ;MaxReliableResends = 3
-
-    ; Configures how ObjectUpdates are compressed.
-    ;
-    ;TerseUpdatesPerPacket=10
-    ;FullUpdatesPerPacket=14
-    ;TerseUpdateRate=10
-    ;FullUpdateRate=14
-
-    ;PacketMTU = 1400
-
-    ; TextureSendLimit determines how many different textures
-    ; will be considered on each cycle. Textures are selected
-    ; by priority. The old mechanism specified a value of 10 for
-    ; this parameter.
-    ;
-    ;TextureSendLimit = 10
-
-    ; TextureDataLimit determines how many packets will be sent for
-    ; each of the selected textures. Default is 5.
-    ;
-    ;TextureDataLimit = 5
-
 [InterestManagement]
-    ; This section controls how state updates are prioritized for each client
-    UpdatePrioritizationScheme = Distance
-    ReprioritizeUpdate = true
-    RootUpdateReprioritizationDistance = 10.0
-    ChildUpdateReprioritizationDistance = 20.0
-    ReprioritizeUpdatesInterval = 5000.0
+     ; This section controls how state updates are prioritized for each client
+     ; Valid values are Time, Distance, SimpleAngularDistance, and FrontBack
+     UpdatePrioritizationScheme = FrontBack
+     ReprioritizationEnabled = true
+     ReprioritizationInterval = 2000.0
+     RootReprioritizationDistance = 10.0
+     ChildReprioritizationDistance = 20.0
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

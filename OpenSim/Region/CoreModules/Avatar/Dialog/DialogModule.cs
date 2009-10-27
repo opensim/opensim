@@ -85,10 +85,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
-            List<ScenePresence> presenceList = m_scene.GetScenePresences();
+            ScenePresence[] presenceList = m_scene.GetScenePresences();
 
-            foreach (ScenePresence presence in presenceList)
+            for (int i = 0; i < presenceList.Length; i++)
             {
+                ScenePresence presence = presenceList[i];
+
                 if (presence.Firstname == firstName && presence.Lastname == lastName)
                 {
                     presence.ControllingClient.SendAgentAlertMessage(message, modal);
@@ -99,10 +101,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         
         public void SendGeneralAlert(string message)
         {
-            List<ScenePresence> presenceList = m_scene.GetScenePresences();
+            ScenePresence[] presenceList = m_scene.GetScenePresences();
 
-            foreach (ScenePresence presence in presenceList)
+            for (int i = 0; i < presenceList.Length; i++)
             {
+                ScenePresence presence = presenceList[i];
+
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendAlertMessage(message);
             }
@@ -150,10 +154,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)
         {
-            List<ScenePresence> presenceList = m_scene.GetScenePresences();
+            ScenePresence[] presences = m_scene.GetScenePresences();
 
-            foreach (ScenePresence presence in presenceList)
+            for (int i = 0; i < presences.Length; i++)
             {
+                ScenePresence presence = presences[i];
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendBlueBoxMessage(fromAvatarID, fromAvatarName, message);
             }

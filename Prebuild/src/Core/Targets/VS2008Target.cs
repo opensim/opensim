@@ -120,7 +120,7 @@ namespace Prebuild.Core.Targets
 		#region Constructors
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="VS2005Target"/> class.
+		/// Initializes a new instance of the <see cref="VS2008Target"/> class.
 		/// </summary>
 		public VS2008Target()
 			: base()

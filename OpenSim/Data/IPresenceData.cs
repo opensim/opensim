@@ -25,39 +25,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System;
+using System.Collections.Generic;
+using OpenMetaverse;
+using OpenSim.Framework;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
-[assembly: AssemblyTitle("OpenSim.ScriptEngine.Shared.Script")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("http://opensimulator.org")]
-[assembly: AssemblyProduct("OpenSim.ScriptEngine.Shared.Script")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2008")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+namespace OpenSim.Data
+{
+    public class PresenceData
+    {
+        public UUID PrincipalID;
+        public UUID RegionID;
+        public Dictionary<string, object> Data;
+    }
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
-[assembly: ComVisible(false)]
+    /// <summary>
+    /// An interface for connecting to the authentication datastore
+    /// </summary>
+    public interface IPresenceData 
+    {
+        bool Store(PresenceData data);
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ea77002b-c967-4368-ace9-6533f8147d4b")]
+        PresenceData Get(UUID principalID);
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("0.6.5.*")]
-[assembly: AssemblyVersion("0.6.5.*")]
-[assembly: AssemblyFileVersion("0.6.5.0")]
+        bool SetDataItem(UUID principalID, string item, string value);
+
+        bool Delete(UUID regionID);
+    }
+}

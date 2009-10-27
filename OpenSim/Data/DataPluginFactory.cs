@@ -119,14 +119,15 @@ namespace OpenSim.Data
 
             PluginLoaderParamFactory<T>(connect, out pluginInitialiser, out extensionPointPath);
 
-            PluginLoader<T> loader = new PluginLoader<T>(pluginInitialiser);
+            using (PluginLoader<T> loader = new PluginLoader<T>(pluginInitialiser))
+            {
+                // loader will try to load all providers (MySQL, MSSQL, etc)
+                // unless it is constrainted to the correct "Provider" entry in the addin.xml
+                loader.Add(extensionPointPath, new PluginProviderFilter(provider));
+                loader.Load();
 
-            // loader will try to load all providers (MySQL, MSSQL, etc)
-            // unless it is constrainted to the correct "Provider" entry in the addin.xml
-            loader.Add(extensionPointPath, new PluginProviderFilter(provider));
-            loader.Load();
-
-            return loader.Plugins;
+                return loader.Plugins;
+            }
         }
 
         /// <summary>

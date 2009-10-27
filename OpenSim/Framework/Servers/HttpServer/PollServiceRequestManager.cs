@@ -50,9 +50,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             m_WorkerThreadCount = pWorkerThreadCount;
             m_workerThreads = new Thread[m_WorkerThreadCount];
             m_PollServiceWorkerThreads = new PollServiceWorkerThread[m_WorkerThreadCount];
-            m_watcherThread = new Thread(ThreadStart);
 
-            
             //startup worker threads
             for (uint i=0;i<m_WorkerThreadCount;i++)
             {
@@ -65,11 +63,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                 m_workerThreads[i].Start();
                 
             }
+
             //start watcher threads
+            m_watcherThread = new Thread(ThreadStart);
             m_watcherThread.Name = "PollServiceWatcherThread";
             m_watcherThread.Start();
-
-
         }
 
         internal void ReQueueEvent(PollServiceHttpRequest req)

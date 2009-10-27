@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -24,33 +24,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.VisualBasic;
-using OpenSim.ScriptEngine.Shared;
+using System.Net;
+using System.Reflection;
+using Nini.Config;
+using log4net;
+using OpenSim.Framework;
+using OpenSim.Framework.Console;
+using OpenSim.Data;
+using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
-namespace OpenSim.ScriptEngine.Components.DotNetEngine.Compilers
+namespace OpenSim.Services.PresenceService
 {
-    public class Compiler_VB : CILCompiler, IScriptCompiler
+    public class PresenceService : PresenceServiceBase, IPresenceService
     {
- 
-        public Compiler_VB()
-        {
-            CompileProvider = new VBCodeProvider() as CodeDomProvider;
-        }
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override string PreProcessScript(ref string script)
+        public PresenceService(IConfigSource config)
+            : base(config)
         {
-            return
-                "Imports OpenSim.Region.ScriptEngine.Shared: Imports System.Collections.Generic: " +
-                String.Empty + "NameSpace SecondLife:" +
-                String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass: " +
-                "\r\nPublic Sub New()\r\nEnd Sub: " +
-                script +
-                ":End Class :End Namespace\r\n";
         }
     }
 }
-

@@ -86,7 +86,6 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         /// </value>
         Hashtable m_sceneList = Hashtable.Synchronized(new Hashtable());
         State m_state = State.NONE;
-        Thread m_thread = null;
         CMView m_view = null;
 
         #endregion Fields
@@ -148,10 +147,7 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             lock (this)
             {
                 m_estateModule = scene.RequestModuleInterface<IEstateModule>();
-                m_thread = new Thread(MainLoop);
-                m_thread.Name = "Content Management";
-                m_thread.IsBackground = true;
-                m_thread.Start();
+                Watchdog.StartThread(MainLoop, "Content Management", ThreadPriority.Normal, true);
                 m_state = State.NONE;
             }
         }
@@ -200,6 +196,8 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                         m_log.Debug("[CONTENT MANAGEMENT] MAIN LOOP -- uuuuuuuuuh, what?");
                         break;
                     }
+
+                    Watchdog.UpdateThread();
                 }
             }
             catch (Exception e)
@@ -209,6 +207,8 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                     "[CONTENT MANAGEMENT]: Content management thread terminating with exception.  PLEASE REBOOT YOUR SIM - CONTENT MANAGEMENT WILL NOT BE AVAILABLE UNTIL YOU DO.  Exception is {0}", 
                     e);
             }
+
+            Watchdog.RemoveThread();
         }
 
         /// <summary>

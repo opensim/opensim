@@ -286,7 +286,7 @@ namespace OpenSim.Client.Linden
             {
                 foreach (Scene nextScene in m_scenes)
                 {
-                    if (nextScene.RegionInfo.RegionName == regionName)
+                    if (nextScene.RegionInfo.RegionName.Equals(regionName, StringComparison.InvariantCultureIgnoreCase))
                     {
                         scene = nextScene;
                         return true;

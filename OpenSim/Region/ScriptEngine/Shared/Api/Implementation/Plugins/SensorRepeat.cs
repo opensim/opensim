@@ -404,7 +404,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private List<SensedEntity> doAgentSensor(SenseRepeatClass ts)
         {
-            List<ScenePresence> Presences;
+            List<ScenePresence> presences;
             List<SensedEntity> sensedEntities = new List<SensedEntity>();
 
             // If this is an avatar sense by key try to get them directly
@@ -414,16 +414,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ScenePresence p = m_CmdManager.m_ScriptEngine.World.GetScenePresence(ts.keyID);
                 if (p == null)
                     return sensedEntities;
-                Presences = new List<ScenePresence>();
-                Presences.Add(p);
+                presences = new List<ScenePresence>();
+                presences.Add(p);
             }
             else
             {
-                Presences = m_CmdManager.m_ScriptEngine.World.GetScenePresences();
+                presences = new List<ScenePresence>(m_CmdManager.m_ScriptEngine.World.GetScenePresences());
             }
 
             // If nobody about quit fast
-            if (Presences.Count == 0)
+            if (presences.Count == 0)
                 return sensedEntities;
 
             SceneObjectPart SensePoint = ts.host;
@@ -440,8 +440,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             Vector3 toRegionPos;
             double dis;
 
-            foreach (ScenePresence presence in Presences)
+            for (int i = 0; i < presences.Count; i++)
             {
+                ScenePresence presence = presences[i];
                 bool keep = true;
 
                 if (presence.IsDeleted)
@@ -515,16 +516,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             List<Object> data = new List<Object>();
 
-            foreach (SenseRepeatClass ts in SenseRepeaters)
+            lock (SenseRepeatListLock)
             {
-                if (ts.itemID == itemID)
+                foreach (SenseRepeatClass ts in SenseRepeaters)
                 {
-                    data.Add(ts.interval);
-                    data.Add(ts.name);
-                    data.Add(ts.keyID);
-                    data.Add(ts.type);
-                    data.Add(ts.range);
-                    data.Add(ts.arc);
+                    if (ts.itemID == itemID)
+                    {
+                        data.Add(ts.interval);
+                        data.Add(ts.name);
+                        data.Add(ts.keyID);
+                        data.Add(ts.type);
+                        data.Add(ts.range);
+                        data.Add(ts.arc);
+                    }
                 }
             }
             return data.ToArray();
