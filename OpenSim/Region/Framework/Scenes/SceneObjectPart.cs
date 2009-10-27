@@ -2394,7 +2394,7 @@ if (m_shape != null) {
         public void SendScheduledUpdates()
         {
             const float VELOCITY_TOLERANCE = 0.01f;
-            const float POSITION_TOLERANCE = 10.0f;
+            const float POSITION_TOLERANCE = 0.1f;
 
             if (m_updateFlag == 1)
             {
