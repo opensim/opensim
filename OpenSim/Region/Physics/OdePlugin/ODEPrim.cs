@@ -87,9 +87,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Quaternion m_APIDTarget = new Quaternion();
         private float m_APIDStrength = 0.5f;
         private float m_APIDDamping = 0.5f;
-        
-        private float APID_D = 35f;
-        private float APID_G = 25f;
         private bool m_useAPID = false;
 
         // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
@@ -192,6 +189,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private ODEDynamics m_vehicle;
 
         internal int m_material = (int)Material.Wood;
+        
+        private int frcount = 0;										// Used to limit dynamics debug output to 
+
 
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
@@ -1563,9 +1563,14 @@ Console.WriteLine(" JointCreateFixed");
             float fy = 0;
             float fz = 0;
 
+            frcount++;					// used to limit debug comment output
+            if (frcount > 100)
+                frcount = 0;
                 
             if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// KF: Only move root prims.
             {
+if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_vehicle.Type +
+						"    usePID=" + m_usePID  + "    seHover=" + m_useHoverPID  + "  useAPID=" + m_useAPID);           	
             	if (m_vehicle.Type != Vehicle.TYPE_NONE)
             	{
             		// 'VEHICLES' are dealt with in ODEDynamics.cs
@@ -1573,7 +1578,6 @@ Console.WriteLine(" JointCreateFixed");
             	}
             	else
             	{
-//Console.WriteLine("Move " +  m_primName);           	
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
 	                if (d.BodyIsEnabled(Body) && !m_angularlock.IsIdentical(PhysicsVector.Zero, 0.003f))
@@ -1602,7 +1606,7 @@ Console.WriteLine(" JointCreateFixed");
 
 	                if (m_usePID)
 	                {
-//Console.WriteLine("PID " +  m_primName);           	
+//if(frcount == 0) Console.WriteLine("PID " +  m_primName);           	
                     	// KF - this is for object MoveToTarget.
                     	
 	                    //if (!d.BodyIsEnabled(Body))
@@ -1741,7 +1745,7 @@ Console.WriteLine(" JointCreateFixed");
     	                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
     	                    d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
     	                    d.BodyAddForce(Body, 0, 0, fz);
-    	                    return;
+    	            //KF this prevents furthur motions        return;
     	                }
     	                else
     	                {
@@ -1756,13 +1760,16 @@ Console.WriteLine(" JointCreateFixed");
 	                {
 	                	// RotLookAt, apparently overrides all other rotation sources. Inputs:
 	                	// Quaternion m_APIDTarget
-						// float m_APIDStrength		// perhaps ratio other forces to lookat force?
-						// float m_APIDDamping		//'seconds to critically damps in'[sic]
+						// float m_APIDStrength		// From SL experiments, this is the time to get there
+						// float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
+													// Also in SL the mass of the object has no effect on time to get there.
 						// Factors:
-						// float APID_D
-						// float APID_G
-						
+//if(frcount == 0) Console.WriteLine("APID ");							
 			    	    // get present body rotation
+			    	    float limit = 1.0f;
+			    	    float scaler = 50f;		// adjusts damping time
+			    	    float RLAservo = 0f;
+			    	    
 			    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
 			    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
 			    	    Quaternion rot_diff = Quaternion.Inverse(rotq) * m_APIDTarget;
@@ -1770,15 +1777,21 @@ Console.WriteLine(" JointCreateFixed");
                         Vector3 diff_axis;
                         rot_diff.GetAxisAngle(out diff_axis, out diff_angle);
                         diff_axis.Normalize();
-                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
-                        float RLAservo = timestep / m_APIDDamping;
-                        rotforce = rotforce * RLAservo * m_mass;
-                        d.BodyAddTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
-
-	                //	d.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
-
-	                
-	                
+						if(diff_angle > 0.01f)			// diff_angle is always +ve
+						{
+//	                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
+	                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
+    	                    rotforce = rotforce * rotq;
+    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
+//    	                    RLAservo = timestep / m_APIDStrength * m_mass * scaler;
+  //  	                    rotforce = rotforce * RLAservo * diff_angle ;
+    //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
+    	                    RLAservo = timestep / m_APIDStrength * scaler;
+    	                    rotforce = rotforce * RLAservo * diff_angle ;
+							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
+//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+						}
+if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
 	                } // end m_useAPID
 	                
     	            fx *= m_mass;
@@ -2674,7 +2687,7 @@ Console.WriteLine(" JointCreateFixed");
                         //outofBounds = true;
                     }
 
-					float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
+//					float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
 //Console.WriteLine("Adiff " + m_primName + " = " + Adiff);					
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)

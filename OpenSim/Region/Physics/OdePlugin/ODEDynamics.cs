@@ -1,16 +1,4 @@
 /*
- * Revised Aug, Sept 2009 by Kitto Flora. ODEDynamics.cs replaces
- * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
- * ODEPrim.cs contains methods dealing with Prim editing, Prim
- * characteristics and Kinetic motion.
- * ODEDynamics.cs contains methods dealing with Prim Physical motion
- * (dynamics) and the associated settings. Old Linear and angular
- * motors for dynamic motion have been replace with  MoveLinear()
- * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
- * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
- * switch between 'VEHICLE' parameter use and general dynamics
- * settings use.
- * 
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -35,6 +23,19 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Revised Aug, Sept 2009 by Kitto Flora. ODEDynamics.cs replaces
+ * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
+ * ODEPrim.cs contains methods dealing with Prim editing, Prim
+ * characteristics and Kinetic motion.
+ * ODEDynamics.cs contains methods dealing with Prim Physical motion
+ * (dynamics) and the associated settings. Old Linear and angular
+ * motors for dynamic motion have been replace with  MoveLinear()
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
+ * switch between 'VEHICLE' parameter use and general dynamics
+ * settings use.
+ * 
  */
 
 using System;
@@ -66,8 +67,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // private OdeScene m_parentScene = null;
         private IntPtr m_body = IntPtr.Zero;
-        private IntPtr m_jointGroup = IntPtr.Zero;
-        private IntPtr m_aMotor = IntPtr.Zero;
+//        private IntPtr m_jointGroup = IntPtr.Zero;
+//        private IntPtr m_aMotor = IntPtr.Zero;
  
 
         // Vehicle properties
@@ -560,6 +561,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 	        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular velocity  decay rate
 	        private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
 			*/
+//if(frcount == 0) Console.WriteLine("MoveAngular ");	
         
         	// Get what the body is doing, this includes 'external' influences
         	d.Vector3 angularVelocity = d.BodyGetAngularVel(Body);
@@ -614,7 +616,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 				// Error is 0 (no error) to +/- 2 (max error)
 				// scale it by VAservo
 				verterr = verterr * VAservo;
-//if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
+if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
 
 				// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
 				// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
@@ -635,7 +637,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 			// Deflection section tba
 			
 			// Sum velocities
-			m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
+			m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // tba: + bank + deflection
 			
         	if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
