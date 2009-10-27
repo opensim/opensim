@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using OpenMetaverse;
-using OpenMetaverse.Imaging;
 using System.Drawing;
 using System.Drawing.Imaging;
 using PrimMesher;
@@ -285,8 +284,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                     try
                     {
-                        ManagedImage managedImage;  // we never use this
-                        OpenJPEG.DecodeToImage(primShape.SculptData, out managedImage, out idata);
+                        idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
 
                         if (cacheSculptMaps)
                         {
