@@ -66,22 +66,26 @@ namespace OpenSim.Data.MySQL
             Migration m = new Migration(m_Connection, assem, "RegionStore");
             m.Update();
 
+            // NOTE: This is a very slow query that times out on regions with a lot of prims.
+            // I'm told that it is no longer relevant so it's commented out now, but if it
+            // is relevant it should be added as a console command instead of part of the
+            // startup phase
             // Clean dropped attachments
             //
-            try
-            {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
-                {
-                    cmd.CommandText = "delete from prims, primshapes using prims " +
-                            "left join primshapes on prims.uuid = primshapes.uuid " +
-                            "where PCode = 9 and State <> 0";
-                    ExecuteNonQuery(cmd);
-                }
-            }
-            catch (MySqlException ex)
-            {
-                m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
-            }
+            //try
+            //{
+            //    using (MySqlCommand cmd = m_Connection.CreateCommand())
+            //    {
+            //        cmd.CommandText = "delete from prims, primshapes using prims " +
+            //                "left join primshapes on prims.uuid = primshapes.uuid " +
+            //                "where PCode = 9 and State <> 0";
+            //        ExecuteNonQuery(cmd);
+            //    }
+            //}
+            //catch (MySqlException ex)
+            //{
+            //    m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
+            //}
         }
 
         private IDataReader ExecuteReader(MySqlCommand c)

@@ -341,14 +341,15 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
                 // Actually load it
                 INonSharedRegionModule module = null;
-                try
-                {
+
+                Type[] ctorParamTypes = new Type[ctorArgs.Length];
+                for (int i = 0; i < ctorParamTypes.Length; i++)
+                    ctorParamTypes[i] = ctorArgs[i].GetType();
+
+                if (node.Type.GetConstructor(ctorParamTypes) != null)
                     module = (INonSharedRegionModule)Activator.CreateInstance(node.Type, ctorArgs);
-                }
-                catch
-                {
+                else
                     module = (INonSharedRegionModule)Activator.CreateInstance(node.Type);
-                }
 
                 // Check for replaceable interfaces
                 Type replaceableInterface = module.ReplaceableInterface;

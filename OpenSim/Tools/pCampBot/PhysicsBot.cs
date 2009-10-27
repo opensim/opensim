@@ -154,7 +154,7 @@ namespace pCampBot
             client.Network.OnConnected += new NetworkManager.ConnectedCallback(this.Network_OnConnected);
             client.Network.OnSimConnected += new NetworkManager.SimConnectedCallback(this.Network_OnConnected);
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
-            client.Objects.OnNewPrim += Objects_NewPrim;
+            client.Objects.ObjectUpdate += Objects_NewPrim;
             //client.Assets.OnAssetReceived += Asset_ReceivedCallback;
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
@@ -369,8 +369,10 @@ namespace pCampBot
             }
         }
 
-        public void Objects_NewPrim(Simulator simulator, Primitive prim, ulong regionHandle, ushort timeDilation)
+        public void Objects_NewPrim(object sender, PrimEventArgs args)
         {
+            Primitive prim = args.Prim;
+
             if (prim != null)
             {
                 if (prim.Textures != null)
@@ -396,7 +398,6 @@ namespace pCampBot
                     client.Assets.RequestImage(prim.Sculpt.SculptTexture, ImageType.Normal, Asset_TextureCallback_Texture);
                 }
             }
-
         }
 
         
