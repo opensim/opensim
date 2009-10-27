@@ -314,14 +314,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
         private readonly UUID m_secureSessionId;
-        private readonly UUID m_agentId;
+        protected readonly UUID m_agentId;
         private readonly uint m_circuitCode;
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
-        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
+        protected PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
         private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates;
         private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates;
         private int m_moneyBalance;
@@ -3314,7 +3314,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ProcessAvatarTerseUpdates();
         }
 
-        private void ProcessAvatarTerseUpdates()
+        protected void ProcessAvatarTerseUpdates()
         {
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             terse.Header.Reliable = false;
@@ -5050,7 +5050,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="packet">Packet to send</param>
         /// <param name="throttlePacketType">Throttling category for the packet</param>
-        private void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
+        protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
         }
@@ -10236,7 +10236,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region PriorityQueue
-        private class PriorityQueue<TPriority, TValue>
+        public class PriorityQueue<TPriority, TValue>
         {
             internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
 
@@ -10264,7 +10264,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.m_comparison = comparison;
             }
 
-            internal object SyncRoot { get { return this.m_syncRoot; } }
+            public object SyncRoot { get { return this.m_syncRoot; } }
             internal int Count
             {
                 get
@@ -10276,7 +10276,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            internal bool Enqueue(TPriority priority, TValue value, uint local_id)
+            public bool Enqueue(TPriority priority, TValue value, uint local_id)
             {
                 LookupItem item;
 

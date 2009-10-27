@@ -118,13 +118,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary></summary>
         //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
-        private TokenBucket m_throttle;
+        protected TokenBucket m_throttle;
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
-        private ThrottleRates m_throttleRates;
+        protected ThrottleRates m_throttleRates;
         /// <summary>Manages authentication for agent circuits</summary>
         private AgentCircuitManager m_circuitManager;
         /// <summary>Reference to the scene this UDP server is attached to</summary>
-        private Scene m_scene;
+        protected Scene m_scene;
         /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
         private Location m_location;
         /// <summary>The size of the receive buffer for the UDP socket. This value
@@ -759,7 +759,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
+        protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             // Create the LLUDPClient
             LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
@@ -976,7 +976,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void LogoutHandler(IClientAPI client)
+        protected void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
             if (client.IsActive)
