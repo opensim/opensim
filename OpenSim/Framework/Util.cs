@@ -1330,6 +1330,27 @@ namespace OpenSim.Framework
             m_ThreadPool = new SmartThreadPool(2000, maxThreads, 2);
         }
 
+        public static int FireAndForgetCount()
+        {
+            const int MAX_SYSTEM_THREADS = 200;
+
+            switch (FireAndForgetMethod)
+            {
+                case FireAndForgetMethod.UnsafeQueueUserWorkItem:
+                case FireAndForgetMethod.QueueUserWorkItem:
+                case FireAndForgetMethod.BeginInvoke:
+                    int workerThreads, iocpThreads;
+                    ThreadPool.GetAvailableThreads(out workerThreads, out iocpThreads);
+                    return workerThreads;
+                case FireAndForgetMethod.SmartThreadPool:
+                    return m_ThreadPool.MaxThreads - m_ThreadPool.InUseThreads;
+                case FireAndForgetMethod.Thread:
+                    return MAX_SYSTEM_THREADS - System.Diagnostics.Process.GetCurrentProcess().Threads.Count;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public static void FireAndForget(System.Threading.WaitCallback callback, object obj)
         {
             switch (FireAndForgetMethod)
