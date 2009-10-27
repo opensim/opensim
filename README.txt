@@ -25,7 +25,7 @@ See configuring OpenSim
 == Installation on Linux ==
 
 Prereqs:
- * Mono >= 2.0.1 (>= 2.4.2 is better)
+ * Mono >= 2.4.2
  * Nant >= 0.86beta
  * sqlite3 or mysql 5.x (you'll need a back end database)
 
