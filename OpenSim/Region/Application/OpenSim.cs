@@ -67,7 +67,7 @@ namespace OpenSim
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
 
-            Util.SetMaxThreads(startupConfig.GetInt("MaxPoolThreads", 15));
+            int stpMaxThreads = 15;
 
             if (startupConfig != null)
             {
@@ -100,7 +100,12 @@ namespace OpenSim
                 FireAndForgetMethod asyncCallMethod;
                 if (!String.IsNullOrEmpty(asyncCallMethodStr) && Utils.EnumTryParse<FireAndForgetMethod>(asyncCallMethodStr, out asyncCallMethod))
                     Util.FireAndForgetMethod = asyncCallMethod;
+
+                stpMaxThreads = startupConfig.GetInt("MaxPoolThreads", 15);
             }
+
+            if (Util.FireAndForgetMethod == FireAndForgetMethod.SmartThreadPool)
+                Util.InitThreadPool(stpMaxThreads);
 
             m_log.Info("[OPENSIM MAIN]: Using async_call_method " + Util.FireAndForgetMethod);
         }
@@ -166,6 +171,9 @@ namespace OpenSim
                 m_scriptTimer.Interval = 1200*1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
+
+            // Hook up to the watchdog timer
+            Watchdog.OnWatchdogTimeout += WatchdogTimeoutHandler;
 
             PrintFileToConsole("startuplogo.txt");
 
@@ -377,6 +385,14 @@ namespace OpenSim
             {
                 RunCommandScript(m_timedScript);
             }
+        }
+
+        private void WatchdogTimeoutHandler(System.Threading.Thread thread, int lastTick)
+        {
+            int now = Environment.TickCount & Int32.MaxValue;
+
+            m_log.ErrorFormat("[WATCHDOG]: Timeout detected for thread \"{0}\". ThreadState={1}. Last tick was {2}ms ago",
+                thread.Name, thread.ThreadState, now - lastTick);
         }
 
         #region Console Commands
@@ -954,12 +970,12 @@ namespace OpenSim
                     m_sceneManager.ForEachScene(
                         delegate(Scene scene)
                         {
-                            scene.ClientManager.ForEachSync(
+                            scene.ForEachClient(
                                 delegate(IClientAPI client)
                                 {
                                     connections.AppendFormat("{0}: {1} ({2}) from {3} on circuit {4}\n",
                                         scene.RegionInfo.RegionName, client.Name, client.AgentId, client.RemoteEndPoint, client.CircuitCode);
-                                }
+                                }, false
                             );
                         }
                     );

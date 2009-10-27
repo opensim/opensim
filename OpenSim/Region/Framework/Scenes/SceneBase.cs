@@ -102,12 +102,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private readonly Mutex _primAllocateMutex = new Mutex(false);
         
-        private readonly ClientManager m_clientManager = new ClientManager();
-
-        public ClientManager ClientManager
-        {
-            get { return m_clientManager; }
-        }
+        protected readonly ClientManager m_clientManager = new ClientManager();
 
         public float TimeDilation
         {

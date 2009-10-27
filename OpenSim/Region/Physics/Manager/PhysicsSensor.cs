@@ -27,6 +27,7 @@
 
 using System;
 using System.Timers;
+using OpenMetaverse;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -46,7 +47,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             get { return new NullPhysicsSensor(); }
         }
-        public abstract PhysicsVector Position {get; set;}
+        public abstract Vector3 Position { get; set; }
         public abstract void TimerCallback (object obj, ElapsedEventArgs eea);
         public abstract float radianarc {get; set;}
         public abstract string targetname {get; set;}
@@ -58,9 +59,9 @@ namespace OpenSim.Region.Physics.Manager
 
     public class NullPhysicsSensor : PhysicsSensor
     {
-        public override PhysicsVector Position
+        public override Vector3 Position
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
         public override void TimerCallback(object obj, ElapsedEventArgs eea)

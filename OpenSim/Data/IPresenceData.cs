@@ -27,32 +27,29 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework;
 using OpenMetaverse;
+using OpenSim.Framework;
 
-namespace OpenSim.Region.Physics.Manager
+namespace OpenSim.Data
 {
-    public interface IMesher
+    public class PresenceData
     {
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod);
-        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical);
+        public UUID PrincipalID;
+        public UUID RegionID;
+        public Dictionary<string, object> Data;
     }
 
-    public interface IVertex
+    /// <summary>
+    /// An interface for connecting to the authentication datastore
+    /// </summary>
+    public interface IPresenceData 
     {
-    }
+        bool Store(PresenceData data);
 
-    public interface IMesh
-    {
-        List<Vector3> getVertexList();
-        int[] getIndexListAsInt();
-        int[] getIndexListAsIntLocked();
-        float[] getVertexListAsFloatLocked();
-        void getIndexListAsPtrToIntArray(out IntPtr indices, out int triStride, out int indexCount);
-        void getVertexListAsPtrToFloatArray(out IntPtr vertexList, out int vertexStride, out int vertexCount);
-        void releaseSourceMeshData();
-        void releasePinned();
-        void Append(IMesh newMesh);
-        void TransformLinear(float[,] matrix, float[] offset);
+        PresenceData Get(UUID principalID);
+
+        bool SetDataItem(UUID principalID, string item, string value);
+
+        bool Delete(UUID regionID);
     }
 }

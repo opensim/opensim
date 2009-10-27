@@ -132,12 +132,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         /// </summary>
         private void Start()
         {
-            EventQueueThread = new Thread(EventQueueThreadLoop);
-            EventQueueThread.IsBackground = true;
-
-            EventQueueThread.Priority = MyThreadPriority;
-            EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
-            EventQueueThread.Start();
+            EventQueueThread = Watchdog.StartThread(EventQueueThreadLoop, "EventQueueManagerThread_" + ThreadCount, MyThreadPriority, true);
 
             // Look at this... Don't you wish everyone did that solid
             // coding everywhere? :P
@@ -184,6 +179,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         while (true)
                         {
                             DoProcessQueue();
+                            Watchdog.UpdateThread();
                         }
                     }
                     catch (ThreadAbortException)
@@ -214,6 +210,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         m_log.ErrorFormat("[{0}]: Exception {1} thrown", ScriptEngineName, e.GetType().ToString());
                         throw e;
                     }
+
+                    Watchdog.UpdateThread();
                 }
             }
             catch (ThreadAbortException)
@@ -226,6 +224,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     "[{0}]: Event queue thread terminating with exception.  PLEASE REBOOT YOUR SIM - SCRIPT EVENTS WILL NOT WORK UNTIL YOU DO.  Exception is {1}", 
                     ScriptEngineName, e);
             }
+
+            Watchdog.RemoveThread();
         }
 
         public void DoProcessQueue()

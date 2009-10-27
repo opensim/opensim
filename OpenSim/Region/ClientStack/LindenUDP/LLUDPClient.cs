@@ -304,8 +304,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             int total = resend + land + wind + cloud + task + texture + asset + state;
 
-            m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
-                AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
+            //m_log.DebugFormat("[LLUDPCLIENT]: {0} is setting throttles. Resend={1}, Land={2}, Wind={3}, Cloud={4}, Task={5}, Texture={6}, Asset={7}, State={8}, Total={9}",
+            //    AgentID, resend, land, wind, cloud, task, texture, asset, state, total);
 
             // Update the token buckets with new throttle values
             TokenBucket bucket;
@@ -372,7 +372,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OpenSim.Framework.LocklessQueue<OutgoingPacket> queue = m_packetOutboxes[category];
                 TokenBucket bucket = m_throttleCategories[category];
 
-                if (m_throttleCategories[category].RemoveTokens(packet.Buffer.DataLength))
+                if (bucket.RemoveTokens(packet.Buffer.DataLength))
                 {
                     // Enough tokens were removed from the bucket, the packet will not be queued
                     return false;
@@ -497,13 +497,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SRTT = (1.0f - ALPHA) * SRTT + ALPHA * r;
             }
 
-            RTO = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
+            int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
 
             // Clamp the retransmission timeout to manageable values
-            RTO = Utils.Clamp(RTO, 3000, 10000);
+            rto = Utils.Clamp(RTO, 3000, 60000);
+
+            RTO = rto;
 
             //m_log.Debug("[LLUDPCLIENT]: Setting agent " + this.Agent.FullName + "'s RTO to " + RTO + "ms with an RTTVAR of " +
             //    RTTVAR + " based on new RTT of " + r + "ms");
+        }
+
+        /// <summary>
+        /// Exponential backoff of the retransmission timeout, per section 5.5
+        /// of RFC 2988
+        /// </summary>
+        public void BackoffRTO()
+        {
+            // Reset SRTT and RTTVAR, we assume they are bogus since things
+            // didn't work out and we're backing off the timeout
+            SRTT = 0.0f;
+            RTTVAR = 0.0f;
+
+            // Double the retransmission timeout
+            RTO = Math.Min(RTO * 2, 60000);
         }
 
         /// <summary>

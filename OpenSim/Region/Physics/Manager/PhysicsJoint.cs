@@ -44,7 +44,7 @@ namespace OpenSim.Region.Physics.Manager
         public PhysicsJointType Type;
         public string RawParams;
         public List<string> BodyNames = new List<string>();
-        public PhysicsVector Position; // global coords
+        public Vector3 Position; // global coords
         public Quaternion Rotation; // global coords
         public string ObjectNameInScene; // proxy object in scene that represents the joint position/orientation
         public string TrackedBodyName; // body name that this joint is attached to (ObjectNameInScene will follow TrackedBodyName)

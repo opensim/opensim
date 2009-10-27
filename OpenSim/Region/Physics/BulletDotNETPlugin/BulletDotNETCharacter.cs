@@ -60,15 +60,15 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private btQuaternion m_bodyOrientation;
         private btDefaultMotionState m_bodyMotionState;
         private btGeneric6DofConstraint m_aMotor;
-        // private PhysicsVector m_movementComparision;
-        private PhysicsVector m_position;
-        private PhysicsVector m_zeroPosition;
+        // private Vector3 m_movementComparision;
+        private Vector3 m_position;
+        private Vector3 m_zeroPosition;
         private bool m_zeroFlag = false;
         private bool m_lastUpdateSent = false;
-        private PhysicsVector m_velocity;
-        private PhysicsVector m_target_velocity;
-        private PhysicsVector m_acceleration;
-        private PhysicsVector m_rotationalVelocity;
+        private Vector3 m_velocity;
+        private Vector3 m_target_velocity;
+        private Vector3 m_acceleration;
+        private Vector3 m_rotationalVelocity;
         private bool m_pidControllerActive = true;
         public float PID_D = 80.0f;
         public float PID_P = 90.0f;
@@ -96,8 +96,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private float m_tainted_CAPSULE_LENGTH; // set when the capsule length changes. 
         private bool m_taintRemove = false;
         // private bool m_taintedPosition = false;
-        // private PhysicsVector m_taintedPosition_value;
-        private PhysicsVector m_taintedForce;
+        // private Vector3 m_taintedPosition_value;
+        private Vector3 m_taintedForce;
 
         private float m_buoyancy = 0f;
 
@@ -115,14 +115,10 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public int m_eventsubscription = 0;
         // private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
-        public BulletDotNETCharacter(string avName, BulletDotNETScene parent_scene, PhysicsVector pos, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
+        public BulletDotNETCharacter(string avName, BulletDotNETScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
-            m_taintedForce = new PhysicsVector();
-            m_velocity = new PhysicsVector();
-            m_target_velocity = new PhysicsVector();
             m_position = pos;
-            m_zeroPosition = new PhysicsVector(pos.X, pos.Y, pos.Z); // this is a class, not a struct.  Must make new, or m_zeroPosition will == position regardless
-            m_acceleration = new PhysicsVector();
+            m_zeroPosition = pos;
             m_parent_scene = parent_scene;
             PID_D = pid_d;
             PID_P = pid_p;
@@ -161,9 +157,6 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempTrans1 = new btTransform(tempQuat1, tempVector1);
             // m_movementComparision = new PhysicsVector(0, 0, 0);
             m_CapsuleOrientationAxis = new btVector3(1, 0, 1);
-            
-            
-
         }
 
         /// <summary>
@@ -254,18 +247,18 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             get { return m_zeroFlag; }
         }
 
-        public override PhysicsVector Size
+        public override Vector3 Size
         {
-            get { return new PhysicsVector(CAPSULE_RADIUS * 2, CAPSULE_RADIUS * 2, CAPSULE_LENGTH); }
+            get { return new Vector3(CAPSULE_RADIUS * 2, CAPSULE_RADIUS * 2, CAPSULE_LENGTH); }
             set
             {
                 m_pidControllerActive = true;
-               
-                    PhysicsVector SetSize = value;
+
+                Vector3 SetSize = value;
                     m_tainted_CAPSULE_LENGTH = (SetSize.Z * 1.15f) - CAPSULE_RADIUS * 2.0f;
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
 
-                    Velocity = new PhysicsVector(0f, 0f, 0f);
+                    Velocity = Vector3.Zero;
                
                 m_parent_scene.AddPhysicsActorTaint(this);
             }
@@ -317,12 +310,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             
         }
 
-        public override void LockAngularMotion(PhysicsVector axis)
+        public override void LockAngularMotion(Vector3 axis)
         {
             
         }
 
-        public override PhysicsVector Position
+        public override Vector3 Position
         {
             get { return m_position; }
             set
@@ -342,9 +335,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
         }
 
-        public override PhysicsVector Force
+        public override Vector3 Force
         {
-            get { return new PhysicsVector(m_target_velocity.X, m_target_velocity.Y, m_target_velocity.Z); }
+            get { return m_target_velocity; }
             set { return; }
         }
 
@@ -359,7 +352,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             
         }
 
-        public override void VehicleVectorParam(int param, PhysicsVector value)
+        public override void VehicleVectorParam(int param, Vector3 value)
         {
             
         }
@@ -374,23 +367,22 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             
         }
 
-        public override PhysicsVector GeometricCenter
+        public override Vector3 GeometricCenter
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
-        public override PhysicsVector CenterOfMass
+        public override Vector3 CenterOfMass
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
         }
 
-        public override PhysicsVector Velocity
+        public override Vector3 Velocity
         {
             get
             {
-                // There's a problem with PhysicsVector.Zero! Don't Use it Here!
                 if (m_zeroFlag)
-                    return new PhysicsVector(0f, 0f, 0f);
+                    return Vector3.Zero;
                 m_lastUpdateSent = false;
                 return m_velocity;
             }
@@ -401,9 +393,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
         }
 
-        public override PhysicsVector Torque
+        public override Vector3 Torque
         {
-            get { return PhysicsVector.Zero; }
+            get { return Vector3.Zero; }
             set { return; }
         }
 
@@ -413,7 +405,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             set { }
         }
 
-        public override PhysicsVector Acceleration
+        public override Vector3 Acceleration
         {
             get { return m_acceleration; }
         }
@@ -586,7 +578,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             set { return; }
         }
 
-        public override PhysicsVector RotationalVelocity
+        public override Vector3 RotationalVelocity
         {
             get { return m_rotationalVelocity; }
             set { m_rotationalVelocity = value; }
@@ -604,7 +596,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             set { m_buoyancy = value; }
         }
 
-        public override PhysicsVector PIDTarget { set { return; } }
+        public override Vector3 PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
 
@@ -634,7 +626,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         /// </summary>
         /// <param name="force"></param>
         /// <param name="pushforce">Is this a push by a script?</param>
-        public override void AddForce(PhysicsVector force, bool pushforce)
+        public override void AddForce(Vector3 force, bool pushforce)
         {
             if (pushforce)
             {
@@ -656,7 +648,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             //m_lastUpdateSent = false;
         }
 
-        public void doForce(PhysicsVector force, bool now)
+        public void doForce(Vector3 force, bool now)
         {
 
             tempVector3.setValue(force.X, force.Y, force.Z);
@@ -671,7 +663,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
         }
 
-        public void doImpulse(PhysicsVector force, bool now)
+        public void doImpulse(Vector3 force, bool now)
         {
 
             tempVector3.setValue(force.X, force.Y, force.Z);
@@ -686,12 +678,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
         }
 
-        public override void AddAngularForce(PhysicsVector force, bool pushforce)
+        public override void AddAngularForce(Vector3 force, bool pushforce)
         {
 
         }
 
-        public override void SetMomentum(PhysicsVector momentum)
+        public override void SetMomentum(Vector3 momentum)
         {
             
         }
@@ -808,7 +800,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
                     AvatarGeomAndBodyCreation(m_position.X, m_position.Y,
                                       m_position.Z + (Math.Abs(CAPSULE_LENGTH - prevCapsule) * 2));
-                    Velocity = new PhysicsVector(0f, 0f, 0f);
+                    Velocity = Vector3.Zero;
 
                 }
                 else
@@ -852,9 +844,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
             //PidStatus = true;
 
-            PhysicsVector vec = new PhysicsVector();
+            Vector3 vec = Vector3.Zero;
 
-            PhysicsVector vel = new PhysicsVector(tempVector2.getX(), tempVector2.getY(), tempVector2.getZ());
+            Vector3 vel = new Vector3(tempVector2.getX(), tempVector2.getY(), tempVector2.getZ());
 
             float movementdivisor = 1f;
 
@@ -885,7 +877,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     // Avatar to Avatar collisions
                     // Prim to avatar collisions
 
-                    PhysicsVector pos = new PhysicsVector(tempVector1.getX(), tempVector1.getY(), tempVector1.getZ());
+                    Vector3 pos = new Vector3(tempVector1.getX(), tempVector1.getY(), tempVector1.getZ());
                     vec.X = (m_target_velocity.X - vel.X) * (PID_D) + (m_zeroPosition.X - pos.X) * (PID_P * 2);
                     vec.Y = (m_target_velocity.Y - vel.Y) * (PID_D) + (m_zeroPosition.Y - pos.Y) * (PID_P * 2);
                     if (m_flying)
@@ -927,7 +919,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                 {
                     // We're colliding with something and we're not flying but we're moving
                     // This means we're walking or running.
-                    PhysicsVector pos = new PhysicsVector(tempVector1.getX(), tempVector1.getY(), tempVector1.getZ());
+                    Vector3 pos = new Vector3(tempVector1.getX(), tempVector1.getY(), tempVector1.getZ());
                     vec.Z = (m_target_velocity.Z - vel.Z) * PID_D + (m_zeroPosition.Z - pos.Z) * PID_P;
                     if (m_target_velocity.X > 0)
                     {
@@ -1016,7 +1008,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             tempVector2 = Body.getInterpolationLinearVelocity();
 
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            PhysicsVector vec = new PhysicsVector(tempVector1.getX(),tempVector1.getY(),tempVector1.getZ());
+            Vector3 vec = new Vector3(tempVector1.getX(), tempVector1.getY(), tempVector1.getZ());
 
             //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
             if (vec.X < -10.0f) vec.X = 0.0f;
@@ -1048,7 +1040,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             else
             {
                 m_lastUpdateSent = false;
-                vec = new PhysicsVector(tempVector2.getX(), tempVector2.getY(), tempVector2.getZ());
+                vec = new Vector3(tempVector2.getX(), tempVector2.getY(), tempVector2.getZ());
                 m_velocity.X = (vec.X);
                 m_velocity.Y = (vec.Y);
 

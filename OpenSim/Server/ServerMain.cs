@@ -96,7 +96,7 @@ namespace OpenSim.Server
                 if (port != 0)
                     server = m_Server.GetHttpServer(port);
 
-                if (port != m_Server.DefaultPort)
+                if (port != m_Server.DefaultPort && port != 0)
                     m_log.InfoFormat("[SERVER]: Loading {0} on port {1}", friendlyName, port);
                 else
                     m_log.InfoFormat("[SERVER]: Loading {0}", friendlyName);

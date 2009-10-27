@@ -139,7 +139,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
 
         }
 
-        public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size, bool isFlying)
+        public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 size, bool isFlying)
         {
             BulletDotNETCharacter chr = new BulletDotNETCharacter(avName, this, position, size, avPIDD, avPIDP,
                                                                   avCapRadius, avStandupTensor, avDensity,
@@ -177,14 +177,14 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
         }
 
-        private PhysicsActor AddPrim(String name, PhysicsVector position, PhysicsVector size, Quaternion rotation,
+        private PhysicsActor AddPrim(String name, Vector3 position, Vector3 size, Quaternion rotation,
                                     IMesh mesh, PrimitiveBaseShape pbs, bool isphysical)
         {
-            PhysicsVector pos = new PhysicsVector(position.X, position.Y, position.Z);
+            Vector3 pos = position;
             //pos.X = position.X;
             //pos.Y = position.Y;
             //pos.Z = position.Z;
-            PhysicsVector siz = new PhysicsVector();
+            Vector3 siz = Vector3.Zero;
             siz.X = size.X;
             siz.Y = size.Y;
             siz.Z = size.Z;
@@ -201,12 +201,12 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             return newPrim;
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position, Vector3 size, Quaternion rotation)
         {
             return AddPrimShape(primName, pbs, position, size, rotation, false);
         }
 
-        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, PhysicsVector position, PhysicsVector size, Quaternion rotation, bool isPhysical)
+        public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position, Vector3 size, Quaternion rotation, bool isPhysical)
         {
             PhysicsActor result;
             IMesh mesh = null;

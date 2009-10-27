@@ -1559,15 +1559,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public void Start()
         {
             m_log.Info("[HTTPD]: Starting up HTTP Server");
-
-            //m_workerThread = new Thread(new ThreadStart(StartHTTP));
-            //m_workerThread.Name = "HttpThread";
-            //m_workerThread.IsBackground = true;
-            //m_workerThread.Start();
-            //ThreadTracker.Add(m_workerThread);
             StartHTTP();
-            
-
         }
 
         private void StartHTTP()

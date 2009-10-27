@@ -76,7 +76,7 @@ namespace OpenSim.Framework
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly Primitive.TextureEntry m_defaultTexture;
+        private static readonly byte[] DEFAULT_TEXTURE = new Primitive.TextureEntry(new UUID("89556747-24cb-43ed-920b-47caed15465f")).GetBytes();
 
         private byte[] m_textureEntry;
 
@@ -104,33 +104,32 @@ namespace OpenSim.Framework
         private HollowShape _hollowShape;
 
         // Sculpted
-        [XmlIgnore] private UUID _sculptTexture = UUID.Zero;
-        [XmlIgnore] private byte _sculptType = (byte)0;
-        [XmlIgnore] private byte[] _sculptData = new byte[0];
-        [XmlIgnore] private Image _sculptBitmap = null;
+        [XmlIgnore] private UUID _sculptTexture;
+        [XmlIgnore] private byte _sculptType;
+        [XmlIgnore] private byte[] _sculptData = Utils.EmptyBytes;
 
         // Flexi
-        [XmlIgnore] private int _flexiSoftness = 0;
-        [XmlIgnore] private float _flexiTension = 0f;
-        [XmlIgnore] private float _flexiDrag = 0f;
-        [XmlIgnore] private float _flexiGravity = 0f;
-        [XmlIgnore] private float _flexiWind = 0f;
-        [XmlIgnore] private float _flexiForceX = 0f;
-        [XmlIgnore] private float _flexiForceY = 0f;
-        [XmlIgnore] private float _flexiForceZ = 0f;
+        [XmlIgnore] private int _flexiSoftness;
+        [XmlIgnore] private float _flexiTension;
+        [XmlIgnore] private float _flexiDrag;
+        [XmlIgnore] private float _flexiGravity;
+        [XmlIgnore] private float _flexiWind;
+        [XmlIgnore] private float _flexiForceX;
+        [XmlIgnore] private float _flexiForceY;
+        [XmlIgnore] private float _flexiForceZ;
 
         //Bright n sparkly
-        [XmlIgnore] private float _lightColorR = 0f;
-        [XmlIgnore] private float _lightColorG = 0f;
-        [XmlIgnore] private float _lightColorB = 0f;
-        [XmlIgnore] private float _lightColorA = 1f;
-        [XmlIgnore] private float _lightRadius = 0f;
-        [XmlIgnore] private float _lightCutoff = 0f;
-        [XmlIgnore] private float _lightFalloff = 0f;
-        [XmlIgnore] private float _lightIntensity = 1f;
-        [XmlIgnore] private bool _flexiEntry = false;
-        [XmlIgnore] private bool _lightEntry = false;
-        [XmlIgnore] private bool _sculptEntry = false;
+        [XmlIgnore] private float _lightColorR;
+        [XmlIgnore] private float _lightColorG;
+        [XmlIgnore] private float _lightColorB;
+        [XmlIgnore] private float _lightColorA = 1.0f;
+        [XmlIgnore] private float _lightRadius;
+        [XmlIgnore] private float _lightCutoff;
+        [XmlIgnore] private float _lightFalloff;
+        [XmlIgnore] private float _lightIntensity = 1.0f;
+        [XmlIgnore] private bool _flexiEntry;
+        [XmlIgnore] private bool _lightEntry;
+        [XmlIgnore] private bool _sculptEntry;
 
         public byte ProfileCurve
         {
@@ -172,17 +171,11 @@ namespace OpenSim.Framework
             }
         }
 
-        static PrimitiveBaseShape()
-        {
-            m_defaultTexture =
-                new Primitive.TextureEntry(new UUID("89556747-24cb-43ed-920b-47caed15465f"));
-        }
-
         public PrimitiveBaseShape()
         {
             PCode = (byte) PCodeEnum.Primitive;
             ExtraParams = new byte[1];
-            Textures = m_defaultTexture;
+            m_textureEntry = DEFAULT_TEXTURE;
         }
 
         public PrimitiveBaseShape(bool noShape)
@@ -192,7 +185,7 @@ namespace OpenSim.Framework
 
             PCode = (byte)PCodeEnum.Primitive;
             ExtraParams = new byte[1];
-            Textures = m_defaultTexture;
+            m_textureEntry = DEFAULT_TEXTURE;
         }
 
         [XmlIgnore]
@@ -574,15 +567,6 @@ namespace OpenSim.Framework
             }
             set {
                 _sculptData = value;
-            }
-        }
-
-        public Image SculptBitmap {
-            get {
-                return _sculptBitmap;
-            }
-            set {
-                _sculptBitmap = value;
             }
         }
 

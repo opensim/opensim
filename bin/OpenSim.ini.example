@@ -38,8 +38,22 @@
     
     ; Sets the method that OpenSim will use to fire asynchronous
     ; events. Valid values are UnsafeQueueUserWorkItem,
-    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread
-    ; async_call_method = SmartThreadPool
+    ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread.
+    ; SmartThreadPool is reported to work well on Mono/Linux, but 
+    ; UnsafeQueueUserWorkItem has been benchmarked with better
+    ; performance on .NET/Windows
+    ;async_call_method = SmartThreadPool
+    
+    ; There are several operations on large collections (such as
+    ; the current avatar list) that can be run synchronously or
+    ; in parallel. Running in parallel should increase performance
+    ; on a multi-core system, but will make debugging more
+    ; difficult if something deadlocks or times out
+    use_async_when_possible = false
+    
+    ; Max threads to allocate on the FireAndForget thread pool
+    ; when running with the SmartThreadPool option above
+    MaxPoolThreads = 15
 
     ; ##
     ; ## CLIENTS
@@ -50,9 +64,6 @@
 
     ; Set this to the DLL containing the client stack to use.
     clientstack_plugin="OpenSim.Region.ClientStack.LindenUDP.dll"
-
-    ; Max threads to allocate on the FireAndForget pool
-    MaxPoolThreads = 15
 
     ; ##
     ; ## REGIONS
@@ -351,8 +362,9 @@
     ; already separated from packet handling with a queue, so this will only
     ; affect whether networking internals such as packet decoding and 
     ; acknowledgement accounting are done synchronously or asynchronously
-    async_packet_handling = false
-
+    ;
+    ;async_packet_handling = false
+    
     ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
@@ -367,22 +379,26 @@
     ; by the system's settings for the maximum client receive buffer
     ; size (on linux systems you can set that with "sysctl -w
     ; net.core.rmem_max=X")
+    ;
     ;client_socket_rcvbuf_size = 8388608
     
     ; Maximum outbound bytes per second for a single scene. This can be used to
     ; throttle total outbound UDP traffic for a simulator. The default value is
     ; 0, meaning no throttling at the scene level. The example given here is
     ; 20 megabits
+    ;
     ;scene_throttle_max_bps = 2621440
 
     ; Maximum bits per second to send to any single client. This will override 
     ; the user's viewer preference settings. The default value is 0, meaning no
     ; aggregate throttling on clients (only per-category throttling). The
     ; example given here is 1.5 megabits
+    ;
     ;client_throttle_max_bps = 196608
     
     ; Per-client bytes per second rates for the various throttle categories.
     ; These are default values that will be overriden by clients
+    ;
     ;resend_default = 12500
     ;land_default = 500
     ;wind_default = 500
@@ -395,6 +411,7 @@
     ; Per-client maximum burst rates in bytes per second for the various
     ; throttle categories. These are default values that will be overriden by
     ; clients
+    ;
     ;resend_limit = 18750
     ;land_limit = 29750
     ;wind_limit = 18750
@@ -403,6 +420,28 @@
     ;texture_limit = 55750
     ;asset_limit = 27500
     ;state_limit = 37000
+    
+    ; Configures how ObjectUpdates are aggregated. These numbers
+    ; do not literally mean how many updates will be put in each
+    ; packet that goes over the wire, as packets are 
+    ; automatically split on a 1400 byte boundary. These control
+    ; the balance between responsiveness of interest list updates
+    ; and total throughput. Higher numbers will ensure more full-
+    ; sized packets and faster sending of data, but more delay in
+    ; updating interest lists
+    ;
+    ;PrimTerseUpdatesPerPacket = 25
+    ;AvatarTerseUpdatesPerPacket = 10
+    ;PrimFullUpdatesPerPacket = 100
+
+    ; TextureSendLimit determines how many packets will be put on
+    ; the outgoing queue each cycle. Like the settings above, this
+    ; is a balance between responsiveness to priority updates and
+    ; total throughput. Higher numbers will give a better
+    ; throughput at the cost of reduced responsiveness to client
+    ; priority changes or transfer aborts
+    ;
+    ;TextureSendLimit = 20
 
 [Chat]
     ; Controls whether the chat module is enabled.  Default is true.
@@ -1361,43 +1400,14 @@
     ;RecycleDataBlocks = true;
 
 
-[LLClient]
-    ; Resend packets markes as reliable until they are received
-    ;
-    ;ReliableIsImportant = false
-
-    ; Maximum number of times to resend packets marked reliable
-    ;
-    ;MaxReliableResends = 3
-
-    ; Configures how ObjectUpdates are compressed.
-    ;
-    ;TerseUpdatesPerPacket=10
-    ;FullUpdatesPerPacket=14
-    ;TerseUpdateRate=10
-    ;FullUpdateRate=14
-
-    ;PacketMTU = 1400
-
-    ; TextureSendLimit determines how many different textures
-    ; will be considered on each cycle. Textures are selected
-    ; by priority. The old mechanism specified a value of 10 for
-    ; this parameter.
-    ;
-    ;TextureSendLimit = 10
-
-    ; TextureDataLimit determines how many packets will be sent for
-    ; each of the selected textures. Default is 5.
-    ;
-    ;TextureDataLimit = 5
-
 [InterestManagement]
-    ; This section controls how state updates are prioritized for each client
-    UpdatePrioritizationScheme = Distance
-    ReprioritizeUpdate = true
-    RootUpdateReprioritizationDistance = 10.0
-    ChildUpdateReprioritizationDistance = 20.0
-    ReprioritizeUpdatesInterval = 5000.0
+     ; This section controls how state updates are prioritized for each client
+     ; Valid values are Time, Distance, SimpleAngularDistance, and FrontBack
+     UpdatePrioritizationScheme = FrontBack
+     ReprioritizationEnabled = true
+     ReprioritizationInterval = 2000.0
+     RootReprioritizationDistance = 10.0
+     ChildReprioritizationDistance = 20.0
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

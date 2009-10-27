@@ -33,6 +33,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using log4net;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
@@ -56,8 +57,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
             m_listener.Start(50);
 
-            Thread thread = new Thread(ListenLoop);
-            thread.Start();
+            Watchdog.StartThread(ListenLoop, "IRCServer", ThreadPriority.Normal, false);
             m_baseScene = baseScene;
         }
 
@@ -72,7 +72,10 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             while (m_running)
             {
                 AcceptClient(m_listener.AcceptTcpClient());
+                Watchdog.UpdateThread();
             }
+
+            Watchdog.RemoveThread();
         }
 
         private void AcceptClient(TcpClient client)

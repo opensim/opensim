@@ -114,7 +114,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
                     {
                         string reasonStr = Utils.BytesToString(reason);
 
-                        m_scene.ClientManager.ForEach(
+                        m_scene.ForEachClient(
                             delegate(IClientAPI controller)
                             {
                                 if (controller.AgentId != godID)

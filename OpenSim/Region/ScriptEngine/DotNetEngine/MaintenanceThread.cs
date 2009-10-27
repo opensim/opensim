@@ -93,10 +93,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         {
             if (MaintenanceThreadThread == null)
             {
-                MaintenanceThreadThread = new Thread(MaintenanceLoop);
-                MaintenanceThreadThread.Name = "ScriptMaintenanceThread";
-                MaintenanceThreadThread.IsBackground = true;
-                MaintenanceThreadThread.Start();
+                MaintenanceThreadThread = Watchdog.StartThread(MaintenanceLoop, "ScriptMaintenanceThread", ThreadPriority.Normal, true);
             }
         }
 
@@ -164,56 +161,54 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                         MaintenanceLoopTicks_ScriptLoadUnload_Count++;
                         MaintenanceLoopTicks_Other_Count++;
 
-
-                        //lock (ScriptEngine.ScriptEngines)
-                        //{
-                            foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
+                        foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
+                        {
+                            // lastScriptEngine = m_ScriptEngine;
+                            // Re-reading config every x seconds
+                            if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                             {
-                                // lastScriptEngine = m_ScriptEngine;
-                                // Re-reading config every x seconds
-                                if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
+                                MaintenanceLoopTicks_Other_ResetCount = true;
+                                if (m_ScriptEngine.RefreshConfigFilens > 0)
                                 {
-                                    MaintenanceLoopTicks_Other_ResetCount = true;
-                                    if (m_ScriptEngine.RefreshConfigFilens > 0)
+                                    // Check if its time to re-read config
+                                    if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
+                                        m_ScriptEngine.RefreshConfigFilens)
                                     {
-                                        // Check if its time to re-read config
-                                        if (DateTime.Now.Ticks - Last_ReReadConfigFilens >
-                                            m_ScriptEngine.RefreshConfigFilens)
+                                        //m_log.Debug("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens);
+                                        // Its time to re-read config file
+                                        m_ScriptEngine.ReadConfig();
+                                        Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
+                                    }
+
+
+                                    // Adjust number of running script threads if not correct
+                                    if (m_ScriptEngine.m_EventQueueManager != null)
+                                        m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
+
+                                    // Check if any script has exceeded its max execution time
+                                    if (EventQueueManager.EnforceMaxExecutionTime)
+                                    {
+                                        // We are enforcing execution time
+                                        if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
+                                            EventQueueManager.maxFunctionExecutionTimens)
                                         {
-                                            //m_log.Debug("Time passed: " + (DateTime.Now.Ticks - Last_ReReadConfigFilens) + ">" + m_ScriptEngine.RefreshConfigFilens);
-                                            // Its time to re-read config file
-                                            m_ScriptEngine.ReadConfig();
-                                            Last_ReReadConfigFilens = DateTime.Now.Ticks; // Reset time
-                                        }
-
-
-                                        // Adjust number of running script threads if not correct
-                                        if (m_ScriptEngine.m_EventQueueManager != null)
-                                            m_ScriptEngine.m_EventQueueManager.AdjustNumberOfScriptThreads();
-
-                                        // Check if any script has exceeded its max execution time
-                                        if (EventQueueManager.EnforceMaxExecutionTime)
-                                        {
-                                            // We are enforcing execution time
-                                            if (DateTime.Now.Ticks - Last_maxFunctionExecutionTimens >
-                                                EventQueueManager.maxFunctionExecutionTimens)
-                                            {
-                                                // Its time to check again
-                                                m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
-                                                Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
-                                            }
+                                            // Its time to check again
+                                            m_ScriptEngine.m_EventQueueManager.CheckScriptMaxExecTime(); // Do check
+                                            Last_maxFunctionExecutionTimens = DateTime.Now.Ticks; // Reset time
                                         }
                                     }
                                 }
-                                if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
-                                {
-                                    MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = true;
-                                    // LOAD / UNLOAD SCRIPTS
-                                    if (m_ScriptEngine.m_ScriptManager != null)
-                                        m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
-                                }
                             }
-                        //}
+                            if (MaintenanceLoopTicks_ScriptLoadUnload_Count >= MaintenanceLoopTicks_ScriptLoadUnload)
+                            {
+                                MaintenanceLoopTicks_ScriptLoadUnload_ResetCount = true;
+                                // LOAD / UNLOAD SCRIPTS
+                                if (m_ScriptEngine.m_ScriptManager != null)
+                                    m_ScriptEngine.m_ScriptManager.DoScriptLoadUnload();
+                            }
+                        }
+
+                        Watchdog.UpdateThread();
                     }
                 }
                 catch(ThreadAbortException)
@@ -225,6 +220,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     m_log.ErrorFormat("Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: {0}", ex.ToString());
                 }
             }
+
+            Watchdog.RemoveThread();
         }
         #endregion
 
