@@ -159,6 +159,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float ODE_STEPSIZE = 0.020f;
         private float metersInSpace = 29.9f;
+        private float m_timeDilation = 1.0f;
 
         public float gravityx = 0f;
         public float gravityy = 0f;
@@ -1750,6 +1751,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             return result;
         }
 
+        public override float TimeDilation
+        {
+            get { return m_timeDilation; }
+        }
+
         public override bool SupportsNINJAJoints
         {
             get { return m_NINJA_physics_joints_enabled; }
@@ -2657,8 +2663,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
-                
-                fps = (step_time/ODE_STEPSIZE) * 1000;
+
+                fps = (step_time / ODE_STEPSIZE) * 1000;
+                m_timeDilation = (step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE);
 
                 step_time = 0.09375f;
 

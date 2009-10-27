@@ -135,6 +135,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneCommunicationService m_sceneGridService;
         public bool loginsdisabled = true;
 
+        public float TimeDilation
+        {
+            get { return m_sceneGraph.PhysicsScene.TimeDilation; }
+        }
+
         public SceneCommunicationService SceneGridService
         {
             get { return m_sceneGridService; }
@@ -1094,7 +1099,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
                         StatsReporter.AddPhysicsFPS(physicsFPS);
-                        StatsReporter.AddTimeDilation(m_timedilation);
+                        StatsReporter.AddTimeDilation(TimeDilation);
                         StatsReporter.AddFPS(1);
                         StatsReporter.AddInPackets(0);
                         StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
@@ -1141,18 +1146,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 finally
                 {
-                    //updateLock.ReleaseMutex();
-                    // Get actual time dilation
-                    float tmpval = (m_timespan / (float)SinceLastFrame.TotalSeconds);
-
-                    // If actual time dilation is greater then one, we're catching up, so subtract
-                    // the amount that's greater then 1 from the time dilation
-                    if (tmpval > 1.0)
-                    {
-                        tmpval = tmpval - (tmpval - 1.0f);
-                    }
-                    m_timedilation = tmpval;
-
                     m_lastupdate = DateTime.UtcNow;
                 }
                 maintc = Environment.TickCount - maintc;
