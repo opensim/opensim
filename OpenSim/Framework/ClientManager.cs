@@ -204,7 +204,10 @@ namespace OpenSim.Framework
         public void ForEach(Action<IClientAPI> action)
         {
             IClientAPI[] localArray = m_array;
-            Parallel.ForEach<IClientAPI>(localArray, action);
+            Parallel.For(0, localArray.Length,
+                delegate(int i)
+                { action(localArray[i]); }
+            );
         }
 
         /// <summary>

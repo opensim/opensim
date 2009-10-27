@@ -2105,12 +2105,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
         {
             ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
-            packet.Effect = effectBlocks;
+            packet.Header.Reliable = false;
+            packet.Header.Zerocoded = true;
 
             packet.AgentData.AgentID = AgentId;
             packet.AgentData.SessionID = SessionId;
-            packet.Header.Reliable = false;
-            packet.Header.Zerocoded = true;
+
+            packet.Effect = effectBlocks;
+            
             OutPacket(packet, ThrottleOutPacketType.State);
         }
 
