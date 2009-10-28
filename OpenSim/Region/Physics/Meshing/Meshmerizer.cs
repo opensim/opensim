@@ -299,12 +299,12 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
+                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this. Physics Proxy generation failed");
                         return null;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
+                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy. Sculpty texture decode failed: " + ex.Message);
                         return null;
                     }
                 }
