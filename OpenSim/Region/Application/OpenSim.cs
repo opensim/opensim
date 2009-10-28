@@ -343,9 +343,9 @@ namespace OpenSim
                                           "Add-InventoryHost <host>",
                                           String.Empty, RunCommand);
 
-            m_console.Commands.AddCommand("region", false, "killuuid",
-                                          "killuuid <UUID>",
-                                          "kill an object by UUID", KillUUID);
+            m_console.Commands.AddCommand("region", false, "kill uuid",
+                                          "kill uuid <UUID>",
+                                          "Kill an object by UUID", KillUUID);
 
             if (ConfigurationSettings.Standalone)
             {
@@ -1342,38 +1342,36 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void KillUUID(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 1)
+            if (cmdparams.Length > 2)
             {
                 UUID id = UUID.Zero;
                 SceneObjectGroup grp = null;
                 Scene sc = null;
 
-                try
+                if (!UUID.TryParse(cmdparams[2], out id))
                 {
-                    Guid x = new Guid((string)cmdparams[1]);
-                    id = (UUID)(string)cmdparams[1];
-                }
-                catch (Exception)
-                {
-                    m_log.Error("[KillUUID]: Error bad UUID formating !");
+                    MainConsole.Instance.Output("[KillUUID]: Error bad UUID format!");
                     return;
                 }
 
                 m_sceneManager.ForEachScene(
                     delegate(Scene scene)
                     {
-                        if (scene.Entities[id] != null)
-                        {
-                            grp = (SceneObjectGroup) scene.Entities[id];
-                            sc = scene;
-                        }
+                        SceneObjectPart part = scene.GetSceneObjectPart(id);
+                        if (part == null)
+                            return;
+
+                        grp = part.ParentGroup;
+                        sc = scene;
                     });
 
                 if (grp == null)
-                    m_log.ErrorFormat("[KillUUID]: Given UUID {0} not found !", id);
+                {
+                    MainConsole.Instance.Output(String.Format("[KillUUID]: Given UUID {0} not found!", id));
+                }
                 else
                 {
-                    m_log.InfoFormat("[KillUUID]: Found UUID {0} in scene {1}", id, sc.RegionInfo.RegionName);
+                    MainConsole.Instance.Output(String.Format("[KillUUID]: Found UUID {0} in scene {1}", id, sc.RegionInfo.RegionName));
                     try
                     {
                         sc.DeleteSceneObject(grp, false);
@@ -1386,7 +1384,7 @@ namespace OpenSim
             }
             else
             {
-                m_log.Error("[KillUUID]: Usage: killuuid <UUID>");
+                MainConsole.Instance.Output("[KillUUID]: Usage: kill uuid <UUID>");
             }
         }
 
