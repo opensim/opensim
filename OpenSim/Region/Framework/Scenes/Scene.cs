@@ -135,7 +135,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneCommunicationService m_sceneGridService;
         public bool loginsdisabled = true;
 
-        public float TimeDilation
+        public new float TimeDilation
         {
             get { return m_sceneGraph.PhysicsScene.TimeDilation; }
         }

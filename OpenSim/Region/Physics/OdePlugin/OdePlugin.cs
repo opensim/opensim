@@ -2672,7 +2672,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
 
                 fps = (step_time / ODE_STEPSIZE) * 1000;
-                m_timeDilation = (step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE);
+                m_timeDilation = Math.Min((step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE), 1.0f);
 
                 step_time = 0.09375f;
 
