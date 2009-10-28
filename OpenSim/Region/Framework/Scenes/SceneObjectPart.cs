@@ -253,6 +253,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastVelocity;
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
+        protected int m_lastTerseSent;
 
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
@@ -2395,6 +2396,7 @@ if (m_shape != null) {
         {
             const float VELOCITY_TOLERANCE = 0.01f;
             const float POSITION_TOLERANCE = 0.1f;
+            const int TIME_MS_TOLERANCE = 3000;
 
             if (m_updateFlag == 1)
             {
@@ -2403,7 +2405,8 @@ if (m_shape != null) {
                     Acceleration != m_lastAcceleration ||
                     (Velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
                     (RotationalVelocity - m_lastAngularVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (OffsetPosition - m_lastPosition).Length() > POSITION_TOLERANCE)
+                    (OffsetPosition - m_lastPosition).Length() > POSITION_TOLERANCE ||
+                    Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     AddTerseUpdateToAllAvatars();
                     ClearUpdateSchedule();
@@ -2422,6 +2425,7 @@ if (m_shape != null) {
                     m_lastVelocity = Velocity;
                     m_lastAcceleration = Acceleration;
                     m_lastAngularVelocity = RotationalVelocity;
+                    m_lastTerseSent = Environment.TickCount;
                 }
             }
             else

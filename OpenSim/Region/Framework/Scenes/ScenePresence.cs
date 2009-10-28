@@ -96,6 +96,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
+        private int m_lastTerseSent;
 
         private bool m_updateflag;
         private byte m_movementflag;
@@ -2363,6 +2364,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             const float VELOCITY_TOLERANCE = 0.01f;
             const float POSITION_TOLERANCE = 10.0f;
+            const int TIME_MS_TOLERANCE = 3000;
 
             SendPrimUpdates();
 
@@ -2377,7 +2379,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Throw away duplicate or insignificant updates
                 if (m_bodyRot != m_lastRotation ||
                     (m_velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (m_pos - m_lastPosition).Length() > POSITION_TOLERANCE)
+                    (m_pos - m_lastPosition).Length() > POSITION_TOLERANCE ||
+                    Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
 
@@ -2385,6 +2388,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastPosition = m_pos;
                     m_lastRotation = m_bodyRot;
                     m_lastVelocity = m_velocity;
+                    m_lastTerseSent = Environment.TickCount;
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
