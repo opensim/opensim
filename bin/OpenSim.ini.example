@@ -148,7 +148,7 @@
     MaximumTimeBeforePersistenceConsidered = 600
 
     ; Should avatars in neighbor sims see objects in this sim?
-    see_into_this_sim_from_neighbor = True
+    see_into_this_sim_from_neighbor = true
 
     ; ##
     ; ## PHYSICS
