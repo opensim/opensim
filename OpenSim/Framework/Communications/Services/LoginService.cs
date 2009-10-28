@@ -1031,30 +1031,26 @@ namespace OpenSim.Framework.Communications.Services
                 return true;
             }
 
-            // StartLocation not available, send him to a nearby region instead
-            // regionInfo = m_gridService.RequestClosestRegion("");
-            //m_log.InfoFormat("[LOGIN]: StartLocation not available sending to region {0}", regionInfo.regionName);
+            // Get the default region handle
+            ulong defaultHandle = Utils.UIntsToLong(m_defaultHomeX * Constants.RegionSize, m_defaultHomeY * Constants.RegionSize);
 
-            // Send him to default region instead
-            ulong defaultHandle = (((ulong)m_defaultHomeX * Constants.RegionSize) << 32) |
-                                  ((ulong)m_defaultHomeY * Constants.RegionSize);
-
-            if ((regionInfo != null) && (defaultHandle == regionInfo.RegionHandle))
-            {
-                m_log.ErrorFormat("[LOGIN]: Not trying the default region since this is the same as the selected region");
-                return false;
-            }
-
-            m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
-            regionInfo = GetRegionInfo(defaultHandle);
+            // If we haven't already tried the default region, reset regionInfo
+            if (regionInfo != null && defaultHandle != regionInfo.RegionHandle)
+                regionInfo = null;
 
             if (regionInfo == null)
             {
-                m_log.ErrorFormat("[LOGIN]: No default region available. Aborting.");
-                return false;
+                m_log.Error("[LOGIN]: Sending user to default region " + defaultHandle + " instead");
+                regionInfo = GetRegionInfo(defaultHandle);
             }
 
-            theUser.CurrentAgent.Position = new Vector3(128, 128, 0);
+            if (regionInfo == null)
+            {
+                m_log.ErrorFormat("[LOGIN]: Sending user to any region");
+                regionInfo = RequestClosestRegion(String.Empty);
+            }
+
+            theUser.CurrentAgent.Position = new Vector3(128f, 128f, 0f);
             response.StartLocation = "safe";
 
             return PrepareLoginToRegion(regionInfo, theUser, response, client);

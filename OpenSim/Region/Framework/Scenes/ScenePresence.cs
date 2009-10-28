@@ -2362,8 +2362,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {
-            const float VELOCITY_TOLERANCE = 0.0001f;
-            const float POSITION_TOLERANCE = 10.0f;
+            const float ROTATION_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.001f;
+            const float POSITION_TOLERANCE = 0.05f;
             const int TIME_MS_TOLERANCE = 3000;
 
             SendPrimUpdates();
@@ -2377,9 +2378,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_isChildAgent == false)
             {
                 // Throw away duplicate or insignificant updates
-                if (m_bodyRot != m_lastRotation ||
-                    (m_velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (m_pos - m_lastPosition).Length() > POSITION_TOLERANCE ||
+                if (!m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !m_velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
@@ -2415,7 +2416,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_perfMonMS = Environment.TickCount;
 
                 Vector3 pos = m_pos;
-                pos.Z -= m_appearance.HipOffset;
+                pos.Z += m_appearance.HipOffset;
+
+                //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
                 remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
                     pos, m_velocity, Vector3.Zero, m_bodyRot, Vector4.UnitW, m_uuid, null, GetUpdatePriority(remoteClient)));
@@ -2514,7 +2517,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             Vector3 pos = m_pos;
-            pos.Z -= m_appearance.HipOffset;
+            pos.Z += m_appearance.HipOffset;
 
             remoteAvatar.m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid,
                                                             LocalId, pos, m_appearance.Texture.GetBytes(),
@@ -2585,7 +2588,7 @@ namespace OpenSim.Region.Framework.Scenes
             // m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
 
             Vector3 pos = m_pos;
-            pos.Z -= m_appearance.HipOffset;
+            pos.Z += m_appearance.HipOffset;
 
             m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
                                                pos, m_appearance.Texture.GetBytes(), m_parentID, m_bodyRot));
@@ -2694,7 +2697,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             Vector3 pos = m_pos;
-            pos.Z -= m_appearance.HipOffset;
+            pos.Z += m_appearance.HipOffset;
 
             m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
                 pos, m_appearance.Texture.GetBytes(), m_parentID, m_bodyRot));

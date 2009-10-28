@@ -2394,18 +2394,19 @@ if (m_shape != null) {
         /// </summary>
         public void SendScheduledUpdates()
         {
-            const float VELOCITY_TOLERANCE = 0.0001f;
-            const float POSITION_TOLERANCE = 0.1f;
+            const float ROTATION_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.001f;
+            const float POSITION_TOLERANCE = 0.05f;
             const int TIME_MS_TOLERANCE = 3000;
 
             if (m_updateFlag == 1)
             {
                 // Throw away duplicate or insignificant updates
-                if (RotationOffset != m_lastRotation ||
-                    Acceleration != m_lastAcceleration ||
-                    (Velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (RotationalVelocity - m_lastAngularVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (OffsetPosition - m_lastPosition).Length() > POSITION_TOLERANCE ||
+                if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !Acceleration.Equals(m_lastAcceleration) ||
+                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !RotationalVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
+                    !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     AddTerseUpdateToAllAvatars();
