@@ -1015,9 +1015,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public float GetTimeDilation()
+        public ushort GetTimeDilation()
         {
-            return m_scene.TimeDilation;
+            return Utils.FloatToUInt16(m_scene.TimeDilation, 0.0f, 1.0f);
         }
 
         /// <summary>
