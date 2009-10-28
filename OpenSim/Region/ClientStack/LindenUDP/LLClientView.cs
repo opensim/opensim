@@ -3335,7 +3335,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
             }
 
-            OutPacket(terse, ThrottleOutPacketType.Task);
+            OutPacket(terse, ThrottleOutPacketType.Unknown); // HACK: Unthrottled for testing
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
