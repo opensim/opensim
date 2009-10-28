@@ -772,7 +772,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 lock (contacts)
                 {
-                    count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
+                    count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
                 }
             }
             catch (SEHException)
@@ -830,7 +830,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p2.CollidingObj = true;
                         break;
                     case (int)ActorTypes.Prim:
-                        if (p2.Velocity.X > 0 || p2.Velocity.Y > 0 || p2.Velocity.Z > 0)
+                        if (p2.Velocity.LengthSquared() > 0.0f)
                             p2.CollidingObj = true;
                         break;
                     case (int)ActorTypes.Unknown:
@@ -1014,7 +1014,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!skipThisContact && checkDupe(contacts[i], p2.PhysicsActorType))
                     skipThisContact = true;
 
-                int maxContactsbeforedeath = 4000;
+                const int maxContactsbeforedeath = 4000;
                 joint = IntPtr.Zero;
 
 
