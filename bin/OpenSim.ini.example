@@ -577,6 +577,9 @@
     ; used to control llMove2Target
     body_pid_derivative = 35
     body_pid_gain = 25
+    
+    ; maximum number of contact points to generate per collision
+    contacts_per_collision = 80
 
     ; amount of time a geom/body will try to cross a region border before it gets disabled
     geom_crossing_failures_before_outofbounds = 5

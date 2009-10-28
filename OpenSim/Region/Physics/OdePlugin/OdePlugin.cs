@@ -178,8 +178,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         //private int m_returncollisions = 10;
 
         private readonly IntPtr contactgroup;
-        internal IntPtr LandGeom;
 
+        internal IntPtr LandGeom;
         internal IntPtr WaterGeom;
 
         private float nmTerrainContactFriction = 255.0f;
@@ -251,7 +251,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_NINJA_physics_joints_enabled = false;
         //private Dictionary<String, IntPtr> jointpart_name_map = new Dictionary<String,IntPtr>();
         private readonly Dictionary<String, List<PhysicsJoint>> joints_connecting_actor = new Dictionary<String, List<PhysicsJoint>>();
-        private d.ContactGeom[] contacts = new d.ContactGeom[80];
+        private d.ContactGeom[] contacts;
         private readonly List<PhysicsJoint> requestedJointsToBeCreated = new List<PhysicsJoint>(); // lock only briefly. accessed by external code (to request new joints) and by OdeScene.Simulate() to move those joints into pending/active
         private readonly List<PhysicsJoint> pendingJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
         private readonly List<PhysicsJoint> activeJoints = new List<PhysicsJoint>(); // can lock for longer. accessed only by OdeScene.
@@ -397,6 +397,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 avStandupTensor = 550000f;
             }
 
+            int contactsPerCollision = 80;
+
             if (m_config != null)
             {
                 IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
@@ -439,6 +441,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
                     avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", true);
 
+                    contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
+
                     geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
                     geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
                     geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_failures_before_outofbounds", 5);
@@ -476,9 +480,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     m_NINJA_physics_joints_enabled = physicsconfig.GetBoolean("use_NINJA_physics_joints", false);
                     minimumGroundFlightOffset = physicsconfig.GetFloat("minimum_ground_flight_offset", 3f);
-
                 }
             }
+
+            contacts = new d.ContactGeom[contactsPerCollision];
 
             staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
 
@@ -773,6 +778,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 lock (contacts)
                 {
                     count = d.Collide(g1, g2, contacts.Length, contacts, d.ContactGeom.SizeOf);
+                    if (count > contacts.Length)
+                        m_log.Error("[PHYSICS]: Got " + count + " contacts when we asked for a maximum of " + contacts.Length);
                 }
             }
             catch (SEHException)

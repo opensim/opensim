@@ -2394,7 +2394,7 @@ if (m_shape != null) {
         /// </summary>
         public void SendScheduledUpdates()
         {
-            const float VELOCITY_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.0001f;
             const float POSITION_TOLERANCE = 0.1f;
             const int TIME_MS_TOLERANCE = 3000;
 

@@ -2362,7 +2362,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override void Update()
         {
-            const float VELOCITY_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.0001f;
             const float POSITION_TOLERANCE = 10.0f;
             const int TIME_MS_TOLERANCE = 3000;
 
