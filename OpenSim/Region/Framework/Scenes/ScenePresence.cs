@@ -130,12 +130,14 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_setAlwaysRun;
 
         private string m_movementAnimation = "DEFAULT";
-        private long m_animPersistUntil = 0;
-        private bool m_allowFalling = false;
-        private bool m_useFlySlow = false;
-        private bool m_usePreJump = false;
-        private bool m_forceFly = false;
-        private bool m_flyDisabled = false;
+        private long m_animPersistUntil;
+        private int m_animTickFall;
+        private int m_animTickJump;
+        private bool m_allowFalling;
+        private bool m_useFlySlow;
+        private bool m_usePreJump;
+        private bool m_forceFly;
+        private bool m_flyDisabled;
 
         private float m_speedModifier = 1.0f;
 
@@ -143,7 +145,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool IsRestrictedToRegion;
 
-        public string JID = string.Empty;
+        public string JID = String.Empty;
 
         // Agent moves with a PID controller causing a force to be exerted.
         private bool m_newCoarseLocations = true;
@@ -158,43 +160,43 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly Vector3[] Dir_Vectors = new Vector3[6];
 
         // Position of agent's camera in world (region cordinates)
-        protected Vector3 m_CameraCenter = Vector3.Zero;
-        protected Vector3 m_lastCameraCenter = Vector3.Zero;
+        protected Vector3 m_CameraCenter;
+        protected Vector3 m_lastCameraCenter;
 
         protected Timer m_reprioritization_timer;
-        protected bool m_reprioritizing = false;
-        protected bool m_reprioritization_called = false;
+        protected bool m_reprioritizing;
+        protected bool m_reprioritization_called;
 
         // Use these three vectors to figure out what the agent is looking at
         // Convert it to a Matrix and/or Quaternion
-        protected Vector3 m_CameraAtAxis = Vector3.Zero;
-        protected Vector3 m_CameraLeftAxis = Vector3.Zero;
-        protected Vector3 m_CameraUpAxis = Vector3.Zero;
+        protected Vector3 m_CameraAtAxis;
+        protected Vector3 m_CameraLeftAxis;
+        protected Vector3 m_CameraUpAxis;
         private uint m_AgentControlFlags;
         private Quaternion m_headrotation = Quaternion.Identity;
         private byte m_state;
 
         //Reuse the Vector3 instead of creating a new one on the UpdateMovement method
-        private Vector3 movementvector = Vector3.Zero;
+        private Vector3 movementvector;
 
         private bool m_autopilotMoving;
-        private Vector3 m_autoPilotTarget = Vector3.Zero;
+        private Vector3 m_autoPilotTarget;
         private bool m_sitAtAutoTarget;
 
         private string m_nextSitAnimation = String.Empty;
 
         //PauPaw:Proper PID Controler for autopilot************
         private bool m_moveToPositionInProgress;
-        private Vector3 m_moveToPositionTarget = Vector3.Zero;
+        private Vector3 m_moveToPositionTarget;
 
-        private bool m_followCamAuto = false;
+        private bool m_followCamAuto;
 
-        private int m_movementUpdateCount = 0;
+        private int m_movementUpdateCount;
 
         private const int NumMovementsBetweenRayCast = 5;
 
-        private bool CameraConstraintActive = false;
-        //private int m_moveToPositionStateStatus = 0;
+        private bool CameraConstraintActive;
+        //private int m_moveToPositionStateStatus;
         //*****************************************************
 
         // Agent's Draw distance.
@@ -444,7 +446,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_pos = value;
-                m_parentPosition = new Vector3(0, 0, 0);
+                m_parentPosition = Vector3.Zero;
             }
         }
 
@@ -457,22 +459,21 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 PhysicsActor actor = m_physicsActor;
                 if (actor != null)
-                    m_velocity = m_physicsActor.Velocity;
+                    m_velocity = actor.Velocity;
 
                 return m_velocity;
             }
             set
             {
                 //m_log.DebugFormat("In {0} setting velocity of {1} to {2}", m_scene.RegionInfo.RegionName, Name, value);
-                
-                if (m_physicsActor != null)
+
+                PhysicsActor actor = m_physicsActor;
+                if (actor != null)
                 {
                     try
                     {
                         lock (m_scene.SyncRoot)
-                        {
-                            m_physicsActor.Velocity = value;
-                        }
+                            actor.Velocity = value;
                     }
                     catch (Exception e)
                     {
@@ -934,7 +935,7 @@ namespace OpenSim.Region.Framework.Scenes
                 isFlying = m_physicsActor.Flying;
             
             RemoveFromPhysicalScene();
-            Velocity = new Vector3(0, 0, 0);
+            Velocity = Vector3.Zero;
             AbsolutePosition = pos;
             AddToPhysicalScene(isFlying);
             if (m_appearance != null)
@@ -982,12 +983,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_avHeight != 127.0f)
             {
-                AbsolutePosition = AbsolutePosition + new Vector3(0, 0, (m_avHeight / 6f));
+                AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (m_avHeight / 6f));
             }
             else
             {
-                AbsolutePosition = AbsolutePosition + new Vector3(0, 0, (1.56f / 6f));
+                AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (1.56f / 6f));
             }
+
             TrySetMovementAnimation("LAND");
             SendFullUpdateToAllClients();
         }
@@ -1534,7 +1536,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (part != null)
                     {
                         AbsolutePosition = part.AbsolutePosition;
-                        Velocity = new Vector3(0, 0, 0);
+                        Velocity = Vector3.Zero;
                         SendFullUpdateToAllClients();
 
                         //HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);
@@ -1851,7 +1853,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             m_parentID = m_requestedSitTargetID;
 
-            Velocity = new Vector3(0, 0, 0);
+            Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
 
             TrySetMovementAnimation(sitAnimation);
@@ -2008,7 +2010,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected void TrySetMovementAnimation(string anim)
         {
             //m_log.DebugFormat("Updating movement animation to {0}", anim);
-            
+
             if (!m_isChildAgent)
             {
                 if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
@@ -2239,12 +2241,176 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public string GetMovementAnimation2()
+        {
+            const float FALL_DELAY = 0.33f;
+            const float PREJUMP_DELAY = 0.25f;
+
+            m_allowFalling = true;
+
+            AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_AgentControlFlags;
+            PhysicsActor actor = m_physicsActor;
+
+            // Create forward and left vectors from the current avatar rotation
+            Matrix4 rotMatrix = Matrix4.CreateFromQuaternion(m_bodyRot);
+            Vector3 fwd = Vector3.Transform(Vector3.UnitX, rotMatrix);
+            Vector3 left = Vector3.Transform(Vector3.UnitY, rotMatrix);
+
+            // Check control flags
+            bool heldForward = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
+            bool heldBack = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG;
+            bool heldLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS;
+            bool heldRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG;
+            //bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            //bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            bool heldUp = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
+            bool heldDown = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
+            //bool flying = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) == AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+            //bool mouselook = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) == AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK;
+
+            // Direction in which the avatar is trying to move
+            Vector3 move = Vector3.Zero;
+            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
+            if (heldBack) { move.X -= fwd.X; move.Y -= fwd.Y; }
+            if (heldLeft) { move.X += left.X; move.Y += left.Y; }
+            if (heldRight) { move.X -= left.X; move.Y -= left.Y; }
+            if (heldUp) { move.Z += 1; }
+            if (heldDown) { move.Z -= 1; }
+
+            // Is the avatar trying to move?
+            bool moving = (move != Vector3.Zero);
+            bool jumping = m_animTickJump != 0;
+
+            #region Flying
+
+            if (actor != null && actor.Flying)
+            {
+                m_animTickFall = 0;
+                m_animTickJump = 0;
+
+                if (move.X != 0f || move.Y != 0f)
+                {
+                    return (m_useFlySlow ? "FLYSLOW" : "FLY");
+                }
+                else if (move.Z > 0f)
+                {
+                    return "HOVER_UP";
+                }
+                else if (move.Z < 0f)
+                {
+                    if (actor != null && actor.IsColliding)
+                        return "LAND";
+                    else
+                        return "HOVER_DOWN";
+                }
+                else
+                {
+                    return "HOVER";
+                }
+            }
+
+            #endregion Flying
+
+            #region Falling/Floating/Landing
+
+            if (actor == null || !actor.IsColliding)
+            {
+                float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+
+                if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && actor.Velocity.Z >= 0.0f))
+                {
+                    // Just started falling
+                    m_animTickFall = Environment.TickCount;
+                }
+                else if (!jumping && fallElapsed > FALL_DELAY)
+                {
+                    // Falling long enough to trigger the animation
+                    return "FALLDOWN";
+                }
+
+                return m_movementAnimation;
+            }
+
+            #endregion Falling/Floating/Landing
+
+            #region Ground Movement
+
+            if (m_movementAnimation == "FALLDOWN")
+            {
+                m_animTickFall = Environment.TickCount;
+
+                // TODO: SOFT_LAND support
+                return "LAND";
+            }
+            else if (m_movementAnimation == "LAND")
+            {
+                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+
+                if (landElapsed <= FALL_DELAY)
+                    return "LAND";
+            }
+
+            m_animTickFall = 0;
+
+            if (move.Z > 0f)
+            {
+                // Jumping
+                if (!jumping)
+                {
+                    // Begin prejump
+                    m_animTickJump = Environment.TickCount;
+                    return "PREJUMP";
+                }
+                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 1000.0f)
+                {
+                    // Start actual jump
+                    if (m_animTickJump == -1)
+                    {
+                        // Already jumping! End the current jump
+                        m_animTickJump = 0;
+                        return "JUMP";
+                    }
+
+                    m_animTickJump = -1;
+                    return "JUMP";
+                }
+            }
+            else
+            {
+                // Not jumping
+                m_animTickJump = 0;
+
+                if (move.X != 0f || move.Y != 0f)
+                {
+                    // Walking / crouchwalking / running
+                    if (move.Z < 0f)
+                        return "CROUCHWALK";
+                    else if (m_setAlwaysRun)
+                        return "RUN";
+                    else
+                        return "WALK";
+                }
+                else
+                {
+                    // Not walking
+                    if (move.Z < 0f)
+                        return "CROUCH";
+                    else
+                        return "STAND";
+                }
+            }
+
+            #endregion Ground Movement
+
+            return m_movementAnimation;
+        }
+
         /// <summary>
         /// Update the movement animation of this avatar according to its current state
         /// </summary>
         protected void UpdateMovementAnimations()
         {
-            string movementAnimation = GetMovementAnimation();
+            string movementAnimation = GetMovementAnimation2();
         
             if (movementAnimation == "FALLDOWN" && m_allowFalling == false)
             {
@@ -2367,7 +2533,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
-                Vector3 velocity = (m_physicsActor != null) ? m_physicsActor.Velocity : Vector3.Zero;
+                PhysicsActor actor = m_physicsActor;
+                Vector3 velocity = (actor != null) ? actor.Velocity : Vector3.Zero;
 
                 // Throw away duplicate or insignificant updates
                 if (!m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
