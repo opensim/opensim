@@ -174,8 +174,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             else
             {
 #if DEBUG
-//                m_log.Debug("[Compiler]: " +
-//                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
+                //                m_log.Debug("[Compiler]: " +
+                //                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
 #endif
                 // LANGUAGE IS IN ALLOW-LIST
                 DefaultCompileLanguage = LanguageMapping[defaultCompileLanguage];
@@ -214,12 +214,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 catch (Exception ex)
                 {
                     m_log.Error("[Compiler]: Exception trying to create ScriptEngine directory \"" + Path.Combine(ScriptEnginesPath,
-                                            m_scriptEngine.World.RegionInfo.RegionID.ToString())+ "\": " + ex.ToString());
+                                            m_scriptEngine.World.RegionInfo.RegionID.ToString()) + "\": " + ex.ToString());
                 }
             }
 
             foreach (string file in Directory.GetFiles(Path.Combine(ScriptEnginesPath,
-                     m_scriptEngine.World.RegionInfo.RegionID.ToString()),FilePrefix + "_compiled*"))
+                     m_scriptEngine.World.RegionInfo.RegionID.ToString()), FilePrefix + "_compiled*"))
             {
                 try
                 {
@@ -273,8 +273,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// </summary>
         /// <param name="Script">LSL script</param>
         /// <returns>Filename to .dll assembly</returns>
-        public void PerformScriptCompile(string Script, string asset, UUID ownerUUID, 
-            out string assembly, out Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>> linemap)
+        public void PerformScriptCompile(string Script, string asset, UUID ownerUUID,
+            out string assembly, out Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap)
         {
             linemap = null;
             m_warnings.Clear();
@@ -352,13 +352,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 throw new Exception(errtext);
             }
 
-            if (m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)language) == false) {
+            if (m_scriptEngine.World.Permissions.CanCompileScript(ownerUUID, (int)language) == false)
+            {
                 // Not allowed to compile to this language!
                 string errtext = String.Empty;
                 errtext += ownerUUID + " is not in list of allowed users for this scripting language. Script will not be executed!";
                 throw new Exception(errtext);
             }
-            
+
             string compileScript = Script;
 
             if (language == enumCompileType.lsl)
@@ -373,7 +374,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     AddWarning(warning);
                 }
 
-                linemap = ((CSCodeGenerator) LSL_Converter).PositionMap;
+                linemap = ((CSCodeGenerator)LSL_Converter).PositionMap;
                 // Write the linemap to a file and save it in our dictionary for next time. 
                 m_lineMaps[assembly] = linemap;
                 WriteMapFile(assembly + ".map", linemap);
@@ -487,7 +488,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             }
             catch (Exception e) // NOTLEGIT - Should be just FileIOException
             {
-                throw new Exception("Unable to delete old existing "+
+                throw new Exception("Unable to delete old existing " +
                         "script-file before writing new. Compile aborted: " +
                         e.ToString());
             }
@@ -506,7 +507,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
                 catch (Exception ex) //NOTLEGIT - Should be just FileIOException
                 {
-                    m_log.Error("[Compiler]: Exception while "+
+                    m_log.Error("[Compiler]: Exception while " +
                                 "trying to write script source to file \"" +
                                 srcFileName + "\": " + ex.ToString());
                 }
@@ -547,7 +548,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 case enumCompileType.cs:
                 case enumCompileType.lsl:
                     bool complete = false;
-                    bool retried  = false;
+                    bool retried = false;
                     do
                     {
                         lock (CScodeProvider)
@@ -588,7 +589,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         parameters, Script);
                     break;
                 default:
-                    throw new Exception("Compiler is not able to recongnize "+
+                    throw new Exception("Compiler is not able to recongnize " +
                                         "language type \"" + lang.ToString() + "\"");
             }
 
@@ -641,7 +642,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             if (!File.Exists(assembly))
             {
-                for (int i=0; i<20 && !File.Exists(assembly); i++)
+                for (int i = 0; i < 20 && !File.Exists(assembly); i++)
                 {
                     System.Threading.Thread.Sleep(250);
                 }
@@ -654,8 +655,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 }
             }
 
-//            m_log.DebugFormat("[Compiler] Compiled new assembly "+
-//                    "for {0}", asset);
+            //            m_log.DebugFormat("[Compiler] Compiled new assembly "+
+            //                    "for {0}", asset);
 
             // Because windows likes to perform exclusive locks, we simply
             // write out a textual representation of the file here
@@ -694,17 +695,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
             Byte[] buf = enc.GetBytes(filetext);
 
-            FileStream sfs = File.Create(assembly+".text");
+            FileStream sfs = File.Create(assembly + ".text");
             sfs.Write(buf, 0, buf.Length);
             sfs.Close();
 
             return assembly;
         }
 
-        private class kvpSorter : IComparer<KeyValuePair<int,int>>
+        private class kvpSorter : IComparer<KeyValuePair<int, int>>
         {
-            public int Compare(KeyValuePair<int,int> a,
-                    KeyValuePair<int,int> b)
+            public int Compare(KeyValuePair<int, int> a,
+                    KeyValuePair<int, int> b)
             {
                 return a.Key.CompareTo(b.Key);
             }
@@ -723,8 +724,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     out ret))
                 return ret;
 
-            List<KeyValuePair<int,int>> sorted =
-                    new List<KeyValuePair<int,int>>(positionMap.Keys);
+            List<KeyValuePair<int, int>> sorted =
+                    new List<KeyValuePair<int, int>>(positionMap.Keys);
 
             sorted.Sort(new kvpSorter());
 
@@ -791,18 +792,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         }
 
 
-        private static Dictionary<KeyValuePair<int,int>, KeyValuePair<int,int>> ReadMapFile(string filename)
+        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> ReadMapFile(string filename)
         {
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
             try
             {
                 StreamReader r = File.OpenText(filename);
                 linemap = new Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>();
-                
+
                 string line;
                 while ((line = r.ReadLine()) != null)
                 {
-                    String[] parts = line.Split(new Char[] {','});
+                    String[] parts = line.Split(new Char[] { ',' });
                     int kk = System.Convert.ToInt32(parts[0]);
                     int kv = System.Convert.ToInt32(parts[1]);
                     int vk = System.Convert.ToInt32(parts[2]);

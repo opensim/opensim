@@ -710,15 +710,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                 evidence, appSetup);
                             else
                                 sandbox = AppDomain.CurrentDomain;
-                            /*
-                                                        PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
-                                                        AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
-                                                        PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
-                                                        PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
-                                                        CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
-                                                        sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
-                                                        sandbox.SetAppDomainPolicy(sandboxPolicy);
-                            */
+                            
+                            //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+                            //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+                            //PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+                            //PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+                            //CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+                            //sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+                            //sandbox.SetAppDomainPolicy(sandboxPolicy);
+                            
                             m_AppDomains[appDomain] = sandbox;
 
                             m_AppDomains[appDomain].AssemblyResolve +=

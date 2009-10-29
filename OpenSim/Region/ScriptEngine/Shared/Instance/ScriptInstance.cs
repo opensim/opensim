@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private StateSource m_stateSource;
         private bool m_postOnRez;
         private bool m_startedFromSavedState = false;
-        private int m_CurrentStateHash;
+        private UUID m_CurrentStateHash;
         private UUID m_RegionID = UUID.Zero;
 
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
@@ -901,7 +901,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             // Compare hash of the state we just just created with the state last written to disk
             // If the state is different, update the disk file.
-            if(xml.GetHashCode() != m_CurrentStateHash)
+            UUID hash = UUID.Parse(Utils.MD5String(xml));
+
+            if(hash != m_CurrentStateHash)
             {
                 try
                 {
@@ -919,7 +921,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 //{
                 //    throw new Exception("Completed persistence save, but no file was created");
                 //}
-                m_CurrentStateHash = xml.GetHashCode();
+                m_CurrentStateHash = hash;
             }
         }
 

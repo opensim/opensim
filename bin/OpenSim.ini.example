@@ -940,6 +940,13 @@
 
     ; Stack size per thread created
     ThreadStackSize = 262144
+    
+    ; Set this to true (the default) to load each script into a separate
+    ; AppDomain. Setting this to false will load all script assemblies into the
+    ; current AppDomain, which will reduce the per-script overhead at the
+    ; expense of reduced security and the inability to garbage collect the
+    ; script assemblies
+    AppDomainLoading = true
 
     ; Rate to poll for asynchronous command replies (ms)
     ; currently unused
