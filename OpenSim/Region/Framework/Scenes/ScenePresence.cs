@@ -2367,7 +2367,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
-                Vector3 velocity = m_physicsActor.Velocity;
+                Vector3 velocity = (m_physicsActor != null) ? m_physicsActor.Velocity : Vector3.Zero;
 
                 // Throw away duplicate or insignificant updates
                 if (!m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
