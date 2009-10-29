@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
-        private int m_lastTerseSent;
+        //private int m_lastTerseSent;
 
         private bool m_updateflag;
         private byte m_movementflag;
@@ -1120,7 +1120,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                        !m_velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                        !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                         !m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
                     {
                         if (CameraConstraintActive)
@@ -2110,8 +2110,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (actor == null || !actor.IsColliding)
             {
                 float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+                float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
 
-                if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && actor.Velocity.Z >= 0.0f))
+                if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && fallVelocity >= 0.0f))
                 {
                     // Just started falling
                     m_animTickFall = Environment.TickCount;
@@ -2262,28 +2263,30 @@ namespace OpenSim.Region.Framework.Scenes
             direc.Normalize();
 
             direc *= 0.03f * 128f * m_speedModifier;
-            if (m_physicsActor.Flying)
+
+            PhysicsActor actor = m_physicsActor;
+            if (actor != null)
             {
-                direc *= 4.0f;
-                //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-                //bool colliding = (m_physicsActor.IsColliding==true);
-                //if (controlland)
-                //    m_log.Info("[AGENT]: landCommand");
-                //if (colliding)
-                //    m_log.Info("[AGENT]: colliding");
-                //if (m_physicsActor.Flying && colliding && controlland)
-                //{
-                //    StopFlying();
-                //    m_log.Info("[AGENT]: Stop FLying");
-                //}
-            }
-            else
-            {
-                if (!m_physicsActor.Flying && m_physicsActor.IsColliding)
+                if (actor.Flying)
+                {
+                    direc *= 4.0f;
+                    //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                    //bool colliding = (m_physicsActor.IsColliding==true);
+                    //if (controlland)
+                    //    m_log.Info("[AGENT]: landCommand");
+                    //if (colliding)
+                    //    m_log.Info("[AGENT]: colliding");
+                    //if (m_physicsActor.Flying && colliding && controlland)
+                    //{
+                    //    StopFlying();
+                    //    m_log.Info("[AGENT]: Stop FLying");
+                    //}
+                }
+                else if (!actor.Flying && actor.IsColliding)
                 {
                     if (direc.Z > 2.0f)
                     {
-                        direc.Z *= 3;
+                        direc.Z *= 3.0f;
 
                         // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
                         TrySetMovementAnimation("PREJUMP");
@@ -2307,7 +2310,7 @@ namespace OpenSim.Region.Framework.Scenes
             const float ROTATION_TOLERANCE = 0.01f;
             const float VELOCITY_TOLERANCE = 0.001f;
             const float POSITION_TOLERANCE = 0.05f;
-            const int TIME_MS_TOLERANCE = 3000;
+            //const int TIME_MS_TOLERANCE = 3000;
 
             SendPrimUpdates();
 
@@ -2320,21 +2323,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_isChildAgent == false)
             {
                 PhysicsActor actor = m_physicsActor;
-                Vector3 velocity = (actor != null) ? actor.Velocity : Vector3.Zero;
+
+                // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
+                // grab the latest PhysicsActor velocity, whereas m_velocity is often
+                // storing a requested force instead of an actual traveling velocity
 
                 // Throw away duplicate or insignificant updates
                 if (!m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
-                    Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
+                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE))
+                    //Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     SendTerseUpdateToAllClients();
 
                     // Update the "last" values
                     m_lastPosition = m_pos;
                     m_lastRotation = m_bodyRot;
-                    m_lastVelocity = velocity;
-                    m_lastTerseSent = Environment.TickCount;
+                    m_lastVelocity = Velocity;
+                    //m_lastTerseSent = Environment.TickCount;
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
