@@ -129,6 +129,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             successfulAssetRestores++;
                         else
                             failedAssetRestores++;
+
+                        if ((successfulAssetRestores + failedAssetRestores) % 250 == 0)
+                            m_log.Debug("[ARCHIVER]: Loaded " + successfulAssetRestores + " assets and failed to load " + failedAssetRestores + " assets...");
                     }
                     else if (!m_merge && filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
                     {

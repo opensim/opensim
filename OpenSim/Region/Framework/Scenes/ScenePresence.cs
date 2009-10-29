@@ -2367,9 +2367,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
+                Vector3 velocity = m_physicsActor.Velocity;
+
                 // Throw away duplicate or insignificant updates
                 if (!m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
-                    !m_velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
                     !m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
@@ -2378,7 +2380,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // Update the "last" values
                     m_lastPosition = m_pos;
                     m_lastRotation = m_bodyRot;
-                    m_lastVelocity = m_velocity;
+                    m_lastVelocity = velocity;
                     m_lastTerseSent = Environment.TickCount;
                 }
 
@@ -2411,7 +2413,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
                 remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
-                    pos, m_velocity, Vector3.Zero, m_bodyRot, Vector4.UnitW, m_uuid, null, GetUpdatePriority(remoteClient)));
+                    pos, m_physicsActor.Velocity, Vector3.Zero, m_bodyRot, Vector4.UnitW, m_uuid, null, GetUpdatePriority(remoteClient)));
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
                 m_scene.StatsReporter.AddAgentUpdates(1);
@@ -3355,15 +3357,17 @@ namespace OpenSim.Region.Framework.Scenes
             // as of this comment the interval is set in AddToPhysicalScene
             UpdateMovementAnimations();
 
+            CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
+            Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
+
             if (m_invulnerable)
                 return;
-            CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
-            Dictionary<uint, float> coldata = collisionData.m_objCollisionList;
+            
             float starthealth = Health;
             uint killerObj = 0;
             foreach (uint localid in coldata.Keys)
             {
-                if (coldata[localid] <= 0.10f || m_invulnerable)
+                if (coldata[localid].PenetrationDepth <= 0.10f || m_invulnerable)
                     continue;
                 //if (localid == 0)
                     //continue;
@@ -3373,9 +3377,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (part != null && part.ParentGroup.Damage != -1.0f)
                     Health -= part.ParentGroup.Damage;
                 else
-                    Health -= coldata[localid] * 5;
+                    Health -= coldata[localid].PenetrationDepth * 5.0f;
 
-                if (Health <= 0)
+                if (Health <= 0.0f)
                 {
                     if (localid != 0)
                         killerObj = localid;

@@ -1817,7 +1817,7 @@ if (m_shape != null) {
             }
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
-            Dictionary<uint, float> collissionswith = a.m_objCollisionList;
+            Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
             List<uint> thisHitColliders = new List<uint>();
             List<uint> endedColliders = new List<uint>();
             List<uint> startedColliders = new List<uint>();
