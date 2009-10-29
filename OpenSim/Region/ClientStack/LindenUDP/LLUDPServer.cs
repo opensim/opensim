@@ -429,7 +429,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (expiredPackets != null)
             {
-                m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
+                //m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
 
                 // Exponential backoff of the retransmission timeout
                 udpClient.BackoffRTO();
@@ -585,7 +585,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IClientAPI client;
             if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
             {
-                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+                //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 

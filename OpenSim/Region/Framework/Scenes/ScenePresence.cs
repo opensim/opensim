@@ -76,7 +76,9 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
-        public static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
+        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
+        private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
+        private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
 
         public UUID currentParcelUUID = UUID.Zero;
 
@@ -171,7 +173,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_CameraAtAxis;
         protected Vector3 m_CameraLeftAxis;
         protected Vector3 m_CameraUpAxis;
-        private uint m_AgentControlFlags;
+        private AgentManager.ControlFlags m_AgentControlFlags;
         private Quaternion m_headrotation = Quaternion.Identity;
         private byte m_state;
 
@@ -380,8 +382,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint AgentControlFlags
         {
-            get { return m_AgentControlFlags; }
-            set { m_AgentControlFlags = value; }
+            get { return (uint)m_AgentControlFlags; }
+            set { m_AgentControlFlags = (AgentManager.ControlFlags)value; }
         }
 
         /// <summary>
@@ -707,25 +709,25 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SetDirectionVectors()
         {
-            Dir_Vectors[0] = new Vector3(1, 0, 0); //FORWARD
-            Dir_Vectors[1] = new Vector3(-1, 0, 0); //BACK
-            Dir_Vectors[2] = new Vector3(0, 1, 0); //LEFT
-            Dir_Vectors[3] = new Vector3(0, -1, 0); //RIGHT
-            Dir_Vectors[4] = new Vector3(0, 0, 1); //UP
-            Dir_Vectors[5] = new Vector3(0, 0, -1); //DOWN
-            Dir_Vectors[5] = new Vector3(0, 0, -0.5f); //DOWN_Nudge
+            Dir_Vectors[0] = Vector3.UnitX; //FORWARD
+            Dir_Vectors[1] = -Vector3.UnitX; //BACK
+            Dir_Vectors[2] = Vector3.UnitY; //LEFT
+            Dir_Vectors[3] = -Vector3.UnitY; //RIGHT
+            Dir_Vectors[4] = Vector3.UnitZ; //UP
+            Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
+            Dir_Vectors[5] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
         private Vector3[] GetWalkDirectionVectors()
         {
             Vector3[] vector = new Vector3[6];
-            vector[0] = new Vector3(m_CameraUpAxis.Z, 0, -m_CameraAtAxis.Z); //FORWARD
-            vector[1] = new Vector3(-m_CameraUpAxis.Z, 0, m_CameraAtAxis.Z); //BACK
-            vector[2] = new Vector3(0, 1, 0); //LEFT
-            vector[3] = new Vector3(0, -1, 0); //RIGHT
-            vector[4] = new Vector3(m_CameraAtAxis.Z, 0, m_CameraUpAxis.Z); //UP
-            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0, -m_CameraUpAxis.Z); //DOWN
-            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0, -m_CameraUpAxis.Z); //DOWN_Nudge
+            vector[0] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD
+            vector[1] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK
+            vector[2] = Vector3.UnitY; //LEFT
+            vector[3] = -Vector3.UnitY; //RIGHT
+            vector[4] = new Vector3(m_CameraAtAxis.Z, 0f, m_CameraUpAxis.Z); //UP
+            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN
+            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_Nudge
             return vector;
         }
 
@@ -1074,7 +1076,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_isChildAgent = false;
-            bool m_flying = ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+            bool m_flying = ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
             MakeRootAgent(AbsolutePosition, m_flying);
 
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
@@ -1101,9 +1103,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="distance"></param>
         public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
         {
+            const float POSITION_TOLERANCE = 0.02f;
+            const float VELOCITY_TOLERANCE = 0.02f;
+            const float ROTATION_TOLERANCE = 0.02f;
+
             if (m_followCamAuto)
             {
-
                 if (hitYN)
                 {
                     CameraConstraintActive = true;
@@ -1112,11 +1117,11 @@ namespace OpenSim.Region.Framework.Scenes
                     Vector3 normal = Vector3.Normalize(new Vector3(0f, 0f, collisionPoint.Z) - collisionPoint);
                     ControllingClient.SendCameraConstraint(new Vector4(normal.X, normal.Y, normal.Z, -1 * Vector3.Distance(new Vector3(0,0,collisionPoint.Z),collisionPoint)));
                 }
-                else 
+                else
                 {
-                    if ((m_pos - m_lastPosition).Length() > 0.02f ||
-                        (m_velocity - m_lastVelocity).Length() > 0.02f ||
-                        m_bodyRot != m_lastRotation)
+                    if (!m_pos.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+                        !m_velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                        !m_bodyRot.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE))
                     {
                         if (CameraConstraintActive)
                         {
@@ -1125,13 +1130,11 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            } 
+            }
         }
 
-        Array m_dirControlFlags = Enum.GetValues(typeof(Dir_ControlFlags));
-
         /// <summary>
-        /// This is the event handler for client movement.   If a client is moving, this event is triggering.
+        /// This is the event handler for client movement. If a client is moving, this event is triggering.
         /// </summary>
         public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
@@ -1147,15 +1150,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_movementUpdateCount < 1)
                 m_movementUpdateCount = 1;
 
-            // Must check for standing up even when PhysicsActor is null,
-            // since sitting currently removes avatar from physical scene
-            //m_log.Debug("agentPos:" + AbsolutePosition.ToString());
+            #region Sanity Checking
 
             // This is irritating.  Really.
             if (!AbsolutePosition.IsFinite())
             {
                 RemoveFromPhysicalScene();
-                m_log.Error("[AVATAR]: NonFinite Avatar position detected...   Reset Position.  Mantis this please. Error# 9999902");
+                m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999902");
 
                 m_pos = m_LastFinitePos;
                 if (!m_pos.IsFinite())
@@ -1163,7 +1164,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_pos.X = 127f;
                     m_pos.Y = 127f;
                     m_pos.Z = 127f;
-                    m_log.Error("[AVATAR]: NonFinite Avatar position detected...   Reset Position.  Mantis this please. Error# 9999903");
+                    m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999903");
                 }
 
                 AddToPhysicalScene(false);
@@ -1173,18 +1174,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_LastFinitePos = m_pos;
             }
 
-            //m_physicsActor.AddForce(new PhysicsVector(999999999, 99999999, 999999999999999), true);
+            #endregion Sanity Checking
 
-            //ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
-            //if (land != null)
-            //{
-            //if (land.landData.landingType == (byte)1 && land.landData.userLocation != Vector3.Zero)
-            //{
-            //    agent.startpos = land.landData.userLocation;
-            //}
-            //}
+            #region Inputs
 
-            uint flags = agentData.ControlFlags;
+            AgentManager.ControlFlags flags = (AgentManager.ControlFlags)agentData.ControlFlags;
             Quaternion bodyRotation = agentData.BodyRotation;
 
             // Camera location in world.  We'll need to raytrace
@@ -1205,16 +1199,21 @@ namespace OpenSim.Region.Framework.Scenes
             // The Agent's Draw distance setting
             m_DrawDistance = agentData.Far;
 
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
-            {
-                StandUp();
-            }
-
             // Check if Client has camera in 'follow cam' or 'build' mode.
             Vector3 camdif = (Vector3.One * m_bodyRot - Vector3.One * CameraRotation);
 
             m_followCamAuto = ((m_CameraUpAxis.Z > 0.959f && m_CameraUpAxis.Z < 0.98f)
                && (Math.Abs(camdif.X) < 0.4f && Math.Abs(camdif.Y) < 0.4f)) ? true : false;
+
+            m_mouseLook = (flags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
+            m_leftButtonDown = (flags & AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
+
+            #endregion Inputs
+
+            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
+            {
+                StandUp();
+            }
 
             //m_log.DebugFormat("[FollowCam]: {0}", m_followCamAuto);
             // Raycast from the avatar's head to the camera to see if there's anything blocking the view
@@ -1222,45 +1221,42 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_followCamAuto)
                 {
-                    Vector3 headadjustment = new Vector3(0, 0, 0.3f);
-                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(m_CameraCenter - (m_pos + headadjustment)), Vector3.Distance(m_CameraCenter, (m_pos + headadjustment)) + 0.3f, RayCastCameraCallback);
+                    Vector3 posAdjusted = m_pos + HEAD_ADJUSTMENT;
+                    m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(m_CameraCenter - posAdjusted), Vector3.Distance(m_CameraCenter, posAdjusted) + 0.3f, RayCastCameraCallback);
                 }
             }
-
-            m_mouseLook = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) != 0;
-            m_leftButtonDown = (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0;
 
             lock (scriptedcontrols)
             {
                 if (scriptedcontrols.Count > 0)
                 {
-                    SendControlToScripts(flags);
+                    SendControlToScripts((uint)flags);
                     flags = RemoveIgnoredControls(flags, IgnoredControls);
                 }
-            }
-
-            if (PhysicsActor == null)
-            {
-                return;
             }
 
             if (m_autopilotMoving)
                 CheckAtSitTarget();
 
-            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
+            if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
-
                 TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             }
+
             // In the future, these values might need to go global.
             // Here's where you get them.
-
             m_AgentControlFlags = flags;
             m_headrotation = agentData.HeadRotation;
             m_state = agentData.State;
+
+            PhysicsActor actor = PhysicsActor;
+            if (actor == null)
+            {
+                return;
+            }
 
             if (m_allowMovement)
             {
@@ -1268,24 +1264,20 @@ namespace OpenSim.Region.Framework.Scenes
                 bool update_movementflag = false;
                 bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
-                Vector3 agent_control_v3 = new Vector3(0, 0, 0);
+                Vector3 agent_control_v3 = Vector3.Zero;
                 Quaternion q = bodyRotation;
-                if (PhysicsActor != null)
-                {
-                    bool oldflying = PhysicsActor.Flying;
 
-                    if (m_forceFly)
-                        PhysicsActor.Flying = true;
-                    else if (m_flyDisabled)
-                        PhysicsActor.Flying = false;
-                    else
-                        PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                bool oldflying = PhysicsActor.Flying;
 
-                    if (PhysicsActor.Flying != oldflying)
-                    {
-                        update_movementflag = true;
-                    }
-                }
+                if (m_forceFly)
+                    actor.Flying = true;
+                else if (m_flyDisabled)
+                    actor.Flying = false;
+                else
+                    actor.Flying = ((flags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+
+                if (actor.Flying != oldflying)
+                    update_movementflag = true;
 
                 if (q != m_bodyRot)
                 {
@@ -1307,10 +1299,9 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         dirVectors = Dir_Vectors;
 
-
-                    foreach (Dir_ControlFlags DCF in m_dirControlFlags)
+                    foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
-                        if ((flags & (uint)DCF) != 0)
+                        if (((uint)flags & (uint)DCF) != 0)
                         {
                             bResetMoveToPosition = true;
                             DCFlagKeyPressed = true;
@@ -1356,7 +1347,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
                     {
                         //Check the error term of the current position in relation to the target position
-                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 1.5)
+                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 1.5f)
                         {
                             // we are close enough to the target
                             m_moveToPositionTarget = Vector3.Zero;
@@ -1437,8 +1428,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_physicsActor != null && m_physicsActor.Flying && !m_forceFly)
                 {
                     // Are the landing controls requirements filled?
-                    bool controlland = (((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                        ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+                    bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
+                                        ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
                     // Are the collision requirements fulfilled?
                     bool colliding = (m_physicsActor.IsColliding == true);
@@ -1605,7 +1596,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_pos += m_parentPosition + new Vector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
-                m_parentPosition = new Vector3();
+                m_parentPosition = Vector3.Zero;
 
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
@@ -2776,11 +2767,8 @@ namespace OpenSim.Region.Framework.Scenes
                 agentpos.CopyFrom(cadu);
 
                 m_scene.SendOutChildAgentUpdates(agentpos, this);
-                
-                m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
-                m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
-                m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
 
+                m_LastChildAgentUpdatePosition = AbsolutePosition;
             }
         }
 
@@ -2905,9 +2893,9 @@ namespace OpenSim.Region.Framework.Scenes
             m_inTransit = true;
 
             if ((m_physicsActor != null) && m_physicsActor.Flying)
-                m_AgentControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-            else if ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
-                m_AgentControlFlags &= ~(uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                m_AgentControlFlags |= AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+            else if ((m_AgentControlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0)
+                m_AgentControlFlags &= ~AgentManager.ControlFlags.AGENT_CONTROL_FLY;
         }
 
         public void NotInTransit()
@@ -2923,7 +2911,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void Reset()
         {
             // Put the child agent back at the center
-            AbsolutePosition = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 70);
+            AbsolutePosition = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 70);
             ResetAnimations();
         }
 
@@ -3093,7 +3081,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             cAgent.HeadRotation = m_headrotation;
             cAgent.BodyRotation = m_bodyRot;
-            cAgent.ControlFlags = m_AgentControlFlags;
+            cAgent.ControlFlags = (uint)m_AgentControlFlags;
 
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
                 cAgent.GodLevel = (byte)m_godlevel;
@@ -3181,7 +3169,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_headrotation = cAgent.HeadRotation;
             m_bodyRot = cAgent.BodyRotation;
-            m_AgentControlFlags = cAgent.ControlFlags; 
+            m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags; 
 
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
                 m_godlevel = cAgent.GodLevel;
@@ -3594,19 +3582,10 @@ namespace OpenSim.Region.Framework.Scenes
                     IgnoredControls &= ~(ScriptControlled)controls;
                     if (scriptedcontrols.ContainsKey(Script_item_UUID))
                         scriptedcontrols.Remove(Script_item_UUID);
-
                 }
                 else
                 {
-
-                    if (scriptedcontrols.ContainsKey(Script_item_UUID))
-                    {
-                        scriptedcontrols[Script_item_UUID] = obj;
-                    }
-                    else
-                    {
-                        scriptedcontrols.Add(Script_item_UUID, obj);
-                    }
+                    scriptedcontrols[Script_item_UUID] = obj;
                 }
             }
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
@@ -3624,12 +3603,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void UnRegisterControlEventsToScript(uint Obj_localID, UUID Script_item_UUID)
         {
+            ScriptControllers takecontrols;
+
             lock (scriptedcontrols)
             {
-                if (scriptedcontrols.ContainsKey(Script_item_UUID))
+                if (scriptedcontrols.TryGetValue(Script_item_UUID, out takecontrols))
                 {
-                    ScriptControllers takecontrolls = scriptedcontrols[Script_item_UUID];
-                    ScriptControlled sctc = takecontrolls.eventControls;
+                    ScriptControlled sctc = takecontrols.eventControls;
+
                     ControllingClient.SendTakeControls((int)sctc, false, false);
                     ControllingClient.SendTakeControls((int)sctc, true, false);
 
@@ -3640,7 +3621,6 @@ namespace OpenSim.Region.Framework.Scenes
                         IgnoredControls |= scData.ignoreControls;
                     }
                 }
-                
             }
         }
 
@@ -3707,9 +3687,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (scriptedcontrols)
                 {
-                    foreach (UUID scriptUUID in scriptedcontrols.Keys)
+                    foreach (KeyValuePair<UUID, ScriptControllers> kvp in scriptedcontrols)
                     {
-                        ScriptControllers scriptControlData = scriptedcontrols[scriptUUID];
+                        UUID scriptUUID = kvp.Key;
+                        ScriptControllers scriptControlData = kvp.Value;
+
                         ScriptControlled localHeld = allflags & scriptControlData.eventControls;     // the flags interesting for us
                         ScriptControlled localLast = LastCommands & scriptControlData.eventControls; // the activated controls in the last cycle
                         ScriptControlled localChange = localHeld ^ localLast;                        // the changed bits
@@ -3725,37 +3707,40 @@ namespace OpenSim.Region.Framework.Scenes
             LastCommands = allflags;
         }
 
-        internal static uint RemoveIgnoredControls(uint flags, ScriptControlled Ignored)
+        internal static AgentManager.ControlFlags RemoveIgnoredControls(AgentManager.ControlFlags flags, ScriptControlled ignored)
         {
-            if (Ignored == ScriptControlled.CONTROL_ZERO)
+            if (ignored == ScriptControlled.CONTROL_ZERO)
                 return flags;
-            if ((Ignored & ScriptControlled.CONTROL_BACK) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG);
-            if ((Ignored & ScriptControlled.CONTROL_FWD) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS);
-            if ((Ignored & ScriptControlled.CONTROL_DOWN) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
-            if ((Ignored & ScriptControlled.CONTROL_UP) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS);
-            if ((Ignored & ScriptControlled.CONTROL_LEFT) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
-            if ((Ignored & ScriptControlled.CONTROL_RIGHT) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG);
-            if ((Ignored & ScriptControlled.CONTROL_ROT_LEFT) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG);
-            if ((Ignored & ScriptControlled.CONTROL_ROT_RIGHT) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS);
-            if ((Ignored & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN);
-            if ((Ignored & ScriptControlled.CONTROL_LBUTTON) != 0)
-                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN);
-                //DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
-                //DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
-                //DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
-                //DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-                //DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-                //DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
-                //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+
+            if ((ignored & ScriptControlled.CONTROL_BACK) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG);
+            if ((ignored & ScriptControlled.CONTROL_FWD) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_AT_POS);
+            if ((ignored & ScriptControlled.CONTROL_DOWN) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
+            if ((ignored & ScriptControlled.CONTROL_UP) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS | AgentManager.ControlFlags.AGENT_CONTROL_UP_POS);
+            if ((ignored & ScriptControlled.CONTROL_LEFT) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
+            if ((ignored & ScriptControlled.CONTROL_RIGHT) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG);
+            if ((ignored & ScriptControlled.CONTROL_ROT_LEFT) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG);
+            if ((ignored & ScriptControlled.CONTROL_ROT_RIGHT) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS);
+            if ((ignored & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN);
+            if ((ignored & ScriptControlled.CONTROL_LBUTTON) != 0)
+                flags &= ~(AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN);
+
+            //DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
+            //DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
+            //DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
+            //DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+            //DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
+            //DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+            //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+
             return flags;
         }
 

@@ -35,7 +35,7 @@ using OpenSim.Region.Framework.Interfaces;
 namespace OpenSim.Region.Framework.Scenes
 {
     #region Delegates
-    public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectIDID);
+    public delegate uint GenerateClientFlagsHandler(UUID userID, UUID objectID);
     public delegate void SetBypassPermissionsHandler(bool value);
     public delegate bool BypassPermissionsHandler();
     public delegate bool PropagatePermissionsHandler();
@@ -147,28 +147,28 @@ namespace OpenSim.Region.Framework.Scenes
 
         public uint GenerateClientFlags(UUID userID, UUID objectID)
         {
-            SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
+            // libomv will moan about PrimFlags.ObjectYouOfficer being
+            // obsolete...
+#pragma warning disable 0612
+            const PrimFlags DEFAULT_FLAGS =
+                PrimFlags.ObjectModify |
+                PrimFlags.ObjectCopy |
+                PrimFlags.ObjectMove |
+                PrimFlags.ObjectTransfer |
+                PrimFlags.ObjectYouOwner |
+                PrimFlags.ObjectAnyOwner |
+                PrimFlags.ObjectOwnerModify |
+                PrimFlags.ObjectYouOfficer;
+#pragma warning restore 0612
+
+            SceneObjectPart part = m_scene.GetSceneObjectPart(objectID);
 
             if (part == null)
                 return 0;
 
-            // libomv will moan about PrimFlags.ObjectYouOfficer being
-            // obsolete...
-            #pragma warning disable 0612
-            uint perms=part.GetEffectiveObjectFlags() |
-                (uint)PrimFlags.ObjectModify |
-                (uint)PrimFlags.ObjectCopy |
-                (uint)PrimFlags.ObjectMove |
-                (uint)PrimFlags.ObjectTransfer |
-                (uint)PrimFlags.ObjectYouOwner |
-                (uint)PrimFlags.ObjectAnyOwner |
-                (uint)PrimFlags.ObjectOwnerModify |
-                (uint)PrimFlags.ObjectYouOfficer;
-            #pragma warning restore 0612
+            uint perms = part.GetEffectiveObjectFlags() | (uint)DEFAULT_FLAGS;
 
-            GenerateClientFlagsHandler handlerGenerateClientFlags =
-                    OnGenerateClientFlags;
-
+            GenerateClientFlagsHandler handlerGenerateClientFlags = OnGenerateClientFlags;
             if (handlerGenerateClientFlags != null)
             {
                 Delegate[] list = handlerGenerateClientFlags.GetInvocationList();
