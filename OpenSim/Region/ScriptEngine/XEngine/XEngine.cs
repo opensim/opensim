@@ -50,6 +50,9 @@ using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
+using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
+using Parallel = OpenSim.Framework.Parallel;
+
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
     public class XEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
@@ -116,7 +119,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Dictionary<UUID, List<UUID> > m_DomainScripts =
                 new Dictionary<UUID, List<UUID> >();
 
-        private Queue m_CompileQueue = new Queue(100);
+        private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
 
         public string ScriptEngineName
@@ -487,16 +490,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                lock (m_CompileQueue)
-                {
-                    m_CompileQueue.Enqueue(parms);
+                m_CompileQueue.Enqueue(parms);
 
-                    if (m_CurrentCompile == null)
-                    {
-                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                                new WorkItemCallback(this.DoOnRezScriptQueue),
-                                new Object[0]);
-                    }
+                if (m_CurrentCompile == null)
+                {
+                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
                 }
             }
         }
@@ -507,50 +505,35 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 m_InitialStartup = false;
                 System.Threading.Thread.Sleep(15000);
-                lock (m_CompileQueue) 
+
+                if (m_CompileQueue.Count == 0)
                 {
-                    if (m_CompileQueue.Count==0)
-                        // No scripts on region, so won't get triggered later
-                        // by the queue becoming empty so we trigger it here
-                        m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
+                    // No scripts on region, so won't get triggered later
+                    // by the queue becoming empty so we trigger it here
+                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
                 }
             }
 
-            Object o;
-            lock (m_CompileQueue)
+            List<object[]> compiles = new List<object[]>();
+            object[] o;
+            while (m_CompileQueue.Dequeue(out o))
             {
-                o = m_CompileQueue.Dequeue();
-                if (o == null)
-                {
-                    m_CurrentCompile = null;
-                    return null;
-                }
+                compiles.Add(o);
             }
 
-            DoOnRezScript(o);
+            Parallel.For(0, compiles.Count, delegate(int i) { DoOnRezScript(compiles[i]); });
 
-            lock (m_CompileQueue)
-            {
-                if (m_CompileQueue.Count > 0)
-                {
-                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue),
-                            new Object[0]);
-                }
-                else
-                {
-                    m_CurrentCompile = null;
-                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount, 
-                                                                        m_ScriptErrorMessage);
-                    m_ScriptFailCount = 0;
-                }
-            }
+            m_CurrentCompile = null;
+            m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
+                                                                m_ScriptErrorMessage);
+            m_ScriptFailCount = 0;
+
             return null;
         }
 
-        private bool DoOnRezScript(object parm)
+        private bool DoOnRezScript(object[] parms)
         {
-            Object[] p = (Object[])parm;
+            Object[] p = parms;
             uint localID = (uint)p[0];
             UUID itemID = (UUID)p[1];
             string script =(string)p[2];

@@ -74,27 +74,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_PrimName;
         private string m_ScriptName;
         private string m_Assembly;
-        private int m_StartParam = 0;
+        private int m_StartParam;
         private string m_CurrentEvent = String.Empty;
-        private bool m_InSelfDelete = false;
+        private bool m_InSelfDelete;
         private int m_MaxScriptQueue;
         private bool m_SaveState = true;
-        private bool m_ShuttingDown = false;
-        private int m_ControlEventsInQueue = 0;
-        private int m_LastControlLevel = 0;
-        private bool m_CollisionInQueue = false;
+        private bool m_ShuttingDown;
+        private int m_ControlEventsInQueue;
+        private int m_LastControlLevel;
+        private bool m_CollisionInQueue;
         private TaskInventoryItem m_thisScriptTask;
         // The following is for setting a minimum delay between events
-        private double m_minEventDelay = 0;
-        private long m_eventDelayTicks = 0;
-        private long m_nextEventTimeTicks = 0;
+        private double m_minEventDelay;
+        private long m_eventDelayTicks;
+        private long m_nextEventTimeTicks;
         private bool m_startOnInit = true;
-        private UUID m_AttachedAvatar = UUID.Zero;
+        private UUID m_AttachedAvatar;
         private StateSource m_stateSource;
         private bool m_postOnRez;
-        private bool m_startedFromSavedState = false;
+        private bool m_startedFromSavedState;
         private UUID m_CurrentStateHash;
-        private UUID m_RegionID = UUID.Zero;
+        private UUID m_RegionID;
 
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
