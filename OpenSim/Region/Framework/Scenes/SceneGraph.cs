@@ -369,26 +369,30 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected internal void UpdateObjectGroups()
         {
-            Dictionary<UUID, SceneObjectGroup> updates;
+            List<SceneObjectGroup> updates;
+
             // Some updates add more updates to the updateList. 
             // Get the current list of updates and clear the list before iterating
             lock (m_updateList)
             {
-                updates = new Dictionary<UUID, SceneObjectGroup>(m_updateList);
+                updates = new List<SceneObjectGroup>(m_updateList.Values);
                 m_updateList.Clear();
             }
+
             // Go through all updates
-            foreach (KeyValuePair<UUID, SceneObjectGroup> kvp in updates)
+            for (int i = 0; i < updates.Count; i++)
             {
+                SceneObjectGroup sog = updates[i];
+
                 // Don't abort the whole update if one entity happens to give us an exception.
                 try
                 {
-                    kvp.Value.Update();
+                    sog.Update();
                 }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[INNER SCENE]: Failed to update {0}, {1} - {2}", kvp.Value.Name, kvp.Value.UUID, e);
+                        "[INNER SCENE]: Failed to update {0}, {1} - {2}", sog.Name, sog.UUID, e);
                 }
             }
         }

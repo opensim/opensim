@@ -76,8 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
-
-        public static byte[] DefaultTexture;
+        public static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
 
         public UUID currentParcelUUID = UUID.Zero;
 
@@ -100,9 +99,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         private bool m_updateflag;
         private byte m_movementflag;
-        private readonly List<NewForce> m_forcesList = new List<NewForce>();
+        private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
-        private UUID m_requestedSitTargetUUID = UUID.Zero;
+        private UUID m_requestedSitTargetUUID;
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
         private bool m_startAnimationSet;
@@ -456,12 +455,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if (m_physicsActor != null)
-                {
-                    m_velocity.X = m_physicsActor.Velocity.X;
-                    m_velocity.Y = m_physicsActor.Velocity.Y;
-                    m_velocity.Z = m_physicsActor.Velocity.Z;
-                }
+                PhysicsActor actor = m_physicsActor;
+                if (actor != null)
+                    m_velocity = m_physicsActor.Velocity;
 
                 return m_velocity;
             }
@@ -2278,7 +2274,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_isChildAgent)
             {
-                m_log.Debug("DEBUG: AddNewMovement: child agent, Making root agent!");
+                m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent, making root agent!");
 
                 // we have to reset the user's child agent connections.
                 // Likely, here they've lost the eventqueue for other regions so border 
@@ -2287,7 +2283,7 @@ namespace OpenSim.Region.Framework.Scenes
                 List<ulong> regions = new List<ulong>(KnownChildRegionHandles);
                 regions.Remove(m_scene.RegionInfo.RegionHandle);
 
-                MakeRootAgent(new Vector3(127, 127, 127), true);
+                MakeRootAgent(new Vector3(127f, 127f, 127f), true);
 
                 // Async command
                 if (m_scene.SceneGridService != null)
@@ -2299,13 +2295,10 @@ namespace OpenSim.Region.Framework.Scenes
                     System.Threading.Thread.Sleep(500);
                 }
                 
-
                 if (m_scene.SceneGridService != null)
                 {
                     m_scene.SceneGridService.EnableNeighbourChildAgents(this, new List<RegionInfo>());
                 }
-                
-
                 
                 return;
             }
@@ -2313,14 +2306,13 @@ namespace OpenSim.Region.Framework.Scenes
             m_perfMonMS = Environment.TickCount;
 
             m_rotation = rotation;
-            NewForce newVelocity = new NewForce();
             Vector3 direc = vec * rotation;
             direc.Normalize();
 
             direc *= 0.03f * 128f * m_speedModifier;
             if (m_physicsActor.Flying)
             {
-                direc *= 4;
+                direc *= 4.0f;
                 //bool controlland = (((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) || ((m_AgentControlFlags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
                 //bool colliding = (m_physicsActor.IsColliding==true);
                 //if (controlland)
@@ -2348,10 +2340,8 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            newVelocity.X = direc.X;
-            newVelocity.Y = direc.Y;
-            newVelocity.Z = direc.Z;
-            m_forcesList.Add(newVelocity);
+            // TODO: Add the force instead of only setting it to support multiple forces per frame?
+            m_forceToApply = direc;
 
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
@@ -3298,45 +3288,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void UpdateMovement()
         {
-            lock (m_forcesList)
+            if (m_forceToApply.HasValue)
             {
-                if (m_forcesList.Count > 0)
-                {
-                    //we are only interested in the last velocity added to the list [Although they are called forces, they are actually velocities]
-                    NewForce force = m_forcesList[m_forcesList.Count - 1];
+                Vector3 force = m_forceToApply.Value;
 
-                    m_updateflag = true;
-                    try
-                    {
-                        movementvector.X = force.X;
-                        movementvector.Y = force.Y;
-                        movementvector.Z = force.Z;
-                        Velocity = movementvector;
-                    }
-                    catch (NullReferenceException)
-                    {
-                        // Under extreme load, this returns a NullReference Exception that we can ignore.
-                        // Ignoring this causes no movement to be sent to the physics engine...
-                        // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
-                    }
+                m_updateflag = true;
+                movementvector = force;
+                Velocity = force;
 
-                    m_forcesList.Clear();
-                }
+                m_forceToApply = null;
             }
-        }
-
-        static ScenePresence()
-        {
-            Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
-            DefaultTexture = textu.GetBytes();
-            
-        }
-
-        public class NewForce
-        {
-            public float X;
-            public float Y;
-            public float Z;
         }
 
         public override void SetText(string text, Vector3 color, double alpha)
@@ -3349,7 +3310,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void AddToPhysicalScene(bool isFlying)
         {
-            
             PhysicsScene scene = m_scene.PhysicsScene;
 
             Vector3 pVec = AbsolutePosition;
@@ -3478,11 +3438,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence()
         {
-            if (DefaultTexture == null)
-            {
-                Primitive.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
-                DefaultTexture = textu.GetBytes();
-            }
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
         }

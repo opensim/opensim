@@ -257,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Central Update Loop
 
         protected int m_fps = 10;
-        protected int m_frame;
+        protected uint m_frame;
         protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.UtcNow;
 
@@ -1018,36 +1018,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void Update()
         {
-            int maintc = 0;
+            float physicsFPS;
+            int maintc;
+
             while (!shuttingdown)
             {
-//#if DEBUG
-//                int w = 0, io = 0;
-//                ThreadPool.GetAvailableThreads(out w, out io);
-//                if ((w < 10) || (io < 10))
-//                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}; io = {1}", w, io);
-//#endif
-                maintc = Environment.TickCount;
-
                 TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
-                float physicsFPS = 0;
+                physicsFPS = 0f;
 
-                frameMS = Environment.TickCount;
+                maintc = maintc = frameMS = otherMS = Environment.TickCount;
+
+                // Increment the frame counter
+                ++m_frame;
 
                 try
                 {
-                    // Increment the frame counter
-                    m_frame++;
-
-                    // Loop it
-                    if (m_frame == Int32.MaxValue)
-                        m_frame = 0;
-
-                    otherMS = Environment.TickCount;
-
                     // Check if any objects have reached their targets
                     CheckAtTargets();
- 
+
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
@@ -1067,13 +1055,13 @@ namespace OpenSim.Region.Framework.Scenes
                         m_sceneGraph.UpdateScenePresenceMovement();
 
                     physicsMS = Environment.TickCount;
-                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(
-                            Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
-                            );
-                    if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
-                        SynchronizeScene(this);
-
+                    if (m_frame % m_update_physics == 0)
+                    {
+                        if (m_physics_enabled)
+                            physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_timespan));
+                        if (SynchronizeScene != null)
+                            SynchronizeScene(this);
+                    }
                     physicsMS = Environment.TickCount - physicsMS;
                     physicsMS += physicsMS2;
 
@@ -1095,25 +1083,27 @@ namespace OpenSim.Region.Framework.Scenes
                         if (m_frame % m_update_land == 0)
                             UpdateLand();
 
-                        otherMS = Environment.TickCount - otherMS;
+                        int tickCount = Environment.TickCount;
+                        otherMS = tickCount - otherMS;
+                        frameMS = tickCount - frameMS;
+
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
                         StatsReporter.AddPhysicsFPS(physicsFPS);
                         StatsReporter.AddTimeDilation(TimeDilation);
                         StatsReporter.AddFPS(1);
-                        StatsReporter.AddInPackets(0);
                         StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
                         StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
                         StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
                         StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
-                        frameMS = Environment.TickCount - frameMS;
                         StatsReporter.addFrameMS(frameMS);
                         StatsReporter.addPhysicsMS(physicsMS);
                         StatsReporter.addOtherMS(otherMS);
                         StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
-                    if (loginsdisabled && (m_frame > 20))
+
+                    if (loginsdisabled && m_frame > 20)
                     {
                         // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                         // this is a rare case where we know we have just went through a long cycle of heap
@@ -1176,9 +1166,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_groupsWithTargets)
             {
-                foreach (KeyValuePair<UUID, SceneObjectGroup> kvp in m_groupsWithTargets)
+                foreach (SceneObjectGroup entry in m_groupsWithTargets.Values)
                 {
-                    kvp.Value.checkAtTargets();
+                    entry.checkAtTargets();
                 }
             }
         }
