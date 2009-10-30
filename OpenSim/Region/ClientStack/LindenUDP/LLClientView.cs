@@ -1856,7 +1856,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             economyData.Info.TeleportMinPrice = TeleportMinPrice;
             economyData.Info.TeleportPriceExponent = TeleportPriceExponent;
             economyData.Header.Reliable = true;
-            OutPacket(economyData, ThrottleOutPacketType.Unknown);
+            OutPacket(economyData, ThrottleOutPacketType.Task);
         }
 
         public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
@@ -3234,7 +3234,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
             }
 
-            OutPacket(terse, ThrottleOutPacketType.Unknown); // HACK: Unthrottled for testing
+            // HACK: Using the task category until the tiered reprioritization code is in
+            OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)
@@ -4951,6 +4952,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttlePacketType">Throttling category for the packet</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
+            if (ChildAgentStatus())
+                Thread.Sleep(200);
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
         }
 
@@ -9843,7 +9846,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             commandMessagePacket.CommandBlock.Command = (uint)command;
             commandMessagePacket.CommandBlock.Time = time;
 
-            OutPacket(commandMessagePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(commandMessagePacket, ThrottleOutPacketType.Task);
         }
 
         public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID,
@@ -9861,7 +9864,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.DataBlockExtended.MediaHeight = mediaHeight;
             updatePacket.DataBlockExtended.MediaLoop = mediaLoop;
 
-            OutPacket(updatePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(updatePacket, ThrottleOutPacketType.Task);
         }
 
         #endregion

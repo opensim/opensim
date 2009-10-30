@@ -135,8 +135,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly TokenBucket m_throttle;
         /// <summary>Throttle buckets for each packet category</summary>
         private readonly TokenBucket[] m_throttleCategories;
-        /// <summary>Throttle rate defaults and limits</summary>
-        private readonly ThrottleRates m_defaultThrottleRates;
         /// <summary>Outgoing queues for throttled packets</summary>
         private readonly OpenSim.Framework.LocklessQueue<OutgoingPacket>[] m_packetOutboxes = new OpenSim.Framework.LocklessQueue<OutgoingPacket>[THROTTLE_CATEGORY_COUNT];
         /// <summary>A container that can hold one packet for each outbox, used to store
@@ -161,7 +159,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RemoteEndPoint = remoteEndPoint;
             CircuitCode = circuitCode;
             m_udpServer = server;
-            m_defaultThrottleRates = rates;
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
             m_throttle = new TokenBucket(parentThrottle, rates.TotalLimit, rates.Total);
             // Create an array of token buckets for this clients different throttle categories

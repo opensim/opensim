@@ -409,6 +409,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPacket(udpClient, pc, ThrottleOutPacketType.Unknown, false);
         }
 
+        public void CompletePing(LLUDPClient udpClient, byte pingID)
+        {
+            CompletePingCheckPacket completePing = new CompletePingCheckPacket();
+            completePing.PingID.PingID = pingID;
+            SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+        }
+
         public void ResendUnacked(LLUDPClient udpClient)
         {
             if (!udpClient.IsConnected)
@@ -669,10 +676,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // We don't need to do anything else with ping checks
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
-
-                CompletePingCheckPacket completePing = new CompletePingCheckPacket();
-                completePing.PingID.PingID = startPing.PingID.PingID;
-                SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+                CompletePing(udpClient, startPing.PingID.PingID);
                 return;
             }
             else if (packet.Type == PacketType.CompletePingCheck)

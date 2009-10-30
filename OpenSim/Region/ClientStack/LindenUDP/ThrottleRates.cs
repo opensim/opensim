@@ -87,15 +87,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 IConfig throttleConfig = config.Configs["ClientStack.LindenUDP"];
 
                 Resend = throttleConfig.GetInt("resend_default", 12500);
-                Land = throttleConfig.GetInt("land_default", 500);
-                Wind = throttleConfig.GetInt("wind_default", 500);
-                Cloud = throttleConfig.GetInt("cloud_default", 500);
-                Task = throttleConfig.GetInt("task_default", 500);
-                Texture = throttleConfig.GetInt("texture_default", 500);
-                Asset = throttleConfig.GetInt("asset_default", 500);
-                State = throttleConfig.GetInt("state_default", 500);
-
-                Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
+                Land = throttleConfig.GetInt("land_default", 1000);
+                Wind = throttleConfig.GetInt("wind_default", 1000);
+                Cloud = throttleConfig.GetInt("cloud_default", 1000);
+                Task = throttleConfig.GetInt("task_default", 1000);
+                Texture = throttleConfig.GetInt("texture_default", 1000);
+                Asset = throttleConfig.GetInt("asset_default", 1000);
+                State = throttleConfig.GetInt("state_default", 1000);
 
                 ResendLimit = throttleConfig.GetInt("resend_limit", 18750);
                 LandLimit = throttleConfig.GetInt("land_limit", 29750);
@@ -104,9 +102,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TaskLimit = throttleConfig.GetInt("task_limit", 18750);
                 TextureLimit = throttleConfig.GetInt("texture_limit", 55750);
                 AssetLimit = throttleConfig.GetInt("asset_limit", 27500);
-                State = throttleConfig.GetInt("state_limit", 37000);
+                StateLimit = throttleConfig.GetInt("state_limit", 37000);
 
-                TotalLimit = throttleConfig.GetInt("client_throttle_max_bps", 0);
+                Total = throttleConfig.GetInt("client_throttle_max_bps", 0);
+                TotalLimit = Total;
             }
             catch (Exception) { }
         }
