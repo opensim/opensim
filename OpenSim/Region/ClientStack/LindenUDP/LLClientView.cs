@@ -4952,8 +4952,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttlePacketType">Throttling category for the packet</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
-            if (ChildAgentStatus())
-                Thread.Sleep(200);
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
         }
 

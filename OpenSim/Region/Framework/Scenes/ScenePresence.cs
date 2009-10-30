@@ -79,6 +79,15 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
+        /// <summary>
+        /// Experimentally determined "fudge factor" to make sit-target positions
+        /// the same as in SecondLife. Fudge factor was tested for 36 different
+        /// test cases including prims of type box, sphere, cylinder, and torus,
+        /// with varying parameters for sit target location, prim size, prim
+        /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
+        /// issue #1716
+        /// </summary>
+        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
 
         public UUID currentParcelUUID = UUID.Zero;
 
@@ -115,18 +124,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_sitAvatarHeight = 2.0f;
 
-        // experimentally determined "fudge factor" to make sit-target positions
-        // the same as in SecondLife. Fudge factor was tested for 36 different
-        // test cases including prims of type box, sphere, cylinder, and torus,
-        // with varying parameters for sit target location, prim size, prim
-        // rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
-        // issue #1716
-        private static readonly Vector3 m_sitTargetCorrectionOffset = new Vector3(0.1f, 0.0f, 0.3f);
         private float m_godlevel;
 
         private bool m_invulnerable = true;
 
-        private Vector3 m_LastChildAgentUpdatePosition;
+        private Vector3 m_lastChildAgentUpdatePosition;
+        private Vector3 m_lastChildAgentUpdateCamPosition;
 
         private int m_perfMonMS;
 
@@ -271,11 +274,9 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_godlevel; }
         }
 
-        private readonly ulong m_regionHandle;
-
         public ulong RegionHandle
         {
-            get { return m_regionHandle; }
+            get { return m_rootRegionHandle; }
         }
 
         public Vector3 CameraPosition
@@ -414,31 +415,27 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Absolute position of this avatar in 'region cordinates'
+        /// Position of this avatar relative to the region the avatar is in
         /// </summary>
         public override Vector3 AbsolutePosition
         {
             get
             {
-                if (m_physicsActor != null)
-                {
-                    m_pos.X = m_physicsActor.Position.X;
-                    m_pos.Y = m_physicsActor.Position.Y;
-                    m_pos.Z = m_physicsActor.Position.Z;
-                }
+                PhysicsActor actor = m_physicsActor;
+                if (actor != null)
+                    m_pos = actor.Position;
 
                 return m_parentPosition + m_pos;
             }
             set
             {
-                if (m_physicsActor != null)
+                PhysicsActor actor = m_physicsActor;
+                if (actor != null)
                 {
                     try
                     {
                         lock (m_scene.SyncRoot)
-                        {
                             m_physicsActor.Position = value;
-                        }
                     }
                     catch (Exception e)
                     {
@@ -466,8 +463,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                //m_log.DebugFormat("In {0} setting velocity of {1} to {2}", m_scene.RegionInfo.RegionName, Name, value);
-
                 PhysicsActor actor = m_physicsActor;
                 if (actor != null)
                 {
@@ -626,7 +621,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
-            m_regionHandle = reginfo.RegionHandle;
+            m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
             m_lastname = m_controllingClient.LastName;
@@ -780,6 +775,8 @@ namespace OpenSim.Region.Framework.Scenes
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
 
+            m_rootRegionHandle = m_scene.RegionInfo.RegionHandle;
+
             m_scene.SetRootAgentScene(m_uuid);
 
             // Moved this from SendInitialData to ensure that m_appearance is initialized
@@ -809,7 +806,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                 pos = emergencyPos;
             }
-
 
             float localAVHeight = 1.56f;
             if (m_avHeight != 127.0f)
@@ -905,6 +901,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);
             RemoveFromPhysicalScene();
+
+            // FIXME: Set m_rootRegionHandle to the region handle of the scene this agent is moving into
             
             m_scene.EventManager.TriggerOnMakeChildAgent(this);
         }
@@ -1823,7 +1821,7 @@ namespace OpenSim.Region.Framework.Scenes
                         //Quaternion result = (sitTargetOrient * vq) * nq;
 
                         m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
-                        m_pos += m_sitTargetCorrectionOffset;
+                        m_pos += SIT_TARGET_ADJUSTMENT;
                         m_bodyRot = sitTargetOrient;
                         //Rotation = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
@@ -2374,7 +2372,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.DebugFormat("[SCENEPRESENCE]: TerseUpdate: Pos={0} Rot={1} Vel={2}", m_pos, m_bodyRot, m_velocity);
 
-                remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_regionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
+                remoteClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
                     pos, velocity, Vector3.Zero, m_bodyRot, CollisionPlane, m_uuid, null, GetUpdatePriority(remoteClient)));
 
                 m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
@@ -2739,7 +2737,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
-            if (Util.GetDistanceTo(AbsolutePosition, m_LastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance)
+            if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance ||
+                Util.GetDistanceTo(CameraPosition, m_lastChildAgentUpdateCamPosition) >= Scene.ChildReprioritizationDistance)
             {
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
                 cadu.ActiveGroupID = UUID.Zero.Guid;
@@ -2753,7 +2752,7 @@ namespace OpenSim.Region.Framework.Scenes
                     cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
                 cadu.Position = new sLLVector3(AbsolutePosition);
-                cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
+                cadu.regionHandle = m_rootRegionHandle;
                 float multiplier = 1;
                 int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
                 if (innacurateNeighbors != 0)
@@ -2774,7 +2773,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_scene.SendOutChildAgentUpdates(agentpos, this);
 
-                m_LastChildAgentUpdatePosition = AbsolutePosition;
+                m_lastChildAgentUpdatePosition = AbsolutePosition;
+                m_lastChildAgentUpdateCamPosition = CameraPosition;
             }
         }
 
@@ -3027,9 +3027,11 @@ namespace OpenSim.Region.Framework.Scenes
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
+            Vector3 offset = new Vector3(shiftx, shifty, 0f);
+
             m_DrawDistance = cAgentData.Far;
-            if (cAgentData.Position != new Vector3(-1, -1, -1)) // UGH!!
-                m_pos = new Vector3(cAgentData.Position.X + shiftx, cAgentData.Position.Y + shifty, cAgentData.Position.Z);
+            if (cAgentData.Position != new Vector3(-1f, -1f, -1f)) // UGH!!
+                m_pos = cAgentData.Position + offset;
 
             if (Vector3.Distance(AbsolutePosition, posLastSignificantMove) >= Scene.ChildReprioritizationDistance)
             {
@@ -3037,8 +3039,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ReprioritizeUpdates();
             }
 
-            // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
-            m_CameraCenter = cAgentData.Center;
+            m_CameraCenter = cAgentData.Center + offset;
 
             m_avHeight = cAgentData.Size.Z;
             //SetHeight(cAgentData.AVHeight);
@@ -3051,16 +3052,16 @@ namespace OpenSim.Region.Framework.Scenes
                 m_sceneViewer.Reset();
 
             //cAgentData.AVHeight;
-            //cAgentData.regionHandle;
+            m_rootRegionHandle = cAgentData.RegionHandle;
             //m_velocity = cAgentData.Velocity;
         }
 
         public void CopyTo(AgentData cAgent)
         {
             cAgent.AgentID = UUID;
-            cAgent.RegionHandle = m_scene.RegionInfo.RegionHandle;
+            cAgent.RegionHandle = m_rootRegionHandle;
 
-            cAgent.Position = m_pos;
+            cAgent.Position = AbsolutePosition;
             cAgent.Velocity = m_velocity;
             cAgent.Center = m_CameraCenter;
             // Don't copy the size; it is inferred from apearance parameters
@@ -3157,7 +3158,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CopyFrom(AgentData cAgent)
         {
-            m_rootRegionHandle= cAgent.RegionHandle;
+            m_rootRegionHandle = cAgent.RegionHandle;
+
             m_callbackURI = cAgent.CallbackURI;
 
             m_pos = cAgent.Position;
