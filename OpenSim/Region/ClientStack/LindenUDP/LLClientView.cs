@@ -2787,32 +2787,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
-            AvatarGroupsReplyPacket p = (AvatarGroupsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarGroupsReply);
-
-            p.AgentData = new AvatarGroupsReplyPacket.AgentDataBlock();
-            p.AgentData.AgentID = AgentId;
-            p.AgentData.AvatarID = avatarID;
-
-            p.GroupData = new AvatarGroupsReplyPacket.GroupDataBlock[data.Length];
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                GroupMembershipData m = data[i];
-
-                AvatarGroupsReplyPacket.GroupDataBlock block = new AvatarGroupsReplyPacket.GroupDataBlock();
-                block.GroupPowers = m.GroupPowers;
-                block.AcceptNotices = m.AcceptNotices;
-                block.GroupTitle = Util.StringToBytes256(m.GroupTitle.Length > 20 ? m.GroupTitle.Substring(0, 20) : m.GroupTitle);
-                block.GroupID = m.GroupID;
-                block.GroupName = Util.StringToBytes256(m.GroupName.Length > 35 ? m.GroupName.Substring(0, 35) : m.GroupName);
-                block.GroupInsigniaID = m.GroupPicture;
-
-                p.GroupData[i] = block;
-            }
-
-            p.NewGroupData.ListInProfile = true;
-
-            OutPacket(p, ThrottleOutPacketType.Task);
+             OSDMap llsd = new OSDMap(3);
+             OSDArray AgentData = new OSDArray(1);
+             OSDMap AgentDataMap = new OSDMap(1);
+             AgentDataMap.Add("AgentID", OSD.FromUUID(this.AgentId));
+             AgentDataMap.Add("AvatarID", OSD.FromUUID(avatarID));
+             AgentData.Add(AgentDataMap);
+             llsd.Add("AgentData", AgentData);
+             OSDArray GroupData = new OSDArray(data.Length);
+             OSDArray NewGroupData = new OSDArray(data.Length);
+             foreach (GroupMembershipData m in data)
+             {
+                 OSDMap GroupDataMap = new OSDMap(6);
+                 OSDMap NewGroupDataMap = new OSDMap(1);
+                 GroupDataMap.Add("GroupPowers", OSD.FromBinary(m.GroupPowers));
+                 GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
+                 GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
+                 GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
+                 GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
+                 GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
+                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
+                 GroupData.Add(GroupDataMap);
+                 NewGroupData.Add(NewGroupDataMap);
+             }
+             llsd.Add("GroupData", GroupData);
+             llsd.Add("NewGroupData", NewGroupData);
+ 
+             IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
+             if (eq != null)
+             {
+                 eq.Enqueue(BuildEvent("AvatarGroupsReply", llsd), this.AgentId);
+             }
         }
 
         public void SendJoinGroupReply(UUID groupID, bool success)
@@ -10299,5 +10304,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         #endregion
 
+        public static OSD BuildEvent(string eventName, OSD eventBody)
+        {
+            OSDMap osdEvent = new OSDMap(2);
+            osdEvent.Add("message", new OSDString(eventName));
+            osdEvent.Add("body", eventBody);
+
+            return osdEvent;
+        }
     }
 }
