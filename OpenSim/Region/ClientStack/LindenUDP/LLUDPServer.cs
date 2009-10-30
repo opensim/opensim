@@ -153,6 +153,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>Flag to signal when clients should send pings</summary>
         private bool m_sendPing;
 
+        private int m_defaultRTO = 0;
+        private int m_maxRTO = 0;
+
         public Socket Server { get { return null; } }
 
         public LLUDPServer(IPAddress listenIP, ref uint port, int proxyPortOffsetParm, bool allow_alternate_port, IConfigSource configSource, AgentCircuitManager circuitManager)
@@ -189,6 +192,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AvatarTerseUpdatesPerPacket = config.GetInt("AvatarTerseUpdatesPerPacket", 10);
                 PrimFullUpdatesPerPacket = config.GetInt("PrimFullUpdatesPerPacket", 100);
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
+
+                m_defaultRTO = config.GetInt("DefaultRTO", 0);
+                m_maxRTO = config.GetInt("MaxRTO", 0);
             }
             else
             {
@@ -766,7 +772,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             // Create the LLUDPClient
-            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
+            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
             IClientAPI existingClient;
 
             if (!m_scene.TryGetClient(agentID, out existingClient))

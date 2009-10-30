@@ -143,6 +143,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>A reference to the LLUDPServer that is managing this client</summary>
         private readonly LLUDPServer m_udpServer;
 
+        private int m_defaultRTO = 3000;
+        private int m_maxRTO = 60000;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -153,12 +156,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="circuitCode">Circuit code for this connection</param>
         /// <param name="agentID">AgentID for the connected agent</param>
         /// <param name="remoteEndPoint">Remote endpoint for this connection</param>
-        public LLUDPClient(LLUDPServer server, ThrottleRates rates, TokenBucket parentThrottle, uint circuitCode, UUID agentID, IPEndPoint remoteEndPoint)
+        public LLUDPClient(LLUDPServer server, ThrottleRates rates, TokenBucket parentThrottle, uint circuitCode, UUID agentID, IPEndPoint remoteEndPoint, int defaultRTO, int maxRTO)
         {
             AgentID = agentID;
             RemoteEndPoint = remoteEndPoint;
             CircuitCode = circuitCode;
             m_udpServer = server;
+            if (defaultRTO != 0)
+                m_defaultRTO = defaultRTO;
+            if (maxRTO != 0)
+                m_maxRTO = maxRTO;
+
             // Create a token bucket throttle for this client that has the scene token bucket as a parent
             m_throttle = new TokenBucket(parentThrottle, rates.TotalLimit, rates.Total);
             // Create an array of token buckets for this clients different throttle categories
@@ -175,7 +183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Default the retransmission timeout to three seconds
-            RTO = 3000;
+            RTO = m_defaultRTO;
 
             // Initialize this to a sane value to prevent early disconnects
             TickLastPacketReceived = Environment.TickCount & Int32.MaxValue;
@@ -497,7 +505,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int rto = (int)(SRTT + Math.Max(m_udpServer.TickCountResolution, K * RTTVAR));
 
             // Clamp the retransmission timeout to manageable values
-            rto = Utils.Clamp(RTO, 3000, 60000);
+            rto = Utils.Clamp(RTO, m_defaultRTO, m_maxRTO);
 
             RTO = rto;
 
@@ -517,7 +525,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RTTVAR = 0.0f;
 
             // Double the retransmission timeout
-            RTO = Math.Min(RTO * 2, 60000);
+            RTO = Math.Min(RTO * 2, m_maxRTO);
         }
 
         /// <summary>
