@@ -4329,11 +4329,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void RegisterLocalPacketHandlers()
         {
-            AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.LogoutRequest, HandleLogout);
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
-            AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
-            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
+            AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached);
+            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
             AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
@@ -4602,7 +4602,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="client"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected virtual bool Logout(IClientAPI client, Packet packet)
+        protected virtual bool HandleLogout(IClientAPI client, Packet packet)
         {
             if (packet.Type == PacketType.LogoutRequest)
             {
@@ -4640,7 +4640,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
+        protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //m_log.Debug("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
@@ -4670,7 +4670,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
+        protected bool HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
             if (multipleupdate.AgentData.SessionID != SessionId) return false;

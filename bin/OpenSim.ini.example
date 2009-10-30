@@ -42,7 +42,7 @@
     ; SmartThreadPool is reported to work well on Mono/Linux, but 
     ; UnsafeQueueUserWorkItem has been benchmarked with better
     ; performance on .NET/Windows
-    ;async_call_method = SmartThreadPool
+    async_call_method = SmartThreadPool
     
     ; There are several operations on large collections (such as
     ; the current avatar list) that can be run synchronously or
