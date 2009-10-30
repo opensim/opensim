@@ -2801,9 +2801,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AvatarGroupsReplyPacket.GroupDataBlock block = new AvatarGroupsReplyPacket.GroupDataBlock();
                 block.GroupPowers = m.GroupPowers;
                 block.AcceptNotices = m.AcceptNotices;
-                block.GroupTitle = Util.StringToBytes256(m.GroupTitle.Substring(0, 20));
+                block.GroupTitle = Util.StringToBytes256(m.GroupTitle.Length > 20 ? m.GroupTitle.Substring(0, 20) : m.GroupTitle);
                 block.GroupID = m.GroupID;
-                block.GroupName = Util.StringToBytes256(m.GroupName.Substring(0, 35));
+                block.GroupName = Util.StringToBytes256(m.GroupName.Length > 35 ? m.GroupName.Substring(0, 35) : m.GroupName);
                 block.GroupInsigniaID = m.GroupPicture;
 
                 p.GroupData[i] = block;
