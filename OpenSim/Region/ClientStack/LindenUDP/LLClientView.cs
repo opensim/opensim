@@ -2793,20 +2793,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             p.AgentData.AvatarID = avatarID;
 
             p.GroupData = new AvatarGroupsReplyPacket.GroupDataBlock[data.Length];
-            int i = 0;
-            foreach (GroupMembershipData m in data)
+
+            for (int i = 0; i < data.Length; i++)
             {
-                p.GroupData[i] = new AvatarGroupsReplyPacket.GroupDataBlock();
-                p.GroupData[i].GroupPowers = m.GroupPowers;
-                p.GroupData[i].AcceptNotices = m.AcceptNotices;
-                p.GroupData[i].GroupTitle = Utils.StringToBytes(m.GroupTitle);
-                p.GroupData[i].GroupID = m.GroupID;
-                p.GroupData[i].GroupName = Utils.StringToBytes(m.GroupName);
-                p.GroupData[i].GroupInsigniaID = m.GroupPicture;
-                i++;
+                GroupMembershipData m = data[i];
+
+                AvatarGroupsReplyPacket.GroupDataBlock block = new AvatarGroupsReplyPacket.GroupDataBlock();
+                block.GroupPowers = m.GroupPowers;
+                block.AcceptNotices = m.AcceptNotices;
+                block.GroupTitle = Util.StringToBytes256(m.GroupTitle.Substring(0, 20));
+                block.GroupID = m.GroupID;
+                block.GroupName = Util.StringToBytes256(m.GroupName.Substring(0, 35));
+                block.GroupInsigniaID = m.GroupPicture;
+
+                p.GroupData[i] = block;
             }
 
-            p.NewGroupData = new AvatarGroupsReplyPacket.NewGroupDataBlock();
             p.NewGroupData.ListInProfile = true;
 
             OutPacket(p, ThrottleOutPacketType.Task);

@@ -247,8 +247,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
         {
-            // CoarseLocationUpdate packets cannot be split in an automated way
-            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
+            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
                 allowSplitting = false;
 
             if (allowSplitting && packet.HasVariableBlocks)
