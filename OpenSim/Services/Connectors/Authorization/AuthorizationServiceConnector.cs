@@ -108,7 +108,11 @@ namespace OpenSim.Services.Connectors
                 message="";
                 return m_ResponseOnFailure;
             }
-            
+            if (response==null)
+            {
+                message = "Null Pointer";
+                return m_ResponseOnFailure;
+            }
             m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}", response.Message);
             message = response.Message;
             

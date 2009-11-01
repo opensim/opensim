@@ -3817,7 +3817,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
             case 1: // DATA_ONLINE (0|1)
                 // TODO: implement fetching of this information
-                if (userProfile.CurrentAgent.AgentOnline)
+                    if (userProfile.CurrentAgent!=null && userProfile.CurrentAgent.AgentOnline)
                     reply = "1";
                 else
                     reply = "0";
