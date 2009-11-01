@@ -105,12 +105,12 @@ namespace OpenSim.Services.Connectors
             catch (Exception e)
             {
                 m_log.WarnFormat("[AUTHORIZATION CONNECTOR]: Unable to send authorize {0} for region {1} error thrown during comms with remote server. Reason: {2}", userID, regionID, e.Message);
-                message="";
+                message = "";
                 return m_ResponseOnFailure;
             }
-            if (response==null)
+            if (response == null)
             {
-                message = "Null Pointer";
+                message = "Null response";
                 return m_ResponseOnFailure;
             }
             m_log.DebugFormat("[AUTHORIZATION CONNECTOR] response from remote service was {0}", response.Message);
