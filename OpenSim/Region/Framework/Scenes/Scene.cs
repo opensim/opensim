@@ -279,6 +279,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int backupMS;
         private int terrainMS;
         private int landMS;
+        private int lastCompletedFrame;
 
         public int MonitorFrameTime { get { return frameMS; } }
         public int MonitorPhysicsUpdateTime { get { return physicsMS; } }
@@ -289,6 +290,7 @@ namespace OpenSim.Region.Framework.Scenes
         public int MonitorBackupTime { get { return backupMS; } }
         public int MonitorTerrainTime { get { return terrainMS; } }
         public int MonitorLandTime { get { return landMS; } }
+        public int MonitorLastFrameTick { get { return lastCompletedFrame; } }
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
@@ -1129,6 +1131,7 @@ namespace OpenSim.Region.Framework.Scenes
                         otherMS = tickCount - otherMS;
                         tmpFrameMS -= tickCount;
                         frameMS = tmpFrameMS;
+                        lastCompletedFrame = tickCount;
 
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();

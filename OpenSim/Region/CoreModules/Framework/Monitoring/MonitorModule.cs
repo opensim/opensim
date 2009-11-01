@@ -2,6 +2,7 @@
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -12,13 +13,22 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
     {
         private Scene m_scene;
         private readonly List<IMonitor> m_monitors = new List<IMonitor>();
+        private readonly List<IAlert> m_alerts = new List<IAlert>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void DebugMonitors(string module, string[] args)
         {
             foreach (IMonitor monitor in m_monitors)
             {
-                m_log.Info("[MonitorModule] " + m_scene.RegionInfo.RegionName + " reports " + monitor.GetName() + " = " + monitor.GetValue());
+                m_log.Info("[MonitorModule] " + m_scene.RegionInfo.RegionName + " reports " + monitor.GetName() + " = " + monitor.GetFriendlyValue());
+            }
+        }
+
+        public void TestAlerts()
+        {
+            foreach (IAlert alert in m_alerts)
+            {
+                alert.Test();
             }
         }
 
@@ -48,6 +58,19 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             m_monitors.Add(new TotalFrameMonitor(m_scene));
             m_monitors.Add(new EventFrameMonitor(m_scene));
             m_monitors.Add(new LandFrameMonitor(m_scene));
+            m_monitors.Add(new LastFrameTimeMonitor(m_scene));
+
+            m_alerts.Add(new DeadlockAlert(m_monitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
+
+            foreach (IAlert alert in m_alerts)
+            {
+                alert.OnTriggerAlert += OnTriggerAlert;
+            }
+        }
+
+        void OnTriggerAlert(System.Type reporter, string reason, bool fatal)
+        {
+            m_log.Error("[Monitor] " + reporter.Name + " for " + m_scene.RegionInfo.RegionName + " reports " + reason + " (Fatal: " + fatal + ")");
         }
 
         public void Close()
