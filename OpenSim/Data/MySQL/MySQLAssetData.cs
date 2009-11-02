@@ -139,42 +139,45 @@ namespace OpenSim.Data.MySQL
             {
                 _dbConnection.CheckConnection();
 
-                using (MySqlCommand cmd = new MySqlCommand(
-                    "SELECT name, description, assetType, local, temporary, data FROM assets WHERE id=?id",
-                    _dbConnection.Connection))
+                MySqlCommand cmd =
+                    new MySqlCommand(
+                        "SELECT name, description, assetType, local, temporary, data FROM assets WHERE id=?id",
+                        _dbConnection.Connection);
+                cmd.Parameters.AddWithValue("?id", assetID.ToString());
+
+                try
                 {
-                    cmd.Parameters.AddWithValue("?id", assetID.ToString());
-
-                    try
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                        if (dbReader.Read())
                         {
-                            if (dbReader.Read())
-                            {
-                                asset = new AssetBase();
-                                asset.Data = (byte[])dbReader["data"];
-                                asset.Description = (string)dbReader["description"];
-                                asset.FullID = assetID;
+                            asset = new AssetBase();
+                            asset.Data = (byte[]) dbReader["data"];
+                            asset.Description = (string) dbReader["description"];
+                            asset.FullID = assetID;
 
-                                string local = dbReader["local"].ToString();
-                                if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-                                    asset.Local = true;
-                                else
-                                    asset.Local = false;
+                            string local = dbReader["local"].ToString();
+                            if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+                                asset.Local = true;
+                            else
+                                asset.Local = false;
 
-                                asset.Name = (string)dbReader["name"];
-                                asset.Type = (sbyte)dbReader["assetType"];
-                                asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
-                            }
+                            asset.Name = (string) dbReader["name"];
+                            asset.Type = (sbyte) dbReader["assetType"];
+                            asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                         }
+                        dbReader.Close();
+                        cmd.Dispose();
                     }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
-                            + Environment.NewLine + "Reconnecting", assetID);
-                        _dbConnection.Reconnect();
-                    }
+                    if (asset != null)
+                        UpdateAccessTime(asset);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                        + Environment.NewLine + "Reconnecting", assetID);
+                    _dbConnection.Reconnect();
                 }
             }
             return asset;
@@ -291,27 +294,32 @@ namespace OpenSim.Data.MySQL
             {
                 _dbConnection.CheckConnection();
 
-                using (MySqlCommand cmd = new MySqlCommand(
-                    "SELECT id FROM assets WHERE id=?id",
-                    _dbConnection.Connection))
-                {
-                    cmd.Parameters.AddWithValue("?id", uuid.ToString());
+                MySqlCommand cmd =
+                    new MySqlCommand(
+                        "SELECT id FROM assets WHERE id=?id",
+                        _dbConnection.Connection);
 
-                    try
+                cmd.Parameters.AddWithValue("?id", uuid.ToString());
+
+                try
+                {
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                        if (dbReader.Read())
                         {
-                            if (dbReader.Read())
-                                assetExists = true;
+                            assetExists = true;
                         }
+
+                        dbReader.Close();
+                        cmd.Dispose();
                     }
-                    catch (Exception e)
-                    {
-                        m_log.ErrorFormat(
-                            "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
-                            + Environment.NewLine + "Attempting reconnection", uuid);
-                        _dbConnection.Reconnect();
-                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                        + Environment.NewLine + "Attempting reconnection", uuid);
+                    _dbConnection.Reconnect();
                 }
             }
 
