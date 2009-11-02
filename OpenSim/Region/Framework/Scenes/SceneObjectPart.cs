@@ -507,20 +507,17 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
-                if (PhysActor != null && _parentID == 0)
+                PhysicsActor actor = PhysActor;
+                if (actor != null && _parentID == 0)
                 {
-                    m_groupPosition.X = PhysActor.Position.X;
-                    m_groupPosition.Y = PhysActor.Position.Y;
-                    m_groupPosition.Z = PhysActor.Position.Z;
+                    m_groupPosition = actor.Position;
                 }
 
                 if (IsAttachment)
                 {
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                     if (sp != null)
-                    {
                         return sp.AbsolutePosition;
-                    }
                 }
 
                 return m_groupPosition;
@@ -531,26 +528,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_groupPosition = value;
 
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
                     try
                     {
                         // Root prim actually goes at Position
                         if (_parentID == 0)
                         {
-                            PhysActor.Position = value;
+                            actor.Position = value;
                         }
                         else
                         {
                             // To move the child prim in respect to the group position and rotation we have to calculate
-                            Vector3 resultingposition = GetWorldPosition();
-                            PhysActor.Position = resultingposition;
-                            Quaternion resultingrot = GetWorldRotation();
-                            PhysActor.Orientation = resultingrot;
+                            actor.Position = GetWorldPosition();
+                            actor.Orientation = GetWorldRotation();
                         }
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                     catch (Exception e)
                     {
@@ -583,15 +579,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)
                 {
-                     if (_parentID != 0 && PhysActor != null)
+                    PhysicsActor actor = PhysActor;
+                    if (_parentID != 0 && actor != null)
                     {
-                        Vector3 resultingposition = GetWorldPosition();
-                        PhysActor.Position = resultingposition;
-                        Quaternion resultingrot = GetWorldRotation();
-                        PhysActor.Orientation = resultingrot;
+                        actor.Position = GetWorldPosition();
+                        actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
@@ -602,12 +597,13 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
-                if ((_parentID == 0) && (Shape.PCode != 9 || Shape.State == 0)  && (PhysActor != null))
+                PhysicsActor actor = PhysActor;
+                if (_parentID == 0 && (Shape.PCode != 9 || Shape.State == 0)  && actor != null)
                 {
-                    if (PhysActor.Orientation.X != 0 || PhysActor.Orientation.Y != 0
-                        || PhysActor.Orientation.Z != 0 || PhysActor.Orientation.W != 0)
+                    if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
+                        || actor.Orientation.Z != 0f || actor.Orientation.W != 0f)
                     {
-                        m_rotationOffset = PhysActor.Orientation;
+                        m_rotationOffset = actor.Orientation;
                     }
                 }
                 
@@ -619,24 +615,25 @@ namespace OpenSim.Region.Framework.Scenes
                 StoreUndoState();
                 m_rotationOffset = value;
 
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
                     try
                     {
                         // Root prim gets value directly
                         if (_parentID == 0)
                         {
-                            PhysActor.Orientation = value;
-                            //m_log.Info("[PART]: RO1:" + PhysActor.Orientation.ToString());
+                            actor.Orientation = value;
+                            //m_log.Info("[PART]: RO1:" + actor.Orientation.ToString());
                         }
                         else
                         {
                             // Child prim we have to calculate it's world rotationwel
                             Quaternion resultingrotation = GetWorldRotation();
-                            PhysActor.Orientation = resultingrotation;
-                            //m_log.Info("[PART]: RO2:" + PhysActor.Orientation.ToString());
+                            actor.Orientation = resultingrotation;
+                            //m_log.Info("[PART]: RO2:" + actor.Orientation.ToString());
                         }
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                         //}
                     }
                     catch (Exception ex)
@@ -653,16 +650,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                //if (PhysActor.Velocity.X != 0 || PhysActor.Velocity.Y != 0
-                //|| PhysActor.Velocity.Z != 0)
-                //{
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    if (PhysActor.IsPhysical)
+                    if (actor.IsPhysical)
                     {
-                        m_velocity.X = PhysActor.Velocity.X;
-                        m_velocity.Y = PhysActor.Velocity.Y;
-                        m_velocity.Z = PhysActor.Velocity.Z;
+                        m_velocity = actor.Velocity;
                     }
                 }
 
@@ -672,12 +665,14 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_velocity = value;
-                if (PhysActor != null)
+
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    if (PhysActor.IsPhysical)
+                    if (actor.IsPhysical)
                     {
-                        PhysActor.Velocity = value;
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        actor.Velocity = value;
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
@@ -688,9 +683,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if ((PhysActor != null) && PhysActor.IsPhysical)
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical)
                 {
-                    m_angularVelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
+                    m_angularVelocity = actor.RotationalVelocity;
                 }
                 return m_angularVelocity;
             }
@@ -710,9 +706,10 @@ namespace OpenSim.Region.Framework.Scenes
             set 
             {
                 m_description = value;
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    PhysActor.SOPDescription = value;
+                    actor.SOPDescription = value;
                 }
             }
         }
@@ -803,21 +800,23 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 StoreUndoState();
-if (m_shape != null) {
-                m_shape.Scale = value;
-
-                if (PhysActor != null && m_parentGroup != null)
+                if (m_shape != null)
                 {
-                    if (m_parentGroup.Scene != null)
+                    m_shape.Scale = value;
+
+                    PhysicsActor actor = PhysActor;
+                    if (actor != null && m_parentGroup != null)
                     {
-                        if (m_parentGroup.Scene.PhysicsScene != null)
+                        if (m_parentGroup.Scene != null)
                         {
-                            PhysActor.Size = m_shape.Scale;
-                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                            if (m_parentGroup.Scene.PhysicsScene != null)
+                            {
+                                actor.Size = m_shape.Scale;
+                                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                            }
                         }
                     }
                 }
-}
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
@@ -1050,8 +1049,6 @@ if (m_shape != null) {
         }
 
         #endregion Public Properties with only Get
-
-        
 
         #region Private Methods
 
