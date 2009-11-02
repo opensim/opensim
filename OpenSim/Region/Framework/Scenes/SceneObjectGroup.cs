@@ -2946,12 +2946,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
         {
-        
             m_rootPart.UpdateRotation(rot);
-            if (m_rootPart.PhysActor != null)
+
+            PhysicsActor actor = m_rootPart.PhysActor;
+            if (actor != null)
             {
-                m_rootPart.PhysActor.Orientation = m_rootPart.RotationOffset;
-                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                actor.Orientation = m_rootPart.RotationOffset;
+                m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
 
             HasGroupChanged = true;
@@ -2966,11 +2967,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
             m_rootPart.UpdateRotation(rot);
-            if (m_rootPart.PhysActor != null)
+
+            PhysicsActor actor = m_rootPart.PhysActor;
+            if (actor != null)
             {
-                m_rootPart.PhysActor.Orientation = m_rootPart.RotationOffset;
-                m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                actor.Orientation = m_rootPart.RotationOffset;
+                m_scene.PhysicsScene.AddPhysicsActorTaint(actor);
             }
+
             AbsolutePosition = pos;
 
             HasGroupChanged = true;
