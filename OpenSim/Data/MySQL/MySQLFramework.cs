@@ -69,7 +69,6 @@ namespace OpenSim.Data.MySQL
                     }
                     catch (MySqlException e)
                     {
-Console.WriteLine(e.ToString());
                         if (errorSeen)
                             throw;
 
@@ -93,7 +92,6 @@ Console.WriteLine(e.ToString());
                     }
                     catch (Exception e)
                     {
-Console.WriteLine(e.ToString());
                         return 0;
                     }
                 }
