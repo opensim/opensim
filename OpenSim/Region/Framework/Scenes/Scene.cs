@@ -4635,7 +4635,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart trackedBody = GetSceneObjectPart(joint.TrackedBodyName); // FIXME: causes a sequential lookup
             if (trackedBody == null) return; // the actor may have been deleted but the joint still lingers around a few frames waiting for deletion. during this time, trackedBody is NULL to prevent further motion of the joint proxy.
             jointProxyObject.Velocity = trackedBody.Velocity;
-            jointProxyObject.RotationalVelocity = trackedBody.RotationalVelocity;
+            jointProxyObject.AngularVelocity = trackedBody.AngularVelocity;
             switch (joint.Type)
             {
                 case PhysicsJointType.Ball:

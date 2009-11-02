@@ -2163,7 +2163,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetOmega()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Vector(m_host.RotationalVelocity.X, m_host.RotationalVelocity.Y, m_host.RotationalVelocity.Z);
+            return new LSL_Vector(m_host.AngularVelocity.X, m_host.AngularVelocity.Y, m_host.AngularVelocity.Z);
         }
 
         public LSL_Float llGetTimeOfDay()
@@ -3159,7 +3159,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llTargetOmega(LSL_Vector axis, double spinrate, double gain)
         {
             m_host.AddScriptLPS(1);
-            m_host.RotationalVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.AngularVelocity = new Vector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.ScheduleTerseUpdate();
             m_host.SendTerseUpdateToAllClients();

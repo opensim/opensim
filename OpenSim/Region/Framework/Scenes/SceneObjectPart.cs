@@ -683,12 +683,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public Vector3 RotationalVelocity
-        {
-            get { return AngularVelocity; }
-            set { AngularVelocity = value; }
-        }
-
         /// <summary></summary>
         public Vector3 AngularVelocity
         {
@@ -1552,9 +1546,9 @@ if (m_shape != null) {
                         m_parentGroup.Scene.PhysicsScene.RequestJointDeletion(Name); // FIXME: what if the name changed?
 
                         // make sure client isn't interpolating the joint proxy object
-                        Velocity = new Vector3(0, 0, 0);
-                        RotationalVelocity = new Vector3(0, 0, 0);
-                        Acceleration = new Vector3(0, 0, 0);
+                        Velocity = Vector3.Zero;
+                        AngularVelocity = Vector3.Zero;
+                        Acceleration = Vector3.Zero;
                     }
                 }
             }
@@ -2384,7 +2378,7 @@ if (m_shape != null) {
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, m_parentGroup.GetTimeDilation(), LocalId, m_shape,
-                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
+                                               lPos, Velocity, Acceleration, RotationOffset, AngularVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
                                                AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, ParentGroup.GetUpdatePriority(remoteClient)));
         }
@@ -2405,7 +2399,7 @@ if (m_shape != null) {
                 if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Acceleration.Equals(m_lastAcceleration) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
-                    !RotationalVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
+                    !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
                     !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
@@ -2425,7 +2419,7 @@ if (m_shape != null) {
                     m_lastRotation = RotationOffset;
                     m_lastVelocity = Velocity;
                     m_lastAcceleration = Acceleration;
-                    m_lastAngularVelocity = RotationalVelocity;
+                    m_lastAngularVelocity = AngularVelocity;
                     m_lastTerseSent = Environment.TickCount;
                 }
             }
@@ -3787,7 +3781,7 @@ if (m_shape != null) {
             remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
                     m_parentGroup.GetTimeDilation(), LocalId, lPos,
                     RotationOffset, Velocity, Acceleration,
-                    RotationalVelocity, state, FromItemID,
+                    AngularVelocity, state, FromItemID,
                     OwnerID, (int)AttachmentPoint, null, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 
