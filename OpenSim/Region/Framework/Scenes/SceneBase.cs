@@ -106,9 +106,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public float TimeDilation
         {
-            get { return m_timedilation; }
+            get { return 1.0f; }
         }
-        protected float m_timedilation = 1.0f;
 
         protected ulong m_regionHandle;
         protected string m_regionName;

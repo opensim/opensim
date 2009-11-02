@@ -110,8 +110,11 @@ namespace OpenSim.Client.MXP
         public void Close()
         {
             m_shutdown = true;
-            lock (m_ticker)
-                m_ticker.Stop();
+            if (m_ticker != null)
+            {
+                lock (m_ticker)
+                    m_ticker.Stop();
+            }
         }
 
         public string Name

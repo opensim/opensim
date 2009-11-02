@@ -97,14 +97,16 @@ namespace OpenSim.Data.MySQL
                     ret.Data[s] = result[s].ToString();
                 }
 
-                CloseDBConnection(result, cmd);
+                result.Close();
+                CloseReaderCommand(cmd);
+
                 return ret;
             }
-            else
-            {
-                CloseDBConnection(result, cmd);
-                return null;
-            }
+
+            result.Close();
+            CloseReaderCommand(cmd);
+
+            return null;
         }
 
         public bool Store(UserAccountData data)
@@ -116,60 +118,61 @@ namespace OpenSim.Data.MySQL
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            MySqlCommand cmd = new MySqlCommand();
+
+            string update = "update `"+m_Realm+"` set ";
+            bool first = true;
+            foreach (string field in fields)
             {
-                string update = "update `" + m_Realm + "` set ";
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = ?" + field;
+                if (!first)
+                    update += ", ";
+                update += "`" + field + "` = ?"+field;
 
-                    first = false;
+                first = false;
 
-                    cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
-                }
+                cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
+            }
 
-                update += " where UUID = ?principalID";
+            update += " where UUID = ?principalID";
 
-                if (data.ScopeID != UUID.Zero)
-                    update += " and ScopeID = ?scopeID";
+            if (data.ScopeID != UUID.Zero)
+                update += " and ScopeID = ?scopeID";
 
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
+            cmd.CommandText = update;
+            cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
+            cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
+
+            if (ExecuteNonQuery(cmd) < 1)
+            {
+                string insert = "insert into `" + m_Realm + "` (`UUID`, `ScopeID`, `" +
+                        String.Join("`, `", fields) +
+                        "`) values (?principalID, ?scopeID, ?" + String.Join(", ?", fields) + ")";
+
+                cmd.CommandText = insert;
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `ScopeID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?scopeID, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
-                    {
-                        cmd.Dispose();
-                        return false;
-                    }
+                    cmd.Dispose();
+                    return false;
                 }
             }
+
+            cmd.Dispose();
 
             return true;
         }
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" +
-                item + "` = ?" + item + " where UUID = ?UUID"))
-            {
-                cmd.Parameters.AddWithValue("?" + item, value);
-                cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
+            MySqlCommand cmd = new MySqlCommand("update `" + m_Realm +
+                    "` set `" + item + "` = ?" + item + " where UUID = ?UUID");
 
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
+
+            cmd.Parameters.AddWithValue("?"+item, value);
+            cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
+
+            if (ExecuteNonQuery(cmd) > 0)
+                return true;
 
             return false;
         }

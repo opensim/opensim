@@ -74,27 +74,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
         private string m_PrimName;
         private string m_ScriptName;
         private string m_Assembly;
-        private int m_StartParam = 0;
+        private int m_StartParam;
         private string m_CurrentEvent = String.Empty;
-        private bool m_InSelfDelete = false;
+        private bool m_InSelfDelete;
         private int m_MaxScriptQueue;
         private bool m_SaveState = true;
-        private bool m_ShuttingDown = false;
-        private int m_ControlEventsInQueue = 0;
-        private int m_LastControlLevel = 0;
-        private bool m_CollisionInQueue = false;
+        private bool m_ShuttingDown;
+        private int m_ControlEventsInQueue;
+        private int m_LastControlLevel;
+        private bool m_CollisionInQueue;
         private TaskInventoryItem m_thisScriptTask;
         // The following is for setting a minimum delay between events
-        private double m_minEventDelay = 0;
-        private long m_eventDelayTicks = 0;
-        private long m_nextEventTimeTicks = 0;
+        private double m_minEventDelay;
+        private long m_eventDelayTicks;
+        private long m_nextEventTimeTicks;
         private bool m_startOnInit = true;
-        private UUID m_AttachedAvatar = UUID.Zero;
+        private UUID m_AttachedAvatar;
         private StateSource m_stateSource;
         private bool m_postOnRez;
-        private bool m_startedFromSavedState = false;
-        private string m_CurrentState = String.Empty;
-        private UUID m_RegionID = UUID.Zero;
+        private bool m_startedFromSavedState;
+        private UUID m_CurrentStateHash;
+        private UUID m_RegionID;
 
         private Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>>
                 m_LineMap;
@@ -252,16 +252,22 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_Apis[api] = am.CreateApi(api);
                 m_Apis[api].Initialize(engine, part, m_LocalID, itemID);
-            }
+	    }
 
-            try
-            {
-                m_Script = (IScript)dom.CreateInstanceAndUnwrap(
-                    Path.GetFileNameWithoutExtension(assembly),
-                    "SecondLife.Script");
+	    try
+	    {
+		    if (dom != System.AppDomain.CurrentDomain)
+			    m_Script = (IScript)dom.CreateInstanceAndUnwrap(
+					    Path.GetFileNameWithoutExtension(assembly),
+					    "SecondLife.Script");
+		    else
+			    m_Script = (IScript)Assembly.Load(
+					    Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
+					    "SecondLife.Script");
+
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
-                RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
+                //RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
 //                lease.Register(this);
             }
             catch (Exception)
@@ -893,7 +899,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             string xml = ScriptSerializer.Serialize(this);
 
-            if (m_CurrentState != xml)
+            // Compare hash of the state we just just created with the state last written to disk
+            // If the state is different, update the disk file.
+            UUID hash = UUID.Parse(Utils.MD5String(xml));
+
+            if(hash != m_CurrentStateHash)
             {
                 try
                 {
@@ -911,7 +921,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                 //{
                 //    throw new Exception("Completed persistence save, but no file was created");
                 //}
-                m_CurrentState = xml;
+                m_CurrentStateHash = hash;
             }
         }
 

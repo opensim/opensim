@@ -81,12 +81,11 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
             y.Scale = new Vector3(0.01f,0.01f,0.01f);
             y.LastOwnerID = UUID.Zero;
             y.GroupPosition = groupPos;
-            y.OffsetPosition = new Vector3(0, 0, 0);
-            y.RotationOffset = new Quaternion(0,0,0,0);
-            y.Velocity = new Vector3(0, 0, 0);
-            y.RotationalVelocity = new Vector3(0, 0, 0);
-            y.AngularVelocity = new Vector3(0, 0, 0);
-            y.Acceleration = new Vector3(0, 0, 0);
+            y.OffsetPosition = Vector3.Zero;
+            y.RotationOffset = Quaternion.Identity;
+            y.Velocity = Vector3.Zero;
+            y.AngularVelocity = Vector3.Zero;
+            y.Acceleration = Vector3.Zero;
 
             y.Flags = 0;
             y.TrimPermissions();

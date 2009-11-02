@@ -908,7 +908,7 @@ namespace OpenSim.Data.MySQL
             if (!(row["ParticleSystem"] is DBNull))
                 prim.ParticleSystem = (byte[])row["ParticleSystem"];
 
-            prim.RotationalVelocity = new Vector3(
+            prim.AngularVelocity = new Vector3(
                 (float)(double)row["OmegaX"],
                 (float)(double)row["OmegaY"],
                 (float)(double)row["OmegaZ"]
@@ -1240,9 +1240,9 @@ namespace OpenSim.Data.MySQL
             cmd.Parameters.AddWithValue("TextureAnimation", prim.TextureAnimation);
             cmd.Parameters.AddWithValue("ParticleSystem", prim.ParticleSystem);
 
-            cmd.Parameters.AddWithValue("OmegaX", (double)prim.RotationalVelocity.X);
-            cmd.Parameters.AddWithValue("OmegaY", (double)prim.RotationalVelocity.Y);
-            cmd.Parameters.AddWithValue("OmegaZ", (double)prim.RotationalVelocity.Z);
+            cmd.Parameters.AddWithValue("OmegaX", (double)prim.AngularVelocity.X);
+            cmd.Parameters.AddWithValue("OmegaY", (double)prim.AngularVelocity.Y);
+            cmd.Parameters.AddWithValue("OmegaZ", (double)prim.AngularVelocity.Z);
 
             cmd.Parameters.AddWithValue("CameraEyeOffsetX", (double)prim.GetCameraEyeOffset().X);
             cmd.Parameters.AddWithValue("CameraEyeOffsetY", (double)prim.GetCameraEyeOffset().Y);

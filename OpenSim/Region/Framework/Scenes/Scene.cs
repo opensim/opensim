@@ -135,6 +135,11 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneCommunicationService m_sceneGridService;
         public bool loginsdisabled = true;
 
+        public new float TimeDilation
+        {
+            get { return m_sceneGraph.PhysicsScene.TimeDilation; }
+        }
+
         public SceneCommunicationService SceneGridService
         {
             get { return m_sceneGridService; }
@@ -252,7 +257,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Central Update Loop
 
         protected int m_fps = 10;
-        protected int m_frame;
+        protected uint m_frame;
         protected float m_timespan = 0.089f;
         protected DateTime m_lastupdate = DateTime.UtcNow;
 
@@ -269,6 +274,23 @@ namespace OpenSim.Region.Framework.Scenes
         private int physicsMS2;
         private int physicsMS;
         private int otherMS;
+        private int tempOnRezMS;
+        private int eventMS;
+        private int backupMS;
+        private int terrainMS;
+        private int landMS;
+        private int lastCompletedFrame;
+
+        public int MonitorFrameTime { get { return frameMS; } }
+        public int MonitorPhysicsUpdateTime { get { return physicsMS; } }
+        public int MonitorPhysicsSyncTime { get { return physicsMS2; } }
+        public int MonitorOtherTime { get { return otherMS; } }
+        public int MonitorTempOnRezTime { get { return tempOnRezMS; } }
+        public int MonitorEventTime { get { return eventMS; } } // This may need to be divided into each event?
+        public int MonitorBackupTime { get { return backupMS; } }
+        public int MonitorTerrainTime { get { return terrainMS; } }
+        public int MonitorLandTime { get { return landMS; } }
+        public int MonitorLastFrameTick { get { return lastCompletedFrame; } }
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
@@ -1013,36 +1035,25 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public override void Update()
         {
-            int maintc = 0;
+            float physicsFPS;
+            int maintc;
+
             while (!shuttingdown)
             {
-//#if DEBUG
-//                int w = 0, io = 0;
-//                ThreadPool.GetAvailableThreads(out w, out io);
-//                if ((w < 10) || (io < 10))
-//                    m_log.DebugFormat("[WARNING]: ThreadPool reaching exhaustion. workers = {0}; io = {1}", w, io);
-//#endif
-                maintc = Environment.TickCount;
-
                 TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
-                float physicsFPS = 0;
+                physicsFPS = 0f;
 
-                frameMS = Environment.TickCount;
+                maintc = maintc = otherMS = Environment.TickCount;
+                int tmpFrameMS = maintc;
+
+                // Increment the frame counter
+                ++m_frame;
 
                 try
                 {
-                    // Increment the frame counter
-                    m_frame++;
-
-                    // Loop it
-                    if (m_frame == Int32.MaxValue)
-                        m_frame = 0;
-
-                    otherMS = Environment.TickCount;
-
                     // Check if any objects have reached their targets
                     CheckAtTargets();
- 
+
                     // Update SceneObjectGroups that have scheduled themselves for updates
                     // Objects queue their updates onto all scene presences
                     if (m_frame % m_update_objects == 0)
@@ -1053,62 +1064,92 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
-                    physicsMS2 = Environment.TickCount;
+                    int TempPhysicsMS2 = Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
                         m_sceneGraph.UpdatePreparePhysics();
-                    physicsMS2 = Environment.TickCount - physicsMS2;
+                    TempPhysicsMS2 = Environment.TickCount - TempPhysicsMS2;
+                    physicsMS2 = TempPhysicsMS2;
 
                     if (m_frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
-                    physicsMS = Environment.TickCount;
-                    if ((m_frame % m_update_physics == 0) && m_physics_enabled)
-                        physicsFPS = m_sceneGraph.UpdatePhysics(
-                            Math.Max(SinceLastFrame.TotalSeconds, m_timespan)
-                            );
-                    if (m_frame % m_update_physics == 0 && SynchronizeScene != null)
-                        SynchronizeScene(this);
-
-                    physicsMS = Environment.TickCount - physicsMS;
-                    physicsMS += physicsMS2;
+                    int TempPhysicsMS = Environment.TickCount;
+                    if (m_frame % m_update_physics == 0)
+                    {
+                        if (m_physics_enabled)
+                            physicsFPS = m_sceneGraph.UpdatePhysics(Math.Max(SinceLastFrame.TotalSeconds, m_timespan));
+                        if (SynchronizeScene != null)
+                            SynchronizeScene(this);
+                    }
+                    TempPhysicsMS = Environment.TickCount - TempPhysicsMS;
+                    physicsMS = TempPhysicsMS;
 
                     // Delete temp-on-rez stuff
                     if (m_frame % m_update_backup == 0)
+                    {
+                        int tozMS = Environment.TickCount;
                         CleanTempObjects();
+                        tozMS -= Environment.TickCount;
+                        tempOnRezMS = tozMS;
+                    }
 
                     if (RegionStatus != RegionStatus.SlaveScene)
                     {
                         if (m_frame % m_update_events == 0)
+                        {
+                            int evMS = Environment.TickCount;
                             UpdateEvents();
+                            evMS -= Environment.TickCount;
+                            eventMS = evMS;
+                        }
 
                         if (m_frame % m_update_backup == 0)
+                        {
+                            int backMS = Environment.TickCount;
                             UpdateStorageBackup();
+                            backMS -= Environment.TickCount;
+                            backupMS = backMS;
+                        }
 
                         if (m_frame % m_update_terrain == 0)
+                        {
+                            int terMS = Environment.TickCount;
                             UpdateTerrain();
+                            terMS -= Environment.TickCount;
+                            terrainMS = terMS;
+                        }
 
                         if (m_frame % m_update_land == 0)
+                        {
+                            int ldMS = Environment.TickCount;
                             UpdateLand();
+                            ldMS -= Environment.TickCount;
+                            landMS = ldMS;
+                        }
 
-                        otherMS = Environment.TickCount - otherMS;
+                        int tickCount = Environment.TickCount;
+                        otherMS = tickCount - otherMS;
+                        tmpFrameMS -= tickCount;
+                        frameMS = tmpFrameMS;
+                        lastCompletedFrame = tickCount;
+
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
                         StatsReporter.AddPhysicsFPS(physicsFPS);
-                        StatsReporter.AddTimeDilation(m_timedilation);
+                        StatsReporter.AddTimeDilation(TimeDilation);
                         StatsReporter.AddFPS(1);
-                        StatsReporter.AddInPackets(0);
                         StatsReporter.SetRootAgents(m_sceneGraph.GetRootAgentCount());
                         StatsReporter.SetChildAgents(m_sceneGraph.GetChildAgentCount());
                         StatsReporter.SetObjects(m_sceneGraph.GetTotalObjectsCount());
                         StatsReporter.SetActiveObjects(m_sceneGraph.GetActiveObjectsCount());
-                        frameMS = Environment.TickCount - frameMS;
                         StatsReporter.addFrameMS(frameMS);
-                        StatsReporter.addPhysicsMS(physicsMS);
+                        StatsReporter.addPhysicsMS(physicsMS + physicsMS2);
                         StatsReporter.addOtherMS(otherMS);
                         StatsReporter.SetActiveScripts(m_sceneGraph.GetActiveScriptsCount());
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
-                    if (loginsdisabled && (m_frame > 20))
+
+                    if (loginsdisabled && m_frame > 20)
                     {
                         // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                         // this is a rare case where we know we have just went through a long cycle of heap
@@ -1141,18 +1182,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 finally
                 {
-                    //updateLock.ReleaseMutex();
-                    // Get actual time dilation
-                    float tmpval = (m_timespan / (float)SinceLastFrame.TotalSeconds);
-
-                    // If actual time dilation is greater then one, we're catching up, so subtract
-                    // the amount that's greater then 1 from the time dilation
-                    if (tmpval > 1.0)
-                    {
-                        tmpval = tmpval - (tmpval - 1.0f);
-                    }
-                    m_timedilation = tmpval;
-
                     m_lastupdate = DateTime.UtcNow;
                 }
                 maintc = Environment.TickCount - maintc;
@@ -1183,9 +1212,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             lock (m_groupsWithTargets)
             {
-                foreach (KeyValuePair<UUID, SceneObjectGroup> kvp in m_groupsWithTargets)
+                foreach (SceneObjectGroup entry in m_groupsWithTargets.Values)
                 {
-                    kvp.Value.checkAtTargets();
+                    entry.checkAtTargets();
                 }
             }
         }
@@ -4606,7 +4635,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart trackedBody = GetSceneObjectPart(joint.TrackedBodyName); // FIXME: causes a sequential lookup
             if (trackedBody == null) return; // the actor may have been deleted but the joint still lingers around a few frames waiting for deletion. during this time, trackedBody is NULL to prevent further motion of the joint proxy.
             jointProxyObject.Velocity = trackedBody.Velocity;
-            jointProxyObject.RotationalVelocity = trackedBody.RotationalVelocity;
+            jointProxyObject.AngularVelocity = trackedBody.AngularVelocity;
             switch (joint.Type)
             {
                 case PhysicsJointType.Ball:

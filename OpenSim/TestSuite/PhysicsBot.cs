@@ -130,9 +130,9 @@ namespace OpenSim.TestSuite
         public void startup()
         {
             client.Settings.LOGIN_SERVER = loginURI;
-            client.Network.OnConnected += new NetworkManager.ConnectedCallback(this.Network_OnConnected);
-            client.Network.OnSimConnected += new NetworkManager.SimConnectedCallback(this.Network_OnConnected);
-            client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
+            client.Network.LoginProgress += this.Network_LoginProgress;
+            client.Network.SimConnected += this.Network_SimConnected;
+            client.Network.Disconnected += this.Network_OnDisconnected;
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
 
@@ -155,19 +155,22 @@ namespace OpenSim.TestSuite
             }
         }
 
-        public void Network_OnConnected(object sender)
+        public void Network_LoginProgress(object sender, LoginProgressEventArgs args)
         {
-            if (OnConnected != null)
+            if (args.Status == LoginStatus.Success)
             {
-                OnConnected(this, EventType.CONNECTED);
+                if (OnConnected != null)
+                {
+                    OnConnected(this, EventType.CONNECTED);
+                }
             }
         }
 
-        public void Simulator_Connected(object sender)
+        public void Network_SimConnected(object sender, SimConnectedEventArgs args)
         {
         }
 
-        public void Network_OnDisconnected(NetworkManager.DisconnectType reason, string message)
+        public void Network_OnDisconnected(object sender, DisconnectedEventArgs args)
         {
             if (OnDisconnected != null)
             {

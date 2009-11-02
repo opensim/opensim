@@ -284,9 +284,13 @@ namespace OpenSim.Region.Physics.Meshing
 
                     try
                     {
-                        idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
+                        OpenMetaverse.Imaging.ManagedImage unusedData;
+                        OpenMetaverse.Imaging.OpenJPEG.DecodeToImage(primShape.SculptData, out unusedData, out idata);
+                        unusedData = null;
 
-                        if (cacheSculptMaps)
+                        //idata = CSJ2K.J2kImage.FromBytes(primShape.SculptData);
+
+                        if (cacheSculptMaps && idata != null)
                         {
                             try { idata.Save(decodedSculptFileName, ImageFormat.MemoryBmp); }
                             catch (Exception e) { m_log.Error("[SCULPT]: unable to cache sculpt map " + decodedSculptFileName + " " + e.Message); }
@@ -299,12 +303,12 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                     catch (IndexOutOfRangeException)
                     {
-                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this.   Physics Proxy generation failed");
+                        m_log.Error("[PHYSICS]: OpenJpeg was unable to decode this. Physics Proxy generation failed");
                         return null;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
+                        m_log.Error("[PHYSICS]: Unable to generate a Sculpty physics proxy. Sculpty texture decode failed: " + ex.Message);
                         return null;
                     }
                 }
