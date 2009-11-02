@@ -360,7 +360,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     && ((string) requestData["shutdown"] == "delayed")
                     && requestData.ContainsKey("milliseconds"))
                 {
-                    timeout = (Int32) requestData["milliseconds"];
+                    timeout = Int32.Parse(requestData["milliseconds"].ToString());
 
                     message
                         = "Region is going down in " + ((int) (timeout/1000)).ToString()
