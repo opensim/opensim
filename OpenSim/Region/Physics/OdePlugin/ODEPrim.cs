@@ -2958,11 +2958,11 @@ Console.WriteLine(" JointCreateFixed");
             m_eventsubscription = 0;
         }
 
-        public void AddCollisionEvent(uint CollidedWith, float depth)
+        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (CollisionEventsThisFrame == null)
                 CollisionEventsThisFrame = new CollisionEventUpdate();
-            CollisionEventsThisFrame.addCollider(CollidedWith,depth);
+            CollisionEventsThisFrame.addCollider(CollidedWith, contact);
         }
 
         public void SendCollisions()

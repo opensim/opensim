@@ -343,6 +343,10 @@ namespace OpenSim
                                           "Add-InventoryHost <host>",
                                           String.Empty, RunCommand);
 
+            m_console.Commands.AddCommand("region", false, "kill uuid",
+                                          "kill uuid <UUID>",
+                                          "Kill an object by UUID", KillUUID);
+
             if (ConfigurationSettings.Standalone)
             {
                 m_console.Commands.AddCommand("region", false, "create user",
@@ -1330,6 +1334,58 @@ namespace OpenSim
             }
             result = result.TrimEnd(' ');
             return result;
+        }
+
+        /// <summary>
+        /// Kill an object given its UUID.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        protected void KillUUID(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length > 2)
+            {
+                UUID id = UUID.Zero;
+                SceneObjectGroup grp = null;
+                Scene sc = null;
+
+                if (!UUID.TryParse(cmdparams[2], out id))
+                {
+                    MainConsole.Instance.Output("[KillUUID]: Error bad UUID format!");
+                    return;
+                }
+
+                m_sceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        SceneObjectPart part = scene.GetSceneObjectPart(id);
+                        if (part == null)
+                            return;
+
+                        grp = part.ParentGroup;
+                        sc = scene;
+                    });
+
+                if (grp == null)
+                {
+                    MainConsole.Instance.Output(String.Format("[KillUUID]: Given UUID {0} not found!", id));
+                }
+                else
+                {
+                    MainConsole.Instance.Output(String.Format("[KillUUID]: Found UUID {0} in scene {1}", id, sc.RegionInfo.RegionName));
+                    try
+                    {
+                        sc.DeleteSceneObject(grp, false);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[KillUUID]: Error while removing objects from scene: " + e);
+                    }
+                }
+            }
+            else
+            {
+                MainConsole.Instance.Output("[KillUUID]: Usage: kill uuid <UUID>");
+            }
         }
 
         #endregion

@@ -340,6 +340,8 @@ namespace OpenSim.Data.MSSQL
                 MSSQLMigration migration = new MSSQLMigration(connection, assem, migrationStore);
 
                 migration.Update();
+
+                connection.Close();
             }
         }
 
@@ -383,7 +385,9 @@ namespace OpenSim.Data.MSSQL
                         m_log.Error(e.ToString());
                     }
                 }
+                tables.Close();
             }
+
         }
 
         /// <summary>

@@ -50,6 +50,9 @@ using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
+using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
+using Parallel = OpenSim.Framework.Parallel;
+
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
     public class XEngine : INonSharedRegionModule, IScriptModule, IScriptEngine
@@ -73,9 +76,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_InitialStartup = true;
         private int m_ScriptFailCount; // Number of script fails since compile queue was last empty
         private string m_ScriptErrorMessage;
+        private Dictionary<string, string> m_uniqueScripts = new Dictionary<string, string>();
+        private bool m_AppDomainLoading;
 
-// disable warning: need to keep a reference to XEngine.EventManager
-// alive to avoid it being garbage collected
+        // disable warning: need to keep a reference to XEngine.EventManager
+        // alive to avoid it being garbage collected
 #pragma warning disable 414
         private EventManager m_EventManager;
 #pragma warning restore 414
@@ -114,7 +119,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Dictionary<UUID, List<UUID> > m_DomainScripts =
                 new Dictionary<UUID, List<UUID> >();
 
-        private Queue m_CompileQueue = new Queue(100);
+        private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
 
         public string ScriptEngineName
@@ -201,6 +206,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_MaxScriptQueue = m_ScriptConfig.GetInt("MaxScriptEventQueue",300);
             m_StackSize = m_ScriptConfig.GetInt("ThreadStackSize", 262144);
             m_SleepTime = m_ScriptConfig.GetInt("MaintenanceInterval", 10) * 1000;
+            m_AppDomainLoading = m_ScriptConfig.GetBoolean("AppDomainLoading", true);
 
             m_EventLimit = m_ScriptConfig.GetInt("EventLimit", 30);
             m_KillTimedOutScripts = m_ScriptConfig.GetBoolean("KillTimedOutScripts", false);
@@ -470,6 +476,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (engine != ScriptEngineName)
                 return;
 
+            // If we've seen this exact script text before, use that reference instead
+            if (m_uniqueScripts.ContainsKey(script))
+                script = m_uniqueScripts[script];
+            else
+                m_uniqueScripts[script] = script;
+
             Object[] parms = new Object[]{localID, itemID, script, startParam, postOnRez, (StateSource)stateSource};
 
             if (stateSource == (int)StateSource.ScriptedRez)
@@ -478,16 +490,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                lock (m_CompileQueue)
-                {
-                    m_CompileQueue.Enqueue(parms);
+                m_CompileQueue.Enqueue(parms);
 
-                    if (m_CurrentCompile == null)
-                    {
-                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                                new WorkItemCallback(this.DoOnRezScriptQueue),
-                                new Object[0]);
-                    }
+                if (m_CurrentCompile == null)
+                {
+                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
                 }
             }
         }
@@ -498,50 +505,35 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 m_InitialStartup = false;
                 System.Threading.Thread.Sleep(15000);
-                lock (m_CompileQueue) 
+
+                if (m_CompileQueue.Count == 0)
                 {
-                    if (m_CompileQueue.Count==0)
-                        // No scripts on region, so won't get triggered later
-                        // by the queue becoming empty so we trigger it here
-                        m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
+                    // No scripts on region, so won't get triggered later
+                    // by the queue becoming empty so we trigger it here
+                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(0, String.Empty);
                 }
             }
 
-            Object o;
-            lock (m_CompileQueue)
+            List<object[]> compiles = new List<object[]>();
+            object[] o;
+            while (m_CompileQueue.Dequeue(out o))
             {
-                o = m_CompileQueue.Dequeue();
-                if (o == null)
-                {
-                    m_CurrentCompile = null;
-                    return null;
-                }
+                compiles.Add(o);
             }
 
-            DoOnRezScript(o);
+            Parallel.For(0, compiles.Count, delegate(int i) { DoOnRezScript(compiles[i]); });
 
-            lock (m_CompileQueue)
-            {
-                if (m_CompileQueue.Count > 0)
-                {
-                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
-                            new WorkItemCallback(this.DoOnRezScriptQueue),
-                            new Object[0]);
-                }
-                else
-                {
-                    m_CurrentCompile = null;
-                    m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount, 
-                                                                        m_ScriptErrorMessage);
-                    m_ScriptFailCount = 0;
-                }
-            }
+            m_CurrentCompile = null;
+            m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
+                                                                m_ScriptErrorMessage);
+            m_ScriptFailCount = 0;
+
             return null;
         }
 
-        private bool DoOnRezScript(object parm)
+        private bool DoOnRezScript(object[] parms)
         {
-            Object[] p = (Object[])parm;
+            Object[] p = parms;
             uint localID = (uint)p[0];
             UUID itemID = (UUID)p[1];
             string script =(string)p[2];
@@ -590,14 +582,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 lock (m_AddingAssemblies) 
                 {
-                    assembly = (string)m_Compiler.PerformScriptCompile(script,
-                            assetID.ToString(), item.OwnerID);
+                    m_Compiler.PerformScriptCompile(script, assetID.ToString(), item.OwnerID, out assembly, out linemap);
                     if (!m_AddingAssemblies.ContainsKey(assembly)) {
                         m_AddingAssemblies[assembly] = 1;
                     } else {
                         m_AddingAssemblies[assembly]++;
                     }
-                    linemap = m_Compiler.LineMap();
                 }
 
                 string[] warnings = m_Compiler.GetWarnings();
@@ -696,19 +686,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
                             Evidence evidence = new Evidence(baseEvidence);
 
-                            AppDomain sandbox =
-                                AppDomain.CreateDomain(
-                                    m_Scene.RegionInfo.RegionID.ToString(),
-                                    evidence, appSetup);
-/*
-                            PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
-                            AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
-                            PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
-                            PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
-                            CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
-                            sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
-                            sandbox.SetAppDomainPolicy(sandboxPolicy);
-*/
+                            AppDomain sandbox;
+                            if (m_AppDomainLoading)
+                                sandbox = AppDomain.CreateDomain(
+                                                m_Scene.RegionInfo.RegionID.ToString(),
+                                                evidence, appSetup);
+                            else
+                                sandbox = AppDomain.CurrentDomain;
+                            
+                            //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+                            //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+                            //PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+                            //PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+                            //CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+                            //sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+                            //sandbox.SetAppDomainPolicy(sandboxPolicy);
+                            
                             m_AppDomains[appDomain] = sandbox;
 
                             m_AppDomains[appDomain].AssemblyResolve +=
@@ -905,9 +898,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 AppDomain domain = m_AppDomains[id];
                 m_AppDomains.Remove(id);
 
-                AppDomain.Unload(domain);
+                if (domain != AppDomain.CurrentDomain)
+                    AppDomain.Unload(domain);
                 domain = null;
-//                m_log.DebugFormat("[XEngine] Unloaded app domain {0}", id.ToString());
+                // m_log.DebugFormat("[XEngine] Unloaded app domain {0}", id.ToString());
             }
         }
 

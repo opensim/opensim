@@ -37,6 +37,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
@@ -314,14 +315,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
         private readonly UUID m_secureSessionId;
-        private readonly UUID m_agentId;
+        protected readonly UUID m_agentId;
         private readonly uint m_circuitCode;
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
-        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
+        protected PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
         private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates;
         private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates;
         private int m_moneyBalance;
@@ -1856,7 +1857,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             economyData.Info.TeleportMinPrice = TeleportMinPrice;
             economyData.Info.TeleportPriceExponent = TeleportPriceExponent;
             economyData.Header.Reliable = true;
-            OutPacket(economyData, ThrottleOutPacketType.Unknown);
+            OutPacket(economyData, ThrottleOutPacketType.Task);
         }
 
         public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
@@ -2786,30 +2787,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
-            AvatarGroupsReplyPacket p = (AvatarGroupsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarGroupsReply);
-
-            p.AgentData = new AvatarGroupsReplyPacket.AgentDataBlock();
-            p.AgentData.AgentID = AgentId;
-            p.AgentData.AvatarID = avatarID;
-
-            p.GroupData = new AvatarGroupsReplyPacket.GroupDataBlock[data.Length];
-            int i = 0;
-            foreach (GroupMembershipData m in data)
-            {
-                p.GroupData[i] = new AvatarGroupsReplyPacket.GroupDataBlock();
-                p.GroupData[i].GroupPowers = m.GroupPowers;
-                p.GroupData[i].AcceptNotices = m.AcceptNotices;
-                p.GroupData[i].GroupTitle = Utils.StringToBytes(m.GroupTitle);
-                p.GroupData[i].GroupID = m.GroupID;
-                p.GroupData[i].GroupName = Utils.StringToBytes(m.GroupName);
-                p.GroupData[i].GroupInsigniaID = m.GroupPicture;
-                i++;
-            }
-
-            p.NewGroupData = new AvatarGroupsReplyPacket.NewGroupDataBlock();
-            p.NewGroupData.ListInProfile = true;
-
-            OutPacket(p, ThrottleOutPacketType.Task);
+             OSDMap llsd = new OSDMap(3);
+             OSDArray AgentData = new OSDArray(1);
+             OSDMap AgentDataMap = new OSDMap(1);
+             AgentDataMap.Add("AgentID", OSD.FromUUID(this.AgentId));
+             AgentDataMap.Add("AvatarID", OSD.FromUUID(avatarID));
+             AgentData.Add(AgentDataMap);
+             llsd.Add("AgentData", AgentData);
+             OSDArray GroupData = new OSDArray(data.Length);
+             OSDArray NewGroupData = new OSDArray(data.Length);
+             foreach (GroupMembershipData m in data)
+             {
+                 OSDMap GroupDataMap = new OSDMap(6);
+                 OSDMap NewGroupDataMap = new OSDMap(1);
+                 GroupDataMap.Add("GroupPowers", OSD.FromBinary(m.GroupPowers));
+                 GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
+                 GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
+                 GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
+                 GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
+                 GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
+                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
+                 GroupData.Add(GroupDataMap);
+                 NewGroupData.Add(NewGroupDataMap);
+             }
+             llsd.Add("GroupData", GroupData);
+             llsd.Add("NewGroupData", NewGroupData);
+ 
+             IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
+             if (eq != null)
+             {
+                 eq.Enqueue(BuildEvent("AvatarGroupsReply", llsd), this.AgentId);
+             }
         }
 
         public void SendJoinGroupReply(UUID groupID, bool success)
@@ -3168,107 +3176,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
-        #region Prim/Avatar Updates
-
-        /*void SendObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-            bool canUseCompressed, canUseImproved;
-            UpdateFlagsToPacketType(creatorFlags, updateFlags, out canUseCompressed, out canUseImproved);
-
-            if (!canUseImproved && !canUseCompressed)
-                SendFullObjectUpdate(obj, creatorFlags, updateFlags);
-            else if (!canUseImproved)
-                SendObjectUpdateCompressed(obj, creatorFlags, updateFlags);
-            else
-                SendImprovedTerseObjectUpdate(obj, creatorFlags, updateFlags);
-        }
-
-        void SendFullObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-            IClientAPI owner;
-            if (m_scene.ClientManager.TryGetValue(obj.OwnerID, out owner) && owner is LLClientView)
-            {
-                LLClientView llOwner = (LLClientView)owner;
-
-                // Send an update out to the owner
-                ObjectUpdatePacket updateToOwner = new ObjectUpdatePacket();
-                updateToOwner.RegionData.RegionHandle = obj.RegionHandle;
-                //updateToOwner.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
-                updateToOwner.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-                updateToOwner.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags | creatorFlags | PrimFlags.ObjectYouOwner, 0);
-
-                m_udpServer.SendPacket(llOwner.UDPClient, updateToOwner, ThrottleOutPacketType.State, true);
-            }
-
-            // Send an update out to everyone else
-            ObjectUpdatePacket updateToOthers = new ObjectUpdatePacket();
-            updateToOthers.RegionData.RegionHandle = obj.RegionHandle;
-            //updateToOthers.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
-            updateToOthers.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            updateToOthers.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags, 0);
-
-            m_scene.ClientManager.ForEach(
-                delegate(IClientAPI client)
-                {
-                    if (client.AgentId != obj.OwnerID && client is LLClientView)
-                    {
-                        LLClientView llClient = (LLClientView)client;
-                        m_udpServer.SendPacket(llClient.UDPClient, updateToOthers, ThrottleOutPacketType.State, true);
-                    }
-                }
-            );
-        }
-
-        void SendObjectUpdateCompressed(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-        }
-
-        void SendImprovedTerseObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-        }
-
-        void UpdateFlagsToPacketType(PrimFlags creatorFlags, PrimUpdateFlags updateFlags, out bool canUseCompressed, out bool canUseImproved)
-        {
-            canUseCompressed = true;
-            canUseImproved = true;
-
-            if ((updateFlags & PrimUpdateFlags.FullUpdate) == PrimUpdateFlags.FullUpdate || creatorFlags != PrimFlags.None)
-            {
-                canUseCompressed = false;
-                canUseImproved = false;
-            }
-            else
-            {
-                if ((updateFlags & PrimUpdateFlags.Velocity) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Acceleration) != 0 ||
-                    (updateFlags & PrimUpdateFlags.CollisionPlane) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Joint) != 0)
-                {
-                    canUseCompressed = false;
-                }
-
-                if ((updateFlags & PrimUpdateFlags.PrimFlags) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ParentID) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Scale) != 0 ||
-                    (updateFlags & PrimUpdateFlags.PrimData) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Text) != 0 ||
-                    (updateFlags & PrimUpdateFlags.NameValue) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ExtraData) != 0 ||
-                    (updateFlags & PrimUpdateFlags.TextureAnim) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Sound) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Particles) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Material) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ClickAction) != 0 ||
-                    (updateFlags & PrimUpdateFlags.MediaURL) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Joint) != 0)
-                {
-                    canUseImproved = false;
-                }
-            }
-        }*/
-
-        #endregion Prim/Avatar Updates
-
         #region Avatar Packet/Data Sending Methods
 
         /// <summary>
@@ -3314,7 +3221,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ProcessAvatarTerseUpdates();
         }
 
-        private void ProcessAvatarTerseUpdates()
+        protected void ProcessAvatarTerseUpdates()
         {
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             terse.Header.Reliable = false;
@@ -3335,6 +3242,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
             }
 
+            // HACK: Using the task category until the tiered reprioritization code is in
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -4430,11 +4338,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void RegisterLocalPacketHandlers()
         {
-            AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.LogoutRequest, HandleLogout);
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
-            AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
-            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
+            AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached);
+            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
             AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
@@ -4703,7 +4611,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="client"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected virtual bool Logout(IClientAPI client, Packet packet)
+        protected virtual bool HandleLogout(IClientAPI client, Packet packet)
         {
             if (packet.Type == PacketType.LogoutRequest)
             {
@@ -4741,7 +4649,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
+        protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //m_log.Debug("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
@@ -4771,7 +4679,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
+        protected bool HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
             if (multipleupdate.AgentData.SessionID != SessionId) return false;
@@ -5050,7 +4958,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="packet">Packet to send</param>
         /// <param name="throttlePacketType">Throttling category for the packet</param>
-        private void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
+        protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
         }
@@ -9944,7 +9852,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             commandMessagePacket.CommandBlock.Command = (uint)command;
             commandMessagePacket.CommandBlock.Time = time;
 
-            OutPacket(commandMessagePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(commandMessagePacket, ThrottleOutPacketType.Task);
         }
 
         public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID,
@@ -9962,7 +9870,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.DataBlockExtended.MediaHeight = mediaHeight;
             updatePacket.DataBlockExtended.MediaLoop = mediaLoop;
 
-            OutPacket(updatePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(updatePacket, ThrottleOutPacketType.Task);
         }
 
         #endregion
@@ -10236,7 +10144,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region PriorityQueue
-        private class PriorityQueue<TPriority, TValue>
+        public class PriorityQueue<TPriority, TValue>
         {
             internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
 
@@ -10264,7 +10172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.m_comparison = comparison;
             }
 
-            internal object SyncRoot { get { return this.m_syncRoot; } }
+            public object SyncRoot { get { return this.m_syncRoot; } }
             internal int Count
             {
                 get
@@ -10276,7 +10184,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            internal bool Enqueue(TPriority priority, TValue value, uint local_id)
+            public bool Enqueue(TPriority priority, TValue value, uint local_id)
             {
                 LookupItem item;
 
@@ -10396,5 +10304,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         #endregion
 
+        public static OSD BuildEvent(string eventName, OSD eventBody)
+        {
+            OSDMap osdEvent = new OSDMap(2);
+            osdEvent.Add("message", new OSDString(eventName));
+            osdEvent.Add("body", eventBody);
+
+            return osdEvent;
+        }
     }
 }

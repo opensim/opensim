@@ -1213,7 +1213,7 @@ namespace OpenSim.Data.SQLite
             if (!row.IsNull("ParticleSystem"))
                 prim.ParticleSystem = Convert.FromBase64String(row["ParticleSystem"].ToString());
 
-            prim.RotationalVelocity = new Vector3(
+            prim.AngularVelocity = new Vector3(
                 Convert.ToSingle(row["OmegaX"]),
                 Convert.ToSingle(row["OmegaY"]),
                 Convert.ToSingle(row["OmegaZ"])
@@ -1530,9 +1530,9 @@ namespace OpenSim.Data.SQLite
             row["TextureAnimation"] = Convert.ToBase64String(prim.TextureAnimation);
             row["ParticleSystem"] = Convert.ToBase64String(prim.ParticleSystem);
 
-            row["OmegaX"] = prim.RotationalVelocity.X;
-            row["OmegaY"] = prim.RotationalVelocity.Y;
-            row["OmegaZ"] = prim.RotationalVelocity.Z;
+            row["OmegaX"] = prim.AngularVelocity.X;
+            row["OmegaY"] = prim.AngularVelocity.Y;
+            row["OmegaZ"] = prim.AngularVelocity.Z;
 
             row["CameraEyeOffsetX"] = prim.GetCameraEyeOffset().X;
             row["CameraEyeOffsetY"] = prim.GetCameraEyeOffset().Y;

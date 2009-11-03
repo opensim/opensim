@@ -55,7 +55,9 @@ namespace OpenSim.Data.MySQL
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
-            MySqlCommand cmd = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID");
+            MySqlCommand cmd = new MySqlCommand(
+                "select * from `"+m_Realm+"` where UUID = ?principalID"
+            );
 
             cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
 
@@ -82,14 +84,16 @@ namespace OpenSim.Data.MySQL
                     ret.Data[s] = result[s].ToString();
                 }
 
-                CloseDBConnection(result, cmd);
+                result.Close();
+                CloseReaderCommand(cmd);
+
                 return ret;
             }
-            else
-            {
-                CloseDBConnection(result, cmd);
-                return null;
-            }
+
+            result.Close();
+            CloseReaderCommand(cmd);
+
+            return null;
         }
 
         public bool Store(AuthenticationData data)

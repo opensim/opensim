@@ -1209,11 +1209,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_requestedUpdateFrequency = 0;
             m_eventsubscription = 0;
         }
-        public void AddCollisionEvent(uint CollidedWith, float depth)
+        public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
             if (m_eventsubscription > 0)
             {
-                CollisionEventsThisFrame.addCollider(CollidedWith, depth);
+                CollisionEventsThisFrame.addCollider(CollidedWith, contact);
             }
         }
 

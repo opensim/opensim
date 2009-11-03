@@ -131,26 +131,25 @@ namespace OpenSim.Data
             m_log.InfoFormat("[MIGRATIONS] Upgrading {0} to latest revision.", _type);
             m_log.Info("[MIGRATIONS] NOTE: this may take a while, don't interupt this process!");
 
-            using (DbCommand cmd = _conn.CreateCommand())
+            DbCommand cmd = _conn.CreateCommand();
+            foreach (KeyValuePair<int, string> kvp in migrations)
             {
-                foreach (KeyValuePair<int, string> kvp in migrations)
-                {
-                    int newversion = kvp.Key;
-                    cmd.CommandText = kvp.Value;
-                    // we need to up the command timeout to infinite as we might be doing long migrations.
-                    cmd.CommandTimeout = 0;
-                    cmd.ExecuteNonQuery();
+                int newversion = kvp.Key;
+                cmd.CommandText = kvp.Value;
+                // we need to up the command timeout to infinite as we might be doing long migrations.
+                cmd.CommandTimeout = 0;
+                cmd.ExecuteNonQuery();
 
-                    if (version == 0)
-                    {
-                        InsertVersion(_type, newversion);
-                    }
-                    else
-                    {
-                        UpdateVersion(_type, newversion);
-                    }
-                    version = newversion;
+                if (version == 0)
+                {
+                    InsertVersion(_type, newversion);
                 }
+                else
+                {
+                    UpdateVersion(_type, newversion);
+                }
+                version = newversion;
+                cmd.Dispose();
             }
         }
 
@@ -190,45 +189,43 @@ namespace OpenSim.Data
         protected virtual int FindVersion(DbConnection conn, string type)
         {
             int version = 0;
-
-            using (DbCommand cmd = conn.CreateCommand())
+            DbCommand cmd = conn.CreateCommand();
+            try
             {
-                try
+                cmd.CommandText = "select version from migrations where name='" + type +"' order by version desc";
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
-                    cmd.CommandText = "select version from migrations where name='" + type + "' order by version desc";
-                    using (IDataReader reader = cmd.ExecuteReader())
+                    if (reader.Read())
                     {
-                        if (reader.Read())
-                            version = Convert.ToInt32(reader["version"]);
+                        version = Convert.ToInt32(reader["version"]);
                     }
-                }
-                catch
-                {
-                    // Something went wrong, so we're version 0
+                    reader.Close();
                 }
             }
-
+            catch
+            {
+                // Something went wrong, so we're version 0
+            }
+            cmd.Dispose();
             return version;
         }
 
         private void InsertVersion(string type, int version)
         {
-            using (DbCommand cmd = _conn.CreateCommand())
-            {
-                cmd.CommandText = "insert into migrations(name, version) values('" + type + "', " + version + ")";
-                m_log.InfoFormat("[MIGRATIONS]: Creating {0} at version {1}", type, version);
-                cmd.ExecuteNonQuery();
-            }
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = "insert into migrations(name, version) values('" + type + "', " + version + ")";
+            m_log.InfoFormat("[MIGRATIONS]: Creating {0} at version {1}", type, version);
+            cmd.ExecuteNonQuery();
+            cmd.Dispose();
         }
 
         private void UpdateVersion(string type, int version)
         {
-            using (DbCommand cmd = _conn.CreateCommand())
-            {
-                cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
-                m_log.InfoFormat("[MIGRATIONS]: Updating {0} to version {1}", type, version);
-                cmd.ExecuteNonQuery();
-            }
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
+            m_log.InfoFormat("[MIGRATIONS]: Updating {0} to version {1}", type, version);
+            cmd.ExecuteNonQuery();
+            cmd.Dispose();
         }
 
         // private SortedList<int, string> GetAllMigrations()

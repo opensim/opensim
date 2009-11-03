@@ -1049,7 +1049,7 @@ VALUES
             if (!(primRow["ParticleSystem"] is DBNull))
                 prim.ParticleSystem = (Byte[])primRow["ParticleSystem"];
 
-            prim.RotationalVelocity = new Vector3(
+            prim.AngularVelocity = new Vector3(
                                         Convert.ToSingle(primRow["OmegaX"]),
                                         Convert.ToSingle(primRow["OmegaY"]),
                                         Convert.ToSingle(primRow["OmegaZ"]));
@@ -1429,9 +1429,9 @@ VALUES
             parameters.Add(_Database.CreateParameter("TextureAnimation", prim.TextureAnimation));
             parameters.Add(_Database.CreateParameter("ParticleSystem", prim.ParticleSystem));
 
-            parameters.Add(_Database.CreateParameter("OmegaX", prim.RotationalVelocity.X));
-            parameters.Add(_Database.CreateParameter("OmegaY", prim.RotationalVelocity.Y));
-            parameters.Add(_Database.CreateParameter("OmegaZ", prim.RotationalVelocity.Z));
+            parameters.Add(_Database.CreateParameter("OmegaX", prim.AngularVelocity.X));
+            parameters.Add(_Database.CreateParameter("OmegaY", prim.AngularVelocity.Y));
+            parameters.Add(_Database.CreateParameter("OmegaZ", prim.AngularVelocity.Z));
 
             parameters.Add(_Database.CreateParameter("CameraEyeOffsetX", prim.GetCameraEyeOffset().X));
             parameters.Add(_Database.CreateParameter("CameraEyeOffsetY", prim.GetCameraEyeOffset().Y));

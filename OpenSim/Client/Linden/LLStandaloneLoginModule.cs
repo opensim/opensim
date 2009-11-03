@@ -231,6 +231,10 @@ namespace OpenSim.Client.Linden
             {
                 return scene.RegionInfo;
             }
+            else if (m_scenes.Count > 0)
+            {
+                return m_scenes[0].RegionInfo;
+            }
             return null;
         }
 

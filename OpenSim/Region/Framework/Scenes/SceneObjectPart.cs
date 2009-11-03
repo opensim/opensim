@@ -253,6 +253,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected Vector3 m_lastVelocity;
         protected Vector3 m_lastAcceleration;
         protected Vector3 m_lastAngularVelocity;
+        protected int m_lastTerseSent;
 
         // TODO: Those have to be changed into persistent properties at some later point,
         // or sit-camera on vehicles will break on sim-crossing.
@@ -506,20 +507,17 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
-                if (PhysActor != null && _parentID == 0)
+                PhysicsActor actor = PhysActor;
+                if (actor != null && _parentID == 0)
                 {
-                    m_groupPosition.X = PhysActor.Position.X;
-                    m_groupPosition.Y = PhysActor.Position.Y;
-                    m_groupPosition.Z = PhysActor.Position.Z;
+                    m_groupPosition = actor.Position;
                 }
 
                 if (IsAttachment)
                 {
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
                     if (sp != null)
-                    {
                         return sp.AbsolutePosition;
-                    }
                 }
 
                 return m_groupPosition;
@@ -530,26 +528,25 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_groupPosition = value;
 
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
                     try
                     {
                         // Root prim actually goes at Position
                         if (_parentID == 0)
                         {
-                            PhysActor.Position = value;
+                            actor.Position = value;
                         }
                         else
                         {
                             // To move the child prim in respect to the group position and rotation we have to calculate
-                            Vector3 resultingposition = GetWorldPosition();
-                            PhysActor.Position = resultingposition;
-                            Quaternion resultingrot = GetWorldRotation();
-                            PhysActor.Orientation = resultingrot;
+                            actor.Position = GetWorldPosition();
+                            actor.Orientation = GetWorldRotation();
                         }
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                     catch (Exception e)
                     {
@@ -582,15 +579,14 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (ParentGroup != null && !ParentGroup.IsDeleted)
                 {
-                     if (_parentID != 0 && PhysActor != null)
+                    PhysicsActor actor = PhysActor;
+                    if (_parentID != 0 && actor != null)
                     {
-                        Vector3 resultingposition = GetWorldPosition();
-                        PhysActor.Position = resultingposition;
-                        Quaternion resultingrot = GetWorldRotation();
-                        PhysActor.Orientation = resultingrot;
+                        actor.Position = GetWorldPosition();
+                        actor.Orientation = GetWorldRotation();
 
                         // Tell the physics engines that this prim changed.
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
@@ -601,12 +597,13 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
-                if ((_parentID == 0) && (Shape.PCode != 9 || Shape.State == 0)  && (PhysActor != null))
+                PhysicsActor actor = PhysActor;
+                if (_parentID == 0 && (Shape.PCode != 9 || Shape.State == 0)  && actor != null)
                 {
-                    if (PhysActor.Orientation.X != 0 || PhysActor.Orientation.Y != 0
-                        || PhysActor.Orientation.Z != 0 || PhysActor.Orientation.W != 0)
+                    if (actor.Orientation.X != 0f || actor.Orientation.Y != 0f
+                        || actor.Orientation.Z != 0f || actor.Orientation.W != 0f)
                     {
-                        m_rotationOffset = PhysActor.Orientation;
+                        m_rotationOffset = actor.Orientation;
                     }
                 }
                 
@@ -618,24 +615,25 @@ namespace OpenSim.Region.Framework.Scenes
                 StoreUndoState();
                 m_rotationOffset = value;
 
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
                     try
                     {
                         // Root prim gets value directly
                         if (_parentID == 0)
                         {
-                            PhysActor.Orientation = value;
-                            //m_log.Info("[PART]: RO1:" + PhysActor.Orientation.ToString());
+                            actor.Orientation = value;
+                            //m_log.Info("[PART]: RO1:" + actor.Orientation.ToString());
                         }
                         else
                         {
                             // Child prim we have to calculate it's world rotationwel
                             Quaternion resultingrotation = GetWorldRotation();
-                            PhysActor.Orientation = resultingrotation;
-                            //m_log.Info("[PART]: RO2:" + PhysActor.Orientation.ToString());
+                            actor.Orientation = resultingrotation;
+                            //m_log.Info("[PART]: RO2:" + actor.Orientation.ToString());
                         }
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                         //}
                     }
                     catch (Exception ex)
@@ -652,16 +650,12 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                //if (PhysActor.Velocity.X != 0 || PhysActor.Velocity.Y != 0
-                //|| PhysActor.Velocity.Z != 0)
-                //{
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    if (PhysActor.IsPhysical)
+                    if (actor.IsPhysical)
                     {
-                        m_velocity.X = PhysActor.Velocity.X;
-                        m_velocity.Y = PhysActor.Velocity.Y;
-                        m_velocity.Z = PhysActor.Velocity.Z;
+                        m_velocity = actor.Velocity;
                     }
                 }
 
@@ -671,21 +665,17 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 m_velocity = value;
-                if (PhysActor != null)
+
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    if (PhysActor.IsPhysical)
+                    if (actor.IsPhysical)
                     {
-                        PhysActor.Velocity = value;
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        actor.Velocity = value;
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
                     }
                 }
             }
-        }
-
-        public Vector3 RotationalVelocity
-        {
-            get { return AngularVelocity; }
-            set { AngularVelocity = value; }
         }
 
         /// <summary></summary>
@@ -693,9 +683,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                if ((PhysActor != null) && PhysActor.IsPhysical)
+                PhysicsActor actor = PhysActor;
+                if ((actor != null) && actor.IsPhysical)
                 {
-                    m_angularVelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
+                    m_angularVelocity = actor.RotationalVelocity;
                 }
                 return m_angularVelocity;
             }
@@ -715,9 +706,10 @@ namespace OpenSim.Region.Framework.Scenes
             set 
             {
                 m_description = value;
-                if (PhysActor != null)
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
                 {
-                    PhysActor.SOPDescription = value;
+                    actor.SOPDescription = value;
                 }
             }
         }
@@ -808,21 +800,23 @@ namespace OpenSim.Region.Framework.Scenes
             set
             {
                 StoreUndoState();
-if (m_shape != null) {
-                m_shape.Scale = value;
-
-                if (PhysActor != null && m_parentGroup != null)
+                if (m_shape != null)
                 {
-                    if (m_parentGroup.Scene != null)
+                    m_shape.Scale = value;
+
+                    PhysicsActor actor = PhysActor;
+                    if (actor != null && m_parentGroup != null)
                     {
-                        if (m_parentGroup.Scene.PhysicsScene != null)
+                        if (m_parentGroup.Scene != null)
                         {
-                            PhysActor.Size = m_shape.Scale;
-                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                            if (m_parentGroup.Scene.PhysicsScene != null)
+                            {
+                                actor.Size = m_shape.Scale;
+                                m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(actor);
+                            }
                         }
                     }
                 }
-}
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
@@ -1055,8 +1049,6 @@ if (m_shape != null) {
         }
 
         #endregion Public Properties with only Get
-
-        
 
         #region Private Methods
 
@@ -1551,9 +1543,9 @@ if (m_shape != null) {
                         m_parentGroup.Scene.PhysicsScene.RequestJointDeletion(Name); // FIXME: what if the name changed?
 
                         // make sure client isn't interpolating the joint proxy object
-                        Velocity = new Vector3(0, 0, 0);
-                        RotationalVelocity = new Vector3(0, 0, 0);
-                        Acceleration = new Vector3(0, 0, 0);
+                        Velocity = Vector3.Zero;
+                        AngularVelocity = Vector3.Zero;
+                        Acceleration = Vector3.Zero;
                     }
                 }
             }
@@ -1816,7 +1808,7 @@ if (m_shape != null) {
             }
 
             CollisionEventUpdate a = (CollisionEventUpdate)e;
-            Dictionary<uint, float> collissionswith = a.m_objCollisionList;
+            Dictionary<uint, ContactPoint> collissionswith = a.m_objCollisionList;
             List<uint> thisHitColliders = new List<uint>();
             List<uint> endedColliders = new List<uint>();
             List<uint> startedColliders = new List<uint>();
@@ -2382,8 +2374,8 @@ if (m_shape != null) {
                 //isattachment = ParentGroup.RootPart.IsAttachment;
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
-                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
+            remoteClient.SendPrimitiveToClient(new SendPrimitiveData(m_regionHandle, m_parentGroup.GetTimeDilation(), LocalId, m_shape,
+                                               lPos, Velocity, Acceleration, RotationOffset, AngularVelocity, clientFlags, m_uuid, _ownerID,
                                                m_text, color, _parentID, m_particleSystem, m_clickAction, (byte)m_material, m_TextureAnimation, IsAttachment,
                                                AttachmentPoint,FromItemID, Sound, SoundGain, SoundFlags, SoundRadius, ParentGroup.GetUpdatePriority(remoteClient)));
         }
@@ -2393,17 +2385,20 @@ if (m_shape != null) {
         /// </summary>
         public void SendScheduledUpdates()
         {
-            const float VELOCITY_TOLERANCE = 0.01f;
-            const float POSITION_TOLERANCE = 0.1f;
+            const float ROTATION_TOLERANCE = 0.01f;
+            const float VELOCITY_TOLERANCE = 0.001f;
+            const float POSITION_TOLERANCE = 0.05f;
+            const int TIME_MS_TOLERANCE = 3000;
 
             if (m_updateFlag == 1)
             {
                 // Throw away duplicate or insignificant updates
-                if (RotationOffset != m_lastRotation ||
-                    Acceleration != m_lastAcceleration ||
-                    (Velocity - m_lastVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (RotationalVelocity - m_lastAngularVelocity).Length() > VELOCITY_TOLERANCE ||
-                    (OffsetPosition - m_lastPosition).Length() > POSITION_TOLERANCE)
+                if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
+                    !Acceleration.Equals(m_lastAcceleration) ||
+                    !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
+                    !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
+                    Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     AddTerseUpdateToAllAvatars();
                     ClearUpdateSchedule();
@@ -2421,7 +2416,8 @@ if (m_shape != null) {
                     m_lastRotation = RotationOffset;
                     m_lastVelocity = Velocity;
                     m_lastAcceleration = Acceleration;
-                    m_lastAngularVelocity = RotationalVelocity;
+                    m_lastAngularVelocity = AngularVelocity;
+                    m_lastTerseSent = Environment.TickCount;
                 }
             }
             else
@@ -3780,10 +3776,9 @@ if (m_shape != null) {
             // Causes this thread to dig into the Client Thread Data.
             // Remember your locking here!
             remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
-                    (ushort)(m_parentGroup.GetTimeDilation() *
-                    (float)ushort.MaxValue), LocalId, lPos,
+                    m_parentGroup.GetTimeDilation(), LocalId, lPos,
                     RotationOffset, Velocity, Acceleration,
-                    RotationalVelocity, state, FromItemID,
+                    AngularVelocity, state, FromItemID,
                     OwnerID, (int)AttachmentPoint, null, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 

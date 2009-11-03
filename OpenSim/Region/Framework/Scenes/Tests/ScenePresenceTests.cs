@@ -219,7 +219,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             Assert.That(presence.IsChildAgent, Is.True, "Did not change to child agent after MakeChildAgent");
 
             // Accepts 0 but rejects Constants.RegionSize
-            Vector3 pos = new Vector3(0,Constants.RegionSize-1,0);
+            Vector3 pos = new Vector3(0,unchecked(Constants.RegionSize-1),0);
             presence.MakeRootAgent(pos,true);
             Assert.That(presence.IsChildAgent, Is.False, "Did not go back to root agent");
             Assert.That(presence.AbsolutePosition, Is.EqualTo(pos), "Position is not the same one entered");
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene2.AddNewClient(testclient);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
-            presence.MakeRootAgent(new Vector3(0,Constants.RegionSize-1,0), true);
+            presence.MakeRootAgent(new Vector3(0,unchecked(Constants.RegionSize-1),0), true);
 
             ScenePresence presence2 = scene2.GetScenePresence(agent1);
 
