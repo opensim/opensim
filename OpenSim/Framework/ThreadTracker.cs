@@ -35,7 +35,7 @@ namespace OpenSim.Framework
 {
     public static class ThreadTracker
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static ProcessThreadCollection GetThreads()
         {
