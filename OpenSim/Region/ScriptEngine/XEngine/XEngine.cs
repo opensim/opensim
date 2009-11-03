@@ -51,7 +51,6 @@ using OpenSim.Region.ScriptEngine.Shared.Instance;
 using OpenSim.Region.ScriptEngine.Interfaces;
 
 using ScriptCompileQueue = OpenSim.Framework.LocklessQueue<object[]>;
-using Parallel = OpenSim.Framework.Parallel;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
@@ -494,7 +493,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (m_CurrentCompile == null)
                 {
-                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
+                    // NOTE: Although we use a lockless queue, the lock here
+                    // is required. It ensures that there are never two
+                    // compile threads running, which, due to a race
+                    // conndition, might otherwise happen
+                    //
+                    lock (m_CompileQueue)
+                    {
+                        if (m_CurrentCompile == null)
+                            m_CurrentCompile = m_ThreadPool.QueueWorkItem(DoOnRezScriptQueue, null);
+                    }
                 }
             }
         }
@@ -514,16 +522,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 }
             }
 
-            List<object[]> compiles = new List<object[]>();
             object[] o;
             while (m_CompileQueue.Dequeue(out o))
+                DoOnRezScript(o);
+
+            // NOTE: Despite having a lockless queue, this lock is required
+            // to make sure there is never no compile thread while there
+            // are still scripts to compile. This could otherwise happen
+            // due to a race condition
+            //
+            lock (m_CompileQueue)
             {
-                compiles.Add(o);
+                m_CurrentCompile = null;
             }
-
-            Parallel.For(0, compiles.Count, delegate(int i) { DoOnRezScript(compiles[i]); });
-
-            m_CurrentCompile = null;
             m_Scene.EventManager.TriggerEmptyScriptCompileQueue(m_ScriptFailCount,
                                                                 m_ScriptErrorMessage);
             m_ScriptFailCount = 0;
