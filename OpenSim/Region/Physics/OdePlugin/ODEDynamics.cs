@@ -67,8 +67,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         // private OdeScene m_parentScene = null;
         private IntPtr m_body = IntPtr.Zero;
-        private IntPtr m_jointGroup = IntPtr.Zero;
-        private IntPtr m_aMotor = IntPtr.Zero;
+//        private IntPtr m_jointGroup = IntPtr.Zero;
+//        private IntPtr m_aMotor = IntPtr.Zero;
  
 
         // Vehicle properties
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         //Hover and Buoyancy properties
         private float m_VhoverHeight = 0f;
-        private float m_VhoverEfficiency = 0f;
+//        private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
         private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height 
         private float m_VehicleBuoyancy = 0f;			//KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
@@ -170,11 +170,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 	if (pValue > 1f) pValue = 1f;
                     m_VehicleBuoyancy = pValue;
                     break;
-                case Vehicle.HOVER_EFFICIENCY:
-                	if (pValue < 0f) pValue = 0f;
-                	if (pValue > 1f) pValue = 1f;
-                    m_VhoverEfficiency = pValue;
-                    break;
+//                case Vehicle.HOVER_EFFICIENCY:
+//                	if (pValue < 0f) pValue = 0f;
+//                	if (pValue > 1f) pValue = 1f;
+//                    m_VhoverEfficiency = pValue;
+//                    break;
                 case Vehicle.HOVER_HEIGHT:
                     m_VhoverHeight = pValue;
                     break;
@@ -291,7 +291,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorTimescale = 1000;
                     m_angularMotorDecayTimescale = 120;
                     m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 1;
+//                    m_VhoverEfficiency = 1;
                     m_VhoverTimescale = 10;
                     m_VehicleBuoyancy = 0;
                     // m_linearDeflectionEfficiency = 1;
@@ -317,7 +317,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorTimescale = 1;
                     m_angularMotorDecayTimescale = 0.8f;
                     m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0;
+//                    m_VhoverEfficiency = 0;
                     m_VhoverTimescale = 1000;
                     m_VehicleBuoyancy = 0;
                     // // m_linearDeflectionEfficiency = 1;
@@ -344,7 +344,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0.5f;
+//                    m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 2;
                     m_VehicleBuoyancy = 1;
                     // m_linearDeflectionEfficiency = 0.5f;
@@ -372,7 +372,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
-                    m_VhoverEfficiency = 0.5f;
+//                    m_VhoverEfficiency = 0.5f;
                     m_VhoverTimescale = 1000;
                     m_VehicleBuoyancy = 0;
                     // m_linearDeflectionEfficiency = 0.5f;
@@ -399,7 +399,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_angularMotorTimescale = 6;
                     m_angularMotorDecayTimescale = 10;
                     m_VhoverHeight = 5;
-                    m_VhoverEfficiency = 0.8f;
+//                    m_VhoverEfficiency = 0.8f;
                     m_VhoverTimescale = 10;
                     m_VehicleBuoyancy = 1;
                     // m_linearDeflectionEfficiency = 0;

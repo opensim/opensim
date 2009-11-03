@@ -2643,7 +2643,7 @@ Console.WriteLine(" JointCreateFixed");
                         //outofBounds = true;
                     }
 
-					float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
+//					float Adiff = 1.0f - Math.Abs(Quaternion.Dot(m_lastorientation, l_orientation));
 //Console.WriteLine("Adiff " + m_primName + " = " + Adiff);					
                     if ((Math.Abs(m_lastposition.X - l_position.X) < 0.02)
                         && (Math.Abs(m_lastposition.Y - l_position.Y) < 0.02)
