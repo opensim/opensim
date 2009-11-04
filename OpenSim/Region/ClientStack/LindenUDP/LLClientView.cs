@@ -1264,7 +1264,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //
             // for one example of this kind of thing.  In fact, the Linden servers appear to only send about
             // 6 to 7 items at a time, so let's stick with 6
-            int MAX_ITEMS_PER_PACKET = 6;
+            int MAX_ITEMS_PER_PACKET = 5;
+            int MAX_FOLDERS_PER_PACKET = 6;
 
             int totalItems = fetchItems ? items.Count : 0;
             int totalFolders = fetchFolders ? folders.Count : 0;
@@ -1287,8 +1288,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (currentPacket == null) // Start a new packet
                 {
                     foldersToSend = totalFolders - foldersSent;
-                    if (foldersToSend > MAX_ITEMS_PER_PACKET)
-                        foldersToSend = MAX_ITEMS_PER_PACKET;
+                    if (foldersToSend > MAX_FOLDERS_PER_PACKET)
+                        foldersToSend = MAX_FOLDERS_PER_PACKET;
 
                     if (foldersToSend == 0)
                     {
@@ -1301,7 +1302,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 if (foldersToSend-- > 0)
-                    currentPacket.FolderData[foldersSent % MAX_ITEMS_PER_PACKET] = CreateFolderDataBlock(folders[foldersSent++]);
+                    currentPacket.FolderData[foldersSent % MAX_FOLDERS_PER_PACKET] = CreateFolderDataBlock(folders[foldersSent++]);
                 else if(itemsToSend-- > 0)
                     currentPacket.ItemData[itemsSent % MAX_ITEMS_PER_PACKET] = CreateItemDataBlock(items[itemsSent++]);
                 else
