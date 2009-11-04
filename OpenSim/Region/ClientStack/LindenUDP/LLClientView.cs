@@ -1278,7 +1278,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Handle empty folders
             //
             if (totalItems == 0 && totalFolders == 0)
-                currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, 0, 0);
+                currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, 0, 0);
             
             // To preserve SL compatibility, we will NOT combine folders and items in one packet
             //
@@ -1297,7 +1297,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             itemsToSend = MAX_ITEMS_PER_PACKET;
                     }
 
-                    currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, foldersToSend, itemsToSend);
+                    currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, foldersToSend, itemsToSend);
                 }
 
                 if (foldersToSend-- > 0)
@@ -1405,7 +1405,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // No need to add CRC
         }
 
-        private InventoryDescendentsPacket CreateInventoryDescendentsPacket(UUID ownerID, UUID folderID, int version, int folders, int items)
+        private InventoryDescendentsPacket CreateInventoryDescendentsPacket(UUID ownerID, UUID folderID, int version, int descendents, int folders, int items)
         {
             InventoryDescendentsPacket descend = (InventoryDescendentsPacket)PacketPool.Instance.GetPacket(PacketType.InventoryDescendents);
             descend.Header.Zerocoded = true;
@@ -1413,6 +1413,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
             descend.AgentData.Version = version;
+            descend.AgentData.Descendents = descendents;
 
             if (folders > 0)
                 descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders];
