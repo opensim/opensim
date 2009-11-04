@@ -538,6 +538,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual void SendInventoryFolderDetails(UUID ownerID, UUID folderID,
                                                        List<InventoryItemBase> items,
                                                        List<InventoryFolderBase> folders,
+                                                       int version,
                                                        bool fetchFolders,
                                                        bool fetchItems)
         {
