@@ -384,7 +384,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(target))
             {
-                World.Entities[target].Rotation = rotation;
+                EntityBase entity;
+                if (World.Entities.TryGetValue(target, out entity))
+                {
+                    if (entity is SceneObjectGroup)
+                        ((SceneObjectGroup)entity).Rotation = rotation;
+                    else if (entity is ScenePresence)
+                        ((ScenePresence)entity).Rotation = rotation;
+                }
             }
             else
             {
