@@ -327,7 +327,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // The vast majority of packets are less than 200 bytes, although due to asset transfers and packet splitting
             // there are a decent number of packets in the 1000-1140 byte range. We allocate one of two sizes of data here
             // to accomodate for both common scenarios and provide ample room for ACK appending in both
-            int bufferSize = (dataLength > 180) ? LLUDPServer.MTU + 1000 : 200;
+            int bufferSize = (dataLength > 180) ? LLUDPServer.MTU : 200;
 
             UDPPacketBuffer buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
 
@@ -359,9 +359,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
-                        type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
-                    return;
+                    bufferSize = dataLength;
+                    buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
+
+                    // m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
+                    //     type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
+                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
                 }
             }
 
