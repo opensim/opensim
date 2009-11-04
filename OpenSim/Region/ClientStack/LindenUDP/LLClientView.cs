@@ -1306,14 +1306,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     currentPacket.ItemData[itemsSent % MAX_ITEMS_PER_PACKET] = CreateItemDataBlock(items[itemsSent++]);
                 else
                 {
-                    OutPacket(currentPacket, ThrottleOutPacketType.Asset);
+                    OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
                     currentPacket = null;
                 }
 
             }
 
             if (currentPacket != null)
-                OutPacket(currentPacket, ThrottleOutPacketType.Asset);
+                OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
         }
 
         private InventoryDescendentsPacket.FolderDataBlock CreateFolderDataBlock(InventoryFolderBase folder)
@@ -1414,9 +1414,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             descend.AgentData.FolderID = folderID;
             descend.AgentData.Version = version;
             descend.AgentData.Descendents = descendents;
-
-            // Disable multiple packets
-            descend.HasVariableBlocks = false;
 
             if (folders > 0)
                 descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders];
@@ -4907,6 +4904,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
+        }
+
+        /// <summary>
+        /// This is the starting point for sending a simulator packet out to the client
+        /// </summary>
+        /// <param name="packet">Packet to send</param>
+        /// <param name="throttlePacketType">Throttling category for the packet</param>
+        /// <param name="doAutomaticSplitting">True to automatically split oversized
+        /// packets (the default), or false to disable splitting if the calling code
+        /// handles splitting manually</param>
+        protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
+        {
+            m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
 
         public bool AddMoney(int debit)
