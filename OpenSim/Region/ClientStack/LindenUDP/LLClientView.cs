@@ -1264,7 +1264,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //
             // for one example of this kind of thing.  In fact, the Linden servers appear to only send about
             // 6 to 7 items at a time, so let's stick with 6
-            int MAX_ITEMS_PER_PACKET = 6;
+            int MAX_ITEMS_PER_PACKET = 5;
 
             int totalItems = fetchItems ? items.Count : 0;
             int totalFolders = fetchFolders ? folders.Count : 0;
@@ -1414,6 +1414,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             descend.AgentData.FolderID = folderID;
             descend.AgentData.Version = version;
             descend.AgentData.Descendents = descendents;
+
+            // Disable multiple packets
+            descend.HasVariableBlocks = false;
 
             if (folders > 0)
                 descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders];
