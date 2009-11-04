@@ -77,13 +77,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         #region Internal functions
 
-        private string UserAssetURL(UUID userID)
-        {
-            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null)
-                return (uinfo.UserProfile.UserAssetURI == "") ? null : uinfo.UserProfile.UserAssetURI;
-            return null;
-        }
+//        private string UserAssetURL(UUID userID)
+//        {
+//            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+//            if (uinfo != null)
+//                return (uinfo.UserProfile.UserAssetURI == "") ? null : uinfo.UserProfile.UserAssetURI;
+//            return null;
+//        }
 
 //        private string UserInventoryURL(UUID userID)
 //        {
