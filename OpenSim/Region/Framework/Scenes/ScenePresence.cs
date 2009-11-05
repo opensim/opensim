@@ -481,6 +481,12 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public Quaternion Rotation
+        {
+            get { return m_bodyRot; }
+            set { m_bodyRot = value; }
+        }
+
         /// <summary>
         /// If this is true, agent doesn't have a representation in this scene.
         ///    this is an agent 'looking into' this scene from a nearby scene(region)
@@ -2256,7 +2262,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_perfMonMS = Environment.TickCount;
 
-            m_rotation = rotation;
+            Rotation = rotation;
             Vector3 direc = vec * rotation;
             direc.Normalize();
 
