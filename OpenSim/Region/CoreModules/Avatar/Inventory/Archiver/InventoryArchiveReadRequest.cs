@@ -389,11 +389,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
+                if (assetType == (sbyte)AssetType.Unknown)
+                    m_log.WarnFormat("[INVENTORY ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);
+
                 //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), "RandomName");
-
-                asset.Type = assetType;
+                AssetBase asset = new AssetBase(new UUID(uuid), "RandomName", assetType);
                 asset.Data = data;
 
                 m_scene.AssetService.Store(asset);

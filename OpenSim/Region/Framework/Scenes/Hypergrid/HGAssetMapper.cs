@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     // HGAssetService dispatches it to the remote grid.
                     // It's not pretty, but the best that can be done while
                     // not having a global naming infrastructure
-                    AssetBase asset1 = new AssetBase();
+                    AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type);
                     Copy(asset, asset1);
                     try
                     {

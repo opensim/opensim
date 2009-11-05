@@ -1918,14 +1918,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
 
-            AssetBase Animasset = new AssetBase();
+            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation);
             Animasset.Data = anim.ToBytes();
             Animasset.Temporary = true;
             Animasset.Local = true;
-            Animasset.FullID = UUID.Random();
-            Animasset.ID = Animasset.FullID.ToString();
-            Animasset.Name = "Random Animation";
-            Animasset.Type = (sbyte)AssetType.Animation;
             Animasset.Description = "dance";
             //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
 

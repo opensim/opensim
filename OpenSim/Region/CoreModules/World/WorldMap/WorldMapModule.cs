@@ -1077,14 +1077,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             m_scene.RegionInfo.RegionSettings.TerrainImageID = TerrainImageUUID;
 
-            AssetBase asset = new AssetBase();
-            asset.FullID = m_scene.RegionInfo.RegionSettings.TerrainImageID;
+            AssetBase asset = new AssetBase(
+                m_scene.RegionInfo.RegionSettings.TerrainImageID,
+                "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString(),
+                (sbyte)AssetType.Texture);
             asset.Data = data;
-            asset.Name
-                = "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
             asset.Description = m_scene.RegionInfo.RegionName;
-
-            asset.Type = 0;
             asset.Temporary = temporary;
             m_scene.AssetService.Store(asset);
         }

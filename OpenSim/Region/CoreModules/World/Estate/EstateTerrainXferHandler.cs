@@ -52,16 +52,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public EstateTerrainXferHandler(IClientAPI pRemoteClient, string pClientFilename)
         {
-
-            m_asset = new AssetBase();
-            m_asset.FullID = UUID.Zero;
-            m_asset.Type = type;
+            m_asset = new AssetBase(UUID.Zero, pClientFilename, type);
             m_asset.Data = new byte[0];
-            m_asset.Name = pClientFilename;
             m_asset.Description = "empty";
             m_asset.Local = true;
             m_asset.Temporary = true;
-
         }
 
         public ulong XferID

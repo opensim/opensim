@@ -1483,12 +1483,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // Create new asset
-            AssetBase asset = new AssetBase();
-            asset.Name = notecardName;
+            AssetBase asset = new AssetBase(UUID.Random(), notecardName, (sbyte)AssetType.Notecard);
             asset.Description = "Script Generated Notecard";
-            asset.Type = 7;
-            asset.FullID = UUID.Random();
-            string notecardData = "";
+            string notecardData = String.Empty;
 
             for (int i = 0; i < contents.Length; i++) {
                 notecardData += contents.GetLSLStringItem(i) + "\n";

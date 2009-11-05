@@ -132,12 +132,13 @@ namespace OpenSim.Data.MSSQL
                 {
                     if (reader.Read())
                     {
-                        AssetBase asset = new AssetBase();
+                        AssetBase asset = new AssetBase(
+                            new UUID((Guid)reader["id"]),
+                            (string)reader["name"],
+                            Convert.ToSByte(reader["assetType"])
+                        );
                         // Region Main
-                        asset.FullID = new UUID((Guid)reader["id"]);
-                        asset.Name = (string)reader["name"];
                         asset.Description = (string)reader["description"];
-                        asset.Type = Convert.ToSByte(reader["assetType"]);
                         asset.Local = Convert.ToBoolean(reader["local"]);
                         asset.Temporary = Convert.ToBoolean(reader["temporary"]);
                         asset.Data = (byte[])reader["data"];
