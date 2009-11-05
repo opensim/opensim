@@ -484,26 +484,8 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         	List<FriendListItem> profile = m_scene.CommsManager.GetUserFriendList(user);
         	foreach (FriendListItem item in profile)
         	{
-        		m_log.Warn("IsFriendWithPerms called" + item.FriendPerms.ToString());
-        		if(item.Friend == objectOwner)
-        		{
-//        			if (item.FriendPerms == 3)
-//        			{
-//        				return true;
-//        			}
-//        			if (item.FriendPerms == 4)
-//        			{
-//        				return true;
-//        			}
-//        			if (item.FriendPerms == 5)
-//        			{
-//        				return true;
-//        			}
-//        			if (item.FriendPerms == 7)
-//        			{
-//        				return true;
-//        			}
-        		}
+        		if(item.Friend == objectOwner && (item.FriendPerms & (uint)FriendRights.CanModifyObjects) != 0)
+                    return true;
         	}
         	return false;
         }
