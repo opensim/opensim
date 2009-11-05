@@ -1124,7 +1124,7 @@ namespace OpenSim.Framework
         void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
-                                        List<InventoryFolderBase> folders, bool fetchFolders,
+                                        List<InventoryFolderBase> folders, int version, bool fetchFolders,
                                         bool fetchItems);
 
         void FlushPrimUpdates();

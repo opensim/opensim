@@ -1043,7 +1043,7 @@ namespace OpenSim.Region.Framework.Scenes
                 TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
                 physicsFPS = 0f;
 
-                maintc = maintc = otherMS = Environment.TickCount;
+                maintc = otherMS = Environment.TickCount;
                 int tmpFrameMS = maintc;
 
                 // Increment the frame counter
