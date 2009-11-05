@@ -1114,6 +1114,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
         	((Scene)remoteClient.Scene).CommsManager.UpdateUserFriendPerms(requester, target, (uint)rights);
     	}
+
+        public List<FriendListItem> GetUserFriends(UUID agentID)
+        {
+            List<FriendListItem> fl;
+            lock (m_friendLists)
+            {
+                fl = (List<FriendListItem>)m_friendLists.Get(agentID.ToString(),
+                        m_initialScene.GetFriendList);
+            }
+
+            return fl;
+        }
     }    	
     #endregion
 }
