@@ -161,14 +161,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         failedAssetRestores++;
                 }
                 else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
-                {
+                {                                
                     InventoryFolderBase foundFolder 
                         = ReplicateArchivePathToUserInventory(
                             filePath, TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType, 
                             rootDestinationFolder, foldersCreated, nodesLoaded);
 
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
-                    {
+                    {                        
+                        // Escape back characters
+                        filePath = filePath.Replace("&#47;", "/");
+                        filePath = filePath.Replace("&amp;", "&");
+                        
                         InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
                         
                         // Don't use the item ID that's in the file
@@ -289,6 +293,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
 
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
+
+                // Escape back characters
+                newFolderName = newFolderName.Replace("&#47;", "/");
+                newFolderName = newFolderName.Replace("&amp;", "&");
+                
                 UUID newFolderId = UUID.Random();
 
                 // Asset type has to be Unknown here rather than Folder, otherwise the created folder can't be
