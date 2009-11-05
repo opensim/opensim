@@ -283,6 +283,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
+        public event GrantUserFriendRights OnGrantUserRights;
 
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;

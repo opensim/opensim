@@ -476,6 +476,37 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             return false;
         }
+        protected bool IsFriendWithPerms(UUID user,UUID objectOwner)
+        {
+        	
+        	if (user == UUID.Zero) return false;
+
+        	List<FriendListItem> profile = m_scene.CommsManager.GetUserFriendList(user);
+        	foreach (FriendListItem item in profile)
+        	{
+        		m_log.Warn("IsFriendWithPerms called" + item.FriendPerms.ToString());
+        		if(item.Friend == objectOwner)
+        		{
+//        			if (item.FriendPerms == 3)
+//        			{
+//        				return true;
+//        			}
+//        			if (item.FriendPerms == 4)
+//        			{
+//        				return true;
+//        			}
+//        			if (item.FriendPerms == 5)
+//        			{
+//        				return true;
+//        			}
+//        			if (item.FriendPerms == 7)
+//        			{
+//        				return true;
+//        			}
+        		}
+        	}
+        	return false;
+        }
 
         protected bool IsEstateManager(UUID user)
         {
@@ -564,6 +595,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         
             // Object owners should be able to edit their own content
             if (user == objectOwner)
+                return objectOwnerMask;
+            
+            if (IsFriendWithPerms(user, objectOwner))
                 return objectOwnerMask;
 
             // Estate users should be able to edit anything in the sim

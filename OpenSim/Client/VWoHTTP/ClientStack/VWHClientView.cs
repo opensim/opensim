@@ -327,6 +327,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event FriendActionDelegate OnApproveFriendRequest = delegate { };
         public event FriendActionDelegate OnDenyFriendRequest = delegate { };
         public event FriendshipTermination OnTerminateFriendship = delegate { };
+        public event GrantUserFriendRights OnGrantUserRights = delegate { };
         public event MoneyTransferRequest OnMoneyTransferRequest = delegate { };
         public event EconomyDataRequest OnEconomyDataRequest = delegate { };
         public event MoneyBalanceRequest OnMoneyBalanceRequest = delegate { };
@@ -404,6 +405,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event MuteListRequest OnMuteListRequest = delegate { };
         public event AvatarInterestUpdate OnAvatarInterestUpdate = delegate { };
         public event PlacesQuery OnPlacesQuery = delegate { };
+
 
 
         public void SetDebugPacketLevel(int newDebug)

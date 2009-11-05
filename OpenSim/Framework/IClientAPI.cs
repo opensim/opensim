@@ -446,6 +446,7 @@ namespace OpenSim.Framework
     public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
     public delegate void MuteListRequest(IClientAPI client, uint muteCRC);
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
+    public delegate void GrantUserFriendRights(IClientAPI client, UUID requester, UUID target, int rights);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
@@ -1023,6 +1024,7 @@ namespace OpenSim.Framework
         event PickInfoUpdate OnPickInfoUpdate;
         event AvatarNotesUpdate OnAvatarNotesUpdate;
         event AvatarInterestUpdate OnAvatarInterestUpdate;
+        event GrantUserFriendRights OnGrantUserRights;
 
         event MuteListRequest OnMuteListRequest;
 

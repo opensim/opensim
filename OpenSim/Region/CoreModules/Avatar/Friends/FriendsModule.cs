@@ -395,6 +395,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // if it leaves, we want to know, too
             client.OnLogout += OnLogout;
+			client.OnGrantUserRights += GrantUserFriendRights;
+
         }
 
         private void ClientClosed(UUID AgentId, Scene scene)
@@ -1108,7 +1110,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             // tell everyone that we are offline
             SendPresenceState(remoteClient, fl, false);
         }
-    }
-
+        private void GrantUserFriendRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
+        {
+        	((Scene)remoteClient.Scene).CommsManager.UpdateUserFriendPerms(requester, target, (uint)rights);
+    	}
+    }    	
     #endregion
 }

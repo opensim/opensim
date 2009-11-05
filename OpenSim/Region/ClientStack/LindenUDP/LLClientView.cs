@@ -220,6 +220,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
+        public event GrantUserFriendRights OnGrantUserRights;
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
@@ -9719,7 +9720,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
                     break;
-
+				                    
+                case PacketType.GrantUserRights:
+                    GrantUserRightsPacket GrantUserRights =
+                            (GrantUserRightsPacket)Pack;
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (GrantUserRights.AgentData.SessionID != SessionId ||
+                            GrantUserRights.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+                    GrantUserFriendRights GrantUserRightsHandler = OnGrantUserRights;
+                    if (GrantUserRightsHandler != null)
+                        GrantUserRightsHandler(this,
+                            GrantUserRights.AgentData.AgentID,
+                            GrantUserRights.Rights[0].AgentRelated,
+                            GrantUserRights.Rights[0].RelatedRights);
+                    break;
+                    
                 case PacketType.PlacesQuery:
                     PlacesQueryPacket placesQueryPacket =
                             (PlacesQueryPacket)Pack;
