@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);
+            scene.AddInventoryItem(userId, item1);           
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -218,14 +218,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userItemCreatorLastName = "Lucan";
             UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             
-            string itemName = "b.lsl";
-            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            string item1Name = "b.lsl";
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(item1Name, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
 
             InventoryItemBase item1 = new InventoryItemBase();
-            item1.Name = itemName;
+            item1.Name = item1Name;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
             item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
             Assert.That(
@@ -277,7 +277,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + item1Name);
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
@@ -286,7 +286,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + item1Name);
             Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");
         }
 
