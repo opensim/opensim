@@ -243,7 +243,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectGroup m_parentGroup;
         protected byte[] m_particleSystem = Utils.EmptyBytes;
         protected ulong m_regionHandle;
-        protected Quaternion m_rotationOffset;
+        protected Quaternion m_rotationOffset = Quaternion.Identity;
         protected PrimitiveBaseShape m_shape;
         protected UUID m_uuid;
         protected Vector3 m_velocity;
