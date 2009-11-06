@@ -51,6 +51,16 @@ namespace OpenSim.Framework
         /// </summary>
         private AssetMetadata m_metadata;
 
+        // This is needed for .NET serialization!!!
+        // Do NOT "Optimize" away!
+        public AssetBase()
+        {
+            m_metadata = new AssetMetadata();
+            m_metadata.FullID = UUID.Zero;
+            m_metadata.ID = UUID.Zero.ToString();
+            m_metadata.Type = (sbyte)AssetType.Unknown;
+        }
+
         public AssetBase(UUID assetID, string name, sbyte assetType)
         {
             if (assetType == (sbyte)AssetType.Unknown)
