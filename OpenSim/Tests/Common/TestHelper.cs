@@ -54,6 +54,7 @@ namespace OpenSim.Tests.Common
         public static void InMethod()
         {
             StackTrace stackTrace = new StackTrace();
+            Console.WriteLine();
             Console.WriteLine("===> In Test Method : {0} <===", stackTrace.GetFrame(1).GetMethod().Name);
         }
     }

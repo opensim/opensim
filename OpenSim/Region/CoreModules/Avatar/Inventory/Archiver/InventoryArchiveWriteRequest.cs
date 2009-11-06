@@ -394,6 +394,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string CreateArchiveFolderName(string name, UUID id)
         {
+            // Only encode ampersands (for escaping anything) and / (since this is used as general dir separator).
+            name = name.Replace("&", "&amp;");
+            name = name.Replace("/", "&#47;");
+            
             return string.Format(
                 "{0}{1}{2}/",
                 name,
@@ -409,6 +413,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <returns></returns>
         public static string CreateArchiveItemName(string name, UUID id)
         {
+            name = name.Replace("&", "&amp;");
+            name = name.Replace("/", "&#47;");
+            
             return string.Format(
                 "{0}{1}{2}.xml",
                 name,
