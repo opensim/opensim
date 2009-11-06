@@ -337,8 +337,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
-            AssetBase asset1 = new AssetBase();
-            asset1.FullID = asset1Id;
+            AssetBase asset1 = new AssetBase(asset1Id, String.Empty, (sbyte)AssetType.Object);
             asset1.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(object1));
             scene.AssetService.Store(asset1);
 
