@@ -1255,7 +1255,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                List<InventoryFolderBase> folders, int version,
                                                bool fetchFolders, bool fetchItems)
         {
-            m_log.DebugFormat("[CLIENT]: Request folder details for folder {0}", folderID.ToString());
             // An inventory descendents packet consists of a single agent section and an inventory details
             // section for each inventory item.  The size of each inventory item is approximately 550 bytes.
             // In theory, UDP has a maximum packet size of 64k, so it should be possible to send descendent
