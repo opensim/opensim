@@ -99,36 +99,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             int failedAssetRestores = 0;
             int successfulItemRestores = 0;
             List<InventoryNodeBase> nodesLoaded = new List<InventoryNodeBase>();
-
-            /*
-            if (!m_userInfo.HasReceivedInventory)
-            {
-                // If the region server has access to the user admin service (by which users are created),
-                // then we'll assume that it's okay to fiddle with the user's inventory even if they are not on the
-                // server.
-                //
-                // FIXME: FetchInventory should probably be assumed to by async anyway, since even standalones might
-                // use a remote inventory service, though this is vanishingly rare at the moment.
-                if (null == m_scene.CommsManager.UserAdminService)
-                {
-                    m_log.ErrorFormat(
-                        "[INVENTORY ARCHIVER]: Have not yet received inventory info for user {0} {1}",
-                        m_userInfo.UserProfile.Name, m_userInfo.UserProfile.ID);
-
-                    return nodesLoaded;
-                }
-                else
-                {
-                    m_userInfo.FetchInventory();
-                    for (int i = 0 ; i < 50 ; i++)
-                    {
-                        if (m_userInfo.HasReceivedInventory == true)
-                            break;
-                        Thread.Sleep(200);
-                    }
-                }
-            }
-            */
            
             //InventoryFolderImpl rootDestinationFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
             InventoryFolderBase rootDestinationFolder 
