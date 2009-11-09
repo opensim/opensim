@@ -3196,12 +3196,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!IsActive) return; // We don't need to update inactive clients.
 
             CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
-            // TODO: don't create new blocks if recycling an old packet
-            int total = CoarseLocations.Count;
-            CoarseLocationUpdatePacket.IndexBlock ib =
-                new CoarseLocationUpdatePacket.IndexBlock();
+            loc.Header.Reliable = false;
+
+            // Each packet can only hold around 62 avatar positions and the client clears the mini-map each time
+            // a CoarseLocationUpdate packet is received. Oh well.
+            int total = Math.Min(CoarseLocations.Count, 60);
+
+            CoarseLocationUpdatePacket.IndexBlock ib = new CoarseLocationUpdatePacket.IndexBlock();
+
             loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
             loc.AgentData = new CoarseLocationUpdatePacket.AgentDataBlock[total];
+
             int selfindex = -1;
             for (int i = 0; i < total; i++)
             {
@@ -3211,18 +3216,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lb.X = (byte)CoarseLocations[i].X;
                 lb.Y = (byte)CoarseLocations[i].Y;
 
-                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25);
+                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25f);
                 loc.Location[i] = lb;
                 loc.AgentData[i] = new CoarseLocationUpdatePacket.AgentDataBlock();
                 loc.AgentData[i].AgentID = users[i];
                 if (users[i] == AgentId)
                     selfindex = i;
             }
+
             ib.You = (short)selfindex;
             ib.Prey = -1;
             loc.Index = ib;
-            loc.Header.Reliable = false;
-            loc.Header.Zerocoded = true;
 
             OutPacket(loc, ThrottleOutPacketType.Task);
         }
@@ -4905,6 +4909,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="throttlePacketType">Throttling category for the packet</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
+            #region BinaryStats
+            LLUDPServer.LogPacketHeader(false, m_circuitCode, 0, packet.Type, (ushort)packet.Length);
+            #endregion BinaryStats
+
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
         }
 

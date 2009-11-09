@@ -36,6 +36,7 @@ using System.Timers;
 using System.Xml;
 using Nini.Config;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
@@ -397,6 +398,73 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
+        #region BinaryStats
+
+        public class StatLogger
+        {
+            public DateTime StartTime;
+            public string Path;
+            public System.IO.BinaryWriter Log;
+        }
+        static StatLogger m_statLog = null;
+        static TimeSpan m_statLogPeriod = TimeSpan.FromSeconds(300);
+        static string m_statsDir = String.Empty;
+        static Object m_statLockObject = new Object();
+        private void LogSimStats(SimStats stats)
+        {
+            SimStatsPacket pack = new SimStatsPacket();
+            pack.Region = new SimStatsPacket.RegionBlock();
+            pack.Region.RegionX = stats.RegionX;
+            pack.Region.RegionY = stats.RegionY;
+            pack.Region.RegionFlags = stats.RegionFlags;
+            pack.Region.ObjectCapacity = stats.ObjectCapacity;
+            //pack.Region = //stats.RegionBlock;
+            pack.Stat = stats.StatsBlock;
+            pack.Header.Reliable = false;
+
+            // note that we are inside the reporter lock when called
+            DateTime now = DateTime.Now;
+
+            // hide some time information into the packet
+            pack.Header.Sequence = (uint)now.Ticks;
+
+            lock (m_statLockObject) // m_statLog is shared so make sure there is only executer here
+            {
+                try
+                {
+                    if (m_statLog == null || now > m_statLog.StartTime + m_statLogPeriod)
+                    {
+                        // First log file or time has expired, start writing to a new log file
+                        if (m_statLog != null && m_statLog.Log != null)
+                        {
+                            m_statLog.Log.Close();
+                        }
+                        m_statLog = new StatLogger();
+                        m_statLog.StartTime = now;
+                        m_statLog.Path = (m_statsDir.Length > 0 ? m_statsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
+                                + String.Format("stats-{0}.log", now.ToString("yyyyMMddHHmmss"));
+                        m_statLog.Log = new BinaryWriter(File.Open(m_statLog.Path, FileMode.Append, FileAccess.Write));
+                    }
+
+                    // Write the serialized data to disk
+                    if (m_statLog != null && m_statLog.Log != null)
+                        m_statLog.Log.Write(pack.ToBytes());
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("statistics gathering failed: " + ex.Message, ex);
+                    if (m_statLog != null && m_statLog.Log != null)
+                    {
+                        m_statLog.Log.Close();
+                    }
+                    m_statLog = null;
+                }
+            }
+            return;
+        }
+
+        #endregion
+
         #region Constructors
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
@@ -582,6 +650,38 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_log.Info("[SCENE]: Using the " + m_update_prioritization_scheme + " prioritization scheme");
+
+                #region BinaryStats
+
+                try
+                {
+                    IConfig statConfig = m_config.Configs["Statistics.Binary"];
+                    if (statConfig.Contains("enabled") && statConfig.GetBoolean("enabled"))
+                    {
+                        if (statConfig.Contains("collect_region_stats"))
+                        {
+                            if (statConfig.GetBoolean("collect_region_stats"))
+                            {
+                                // if enabled, add us to the event. If not enabled, I won't get called
+                                StatsReporter.OnSendStatsResult += LogSimStats;
+                            }
+                        }
+                        if (statConfig.Contains("region_stats_period_seconds"))
+                        {
+                            m_statLogPeriod = TimeSpan.FromSeconds(statConfig.GetInt("region_stats_period_seconds"));
+                        }
+                        if (statConfig.Contains("stats_dir"))
+                        {
+                            m_statsDir = statConfig.GetString("stats_dir");
+                        }
+                    }
+                }
+                catch
+                {
+                    // if it doesn't work, we don't collect anything
+                }
+
+                #endregion BinaryStats
             }
             catch
             {

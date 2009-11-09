@@ -140,12 +140,11 @@ namespace OpenSim.Services.Connectors.Grid
                 Bitmap m = new Bitmap(info.RegionID.ToString() + ".jpg");
                 //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                 byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
-                AssetBase ass = new AssetBase(UUID.Random(), "region " + info.RegionID.ToString());
+                AssetBase ass = new AssetBase(UUID.Random(), "region " + info.RegionID.ToString(), (sbyte)AssetType.Texture);
                 
                 // !!! for now
                 //info.RegionSettings.TerrainImageID = ass.FullID;
 
-                ass.Type = (int)AssetType.Texture;
                 ass.Temporary = true;
                 ass.Local = true;
                 ass.Data = imageData;

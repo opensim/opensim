@@ -332,10 +332,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
 
+                if (assetType == (sbyte)AssetType.Unknown)
+                    m_log.WarnFormat("[ARCHIVER]: Importing {0} byte asset {1} with unknown type", data.Length, uuid);
+
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty);
-                asset.Type = assetType;
+                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType);
                 asset.Data = data;
 
                 // We're relying on the asset service to do the sensible thing and not store the asset if it already
