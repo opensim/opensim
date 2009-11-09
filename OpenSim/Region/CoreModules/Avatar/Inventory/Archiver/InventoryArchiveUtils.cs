@@ -295,5 +295,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             return sb.ToString();
         }
+
+        /// <summary>
+        /// Escape an archive path.
+        /// </summary>
+        /// This has to be done differently from human paths because we can't leave in any "/" characters (due to
+        /// problems if the archive is built from or extracted to a filesystem
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string EscapeArchivePath(string path)
+        {
+            // Only encode ampersands (for escaping anything) and / (since this is used as general dir separator).
+            return path.Replace("&", "&amp;").Replace("/", "&#47;");            
+        }
+
+        /// <summary>
+        /// Unescape an archive path.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>        
+        public static string UnescapeArchivePath(string path)
+        {
+            return path.Replace("&#47;", "/").Replace("&amp;", "&");            
+        }
     }
 }

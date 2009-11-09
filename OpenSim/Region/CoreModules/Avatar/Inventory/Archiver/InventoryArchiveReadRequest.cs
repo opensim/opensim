@@ -254,10 +254,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
 
-                // Escape back characters
-                newFolderName = newFolderName.Replace("&#47;", "/");
-                newFolderName = newFolderName.Replace("&amp;", "&");
-                
+                newFolderName = InventoryArchiveUtils.UnescapeArchivePath(newFolderName);                
                 UUID newFolderId = UUID.Random();
 
                 // Asset type has to be Unknown here rather than Folder, otherwise the created folder can't be
@@ -338,10 +335,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="nodesLoaded">All the inventory nodes (items and folders) loaded so far</param>
         protected InventoryItemBase LoadItem(byte[] data, InventoryFolderBase loadFolder)
         {
-            // Escape back characters
-//            filePath = filePath.Replace("&#47;", "/");
-//            filePath = filePath.Replace("&amp;", "&");
-            
             InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
             
             // Don't use the item ID that's in the file
