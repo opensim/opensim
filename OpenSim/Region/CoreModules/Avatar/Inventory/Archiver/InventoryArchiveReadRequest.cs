@@ -199,8 +199,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string originalArchivePath = archivePath;
 
             m_log.DebugFormat(
-                "[INVENTORY ARCHIVER]: Loading to folder {0} {1} {2}", 
-                rootDestFolder.Name, rootDestFolder.Name, rootDestFolder.ID);
+                "[INVENTORY ARCHIVER]: Loading folder {0} {1}", rootDestFolder.Name, rootDestFolder.ID);
 
             InventoryFolderBase destFolder = null;
 
