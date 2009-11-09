@@ -1348,7 +1348,7 @@ namespace PrimMesher
                 float stepSize = twoPi / this.stepsPerRevolution;
 
                 int step = (int)(startAngle / stepSize);
-                int firstStep = step;
+//                int firstStep = step;
                 float angle = startAngle;
 
                 bool done = false;
@@ -1738,7 +1738,7 @@ namespace PrimMesher
                 // append this layer
 
                 int coordsLen = this.coords.Count;
-                int lastCoordsLen = coordsLen;
+//                int lastCoordsLen = coordsLen;
                 newLayer.AddValue2FaceVertexIndices(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
