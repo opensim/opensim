@@ -129,6 +129,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                         successfulAssetRestores++;
                     else
                         failedAssetRestores++;
+
+                    if ((successfulAssetRestores) % 50 == 0)
+                        m_log.DebugFormat(
+                            "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
+                            successfulAssetRestores);
                 }
                 else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
                 {                                
@@ -156,8 +161,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             archive.Close();
 
-            m_log.DebugFormat("[INVENTORY ARCHIVER]: Restored {0} assets", successfulAssetRestores);
-            m_log.InfoFormat("[INVENTORY ARCHIVER]: Restored {0} items", successfulItemRestores);
+            m_log.DebugFormat(
+                "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures", 
+                successfulAssetRestores, failedAssetRestores);
+            m_log.InfoFormat("[INVENTORY ARCHIVER]: Successfully loaded {0} items", successfulItemRestores);
 
             return nodesLoaded;
         }
