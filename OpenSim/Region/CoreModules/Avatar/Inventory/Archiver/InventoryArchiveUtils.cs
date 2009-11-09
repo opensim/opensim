@@ -45,7 +45,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         // Character used for escaping the path delimter ("\/") and itself ("\\") in human escaped strings
         public static readonly char ESCAPE_CHARACTER = '\\';
-        public static readonly string PATH_DELIMITER = "/";
+
+        // The character used to separate inventory path components (different folders and items)
+        public static readonly char PATH_DELIMITER = '/';
 
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from a user's root folder
@@ -110,10 +112,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             path = path.Trim();
 
-            if (path == PATH_DELIMITER)
+            if (path == PATH_DELIMITER.ToString())
                 return startFolder;
 
-            string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
+            string[] components = path.Split(new string[] { PATH_DELIMITER.ToString() }, 2, StringSplitOptions.None);
             InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
             foreach (InventoryFolderBase folder in contents.Folders)
@@ -244,7 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 }
                 else
                 {
-                    if (PATH_DELIMITER == path[i].ToString() && !singleEscapeChar)
+                    if (PATH_DELIMITER == path[i] && !singleEscapeChar)
                         return new string[2] { path.Remove(i), path.Substring(i + 1) };
                     else
                         singleEscapeChar = false;
@@ -276,7 +278,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 if (singleEscapeChar)
                 {
-                    if (PATH_DELIMITER == path[i].ToString())
+                    if (PATH_DELIMITER == path[i])
                         sb.Append(PATH_DELIMITER);
                 }
                 else
