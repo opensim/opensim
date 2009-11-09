@@ -42,7 +42,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     public static class InventoryArchiveUtils
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
+        // Character used for escaping the path delimter ("\/") and itself ("\\") in human escaped strings
+        public static readonly char ESCAPE_CHARACTER = '\\';
         public static readonly string PATH_DELIMITER = "/";
 
         /// <summary>
@@ -236,7 +238,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             for (int i = 0; i < path.Length; i++)
             {
-                if (path[i] == '\\' && !singleEscapeChar)
+                if (path[i] == ESCAPE_CHARACTER && !singleEscapeChar)
                 {
                     singleEscapeChar = true;
                 }
@@ -267,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             bool singleEscapeChar = false;
             for (int i = 0; i < path.Length; i++)
             {
-                if (path[i] == '\\' && !singleEscapeChar)
+                if (path[i] == ESCAPE_CHARACTER && !singleEscapeChar)
                     singleEscapeChar = true;
                 else
                     singleEscapeChar = false;
