@@ -831,7 +831,7 @@ namespace Flotsam.RegionModules.AssetCache
 
         public string Store(AssetBase asset)
         {
-            if ((asset.FullID == null) || (asset.FullID == UUID.Zero))
+            if (asset.FullID == UUID.Zero)
             {
                 asset.FullID = UUID.Random();
             }

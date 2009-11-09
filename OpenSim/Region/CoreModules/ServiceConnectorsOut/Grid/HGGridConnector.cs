@@ -336,7 +336,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             int snapXmin = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
-            int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
+//            int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmin = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmax = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
 
@@ -613,7 +613,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
 
                 // Set the position of the region on the remote grid
-                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
+//                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
                 uint x = 0, y = 0;
                 Utils.LongToUInts(regInfo.RegionHandle, out x, out y);
                 GridRegion clonedRegion = new GridRegion(regInfo);

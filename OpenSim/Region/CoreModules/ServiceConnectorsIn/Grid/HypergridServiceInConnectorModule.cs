@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
 
                 m_log.Info("[HypergridService]: Starting...");
 
-                Object[] args = new Object[] { m_Config, MainServer.Instance };
+//                Object[] args = new Object[] { m_Config, MainServer.Instance };
 
                 m_HypergridHandler = new HypergridServiceInConnector(m_Config, MainServer.Instance, scene.RequestModuleInterface<IHyperlinkService>());
                 //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);

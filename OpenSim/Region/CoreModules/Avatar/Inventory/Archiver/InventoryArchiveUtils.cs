@@ -41,7 +41,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     /// </summary>
     public static class InventoryArchiveUtils
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Character used for escaping the path delimter ("\/") and itself ("\\") in human escaped strings
         public static readonly char ESCAPE_CHARACTER = '\\';

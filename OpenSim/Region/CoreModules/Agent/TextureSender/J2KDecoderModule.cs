@@ -144,8 +144,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <param name="j2kData">JPEG2000 data</param>
         private void DoJ2KDecode(UUID assetID, byte[] j2kData)
         {
-            int DecodeTime = 0;
-            DecodeTime = Environment.TickCount;
+//            int DecodeTime = 0;
+//            DecodeTime = Environment.TickCount;
             OpenJPEG.J2KLayerInfo[] layers;
 
             if (!TryLoadCacheForAsset(assetID, out layers))
