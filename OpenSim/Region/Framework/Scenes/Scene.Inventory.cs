@@ -93,7 +93,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
         {
-
             if (InventoryService.AddItem(item))
             {
                 int userlevel = 0;

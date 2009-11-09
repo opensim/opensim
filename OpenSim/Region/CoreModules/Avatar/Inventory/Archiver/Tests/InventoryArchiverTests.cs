@@ -296,7 +296,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             TestHelper.InMethod();
             log4net.Config.XmlConfigurator.Configure();
 
-            string itemName = "You & you are a mean man";
+            string itemName = "You & you are a mean/man/";
+            string humanEscapedItemName = @"You & you are a mean\/man\/";
             string userPassword = "meowfood";
 
             InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
@@ -362,7 +363,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
             mre.WaitOne(60000, false);           
 
-            /// LOAD ITEM
+            // LOAD ITEM
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             
             archiverModule.DearchiveInventory(userFirstName, userLastName, "Scripts", userPassword, archiveReadStream);
@@ -371,7 +372,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userId, "Scripts/Objects/" + itemName);
+                = InventoryArchiveUtils.FindItemByPath(
+                    scene.InventoryService, userId, "Scripts/Objects/" + humanEscapedItemName);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
 //            Assert.That(
