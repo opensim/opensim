@@ -138,35 +138,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                             rootDestinationFolder, foldersCreated, nodesLoaded);
 
                     if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
-                    {                        
-                        // Escape back characters
-                        filePath = filePath.Replace("&#47;", "/");
-                        filePath = filePath.Replace("&amp;", "&");
-                        
-                        InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
-                        
-                        // Don't use the item ID that's in the file
-                        item.ID = UUID.Random();
+                    {
+                        InventoryItemBase item = LoadItem(data, foundFolder);
 
-                        UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
-                        if (UUID.Zero != ospResolvedId)
-                            item.CreatorIdAsUuid = ospResolvedId;
-                        else
-                            item.CreatorIdAsUuid = m_userInfo.UserProfile.ID;
-                        
-                        item.Owner = m_userInfo.UserProfile.ID;
-
-                        // Reset folder ID to the one in which we want to load it
-                        item.Folder = foundFolder.ID;
-
-                        //m_userInfo.AddItem(item);
-                        m_scene.InventoryService.AddItem(item);
-                        successfulItemRestores++;
-
-                        // If we're loading an item directly into the given destination folder then we need to record
-                        // it separately from any loaded root folders
-                        if (rootDestinationFolder == foundFolder)
-                            nodesLoaded.Add(item);
+                        if (item != null)
+                        {
+                            successfulItemRestores++;
+                            
+                            // If we're loading an item directly into the given destination folder then we need to record
+                            // it separately from any loaded root folders
+                            if (rootDestinationFolder == foundFolder)
+                                nodesLoaded.Add(item);
+                        }
                     }
                 }
             }
@@ -337,6 +320,41 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 foundFolder = foundFolder.GetChildFolder(newFolderId);
             }
             */
+        }
+
+        /// <summary>
+        /// Load an item from the archive
+        /// </summary>
+        /// <param name="filePath">The archive path for the item</param>
+        /// <param name="data">The raw item data</param>
+        /// <param name="rootDestinationFolder">The root destination folder for loaded items</param>
+        /// <param name="nodesLoaded">All the inventory nodes (items and folders) loaded so far</param>
+        protected InventoryItemBase LoadItem(byte[] data, InventoryFolderBase loadFolder)
+        {
+            // Escape back characters
+//            filePath = filePath.Replace("&#47;", "/");
+//            filePath = filePath.Replace("&amp;", "&");
+            
+            InventoryItemBase item = UserInventoryItemSerializer.Deserialize(data);
+            
+            // Don't use the item ID that's in the file
+            item.ID = UUID.Random();
+
+            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
+            if (UUID.Zero != ospResolvedId)
+                item.CreatorIdAsUuid = ospResolvedId;
+            else
+                item.CreatorIdAsUuid = m_userInfo.UserProfile.ID;
+            
+            item.Owner = m_userInfo.UserProfile.ID;
+
+            // Reset folder ID to the one in which we want to load it
+            item.Folder = loadFolder.ID;
+
+            //m_userInfo.AddItem(item);
+            m_scene.InventoryService.AddItem(item);            
+        
+            return item;
         }
 
         /// <summary>
