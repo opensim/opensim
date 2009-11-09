@@ -115,7 +115,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             if (path == PATH_DELIMITER.ToString())
                 return startFolder;
 
-            string[] components = path.Split(new string[] { PATH_DELIMITER.ToString() }, 2, StringSplitOptions.None);
+            string[] components = SplitEscapedPath(path);
+            components[0] = UnescapePath(components[0]);            
+
+            //string[] components = path.Split(new string[] { PATH_DELIMITER.ToString() }, 2, StringSplitOptions.None);
+            
             InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
             foreach (InventoryFolderBase folder in contents.Folders)
