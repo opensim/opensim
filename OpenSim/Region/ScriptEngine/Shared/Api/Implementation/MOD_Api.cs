@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
@@ -59,6 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         internal uint m_localID;
         internal UUID m_itemID;
         internal bool m_MODFunctionsEnabled = false;
+        internal IScriptModuleComms m_comms = null;
 
         public void Initialize(IScriptEngine ScriptEngine, SceneObjectPart host, uint localID, UUID itemID)
         {
@@ -69,6 +71,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (m_ScriptEngine.Config.GetBoolean("AllowMODFunctions", false))
                 m_MODFunctionsEnabled = true;
+
+            m_comms = m_ScriptEngine.World.RequestModuleInterface<IScriptModuleComms>();
+            if (m_comms == null)
+                m_MODFunctionsEnabled = false;
         }
 
         public override Object InitializeLifetimeService()
@@ -110,12 +116,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             wComm.DeliverMessage(ChatTypeEnum.Shout, ScriptBaseClass.DEBUG_CHANNEL, m_host.Name, m_host.UUID, message);
         }
 
-        public string modSendCommand(string modules, string command, string k)
+        public string modSendCommand(string module, string command, string k)
         {
             if (!m_MODFunctionsEnabled)
-                return "";
+            {
+                MODShoutError("Module command functions not enabled");
+                return UUID.Zero.ToString();;
+            }
 
-            return "";
+            UUID req = UUID.Random();
+
+            m_comms.RaiseEvent(m_itemID, req.ToString(), module, command, k);
+
+            return req.ToString();
         }
     }
 }
