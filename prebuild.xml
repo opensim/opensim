@@ -909,7 +909,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.GridServer" path="OpenSim/Grid/GridServer" type="Exe">
+    <Project frameworkVersion="v3_5" name="OpenSim.Grid.GridServer" path="OpenSim/Grid/GridServer" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
