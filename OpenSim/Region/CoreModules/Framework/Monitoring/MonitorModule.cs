@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
 using OpenSim.Region.Framework.Interfaces;
@@ -43,6 +46,26 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                "monitor report",
                                "Returns a variety of statistics about the current region and/or simulator",
                                DebugMonitors);
+
+            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID + "/", StatsPage);
+        }
+
+        public Hashtable StatsPage(Hashtable request)
+        {
+            string xml = "<data>";
+            foreach (IMonitor monitor in m_monitors)
+            {
+                xml += "<" + monitor.ToString() + ">" + monitor.GetValue() + "</" + monitor.ToString() + ">";
+            }
+            xml += "</data>";
+
+            Hashtable ereply = new Hashtable();
+
+            ereply["int_response_code"] = 200; // 200 OK
+            ereply["str_response_string"] = xml;
+            ereply["content_type"] = "text/xml";
+
+            return ereply;
         }
 
         public void PostInitialise()
