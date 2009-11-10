@@ -204,6 +204,14 @@ namespace OpenSim.Region.Communications.Hypergrid
             return base.UpdateUserProfile(userProfile);
         }
 
+        public override bool AuthenticateUserByPassword(UUID userID, string password)
+        {
+            if (m_localUserServices != null)
+                return m_localUserServices.AuthenticateUserByPassword(userID, password);
+            else
+                return base.AuthenticateUserByPassword(userID, password);
+        }
+
         #region IUserServices Friend Methods
 
         // NOTE: We're still not dealing with foreign user friends
