@@ -3758,14 +3758,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             Vector3 lPos = OffsetPosition;
 
-            byte state = Shape.State;
             if (IsAttachment)
             {
                 if (ParentGroup.RootPart != this)
                     return;
 
                 lPos = ParentGroup.RootPart.AttachedPos;
-                state = (byte)AttachmentPoint;
             }
             else
             {
@@ -3778,7 +3776,7 @@ namespace OpenSim.Region.Framework.Scenes
             remoteClient.SendPrimTerseUpdate(new SendPrimitiveTerseData(m_regionHandle,
                     m_parentGroup.GetTimeDilation(), LocalId, lPos,
                     RotationOffset, Velocity, Acceleration,
-                    AngularVelocity, state, FromItemID,
+                    AngularVelocity, FromItemID,
                     OwnerID, (int)AttachmentPoint, null, ParentGroup.GetUpdatePriority(remoteClient)));
         }
                 

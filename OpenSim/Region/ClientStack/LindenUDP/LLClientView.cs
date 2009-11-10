@@ -4037,11 +4037,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(SendPrimitiveTerseData data)
         {
-            return CreateImprovedTerseBlock(false, data.LocalID, data.State, Vector4.Zero, data.Position, data.Velocity,
+            return CreateImprovedTerseBlock(false, data.LocalID, data.AttachPoint, Vector4.Zero, data.Position, data.Velocity,
                 data.Acceleration, data.Rotation, data.AngularVelocity, data.TextureEntry);
         }
 
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(bool avatar, uint localID, byte state,
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(bool avatar, uint localID, int attachPoint,
             Vector4 collisionPlane, Vector3 position, Vector3 velocity, Vector3 acceleration, Quaternion rotation,
             Vector3 angularVelocity, byte[] textureEntry)
         {
@@ -4053,7 +4053,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 4;
 
             // Avatar/CollisionPlane
-            data[pos++] = state;
+            data[pos++] = (byte)((attachPoint % 16) * 16 + (attachPoint / 16)); ;
             if (avatar)
             {
                 data[pos++] = 1;
