@@ -20,6 +20,7 @@
     <File name="./Executor.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Constants.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./LSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
+    <File name="./MOD_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./OSSL_Stub.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./ScriptBase.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
     <File name="./ScriptSponsor.cs" subtype="Code" buildaction="Compile" dependson="" data="" />
