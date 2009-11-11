@@ -52,6 +52,7 @@ namespace PrimMesher
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
 
+#if SYSTEM_DRAWING
         // private Bitmap ScaleImage(Bitmap srcImage, float scale)
         // {
         //     int sourceWidth = srcImage.Width;
@@ -89,7 +90,7 @@ namespace PrimMesher
         //     return scaledImage;
         // }
 
-#if SYSTEM_DRAWING
+
         public SculptMesh SculptMeshFromFile(string fileName, SculptType sculptType, int lod, bool viewerMode)
         {
             Bitmap bitmap = (Bitmap)Bitmap.FromFile(fileName);
@@ -320,20 +321,9 @@ namespace PrimMesher
                 if (sculptType == SculptType.plane)
                     invert = !invert;
 
-            //float sourceScaleFactor = (float)(lod) / (float)Math.Sqrt(sculptBitmap.Width * sculptBitmap.Height);
-
-            //int scale = (int)(1.0f / sourceScaleFactor);
-            //if (scale < 1) scale = 1;
-
-            //List<List<Coord>> rows = bitmap2Coords(sculptBitmap, scale, mirror);
-
             viewerFaces = new List<ViewerFace>();
 
-            //int width = sculptBitmap.Width / scale;
-            // int height = sculptBitmap.Height / scale;
-
             int width = rows[0].Count;
-//            int height = rows.Count;
 
             int p1, p2, p3, p4;
 
