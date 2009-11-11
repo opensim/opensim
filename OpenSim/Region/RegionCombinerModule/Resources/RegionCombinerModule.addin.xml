@@ -1,0 +1,13 @@
+<Addin id="OpenSim.Region.CoreModules" version="0.3">
+    <Runtime>
+        <Import assembly="OpenSim.Region.RegionCombinerModule.dll"/>
+    </Runtime>
+
+    <Dependencies>
+        <Addin id="OpenSim" version="0.5" />
+    </Dependencies>
+
+    <Extension path = "/OpenSim/RegionModules">
+        <RegionModule id="RegionCombinerModule" type="OpenSim.Region.CoreModules.World.Land.RegionCombinerModule" />
+    </Extension>
+</Addin>
