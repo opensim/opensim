@@ -48,7 +48,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 {
     public class MessageRegionModule : IMessageRegionLookup
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MessageServerConfig m_cfg;
 

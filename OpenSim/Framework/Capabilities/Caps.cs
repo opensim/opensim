@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Capabilities
         //private static readonly string m_requestTexture = "0003/";
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
-        private static readonly string m_fetchInventoryPath = "0006/";
+//        private static readonly string m_fetchInventoryPath = "0006/";
 
         // The following entries are in a module, however, they are also here so that we don't re-assign
         // the path to another cap by mistake.

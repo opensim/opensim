@@ -63,11 +63,11 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         protected static void LoadAsset(AssetBase info, string path)
         {
-            bool image =
-               (info.Type == (sbyte)AssetType.Texture ||
-                info.Type == (sbyte)AssetType.TextureTGA ||
-                info.Type == (sbyte)AssetType.ImageJPEG ||
-                info.Type == (sbyte)AssetType.ImageTGA);
+//            bool image =
+//               (info.Type == (sbyte)AssetType.Texture ||
+//                info.Type == (sbyte)AssetType.TextureTGA ||
+//                info.Type == (sbyte)AssetType.ImageJPEG ||
+//                info.Type == (sbyte)AssetType.ImageTGA);
 
             FileInfo fInfo = new FileInfo(path);
             long numBytes = fInfo.Length;
