@@ -333,7 +333,7 @@ namespace PrimMesher
             // int height = sculptBitmap.Height / scale;
 
             int width = rows[0].Count;
-            int height = rows.Count;
+//            int height = rows.Count;
 
             int p1, p2, p3, p4;
 
