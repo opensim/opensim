@@ -37,9 +37,14 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
+using Mono.Addins;
 
+[assembly: Addin("RegionCombinerModule", "0.1")]
+[assembly: AddinDependency("OpenSim", "0.5")]
 namespace OpenSim.Region.RegionCombinerModule
 {
+
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class RegionCombinerModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

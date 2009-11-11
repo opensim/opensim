@@ -88,8 +88,18 @@ namespace OpenSim.Region.Framework.Scenes
         protected List<RegionInfo> m_regionRestartNotifyList = new List<RegionInfo>();
         protected List<RegionInfo> m_neighbours = new List<RegionInfo>();
 
-        public volatile bool BordersLocked = false;
-
+        private volatile int m_bordersLocked = 0;
+        public bool BordersLocked
+        {
+            get { return m_bordersLocked == 1; }
+            set
+            {
+                if (value == true)
+                    m_bordersLocked = 1;
+                else
+                    m_bordersLocked = 0;
+            }
+        }
         public List<Border> NorthBorders = new List<Border>();
         public List<Border> EastBorders = new List<Border>();
         public List<Border> SouthBorders = new List<Border>();
