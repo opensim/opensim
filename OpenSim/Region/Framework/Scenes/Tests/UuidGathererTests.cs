@@ -25,72 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
+using NUnit.Framework;
+using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using Nini.Config;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Mock;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Region.Framework.Scenes.Tests
 {
-    public class TestAssetService : IAssetService
+    [TestFixture]
+    public class UuidGathererTests
     {
-        private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
-
-        public TestAssetService() {}
-
         /// <summary>
-        /// This constructor is required if the asset service is being created reflectively (which is the case in some
-        /// tests).
+        /// Test requests made for non-existent assets
         /// </summary>
-        /// <param name="config"></param>
-        public TestAssetService(IConfigSource config) {}
-        
-        public AssetBase Get(string id)
+        [Test]
+        public void TestMissingAsset()
         {
-            AssetBase asset;
-            if (Assets.ContainsKey(id))
-                asset = Assets[id];
-            else
-                asset = null;
+            TestHelper.InMethod();
             
-            return asset;
-        }
-
-        public AssetMetadata GetMetadata(string id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public byte[] GetData(string id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public bool Get(string id, object sender, AssetRetrieved handler)
-        {
-            handler(id, sender, Get(id));
+            UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
+            UuidGatherer ug = new UuidGatherer(new TestAssetService());
+            IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();
             
-            return true;
-        }
+            ug.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
 
-        public string Store(AssetBase asset)
-        {
-            Assets[asset.ID] = asset;
-
-            return asset.ID;
-        }
-
-        public bool UpdateContent(string id, byte[] data)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public bool Delete(string id)
-        {
-            throw new System.NotImplementedException();
+            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
         }
     }
 }
