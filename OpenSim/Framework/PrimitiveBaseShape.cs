@@ -1066,5 +1066,86 @@ namespace OpenSim.Framework
 
             return data;
         }
+
+
+        /// <summary>
+        /// Creates a OpenMetaverse.Primitive and populates it with converted PrimitiveBaseShape values
+        /// </summary>
+        /// <returns></returns>
+        public Primitive ToOmvPrimitive()
+        {
+            // position and rotation defaults here since they are not available in PrimitiveBaseShape
+            return ToOmvPrimitive(new Vector3(0.0f, 0.0f, 0.0f),
+                new Quaternion(0.0f, 0.0f, 0.0f, 1.0f));
+        }
+
+
+        /// <summary>
+        /// Creates a OpenMetaverse.Primitive and populates it with converted PrimitiveBaseShape values
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        /// <returns></returns>
+        public Primitive ToOmvPrimitive(Vector3 position, Quaternion rotation)
+        {
+            OpenMetaverse.Primitive prim = new OpenMetaverse.Primitive();
+            prim.Scale = this.Scale;
+            prim.Position = position;
+            prim.Rotation = rotation;
+
+            if (this.SculptEntry)
+            {
+                prim.Sculpt = new Primitive.SculptData();
+                prim.Sculpt.Type = (OpenMetaverse.SculptType)this.SculptType;
+                prim.Sculpt.SculptTexture = this.SculptTexture;
+
+                return prim;
+            }
+
+            prim.PrimData.PathShearX = this.PathShearX < 128 ? (float)this.PathShearX * 0.01f : (float)(this.PathShearX - 256) * 0.01f;
+            prim.PrimData.PathShearY = this.PathShearY < 128 ? (float)this.PathShearY * 0.01f : (float)(this.PathShearY - 256) * 0.01f;
+            prim.PrimData.PathBegin = (float)this.PathBegin * 2.0e-5f;
+            prim.PrimData.PathEnd = 1.0f - (float)this.PathEnd * 2.0e-5f;
+            prim.PrimData.PathScaleX = (float)(this.PathScaleX - 100) * 0.01f;
+            prim.PrimData.PathScaleY = (float)(this.PathScaleY - 100) * 0.01f;
+
+            prim.PrimData.ProfileBegin = (float)this.ProfileBegin * 2.0e-5f;
+            prim.PrimData.ProfileEnd = 1.0f - (float)this.ProfileEnd * 2.0e-5f;
+            prim.PrimData.ProfileHollow = (float)this.ProfileHollow * 2.0e-5f;
+
+            prim.PrimData.profileCurve = this.ProfileCurve;
+            prim.PrimData.ProfileHole = (HoleType)this.HollowShape;
+
+            prim.PrimData.PathTwistBegin = this.PathTwistBegin * 18 / 10;
+            prim.PrimData.PathTwist = this.PathTwist * 18 / 10;
+
+            prim.PrimData.PathTaperX = this.PathTaperX * 0.01f;
+            prim.PrimData.PathTaperY = this.PathTaperY * 0.01f;
+
+            if (this.FlexiEntry)
+            {
+                prim.Flexible = new Primitive.FlexibleData();
+                prim.Flexible.Drag = this.FlexiDrag;
+                prim.Flexible.Force = new Vector3(this.FlexiForceX, this.FlexiForceY, this.FlexiForceZ);
+                prim.Flexible.Gravity = this.FlexiGravity;
+                prim.Flexible.Softness = this.FlexiSoftness;
+                prim.Flexible.Tension = this.FlexiTension;
+                prim.Flexible.Wind = this.FlexiWind;
+            }
+
+            if (this.LightEntry)
+            {
+                prim.Light = new Primitive.LightData();
+                prim.Light.Color = new Color4(this.LightColorR, this.LightColorG, this.LightColorB, this.LightColorA);
+                prim.Light.Cutoff = this.LightCutoff;
+                prim.Light.Falloff = this.LightFalloff;
+                prim.Light.Intensity = this.LightIntensity;
+                prim.Light.Radius = this.LightRadius;
+            }
+
+            prim.Textures = new Primitive.TextureEntry(this.TextureEntry, 0, this.TextureEntry.Length);
+
+            return prim;
+        }
     }
 }
