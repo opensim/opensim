@@ -38,7 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.RegionCombinerModule
 {
     public class RegionCombinerModule : ISharedRegionModule
     {

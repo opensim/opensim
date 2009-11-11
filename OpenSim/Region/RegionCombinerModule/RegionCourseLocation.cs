@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.RegionCombinerModule
 {
 
     struct RegionCourseLocationStruct
