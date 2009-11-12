@@ -38,6 +38,14 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class UuidGathererTests
     {
+        protected UuidGatherer m_ug;
+            
+        [SetUp]
+        public void Init()
+        {
+            m_ug = new UuidGatherer(new TestAssetService());
+        }
+        
         /// <summary>
         /// Test requests made for non-existent assets
         /// </summary>
@@ -46,11 +54,10 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             
-            UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            UuidGatherer ug = new UuidGatherer(new TestAssetService());
+            UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");            
             IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();
             
-            ug.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
+            m_ug.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is missing.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
