@@ -162,22 +162,22 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        /// <summary>
-        /// Some... logging functionnality
-        /// </summary>
-        /// <param name="asset"></param>
-        private static void LogAssetLoad(AssetBase asset)
-        {
-            string temporary = asset.Temporary ? "Temporary" : "Stored";
-            string local = asset.Local ? "Local" : "Remote";
-
-            int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
-
-            m_log.Debug("[ASSET DB]: " +
-                                     string.Format("Loaded {5} {4} Asset: [{0}][{3}] \"{1}\":{2} ({6} bytes)",
-                                                   asset.FullID, asset.Name, asset.Description, asset.Type,
-                                                   temporary, local, assetLength));
-        }
+//        /// <summary>
+//        /// Some... logging functionnality
+//        /// </summary>
+//        /// <param name="asset"></param>
+//        private static void LogAssetLoad(AssetBase asset)
+//        {
+//            string temporary = asset.Temporary ? "Temporary" : "Stored";
+//            string local = asset.Local ? "Local" : "Remote";
+//
+//            int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
+//
+//            m_log.Debug("[ASSET DB]: " +
+//                                     string.Format("Loaded {5} {4} Asset: [{0}][{3}] \"{1}\":{2} ({6} bytes)",
+//                                                   asset.FullID, asset.Name, asset.Description, asset.Type,
+//                                                   temporary, local, assetLength));
+//        }
 
         /// <summary>
         /// Check if an asset exist in database
