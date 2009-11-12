@@ -35,13 +35,13 @@ using Nini.Config;
 
 namespace OpenSim.Tests.Common.Mock
 {
-    public class TestInventoryService : IInventoryService
+    public class MockInventoryService : IInventoryService
     {
-        public TestInventoryService()
+        public MockInventoryService()
         {
         }
         
-        public TestInventoryService(IConfigSource config)
+        public MockInventoryService(IConfigSource config)
         {
         }
 

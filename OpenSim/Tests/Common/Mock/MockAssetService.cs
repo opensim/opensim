@@ -37,20 +37,20 @@ using Nini.Config;
 
 namespace OpenSim.Tests.Common.Mock
 {
-    public class TestAssetService : IAssetService
+    public class MockAssetService : IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
 
-        public TestAssetService() {}
+        public MockAssetService() {}
 
         /// <summary>
         /// This constructor is required if the asset service is being created reflectively (which is the case in some
         /// tests).
         /// </summary>
         /// <param name="config"></param>
-        public TestAssetService(IConfigSource config) {}
+        public MockAssetService(IConfigSource config) {}
         
         public AssetBase Get(string id)
         {

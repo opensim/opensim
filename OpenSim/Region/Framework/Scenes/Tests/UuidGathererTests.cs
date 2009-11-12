@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         [SetUp]
         public void Init()
         {
-            m_assetService = new TestAssetService();
+            m_assetService = new MockAssetService();
             m_uuidGatherer = new UuidGatherer(m_assetService);
         }
 
