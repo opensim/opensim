@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osWindActiveModelPluginName();
         }
-       
+
 // Not yet plugged in as available OSSL functions, so commented out
 //        void osWindParamSet(string plugin, string param, float value)
 //        {
@@ -138,14 +138,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public string osSetDynamicTextureURLBlendFace(string dynamicID, string contentType, string url, string extraParams,
                                            bool blend, int disp, int timer, int alpha, int face)
         {
-            return m_OSSL_Functions.osSetDynamicTextureURLBlendFace(dynamicID, contentType, url, extraParams, 
+            return m_OSSL_Functions.osSetDynamicTextureURLBlendFace(dynamicID, contentType, url, extraParams,
                                              blend, disp, timer, alpha, face);
         }
 
         public string osSetDynamicTextureDataBlendFace(string dynamicID, string contentType, string data, string extraParams,
                                              bool blend, int disp, int timer, int alpha, int face)
         {
-            return m_OSSL_Functions.osSetDynamicTextureDataBlendFace(dynamicID, contentType, data, extraParams, 
+            return m_OSSL_Functions.osSetDynamicTextureDataBlendFace(dynamicID, contentType, data, extraParams,
                                              blend, disp, timer, alpha, face);
         }
 
@@ -183,7 +183,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetParcelMediaURL(url);
         }
-        
+
         public void osSetParcelSIPAddress(string SIPAddress)
         {
             m_OSSL_Functions.osSetParcelSIPAddress(SIPAddress);
@@ -211,7 +211,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_OSSL_Functions.osTeleportAgent(agent, position, lookat);
         }
 
-        // Avatar info functions 
+        // Avatar info functions
         public string osGetAgentIP(string agent)
         {
             return m_OSSL_Functions.osGetAgentIP(agent);
@@ -326,17 +326,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetScriptEngineName();
         }
-        
+
         public string osGetSimulatorVersion()
         {
            return m_OSSL_Functions.osGetSimulatorVersion();
         }
-        
+
         public Hashtable osParseJSON(string JSON)
         {
             return m_OSSL_Functions.osParseJSON(JSON);
         }
-    
+
         public void osMessageObject(key objectUUID,string message)
         {
             m_OSSL_Functions.osMessageObject(objectUUID,message);
@@ -412,7 +412,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osLoadedCreationID();
         }
-        
+
         public LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
             return m_OSSL_Functions.osGetLinkPrimitiveParams(linknumber, rules);
@@ -621,6 +621,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                     Save();
                 }
             }
+        }
+
+        public key osGetMapTexture()
+        {
+            return m_OSSL_Functions.osGetMapTexture();
+        }
+
+        public key osGetRegionMapTexture(string regionName)
+        {
+            return m_OSSL_Functions.osGetRegionMapTexture(regionName);
         }
     }
 }

@@ -199,7 +199,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //Dumps an error message on the debug console.
         //
 
-        internal void OSSLShoutError(string message) 
+        internal void OSSLShoutError(string message)
         {
             if (message.Length > 1023)
                 message = message.Substring(0, 1023);
@@ -1176,7 +1176,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             land.SetMediaUrl(url);
         }
-        
+
         public void osSetParcelSIPAddress(string SIPAddress)
         {
             // What actually is the difference to the LL function?
@@ -1184,7 +1184,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.VeryLow, "osSetParcelMediaURL");
 
             m_host.AddScriptLPS(1);
-            
+
 
             ILandObject land
                 = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
@@ -1194,16 +1194,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 OSSLError("osSetParcelSIPAddress: Sorry, you need to own the land to use this function");
                 return;
             }
-            
+
             // get the voice module
             IVoiceModule voiceModule = World.RequestModuleInterface<IVoiceModule>();
-            
-            if (voiceModule != null) 
+
+            if (voiceModule != null)
                 voiceModule.setLandSIPAddress(SIPAddress,land.LandData.GlobalID);
             else
                 OSSLError("osSetParcelSIPAddress: No voice module enabled for this land");
-            
-            
+
+
         }
 
         public string osGetScriptEngineName()
@@ -1525,10 +1525,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
 
-        /*Instead of using the LSL Dataserver event to pull notecard data, 
+        /*Instead of using the LSL Dataserver event to pull notecard data,
                  this will simply read the requested line and return its data as a string.
-         
-                 Warning - due to the synchronous method this function uses to fetch assets, its use 
+
+                 Warning - due to the synchronous method this function uses to fetch assets, its use
                            may be dangerous and unreliable while running in grid mode.
                 */
         public string osGetNotecardLine(string name, int line)
@@ -1576,10 +1576,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        /*Instead of using the LSL Dataserver event to pull notecard data line by line, 
+        /*Instead of using the LSL Dataserver event to pull notecard data line by line,
           this will simply read the entire notecard and return its data as a string.
-         
-          Warning - due to the synchronous method this function uses to fetch assets, its use 
+
+          Warning - due to the synchronous method this function uses to fetch assets, its use
                     may be dangerous and unreliable while running in grid mode.
          */
 
@@ -1634,10 +1634,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
-        /*Instead of using the LSL Dataserver event to pull notecard data, 
+        /*Instead of using the LSL Dataserver event to pull notecard data,
           this will simply read the number of note card lines and return this data as an integer.
-          
-          Warning - due to the synchronous method this function uses to fetch assets, its use 
+
+          Warning - due to the synchronous method this function uses to fetch assets, its use
                     may be dangerous and unreliable while running in grid mode.
          */
 
@@ -1837,7 +1837,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return World.RegionInfo.RegionSettings.LoadedCreationID;
         }
-        
+
         // Threat level is 'Low' because certain users could possibly be tricked into
         // dropping an unverified script into one of their own objects, which could
         // then gather the physical construction details of the object and transmit it
@@ -1861,7 +1861,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Key osNpcCreate(string firstname, string lastname, LSL_Vector position, LSL_Key cloneFrom)
         {
             CheckThreatLevel(ThreatLevel.High, "osNpcCreate");
-            //QueueUserWorkItem 
+            //QueueUserWorkItem
 
             INPCModule module = World.RequestModuleInterface<INPCModule>();
             if (module != null)
@@ -1909,6 +1909,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 module.DeleteNPC(new UUID(npc.m_string), World);
             }
+        }
+        
+        /// <summary>
+        /// Get current region's map texture UUID
+        /// </summary>
+        /// <returns></returns>
+        public LSL_Key osGetMapTexture()
+        {
+            CheckThreatLevel(ThreatLevel.None, "osGetMapTexture");
+            return m_ScriptEngine.World.RegionInfo.RegionSettings.TerrainImageID.ToString();
+        }
+
+        /// <summary>
+        /// Get a region's map texture UUID by region UUID or name.
+        /// </summary>
+        /// <param name="regionName"></param>
+        /// <returns></returns>
+        public LSL_Key osGetRegionMapTexture(string regionName)
+        {
+            CheckThreatLevel(ThreatLevel.High, "osGetRegionMapTexture");
+            Scene scene = m_ScriptEngine.World;
+            UUID key = UUID.Zero;
+            GridRegion region;
+
+            //If string is a key, use it. Otherwise, try to locate region by name.
+            if (UUID.TryParse(regionName, out key))
+                region = scene.GridService.GetRegionByUUID(UUID.Zero, key);
+            else
+                region = scene.GridService.GetRegionByName(UUID.Zero, regionName);
+
+            // If region was found, return the regions map texture key.
+            if (region != null)
+                key = region.TerrainImage;
+
+            ScriptSleep(1000);
+
+            return key.ToString();
         }
     }
 }
