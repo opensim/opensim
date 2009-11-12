@@ -52,6 +52,36 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
         public Hashtable StatsPage(Hashtable request)
         {
+            // If request was for a specific monitor
+            // eg url/?monitor=Monitor.Name
+            if (request.ContainsKey("monitor"))
+            {
+                string monID = (string) request["monitor"];
+
+                foreach (IMonitor monitor in m_monitors)
+                {
+                    if (monitor.ToString() == monID)
+                    {
+                        Hashtable ereply3 = new Hashtable();
+
+                        ereply3["int_response_code"] = 404; // 200 OK
+                        ereply3["str_response_string"] = monitor.GetValue().ToString();
+                        ereply3["content_type"] = "text/plain";
+
+                        return ereply3;
+                    }
+                }
+
+                // No monitor with that name
+                Hashtable ereply2 = new Hashtable();
+
+                ereply2["int_response_code"] = 404; // 200 OK
+                ereply2["str_response_string"] = "No such monitor";
+                ereply2["content_type"] = "text/plain";
+
+                return ereply2;
+            }
+
             string xml = "<data>";
             foreach (IMonitor monitor in m_monitors)
             {
