@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -122,8 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
-            AssetBase asset1 = new AssetBase(asset1Id, asset1Id.ToString(), (sbyte)AssetType.Object);
-            asset1.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(object1));
+            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
             scene.AssetService.Store(asset1);
 
             // Create item
@@ -338,8 +336,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
-            AssetBase asset1 = new AssetBase(asset1Id, String.Empty, (sbyte)AssetType.Object);
-            asset1.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(object1));
+            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
             scene.AssetService.Store(asset1);
 
             // Create item
@@ -365,9 +362,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
             
             archiverModule.DearchiveInventory(userFirstName, userLastName, "Scripts", userPassword, archiveReadStream);
-
-            CachedUserInfo userInfo 
-                = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
             InventoryItemBase foundItem1
                 = InventoryArchiveUtils.FindItemByPath(
