@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
+using OpenSim.Tests.Common.Setup;
 using OpenSim.Tests.Common.Mock;
 
 namespace OpenSim.Region.Framework.Scenes.Tests
@@ -55,11 +56,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestCorruptAsset()
         {
             TestHelper.InMethod();
-
+            
             UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
-            AssetBase corruptAsset = new AssetBase(corruptAssetUuid, corruptAssetUuid.ToString(), (sbyte)AssetType.Object);
-            corruptAsset.Data = Encoding.ASCII.GetBytes("CORRUPT ASSET");
-
+            AssetBase corruptAsset = AssetHelpers.CreateAsset(corruptAssetUuid, "CORRUPT ASSET");
             m_assetService.Store(corruptAsset);
 
             IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();

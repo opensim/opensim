@@ -36,6 +36,19 @@ namespace OpenSim.Tests.Common
     public class AssetHelpers
     {
         /// <summary>
+        /// Create an asset from the given data
+        /// </summary>
+        /// <param name="assetUuid"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(UUID assetUuid, string data)
+        {
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object);
+            asset.Data = Encoding.ASCII.GetBytes(data);
+            return asset;
+        }
+        
+        /// <summary>
         /// Create an asset from the given scene object
         /// </summary>
         /// <param name="assetUuid"></param>
