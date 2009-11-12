@@ -26,10 +26,13 @@
  */
 
 using System.Collections.Generic;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 
@@ -38,16 +41,36 @@ namespace OpenSim.Region.Framework.Scenes.Tests
     [TestFixture]
     public class UuidGathererTests
     {
-        protected UuidGatherer m_ug;
+        protected IAssetService m_assetService;
+        protected UuidGatherer m_uuidGatherer;
             
         [SetUp]
         public void Init()
         {
-            m_ug = new UuidGatherer(new TestAssetService());
+            m_assetService = new TestAssetService();
+            m_uuidGatherer = new UuidGatherer(m_assetService);
+        }
+
+        [Test]
+        public void TestCorruptAsset()
+        {
+            TestHelper.InMethod();
+
+            UUID corruptAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
+            AssetBase corruptAsset = new AssetBase(corruptAssetUuid, corruptAssetUuid.ToString(), (sbyte)AssetType.Object);
+            corruptAsset.Data = Encoding.ASCII.GetBytes("CORRUPT ASSET");
+
+            m_assetService.Store(corruptAsset);
+
+            IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();
+            m_uuidGatherer.GatherAssetUuids(corruptAssetUuid, AssetType.Object, foundAssetUuids);
+
+            // We count the uuid as gathered even if the asset itself is corrupt.
+            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));            
         }
         
         /// <summary>
-        /// Test requests made for non-existent assets
+        /// Test requests made for non-existent assets while we're gathering
         /// </summary>
         [Test]
         public void TestMissingAsset()
@@ -57,7 +80,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");            
             IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();
             
-            m_ug.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
+            m_uuidGatherer.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is missing.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));

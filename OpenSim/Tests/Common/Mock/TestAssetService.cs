@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
@@ -37,6 +39,8 @@ namespace OpenSim.Tests.Common.Mock
 {
     public class TestAssetService : IAssetService
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
 
         public TestAssetService() {}
@@ -50,6 +54,8 @@ namespace OpenSim.Tests.Common.Mock
         
         public AssetBase Get(string id)
         {
+            m_log.DebugFormat("[MOCK ASSET SERVICE]: Getting asset with id {0}", id);
+            
             AssetBase asset;
             if (Assets.ContainsKey(id))
                 asset = Assets[id];
@@ -78,6 +84,8 @@ namespace OpenSim.Tests.Common.Mock
 
         public string Store(AssetBase asset)
         {
+            m_log.DebugFormat("[MOCK ASSET SERVICE]: Storing asset {0}", asset.ID);
+            
             Assets[asset.ID] = asset;
 
             return asset.ID;
