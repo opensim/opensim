@@ -52,6 +52,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             
             ug.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);
 
+            // We count the uuid as gathered even if the asset itself is missing.
             Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
         }
     }
