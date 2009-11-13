@@ -1089,6 +1089,7 @@ namespace OpenSim.Framework
         public Primitive ToOmvPrimitive(Vector3 position, Quaternion rotation)
         {
             OpenMetaverse.Primitive prim = new OpenMetaverse.Primitive();
+
             prim.Scale = this.Scale;
             prim.Position = position;
             prim.Rotation = rotation;
@@ -1106,8 +1107,15 @@ namespace OpenSim.Framework
             prim.PrimData.PathShearY = this.PathShearY < 128 ? (float)this.PathShearY * 0.01f : (float)(this.PathShearY - 256) * 0.01f;
             prim.PrimData.PathBegin = (float)this.PathBegin * 2.0e-5f;
             prim.PrimData.PathEnd = 1.0f - (float)this.PathEnd * 2.0e-5f;
-            prim.PrimData.PathScaleX = (float)(this.PathScaleX - 100) * 0.01f;
-            prim.PrimData.PathScaleY = (float)(this.PathScaleY - 100) * 0.01f;
+
+            prim.PrimData.PathScaleX = (200 - this.PathScaleX) * 0.01f;
+            prim.PrimData.PathScaleY = (200 - this.PathScaleY) * 0.01f;
+
+            prim.PrimData.PathTaperX = this.PathTaperX * 0.01f;
+            prim.PrimData.PathTaperY = this.PathTaperY * 0.01f;
+
+            prim.PrimData.PathTwistBegin = this.PathTwistBegin * 0.01f;
+            prim.PrimData.PathTwist = this.PathTwist * 0.01f;
 
             prim.PrimData.ProfileBegin = (float)this.ProfileBegin * 2.0e-5f;
             prim.PrimData.ProfileEnd = 1.0f - (float)this.ProfileEnd * 2.0e-5f;
@@ -1116,11 +1124,13 @@ namespace OpenSim.Framework
             prim.PrimData.profileCurve = this.ProfileCurve;
             prim.PrimData.ProfileHole = (HoleType)this.HollowShape;
 
-            prim.PrimData.PathTwistBegin = this.PathTwistBegin * 18 / 10;
-            prim.PrimData.PathTwist = this.PathTwist * 18 / 10;
+            prim.PrimData.PathCurve = (PathCurve)this.PathCurve;
+            prim.PrimData.PathRadiusOffset = 0.01f * this.PathRadiusOffset;
+            prim.PrimData.PathRevolutions = 1.0f + 0.015f * this.PathRevolutions;
+            prim.PrimData.PathSkew = 0.01f * this.PathSkew;
 
-            prim.PrimData.PathTaperX = this.PathTaperX * 0.01f;
-            prim.PrimData.PathTaperY = this.PathTaperY * 0.01f;
+            prim.PrimData.PCode = OpenMetaverse.PCode.Prim;
+            prim.PrimData.State = 0;
 
             if (this.FlexiEntry)
             {
@@ -1145,6 +1155,16 @@ namespace OpenSim.Framework
 
             prim.Textures = new Primitive.TextureEntry(this.TextureEntry, 0, this.TextureEntry.Length);
 
+            prim.Properties = new Primitive.ObjectProperties();
+            prim.Properties.Name = "Primitive";
+            prim.Properties.Description = "";
+            prim.Properties.CreatorID = UUID.Zero;
+            prim.Properties.GroupID = UUID.Zero;
+            prim.Properties.OwnerID = UUID.Zero;
+            prim.Properties.Permissions = new Permissions();
+            prim.Properties.SalePrice = 10;
+            prim.Properties.SaleType = new SaleType();
+            
             return prim;
         }
     }
