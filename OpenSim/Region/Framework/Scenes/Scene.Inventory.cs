@@ -803,20 +803,6 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryService.DeleteFolders(remoteClient.AgentId, folderIDs);
         }
 
-        private SceneObjectGroup GetGroupByPrim(uint localID)
-        {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
-                        return (SceneObjectGroup) ent;
-                }
-            }
-            return null;
-        }
 
         /// <summary>
         /// Send the details of a prim's inventory to the client.

@@ -4383,6 +4383,16 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetSceneObjectPart(fullID);
         }
 
+        /// <summary>
+        /// Get a scene object group that contains the prim with the given local id
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns>null if no scene object group containing that prim is found</returns>
+        public SceneObjectGroup GetGroupByPrim(uint localID)
+        {
+            return m_sceneGraph.GetGroupByPrim(localID);
+        }
+
         public bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
             return m_sceneGraph.TryGetAvatar(avatarId, out avatar);

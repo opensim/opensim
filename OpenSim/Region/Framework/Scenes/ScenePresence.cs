@@ -3907,7 +3907,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                group = Scene.SceneGraph.GetGroupByPrim(data.localID);
+                group = Scene.GetGroupByPrim(data.localID);
                 if (group != null)
                     return GetSOGUpdatePriority(group);
             }
