@@ -1967,12 +1967,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// Note: this may not be cused by opensim (it probably should) but it's used by
         /// external modules.
         /// </summary>
-        public void SendGroupRootUpdate()
+        public void SendGroupRootTerseUpdate()
         {
             if (IsDeleted)
                 return;
 
-            RootPart.SendFullUpdateToAllClients();
+            RootPart.SendTerseUpdateToAllClients();
         }
 
         public void QueueForUpdateCheck()
