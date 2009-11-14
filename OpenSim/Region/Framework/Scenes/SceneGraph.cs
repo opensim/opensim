@@ -928,7 +928,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="fullID"></param>
         /// <returns>null if no scene object group containing that prim is found</returns>
-        private SceneObjectGroup GetGroupByPrim(UUID fullID)
+        public SceneObjectGroup GetGroupByPrim(UUID fullID)
         {
             SceneObjectGroup sog;
             lock (SceneObjectGroupsByFullID)
