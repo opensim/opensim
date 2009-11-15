@@ -399,6 +399,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Queue or Send
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
+            outgoingPacket.Type = type;
 
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
@@ -510,6 +511,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
+            bool sendSynchronous = false;
             LLUDPClient udpClient = outgoingPacket.Client;
 
             if (!udpClient.IsConnected)
@@ -565,9 +567,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (isReliable)
                 Interlocked.Add(ref udpClient.UnackedBytes, outgoingPacket.Buffer.DataLength);
 
-            // Put the UDP payload on the wire
-            AsyncBeginSend(buffer);
+            //Some packet types need to be sent synchonously.
+            //Sorry, i know it's not optimal, but until the LL client
+            //manages packets correctly and re-orders them as required, this is necessary.
 
+            if (outgoingPacket.Type == PacketType.ImprovedTerseObjectUpdate 
+                || outgoingPacket.Type == PacketType.ChatFromSimulator 
+                || outgoingPacket.Type == PacketType.ObjectUpdate
+                || outgoingPacket.Type == PacketType.LayerData)
+            {
+                sendSynchronous = true;
+            }
+
+            // Put the UDP payload on the wire
+            if (sendSynchronous == true)
+            {
+                SyncBeginSend(buffer);
+            }
+            else
+            {
+                AsyncBeginSend(buffer);
+            }
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }

@@ -1064,14 +1064,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// Clear all pending updates of parts to clients
-        /// </summary>
-        private void ClearUpdateSchedule()
-        {
-            m_updateFlag = 0;
-        }
-
         private void SendObjectPropertiesToClient(UUID AgentID)
         {
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
@@ -2387,8 +2379,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             const float ROTATION_TOLERANCE = 0.01f;
             const float VELOCITY_TOLERANCE = 0.001f;
-            const float POSITION_TOLERANCE = 0.05f;
-            const int TIME_MS_TOLERANCE = 3000;
+            const float POSITION_TOLERANCE = 0.05f; // I don't like this, but I suppose it's necessary
+            const int TIME_MS_TOLERANCE = 200; //llSetPos has a 200ms delay. This should NOT be 3 seconds.
 
             if (m_updateFlag == 1)
             {
@@ -2401,7 +2393,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
                 {
                     AddTerseUpdateToAllAvatars();
-                    ClearUpdateSchedule();
+                    
 
                     // This causes the Scene to 'poll' physical objects every couple of frames
                     // bad, so it's been replaced by an event driven method.
@@ -2419,13 +2411,15 @@ namespace OpenSim.Region.Framework.Scenes
                     m_lastAngularVelocity = AngularVelocity;
                     m_lastTerseSent = Environment.TickCount;
                 }
+                //Moved this outside of the if clause so updates don't get blocked.. *sigh*
+                m_updateFlag = 0; //Why were we calling a function to do this? Inefficient! *screams* 
             }
             else
             {
                 if (m_updateFlag == 2) // is a new prim, just created/reloaded or has major changes
                 {
                     AddFullUpdateToAllAvatars();
-                    ClearUpdateSchedule();
+                    m_updateFlag = 0; //Same here
                 }
             }
         }
