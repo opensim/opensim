@@ -77,13 +77,13 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         #region Internal functions
 
-        private string UserAssetURL(UUID userID)
-        {
-            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null)
-                return (uinfo.UserProfile.UserAssetURI == "") ? null : uinfo.UserProfile.UserAssetURI;
-            return null;
-        }
+//        private string UserAssetURL(UUID userID)
+//        {
+//            CachedUserInfo uinfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
+//            if (uinfo != null)
+//                return (uinfo.UserProfile.UserAssetURI == "") ? null : uinfo.UserProfile.UserAssetURI;
+//            return null;
+//        }
 
 //        private string UserInventoryURL(UUID userID)
 //        {
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     // HGAssetService dispatches it to the remote grid.
                     // It's not pretty, but the best that can be done while
                     // not having a global naming infrastructure
-                    AssetBase asset1 = new AssetBase();
+                    AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type);
                     Copy(asset, asset1);
                     try
                     {

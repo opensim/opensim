@@ -679,7 +679,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchFolders"></param>
         /// <param name="fetchItems"></param>
         /// <returns>true if the request was queued or successfully processed, false otherwise</returns>
-        public bool SendInventoryDecendents(IClientAPI client, UUID folderID, bool fetchFolders, bool fetchItems)
+        public bool SendInventoryDecendents(IClientAPI client, UUID folderID, int version, bool fetchFolders, bool fetchItems)
         {
             if (m_hasReceivedInventory)
             {
@@ -693,7 +693,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                     client.SendInventoryFolderDetails(
                         client.AgentId, folderID, folder.RequestListOfItems(),
-                        folder.RequestListOfFolders(), fetchFolders, fetchItems);
+                        folder.RequestListOfFolders(), version, fetchFolders, fetchItems);
 
                     return true;
                 }

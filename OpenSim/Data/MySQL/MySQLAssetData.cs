@@ -151,10 +151,9 @@ namespace OpenSim.Data.MySQL
                     {
                         if (dbReader.Read())
                         {
-                            asset = new AssetBase();
+                            asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["assetType"]);
                             asset.Data = (byte[]) dbReader["data"];
                             asset.Description = (string) dbReader["description"];
-                            asset.FullID = assetID;
 
                             string local = dbReader["local"].ToString();
                             if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
@@ -162,8 +161,6 @@ namespace OpenSim.Data.MySQL
                             else
                                 asset.Local = false;
 
-                            asset.Name = (string) dbReader["name"];
-                            asset.Type = (sbyte) dbReader["assetType"];
                             asset.Temporary = Convert.ToBoolean(dbReader["temporary"]);
                         }
                         dbReader.Close();

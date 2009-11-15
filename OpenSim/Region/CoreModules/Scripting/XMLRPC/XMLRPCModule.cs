@@ -689,7 +689,7 @@ namespace OpenSim.Region.CoreModules.Scripting.XMLRPC
                         }
                         if (respParms.Contains("IntValue"))
                         {
-                            Idata = Convert.ToInt32((string) respParms["IntValue"]);
+                            Idata = Convert.ToInt32(respParms["IntValue"]);
                         }
                         if (respParms.Contains("faultString"))
                         {

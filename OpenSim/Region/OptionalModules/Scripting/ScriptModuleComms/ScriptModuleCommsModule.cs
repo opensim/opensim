@@ -25,69 +25,81 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Net;
+using System;
 using System.Reflection;
-using log4net;
 using Nini.Config;
+using log4net;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server;
+using Mono.Addins;
+using OpenMetaverse;
 
-namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
+namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 {
-    public class IRCStackModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ScriptModuleCommsModule")]
+    class ScriptModuleCommsModule : INonSharedRegionModule, IScriptModuleComms
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IRCServer m_server;
-//        private Scene m_scene;
+        private IScriptModule m_scriptModule = null;
 
-        #region Implementation of IRegionModule
+        public event ScriptCommand OnScriptCommand;
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource config)
         {
-            if (null != source.Configs["IRCd"] &&
-                source.Configs["IRCd"].GetBoolean("Enabled",false))
-            {
-                int portNo = source.Configs["IRCd"].GetInt("Port",6666);
-//                m_scene = scene;
-                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
-                m_server.OnNewIRCClient += m_server_OnNewIRCClient;
-            }
         }
 
-        void m_server_OnNewIRCClient(IRCClientView user)
+        public void AddRegion(Scene scene)
         {
-            user.OnIRCReady += user_OnIRCReady;
+            scene.RegisterModuleInterface<IScriptModuleComms>(this);
         }
 
-        void user_OnIRCReady(IRCClientView cv)
+        public void RemoveRegion(Scene scene)
         {
-            m_log.Info("[IRCd] Adding user...");
-            cv.Start();
-            m_log.Info("[IRCd] Added user to Scene");
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
         {
-
-        }
-
-        public void Close()
-        {
-
+            m_scriptModule = scene.RequestModuleInterface<IScriptModule>();
+            
+            if (m_scriptModule != null)
+                m_log.Info("[MODULE COMMANDS]: Script engine found, module active");
         }
 
         public string Name
         {
-            get { return "IRCClientStackModule"; }
+            get { return "ScriptModuleCommsModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
 
-        #endregion
+        public void Close()
+        {
+        }
+
+        public void RaiseEvent(UUID script, string id, string module, string command, string k)
+        {
+            ScriptCommand c = OnScriptCommand;
+
+            if (c == null)
+                return;
+
+            c(script, id, module, command, k);
+        }
+
+        public void DispatchReply(UUID script, int code, string text, string k)
+        {
+            if (m_scriptModule == null)
+                return;
+
+            Object[] args = new Object[] {-1, code, text, k};
+
+            m_scriptModule.PostScriptEvent(script, "link_message", args);
+        }
     }
 }

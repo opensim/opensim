@@ -93,7 +93,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddInventoryItem(UUID AgentID, InventoryItemBase item)
         {
-
             if (InventoryService.AddItem(item))
             {
                 int userlevel = 0;
@@ -627,11 +626,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns></returns>
         private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data)
         {
-            AssetBase asset = new AssetBase();
-            asset.Name = name;
+            AssetBase asset = new AssetBase(UUID.Random(), name, assetType);
             asset.Description = description;
-            asset.Type = assetType;
-            asset.FullID = UUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
 
             return asset;
@@ -807,20 +803,6 @@ namespace OpenSim.Region.Framework.Scenes
             InventoryService.DeleteFolders(remoteClient.AgentId, folderIDs);
         }
 
-        private SceneObjectGroup GetGroupByPrim(uint localID)
-        {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase ent in EntityList)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup) ent).HasChildPrim(localID))
-                        return (SceneObjectGroup) ent;
-                }
-            }
-            return null;
-        }
 
         /// <summary>
         /// Send the details of a prim's inventory to the client.
@@ -1175,7 +1157,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.DebugFormat("[AGENT INVENTORY]: Send Inventory Folder {0} Update to {1} {2}", folder.Name, client.FirstName, client.LastName);
             InventoryCollection contents = InventoryService.GetFolderContent(client.AgentId, folder.ID);
-            client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, fetchFolders, fetchItems);
+            InventoryFolderBase containingFolder = new InventoryFolderBase();
+            containingFolder.ID = folder.ID;
+            containingFolder.Owner = client.AgentId;
+            containingFolder = InventoryService.GetFolder(containingFolder);
+            int version = containingFolder.Version;
+
+            client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, version, fetchFolders, fetchItems);
         }
 
         /// <summary>

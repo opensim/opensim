@@ -25,12 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// to build without references to System.Drawing, comment this out
+#define SYSTEM_DRAWING
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+
+#if SYSTEM_DRAWING
 using System.Drawing;
 using System.Drawing.Imaging;
+#endif
 
 namespace PrimMesher
 {
@@ -46,6 +52,7 @@ namespace PrimMesher
 
         public enum SculptType { sphere = 1, torus = 2, plane = 3, cylinder = 4 };
 
+#if SYSTEM_DRAWING
         // private Bitmap ScaleImage(Bitmap srcImage, float scale)
         // {
         //     int sourceWidth = srcImage.Width;
@@ -83,6 +90,7 @@ namespace PrimMesher
         //     return scaledImage;
         // }
 
+
         public SculptMesh SculptMeshFromFile(string fileName, SculptType sculptType, int lod, bool viewerMode)
         {
             Bitmap bitmap = (Bitmap)Bitmap.FromFile(fileName);
@@ -97,6 +105,7 @@ namespace PrimMesher
             _SculptMesh(bitmap, (SculptType)sculptType, lod, viewerMode != 0, mirror != 0, invert != 0);
             bitmap.Dispose();
         }
+#endif
 
         /// <summary>
         /// ** Experimental ** May disappear from future versions ** not recommeneded for use in applications
@@ -201,6 +210,7 @@ namespace PrimMesher
                 calcVertexNormals(SculptType.plane, numXElements, numYElements);
         }
 
+#if SYSTEM_DRAWING
         public SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode)
         {
             _SculptMesh(sculptBitmap, sculptType, lod, viewerMode, false, false);
@@ -210,9 +220,16 @@ namespace PrimMesher
         {
             _SculptMesh(sculptBitmap, sculptType, lod, viewerMode, mirror, invert);
         }
+#endif
 
+        public SculptMesh(List<List<Coord>> rows, SculptType sculptType, bool viewerMode, bool mirror, bool invert)
+        {
+            _SculptMesh(rows, sculptType, viewerMode, mirror, invert);
+        }
+
+#if SYSTEM_DRAWING
         /// <summary>
-        /// converts a bitmap to a list lists of coords, while scaling the image.
+        /// converts a bitmap to a list of lists of coords, while scaling the image.
         /// the scaling is done in floating point so as to allow for reduced vertex position
         /// quantization as the position will be averaged between pixel values. this routine will
         /// likely fail if the bitmap width and height are not powers of 2.
@@ -267,6 +284,7 @@ namespace PrimMesher
             return rows;
         }
 
+
         void _SculptMesh(Bitmap sculptBitmap, SculptType sculptType, int lod, bool viewerMode, bool mirror, bool invert)
         {
             coords = new List<Coord>();
@@ -285,12 +303,27 @@ namespace PrimMesher
             int scale = (int)(1.0f / sourceScaleFactor);
             if (scale < 1) scale = 1;
 
-            List<List<Coord>> rows = bitmap2Coords(sculptBitmap, scale, mirror);
+            _SculptMesh(bitmap2Coords(sculptBitmap, scale, mirror), sculptType, viewerMode, mirror, invert);
+        }
+#endif
+
+
+        void _SculptMesh(List<List<Coord>> rows, SculptType sculptType, bool viewerMode, bool mirror, bool invert)
+        {
+            coords = new List<Coord>();
+            faces = new List<Face>();
+            normals = new List<Coord>();
+            uvs = new List<UVCoord>();
+
+            sculptType = (SculptType)(((int)sculptType) & 0x07);
+
+            if (mirror)
+                if (sculptType == SculptType.plane)
+                    invert = !invert;
 
             viewerFaces = new List<ViewerFace>();
 
-            int width = sculptBitmap.Width / scale;
-            // int height = sculptBitmap.Height / scale;
+            int width = rows[0].Count;
 
             int p1, p2, p3, p4;
 

@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
-        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
+//        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
         /// <summary>
@@ -181,7 +181,7 @@ namespace OpenSim.Region.Framework.Scenes
         private byte m_state;
 
         //Reuse the Vector3 instead of creating a new one on the UpdateMovement method
-        private Vector3 movementvector;
+//        private Vector3 movementvector;
 
         private bool m_autopilotMoving;
         private Vector3 m_autoPilotTarget;
@@ -479,6 +479,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                 m_velocity = value;
             }
+        }
+
+        public Quaternion Rotation
+        {
+            get { return m_bodyRot; }
+            set { m_bodyRot = value; }
         }
 
         /// <summary>
@@ -1912,14 +1918,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
 
-            AssetBase Animasset = new AssetBase();
+            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation);
             Animasset.Data = anim.ToBytes();
             Animasset.Temporary = true;
             Animasset.Local = true;
-            Animasset.FullID = UUID.Random();
-            Animasset.ID = Animasset.FullID.ToString();
-            Animasset.Name = "Random Animation";
-            Animasset.Type = (sbyte)AssetType.Animation;
             Animasset.Description = "dance";
             //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
 
@@ -2068,7 +2070,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (heldDown) { move.Z -= 1; }
 
             // Is the avatar trying to move?
-            bool moving = (move != Vector3.Zero);
+//            bool moving = (move != Vector3.Zero);
             bool jumping = m_animTickJump != 0;
 
             #endregion Inputs
@@ -2256,7 +2258,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_perfMonMS = Environment.TickCount;
 
-            m_rotation = rotation;
+            Rotation = rotation;
             Vector3 direc = vec * rotation;
             direc.Normalize();
 
@@ -2320,7 +2322,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_isChildAgent == false)
             {
-                PhysicsActor actor = m_physicsActor;
+//                PhysicsActor actor = m_physicsActor;
 
                 // NOTE: Velocity is not the same as m_velocity. Velocity will attempt to
                 // grab the latest PhysicsActor velocity, whereas m_velocity is often
@@ -3256,7 +3258,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 force = m_forceToApply.Value;
 
                 m_updateflag = true;
-                movementvector = force;
+//                movementvector = force;
                 Velocity = force;
 
                 m_forceToApply = null;
@@ -3905,7 +3907,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                group = Scene.SceneGraph.GetGroupByPrim(data.localID);
+                group = Scene.GetGroupByPrim(data.localID);
                 if (group != null)
                     return GetSOGUpdatePriority(group);
             }

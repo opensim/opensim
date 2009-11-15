@@ -543,7 +543,7 @@
 
     ; specifies if the capsule should be tilted (=true; old compatibility mode)
     ; or straight up-and-down (=false; better and more consistent physics behavior)
-    av_capsule_tilted = true
+    av_capsule_tilted = false
 
     ; used to calculate mass of avatar.
     ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);

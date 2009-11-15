@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         // Avatar Info Commands
         string osGetAgentIP(string agent);
-        LSL_List osGetAgents(); 
+        LSL_List osGetAgents();
 
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
@@ -127,7 +127,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osGetScriptEngineName();
         string osGetSimulatorVersion();
         Hashtable osParseJSON(string JSON);
-        
+
         void osMessageObject(key objectUUID,string message);
 
         void osMakeNotecard(string notecardName, LSL_Types.list contents);
@@ -138,7 +138,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         string osAvatarName2Key(string firstname, string lastname);
         string osKey2Name(string id);
-        
+
         // Grid Info Functions
         string osGetGridNick();
         string osGetGridName();
@@ -151,7 +151,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         string osLoadedCreationDate();
         string osLoadedCreationTime();
         string osLoadedCreationID();
-        
+
         LSL_List osGetLinkPrimitiveParams(int linknumber, LSL_List rules);
 
 
@@ -160,5 +160,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osNpcSay(key npc, string message);
         void osNpcRemove(key npc);
 
+        key osGetMapTexture();
+        key osGetRegionMapTexture(string regionName);
     }
 }

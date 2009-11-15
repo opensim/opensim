@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
+using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Alerts;
 using OpenSim.Region.CoreModules.Framework.Monitoring.Monitors;
 using OpenSim.Region.Framework.Interfaces;
@@ -43,6 +46,56 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                "monitor report",
                                "Returns a variety of statistics about the current region and/or simulator",
                                DebugMonitors);
+
+            MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID + "/", StatsPage);
+        }
+
+        public Hashtable StatsPage(Hashtable request)
+        {
+            // If request was for a specific monitor
+            // eg url/?monitor=Monitor.Name
+            if (request.ContainsKey("monitor"))
+            {
+                string monID = (string) request["monitor"];
+
+                foreach (IMonitor monitor in m_monitors)
+                {
+                    if (monitor.ToString() == monID)
+                    {
+                        Hashtable ereply3 = new Hashtable();
+
+                        ereply3["int_response_code"] = 404; // 200 OK
+                        ereply3["str_response_string"] = monitor.GetValue().ToString();
+                        ereply3["content_type"] = "text/plain";
+
+                        return ereply3;
+                    }
+                }
+
+                // No monitor with that name
+                Hashtable ereply2 = new Hashtable();
+
+                ereply2["int_response_code"] = 404; // 200 OK
+                ereply2["str_response_string"] = "No such monitor";
+                ereply2["content_type"] = "text/plain";
+
+                return ereply2;
+            }
+
+            string xml = "<data>";
+            foreach (IMonitor monitor in m_monitors)
+            {
+                xml += "<" + monitor.ToString() + ">" + monitor.GetValue() + "</" + monitor.ToString() + ">";
+            }
+            xml += "</data>";
+
+            Hashtable ereply = new Hashtable();
+
+            ereply["int_response_code"] = 200; // 200 OK
+            ereply["str_response_string"] = xml;
+            ereply["content_type"] = "text/xml";
+
+            return ereply;
         }
 
         public void PostInitialise()

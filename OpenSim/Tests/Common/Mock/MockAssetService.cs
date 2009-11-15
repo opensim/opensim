@@ -25,69 +25,80 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Net;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Data;
+using OpenSim.Services.Interfaces;
 using Nini.Config;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server;
 
-namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
+namespace OpenSim.Tests.Common.Mock
 {
-    public class IRCStackModule : IRegionModule
+    public class MockAssetService : IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
 
-        private IRCServer m_server;
-//        private Scene m_scene;
+        public MockAssetService() {}
 
-        #region Implementation of IRegionModule
-
-        public void Initialise(Scene scene, IConfigSource source)
+        /// <summary>
+        /// This constructor is required if the asset service is being created reflectively (which is the case in some
+        /// tests).
+        /// </summary>
+        /// <param name="config"></param>
+        public MockAssetService(IConfigSource config) {}
+        
+        public AssetBase Get(string id)
         {
-            if (null != source.Configs["IRCd"] &&
-                source.Configs["IRCd"].GetBoolean("Enabled",false))
-            {
-                int portNo = source.Configs["IRCd"].GetInt("Port",6666);
-//                m_scene = scene;
-                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
-                m_server.OnNewIRCClient += m_server_OnNewIRCClient;
-            }
+            m_log.DebugFormat("[MOCK ASSET SERVICE]: Getting asset with id {0}", id);
+            
+            AssetBase asset;
+            if (Assets.ContainsKey(id))
+                asset = Assets[id];
+            else
+                asset = null;
+            
+            return asset;
         }
 
-        void m_server_OnNewIRCClient(IRCClientView user)
+        public AssetMetadata GetMetadata(string id)
         {
-            user.OnIRCReady += user_OnIRCReady;
+            throw new System.NotImplementedException();
         }
 
-        void user_OnIRCReady(IRCClientView cv)
+        public byte[] GetData(string id)
         {
-            m_log.Info("[IRCd] Adding user...");
-            cv.Start();
-            m_log.Info("[IRCd] Added user to Scene");
+            throw new System.NotImplementedException();
         }
 
-        public void PostInitialise()
+        public bool Get(string id, object sender, AssetRetrieved handler)
         {
-
+            handler(id, sender, Get(id));
+            
+            return true;
         }
 
-        public void Close()
+        public string Store(AssetBase asset)
         {
+            m_log.DebugFormat("[MOCK ASSET SERVICE]: Storing asset {0}", asset.ID);
+            
+            Assets[asset.ID] = asset;
 
+            return asset.ID;
         }
 
-        public string Name
+        public bool UpdateContent(string id, byte[] data)
         {
-            get { return "IRCClientStackModule"; }
+            throw new System.NotImplementedException();
         }
 
-        public bool IsSharedModule
+        public bool Delete(string id)
         {
-            get { return false; }
+            throw new System.NotImplementedException();
         }
-
-        #endregion
     }
 }

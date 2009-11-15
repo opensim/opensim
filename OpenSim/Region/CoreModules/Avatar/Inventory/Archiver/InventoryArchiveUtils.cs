@@ -27,6 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
@@ -38,7 +41,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
     /// </summary>
     public static class InventoryArchiveUtils
     {
-        public static readonly string PATH_DELIMITER = "/";
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        // Character used for escaping the path delimter ("\/") and itself ("\\") in human escaped strings
+        public static readonly char ESCAPE_CHARACTER = '\\';
+
+        // The character used to separate inventory path components (different folders and items)
+        public static readonly char PATH_DELIMITER = '/';
 
         /// <summary>
         /// Find a folder given a PATH_DELIMITER delimited path starting from a user's root folder
@@ -103,10 +112,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             path = path.Trim();
 
-            if (path == PATH_DELIMITER)
+            if (path == PATH_DELIMITER.ToString())
                 return startFolder;
 
-            string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
+            string[] components = SplitEscapedPath(path);
+            components[0] = UnescapePath(components[0]);            
+
+            //string[] components = path.Split(new string[] { PATH_DELIMITER.ToString() }, 2, StringSplitOptions.None);
+            
             InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
             foreach (InventoryFolderBase folder in contents.Folders)
@@ -181,10 +194,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public static InventoryItemBase FindItemByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
-            string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
+            string[] components = SplitEscapedPath(path);
+            components[0] = UnescapePath(components[0]);
+                            
+            //string[] components = path.Split(new string[] { PATH_DELIMITER }, 2, StringSplitOptions.None);
 
             if (components.Length == 1)
             {
+//                m_log.DebugFormat("FOUND SINGLE COMPONENT [{0}]", components[0]);
+                
                 List<InventoryItemBase> items = inventoryService.GetFolderItems(startFolder.Owner, startFolder.ID);
                 foreach (InventoryItemBase item in items)
                 {
@@ -194,6 +212,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             else
             {
+//                m_log.DebugFormat("FOUND COMPONENTS [{0}] and [{1}]", components[0], components[1]);
+                
                 InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
                 
                 foreach (InventoryFolderBase folder in contents.Folders)
@@ -205,6 +225,98 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             // We didn't find an item or intermediate folder with the given name
             return null;
+        }
+
+        /// <summary>
+        /// Split a human escaped path into two components if it contains an unescaped path delimiter, or one component
+        /// if no delimiter is present
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>
+        /// The split path.  We leave the components in their originally unescaped state (though we remove the delimiter
+        /// which originally split them if applicable).
+        /// </returns>
+        public static string[] SplitEscapedPath(string path)
+        {
+//            m_log.DebugFormat("SPLITTING PATH {0}", path);
+            
+            bool singleEscapeChar = false;
+            
+            for (int i = 0; i < path.Length; i++)
+            {
+                if (path[i] == ESCAPE_CHARACTER && !singleEscapeChar)
+                {
+                    singleEscapeChar = true;
+                }
+                else
+                {
+                    if (PATH_DELIMITER == path[i] && !singleEscapeChar)
+                        return new string[2] { path.Remove(i), path.Substring(i + 1) };
+                    else
+                        singleEscapeChar = false;
+                }
+            }
+
+            // We didn't find a delimiter
+            return new string[1] { path };
+        }
+
+        /// <summary>
+        /// Unescapes a human escaped path.  This means that "\\" goes to "\", and "\/" goes to "/"
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string UnescapePath(string path)
+        {
+//            m_log.DebugFormat("ESCAPING PATH {0}", path);
+            
+            StringBuilder sb = new StringBuilder();
+
+            bool singleEscapeChar = false;
+            for (int i = 0; i < path.Length; i++)
+            {
+                if (path[i] == ESCAPE_CHARACTER && !singleEscapeChar)
+                    singleEscapeChar = true;
+                else
+                    singleEscapeChar = false;
+
+                if (singleEscapeChar)
+                {
+                    if (PATH_DELIMITER == path[i])
+                        sb.Append(PATH_DELIMITER);
+                }
+                else
+                {
+                    sb.Append(path[i]);
+                }
+            }
+
+//            m_log.DebugFormat("ESCAPED PATH TO {0}", sb);
+            
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Escape an archive path.
+        /// </summary>
+        /// This has to be done differently from human paths because we can't leave in any "/" characters (due to
+        /// problems if the archive is built from or extracted to a filesystem
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string EscapeArchivePath(string path)
+        {
+            // Only encode ampersands (for escaping anything) and / (since this is used as general dir separator).
+            return path.Replace("&", "&amp;").Replace("/", "&#47;");            
+        }
+
+        /// <summary>
+        /// Unescape an archive path.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>        
+        public static string UnescapeArchivePath(string path)
+        {
+            return path.Replace("&#47;", "/").Replace("&amp;", "&");            
         }
     }
 }

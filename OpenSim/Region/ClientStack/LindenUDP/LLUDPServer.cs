@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -204,6 +205,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 TextureSendLimit = 20;
             }
 
+            #region BinaryStats
+            config = configSource.Configs["Statistics.Binary"];
+            m_shouldCollectStats = false;
+            if (config != null)
+            {
+               if (config.Contains("enabled") && config.GetBoolean("enabled"))
+               {
+                   if (config.Contains("collect_packet_headers"))
+                       m_shouldCollectStats = config.GetBoolean("collect_packet_headers");
+                   if (config.Contains("packet_headers_period_seconds"))
+                   {
+                       binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("region_stats_period_seconds"));
+                   }
+                   if (config.Contains("stats_dir"))
+                   {
+                       binStatsDir = config.GetString("stats_dir");
+                   }
+               }
+               else
+               {
+                   m_shouldCollectStats = false;
+               }
+           }
+           #endregion BinaryStats
+
             m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
             m_throttleRates = new ThrottleRates(configSource);
         }
@@ -359,9 +385,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
-                        type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
-                    return;
+                    bufferSize = dataLength;
+                    buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
+
+                    // m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
+                    //     type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
+                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
                 }
             }
 
@@ -676,6 +705,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Incoming Packet Accounting
 
+            #region BinaryStats
+            LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
+            #endregion BinaryStats
+
             #region Ping Check Handling
 
             if (packet.Type == PacketType.StartPingCheck)
@@ -696,6 +729,87 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Inbox insertion
             packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
         }
+
+        #region BinaryStats
+
+        public class PacketLogger
+        {
+            public DateTime StartTime;
+            public string Path = null;
+            public System.IO.BinaryWriter Log = null;
+        }
+
+        public static PacketLogger PacketLog;
+
+        protected static bool m_shouldCollectStats = false;
+        // Number of seconds to log for
+        static TimeSpan binStatsMaxFilesize = TimeSpan.FromSeconds(300);
+        static object binStatsLogLock = new object();
+        static string binStatsDir = "";
+
+        public static void LogPacketHeader(bool incoming, uint circuit, byte flags, PacketType packetType, ushort size)
+        {
+            if (!m_shouldCollectStats) return;
+
+            // Binary logging format is TTTTTTTTCCCCFPPPSS, T=Time, C=Circuit, F=Flags, P=PacketType, S=size
+
+            // Put the incoming bit into the least significant bit of the flags byte
+            if (incoming)
+                flags |= 0x01;
+            else
+                flags &= 0xFE;
+
+            // Put the flags byte into the most significant bits of the type integer
+            uint type = (uint)packetType;
+            type |= (uint)flags << 24;
+
+            // m_log.Debug("1 LogPacketHeader(): Outside lock");
+            lock (binStatsLogLock)
+            {
+                DateTime now = DateTime.Now;
+
+                // m_log.Debug("2 LogPacketHeader(): Inside lock. now is " + now.Ticks);
+                try
+                {
+                    if (PacketLog == null || (now > PacketLog.StartTime + binStatsMaxFilesize))
+                    {
+                        if (PacketLog != null && PacketLog.Log != null)
+                        {
+                            PacketLog.Log.Close();
+                        }
+
+                        // First log file or time has expired, start writing to a new log file
+                        PacketLog = new PacketLogger();
+                        PacketLog.StartTime = now;
+                        PacketLog.Path = (binStatsDir.Length > 0 ? binStatsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
+                                + String.Format("packets-{0}.log", now.ToString("yyyyMMddHHmmss"));
+                        PacketLog.Log = new BinaryWriter(File.Open(PacketLog.Path, FileMode.Append, FileAccess.Write));
+                    }
+
+                    // Serialize the data
+                    byte[] output = new byte[18];
+                    Buffer.BlockCopy(BitConverter.GetBytes(now.Ticks), 0, output, 0, 8);
+                    Buffer.BlockCopy(BitConverter.GetBytes(circuit), 0, output, 8, 4);
+                    Buffer.BlockCopy(BitConverter.GetBytes(type), 0, output, 12, 4);
+                    Buffer.BlockCopy(BitConverter.GetBytes(size), 0, output, 16, 2);
+
+                    // Write the serialized data to disk
+                    if (PacketLog != null && PacketLog.Log != null)
+                        PacketLog.Log.Write(output);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Packet statistics gathering failed: " + ex.Message, ex);
+                    if (PacketLog.Log != null)
+                    {
+                        PacketLog.Log.Close();
+                    }
+                    PacketLog = null;
+                }
+            }
+        }
+
+        #endregion BinaryStats
 
         private void HandleUseCircuitCode(object o)
         {

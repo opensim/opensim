@@ -165,7 +165,7 @@ namespace OpenSim.Data.Tests
         [Test]
         public void TestScramble()
         {
-            AssetBase actual = new AssetBase(UUID.Random(), "asset one");
+            AssetBase actual = new AssetBase(UUID.Random(), "asset one", (sbyte)AssetType.Texture);
             new PropertyScrambler<AssetBase>().Scramble(actual);
         }
 
@@ -173,8 +173,7 @@ namespace OpenSim.Data.Tests
         public void DontScramble()
         {
             UUID uuid = UUID.Random();
-            AssetBase asset = new AssetBase();
-            asset.FullID = uuid;
+            AssetBase asset = new AssetBase(uuid, "asset", (sbyte)AssetType.Texture);
             new PropertyScrambler<AssetBase>()
                 .DontScramble(x => x.Metadata)
                 .DontScramble(x => x.FullID)

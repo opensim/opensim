@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Communications.Tests
 
             m_regionConnector.AddRegion(new RegionInfo(42, 43, m_capsEndPoint, m_regionExternalName));
 
-            //IInventoryService m_inventoryService = new TestInventoryService();
+            //IInventoryService m_inventoryService = new MockInventoryService();
 
             m_localUserServices = (LocalUserServices) m_commsManager.UserService;
             m_localUserServices.AddUser(m_firstName,m_lastName,"boingboing","abc@ftw.com",42,43);
@@ -95,7 +95,8 @@ namespace OpenSim.Framework.Communications.Tests
             TestHelper.InMethod();
             // We want to use our own LoginService for this test, one that
             // doesn't require authentication.
-            new LLStandaloneLoginService((UserManagerBase)m_commsManager.UserService, "Hello folks", new TestInventoryService(),
+            new LLStandaloneLoginService(
+                (UserManagerBase)m_commsManager.UserService, "Hello folks", new MockInventoryService(),
                 m_commsManager.NetworkServersInfo, false, new LibraryRootFolder(String.Empty), m_regionConnector);
 
             Hashtable loginParams = new Hashtable();
@@ -455,150 +456,6 @@ namespace OpenSim.Framework.Communications.Tests
             }
 
             #endregion
-        }
-    }
-
-    class TestInventoryService : IInventoryService
-    {
-        public TestInventoryService()
-        {
-        }
-
-        /// <summary>
-        /// <see cref="OpenSim.Framework.Communications.IInterServiceInventoryServices"/>
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public bool CreateUserInventory(UUID userId)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// <see cref="OpenSim.Framework.Communications.IInterServiceInventoryServices"/>
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
-        {
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            InventoryFolderBase folder = new InventoryFolderBase();
-            folder.ID = UUID.Random();
-            folder.Owner = userId;
-            folders.Add(folder);
-            return folders;
-        }
-
-        /// <summary>
-        /// Returns a list of all the active gestures in a user's inventory.
-        /// </summary>
-        /// <param name="userId">
-        /// The <see cref="UUID"/> of the user
-        /// </param>
-        /// <returns>
-        /// A flat list of the gesture items.
-        /// </returns>
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
-        {
-            return null;
-        }
-
-        public InventoryCollection GetUserInventory(UUID userID)
-        {
-            return null;
-        }
-
-        public void GetUserInventory(UUID userID, OpenSim.Services.Interfaces.InventoryReceiptCallback callback)
-        {
-        }
-
-        public InventoryFolderBase GetFolderForType(UUID userID, AssetType type)
-        {
-            return null;
-        }
-
-        public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
-        {
-            return null;
-        }
-
-        public List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
-        {
-            return null;
-        }
-
-        public bool AddFolder(InventoryFolderBase folder)
-        {
-            return false;
-        }
-
-        public bool UpdateFolder(InventoryFolderBase folder)
-        {
-            return false;
-        }
-
-        public bool MoveFolder(InventoryFolderBase folder)
-        {
-            return false;
-        }
-
-        public bool DeleteFolders(UUID ownerID, List<UUID> ids)
-        {
-            return false;
-        }
-
-        public bool PurgeFolder(InventoryFolderBase folder)
-        {
-            return false;
-        }
-
-        public bool AddItem(InventoryItemBase item)
-        {
-            return false;
-        }
-
-        public bool UpdateItem(InventoryItemBase item)
-        {
-            return false;
-        }
-
-        public bool MoveItems(UUID owner, List<InventoryItemBase> items)
-        {
-            return false;
-        }
-
-        public bool DeleteItems(UUID owner, List<UUID> items)
-        {
-            return false;
-        }
-
-        public InventoryItemBase GetItem(InventoryItemBase item)
-        {
-            return null;
-        }
-
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
-        {
-            return null;
-        }
-
-        public bool HasInventoryForUser(UUID userID)
-        {
-            return false;
-        }
-
-        public InventoryFolderBase GetRootFolder(UUID userID)
-        {
-            InventoryFolderBase root = new InventoryFolderBase();
-            root.ID = UUID.Random();
-            root.Owner = userID;
-            root.ParentID = UUID.Zero;
-            return root;
-        }
-
-        public int GetAssetPermissions(UUID userID, UUID assetID)
-        {
-            return 1;
         }
     }
 }

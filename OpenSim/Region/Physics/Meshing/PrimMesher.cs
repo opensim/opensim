@@ -67,11 +67,6 @@ namespace PrimMesher
             Normalize();
         }
 
-        public Quat Identity()
-        {
-            return new Quat(0.0f, 0.0f, 0.0f, 1.0f);
-        }
-
         public float Length()
         {
             return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
@@ -660,7 +655,7 @@ namespace PrimMesher
             this.faceNumbers = new List<int>();
 
             Coord center = new Coord(0.0f, 0.0f, 0.0f);
-            bool hasCenter = false;
+            //bool hasCenter = false;
 
             List<Coord> hollowCoords = new List<Coord>();
             List<Coord> hollowNormals = new List<Coord>();
@@ -727,7 +722,7 @@ namespace PrimMesher
             else if (!simpleFace)
             {
                 this.coords.Add(center);
-                hasCenter = true;
+                //hasCenter = true;
                 if (this.calcVertexNormals)
                     this.vertexNormals.Add(new Coord(0.0f, 0.0f, 1.0f));
                 this.us.Add(0.0f);
@@ -1353,7 +1348,7 @@ namespace PrimMesher
                 float stepSize = twoPi / this.stepsPerRevolution;
 
                 int step = (int)(startAngle / stepSize);
-                int firstStep = step;
+//                int firstStep = step;
                 float angle = startAngle;
 
                 bool done = false;
@@ -1541,7 +1536,7 @@ namespace PrimMesher
         }
 
         /// <summary>
-        /// Extrudes a profile along a straight line path. Used for prim types box, cylinder, and prism.
+        /// Extrudes a profile along a path.
         /// </summary>
         public void Extrude(PathType pathType)
         {
@@ -1557,7 +1552,6 @@ namespace PrimMesher
             if (this.calcVertexNormals)
                 this.normals = new List<Coord>();
 
-            //int step = 0;
             int steps = 1;
 
             float length = this.pathCutEnd - this.pathCutBegin;
@@ -1578,20 +1572,6 @@ namespace PrimMesher
             float twistTotalAbs = Math.Abs(twistTotal);
             if (twistTotalAbs > 0.01f)
                 steps += (int)(twistTotalAbs * 3.66); //  dahlia's magic number
-
-            //float start = -0.5f;
-            //float stepSize = length / (float)steps;
-            //float percentOfPathMultiplier = stepSize;
-            //float xProfileScale = 1.0f;
-            //float yProfileScale = 1.0f;
-            //float xOffset = 0.0f;
-            //float yOffset = 0.0f;
-            //float zOffset = start;
-            //float xOffsetStepIncrement = this.topShearX / steps;
-            //float yOffsetStepIncrement = this.topShearY / steps;
-
-            //float percentOfPath = this.pathCutBegin;
-            //zOffset += percentOfPath;
 
             float hollow = this.hollow;
 
@@ -1662,7 +1642,6 @@ namespace PrimMesher
                 cut2Vert = hasHollow ? profile.numOuterVerts - 1 : profile.numOuterVerts;
             }
 
-
             if (initialProfileRot != 0.0f)
             {
                 profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
@@ -1693,24 +1672,6 @@ namespace PrimMesher
             path.stepsPerRevolution = stepsPerRevolution;
 
             path.Create(pathType, steps);
-            /*
-        public int twistBegin = 0;
-        public int twistEnd = 0;
-        public float topShearX = 0.0f;
-        public float topShearY = 0.0f;
-        public float pathCutBegin = 0.0f;
-        public float pathCutEnd = 1.0f;
-        public float dimpleBegin = 0.0f;
-        public float dimpleEnd = 1.0f;
-        public float skew = 0.0f;
-        public float holeSizeX = 1.0f; // called pathScaleX in pbs
-        public float holeSizeY = 0.25f;
-        public float taperX = 0.0f;
-        public float taperY = 0.0f;
-        public float radius = 0.0f;
-        public float revolutions = 1.0f;
-        public int stepsPerRevolution = 24;
-             */
 
             bool needEndFaces = false;
             if (pathType == PathType.Circular)
@@ -1777,7 +1738,7 @@ namespace PrimMesher
                 // append this layer
 
                 int coordsLen = this.coords.Count;
-                int lastCoordsLen = coordsLen;
+//                int lastCoordsLen = coordsLen;
                 newLayer.AddValue2FaceVertexIndices(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);
@@ -1796,7 +1757,6 @@ namespace PrimMesher
                 int numVerts = newLayer.coords.Count;
                 Face newFace = new Face();
 
-                //if (step > 0)
                 if (nodeIndex > 0)
                 {
                     int startVert = coordsLen + 1;
@@ -1812,7 +1772,6 @@ namespace PrimMesher
                             iNext = startVert;
 
                         int whichVert = i - startVert;
-                        //int whichVert2 = i - lastCoordsLen;
 
                         newFace.v1 = i;
                         newFace.v2 = i - numVerts;
@@ -1982,808 +1941,26 @@ namespace PrimMesher
 
 
         /// <summary>
+        /// DEPRICATED - use Extrude(PathType.Linear) instead
         /// Extrudes a profile along a straight line path. Used for prim types box, cylinder, and prism.
         /// </summary>
+        /// 
         public void ExtrudeLinear()
         {
-            this.coords = new List<Coord>();
-            this.faces = new List<Face>();
-
-            if (this.viewerMode)
-            {
-                this.viewerFaces = new List<ViewerFace>();
-                this.calcVertexNormals = true;
-            }
-
-            if (this.calcVertexNormals)
-                this.normals = new List<Coord>();
-
-            int step = 0;
-            int steps = 1;
-
-            float length = this.pathCutEnd - this.pathCutBegin;
-            normalsProcessed = false;
-
-            if (this.viewerMode && this.sides == 3)
-            {
-                // prisms don't taper well so add some vertical resolution
-                // other prims may benefit from this but just do prisms for now
-                if (Math.Abs(this.taperX) > 0.01 || Math.Abs(this.taperY) > 0.01)
-                    steps = (int)(steps * 4.5 * length);
-            }
-
-
-            float twistBegin = this.twistBegin / 360.0f * twoPi;
-            float twistEnd = this.twistEnd / 360.0f * twoPi;
-            float twistTotal = twistEnd - twistBegin;
-            float twistTotalAbs = Math.Abs(twistTotal);
-            if (twistTotalAbs > 0.01f)
-                steps += (int)(twistTotalAbs * 3.66); //  dahlia's magic number
-
-            float start = -0.5f;
-            float stepSize = length / (float)steps;
-            float percentOfPathMultiplier = stepSize;
-            float xProfileScale = 1.0f;
-            float yProfileScale = 1.0f;
-            float xOffset = 0.0f;
-            float yOffset = 0.0f;
-            float zOffset = start;
-            float xOffsetStepIncrement = this.topShearX / steps;
-            float yOffsetStepIncrement = this.topShearY / steps;
-
-            float percentOfPath = this.pathCutBegin;
-            zOffset += percentOfPath;
-
-            float hollow = this.hollow;
-
-            // sanity checks
-            float initialProfileRot = 0.0f;
-            if (this.sides == 3)
-            {
-                if (this.hollowSides == 4)
-                {
-                    if (hollow > 0.7f)
-                        hollow = 0.7f;
-                    hollow *= 0.707f;
-                }
-                else hollow *= 0.5f;
-            }
-            else if (this.sides == 4)
-            {
-                initialProfileRot = 1.25f * (float)Math.PI;
-                if (this.hollowSides != 4)
-                    hollow *= 0.707f;
-            }
-            else if (this.sides == 24 && this.hollowSides == 4)
-                hollow *= 1.414f;
-
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, true, calcVertexNormals);
-            this.errorMessage = profile.errorMessage;
-
-            this.numPrimFaces = profile.numPrimFaces;
-
-            int cut1Vert = -1;
-            int cut2Vert = -1;
-            if (hasProfileCut)
-            {
-                cut1Vert = hasHollow ? profile.coords.Count - 1 : 0;
-                cut2Vert = hasHollow ? profile.numOuterVerts - 1 : profile.numOuterVerts;
-            }
-
-            if (initialProfileRot != 0.0f)
-            {
-                profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
-                if (viewerMode)
-                    profile.MakeFaceUVs();
-            }
-
-            Coord lastCutNormal1 = new Coord();
-            Coord lastCutNormal2 = new Coord();
-            float lastV = 1.0f;
-
-            bool done = false;
-            while (!done)
-            {
-                Profile newLayer = profile.Copy();
-
-                if (this.taperX == 0.0f)
-                    xProfileScale = 1.0f;
-                else if (this.taperX > 0.0f)
-                    xProfileScale = 1.0f - percentOfPath * this.taperX;
-                else xProfileScale = 1.0f + (1.0f - percentOfPath) * this.taperX;
-
-                if (this.taperY == 0.0f)
-                    yProfileScale = 1.0f;
-                else if (this.taperY > 0.0f)
-                    yProfileScale = 1.0f - percentOfPath * this.taperY;
-                else yProfileScale = 1.0f + (1.0f - percentOfPath) * this.taperY;
-
-                if (xProfileScale != 1.0f || yProfileScale != 1.0f)
-                    newLayer.Scale(xProfileScale, yProfileScale);
-
-                float twist = twistBegin + twistTotal * percentOfPath;
-                if (twist != 0.0f)
-                    newLayer.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), twist));
-
-                newLayer.AddPos(xOffset, yOffset, zOffset);
-
-                if (step == 0)
-                {
-                    newLayer.FlipNormals();
-
-                    // add the top faces to the viewerFaces list here
-                    if (this.viewerMode)
-                    {
-                        Coord faceNormal = newLayer.faceNormal;
-                        ViewerFace newViewerFace = new ViewerFace(profile.bottomFaceNumber);
-                        int numFaces = newLayer.faces.Count;
-                        List<Face> faces = newLayer.faces;
-
-                        for (int i = 0; i < numFaces; i++)
-                        {
-                            Face face = faces[i];
-                            newViewerFace.v1 = newLayer.coords[face.v1];
-                            newViewerFace.v2 = newLayer.coords[face.v2];
-                            newViewerFace.v3 = newLayer.coords[face.v3];
-
-                            newViewerFace.coordIndex1 = face.v1;
-                            newViewerFace.coordIndex2 = face.v2;
-                            newViewerFace.coordIndex3 = face.v3;
-
-                            newViewerFace.n1 = faceNormal;
-                            newViewerFace.n2 = faceNormal;
-                            newViewerFace.n3 = faceNormal;
-
-                            newViewerFace.uv1 = newLayer.faceUVs[face.v1];
-                            newViewerFace.uv2 = newLayer.faceUVs[face.v2];
-                            newViewerFace.uv3 = newLayer.faceUVs[face.v3];
-
-                            this.viewerFaces.Add(newViewerFace);
-                        }
-                    }
-                }
-
-                // append this layer
-
-                int coordsLen = this.coords.Count;
-                int lastCoordsLen = coordsLen;
-                newLayer.AddValue2FaceVertexIndices(coordsLen);
-
-                this.coords.AddRange(newLayer.coords);
-
-                if (this.calcVertexNormals)
-                {
-                    newLayer.AddValue2FaceNormalIndices(this.normals.Count);
-                    this.normals.AddRange(newLayer.vertexNormals);
-                }
-
-                if (percentOfPath < this.pathCutBegin + 0.01f || percentOfPath > this.pathCutEnd - 0.01f)
-                    this.faces.AddRange(newLayer.faces);
-
-                // fill faces between layers
-
-                int numVerts = newLayer.coords.Count;
-                Face newFace = new Face();
-
-                if (step > 0)
-                {
-                    int startVert = coordsLen + 1;
-                    int endVert = this.coords.Count;
-
-                    if (sides < 5 || this.hasProfileCut || hollow > 0.0f)
-                        startVert--;
-
-                    for (int i = startVert; i < endVert; i++)
-                    {
-                        int iNext = i + 1;
-                        if (i == endVert - 1)
-                            iNext = startVert;
-
-                        int whichVert = i - startVert;
-                        //int whichVert2 = i - lastCoordsLen;
-
-                        newFace.v1 = i;
-                        newFace.v2 = i - numVerts;
-                        newFace.v3 = iNext - numVerts;
-                        this.faces.Add(newFace);
-
-                        newFace.v2 = iNext - numVerts;
-                        newFace.v3 = iNext;
-                        this.faces.Add(newFace);
-
-                        if (this.viewerMode)
-                        {
-                            // add the side faces to the list of viewerFaces here
-                            //int primFaceNum = 1;
-                            //if (whichVert >= sides)
-                            //    primFaceNum = 2;
-                            int primFaceNum = profile.faceNumbers[whichVert];
-
-                            ViewerFace newViewerFace1 = new ViewerFace(primFaceNum);
-                            ViewerFace newViewerFace2 = new ViewerFace(primFaceNum);
-
-                            float u1 = newLayer.us[whichVert];
-                            float u2 = 1.0f;
-                            if (whichVert < newLayer.us.Count - 1)
-                                u2 = newLayer.us[whichVert + 1];
-
-                            if (whichVert == cut1Vert || whichVert == cut2Vert)
-                            {
-                                u1 = 0.0f;
-                                u2 = 1.0f;
-                            }
-                            else if (sides < 5)
-                            { // boxes and prisms have one texture face per side of the prim, so the U values have to be scaled
-                                // to reflect the entire texture width
-                                u1 *= sides;
-                                u2 *= sides;
-                                u2 -= (int)u1;
-                                u1 -= (int)u1;
-                                if (u2 < 0.1f)
-                                    u2 = 1.0f;
-
-                                //newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = whichVert + 1;
-                            }
-
-                            newViewerFace1.uv1.U = u1;
-                            newViewerFace1.uv2.U = u1;
-                            newViewerFace1.uv3.U = u2;
-
-                            newViewerFace1.uv1.V = 1.0f - percentOfPath;
-                            newViewerFace1.uv2.V = lastV;
-                            newViewerFace1.uv3.V = lastV;
-
-                            newViewerFace2.uv1.U = u1;
-                            newViewerFace2.uv2.U = u2;
-                            newViewerFace2.uv3.U = u2;
-
-                            newViewerFace2.uv1.V = 1.0f - percentOfPath;
-                            newViewerFace2.uv2.V = lastV;
-                            newViewerFace2.uv3.V = 1.0f - percentOfPath;
-
-                            newViewerFace1.v1 = this.coords[i];
-                            newViewerFace1.v2 = this.coords[i - numVerts];
-                            newViewerFace1.v3 = this.coords[iNext - numVerts];
-
-                            newViewerFace2.v1 = this.coords[i];
-                            newViewerFace2.v2 = this.coords[iNext - numVerts];
-                            newViewerFace2.v3 = this.coords[iNext];
-
-                            newViewerFace1.coordIndex1 = i;
-                            newViewerFace1.coordIndex2 = i - numVerts;
-                            newViewerFace1.coordIndex3 = iNext - numVerts;
-
-                            newViewerFace2.coordIndex1 = i;
-                            newViewerFace2.coordIndex2 = iNext - numVerts;
-                            newViewerFace2.coordIndex3 = iNext;
-
-                            // profile cut faces
-                            if (whichVert == cut1Vert)
-                            {
-                                newViewerFace1.n1 = newLayer.cutNormal1;
-                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal1;
-
-                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal1;
-                                newViewerFace2.n2 = lastCutNormal1;
-                            }
-                            else if (whichVert == cut2Vert)
-                            {
-                                newViewerFace1.n1 = newLayer.cutNormal2;
-                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal2;
-
-                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal2;
-                                newViewerFace2.n2 = lastCutNormal2;
-                            }
-
-                            else // outer and hollow faces
-                            {
-                                if ((sides < 5 && whichVert < newLayer.numOuterVerts) || (hollowSides < 5 && whichVert >= newLayer.numOuterVerts))
-                                {
-                                    newViewerFace1.CalcSurfaceNormal();
-                                    newViewerFace2.CalcSurfaceNormal();
-                                }
-                                else
-                                {
-                                    newViewerFace1.n1 = this.normals[i];
-                                    newViewerFace1.n2 = this.normals[i - numVerts];
-                                    newViewerFace1.n3 = this.normals[iNext - numVerts];
-
-                                    newViewerFace2.n1 = this.normals[i];
-                                    newViewerFace2.n2 = this.normals[iNext - numVerts];
-                                    newViewerFace2.n3 = this.normals[iNext];
-                                }
-                            }
-
-                            //newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = newLayer.faceNumbers[whichVert];
-
-                            this.viewerFaces.Add(newViewerFace1);
-                            this.viewerFaces.Add(newViewerFace2);
-
-                        }
-                    }
-                }
-
-                lastCutNormal1 = newLayer.cutNormal1;
-                lastCutNormal2 = newLayer.cutNormal2;
-                lastV = 1.0f - percentOfPath;
-
-                // calc the step for the next iteration of the loop
-
-                if (step < steps)
-                {
-                    step += 1;
-                    percentOfPath += percentOfPathMultiplier;
-                    xOffset += xOffsetStepIncrement;
-                    yOffset += yOffsetStepIncrement;
-                    zOffset += stepSize;
-                    if (percentOfPath > this.pathCutEnd)
-                        done = true;
-                }
-                else done = true;
-
-                if (done && viewerMode)
-                {
-                    // add the top faces to the viewerFaces list here
-                    Coord faceNormal = newLayer.faceNormal;
-                    ViewerFace newViewerFace = new ViewerFace();
-                    newViewerFace.primFaceNumber = 0;
-                    int numFaces = newLayer.faces.Count;
-                    List<Face> faces = newLayer.faces;
-
-                    for (int i = 0; i < numFaces; i++)
-                    {
-                        Face face = faces[i];
-                        newViewerFace.v1 = newLayer.coords[face.v1 - coordsLen];
-                        newViewerFace.v2 = newLayer.coords[face.v2 - coordsLen];
-                        newViewerFace.v3 = newLayer.coords[face.v3 - coordsLen];
-
-                        newViewerFace.coordIndex1 = face.v1 - coordsLen;
-                        newViewerFace.coordIndex2 = face.v2 - coordsLen;
-                        newViewerFace.coordIndex3 = face.v3 - coordsLen;
-
-                        newViewerFace.n1 = faceNormal;
-                        newViewerFace.n2 = faceNormal;
-                        newViewerFace.n3 = faceNormal;
-
-                        newViewerFace.uv1 = newLayer.faceUVs[face.v1 - coordsLen];
-                        newViewerFace.uv2 = newLayer.faceUVs[face.v2 - coordsLen];
-                        newViewerFace.uv3 = newLayer.faceUVs[face.v3 - coordsLen];
-
-                        this.viewerFaces.Add(newViewerFace);
-                    }
-                }
-            }
+            this.Extrude(PathType.Linear);
         }
 
 
         /// <summary>
+        /// DEPRICATED - use Extrude(PathType.Circular) instead
         /// Extrude a profile into a circular path prim mesh. Used for prim types torus, tube, and ring.
         /// </summary>
+        /// 
         public void ExtrudeCircular()
         {
-            this.coords = new List<Coord>();
-            this.faces = new List<Face>();
-
-            if (this.viewerMode)
-            {
-                this.viewerFaces = new List<ViewerFace>();
-                this.calcVertexNormals = true;
-            }
-
-            if (this.calcVertexNormals)
-                this.normals = new List<Coord>();
-
-            int step = 0;
-            int steps = 24;
-
-            normalsProcessed = false;
-
-            float twistBegin = this.twistBegin / 360.0f * twoPi;
-            float twistEnd = this.twistEnd / 360.0f * twoPi;
-            float twistTotal = twistEnd - twistBegin;
-
-            // if the profile has a lot of twist, add more layers otherwise the layers may overlap
-            // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesn't
-            // accurately match the viewer
-            float twistTotalAbs = Math.Abs(twistTotal);
-            if (twistTotalAbs > 0.01f)
-            {
-                if (twistTotalAbs > Math.PI * 1.5f)
-                    steps *= 2;
-                if (twistTotalAbs > Math.PI * 3.0f)
-                    steps *= 2;
-            }
-
-            float yPathScale = this.holeSizeY * 0.5f;
-            float pathLength = this.pathCutEnd - this.pathCutBegin;
-            float totalSkew = this.skew * 2.0f * pathLength;
-            float skewStart = this.pathCutBegin * 2.0f * this.skew - this.skew;
-            float xOffsetTopShearXFactor = this.topShearX * (0.25f + 0.5f * (0.5f - this.holeSizeY));
-            float yShearCompensation = 1.0f + Math.Abs(this.topShearY) * 0.25f;
-
-            // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
-            // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
-            // to calculate the sine for generating the path radius appears to approximate it's effects there
-            // too, but there are some subtle differences in the radius which are noticeable as the prim size
-            // increases and it may affect megaprims quite a bit. The effect of the Y top shear parameter on
-            // the meshes generated with this technique appear nearly identical in shape to the same prims when
-            // displayed by the viewer.
-
-            float startAngle = (twoPi * this.pathCutBegin * this.revolutions) - this.topShearY * 0.9f;
-            float endAngle = (twoPi * this.pathCutEnd * this.revolutions) - this.topShearY * 0.9f;
-            float stepSize = twoPi / this.stepsPerRevolution;
-
-            step = (int)(startAngle / stepSize);
-            int firstStep = step;
-            float angle = startAngle;
-            float hollow = this.hollow;
-
-            // sanity checks
-            float initialProfileRot = 0.0f;
-            if (this.sides == 3)
-            {
-                initialProfileRot = (float)Math.PI;
-                if (this.hollowSides == 4)
-                {
-                    if (hollow > 0.7f)
-                        hollow = 0.7f;
-                    hollow *= 0.707f;
-                }
-                else hollow *= 0.5f;
-            }
-            else if (this.sides == 4)
-            {
-                initialProfileRot = 0.25f * (float)Math.PI;
-                if (this.hollowSides != 4)
-                    hollow *= 0.707f;
-            }
-            else if (this.sides > 4)
-            {
-                initialProfileRot = (float)Math.PI;
-                if (this.hollowSides == 4)
-                {
-                    if (hollow > 0.7f)
-                        hollow = 0.7f;
-                    hollow /= 0.7f;
-                }
-            }
-
-            bool needEndFaces = false;
-            if (this.pathCutBegin != 0.0f || this.pathCutEnd != 1.0f)
-                needEndFaces = true;
-            else if (this.taperX != 0.0f || this.taperY != 0.0f)
-                needEndFaces = true;
-            else if (this.skew != 0.0f)
-                needEndFaces = true;
-            else if (twistTotal != 0.0f)
-                needEndFaces = true;
-            else if (this.radius != 0.0f)
-                needEndFaces = true;
-
-            Profile profile = new Profile(this.sides, this.profileStart, this.profileEnd, hollow, this.hollowSides, needEndFaces, calcVertexNormals);
-            this.errorMessage = profile.errorMessage;
-
-            this.numPrimFaces = profile.numPrimFaces;
-
-            int cut1Vert = -1;
-            int cut2Vert = -1;
-            if (hasProfileCut)
-            {
-                cut1Vert = hasHollow ? profile.coords.Count - 1 : 0;
-                cut2Vert = hasHollow ? profile.numOuterVerts - 1 : profile.numOuterVerts;
-            }
-
-            if (initialProfileRot != 0.0f)
-            {
-                profile.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), initialProfileRot));
-                if (viewerMode)
-                    profile.MakeFaceUVs();
-            }
-
-            Coord lastCutNormal1 = new Coord();
-            Coord lastCutNormal2 = new Coord();
-            float lastV = 1.0f;
-
-            bool done = false;
-            while (!done) // loop through the length of the path and add the layers
-            {
-                bool isEndLayer = false;
-                if (angle <= startAngle + .01f || angle >= endAngle - .01f)
-                    isEndLayer = true;
-
-                Profile newLayer = profile.Copy();
-
-                float xProfileScale = (1.0f - Math.Abs(this.skew)) * this.holeSizeX;
-                float yProfileScale = this.holeSizeY;
-
-                float percentOfPath = angle / (twoPi * this.revolutions);
-                float percentOfAngles = (angle - startAngle) / (endAngle - startAngle);
-
-                if (this.taperX > 0.01f)
-                    xProfileScale *= 1.0f - percentOfPath * this.taperX;
-                else if (this.taperX < -0.01f)
-                    xProfileScale *= 1.0f + (1.0f - percentOfPath) * this.taperX;
-
-                if (this.taperY > 0.01f)
-                    yProfileScale *= 1.0f - percentOfPath * this.taperY;
-                else if (this.taperY < -0.01f)
-                    yProfileScale *= 1.0f + (1.0f - percentOfPath) * this.taperY;
-
-                if (xProfileScale != 1.0f || yProfileScale != 1.0f)
-                    newLayer.Scale(xProfileScale, yProfileScale);
-
-                float radiusScale = 1.0f;
-                if (this.radius > 0.001f)
-                    radiusScale = 1.0f - this.radius * percentOfPath;
-                else if (this.radius < 0.001f)
-                    radiusScale = 1.0f + this.radius * (1.0f - percentOfPath);
-
-                float twist = twistBegin + twistTotal * percentOfPath;
-
-                float xOffset = 0.5f * (skewStart + totalSkew * percentOfAngles);
-                xOffset += (float)Math.Sin(angle) * xOffsetTopShearXFactor;
-
-                float yOffset = yShearCompensation * (float)Math.Cos(angle) * (0.5f - yPathScale) * radiusScale;
-
-                float zOffset = (float)Math.Sin(angle + this.topShearY) * (0.5f - yPathScale) * radiusScale;
-
-                // next apply twist rotation to the profile layer
-                if (twistTotal != 0.0f || twistBegin != 0.0f)
-                    newLayer.AddRot(new Quat(new Coord(0.0f, 0.0f, 1.0f), twist));
-
-                // now orient the rotation of the profile layer relative to it's position on the path
-                // adding taperY to the angle used to generate the quat appears to approximate the viewer
-                newLayer.AddRot(new Quat(new Coord(1.0f, 0.0f, 0.0f), angle + this.topShearY));
-                newLayer.AddPos(xOffset, yOffset, zOffset);
-
-                if (isEndLayer && angle <= startAngle + .01f)
-                {
-                    newLayer.FlipNormals();
-
-                    // add the top faces to the viewerFaces list here
-                    if (this.viewerMode && needEndFaces)
-                    {
-                        Coord faceNormal = newLayer.faceNormal;
-                        ViewerFace newViewerFace = new ViewerFace();
-                        newViewerFace.primFaceNumber = 0;
-                        foreach (Face face in newLayer.faces)
-                        {
-                            newViewerFace.v1 = newLayer.coords[face.v1];
-                            newViewerFace.v2 = newLayer.coords[face.v2];
-                            newViewerFace.v3 = newLayer.coords[face.v3];
-
-                            newViewerFace.coordIndex1 = face.v1;
-                            newViewerFace.coordIndex2 = face.v2;
-                            newViewerFace.coordIndex3 = face.v3;
-
-                            newViewerFace.n1 = faceNormal;
-                            newViewerFace.n2 = faceNormal;
-                            newViewerFace.n3 = faceNormal;
-
-                            newViewerFace.uv1 = newLayer.faceUVs[face.v1];
-                            newViewerFace.uv2 = newLayer.faceUVs[face.v2];
-                            newViewerFace.uv3 = newLayer.faceUVs[face.v3];
-
-                            this.viewerFaces.Add(newViewerFace);
-                        }
-                    }
-                }
-
-                // append the layer and fill in the sides
-
-                int coordsLen = this.coords.Count;
-                newLayer.AddValue2FaceVertexIndices(coordsLen);
-
-                this.coords.AddRange(newLayer.coords);
-
-                if (this.calcVertexNormals)
-                {
-                    newLayer.AddValue2FaceNormalIndices(this.normals.Count);
-                    this.normals.AddRange(newLayer.vertexNormals);
-                }
-
-                if (isEndLayer)
-                    this.faces.AddRange(newLayer.faces);
-
-                // fill faces between layers
-
-                int numVerts = newLayer.coords.Count;
-                Face newFace = new Face();
-                if (step > firstStep)
-                {
-                    int startVert = coordsLen + 1;
-                    int endVert = this.coords.Count;
-
-                    if (sides < 5 || this.hasProfileCut || hollow > 0.0f)
-                        startVert--;
-
-                    for (int i = startVert; i < endVert; i++)
-                    {
-                        int iNext = i + 1;
-                        if (i == endVert - 1)
-                            iNext = startVert;
-
-                        int whichVert = i - startVert;
-
-                        newFace.v1 = i;
-                        newFace.v2 = i - numVerts;
-                        newFace.v3 = iNext - numVerts;
-                        this.faces.Add(newFace);
-
-                        newFace.v2 = iNext - numVerts;
-                        newFace.v3 = iNext;
-                        this.faces.Add(newFace);
-
-                        if (this.viewerMode)
-                        {
-                            int primFaceNumber = profile.faceNumbers[whichVert];
-                            if (!needEndFaces)
-                                primFaceNumber -= 1;
-
-                            // add the side faces to the list of viewerFaces here
-                            ViewerFace newViewerFace1 = new ViewerFace(primFaceNumber);
-                            ViewerFace newViewerFace2 = new ViewerFace(primFaceNumber);
-                            float u1 = newLayer.us[whichVert];
-                            float u2 = 1.0f;
-                            if (whichVert < newLayer.us.Count - 1)
-                                u2 = newLayer.us[whichVert + 1];
-
-                            if (whichVert == cut1Vert || whichVert == cut2Vert)
-                            {
-                                u1 = 0.0f;
-                                u2 = 1.0f;
-                            }
-                            else if (sides < 5)
-                            { // boxes and prisms have one texture face per side of the prim, so the U values have to be scaled
-                                // to reflect the entire texture width
-                                u1 *= sides;
-                                u2 *= sides;
-                                u2 -= (int)u1;
-                                u1 -= (int)u1;
-                                if (u2 < 0.1f)
-                                    u2 = 1.0f;
-
-                                //newViewerFace2.primFaceNumber = newViewerFace1.primFaceNumber = whichVert + 1;
-                            }
-
-                            newViewerFace1.uv1.U = u1;
-                            newViewerFace1.uv2.U = u1;
-                            newViewerFace1.uv3.U = u2;
-
-                            newViewerFace1.uv1.V = 1.0f - percentOfPath;
-                            newViewerFace1.uv2.V = lastV;
-                            newViewerFace1.uv3.V = lastV;
-
-                            newViewerFace2.uv1.U = u1;
-                            newViewerFace2.uv2.U = u2;
-                            newViewerFace2.uv3.U = u2;
-
-                            newViewerFace2.uv1.V = 1.0f - percentOfPath;
-                            newViewerFace2.uv2.V = lastV;
-                            newViewerFace2.uv3.V = 1.0f - percentOfPath;
-
-                            newViewerFace1.v1 = this.coords[i];
-                            newViewerFace1.v2 = this.coords[i - numVerts];
-                            newViewerFace1.v3 = this.coords[iNext - numVerts];
-
-                            newViewerFace2.v1 = this.coords[i];
-                            newViewerFace2.v2 = this.coords[iNext - numVerts];
-                            newViewerFace2.v3 = this.coords[iNext];
-
-                            newViewerFace1.coordIndex1 = i;
-                            newViewerFace1.coordIndex2 = i - numVerts;
-                            newViewerFace1.coordIndex3 = iNext - numVerts;
-
-                            newViewerFace2.coordIndex1 = i;
-                            newViewerFace2.coordIndex2 = iNext - numVerts;
-                            newViewerFace2.coordIndex3 = iNext;
-
-                            // profile cut faces
-                            if (whichVert == cut1Vert)
-                            {
-                                newViewerFace1.n1 = newLayer.cutNormal1;
-                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal1;
-
-                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal1;
-                                newViewerFace2.n2 = lastCutNormal1;
-                            }
-                            else if (whichVert == cut2Vert)
-                            {
-                                newViewerFace1.n1 = newLayer.cutNormal2;
-                                newViewerFace1.n2 = newViewerFace1.n3 = lastCutNormal2;
-
-                                newViewerFace2.n1 = newViewerFace2.n3 = newLayer.cutNormal2;
-                                newViewerFace2.n2 = lastCutNormal2;
-                            }
-                            else // periphery faces
-                            {
-                                if (sides < 5 && whichVert < newLayer.numOuterVerts)
-                                {
-                                    newViewerFace1.n1 = this.normals[i];
-                                    newViewerFace1.n2 = this.normals[i - numVerts];
-                                    newViewerFace1.n3 = this.normals[i - numVerts];
-
-                                    newViewerFace2.n1 = this.normals[i];
-                                    newViewerFace2.n2 = this.normals[i - numVerts];
-                                    newViewerFace2.n3 = this.normals[i];
-                                }
-                                else if (hollowSides < 5 && whichVert >= newLayer.numOuterVerts)
-                                {
-                                    newViewerFace1.n1 = this.normals[iNext];
-                                    newViewerFace1.n2 = this.normals[iNext - numVerts];
-                                    newViewerFace1.n3 = this.normals[iNext - numVerts];
-
-                                    newViewerFace2.n1 = this.normals[iNext];
-                                    newViewerFace2.n2 = this.normals[iNext - numVerts];
-                                    newViewerFace2.n3 = this.normals[iNext];
-                                }
-                                else
-                                {
-                                    newViewerFace1.n1 = this.normals[i];
-                                    newViewerFace1.n2 = this.normals[i - numVerts];
-                                    newViewerFace1.n3 = this.normals[iNext - numVerts];
-
-                                    newViewerFace2.n1 = this.normals[i];
-                                    newViewerFace2.n2 = this.normals[iNext - numVerts];
-                                    newViewerFace2.n3 = this.normals[iNext];
-                                }
-                            }
-
-                            //newViewerFace1.primFaceNumber = newViewerFace2.primFaceNumber = newLayer.faceNumbers[whichVert];
-                            this.viewerFaces.Add(newViewerFace1);
-                            this.viewerFaces.Add(newViewerFace2);
-
-                        }
-                    }
-                }
-
-                lastCutNormal1 = newLayer.cutNormal1;
-                lastCutNormal2 = newLayer.cutNormal2;
-                lastV = 1.0f - percentOfPath;
-
-                // calculate terms for next iteration
-                // calculate the angle for the next iteration of the loop
-
-                if (angle >= endAngle - 0.01)
-                    done = true;
-                else
-                {
-                    step += 1;
-                    angle = stepSize * step;
-                    if (angle > endAngle)
-                        angle = endAngle;
-                }
-
-                if (done && viewerMode && needEndFaces)
-                {
-                    // add the bottom faces to the viewerFaces list here
-                    Coord faceNormal = newLayer.faceNormal;
-                    ViewerFace newViewerFace = new ViewerFace();
-                    //newViewerFace.primFaceNumber = newLayer.bottomFaceNumber + 1;
-                    newViewerFace.primFaceNumber = newLayer.bottomFaceNumber;
-                    foreach (Face face in newLayer.faces)
-                    {
-                        newViewerFace.v1 = newLayer.coords[face.v1 - coordsLen];
-                        newViewerFace.v2 = newLayer.coords[face.v2 - coordsLen];
-                        newViewerFace.v3 = newLayer.coords[face.v3 - coordsLen];
-
-                        newViewerFace.coordIndex1 = face.v1 - coordsLen;
-                        newViewerFace.coordIndex2 = face.v2 - coordsLen;
-                        newViewerFace.coordIndex3 = face.v3 - coordsLen;
-
-                        newViewerFace.n1 = faceNormal;
-                        newViewerFace.n2 = faceNormal;
-                        newViewerFace.n3 = faceNormal;
-
-                        newViewerFace.uv1 = newLayer.faceUVs[face.v1 - coordsLen];
-                        newViewerFace.uv2 = newLayer.faceUVs[face.v2 - coordsLen];
-                        newViewerFace.uv3 = newLayer.faceUVs[face.v3 - coordsLen];
-
-                        this.viewerFaces.Add(newViewerFace);
-                    }
-                }
-            }
+            this.Extrude(PathType.Circular);
         }
+
 
         private Coord SurfaceNormal(Coord c1, Coord c2, Coord c3)
         {

@@ -27,33 +27,38 @@
 
 using System.Text;
 using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Framework.Scenes.Serialization;
 
-namespace OpenSim.Framework
-{
-    public class AssetLandmark : AssetBase
+namespace OpenSim.Tests.Common
+{       
+    public class AssetHelpers
     {
-        public Vector3 Position;
-        public ulong RegionHandle;
-        public UUID RegionID;
-        public int Version;
-
-        public AssetLandmark(AssetBase a)
-            : base(a.FullID, a.Name, a.Type)
+        /// <summary>
+        /// Create an asset from the given data
+        /// </summary>
+        /// <param name="assetUuid"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(UUID assetUuid, string data)
         {
-            Data = a.Data;
-            Description = a.Description;
-            InternData();
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object);
+            asset.Data = Encoding.ASCII.GetBytes(data);
+            return asset;
         }
-
-        private void InternData()
+        
+        /// <summary>
+        /// Create an asset from the given scene object
+        /// </summary>
+        /// <param name="assetUuid"></param>
+        /// <param name="sog"></param>
+        /// <returns></returns>
+        public static AssetBase CreateAsset(UUID assetUuid, SceneObjectGroup sog)
         {
-            string temp = Util.UTF8.GetString(Data).Trim();
-            string[] parts = temp.Split('\n');
-            int.TryParse(parts[0].Substring(17, 1), out Version);
-            UUID.TryParse(parts[1].Substring(10, 36), out RegionID);
-            // the vector is stored with spaces as separators, not with commas ("10.3 32.5 43" instead of "10.3, 32.5, 43")
-            Vector3.TryParse(parts[2].Substring(10, parts[2].Length - 10).Replace(" ", ","), out Position);
-            ulong.TryParse(parts[3].Substring(14, parts[3].Length - 14), out RegionHandle);
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object);
+            asset.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog));
+            return asset;
         }
     }
 }

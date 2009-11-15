@@ -1059,9 +1059,11 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (m_scene.Permissions.IsGod(remote_client.AgentId))
                 {
                     land.LandData.OwnerID = ownerID;
+                    land.LandData.GroupID = UUID.Zero;
+                    land.LandData.IsGroupOwned = false;
 
                     m_scene.ForEachClient(SendParcelOverlay);
-                    land.SendLandUpdateToClient(remote_client);
+                    land.SendLandUpdateToClient(true, remote_client);
                 }
             }
         }
@@ -1082,8 +1084,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                         land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     else
                         land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    land.LandData.GroupID = UUID.Zero;
+                    land.LandData.IsGroupOwned = false;
                     m_scene.ForEachClient(SendParcelOverlay);
-                    land.SendLandUpdateToClient(remote_client);
+                    land.SendLandUpdateToClient(true, remote_client);
                 }
             }
         }
@@ -1105,9 +1109,10 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                         land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
+                    land.LandData.GroupID = UUID.Zero;
                     land.LandData.IsGroupOwned = false;
                     m_scene.ForEachClient(SendParcelOverlay);
-                    land.SendLandUpdateToClient(remote_client);
+                    land.SendLandUpdateToClient(true, remote_client);
                 }
             }
         }

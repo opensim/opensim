@@ -439,7 +439,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
-                    avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", true);
+                    avCapsuleTilted = physicsconfig.GetBoolean("av_capsule_tilted", false);
 
                     contactsPerCollision = physicsconfig.GetInt("contacts_per_collision", 80);
 
@@ -3541,7 +3541,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void UnCombine(PhysicsScene pScene)
         {
             IntPtr localGround = IntPtr.Zero;
-            float[] localHeightfield;
+//            float[] localHeightfield;
             bool proceed = false;
             List<IntPtr> geomDestroyList = new List<IntPtr>();
 
@@ -3553,7 +3553,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if (geom == localGround)
                         {
-                            localHeightfield = TerrainHeightFieldHeights[geom];
+//                            localHeightfield = TerrainHeightFieldHeights[geom];
                             proceed = true;
                         }
                         else
@@ -3575,7 +3575,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             // memory corruption
                             if (TerrainHeightFieldHeights.ContainsKey(g))
                             {
-                                float[] removingHeightField = TerrainHeightFieldHeights[g];
+//                                float[] removingHeightField = TerrainHeightFieldHeights[g];
                                 TerrainHeightFieldHeights.Remove(g);
 
                                 if (RegionTerrain.ContainsKey(g))

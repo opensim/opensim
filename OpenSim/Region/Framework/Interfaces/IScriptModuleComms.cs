@@ -25,15 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenMetaverse;
-using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.Framework.Interfaces
 {
-    public class RegionData
+    public delegate void ScriptCommand(UUID script, string id, string module, string command, string k);
+
+    public interface IScriptModuleComms
     {
-        public UUID RegionId;
-        public Scene RegionScene;
-        public Vector3 Offset;
+        event ScriptCommand OnScriptCommand;
+
+        void DispatchReply(UUID script, int code, string text, string k);
+
+        // For use ONLY by the script API
+        void RaiseEvent(UUID script, string id, string module, string command, string k);
     }
 }

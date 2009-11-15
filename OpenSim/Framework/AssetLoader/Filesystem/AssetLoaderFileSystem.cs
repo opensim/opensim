@@ -43,18 +43,15 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected static AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
+        protected static AssetBase CreateAsset(string assetIdStr, string name, string path, sbyte type)
         {
-            AssetBase asset = new AssetBase(
-                new UUID(assetIdStr),
-                name
-                );
+            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type);
 
             if (!String.IsNullOrEmpty(path))
             {
                 //m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
 
-                LoadAsset(asset, isImage, path);
+                LoadAsset(asset, path);
             }
             else
             {
@@ -64,8 +61,14 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             return asset;
         }
 
-        protected static void LoadAsset(AssetBase info, bool image, string path)
+        protected static void LoadAsset(AssetBase info, string path)
         {
+//            bool image =
+//               (info.Type == (sbyte)AssetType.Texture ||
+//                info.Type == (sbyte)AssetType.TextureTGA ||
+//                info.Type == (sbyte)AssetType.ImageJPEG ||
+//                info.Type == (sbyte)AssetType.ImageTGA);
+
             FileInfo fInfo = new FileInfo(path);
             long numBytes = fInfo.Length;
             if (fInfo.Exists)
@@ -138,10 +141,10 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                     {
                         string assetIdStr = source.Configs[i].GetString("assetID", UUID.Random().ToString());
                         string name = source.Configs[i].GetString("name", String.Empty);
-                        sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
+                        sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
                         string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", String.Empty));
 
-                        AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, false);
+                        AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, type);
 
                         newAsset.Type = type;
                         assets.Add(newAsset);

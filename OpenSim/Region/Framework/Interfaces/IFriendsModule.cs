@@ -27,6 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -45,5 +46,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="offerMessage"></param>
         void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);
+        List<FriendListItem> GetUserFriends(UUID agentID);
     }
 }

@@ -219,7 +219,7 @@ namespace OpenSim.Tests.Common.Setup
             if (real)
                 config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Services.AssetService.dll:AssetService");
             else
-                config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestAssetService");
+                config.Configs["AssetService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockAssetService");
             config.Configs["AssetService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             assetService.Initialise(config);
             assetService.AddRegion(testScene);
@@ -238,7 +238,7 @@ namespace OpenSim.Tests.Common.Setup
             if (real)
                 config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Services.InventoryService.dll:InventoryService");
             else
-                config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestInventoryService");
+                config.Configs["InventoryService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:MockInventoryService");
             config.Configs["InventoryService"].Set("StorageProvider", "OpenSim.Tests.Common.dll");
             inventoryService.Initialise(config);
             inventoryService.AddRegion(testScene);
