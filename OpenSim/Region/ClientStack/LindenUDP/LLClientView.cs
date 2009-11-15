@@ -785,6 +785,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void SendLayerData(float[] map)
         {
             Util.FireAndForget(DoSendLayerData, map);
+
+            // Send it sync, and async. It's not that much data
+            // and it improves user experience just so much!
+            DoSendLayerData(map);
         }
 
         /// <summary>
@@ -797,49 +801,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                //for (int y = 0; y < 16; y++)
-                //{
-                //    for (int x = 0; x < 16; x++)
-                //    {
-                //        SendLayerData(x, y, map);
-                //    }
-                //}
-
-                // Send LayerData in a spiral pattern. Fun!
-                SendLayerTopRight(map, 0, 0, 15, 15);
+                for (int y = 0; y < 16; y++)
+                {
+                    for (int x = 0; x < 16; x+=4)
+                    {
+                        SendLayerPacket(x, y, map);
+                    }
+                }
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
-        }
-
-        private void SendLayerTopRight(float[] map, int x1, int y1, int x2, int y2)
-        {
-            // Row
-            for (int i = x1; i <= x2; i++)
-                SendLayerData(i, y1, map);
-
-            // Column
-            for (int j = y1 + 1; j <= y2; j++)
-                SendLayerData(x2, j, map);
-     
-            if (x2 - x1 > 0)
-                SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
-        }
-
-        void SendLayerBottomLeft(float[] map, int x1, int y1, int x2, int y2)
-        {
-            // Row in reverse
-            for (int i = x2; i >= x1; i--)
-                SendLayerData(i, y2, map);
-
-            // Column in reverse
-            for (int j = y2 - 1; j >= y1; j--)
-                SendLayerData(x1, j, map);
-
-            if (x2 - x1 > 0)
-                SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
         }
 
         /// <summary>
@@ -848,17 +821,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         /// <param name="px">X coordinate for patches 0..12</param>
         /// <param name="py">Y coordinate for patches 0..15</param>
-        // private void SendLayerPacket(float[] map, int y, int x)
-        // {
-        //     int[] patches = new int[4];
-        //     patches[0] = x + 0 + y * 16;
-        //     patches[1] = x + 1 + y * 16;
-        //     patches[2] = x + 2 + y * 16;
-        //     patches[3] = x + 3 + y * 16;
+        private void SendLayerPacket(int x, int y, float[] map)
+        {
+            int[] patches = new int[4];
+            patches[0] = x + 0 + y * 16;
+            patches[1] = x + 1 + y * 16;
+            patches[2] = x + 2 + y * 16;
+            patches[3] = x + 3 + y * 16;
 
-        //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-        //     OutPacket(layerpack, ThrottleOutPacketType.Land);
-        // }
+            float[] heightmap = (map.Length == 65536) ?
+                map :
+                LLHeightFieldMoronize(map);
+
+            try
+            {
+                Packet layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
+                OutPacket(layerpack, ThrottleOutPacketType.Land);
+            }
+            catch
+            {
+                for (int px = x ; px < x + 4 ; px++)
+                    SendLayerData(px, y, map);
+            }
+        }
 
         /// <summary>
         /// Sends a specified patch to a client
