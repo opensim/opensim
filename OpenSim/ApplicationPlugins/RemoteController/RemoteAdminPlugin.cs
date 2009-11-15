@@ -123,6 +123,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
                     availableMethods["admin_shutdown"] = XmlRpcShutdownMethod;
                     availableMethods["admin_broadcast"] = XmlRpcAlertMethod;
+                    availableMethods["admin_dialog"] = XmlRpcDialogMethod;
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
                     // User management
@@ -262,6 +263,53 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             if (dialogModule != null)
                                 dialogModule.SendGeneralAlert(message);
                         });
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
+
+                responseData["accepted"] = false;
+                responseData["success"] = false;
+                responseData["error"] = e.Message;
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Alert request complete");
+            return response;
+        }
+        public XmlRpcResponse XmlRpcDialogMethod(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            m_log.Info("[RADMIN]: Dialog request started");
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                checkStringParameters(request, new string[] { "password", "from", "message" });
+
+                if (m_requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string)requestData["password"] != m_requiredPassword))
+                    throw new Exception("wrong password");
+
+                string message = (string)requestData["message"];
+                string fromuuid = (string)requestData["from"];
+                m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
+
+                responseData["accepted"] = true;
+                responseData["success"] = true;
+                response.Value = responseData;
+
+                m_app.SceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
+                    });
             }
             catch (Exception e)
             {
