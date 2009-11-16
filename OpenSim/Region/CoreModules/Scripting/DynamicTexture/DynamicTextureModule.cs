@@ -124,7 +124,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
-
                 DynamicTextureUpdater updater = new DynamicTextureUpdater();
                 updater.SimUUID = simID;
                 updater.PrimID = primID;
@@ -275,7 +274,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             /// </summary>
             public void DataReceived(byte[] data, Scene scene)
             {
-
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
 
                 if (part == null || data == null || data.Length <= 1)
@@ -364,7 +362,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 if (oldID != UUID.Zero && ((Disp & DISP_EXPIRE) != 0))
                 {
-                    // scene.CommsManager.AssetCache.ExpireAsset(oldID);
                     scene.AssetService.Delete(oldID.ToString());
                 }
             }
