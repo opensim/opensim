@@ -107,17 +107,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDHoverTau;
         private bool m_useHoverPID;
         private PIDHoverType m_PIDHoverType = PIDHoverType.Ground;
-<<<<<<< HEAD:OpenSim/Region/Physics/OdePlugin/ODEPrim.cs
-        private float m_targetHoverHeight = 0f;
-        private float m_groundHeight = 0f;
-        private float m_waterHeight = 0f;
-        private float m_buoyancy = 0f;				//Set by llSetBuoyancy(), for non-vehicles. 
-=======
         private float m_targetHoverHeight;
         private float m_groundHeight;
         private float m_waterHeight;
         private float m_buoyancy;				//KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle. 
->>>>>>> vehicles:OpenSim/Region/Physics/OdePlugin/ODEPrim.cs
 
         // private float m_tensor = 5f;
         private int body_autodisable_frames = 20;

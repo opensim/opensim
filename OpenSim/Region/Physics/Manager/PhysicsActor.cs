@@ -249,9 +249,9 @@ namespace OpenSim.Region.Physics.Manager
         public abstract float APIDStrength { set;}
         public abstract float APIDDamping { set;}
         
-        public abstract void AddForce(PhysicsVector force, bool pushforce);
-        public abstract void AddAngularForce(PhysicsVector force, bool pushforce);
-        public abstract void SetMomentum(PhysicsVector momentum);
+        public abstract void AddForce(Vector3 force, bool pushforce);
+        public abstract void AddAngularForce(Vector3 force, bool pushforce);
+        public abstract void SetMomentum(Vector3 momentum);
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
         public abstract bool SubscribedEvents();
