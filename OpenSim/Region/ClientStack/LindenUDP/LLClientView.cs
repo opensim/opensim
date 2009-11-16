@@ -37,6 +37,7 @@ using System.Xml;
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
+using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
@@ -219,6 +220,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
+        public event GrantUserFriendRights OnGrantUserRights;
         public event MoneyTransferRequest OnMoneyTransferRequest;
         public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
@@ -314,14 +316,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUDPClient m_udpClient;
         private readonly UUID m_sessionId;
         private readonly UUID m_secureSessionId;
-        private readonly UUID m_agentId;
+        protected readonly UUID m_agentId;
         private readonly uint m_circuitCode;
         private readonly byte[] m_channelVersion = Utils.EmptyBytes;
         private readonly Dictionary<string, UUID> m_defaultAnimations = new Dictionary<string, UUID>();
         private readonly IGroupsModule m_GroupsModule;
 
         private int m_cachedTextureSerial;
-        private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
+        protected PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_avatarTerseUpdates;
         private PriorityQueue<double, ImprovedTerseObjectUpdatePacket.ObjectDataBlock> m_primTerseUpdates;
         private PriorityQueue<double, ObjectUpdatePacket.ObjectDataBlock> m_primFullUpdates;
         private int m_moneyBalance;
@@ -783,6 +785,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void SendLayerData(float[] map)
         {
             Util.FireAndForget(DoSendLayerData, map);
+
+            // Send it sync, and async. It's not that much data
+            // and it improves user experience just so much!
+            DoSendLayerData(map);
         }
 
         /// <summary>
@@ -795,49 +801,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             try
             {
-                //for (int y = 0; y < 16; y++)
-                //{
-                //    for (int x = 0; x < 16; x++)
-                //    {
-                //        SendLayerData(x, y, map);
-                //    }
-                //}
-
-                // Send LayerData in a spiral pattern. Fun!
-                SendLayerTopRight(map, 0, 0, 15, 15);
+                for (int y = 0; y < 16; y++)
+                {
+                    for (int x = 0; x < 16; x+=4)
+                    {
+                        SendLayerPacket(x, y, map);
+                    }
+                }
             }
             catch (Exception e)
             {
                 m_log.Error("[CLIENT]: SendLayerData() Failed with exception: " + e.Message, e);
             }
-        }
-
-        private void SendLayerTopRight(float[] map, int x1, int y1, int x2, int y2)
-        {
-            // Row
-            for (int i = x1; i <= x2; i++)
-                SendLayerData(i, y1, map);
-
-            // Column
-            for (int j = y1 + 1; j <= y2; j++)
-                SendLayerData(x2, j, map);
-     
-            if (x2 - x1 > 0)
-                SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
-        }
-
-        void SendLayerBottomLeft(float[] map, int x1, int y1, int x2, int y2)
-        {
-            // Row in reverse
-            for (int i = x2; i >= x1; i--)
-                SendLayerData(i, y2, map);
-
-            // Column in reverse
-            for (int j = y2 - 1; j >= y1; j--)
-                SendLayerData(x1, j, map);
-
-            if (x2 - x1 > 0)
-                SendLayerTopRight(map, x1 + 1, y1, x2, y2 - 1);
         }
 
         /// <summary>
@@ -846,17 +821,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         /// <param name="px">X coordinate for patches 0..12</param>
         /// <param name="py">Y coordinate for patches 0..15</param>
-        // private void SendLayerPacket(float[] map, int y, int x)
-        // {
-        //     int[] patches = new int[4];
-        //     patches[0] = x + 0 + y * 16;
-        //     patches[1] = x + 1 + y * 16;
-        //     patches[2] = x + 2 + y * 16;
-        //     patches[3] = x + 3 + y * 16;
+        private void SendLayerPacket(int x, int y, float[] map)
+        {
+            int[] patches = new int[4];
+            patches[0] = x + 0 + y * 16;
+            patches[1] = x + 1 + y * 16;
+            patches[2] = x + 2 + y * 16;
+            patches[3] = x + 3 + y * 16;
 
-        //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-        //     OutPacket(layerpack, ThrottleOutPacketType.Land);
-        // }
+            float[] heightmap = (map.Length == 65536) ?
+                map :
+                LLHeightFieldMoronize(map);
+
+            try
+            {
+                Packet layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
+                OutPacket(layerpack, ThrottleOutPacketType.Land);
+            }
+            catch
+            {
+                for (int px = x ; px < x + 4 ; px++)
+                    SendLayerData(px, y, map);
+            }
+        }
 
         /// <summary>
         /// Sends a specified patch to a client
@@ -1250,7 +1237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="fetchFolders">Do we need to send folder information?</param>
         /// <param name="fetchItems">Do we need to send item information?</param>
         public void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
-                                               List<InventoryFolderBase> folders,
+                                               List<InventoryFolderBase> folders, int version,
                                                bool fetchFolders, bool fetchItems)
         {
             // An inventory descendents packet consists of a single agent section and an inventory details
@@ -1263,174 +1250,107 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //
             // for one example of this kind of thing.  In fact, the Linden servers appear to only send about
             // 6 to 7 items at a time, so let's stick with 6
-            int MAX_ITEMS_PER_PACKET = 6;
+            int MAX_ITEMS_PER_PACKET = 5;
+            int MAX_FOLDERS_PER_PACKET = 6;
 
-            //Ckrinke This variable is not used, so comment out to remove the warning from the compiler (3-21-08)
-            //Ckrinke            uint FULL_MASK_PERMISSIONS = 2147483647;
-
+            int totalItems = fetchItems ? items.Count : 0;
+            int totalFolders = fetchFolders ? folders.Count : 0;
             int itemsSent = 0;
-            if (fetchItems)
-            {
-                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+            int foldersSent = 0;
+            int foldersToSend = 0;
+            int itemsToSend = 0;
 
-                if (items.Count < MAX_ITEMS_PER_PACKET)
+            InventoryDescendentsPacket currentPacket = null;
+
+            // Handle empty folders
+            //
+            if (totalItems == 0 && totalFolders == 0)
+                currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, 0, 0);
+            
+            // To preserve SL compatibility, we will NOT combine folders and items in one packet
+            //
+            while(itemsSent < totalItems || foldersSent < totalFolders)
+            {
+                if (currentPacket == null) // Start a new packet
                 {
-                    descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count];
+                    foldersToSend = totalFolders - foldersSent;
+                    if (foldersToSend > MAX_FOLDERS_PER_PACKET)
+                        foldersToSend = MAX_FOLDERS_PER_PACKET;
+
+                    if (foldersToSend == 0)
+                    {
+                        itemsToSend = totalItems - itemsSent;
+                        if (itemsToSend > MAX_ITEMS_PER_PACKET)
+                            itemsToSend = MAX_ITEMS_PER_PACKET;
+                    }
+
+                    currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, foldersToSend, itemsToSend);
                 }
+
+                if (foldersToSend-- > 0)
+                    currentPacket.FolderData[foldersSent % MAX_FOLDERS_PER_PACKET] = CreateFolderDataBlock(folders[foldersSent++]);
+                else if(itemsToSend-- > 0)
+                    currentPacket.ItemData[itemsSent % MAX_ITEMS_PER_PACKET] = CreateItemDataBlock(items[itemsSent++]);
                 else
                 {
-                    descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
+                    OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
+                    currentPacket = null;
                 }
 
-                // Descendents must contain the *total* number of descendents (plus folders, whether we
-                // fetch them or not), not the number of entries we send in this packet. For consistency,
-                // I'll use it for folder-requests, too, although I wasn't able to get one with
-                // FetchFolders = true.
-                // TODO this should be checked with FetchFolders = true
-                descend.AgentData.Descendents = items.Count + folders.Count;
-
-                int count = 0;
-                int i = 0;
-                foreach (InventoryItemBase item in items)
-                {
-                    descend.ItemData[i] = new InventoryDescendentsPacket.ItemDataBlock();
-                    descend.ItemData[i].ItemID = item.ID;
-                    descend.ItemData[i].AssetID = item.AssetID;
-                    descend.ItemData[i].CreatorID = item.CreatorIdAsUuid;
-                    descend.ItemData[i].BaseMask = item.BasePermissions;
-                    descend.ItemData[i].Description = Util.StringToBytes256(item.Description);
-                    descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
-                    descend.ItemData[i].OwnerMask = item.CurrentPermissions;
-                    descend.ItemData[i].FolderID = item.Folder;
-                    descend.ItemData[i].InvType = (sbyte)item.InvType;
-                    descend.ItemData[i].Name = Util.StringToBytes256(item.Name);
-                    descend.ItemData[i].NextOwnerMask = item.NextPermissions;
-                    descend.ItemData[i].OwnerID = item.Owner;
-                    descend.ItemData[i].Type = (sbyte)item.AssetType;
-
-                    descend.ItemData[i].GroupID = item.GroupID;
-                    descend.ItemData[i].GroupOwned = item.GroupOwned;
-                    descend.ItemData[i].GroupMask = item.GroupPermissions;
-                    descend.ItemData[i].CreationDate = item.CreationDate;
-                    descend.ItemData[i].SalePrice = item.SalePrice;
-                    descend.ItemData[i].SaleType = item.SaleType;
-                    descend.ItemData[i].Flags = item.Flags;
-
-                    descend.ItemData[i].CRC =
-                        Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
-                                             descend.ItemData[i].InvType, descend.ItemData[i].Type,
-                                             descend.ItemData[i].AssetID, descend.ItemData[i].GroupID,
-                                             descend.ItemData[i].SalePrice,
-                                             descend.ItemData[i].OwnerID, descend.ItemData[i].CreatorID,
-                                             descend.ItemData[i].ItemID, descend.ItemData[i].FolderID,
-                                             descend.ItemData[i].EveryoneMask,
-                                             descend.ItemData[i].Flags, descend.ItemData[i].OwnerMask,
-                                             descend.ItemData[i].GroupMask, item.CurrentPermissions);
-
-                    i++;
-                    count++;
-                    itemsSent++;
-                    if (i == MAX_ITEMS_PER_PACKET)
-                    {
-                        descend.Header.Zerocoded = true;
-                        AddNullFolderBlockToDecendentsPacket(ref descend);
-                        OutPacket(descend, ThrottleOutPacketType.Asset);
-
-                        if ((items.Count - count) > 0)
-                        {
-                            descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                            if ((items.Count - count) < MAX_ITEMS_PER_PACKET)
-                            {
-                                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items.Count - count];
-                            }
-                            else
-                            {
-                                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[MAX_ITEMS_PER_PACKET];
-                            }
-                            descend.AgentData.Descendents = items.Count + folders.Count;
-                            i = 0;
-                        }
-                    }
-                }
-
-                if (0 < i && i < MAX_ITEMS_PER_PACKET)
-                {
-                    AddNullFolderBlockToDecendentsPacket(ref descend);
-                    OutPacket(descend, ThrottleOutPacketType.Asset);
-                }
             }
 
-            //send subfolders
-            if (fetchFolders)
-            {
-                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
+            if (currentPacket != null)
+                OutPacket(currentPacket, ThrottleOutPacketType.Asset, false);
+        }
 
-                if (folders.Count < MAX_ITEMS_PER_PACKET)
-                {
-                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
-                }
-                else
-                {
-                    descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                }
+        private InventoryDescendentsPacket.FolderDataBlock CreateFolderDataBlock(InventoryFolderBase folder)
+        {
+            InventoryDescendentsPacket.FolderDataBlock newBlock = new InventoryDescendentsPacket.FolderDataBlock();
+            newBlock.FolderID = folder.ID;
+            newBlock.Name = Util.StringToBytes256(folder.Name);
+            newBlock.ParentID = folder.ParentID;
+            newBlock.Type = (sbyte)folder.Type;
 
-                // Not sure if this scenario ever actually occurs, but nonetheless we include the items
-                // count even if we're not sending item data for the same reasons as above.
-                descend.AgentData.Descendents = items.Count + folders.Count;
+            return newBlock;
+        }
 
-                int i = 0;
-                int count = 0;
-                foreach (InventoryFolderBase folder in folders)
-                {
-                    descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
-                    descend.FolderData[i].FolderID = folder.ID;
-                    descend.FolderData[i].Name = Util.StringToBytes256(folder.Name);
-                    descend.FolderData[i].ParentID = folder.ParentID;
-                    descend.FolderData[i].Type = (sbyte)folder.Type;
+        private InventoryDescendentsPacket.ItemDataBlock CreateItemDataBlock(InventoryItemBase item)
+        {
+            InventoryDescendentsPacket.ItemDataBlock newBlock = new InventoryDescendentsPacket.ItemDataBlock();
+            newBlock.ItemID = item.ID;
+            newBlock.AssetID = item.AssetID;
+            newBlock.CreatorID = item.CreatorIdAsUuid;
+            newBlock.BaseMask = item.BasePermissions;
+            newBlock.Description = Util.StringToBytes256(item.Description);
+            newBlock.EveryoneMask = item.EveryOnePermissions;
+            newBlock.OwnerMask = item.CurrentPermissions;
+            newBlock.FolderID = item.Folder;
+            newBlock.InvType = (sbyte)item.InvType;
+            newBlock.Name = Util.StringToBytes256(item.Name);
+            newBlock.NextOwnerMask = item.NextPermissions;
+            newBlock.OwnerID = item.Owner;
+            newBlock.Type = (sbyte)item.AssetType;
 
-                    i++;
-                    count++;
-                    itemsSent++;
-                    if (i == MAX_ITEMS_PER_PACKET)
-                    {
-                        AddNullItemBlockToDescendentsPacket(ref descend);
-                        OutPacket(descend, ThrottleOutPacketType.Asset);
+            newBlock.GroupID = item.GroupID;
+            newBlock.GroupOwned = item.GroupOwned;
+            newBlock.GroupMask = item.GroupPermissions;
+            newBlock.CreationDate = item.CreationDate;
+            newBlock.SalePrice = item.SalePrice;
+            newBlock.SaleType = item.SaleType;
+            newBlock.Flags = item.Flags;
 
-                        if ((folders.Count - count) > 0)
-                        {
-                            descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                            if ((folders.Count - count) < MAX_ITEMS_PER_PACKET)
-                            {
-                                descend.FolderData =
-                                    new InventoryDescendentsPacket.FolderDataBlock[folders.Count - count];
-                            }
-                            else
-                            {
-                                descend.FolderData =
-                                    new InventoryDescendentsPacket.FolderDataBlock[MAX_ITEMS_PER_PACKET];
-                            }
-                            descend.AgentData.Descendents = items.Count + folders.Count;
-                            i = 0;
-                        }
-                    }
-                }
+            newBlock.CRC =
+                Helpers.InventoryCRC(newBlock.CreationDate, newBlock.SaleType,
+                                     newBlock.InvType, newBlock.Type,
+                                     newBlock.AssetID, newBlock.GroupID,
+                                     newBlock.SalePrice,
+                                     newBlock.OwnerID, newBlock.CreatorID,
+                                     newBlock.ItemID, newBlock.FolderID,
+                                     newBlock.EveryoneMask,
+                                     newBlock.Flags, newBlock.OwnerMask,
+                                     newBlock.GroupMask, newBlock.NextOwnerMask);
 
-                if (0 < i && i < MAX_ITEMS_PER_PACKET)
-                {
-                    AddNullItemBlockToDescendentsPacket(ref descend);
-                    OutPacket(descend, ThrottleOutPacketType.Asset);
-                }
-            }
-
-            if (itemsSent == 0)
-            {
-                // no items found.
-                InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-                descend.AgentData.Descendents = 0;
-                AddNullItemBlockToDescendentsPacket(ref descend);
-                AddNullFolderBlockToDecendentsPacket(ref descend);
-                OutPacket(descend, ThrottleOutPacketType.Asset);
-            }
+            return newBlock;
         }
 
         private void AddNullFolderBlockToDecendentsPacket(ref InventoryDescendentsPacket packet)
@@ -1472,14 +1392,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // No need to add CRC
         }
 
-        private InventoryDescendentsPacket CreateInventoryDescendentsPacket(UUID ownerID, UUID folderID)
+        private InventoryDescendentsPacket CreateInventoryDescendentsPacket(UUID ownerID, UUID folderID, int version, int descendents, int folders, int items)
         {
             InventoryDescendentsPacket descend = (InventoryDescendentsPacket)PacketPool.Instance.GetPacket(PacketType.InventoryDescendents);
             descend.Header.Zerocoded = true;
             descend.AgentData.AgentID = AgentId;
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
-            descend.AgentData.Version = 1;
+            descend.AgentData.Version = version;
+            descend.AgentData.Descendents = descendents;
+
+            if (folders > 0)
+                descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders];
+            else
+                AddNullFolderBlockToDecendentsPacket(ref descend);
+
+            if (items > 0)
+                descend.ItemData = new InventoryDescendentsPacket.ItemDataBlock[items];
+            else
+                AddNullItemBlockToDescendentsPacket(ref descend);
 
             return descend;
         }
@@ -1856,7 +1787,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             economyData.Info.TeleportMinPrice = TeleportMinPrice;
             economyData.Info.TeleportPriceExponent = TeleportPriceExponent;
             economyData.Header.Reliable = true;
-            OutPacket(economyData, ThrottleOutPacketType.Unknown);
+            OutPacket(economyData, ThrottleOutPacketType.Task);
         }
 
         public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
@@ -2786,30 +2717,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAvatarGroupsReply(UUID avatarID, GroupMembershipData[] data)
         {
-            AvatarGroupsReplyPacket p = (AvatarGroupsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarGroupsReply);
-
-            p.AgentData = new AvatarGroupsReplyPacket.AgentDataBlock();
-            p.AgentData.AgentID = AgentId;
-            p.AgentData.AvatarID = avatarID;
-
-            p.GroupData = new AvatarGroupsReplyPacket.GroupDataBlock[data.Length];
-            int i = 0;
-            foreach (GroupMembershipData m in data)
-            {
-                p.GroupData[i] = new AvatarGroupsReplyPacket.GroupDataBlock();
-                p.GroupData[i].GroupPowers = m.GroupPowers;
-                p.GroupData[i].AcceptNotices = m.AcceptNotices;
-                p.GroupData[i].GroupTitle = Utils.StringToBytes(m.GroupTitle);
-                p.GroupData[i].GroupID = m.GroupID;
-                p.GroupData[i].GroupName = Utils.StringToBytes(m.GroupName);
-                p.GroupData[i].GroupInsigniaID = m.GroupPicture;
-                i++;
-            }
-
-            p.NewGroupData = new AvatarGroupsReplyPacket.NewGroupDataBlock();
-            p.NewGroupData.ListInProfile = true;
-
-            OutPacket(p, ThrottleOutPacketType.Task);
+             OSDMap llsd = new OSDMap(3);
+             OSDArray AgentData = new OSDArray(1);
+             OSDMap AgentDataMap = new OSDMap(1);
+             AgentDataMap.Add("AgentID", OSD.FromUUID(this.AgentId));
+             AgentDataMap.Add("AvatarID", OSD.FromUUID(avatarID));
+             AgentData.Add(AgentDataMap);
+             llsd.Add("AgentData", AgentData);
+             OSDArray GroupData = new OSDArray(data.Length);
+             OSDArray NewGroupData = new OSDArray(data.Length);
+             foreach (GroupMembershipData m in data)
+             {
+                 OSDMap GroupDataMap = new OSDMap(6);
+                 OSDMap NewGroupDataMap = new OSDMap(1);
+                 GroupDataMap.Add("GroupPowers", OSD.FromBinary(m.GroupPowers));
+                 GroupDataMap.Add("AcceptNotices", OSD.FromBoolean(m.AcceptNotices));
+                 GroupDataMap.Add("GroupTitle", OSD.FromString(m.GroupTitle));
+                 GroupDataMap.Add("GroupID", OSD.FromUUID(m.GroupID));
+                 GroupDataMap.Add("GroupName", OSD.FromString(m.GroupName));
+                 GroupDataMap.Add("GroupInsigniaID", OSD.FromUUID(m.GroupPicture));
+                 NewGroupDataMap.Add("ListInProfile", OSD.FromBoolean(m.ListInProfile));
+                 GroupData.Add(GroupDataMap);
+                 NewGroupData.Add(NewGroupDataMap);
+             }
+             llsd.Add("GroupData", GroupData);
+             llsd.Add("NewGroupData", NewGroupData);
+ 
+             IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
+             if (eq != null)
+             {
+                 eq.Enqueue(BuildEvent("AvatarGroupsReply", llsd), this.AgentId);
+             }
         }
 
         public void SendJoinGroupReply(UUID groupID, bool success)
@@ -3168,107 +3106,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
-        #region Prim/Avatar Updates
-
-        /*void SendObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-            bool canUseCompressed, canUseImproved;
-            UpdateFlagsToPacketType(creatorFlags, updateFlags, out canUseCompressed, out canUseImproved);
-
-            if (!canUseImproved && !canUseCompressed)
-                SendFullObjectUpdate(obj, creatorFlags, updateFlags);
-            else if (!canUseImproved)
-                SendObjectUpdateCompressed(obj, creatorFlags, updateFlags);
-            else
-                SendImprovedTerseObjectUpdate(obj, creatorFlags, updateFlags);
-        }
-
-        void SendFullObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-            IClientAPI owner;
-            if (m_scene.ClientManager.TryGetValue(obj.OwnerID, out owner) && owner is LLClientView)
-            {
-                LLClientView llOwner = (LLClientView)owner;
-
-                // Send an update out to the owner
-                ObjectUpdatePacket updateToOwner = new ObjectUpdatePacket();
-                updateToOwner.RegionData.RegionHandle = obj.RegionHandle;
-                //updateToOwner.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
-                updateToOwner.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-                updateToOwner.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags | creatorFlags | PrimFlags.ObjectYouOwner, 0);
-
-                m_udpServer.SendPacket(llOwner.UDPClient, updateToOwner, ThrottleOutPacketType.State, true);
-            }
-
-            // Send an update out to everyone else
-            ObjectUpdatePacket updateToOthers = new ObjectUpdatePacket();
-            updateToOthers.RegionData.RegionHandle = obj.RegionHandle;
-            //updateToOthers.RegionData.TimeDilation = (ushort)(timeDilation * (float)UInt16.MaxValue);
-            updateToOthers.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
-            updateToOthers.ObjectData[0] = BuildUpdateBlock(obj, obj.Flags, 0);
-
-            m_scene.ClientManager.ForEach(
-                delegate(IClientAPI client)
-                {
-                    if (client.AgentId != obj.OwnerID && client is LLClientView)
-                    {
-                        LLClientView llClient = (LLClientView)client;
-                        m_udpServer.SendPacket(llClient.UDPClient, updateToOthers, ThrottleOutPacketType.State, true);
-                    }
-                }
-            );
-        }
-
-        void SendObjectUpdateCompressed(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-        }
-
-        void SendImprovedTerseObjectUpdate(SceneObjectPart obj, PrimFlags creatorFlags, PrimUpdateFlags updateFlags)
-        {
-        }
-
-        void UpdateFlagsToPacketType(PrimFlags creatorFlags, PrimUpdateFlags updateFlags, out bool canUseCompressed, out bool canUseImproved)
-        {
-            canUseCompressed = true;
-            canUseImproved = true;
-
-            if ((updateFlags & PrimUpdateFlags.FullUpdate) == PrimUpdateFlags.FullUpdate || creatorFlags != PrimFlags.None)
-            {
-                canUseCompressed = false;
-                canUseImproved = false;
-            }
-            else
-            {
-                if ((updateFlags & PrimUpdateFlags.Velocity) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Acceleration) != 0 ||
-                    (updateFlags & PrimUpdateFlags.CollisionPlane) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Joint) != 0)
-                {
-                    canUseCompressed = false;
-                }
-
-                if ((updateFlags & PrimUpdateFlags.PrimFlags) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ParentID) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Scale) != 0 ||
-                    (updateFlags & PrimUpdateFlags.PrimData) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Text) != 0 ||
-                    (updateFlags & PrimUpdateFlags.NameValue) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ExtraData) != 0 ||
-                    (updateFlags & PrimUpdateFlags.TextureAnim) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Sound) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Particles) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Material) != 0 ||
-                    (updateFlags & PrimUpdateFlags.ClickAction) != 0 ||
-                    (updateFlags & PrimUpdateFlags.MediaURL) != 0 ||
-                    (updateFlags & PrimUpdateFlags.Joint) != 0)
-                {
-                    canUseImproved = false;
-                }
-            }
-        }*/
-
-        #endregion Prim/Avatar Updates
-
         #region Avatar Packet/Data Sending Methods
 
         /// <summary>
@@ -3314,7 +3151,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 ProcessAvatarTerseUpdates();
         }
 
-        private void ProcessAvatarTerseUpdates()
+        protected void ProcessAvatarTerseUpdates()
         {
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             terse.Header.Reliable = false;
@@ -3335,6 +3172,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
             }
 
+            // HACK: Using the task category until the tiered reprioritization code is in
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -3343,12 +3181,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (!IsActive) return; // We don't need to update inactive clients.
 
             CoarseLocationUpdatePacket loc = (CoarseLocationUpdatePacket)PacketPool.Instance.GetPacket(PacketType.CoarseLocationUpdate);
-            // TODO: don't create new blocks if recycling an old packet
-            int total = CoarseLocations.Count;
-            CoarseLocationUpdatePacket.IndexBlock ib =
-                new CoarseLocationUpdatePacket.IndexBlock();
+            loc.Header.Reliable = false;
+
+            // Each packet can only hold around 62 avatar positions and the client clears the mini-map each time
+            // a CoarseLocationUpdate packet is received. Oh well.
+            int total = Math.Min(CoarseLocations.Count, 60);
+
+            CoarseLocationUpdatePacket.IndexBlock ib = new CoarseLocationUpdatePacket.IndexBlock();
+
             loc.Location = new CoarseLocationUpdatePacket.LocationBlock[total];
             loc.AgentData = new CoarseLocationUpdatePacket.AgentDataBlock[total];
+
             int selfindex = -1;
             for (int i = 0; i < total; i++)
             {
@@ -3358,18 +3201,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 lb.X = (byte)CoarseLocations[i].X;
                 lb.Y = (byte)CoarseLocations[i].Y;
 
-                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25);
+                lb.Z = CoarseLocations[i].Z > 1024 ? (byte)0 : (byte)(CoarseLocations[i].Z * 0.25f);
                 loc.Location[i] = lb;
                 loc.AgentData[i] = new CoarseLocationUpdatePacket.AgentDataBlock();
                 loc.AgentData[i].AgentID = users[i];
                 if (users[i] == AgentId)
                     selfindex = i;
             }
+
             ib.You = (short)selfindex;
             ib.Prey = -1;
             loc.Index = ib;
-            loc.Header.Reliable = false;
-            loc.Header.Zerocoded = true;
 
             OutPacket(loc, ThrottleOutPacketType.Task);
         }
@@ -4180,11 +4022,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(SendPrimitiveTerseData data)
         {
-            return CreateImprovedTerseBlock(false, data.LocalID, data.State, Vector4.Zero, data.Position, data.Velocity,
+            return CreateImprovedTerseBlock(false, data.LocalID, data.AttachPoint, Vector4.Zero, data.Position, data.Velocity,
                 data.Acceleration, data.Rotation, data.AngularVelocity, data.TextureEntry);
         }
 
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(bool avatar, uint localID, byte state,
+        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateImprovedTerseBlock(bool avatar, uint localID, int attachPoint,
             Vector4 collisionPlane, Vector3 position, Vector3 velocity, Vector3 acceleration, Quaternion rotation,
             Vector3 angularVelocity, byte[] textureEntry)
         {
@@ -4196,7 +4038,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pos += 4;
 
             // Avatar/CollisionPlane
-            data[pos++] = state;
+            data[pos++] = (byte)((attachPoint % 16) * 16 + (attachPoint / 16)); ;
             if (avatar)
             {
                 data[pos++] = 1;
@@ -4430,11 +4272,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void RegisterLocalPacketHandlers()
         {
-            AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
+            AddLocalPacketHandler(PacketType.LogoutRequest, HandleLogout);
             AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
             AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
-            AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
-            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
+            AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached);
+            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
             AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
@@ -4703,7 +4545,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="client"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected virtual bool Logout(IClientAPI client, Packet packet)
+        protected virtual bool HandleLogout(IClientAPI client, Packet packet)
         {
             if (packet.Type == PacketType.LogoutRequest)
             {
@@ -4741,7 +4583,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="simclient"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        protected bool AgentTextureCached(IClientAPI simclient, Packet packet)
+        protected bool HandleAgentTextureCached(IClientAPI simclient, Packet packet)
         {
             //m_log.Debug("texture cached: " + packet.ToString());
             AgentCachedTexturePacket cachedtex = (AgentCachedTexturePacket)packet;
@@ -4771,7 +4613,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        protected bool MultipleObjUpdate(IClientAPI simClient, Packet packet)
+        protected bool HandleMultipleObjUpdate(IClientAPI simClient, Packet packet)
         {
             MultipleObjectUpdatePacket multipleupdate = (MultipleObjectUpdatePacket)packet;
             if (multipleupdate.AgentData.SessionID != SessionId) return false;
@@ -5050,9 +4892,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         /// <param name="packet">Packet to send</param>
         /// <param name="throttlePacketType">Throttling category for the packet</param>
-        private void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
+        protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType)
         {
+            #region BinaryStats
+            LLUDPServer.LogPacketHeader(false, m_circuitCode, 0, packet.Type, (ushort)packet.Length);
+            #endregion BinaryStats
+
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
+        }
+
+        /// <summary>
+        /// This is the starting point for sending a simulator packet out to the client
+        /// </summary>
+        /// <param name="packet">Packet to send</param>
+        /// <param name="throttlePacketType">Throttling category for the packet</param>
+        /// <param name="doAutomaticSplitting">True to automatically split oversized
+        /// packets (the default), or false to disable splitting if the calling code
+        /// handles splitting manually</param>
+        protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
+        {
+            m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
 
         public bool AddMoney(int debit)
@@ -9854,7 +9713,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
                     break;
-
+				                    
+                case PacketType.GrantUserRights:
+                    GrantUserRightsPacket GrantUserRights =
+                            (GrantUserRightsPacket)Pack;
+                    #region Packet Session and User Check
+                    if (m_checkPackets)
+                    {
+                        if (GrantUserRights.AgentData.SessionID != SessionId ||
+                            GrantUserRights.AgentData.AgentID != AgentId)
+                            break;
+                    }
+                    #endregion
+                    GrantUserFriendRights GrantUserRightsHandler = OnGrantUserRights;
+                    if (GrantUserRightsHandler != null)
+                        GrantUserRightsHandler(this,
+                            GrantUserRights.AgentData.AgentID,
+                            GrantUserRights.Rights[0].AgentRelated,
+                            GrantUserRights.Rights[0].RelatedRights);
+                    break;
+                    
                 case PacketType.PlacesQuery:
                     PlacesQueryPacket placesQueryPacket =
                             (PlacesQueryPacket)Pack;
@@ -9944,7 +9822,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             commandMessagePacket.CommandBlock.Command = (uint)command;
             commandMessagePacket.CommandBlock.Time = time;
 
-            OutPacket(commandMessagePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(commandMessagePacket, ThrottleOutPacketType.Task);
         }
 
         public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID,
@@ -9962,7 +9840,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.DataBlockExtended.MediaHeight = mediaHeight;
             updatePacket.DataBlockExtended.MediaLoop = mediaLoop;
 
-            OutPacket(updatePacket, ThrottleOutPacketType.Unknown);
+            OutPacket(updatePacket, ThrottleOutPacketType.Task);
         }
 
         #endregion
@@ -10236,7 +10114,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #region PriorityQueue
-        private class PriorityQueue<TPriority, TValue>
+        public class PriorityQueue<TPriority, TValue>
         {
             internal delegate bool UpdatePriorityHandler(ref TPriority priority, uint local_id);
 
@@ -10264,7 +10142,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.m_comparison = comparison;
             }
 
-            internal object SyncRoot { get { return this.m_syncRoot; } }
+            public object SyncRoot { get { return this.m_syncRoot; } }
             internal int Count
             {
                 get
@@ -10276,7 +10154,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-            internal bool Enqueue(TPriority priority, TValue value, uint local_id)
+            public bool Enqueue(TPriority priority, TValue value, uint local_id)
             {
                 LookupItem item;
 
@@ -10396,5 +10274,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
         #endregion
 
+        public static OSD BuildEvent(string eventName, OSD eventBody)
+        {
+            OSDMap osdEvent = new OSDMap(2);
+            osdEvent.Add("message", new OSDString(eventName));
+            osdEvent.Add("body", eventBody);
+
+            return osdEvent;
+        }
     }
 }

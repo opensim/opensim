@@ -30,7 +30,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.RegionCombinerModule
 {
  public class RegionCombinerIndividualEventForwarder
     {

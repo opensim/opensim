@@ -42,7 +42,7 @@
     ; SmartThreadPool is reported to work well on Mono/Linux, but 
     ; UnsafeQueueUserWorkItem has been benchmarked with better
     ; performance on .NET/Windows
-    ;async_call_method = SmartThreadPool
+    async_call_method = SmartThreadPool
     
     ; There are several operations on large collections (such as
     ; the current avatar list) that can be run synchronously or
@@ -148,7 +148,7 @@
     MaximumTimeBeforePersistenceConsidered = 600
 
     ; Should avatars in neighbor sims see objects in this sim?
-    see_into_this_sim_from_neighbor = True
+    see_into_this_sim_from_neighbor = true
 
     ; ##
     ; ## PHYSICS
@@ -399,13 +399,13 @@
     ; These are default values that will be overriden by clients
     ;
     ;resend_default = 12500
-    ;land_default = 500
-    ;wind_default = 500
-    ;cloud_default = 50
-    ;task_default = 500
-    ;texture_default = 500
-    ;asset_default = 500
-    ;state_default = 500
+    ;land_default = 1000
+    ;wind_default = 1000
+    ;cloud_default = 1000
+    ;task_default = 1000
+    ;texture_default = 1000
+    ;asset_default = 1000
+    ;state_default = 1000
     
     ; Per-client maximum burst rates in bytes per second for the various
     ; throttle categories. These are default values that will be overriden by
@@ -543,7 +543,7 @@
 
     ; specifies if the capsule should be tilted (=true; old compatibility mode)
     ; or straight up-and-down (=false; better and more consistent physics behavior)
-    av_capsule_tilted = true
+    av_capsule_tilted = false
 
     ; used to calculate mass of avatar.
     ; float AVvolume = (float) (Math.PI*Math.Pow(CAPSULE_RADIUS, 2)*CAPSULE_LENGTH);
@@ -577,6 +577,9 @@
     ; used to control llMove2Target
     body_pid_derivative = 35
     body_pid_gain = 25
+    
+    ; maximum number of contact points to generate per collision
+    contacts_per_collision = 80
 
     ; amount of time a geom/body will try to cross a region border before it gets disabled
     geom_crossing_failures_before_outofbounds = 5
@@ -937,6 +940,13 @@
 
     ; Stack size per thread created
     ThreadStackSize = 262144
+    
+    ; Set this to true (the default) to load each script into a separate
+    ; AppDomain. Setting this to false will load all script assemblies into the
+    ; current AppDomain, which will reduce the per-script overhead at the
+    ; expense of reduced security and the inability to garbage collect the
+    ; script assemblies
+    AppDomainLoading = true
 
     ; Rate to poll for asynchronous command replies (ms)
     ; currently unused

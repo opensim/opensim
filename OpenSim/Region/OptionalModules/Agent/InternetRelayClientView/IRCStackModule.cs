@@ -40,7 +40,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IRCServer m_server;
-        private Scene m_scene;
+//        private Scene m_scene;
 
         #region Implementation of IRegionModule
 
@@ -50,7 +50,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
                 source.Configs["IRCd"].GetBoolean("Enabled",false))
             {
                 int portNo = source.Configs["IRCd"].GetInt("Port",6666);
-                m_scene = scene;
+//                m_scene = scene;
                 m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
                 m_server.OnNewIRCClient += m_server_OnNewIRCClient;
             }

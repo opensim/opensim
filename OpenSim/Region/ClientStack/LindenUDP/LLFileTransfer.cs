@@ -197,11 +197,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void Initialise(UUID fileID, string fileName)
         {
-            m_asset = new AssetBase();
-            m_asset.FullID = fileID;
-            m_asset.Type = type;
+            m_asset = new AssetBase(fileID, fileName, type);
             m_asset.Data = new byte[0];
-            m_asset.Name = fileName;
             m_asset.Description = "empty";
             m_asset.Local = true;
             m_asset.Temporary = true;

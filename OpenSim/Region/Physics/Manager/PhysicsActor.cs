@@ -52,6 +52,20 @@ namespace OpenSim.Region.Physics.Manager
         , Absolute
     }
 
+    public struct ContactPoint
+    {
+        public Vector3 Position;
+        public Vector3 SurfaceNormal;
+        public float PenetrationDepth;
+
+        public ContactPoint(Vector3 position, Vector3 surfaceNormal, float penetrationDepth)
+        {
+            Position = position;
+            SurfaceNormal = surfaceNormal;
+            PenetrationDepth = penetrationDepth;
+        }
+    }
+
     public class CollisionEventUpdate : EventArgs
     {
         // Raising the event on the object, so don't need to provide location..  further up the tree knows that info.
@@ -59,9 +73,9 @@ namespace OpenSim.Region.Physics.Manager
         public int m_colliderType;
         public int m_GenericStartEnd;
         //public uint m_LocalID;
-        public Dictionary<uint,float> m_objCollisionList = new Dictionary<uint,float>();
+        public Dictionary<uint, ContactPoint> m_objCollisionList = new Dictionary<uint, ContactPoint>();
 
-        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, Dictionary<uint, float> objCollisionList)
+        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, Dictionary<uint, ContactPoint> objCollisionList)
         {
             m_colliderType = colliderType;
             m_GenericStartEnd = GenericStartEnd;
@@ -72,8 +86,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             m_colliderType = (int) ActorTypes.Unknown;
             m_GenericStartEnd = 1;
-           // m_objCollisionList = null;
-            m_objCollisionList = new Dictionary<uint, float>();
+            m_objCollisionList = new Dictionary<uint, ContactPoint>();
         }
 
         public int collidertype
@@ -88,16 +101,16 @@ namespace OpenSim.Region.Physics.Manager
             set { m_GenericStartEnd = value; }
         }
 
-        public void addCollider(uint localID, float depth)
+        public void addCollider(uint localID, ContactPoint contact)
         {
             if (!m_objCollisionList.ContainsKey(localID))
             {
-                m_objCollisionList.Add(localID, depth);
+                m_objCollisionList.Add(localID, contact);
             }
             else
             {
-                if (m_objCollisionList[localID] < depth)
-                    m_objCollisionList[localID] = depth;
+                if (m_objCollisionList[localID].PenetrationDepth < contact.PenetrationDepth)
+                    m_objCollisionList[localID] = contact;
             }
         }
     }

@@ -446,6 +446,7 @@ namespace OpenSim.Framework
     public delegate void AvatarNotesUpdate(IClientAPI client, UUID targetID, string notes);
     public delegate void MuteListRequest(IClientAPI client, uint muteCRC);
     public delegate void AvatarInterestUpdate(IClientAPI client, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
+    public delegate void GrantUserFriendRights(IClientAPI client, UUID requester, UUID target, int rights);
     public delegate void PlacesQuery(UUID QueryID, UUID TransactionID, string QueryText, uint QueryFlags, byte Category, string SimName, IClientAPI client);
 
     public delegate void AgentFOV(IClientAPI client, float verticalAngle);
@@ -591,7 +592,6 @@ namespace OpenSim.Framework
         public readonly Vector3 Velocity;
         public readonly Vector3 Acceleration;
         public readonly Vector3 AngularVelocity;
-        public readonly byte State;
         public readonly UUID AssetID;
         public readonly UUID OwnerID;
         public readonly int AttachPoint;
@@ -599,7 +599,7 @@ namespace OpenSim.Framework
         public readonly double Priority;
 
         public SendPrimitiveTerseData(ulong regionHandle, ushort timeDilation, uint localID, Vector3 position,
-            Quaternion rotation, Vector3 velocity, Vector3 acceleration, Vector3 rotationalvelocity, byte state,
+            Quaternion rotation, Vector3 velocity, Vector3 acceleration, Vector3 rotationalvelocity,
             UUID assetID, UUID ownerID, int attachPoint, byte[] textureEntry, double priority)
         {
             RegionHandle = regionHandle;
@@ -610,7 +610,6 @@ namespace OpenSim.Framework
             Velocity = velocity;
             Acceleration = acceleration;
             AngularVelocity = rotationalvelocity;
-            State = state;
             AssetID = assetID;
             OwnerID = ownerID;
             AttachPoint = attachPoint;
@@ -1023,6 +1022,7 @@ namespace OpenSim.Framework
         event PickInfoUpdate OnPickInfoUpdate;
         event AvatarNotesUpdate OnAvatarNotesUpdate;
         event AvatarInterestUpdate OnAvatarInterestUpdate;
+        event GrantUserFriendRights OnGrantUserRights;
 
         event MuteListRequest OnMuteListRequest;
 
@@ -1124,7 +1124,7 @@ namespace OpenSim.Framework
         void ReprioritizeUpdates(StateUpdateTypes type, UpdatePriorityHandler handler);
 
         void SendInventoryFolderDetails(UUID ownerID, UUID folderID, List<InventoryItemBase> items,
-                                        List<InventoryFolderBase> folders, bool fetchFolders,
+                                        List<InventoryFolderBase> folders, int version, bool fetchFolders,
                                         bool fetchItems);
 
         void FlushPrimUpdates();

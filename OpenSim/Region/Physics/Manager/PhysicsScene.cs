@@ -75,6 +75,11 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical);
 
+        public virtual float TimeDilation
+        {
+            get { return 1.0f; }
+        }
+
         public virtual bool SupportsNINJAJoints
         {
             get { return false; }

@@ -1869,10 +1869,9 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Create AssetBase entity to hold the inlined asset
 
-                asset = new AssetBase(uuid, name);
+                asset = new AssetBase(uuid, name, type);
 
                 asset.Description = desc;
-                asset.Type        = type; // type == 0 == texture
                 asset.Local       = local;
                 asset.Temporary   = temp;
 

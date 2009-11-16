@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
@@ -122,9 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             }
 
             UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
-            AssetBase asset1 = new AssetBase();
-            asset1.FullID = asset1Id;
-            asset1.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(object1));
+            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
             scene.AssetService.Store(asset1);
 
             // Create item
@@ -136,7 +133,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);
+            scene.AddInventoryItem(userId, item1);           
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -218,14 +215,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             string userItemCreatorLastName = "Lucan";
             UUID userItemCreatorUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             
-            string itemName = "b.lsl";
-            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(itemName, UUID.Random());
+            string item1Name = "b.lsl";
+            string archiveItemName = InventoryArchiveWriteRequest.CreateArchiveItemName(item1Name, UUID.Random());
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
 
             InventoryItemBase item1 = new InventoryItemBase();
-            item1.Name = itemName;
+            item1.Name = item1Name;
             item1.AssetID = UUID.Random();
             item1.GroupID = UUID.Random();
             item1.CreatorId = OspResolver.MakeOspa(userItemCreatorFirstName, userItemCreatorLastName);
@@ -259,7 +256,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = scene.CommsManager.UserProfileCacheService.GetUserDetails(userFirstName, userLastName);
 
             InventoryItemBase foundItem1
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
             Assert.That(
@@ -277,7 +274,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xA", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem2
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xA/" + item1Name);
             Assert.That(foundItem2, Is.Not.Null, "Didn't find loaded item 2");
 
             // Now try loading to a more deeply nested folder
@@ -286,8 +283,97 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             archiverModule.DearchiveInventory(userFirstName, userLastName, "xB/xC", "meowfood", archiveReadStream);
 
             InventoryItemBase foundItem3
-                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + itemName);
+                = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, "xB/xC/" + item1Name);
             Assert.That(foundItem3, Is.Not.Null, "Didn't find loaded item 3");
+        }
+
+        [Test]
+        public void TestIarV0_1WithEscapedChars()
+        {
+            TestHelper.InMethod();
+//            log4net.Config.XmlConfigurator.Configure();
+
+            string itemName = "You & you are a mean/man/";
+            string humanEscapedItemName = @"You & you are a mean\/man\/";
+            string userPassword = "meowfood";
+
+            InventoryArchiverModule archiverModule = new InventoryArchiverModule(true);
+
+            Scene scene = SceneSetupHelpers.SetupScene("Inventory");
+            SceneSetupHelpers.SetupSceneModules(scene, archiverModule);
+            CommunicationsManager cm = scene.CommsManager;
+
+            // Create user
+            string userFirstName = "Jock";
+            string userLastName = "Stirrup";
+            UUID userId = UUID.Parse("00000000-0000-0000-0000-000000000020");
+
+            lock (this)
+            {
+                UserProfileTestUtils.CreateUserWithInventory(
+                    cm, userFirstName, userLastName, userPassword, userId, InventoryReceived);
+                Monitor.Wait(this, 60000);
+            }
+            
+            // Create asset
+            SceneObjectGroup object1;
+            SceneObjectPart part1;
+            {
+                string partName = "part name";
+                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000040");
+                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateSphere();
+                Vector3 groupPosition = new Vector3(10, 20, 30);
+                Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
+                Vector3 offsetPosition = new Vector3(5, 10, 15);
+
+                part1
+                    = new SceneObjectPart(
+                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
+                part1.Name = partName;
+
+                object1 = new SceneObjectGroup(part1);
+                scene.AddNewSceneObject(object1, false);
+            }
+
+            UUID asset1Id = UUID.Parse("00000000-0000-0000-0000-000000000060");
+            AssetBase asset1 = AssetHelpers.CreateAsset(asset1Id, object1);
+            scene.AssetService.Store(asset1);
+
+            // Create item
+            UUID item1Id = UUID.Parse("00000000-0000-0000-0000-000000000080");
+            InventoryItemBase item1 = new InventoryItemBase();
+            item1.Name = itemName;
+            item1.AssetID = asset1.FullID;
+            item1.ID = item1Id;
+            InventoryFolderBase objsFolder 
+                = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
+            item1.Folder = objsFolder.ID;
+            scene.AddInventoryItem(userId, item1);           
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            archiverModule.OnInventoryArchiveSaved += SaveCompleted;
+
+            mre.Reset();
+            archiverModule.ArchiveInventory(
+                Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
+            mre.WaitOne(60000, false);           
+
+            // LOAD ITEM
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+            
+            archiverModule.DearchiveInventory(userFirstName, userLastName, "Scripts", userPassword, archiveReadStream);
+
+            InventoryItemBase foundItem1
+                = InventoryArchiveUtils.FindItemByPath(
+                    scene.InventoryService, userId, "Scripts/Objects/" + humanEscapedItemName);
+            
+            Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
+//            Assert.That(
+//                foundItem1.CreatorId, Is.EqualTo(userUuid), 
+//                "Loaded item non-uuid creator doesn't match that of the loading user");
+            Assert.That(
+                foundItem1.Name, Is.EqualTo(itemName), 
+                "Loaded item name doesn't match saved name");            
         }
 
         /// <summary>
@@ -302,7 +388,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         {
             TestHelper.InMethod();
             
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             string userFirstName = "Charlie";
             string userLastName = "Chan";
@@ -370,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
         {
             TestHelper.InMethod();
             
-            log4net.Config.XmlConfigurator.Configure();
+            //log4net.Config.XmlConfigurator.Configure();
             
             string userFirstName = "Dennis";
             string userLastName = "Menace";

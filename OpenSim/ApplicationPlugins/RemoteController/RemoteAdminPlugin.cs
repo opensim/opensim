@@ -123,6 +123,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     availableMethods["admin_region_query"] = XmlRpcRegionQueryMethod;
                     availableMethods["admin_shutdown"] = XmlRpcShutdownMethod;
                     availableMethods["admin_broadcast"] = XmlRpcAlertMethod;
+                    availableMethods["admin_dialog"] = XmlRpcDialogMethod;
                     availableMethods["admin_restart"] = XmlRpcRestartMethod;
                     availableMethods["admin_load_heightmap"] = XmlRpcLoadHeightmapMethod;
                     // User management
@@ -277,6 +278,53 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             m_log.Info("[RADMIN]: Alert request complete");
             return response;
         }
+        public XmlRpcResponse XmlRpcDialogMethod(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            m_log.Info("[RADMIN]: Dialog request started");
+
+            try
+            {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                checkStringParameters(request, new string[] { "password", "from", "message" });
+
+                if (m_requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string)requestData["password"] != m_requiredPassword))
+                    throw new Exception("wrong password");
+
+                string message = (string)requestData["message"];
+                string fromuuid = (string)requestData["from"];
+                m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
+
+                responseData["accepted"] = true;
+                responseData["success"] = true;
+                response.Value = responseData;
+
+                m_app.SceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendNotificationToUsersInRegion(UUID.Zero, fromuuid, message);
+                    });
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
+
+                responseData["accepted"] = false;
+                responseData["success"] = false;
+                responseData["error"] = e.Message;
+                response.Value = responseData;
+            }
+
+            m_log.Info("[RADMIN]: Alert request complete");
+            return response;
+        }
 
         public XmlRpcResponse XmlRpcLoadHeightmapMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
@@ -360,7 +408,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     && ((string) requestData["shutdown"] == "delayed")
                     && requestData.ContainsKey("milliseconds"))
                 {
-                    timeout = (Int32) requestData["milliseconds"];
+                    timeout = Int32.Parse(requestData["milliseconds"].ToString());
 
                     message
                         = "Region is going down in " + ((int) (timeout/1000)).ToString()
@@ -1562,11 +1610,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     assets = doc.GetElementsByTagName("RequiredAsset");
                     foreach (XmlNode asset in assets)
                     {
-                        AssetBase rass   = new AssetBase();
-                        rass.FullID      = UUID.Random();
-                        rass.Name        = GetStringAttribute(asset,"name","");
+                        AssetBase rass   = new AssetBase(UUID.Random(), GetStringAttribute(asset,"name",""), SByte.Parse(GetStringAttribute(asset,"type","")));
                         rass.Description = GetStringAttribute(asset,"desc","");
-                        rass.Type        = SByte.Parse(GetStringAttribute(asset,"type",""));
                         rass.Local       = Boolean.Parse(GetStringAttribute(asset,"local",""));
                         rass.Temporary   = Boolean.Parse(GetStringAttribute(asset,"temporary",""));
                         rass.Data        = Convert.FromBase64String(asset.InnerText);

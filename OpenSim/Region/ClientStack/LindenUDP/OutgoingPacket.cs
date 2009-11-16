@@ -28,6 +28,7 @@
 using System;
 using OpenSim.Framework;
 using OpenMetaverse;
+using OpenMetaverse.Packets;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -52,7 +53,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public int TickCount;
         /// <summary>Category this packet belongs to</summary>
         public ThrottleOutPacketType Category;
-
+        /// <summary>The type of packet so its delivery method can be determined</summary>
+        public PacketType Type;
         /// <summary>
         /// Default constructor
         /// </summary>

@@ -29,63 +29,15 @@ using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using Nini.Config;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Region.RegionCombinerModule
 {
-    public class TestAssetService : IAssetService
+
+    struct RegionCourseLocationStruct
     {
-        private readonly Dictionary<string, AssetBase> Assets = new Dictionary<string, AssetBase>();
-
-        public TestAssetService(IConfigSource config)
-        {
-        }
-        
-        public AssetBase Get(string id)
-        {
-            AssetBase asset;
-            if (Assets.ContainsKey(id))
-                asset = Assets[id];
-            else
-                asset = null;
-            
-            return asset;
-        }
-
-        public AssetMetadata GetMetadata(string id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public byte[] GetData(string id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public bool Get(string id, object sender, AssetRetrieved handler)
-        {
-            handler(id, sender, Get(id));
-            
-            return true;
-        }
-
-        public string Store(AssetBase asset)
-        {
-            Assets[asset.ID] = asset;
-
-            return asset.ID;
-        }
-
-        public bool UpdateContent(string id, byte[] data)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public bool Delete(string id)
-        {
-            throw new System.NotImplementedException();
-        }
+        public List<Vector3> Locations;
+        public List<UUID> Uuids;
+        public IClientAPI UserAPI;
+        public Vector2 Offset;
     }
 }

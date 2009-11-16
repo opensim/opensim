@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -118,13 +119,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary></summary>
         //private UDPClientCollection m_clients = new UDPClientCollection();
         /// <summary>Bandwidth throttle for this UDP server</summary>
-        private TokenBucket m_throttle;
+        protected TokenBucket m_throttle;
         /// <summary>Bandwidth throttle rates for this UDP server</summary>
-        private ThrottleRates m_throttleRates;
+        protected ThrottleRates m_throttleRates;
         /// <summary>Manages authentication for agent circuits</summary>
         private AgentCircuitManager m_circuitManager;
         /// <summary>Reference to the scene this UDP server is attached to</summary>
-        private Scene m_scene;
+        protected Scene m_scene;
         /// <summary>The X/Y coordinates of the scene this UDP server is attached to</summary>
         private Location m_location;
         /// <summary>The size of the receive buffer for the UDP socket. This value
@@ -152,6 +153,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_sendAcks;
         /// <summary>Flag to signal when clients should send pings</summary>
         private bool m_sendPing;
+
+        private int m_defaultRTO = 0;
+        private int m_maxRTO = 0;
 
         public Socket Server { get { return null; } }
 
@@ -189,6 +193,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 AvatarTerseUpdatesPerPacket = config.GetInt("AvatarTerseUpdatesPerPacket", 10);
                 PrimFullUpdatesPerPacket = config.GetInt("PrimFullUpdatesPerPacket", 100);
                 TextureSendLimit = config.GetInt("TextureSendLimit", 20);
+
+                m_defaultRTO = config.GetInt("DefaultRTO", 0);
+                m_maxRTO = config.GetInt("MaxRTO", 0);
             }
             else
             {
@@ -197,6 +204,31 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 PrimFullUpdatesPerPacket = 100;
                 TextureSendLimit = 20;
             }
+
+            #region BinaryStats
+            config = configSource.Configs["Statistics.Binary"];
+            m_shouldCollectStats = false;
+            if (config != null)
+            {
+               if (config.Contains("enabled") && config.GetBoolean("enabled"))
+               {
+                   if (config.Contains("collect_packet_headers"))
+                       m_shouldCollectStats = config.GetBoolean("collect_packet_headers");
+                   if (config.Contains("packet_headers_period_seconds"))
+                   {
+                       binStatsMaxFilesize = TimeSpan.FromSeconds(config.GetInt("region_stats_period_seconds"));
+                   }
+                   if (config.Contains("stats_dir"))
+                   {
+                       binStatsDir = config.GetString("stats_dir");
+                   }
+               }
+               else
+               {
+                   m_shouldCollectStats = false;
+               }
+           }
+           #endregion BinaryStats
 
             m_throttle = new TokenBucket(null, sceneThrottleBps, sceneThrottleBps);
             m_throttleRates = new ThrottleRates(configSource);
@@ -247,8 +279,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void BroadcastPacket(Packet packet, ThrottleOutPacketType category, bool sendToPausedAgents, bool allowSplitting)
         {
-            // CoarseLocationUpdate packets cannot be split in an automated way
-            if (packet.Type == PacketType.CoarseLocationUpdate && allowSplitting)
+            // CoarseLocationUpdate and AvatarGroupsReply packets cannot be split in an automated way
+            if ((packet.Type == PacketType.CoarseLocationUpdate || packet.Type == PacketType.AvatarGroupsReply) && allowSplitting)
                 allowSplitting = false;
 
             if (allowSplitting && packet.HasVariableBlocks)
@@ -256,8 +288,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[][] datas = packet.ToBytesMultiple();
                 int packetCount = datas.Length;
 
-                //if (packetCount > 1)
-                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+                if (packetCount < 1)
+                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
 
                 for (int i = 0; i < packetCount; i++)
                 {
@@ -295,8 +327,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 byte[][] datas = packet.ToBytesMultiple();
                 int packetCount = datas.Length;
 
-                //if (packetCount > 1)
-                //    m_log.Debug("[LLUDPSERVER]: Split " + packet.Type + " packet into " + packetCount + " packets");
+                if (packetCount < 1)
+                    m_log.Error("[LLUDPSERVER]: Failed to split " + packet.Type + " with estimated length " + packet.Length);
 
                 for (int i = 0; i < packetCount; i++)
                 {
@@ -353,9 +385,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 else
                 {
-                    m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
-                        type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
-                    return;
+                    bufferSize = dataLength;
+                    buffer = new UDPPacketBuffer(udpClient.RemoteEndPoint, bufferSize);
+
+                    // m_log.Error("[LLUDPSERVER]: Packet exceeded buffer size! This could be an indication of packet assembly not obeying the MTU. Type=" +
+                    //     type + ", DataLength=" + dataLength + ", BufferLength=" + buffer.Data.Length + ". Dropping packet");
+                    Buffer.BlockCopy(data, 0, buffer.Data, 0, dataLength);
                 }
             }
 
@@ -364,6 +399,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Queue or Send
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
+            outgoingPacket.Type = type;
 
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
@@ -409,6 +445,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPacket(udpClient, pc, ThrottleOutPacketType.Unknown, false);
         }
 
+        public void CompletePing(LLUDPClient udpClient, byte pingID)
+        {
+            CompletePingCheckPacket completePing = new CompletePingCheckPacket();
+            completePing.PingID.PingID = pingID;
+            SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+        }
+
         public void ResendUnacked(LLUDPClient udpClient)
         {
             if (!udpClient.IsConnected)
@@ -429,7 +472,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (expiredPackets != null)
             {
-                m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
+                //m_log.Debug("[LLUDPSERVER]: Resending " + expiredPackets.Count + " packets to " + udpClient.AgentID + ", RTO=" + udpClient.RTO);
 
                 // Exponential backoff of the retransmission timeout
                 udpClient.BackoffRTO();
@@ -468,6 +511,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
+            bool sendSynchronous = false;
             LLUDPClient udpClient = outgoingPacket.Client;
 
             if (!udpClient.IsConnected)
@@ -523,9 +567,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (isReliable)
                 Interlocked.Add(ref udpClient.UnackedBytes, outgoingPacket.Buffer.DataLength);
 
-            // Put the UDP payload on the wire
-            AsyncBeginSend(buffer);
+            //Some packet types need to be sent synchonously.
+            //Sorry, i know it's not optimal, but until the LL client
+            //manages packets correctly and re-orders them as required, this is necessary.
 
+            if (outgoingPacket.Type == PacketType.ImprovedTerseObjectUpdate 
+                || outgoingPacket.Type == PacketType.ChatFromSimulator 
+                || outgoingPacket.Type == PacketType.ObjectUpdate
+                || outgoingPacket.Type == PacketType.LayerData)
+            {
+                sendSynchronous = true;
+            }
+
+            // Put the UDP payload on the wire
+            if (sendSynchronous == true)
+            {
+                SyncBeginSend(buffer);
+            }
+            else
+            {
+                AsyncBeginSend(buffer);
+            }
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
@@ -585,7 +647,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             IClientAPI client;
             if (!m_scene.TryGetClient(address, out client) || !(client is LLClientView))
             {
-                m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
+                //m_log.Debug("[LLUDPSERVER]: Received a " + packet.Type + " packet from an unrecognized source: " + address + " in " + m_scene.RegionInfo.RegionName);
                 return;
             }
 
@@ -663,16 +725,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             #endregion Incoming Packet Accounting
 
+            #region BinaryStats
+            LogPacketHeader(true, udpClient.CircuitCode, 0, packet.Type, (ushort)packet.Length);
+            #endregion BinaryStats
+
             #region Ping Check Handling
 
             if (packet.Type == PacketType.StartPingCheck)
             {
                 // We don't need to do anything else with ping checks
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
-
-                CompletePingCheckPacket completePing = new CompletePingCheckPacket();
-                completePing.PingID.PingID = startPing.PingID.PingID;
-                SendPacket(udpClient, completePing, ThrottleOutPacketType.Unknown, false);
+                CompletePing(udpClient, startPing.PingID.PingID);
                 return;
             }
             else if (packet.Type == PacketType.CompletePingCheck)
@@ -686,6 +749,87 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Inbox insertion
             packetInbox.Enqueue(new IncomingPacket(udpClient, packet));
         }
+
+        #region BinaryStats
+
+        public class PacketLogger
+        {
+            public DateTime StartTime;
+            public string Path = null;
+            public System.IO.BinaryWriter Log = null;
+        }
+
+        public static PacketLogger PacketLog;
+
+        protected static bool m_shouldCollectStats = false;
+        // Number of seconds to log for
+        static TimeSpan binStatsMaxFilesize = TimeSpan.FromSeconds(300);
+        static object binStatsLogLock = new object();
+        static string binStatsDir = "";
+
+        public static void LogPacketHeader(bool incoming, uint circuit, byte flags, PacketType packetType, ushort size)
+        {
+            if (!m_shouldCollectStats) return;
+
+            // Binary logging format is TTTTTTTTCCCCFPPPSS, T=Time, C=Circuit, F=Flags, P=PacketType, S=size
+
+            // Put the incoming bit into the least significant bit of the flags byte
+            if (incoming)
+                flags |= 0x01;
+            else
+                flags &= 0xFE;
+
+            // Put the flags byte into the most significant bits of the type integer
+            uint type = (uint)packetType;
+            type |= (uint)flags << 24;
+
+            // m_log.Debug("1 LogPacketHeader(): Outside lock");
+            lock (binStatsLogLock)
+            {
+                DateTime now = DateTime.Now;
+
+                // m_log.Debug("2 LogPacketHeader(): Inside lock. now is " + now.Ticks);
+                try
+                {
+                    if (PacketLog == null || (now > PacketLog.StartTime + binStatsMaxFilesize))
+                    {
+                        if (PacketLog != null && PacketLog.Log != null)
+                        {
+                            PacketLog.Log.Close();
+                        }
+
+                        // First log file or time has expired, start writing to a new log file
+                        PacketLog = new PacketLogger();
+                        PacketLog.StartTime = now;
+                        PacketLog.Path = (binStatsDir.Length > 0 ? binStatsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
+                                + String.Format("packets-{0}.log", now.ToString("yyyyMMddHHmmss"));
+                        PacketLog.Log = new BinaryWriter(File.Open(PacketLog.Path, FileMode.Append, FileAccess.Write));
+                    }
+
+                    // Serialize the data
+                    byte[] output = new byte[18];
+                    Buffer.BlockCopy(BitConverter.GetBytes(now.Ticks), 0, output, 0, 8);
+                    Buffer.BlockCopy(BitConverter.GetBytes(circuit), 0, output, 8, 4);
+                    Buffer.BlockCopy(BitConverter.GetBytes(type), 0, output, 12, 4);
+                    Buffer.BlockCopy(BitConverter.GetBytes(size), 0, output, 16, 2);
+
+                    // Write the serialized data to disk
+                    if (PacketLog != null && PacketLog.Log != null)
+                        PacketLog.Log.Write(output);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Packet statistics gathering failed: " + ex.Message, ex);
+                    if (PacketLog.Log != null)
+                    {
+                        PacketLog.Log.Close();
+                    }
+                    PacketLog = null;
+                }
+            }
+        }
+
+        #endregion BinaryStats
 
         private void HandleUseCircuitCode(object o)
         {
@@ -759,10 +903,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
+        protected virtual void AddClient(uint circuitCode, UUID agentID, UUID sessionID, IPEndPoint remoteEndPoint, AuthenticateResponse sessionInfo)
         {
             // Create the LLUDPClient
-            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint);
+            LLUDPClient udpClient = new LLUDPClient(this, m_throttleRates, m_throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
             IClientAPI existingClient;
 
             if (!m_scene.TryGetClient(agentID, out existingClient))
@@ -976,7 +1120,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        private void LogoutHandler(IClientAPI client)
+        protected void LogoutHandler(IClientAPI client)
         {
             client.SendLogoutPacket();
             if (client.IsActive)

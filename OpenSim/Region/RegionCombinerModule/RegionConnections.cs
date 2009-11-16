@@ -28,16 +28,38 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.RegionCombinerModule
 {
-
-    struct RegionCourseLocationStruct
+    public class RegionConnections
     {
-        public List<Vector3> Locations;
-        public List<UUID> Uuids;
-        public IClientAPI UserAPI;
-        public Vector2 Offset;
+        /// <summary>
+        /// Root Region ID
+        /// </summary>
+        public UUID RegionId;
+
+        /// <summary>
+        /// Root Region Scene
+        /// </summary>
+        public Scene RegionScene;
+
+        /// <summary>
+        /// LargeLandChannel for combined region
+        /// </summary>
+        public ILandChannel RegionLandChannel;
+        public uint X;
+        public uint Y;
+        public int XEnd;
+        public int YEnd;
+        public List<RegionData> ConnectedRegions;
+        public RegionCombinerPermissionModule PermissionModule;
+        public RegionCombinerClientEventForwarder ClientEventForwarder;
+        public void UpdateExtents(Vector3 extents)
+        {
+            XEnd = (int)extents.X;
+            YEnd = (int)extents.Y;
+        }
     }
 }

@@ -193,6 +193,10 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             {
                 return scene.RegionInfo;
             }
+            else if (m_scenes.Count > 0)
+            {
+                return m_scenes[0].RegionInfo;
+            }
             return null;
         }
 
@@ -248,7 +252,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
             {
                 foreach (Scene nextScene in m_scenes)
                 {
-                    if (nextScene.RegionInfo.RegionName == regionName)
+                    if (nextScene.RegionInfo.RegionName.Equals(regionName, StringComparison.InvariantCultureIgnoreCase))
                     {
                         scene = nextScene;
                         return true;

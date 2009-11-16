@@ -69,7 +69,7 @@ namespace OpenSim.Framework
                 Util.FireAndForget(
                     delegate(object o)
                     {
-                        int threadIndex = (int)o;
+//                        int threadIndex = (int)o;
 
                         while (exception == null)
                         {
@@ -126,7 +126,7 @@ namespace OpenSim.Framework
                 Util.FireAndForget(
                     delegate(object o)
                     {
-                        int threadIndex = (int)o;
+//                        int threadIndex = (int)o;
 
                         while (exception == null)
                         {
@@ -182,7 +182,7 @@ namespace OpenSim.Framework
                 Util.FireAndForget(
                     delegate(object o)
                     {
-                        int threadIndex = (int)o;
+//                        int threadIndex = (int)o;
 
                         while (exception == null)
                         {

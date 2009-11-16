@@ -164,19 +164,22 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             List<GridInstantMessage>msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
                     "POST", m_RestURL+"/RetrieveMessages/", client.AgentId);
 
-            foreach (GridInstantMessage im in msglist)
+            if (msglist != null)
             {
-                // client.SendInstantMessage(im);
+                foreach (GridInstantMessage im in msglist)
+                {
+                    // client.SendInstantMessage(im);
 
-                // Send through scene event manager so all modules get a chance
-                // to look at this message before it gets delivered.
-                //
-                // Needed for proper state management for stored group
-                // invitations
-                //
-                Scene s = FindScene(client.AgentId);
-                if (s != null)
-                    s.EventManager.TriggerIncomingInstantMessage(im);
+                    // Send through scene event manager so all modules get a chance
+                    // to look at this message before it gets delivered.
+                    //
+                    // Needed for proper state management for stored group
+                    // invitations
+                    //
+                    Scene s = FindScene(client.AgentId);
+                    if (s != null)
+                        s.EventManager.TriggerIncomingInstantMessage(im);
+                }
             }
         }
 

@@ -41,9 +41,9 @@ namespace OpenSim.Services.PresenceService
 {
     public class PresenceService : PresenceServiceBase, IPresenceService
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log =
+//                LogManager.GetLogger(
+//                MethodBase.GetCurrentMethod().DeclaringType);
 
         public PresenceService(IConfigSource config)
             : base(config)

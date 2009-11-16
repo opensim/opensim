@@ -89,7 +89,7 @@ namespace OpenSim.Framework.Capabilities
         //private static readonly string m_requestTexture = "0003/";
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
-        private static readonly string m_fetchInventoryPath = "0006/";
+//        private static readonly string m_fetchInventoryPath = "0006/";
 
         // The following entries are in a module, however, they are also here so that we don't re-assign
         // the path to another cap by mistake.
@@ -208,7 +208,7 @@ namespace OpenSim.Framework.Capabilities
                 // As of RC 1.22.9 of the Linden client this is
                 // supported
 
-                m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
+                //m_capsHandlers["WebFetchInventoryDescendents"] =new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryDescendentsRequest);
 
                 // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
                 // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
@@ -888,10 +888,7 @@ namespace OpenSim.Framework.Capabilities
             }
 
             AssetBase asset;
-            asset = new AssetBase();
-            asset.FullID = assetID;
-            asset.Type = assType;
-            asset.Name = assetName;
+            asset = new AssetBase(assetID, assetName, assType);
             asset.Data = data;
             if (AddNewAsset != null)
                 AddNewAsset(asset);

@@ -26,40 +26,41 @@
  */
 
 using System;
+using System.Runtime.Remoting.Lifetime;
+using System.Threading;
+using System.Reflection;
+using System.Collections;
 using System.Collections.Generic;
-using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.ScriptEngine.Interfaces;
+using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
+using integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
+using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
+using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using key = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_List = OpenSim.Region.ScriptEngine.Shared.LSL_Types.list;
+using LSL_String = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLString;
+using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
+using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
-namespace OpenSim.Region.CoreModules.World.Land
+namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
-    public class RegionConnections
+    public partial class ScriptBaseClass : MarshalByRefObject
     {
-        /// <summary>
-        /// Root Region ID
-        /// </summary>
-        public UUID RegionId;
+        public IMOD_Api m_MOD_Functions;
 
-        /// <summary>
-        /// Root Region Scene
-        /// </summary>
-        public Scene RegionScene;
-
-        /// <summary>
-        /// LargeLandChannel for combined region
-        /// </summary>
-        public ILandChannel RegionLandChannel;
-        public uint X;
-        public uint Y;
-        public int XEnd;
-        public int YEnd;
-        public List<RegionData> ConnectedRegions;
-        public RegionCombinerPermissionModule PermissionModule;
-        public RegionCombinerClientEventForwarder ClientEventForwarder;
-        public void UpdateExtents(Vector3 extents)
+        public void ApiTypeMOD(IScriptApi api)
         {
-            XEnd = (int)extents.X;
-            YEnd = (int)extents.Y;
+            if (!(api is IMOD_Api))
+                return;
+
+            m_MOD_Functions = (IMOD_Api)api;
+        }
+
+        public string modSendCommand(string module, string command, string k)
+        {
+            return m_MOD_Functions.modSendCommand(module, command, k);
         }
     }
 }

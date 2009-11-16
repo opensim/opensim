@@ -181,20 +181,21 @@ namespace OpenSim.Data.MySQL
                 param["?first"] = user;
                 param["?second"] = last;
 
-                using (IDbCommand result = dbm.Manager.Query(
-                    "SELECT * FROM " + m_usersTableName + " WHERE username = ?first AND lastname = ?second", param))
-                {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        UserProfileData row = dbm.Manager.readUserRow(reader);
-                        return row;
-                    }
-                }
+                IDbCommand result =
+                    dbm.Manager.Query(
+                        "SELECT * FROM " + m_usersTableName + " WHERE username = ?first AND lastname = ?second", param);
+                IDataReader reader = result.ExecuteReader();
+
+                UserProfileData row = dbm.Manager.readUserRow(reader);
+
+                reader.Dispose();
+                result.Dispose();
+                return row;
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return null;
             }
             finally
@@ -219,30 +220,28 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (IDbCommand adder = dbm.Manager.Query(
-                    "INSERT INTO `" + m_userFriendsTableName + "` " +
-                    "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
-                    "VALUES " +
-                    "(?ownerID,?friendID,?friendPerms,?datetimestamp)",
-                    param))
-                {
-                    adder.ExecuteNonQuery();
-                }
+                IDbCommand adder =
+                    dbm.Manager.Query(
+                        "INSERT INTO `" + m_userFriendsTableName + "` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "VALUES " +
+                        "(?ownerID,?friendID,?friendPerms,?datetimestamp)",
+                        param);
+                adder.ExecuteNonQuery();
 
-                using (IDbCommand adder = dbm.Manager.Query(
-                    "INSERT INTO `" + m_userFriendsTableName + "` " +
-                    "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
-                    "VALUES " +
-                    "(?friendID,?ownerID,?friendPerms,?datetimestamp)",
-                    param))
-                {
-                    adder.ExecuteNonQuery();
-                }
+                adder =
+                    dbm.Manager.Query(
+                        "INSERT INTO `" + m_userFriendsTableName + "` " +
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
+                        "VALUES " +
+                        "(?friendID,?ownerID,?friendPerms,?datetimestamp)",
+                        param);
+                adder.ExecuteNonQuery();
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return;
             }
             finally
@@ -261,24 +260,22 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (IDbCommand updater = dbm.Manager.Query(
+                IDbCommand updater =
+                    dbm.Manager.Query(
                         "delete from " + m_userFriendsTableName + " where ownerID = ?ownerID and friendID = ?friendID",
-                        param))
-                {
-                    updater.ExecuteNonQuery();
-                }
+                        param);
+                updater.ExecuteNonQuery();
 
-                using (IDbCommand updater = dbm.Manager.Query(
+                updater =
+                    dbm.Manager.Query(
                         "delete from " + m_userFriendsTableName + " where ownerID = ?friendID and friendID = ?ownerID",
-                        param))
-                {
-                    updater.ExecuteNonQuery();
-                }
+                        param);
+                updater.ExecuteNonQuery();
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return;
             }
             finally
@@ -298,19 +295,18 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (IDbCommand updater = dbm.Manager.Query(
+                IDbCommand updater =
+                    dbm.Manager.Query(
                         "update " + m_userFriendsTableName +
                         " SET friendPerms = ?friendPerms " +
                         "where ownerID = ?ownerID and friendID = ?friendID",
-                        param))
-                {
-                    updater.ExecuteNonQuery();
-                }
+                        param);
+                updater.ExecuteNonQuery();
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return;
             }
             finally
@@ -331,33 +327,34 @@ namespace OpenSim.Data.MySQL
             try
             {
                 //Left Join userfriends to itself
-                using (IDbCommand result = dbm.Manager.Query(
-                    "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " +
-                    m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
-                    " where a.ownerID = ?ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
-                    param))
+                IDbCommand result =
+                    dbm.Manager.Query(
+                        "select a.ownerID,a.friendID,a.friendPerms,b.friendPerms as ownerperms from " +
+                        m_userFriendsTableName + " as a, " + m_userFriendsTableName + " as b" +
+                        " where a.ownerID = ?ownerID and b.ownerID = a.friendID and b.friendID = a.ownerID",
+                        param);
+                IDataReader reader = result.ExecuteReader();
+
+                while (reader.Read())
                 {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            FriendListItem fli = new FriendListItem();
-                            fli.FriendListOwner = new UUID((string)reader["ownerID"]);
-                            fli.Friend = new UUID((string)reader["friendID"]);
-                            fli.FriendPerms = (uint)Convert.ToInt32(reader["friendPerms"]);
+                    FriendListItem fli = new FriendListItem();
+                    fli.FriendListOwner = new UUID((string) reader["ownerID"]);
+                    fli.Friend = new UUID((string) reader["friendID"]);
+                    fli.FriendPerms = (uint) Convert.ToInt32(reader["friendPerms"]);
 
-                            // This is not a real column in the database table, it's a joined column from the opposite record
-                            fli.FriendListOwnerPerms = (uint)Convert.ToInt32(reader["ownerperms"]);
+                    // This is not a real column in the database table, it's a joined column from the opposite record
+                    fli.FriendListOwnerPerms = (uint) Convert.ToInt32(reader["ownerperms"]);
 
-                            Lfli.Add(fli);
-                        }
-                    }
+                    Lfli.Add(fli);
                 }
+
+                reader.Dispose();
+                result.Dispose();
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return Lfli;
             }
             finally
@@ -379,29 +376,29 @@ namespace OpenSim.Data.MySQL
                 {
                     Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?uuid"] = uuid.ToString();
+                    IDbCommand result =
+                        dbm.Manager.Query("select agentOnline,currentHandle from " + m_agentsTableName +
+                                          " where UUID = ?uuid", param);
 
-                    using (IDbCommand result = dbm.Manager.Query("select agentOnline,currentHandle from " + m_agentsTableName +
-                                          " where UUID = ?uuid", param))
+                    IDataReader reader = result.ExecuteReader();
+                    while (reader.Read())
                     {
-                        using (IDataReader reader = result.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                FriendRegionInfo fri = new FriendRegionInfo();
-                                fri.isOnline = (sbyte)reader["agentOnline"] != 0;
-                                fri.regionHandle = (ulong)reader["currentHandle"];
+                        FriendRegionInfo fri = new FriendRegionInfo();
+                        fri.isOnline = (sbyte)reader["agentOnline"] != 0;
+                        fri.regionHandle = (ulong)reader["currentHandle"];
 
-                                infos[uuid] = fri;
-                            }
-                        }
+                        infos[uuid] = fri;
                     }
+
+                    reader.Dispose();
+                    result.Dispose();
                 }
             }
             catch (Exception e)
             {
                 m_log.Warn("[MYSQL]: Got exception on trying to find friends regions:", e);
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
             }
             finally
             {
@@ -430,28 +427,28 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    using (IDbCommand result = dbm.Manager.Query(
-                        "SELECT UUID,username,lastname FROM " + m_usersTableName +
-                        " WHERE username like ?first AND lastname like ?second LIMIT 100",
-                        param))
+                    IDbCommand result =
+                        dbm.Manager.Query(
+                            "SELECT UUID,username,lastname FROM " + m_usersTableName +
+                            " WHERE username like ?first AND lastname like ?second LIMIT 100",
+                            param);
+                    IDataReader reader = result.ExecuteReader();
+
+                    while (reader.Read())
                     {
-                        using (IDataReader reader = result.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                AvatarPickerAvatar user = new AvatarPickerAvatar();
-                                user.AvatarID = new UUID((string)reader["UUID"]);
-                                user.firstName = (string)reader["username"];
-                                user.lastName = (string)reader["lastname"];
-                                returnlist.Add(user);
-                            }
-                        }
+                        AvatarPickerAvatar user = new AvatarPickerAvatar();
+                        user.AvatarID = new UUID((string) reader["UUID"]);
+                        user.firstName = (string) reader["username"];
+                        user.lastName = (string) reader["lastname"];
+                        returnlist.Add(user);
                     }
+                    reader.Dispose();
+                    result.Dispose();
                 }
                 catch (Exception e)
                 {
                     dbm.Manager.Reconnect();
-                    m_log.Error(e.Message, e);
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
                 finally
@@ -468,28 +465,28 @@ namespace OpenSim.Data.MySQL
                     Dictionary<string, object> param = new Dictionary<string, object>();
                     param["?first"] = objAlphaNumericPattern.Replace(querysplit[0], String.Empty) + "%";
 
-                    using (IDbCommand result = dbm.Manager.Query(
-                        "SELECT UUID,username,lastname FROM " + m_usersTableName +
-                        " WHERE username like ?first OR lastname like ?first LIMIT 100",
-                        param))
+                    IDbCommand result =
+                        dbm.Manager.Query(
+                            "SELECT UUID,username,lastname FROM " + m_usersTableName +
+                            " WHERE username like ?first OR lastname like ?first LIMIT 100",
+                            param);
+                    IDataReader reader = result.ExecuteReader();
+
+                    while (reader.Read())
                     {
-                        using (IDataReader reader = result.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                AvatarPickerAvatar user = new AvatarPickerAvatar();
-                                user.AvatarID = new UUID((string)reader["UUID"]);
-                                user.firstName = (string)reader["username"];
-                                user.lastName = (string)reader["lastname"];
-                                returnlist.Add(user);
-                            }
-                        }
+                        AvatarPickerAvatar user = new AvatarPickerAvatar();
+                        user.AvatarID = new UUID((string) reader["UUID"]);
+                        user.firstName = (string) reader["username"];
+                        user.lastName = (string) reader["lastname"];
+                        returnlist.Add(user);
                     }
+                    reader.Dispose();
+                    result.Dispose();
                 }
                 catch (Exception e)
                 {
                     dbm.Manager.Reconnect();
-                    m_log.Error(e.Message, e);
+                    m_log.Error(e.ToString());
                     return returnlist;
                 }
                 finally
@@ -513,19 +510,20 @@ namespace OpenSim.Data.MySQL
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?uuid"] = uuid.ToString();
 
-                using (IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_usersTableName + " WHERE UUID = ?uuid", param))
-                {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        UserProfileData row = dbm.Manager.readUserRow(reader);
-                        return row;
-                    }
-                }
+                IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_usersTableName + " WHERE UUID = ?uuid", param);
+                IDataReader reader = result.ExecuteReader();
+
+                UserProfileData row = dbm.Manager.readUserRow(reader);
+
+                reader.Dispose();
+                result.Dispose();
+
+                return row;
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return null;
             }
             finally
@@ -571,15 +569,15 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                dbm.Manager.ExecuteParameterizedSql(
-                    "update " + m_usersTableName + " SET webLoginKey = ?webLoginKey " +
-                    "where UUID = ?UUID",
-                    param);
+               dbm.Manager.ExecuteParameterizedSql(
+                        "update " + m_usersTableName + " SET webLoginKey = ?webLoginKey " +
+                        "where UUID = ?UUID",
+                        param);
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return;
             }
             finally
@@ -602,19 +600,21 @@ namespace OpenSim.Data.MySQL
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?uuid"] = uuid.ToString();
 
-                using (IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_agentsTableName + " WHERE UUID = ?uuid", param))
-                {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        UserAgentData row = dbm.Manager.readAgentRow(reader);
-                        return row;
-                    }
-                }
+                IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_agentsTableName + " WHERE UUID = ?uuid",
+                                                      param);
+                IDataReader reader = result.ExecuteReader();
+
+                UserAgentData row = dbm.Manager.readAgentRow(reader);
+
+                reader.Dispose();
+                result.Dispose();
+
+                return row;
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return null;
             }
             finally
@@ -638,20 +638,19 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                dbm.Manager.insertUserRow(
-                    user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
-                    user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y,
-                    user.HomeLocation.Z,
-                    user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
-                    user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
-                    user.CanDoMask, user.WantDoMask,
-                    user.AboutText, user.FirstLifeAboutText, user.Image,
-                    user.FirstLifeImage, user.WebLoginKey, user.UserFlags, user.GodLevel, user.CustomType, user.Partner);
+                dbm.Manager.insertUserRow(user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
+                                          user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y,
+                                          user.HomeLocation.Z,
+                                          user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
+                                          user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
+                                          user.CanDoMask, user.WantDoMask,
+                                          user.AboutText, user.FirstLifeAboutText, user.Image,
+                                          user.FirstLifeImage, user.WebLoginKey, user.UserFlags, user.GodLevel, user.CustomType, user.Partner);
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
             }
             finally
             {
@@ -677,7 +676,7 @@ namespace OpenSim.Data.MySQL
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
             }
             finally
             {
@@ -694,15 +693,14 @@ namespace OpenSim.Data.MySQL
             MySQLSuperManager dbm = GetLockedConnection("UpdateUserProfile");
             try
             {
-                dbm.Manager.updateUserRow(
-                    user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
-                    user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y,
-                    user.HomeLocation.Z, user.HomeLookAt.X,
-                    user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin,
-                    user.UserInventoryURI,
-                    user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
-                    user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey,
-                    user.UserFlags, user.GodLevel, user.CustomType, user.Partner);
+                dbm.Manager.updateUserRow(user.ID, user.FirstName, user.SurName, user.Email, user.PasswordHash, user.PasswordSalt,
+                                          user.HomeRegion, user.HomeRegionID, user.HomeLocation.X, user.HomeLocation.Y,
+                                          user.HomeLocation.Z, user.HomeLookAt.X,
+                                          user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin,
+                                          user.UserInventoryURI,
+                                          user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
+                                          user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey,
+                                          user.UserFlags, user.GodLevel, user.CustomType, user.Partner);
             }
             finally
             {
@@ -750,29 +748,29 @@ namespace OpenSim.Data.MySQL
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?owner"] = user.ToString();
 
-                using (IDbCommand result = dbm.Manager.Query("SELECT * FROM " + m_appearanceTableName + " WHERE owner = ?owner", param))
-                {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        AvatarAppearance appearance = dbm.Manager.readAppearanceRow(reader);
+                IDbCommand result = dbm.Manager.Query(
+                    "SELECT * FROM " + m_appearanceTableName + " WHERE owner = ?owner", param);
+                IDataReader reader = result.ExecuteReader();
 
-                        if (appearance == null)
-                        {
-                            m_log.WarnFormat("[USER DB] No appearance found for user {0}", user.ToString());
-                            return null;
-                        }
-                        else
-                        {
-                            appearance.SetAttachments(GetUserAttachments(user));
-                            return appearance;
-                        }
-                    }
+                AvatarAppearance appearance = dbm.Manager.readAppearanceRow(reader);
+
+                reader.Dispose();
+                result.Dispose();
+
+                if (null == appearance)
+                {
+                    m_log.WarnFormat("[USER DB] No appearance found for user {0}", user.ToString());
+                    return null;
                 }
+                
+                appearance.SetAttachments(GetUserAttachments(user));
+
+                return appearance;
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return null;
             }
             finally
@@ -800,7 +798,7 @@ namespace OpenSim.Data.MySQL
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
             }
             finally
             {
@@ -835,20 +833,20 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (IDbCommand result = dbm.Manager.Query(
-                    "SELECT attachpoint, item, asset from " + m_attachmentsTableName + " WHERE UUID = ?uuid", param))
-                {
-                    using (IDataReader reader = result.ExecuteReader())
-                    {
-                        Hashtable ret = dbm.Manager.readAttachments(reader);
-                        return ret;
-                    }
-                }
+                IDbCommand result = dbm.Manager.Query(
+                    "SELECT attachpoint, item, asset from " + m_attachmentsTableName + " WHERE UUID = ?uuid", param);
+                IDataReader reader = result.ExecuteReader();
+
+                Hashtable ret = dbm.Manager.readAttachments(reader);
+
+                reader.Dispose();
+                result.Dispose();
+                return ret;
             }
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return null;
             }
             finally
@@ -907,7 +905,7 @@ namespace OpenSim.Data.MySQL
             catch (Exception e)
             {
                 dbm.Manager.Reconnect();
-                m_log.Error(e.Message, e);
+                m_log.Error(e.ToString());
                 return;
             }
             finally

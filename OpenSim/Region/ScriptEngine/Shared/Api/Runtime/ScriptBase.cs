@@ -113,7 +113,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 return;
 
             //ILease lease = (ILease)RemotingServices.GetLifetimeService(data as MarshalByRefObject);
-            RemotingServices.GetLifetimeService(data as MarshalByRefObject);
+            //RemotingServices.GetLifetimeService(data as MarshalByRefObject);
 //            lease.Register(m_sponser);
 
             MethodInfo mi = inits[api];

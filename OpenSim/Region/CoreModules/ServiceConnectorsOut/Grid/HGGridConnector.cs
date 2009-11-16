@@ -322,10 +322,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             List<GridRegion> rinfos = new List<GridRegion>();
 
-            // Commenting until regionname exists
-            //foreach (SimpleRegionInfo r in m_HyperlinkRegions.Values)
-            //    if ((r.RegionName != null) && r.RegionName.StartsWith(name))
-            //        rinfos.Add(r);
+            if (name == string.Empty)
+                return rinfos;
+            
+            foreach (GridRegion r in m_HyperlinkRegions.Values)
+                if ((r.RegionName != null) && r.RegionName.ToLower().StartsWith(name.ToLower()))
+                    rinfos.Add(r);
 
             rinfos.AddRange(m_GridServiceConnector.GetRegionsByName(scopeID, name, maxNumber));
             return rinfos;
@@ -334,7 +336,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
             int snapXmin = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
-            int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
+//            int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmin = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
             int snapYmax = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
 
@@ -602,13 +604,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
 
+            if (uinfo == null)
+                return false;
+
             if ((IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null)) ||
                 (!IsLocalUser(uinfo) && !IsGoingHome(uinfo, regInfo)))
             {
                 m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
 
                 // Set the position of the region on the remote grid
-                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
+//                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
                 uint x = 0, y = 0;
                 Utils.LongToUInts(regInfo.RegionHandle, out x, out y);
                 GridRegion clonedRegion = new GridRegion(regInfo);
@@ -735,6 +740,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         // Is the user going back to the home region or the home grid?
         protected bool IsGoingHome(CachedUserInfo uinfo, GridRegion rinfo)
         {
+            if (uinfo == null)
+                return false;
+
             if (uinfo.UserProfile == null)
                 return false;
 

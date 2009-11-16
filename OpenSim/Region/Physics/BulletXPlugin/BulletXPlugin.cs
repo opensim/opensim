@@ -347,6 +347,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 indexBase = mesh.getIndexListAsInt();
                 vertexBase = new Vector3[iVertexCount];
+                
                 for (int i = 0; i < iVertexCount; i++)
                 {
                     OpenMetaverse.Vector3 v = mesh.getVertexList()[i];
@@ -355,6 +356,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     else
                         vertexBase[i] = Vector3.Zero;
                 }
+                
                 for (int ix = 0; ix < iIndexCount; ix += 3)
                 {
                     int ia = indexBase[ix + 0];

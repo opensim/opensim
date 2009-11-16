@@ -1,7 +1,5 @@
 Welcome to OpenSim!
 
-Version 0.6.x
- 
 == OVERVIEW ==
 
 OpenSim is a BSD Licensed Open Source project to develop a functioning
@@ -26,8 +24,8 @@ See configuring OpenSim
 
 Prereqs:
  * Mono >= 2.4.2
- * Nant >= 0.86beta
- * sqlite3 or mysql 5.x (you'll need a back end database)
+ * Nant >= 0.86 beta 1 (if building with the .NET framework on Windows), 0.85 (if building with the mono framework)
+ * sqlite3 or mysql 5.x (you'll need a backend database)
 
 From the distribution type:
  * ./runprebuild.sh
@@ -89,4 +87,3 @@ OpenSim, as well as how to report bugs, and participate in the OpenSim
 project can always be found at http://opensimulator.org.
 
 Thanks for trying OpenSim, we hope it is a pleasant experience.
-
