@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -331,6 +332,65 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             UUID[] objectIDs;
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
             return animIDs;
+        }
+       
+        public BinBVHAnimation GenerateRandomAnimation()
+        {
+            int rnditerations = 3;
+            BinBVHAnimation anim = new BinBVHAnimation();
+            List<string> parts = new List<string>();
+            parts.Add("mPelvis");parts.Add("mHead");parts.Add("mTorso");
+            parts.Add("mHipLeft");parts.Add("mHipRight");parts.Add("mHipLeft");parts.Add("mKneeLeft");
+            parts.Add("mKneeRight");parts.Add("mCollarLeft");parts.Add("mCollarRight");parts.Add("mNeck");
+            parts.Add("mElbowLeft");parts.Add("mElbowRight");parts.Add("mWristLeft");parts.Add("mWristRight");
+            parts.Add("mShoulderLeft");parts.Add("mShoulderRight");parts.Add("mAnkleLeft");parts.Add("mAnkleRight");
+            parts.Add("mEyeRight");parts.Add("mChest");parts.Add("mToeLeft");parts.Add("mToeRight");
+            parts.Add("mFootLeft");parts.Add("mFootRight");parts.Add("mEyeLeft");
+            anim.HandPose = 1;
+            anim.InPoint = 0;
+            anim.OutPoint = (rnditerations * .10f);
+            anim.Priority = 7;
+            anim.Loop = false;
+            anim.Length = (rnditerations * .10f);
+            anim.ExpressionName = "afraid";
+            anim.EaseInTime = 0;
+            anim.EaseOutTime = 0;
+
+            string[] strjoints = parts.ToArray();
+            anim.Joints = new binBVHJoint[strjoints.Length];
+            for (int j = 0; j < strjoints.Length; j++)
+            {
+                anim.Joints[j] = new binBVHJoint();
+                anim.Joints[j].Name = strjoints[j];
+                anim.Joints[j].Priority = 7;
+                anim.Joints[j].positionkeys = new binBVHJointKey[rnditerations];
+                anim.Joints[j].rotationkeys = new binBVHJointKey[rnditerations];
+                Random rnd = new Random();
+                for (int i = 0; i < rnditerations; i++)
+                {
+                    anim.Joints[j].rotationkeys[i] = new binBVHJointKey();
+                    anim.Joints[j].rotationkeys[i].time = (i*.10f);
+                    anim.Joints[j].rotationkeys[i].key_element.X = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Y = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].rotationkeys[i].key_element.Z = ((float) rnd.NextDouble()*2 - 1);
+                    anim.Joints[j].positionkeys[i] = new binBVHJointKey();
+                    anim.Joints[j].positionkeys[i].time = (i*.10f);
+                    anim.Joints[j].positionkeys[i].key_element.X = 0;
+                    anim.Joints[j].positionkeys[i].key_element.Y = 0;
+                    anim.Joints[j].positionkeys[i].key_element.Z = 0;
+                }
+            }
+
+            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation);
+            Animasset.Data = anim.ToBytes();
+            Animasset.Temporary = true;
+            Animasset.Local = true;
+            Animasset.Description = "dance";
+            //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
+
+            m_scenePresence.Scene.AssetService.Store(Animasset);
+            AddAnimation(Animasset.FullID, m_scenePresence.UUID);
+            return anim;
         }        
 
         /// <summary>
