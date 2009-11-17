@@ -1,0 +1,388 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Region.Physics.Manager;
+
+namespace OpenSim.Region.Framework.Scenes.Animation
+{
+    /// <summary>
+    /// Handle all animation duties for a scene presence
+    /// </summary>
+    public class ScenePresenceAnimator
+    {        
+        public AnimationSet Animations
+        {
+            get { return m_animations;  }
+        }
+        protected AnimationSet m_animations = new AnimationSet();
+
+        /// <value>
+        /// The current movement animation
+        /// </value>
+        public string CurrentMovementAnimation
+        {
+            get { return m_movementAnimation; }
+        }
+        protected string m_movementAnimation = "DEFAULT";        
+
+        private int m_animTickFall;
+        private int m_animTickJump;                          
+        
+        /// <value>
+        /// The scene presence that this animator applies to
+        /// </value>
+        protected ScenePresence m_scenePresence;        
+        
+        public ScenePresenceAnimator(ScenePresence sp)
+        {
+            m_scenePresence = sp;            
+        }
+        
+        public void AddAnimation(UUID animID, UUID objectID)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            if (m_animations.Add(animID, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, objectID))
+                SendAnimPack();
+        }
+
+        // Called from scripts
+        public void AddAnimation(string name, UUID objectID)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
+            if (animID == UUID.Zero)
+                return;
+
+            AddAnimation(animID, objectID);
+        }
+
+        public void RemoveAnimation(UUID animID)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            if (m_animations.Remove(animID))
+                SendAnimPack();
+        }
+
+        // Called from scripts
+        public void RemoveAnimation(string name)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            UUID animID = m_scenePresence.ControllingClient.GetDefaultAnimation(name);
+            if (animID == UUID.Zero)
+                return;
+
+            RemoveAnimation(animID);
+        }        
+
+        public void ResetAnimations()
+        {
+            m_animations.Clear();            
+        }
+        
+        /// <summary>
+        /// The movement animation is reserved for "main" animations
+        /// that are mutually exclusive, e.g. flying and sitting.
+        /// </summary>
+        public void TrySetMovementAnimation(string anim)
+        {
+            //m_log.DebugFormat("Updating movement animation to {0}", anim);
+
+            if (!m_scenePresence.IsChildAgent)
+            {
+                if (m_animations.TrySetDefaultAnimation(
+                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero))
+                {
+                    // 16384 is CHANGED_ANIMATION
+                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { 16384 });                    
+                    SendAnimPack();
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method determines the proper movement related animation
+        /// </summary>
+        public string GetMovementAnimation()
+        {
+            const float FALL_DELAY = 0.33f;
+            const float PREJUMP_DELAY = 0.25f;
+
+            #region Inputs
+
+            AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
+            PhysicsActor actor = m_scenePresence.PhysicsActor;
+
+            // Create forward and left vectors from the current avatar rotation
+            Matrix4 rotMatrix = Matrix4.CreateFromQuaternion(m_scenePresence.Rotation);
+            Vector3 fwd = Vector3.Transform(Vector3.UnitX, rotMatrix);
+            Vector3 left = Vector3.Transform(Vector3.UnitY, rotMatrix);
+
+            // Check control flags
+            bool heldForward = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
+            bool heldBack = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG;
+            bool heldLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS;
+            bool heldRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG;
+            //bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            //bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            bool heldUp = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
+            bool heldDown = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
+            //bool flying = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) == AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+            //bool mouselook = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) == AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK;
+
+            // Direction in which the avatar is trying to move
+            Vector3 move = Vector3.Zero;
+            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
+            if (heldBack) { move.X -= fwd.X; move.Y -= fwd.Y; }
+            if (heldLeft) { move.X += left.X; move.Y += left.Y; }
+            if (heldRight) { move.X -= left.X; move.Y -= left.Y; }
+            if (heldUp) { move.Z += 1; }
+            if (heldDown) { move.Z -= 1; }
+
+            // Is the avatar trying to move?
+//            bool moving = (move != Vector3.Zero);
+            bool jumping = m_animTickJump != 0;
+
+            #endregion Inputs
+
+            #region Flying
+
+            if (actor != null && actor.Flying)
+            {
+                m_animTickFall = 0;
+                m_animTickJump = 0;
+
+                if (move.X != 0f || move.Y != 0f)
+                {
+                    return (m_scenePresence.Scene.m_useFlySlow ? "FLYSLOW" : "FLY");
+                }
+                else if (move.Z > 0f)
+                {
+                    return "HOVER_UP";
+                }
+                else if (move.Z < 0f)
+                {
+                    if (actor != null && actor.IsColliding)
+                        return "LAND";
+                    else
+                        return "HOVER_DOWN";
+                }
+                else
+                {
+                    return "HOVER";
+                }
+            }
+
+            #endregion Flying
+
+            #region Falling/Floating/Landing
+
+            if (actor == null || !actor.IsColliding)
+            {
+                float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+                float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
+
+                if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && fallVelocity >= 0.0f))
+                {
+                    // Just started falling
+                    m_animTickFall = Environment.TickCount;
+                }
+                else if (!jumping && fallElapsed > FALL_DELAY)
+                {
+                    // Falling long enough to trigger the animation
+                    return "FALLDOWN";
+                }
+
+                return m_movementAnimation;
+            }
+
+            #endregion Falling/Floating/Landing
+
+            #region Ground Movement
+
+            if (m_movementAnimation == "FALLDOWN")
+            {
+                m_animTickFall = Environment.TickCount;
+
+                // TODO: SOFT_LAND support
+                return "LAND";
+            }
+            else if (m_movementAnimation == "LAND")
+            {
+                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
+
+                if (landElapsed <= FALL_DELAY)
+                    return "LAND";
+            }
+
+            m_animTickFall = 0;
+
+            if (move.Z > 0f)
+            {
+                // Jumping
+                if (!jumping)
+                {
+                    // Begin prejump
+                    m_animTickJump = Environment.TickCount;
+                    return "PREJUMP";
+                }
+                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 1000.0f)
+                {
+                    // Start actual jump
+                    if (m_animTickJump == -1)
+                    {
+                        // Already jumping! End the current jump
+                        m_animTickJump = 0;
+                        return "JUMP";
+                    }
+
+                    m_animTickJump = -1;
+                    return "JUMP";
+                }
+            }
+            else
+            {
+                // Not jumping
+                m_animTickJump = 0;
+
+                if (move.X != 0f || move.Y != 0f)
+                {
+                    // Walking / crouchwalking / running
+                    if (move.Z < 0f)
+                        return "CROUCHWALK";
+                    else if (m_scenePresence.SetAlwaysRun)
+                        return "RUN";
+                    else
+                        return "WALK";
+                }
+                else
+                {
+                    // Not walking
+                    if (move.Z < 0f)
+                        return "CROUCH";
+                    else
+                        return "STAND";
+                }
+            }
+
+            #endregion Ground Movement
+
+            return m_movementAnimation;
+        }        
+
+        /// <summary>
+        /// Update the movement animation of this avatar according to its current state
+        /// </summary>
+        public void UpdateMovementAnimations()
+        {
+            m_movementAnimation = GetMovementAnimation();
+
+            if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
+            {
+                // This was the previous behavior before PREJUMP
+                TrySetMovementAnimation("JUMP");
+            }
+            else
+            {
+                TrySetMovementAnimation(m_movementAnimation);
+            }
+        }
+
+        public UUID[] GetAnimationArray()
+        {
+            UUID[] animIDs;
+            int[] sequenceNums;
+            UUID[] objectIDs;
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
+            return animIDs;
+        }        
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="animations"></param>
+        /// <param name="seqs"></param>
+        /// <param name="objectIDs"></param>
+        public void SendAnimPack(UUID[] animations, int[] seqs, UUID[] objectIDs)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            m_scenePresence.Scene.ForEachClient(
+                delegate(IClientAPI client) 
+                { 
+                    client.SendAnimations(animations, seqs, m_scenePresence.ControllingClient.AgentId, objectIDs); 
+                });
+        }
+
+        public void SendAnimPackToClient(IClientAPI client)
+        {
+            if (m_scenePresence.IsChildAgent)
+                return;
+            
+            UUID[] animIDs;
+            int[] sequenceNums;
+            UUID[] objectIDs;
+
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
+
+            m_scenePresence.ControllingClient.SendAnimations(
+                animIDs, sequenceNums, m_scenePresence.ControllingClient.AgentId, objectIDs);
+        }
+
+        /// <summary>
+        /// Send animation information about this avatar to all clients.
+        /// </summary>
+        public void SendAnimPack()
+        {
+            //m_log.Debug("Sending animation pack to all");
+            
+            if (m_scenePresence.IsChildAgent)
+                return;
+
+            UUID[] animIDs;
+            int[] sequenceNums;
+            UUID[] objectIDs;
+
+            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
+
+            SendAnimPack(animIDs, sequenceNums, objectIDs);
+        }        
+    }
+}

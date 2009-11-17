@@ -3093,11 +3093,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     // Do NOT try to parse UUID, animations cannot be triggered by ID
-                    UUID animID=InventoryKey(anim, (int)AssetType.Animation);
+                    UUID animID = InventoryKey(anim, (int)AssetType.Animation);
                     if (animID == UUID.Zero)
-                        presence.AddAnimation(anim, m_host.UUID);
+                        presence.Animator.AddAnimation(anim, m_host.UUID);
                     else
-                        presence.AddAnimation(animID, m_host.UUID);
+                        presence.Animator.AddAnimation(animID, m_host.UUID);
                 }
             }
         }
@@ -3137,9 +3137,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence != null)
                 {
                     if (animID == UUID.Zero)
-                        presence.RemoveAnimation(anim);
+                        presence.Animator.RemoveAnimation(anim);
                     else
-                        presence.RemoveAnimation(animID);
+                        presence.Animator.RemoveAnimation(animID);
                 }
             }
         }
@@ -3983,12 +3983,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (presence != null)
                 {
-                    AnimationSet currentAnims = presence.Animations;
+                    AnimationSet currentAnims = presence.Animator.Animations;
                     string currentAnimationState = String.Empty;
                     if (animationstateNames.TryGetValue(currentAnims.DefaultAnimation.AnimID, out currentAnimationState))
                         return currentAnimationState;
                 }
             }
+            
             return String.Empty;
         }
 
@@ -5322,7 +5323,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 flags |= ScriptBaseClass.AGENT_TYPING;
             }
 
-            string agentMovementAnimation = agent.GetMovementAnimation();
+            string agentMovementAnimation = agent.Animator.GetMovementAnimation();
 
             if (agentMovementAnimation == "CROUCH")
             {
@@ -5354,7 +5355,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
-             if (agent.Animations.DefaultAnimation.AnimID == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+             if (agent.Animator.Animations.DefaultAnimation.AnimID 
+                == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
              {
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
@@ -7144,7 +7146,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (av == null || av.IsChildAgent) // only if in the region
                 return l;
             UUID[] anims;
-            anims = av.GetAnimationArray();
+            anims = av.Animator.GetAnimationArray();
             foreach (UUID foo in anims)
                 l.Add(foo.ToString());
             return l;
@@ -7272,7 +7274,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     LSL_Vector lower;
                     LSL_Vector upper;
-                    if (presence.Animations.DefaultAnimation.AnimID == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
+                    if (presence.Animator.Animations.DefaultAnimation.AnimID 
+                        == AnimationSet.Animations.AnimsUUID["SIT_GROUND_CONSTRAINED"])
                     {
                         // This is for ground sitting avatars
                         float height = presence.Appearance.AvatarHeight / 2.66666667f;
