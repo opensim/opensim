@@ -1179,8 +1179,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
 
                 return m_clientRequestIDInfo[client.AgentId].RequestID;
             }
-
-            return new GroupRequestID();
+// Unreachable code!
+//            return new GroupRequestID();
         }
 
         /// <summary>
