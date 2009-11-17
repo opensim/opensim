@@ -3048,8 +3048,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence()
         {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;            
             CreateSceneViewer();
+            m_animator = new ScenePresenceAnimator(this);
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
