@@ -672,15 +672,12 @@ namespace OpenSim.Region.Framework.Scenes
                              AvatarWearable[] wearables)
             : this(client, world, reginfo)
         {
-            CreateSceneViewer();
-            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
-            
+            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);            
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
-            CreateSceneViewer();
             m_appearance = appearance;
         }
 
