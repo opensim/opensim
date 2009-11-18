@@ -1266,7 +1266,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
 
-                        m_log.Debug("[REGION]: Enabling Logins");
+                        m_log.DebugFormat("[REGION]: Enabling Logins for {0}", RegionInfo.RegionName);
                         loginsdisabled = false;
                     }
                 }
@@ -1276,24 +1276,25 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 catch (AccessViolationException e)
                 {
-                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 }
                 //catch (NullReferenceException e)
                 //{
-                //   m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                //   m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 //}
                 catch (InvalidOperationException e)
                 {
-                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
+                    m_log.Error("[REGION]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
                 }
                 finally
                 {
                     m_lastupdate = DateTime.UtcNow;
                 }
+                
                 maintc = Environment.TickCount - maintc;
                 maintc = (int)(m_timespan * 1000) - maintc;
 
