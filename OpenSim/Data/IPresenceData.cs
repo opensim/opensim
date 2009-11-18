@@ -48,7 +48,8 @@ namespace OpenSim.Data
 
         PresenceData Get(UUID principalID);
 
-        bool SetDataItem(UUID principalID, string item, string value);
+        bool SetUserDataItem(UUID principalID, string item, string value);
+        bool SetRegionDataItem(UUID principalID, string item, string value);
 
         bool Delete(UUID regionID);
     }

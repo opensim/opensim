@@ -112,7 +112,7 @@ namespace OpenSim.Data.MySQL
             for (int i = 0 ; i < fields.Length ; i++)
             {
                 cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                terms.Add(fields[i] + " = ?" + fields[i]);
+                terms.Add("`" + fields[i] + "` = ?" + fields[i]);
             }
 
             string where = String.Join(" and ", terms.ToArray());
@@ -195,6 +195,19 @@ namespace OpenSim.Data.MySQL
             MySqlCommand cmd = new MySqlCommand();
 
             string query = "";
+
+            return false;
+        }
+
+        public bool Delete(string field, string val)
+        {
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where `{1}` = ?{1}", m_Realm, field);
+            cmd.Parameters.AddWithValue(field, val);
+
+            if (ExecuteNonQuery(cmd) > 0)
+                return true;
 
             return false;
         }
