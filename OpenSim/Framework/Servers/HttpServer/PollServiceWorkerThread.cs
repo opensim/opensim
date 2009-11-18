@@ -50,9 +50,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BaseHttpServer m_server;
         private BlockingQueue<PollServiceHttpRequest> m_request;
         private bool m_running = true;
-        private int m_timeout = 250;
-
-        
+        private int m_timeout = 250;       
 
         public PollServiceWorkerThread(BaseHttpServer pSrv, int pTimeout)
         {

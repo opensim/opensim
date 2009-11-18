@@ -475,7 +475,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Query inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Query inventory folder operation failed, {0} {1}",
                      e.Source, e.Message);
             }
 
@@ -576,9 +576,6 @@ namespace OpenSim.Services.Connectors
             }
 
             callback(folders, items);
-
         }
-
-
     }
 }
