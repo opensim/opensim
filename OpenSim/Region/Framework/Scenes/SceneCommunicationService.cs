@@ -801,7 +801,7 @@ namespace OpenSim.Region.Framework.Scenes
             IEventQueue eq = avatar.Scene.RequestModuleInterface<IEventQueue>();
 
             // Reset animations; the viewer does that in teleports.
-            avatar.ResetAnimations();
+            avatar.Animator.ResetAnimations();
 
             if (regionHandle == m_regionInfo.RegionHandle)
             {

@@ -741,9 +741,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                     }
                     if (animID == UUID.Zero)
-                        target.AddAnimation(animation, m_host.UUID);
+                        target.Animator.AddAnimation(animation, m_host.UUID);
                     else
-                        target.AddAnimation(animID, m_host.UUID);
+                        target.Animator.AddAnimation(animID, m_host.UUID);
                 }
             }
         }
@@ -773,10 +773,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             }
                         }
                     }
+                    
                     if (animID == UUID.Zero)
-                        target.RemoveAnimation(animation);
+                        target.Animator.RemoveAnimation(animation);
                     else
-                        target.RemoveAnimation(animID);
+                        target.Animator.RemoveAnimation(animID);
                 }
             }
         }

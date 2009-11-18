@@ -25,21 +25,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework;
-using System.Collections.Generic;
-using OpenMetaverse;
+using System;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.Interfaces
+namespace OpenSim.Server.Handlers.Presence
 {
-    public class PresenceInfo
+    public class PresenceServiceConnector : ServiceConnector
     {
-        public UUID PrincipalID;
-        public UUID RegionID;
-        public Dictionary<string, object> Data;
-    }
+        private IPresenceService m_PresenceService;
+        private string m_ConfigName = "PresenceService";
 
-    public interface IPresenceService
-    {
-        bool Report(PresenceInfo presence);
+        public PresenceServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
+        {
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string gridService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (gridService == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
+
+            Object[] args = new Object[] { config };
+            m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(gridService, args);
+
+            server.AddStreamHandler(new PresenceServerPostHandler(m_PresenceService));
+        }
     }
 }

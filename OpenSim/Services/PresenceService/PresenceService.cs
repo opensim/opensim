@@ -49,5 +49,10 @@ namespace OpenSim.Services.PresenceService
             : base(config)
         {
         }
+
+        public bool Report(PresenceInfo presence)
+        {
+            return false;
+        }
     }
 }
