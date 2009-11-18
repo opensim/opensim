@@ -190,11 +190,13 @@ namespace OpenSim.Data.MySQL
             return DoQuery(cmd);
         }
 
-        public void Store(T row)
+        public bool Store(T row)
         {
             MySqlCommand cmd = new MySqlCommand();
 
             string query = "";
+
+            return false;
         }
     }
 }

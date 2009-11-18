@@ -32,11 +32,11 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
-    public class PresenceData
+    public struct PresenceData
     {
         public UUID UUID;
         public UUID currentRegion;
-        public Dictionary<string, object> Data;
+        public Dictionary<string, string> Data;
     }
 
     /// <summary>
