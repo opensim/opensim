@@ -31,7 +31,15 @@ using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
 {
+    public class PresenceInfo
+    {
+        public UUID PrincipalID;
+        public UUID RegionID;
+        public Dictionary<string, object> Data;
+    }
+
     public interface IPresenceService
     {
+        bool Report(PresenceInfo presence);
     }
 }

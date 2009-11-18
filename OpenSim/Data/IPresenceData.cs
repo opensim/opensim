@@ -34,8 +34,8 @@ namespace OpenSim.Data
 {
     public class PresenceData
     {
-        public UUID PrincipalID;
-        public UUID RegionID;
+        public UUID UUID;
+        public UUID currentRegion;
         public Dictionary<string, object> Data;
     }
 
