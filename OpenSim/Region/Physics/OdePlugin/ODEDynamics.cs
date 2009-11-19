@@ -629,7 +629,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 				// Error is 0 (no error) to +/- 2 (max error)
 				// scale it by VAservo
 				verterr = verterr * VAservo;
-if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
+//if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
 
 				// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
 				// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.

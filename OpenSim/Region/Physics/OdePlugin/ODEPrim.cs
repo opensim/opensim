@@ -1584,8 +1584,8 @@ Console.WriteLine(" JointCreateFixed");
                 
             if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// KF: Only move root prims.
             {
-if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_vehicle.Type +
-						"    usePID=" + m_usePID  + "    seHover=" + m_useHoverPID  + "  useAPID=" + m_useAPID);           	
+//if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_vehicle.Type +
+			//			"    usePID=" + m_usePID  + "    seHover=" + m_useHoverPID  + "  useAPID=" + m_useAPID);           	
             	if (m_vehicle.Type != Vehicle.TYPE_NONE)
             	{
             		// 'VEHICLES' are dealt with in ODEDynamics.cs
@@ -1806,7 +1806,7 @@ if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_vehicle
 							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
 //Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
 						}
-if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
+//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
 	                } // end m_useAPID
 	                
     	            fx *= m_mass;
