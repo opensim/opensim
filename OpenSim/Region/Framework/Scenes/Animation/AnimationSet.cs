@@ -32,20 +32,21 @@ using OpenMetaverse;
 
 using Animation = OpenSim.Framework.Animation;
 
-namespace OpenSim.Region.Framework.Scenes
+namespace OpenSim.Region.Framework.Scenes.Animation
 {
     [Serializable]
     public class AnimationSet
     {
         public static AvatarAnimations Animations = new AvatarAnimations();
 
-        private Animation m_defaultAnimation = new Animation();
-        private List<Animation> m_animations = new List<Animation>();
+        private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
+        private List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
 
-        public Animation DefaultAnimation 
+        public OpenSim.Framework.Animation DefaultAnimation 
         {
             get { return m_defaultAnimation; } 
         }
+        
         public AnimationSet()
         {
             ResetDefaultAnimation();
@@ -71,7 +72,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (!HasAnimation(animID))
                 {
-                    m_animations.Add(new Animation(animID, sequenceNum, objectID));
+                    m_animations.Add(new OpenSim.Framework.Animation(animID, sequenceNum, objectID));
                     return true;
                 }
             }
@@ -115,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_defaultAnimation.AnimID != animID)
             {
-                m_defaultAnimation = new Animation(animID, sequenceNum, objectID);
+                m_defaultAnimation = new OpenSim.Framework.Animation(animID, sequenceNum, objectID);
                 return true;
             }
             return false;
@@ -159,13 +160,13 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public Animation[] ToArray()
+        public OpenSim.Framework.Animation[] ToArray()
         {
-            Animation[] theArray = new Animation[m_animations.Count];
+            OpenSim.Framework.Animation[] theArray = new OpenSim.Framework.Animation[m_animations.Count];
             uint i = 0;
             try
             {
-                foreach (Animation anim in m_animations)
+                foreach (OpenSim.Framework.Animation anim in m_animations)
                     theArray[i++] = anim;
             }
             catch 
@@ -175,9 +176,9 @@ namespace OpenSim.Region.Framework.Scenes
             return theArray;
         }
 
-        public void FromArray(Animation[] theArray)
+        public void FromArray(OpenSim.Framework.Animation[] theArray)
         {
-            foreach (Animation anim in theArray)
+            foreach (OpenSim.Framework.Animation anim in theArray)
                 m_animations.Add(anim);
         }
     }

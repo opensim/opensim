@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Scenes
+namespace OpenSim.Region.Framework.Scenes.Animation
 {
     /// <summary>
     /// Written to decode and encode a binary animation asset.

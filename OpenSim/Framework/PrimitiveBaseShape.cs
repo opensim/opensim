@@ -1153,7 +1153,7 @@ namespace OpenSim.Framework
                 prim.Light.Radius = this.LightRadius;
             }
 
-            prim.Textures = new Primitive.TextureEntry(this.TextureEntry, 0, this.TextureEntry.Length);
+            prim.Textures = this.Textures;
 
             prim.Properties = new Primitive.ObjectProperties();
             prim.Properties.Name = "Primitive";

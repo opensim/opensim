@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -79,6 +80,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        private static readonly byte[] DEFAULT_TEXTURE = AvatarAppearance.GetDefaultTexture().GetBytes();
         private static readonly Array DIR_CONTROL_FLAGS = Enum.GetValues(typeof(Dir_ControlFlags));
         private static readonly Vector3 HEAD_ADJUSTMENT = new Vector3(0f, 0f, 0.3f);
+        
         /// <summary>
         /// Experimentally determined "fudge factor" to make sit-target positions
         /// the same as in SecondLife. Fudge factor was tested for 36 different
@@ -93,7 +95,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ISceneViewer m_sceneViewer;
 
-        private AnimationSet m_animations = new AnimationSet();
+        /// <value>
+        /// The animator for this avatar
+        /// </value>
+        public ScenePresenceAnimator Animator
+        {
+            get { return m_animator; }
+        }
+        protected ScenePresenceAnimator m_animator;
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -134,12 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_perfMonMS;
 
         private bool m_setAlwaysRun;
-
-        private string m_movementAnimation = "DEFAULT";
-        private int m_animTickFall;
-        private int m_animTickJump;
-        private bool m_useFlySlow;
-        private bool m_usePreJump;
+        
         private bool m_forceFly;
         private bool m_flyDisabled;
 
@@ -227,7 +232,6 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
-
         
         /// <summary>
         /// Position at which a significant movement was made
@@ -238,7 +242,10 @@ namespace OpenSim.Region.Framework.Scenes
         string m_callbackURI;
         ulong m_rootRegionHandle;
 
-        private IScriptModule[] m_scriptEngines;
+        /// <value>
+        /// Script engines present in the scene
+        /// </value>
+        private IScriptModule[] m_scriptEngines;         
 
         #region Properties
 
@@ -586,11 +593,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public AnimationSet Animations
-        {
-            get { return m_animations;  }
-        }
-
         private bool m_inTransit;
         private bool m_mouseLook;
         private bool m_leftButtonDown;
@@ -625,6 +627,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
         {
+            m_animator = new ScenePresenceAnimator(this);
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_rootRegionHandle = reginfo.RegionHandle;
@@ -637,15 +640,12 @@ namespace OpenSim.Region.Framework.Scenes
             m_regionInfo = reginfo;
             m_localId = m_scene.AllocateLocalId();
 
-            m_useFlySlow = m_scene.m_useFlySlow;
-            m_usePreJump = m_scene.m_usePreJump;
-
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
                 m_grouptitle = gm.GetGroupTitle(m_uuid);
 
             m_scriptEngines = m_scene.RequestModuleInterfaces<IScriptModule>();
-
+            
             AbsolutePosition = posLastSignificantMove = m_CameraCenter =
                 m_lastCameraCenter = m_controllingClient.StartPos;
 
@@ -656,7 +656,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             AdjustKnownSeeds();
 
-            TrySetMovementAnimation("STAND"); // TODO: I think, this won't send anything, as we are still a child here...
+            // TODO: I think, this won't send anything, as we are still a child here...
+            Animator.TrySetMovementAnimation("STAND"); 
 
             // we created a new ScenePresence (a new child agent) in a fresh region.
             // Request info about all the (root) agents in this region
@@ -665,21 +666,18 @@ namespace OpenSim.Region.Framework.Scenes
 
             RegisterToEvents();
             SetDirectionVectors();
-
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
                              AvatarWearable[] wearables)
             : this(client, world, reginfo)
         {
-            CreateSceneViewer();
-            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
+            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);            
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
             : this(client, world, reginfo)
         {
-            CreateSceneViewer();
             m_appearance = appearance;
         }
 
@@ -857,7 +855,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Don't send an animation pack here, since on a region crossing this will sometimes cause a flying 
             // avatar to return to the standing position in mid-air.  On login it looks like this is being sent
             // elsewhere anyway
-            //SendAnimPack();
+            // Animator.SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
             
@@ -879,7 +877,7 @@ namespace OpenSim.Region.Framework.Scenes
                 ScenePresence presence = animAgents[i];
 
                 if (presence != this)
-                    presence.SendAnimPackToClient(ControllingClient);
+                    presence.Animator.SendAnimPackToClient(ControllingClient);
             }
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
@@ -894,7 +892,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
-            m_animations.Clear();
+            Animator.ResetAnimations();
 
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Downgrading root agent {0}, {1} to a child agent in {2}",
@@ -995,7 +993,7 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (1.56f / 6f));
             }
 
-            TrySetMovementAnimation("LAND");
+            Animator.TrySetMovementAnimation("LAND");
             SendFullUpdateToAllClients();
         }
 
@@ -1247,7 +1245,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // TODO: This doesn't prevent the user from walking yet.
                 // Setting parent ID would fix this, if we knew what value
                 // to use.  Or we could add a m_isSitting variable.
-                TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+                Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             }
 
             // In the future, these values might need to go global.
@@ -1453,7 +1451,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AddNewMovement(agent_control_v3, q);
 
                     if (update_movementflag)
-                        UpdateMovementAnimations();
+                        Animator.UpdateMovementAnimations();
                 }
             }
 
@@ -1561,7 +1559,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         /// <summary>
-        /// Perform the logic necessary to stand the client up.  This method also executes
+        /// Perform the logic necessary to stand the avatar up.  This method also executes
         /// the stand animation.
         /// </summary>
         public void StandUp()
@@ -1611,7 +1609,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            TrySetMovementAnimation("STAND");
+            Animator.TrySetMovementAnimation("STAND");
         }
 
         private SceneObjectPart FindNextAvailableSitTarget(UUID targetID)
@@ -1850,7 +1848,7 @@ namespace OpenSim.Region.Framework.Scenes
             Velocity = Vector3.Zero;
             RemoveFromPhysicalScene();
 
-            TrySetMovementAnimation(sitAnimation);
+            Animator.TrySetMovementAnimation(sitAnimation);
             SendFullUpdateToAllClients();
             // This may seem stupid, but Our Full updates don't send avatar rotation :P
             // So we're also sending a terse update (which has avatar rotation)
@@ -1870,352 +1868,15 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysicsActor.SetAlwaysRun = pSetAlwaysRun;
             }
         }
-        public BinBVHAnimation GenerateRandomAnimation()
-        {
-            int rnditerations = 3;
-            BinBVHAnimation anim = new BinBVHAnimation();
-            List<string> parts = new List<string>();
-            parts.Add("mPelvis");parts.Add("mHead");parts.Add("mTorso");
-            parts.Add("mHipLeft");parts.Add("mHipRight");parts.Add("mHipLeft");parts.Add("mKneeLeft");
-            parts.Add("mKneeRight");parts.Add("mCollarLeft");parts.Add("mCollarRight");parts.Add("mNeck");
-            parts.Add("mElbowLeft");parts.Add("mElbowRight");parts.Add("mWristLeft");parts.Add("mWristRight");
-            parts.Add("mShoulderLeft");parts.Add("mShoulderRight");parts.Add("mAnkleLeft");parts.Add("mAnkleRight");
-            parts.Add("mEyeRight");parts.Add("mChest");parts.Add("mToeLeft");parts.Add("mToeRight");
-            parts.Add("mFootLeft");parts.Add("mFootRight");parts.Add("mEyeLeft");
-            anim.HandPose = 1;
-            anim.InPoint = 0;
-            anim.OutPoint = (rnditerations * .10f);
-            anim.Priority = 7;
-            anim.Loop = false;
-            anim.Length = (rnditerations * .10f);
-            anim.ExpressionName = "afraid";
-            anim.EaseInTime = 0;
-            anim.EaseOutTime = 0;
-
-            string[] strjoints = parts.ToArray();
-            anim.Joints = new binBVHJoint[strjoints.Length];
-            for (int j = 0; j < strjoints.Length; j++)
-            {
-                anim.Joints[j] = new binBVHJoint();
-                anim.Joints[j].Name = strjoints[j];
-                anim.Joints[j].Priority = 7;
-                anim.Joints[j].positionkeys = new binBVHJointKey[rnditerations];
-                anim.Joints[j].rotationkeys = new binBVHJointKey[rnditerations];
-                Random rnd = new Random();
-                for (int i = 0; i < rnditerations; i++)
-                {
-                    anim.Joints[j].rotationkeys[i] = new binBVHJointKey();
-                    anim.Joints[j].rotationkeys[i].time = (i*.10f);
-                    anim.Joints[j].rotationkeys[i].key_element.X = ((float) rnd.NextDouble()*2 - 1);
-                    anim.Joints[j].rotationkeys[i].key_element.Y = ((float) rnd.NextDouble()*2 - 1);
-                    anim.Joints[j].rotationkeys[i].key_element.Z = ((float) rnd.NextDouble()*2 - 1);
-                    anim.Joints[j].positionkeys[i] = new binBVHJointKey();
-                    anim.Joints[j].positionkeys[i].time = (i*.10f);
-                    anim.Joints[j].positionkeys[i].key_element.X = 0;
-                    anim.Joints[j].positionkeys[i].key_element.Y = 0;
-                    anim.Joints[j].positionkeys[i].key_element.Z = 0;
-                }
-            }
-
-
-            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation);
-            Animasset.Data = anim.ToBytes();
-            Animasset.Temporary = true;
-            Animasset.Local = true;
-            Animasset.Description = "dance";
-            //BinBVHAnimation bbvhanim = new BinBVHAnimation(Animasset.Data);
-
-
-            m_scene.AssetService.Store(Animasset);
-            AddAnimation(Animasset.FullID, UUID);
-            return anim;
-        }
-        public void AddAnimation(UUID animID, UUID objectID)
-        {
-            if (m_isChildAgent)
-                return;
-
-            if (m_animations.Add(animID, m_controllingClient.NextAnimationSequenceNumber, objectID))
-                SendAnimPack();
-        }
-
-        // Called from scripts
-        public void AddAnimation(string name, UUID objectID)
-        {
-            if (m_isChildAgent)
-                return;
-
-            UUID animID = m_controllingClient.GetDefaultAnimation(name);
-            if (animID == UUID.Zero)
-                return;
-
-            AddAnimation(animID, objectID);
-        }
-
-        public void RemoveAnimation(UUID animID)
-        {
-            if (m_isChildAgent)
-                return;
-
-            if (m_animations.Remove(animID))
-                SendAnimPack();
-        }
-
-        // Called from scripts
-        public void RemoveAnimation(string name)
-        {
-            if (m_isChildAgent)
-                return;
-
-            UUID animID = m_controllingClient.GetDefaultAnimation(name);
-            if (animID == UUID.Zero)
-                return;
-
-            RemoveAnimation(animID);
-        }
-
-        public UUID[] GetAnimationArray()
-        {
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
-            return animIDs;
-        }
 
         public void HandleStartAnim(IClientAPI remoteClient, UUID animID)
         {
-            AddAnimation(animID, UUID.Zero);
+            Animator.AddAnimation(animID, UUID.Zero);
         }
 
         public void HandleStopAnim(IClientAPI remoteClient, UUID animID)
         {
-            RemoveAnimation(animID);
-        }
-
-        /// <summary>
-        /// The movement animation is reserved for "main" animations
-        /// that are mutually exclusive, e.g. flying and sitting.
-        /// </summary>
-        protected void TrySetMovementAnimation(string anim)
-        {
-            //m_log.DebugFormat("Updating movement animation to {0}", anim);
-
-            if (!m_isChildAgent)
-            {
-                if (m_animations.TrySetDefaultAnimation(anim, m_controllingClient.NextAnimationSequenceNumber, UUID.Zero))
-                {
-                    if (m_scriptEngines != null)
-                    {
-                        lock (m_attachments)
-                        {
-                            foreach (SceneObjectGroup grp in m_attachments)
-                            {
-                                // 16384 is CHANGED_ANIMATION
-                                //
-                                // Send this to all attachment root prims
-                                //
-                                foreach (IScriptModule m in m_scriptEngines)
-                                {
-                                    if (m == null) // No script engine loaded
-                                        continue;
-
-                                    m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { 16384 });
-                                }
-                            }
-                        }
-                    }
-                    SendAnimPack();
-                }
-            }
-        }
-
-        /// <summary>
-        /// This method determines the proper movement related animation
-        /// </summary>
-        public string GetMovementAnimation()
-        {
-            const float FALL_DELAY = 0.33f;
-            const float PREJUMP_DELAY = 0.25f;
-
-            #region Inputs
-
-            AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_AgentControlFlags;
-            PhysicsActor actor = m_physicsActor;
-
-            // Create forward and left vectors from the current avatar rotation
-            Matrix4 rotMatrix = Matrix4.CreateFromQuaternion(m_bodyRot);
-            Vector3 fwd = Vector3.Transform(Vector3.UnitX, rotMatrix);
-            Vector3 left = Vector3.Transform(Vector3.UnitY, rotMatrix);
-
-            // Check control flags
-            bool heldForward = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
-            bool heldBack = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG;
-            bool heldLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS;
-            bool heldRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG;
-            //bool heldTurnLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
-            //bool heldTurnRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT) == AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
-            bool heldUp = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) == AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
-            bool heldDown = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
-            //bool flying = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_FLY) == AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-            //bool mouselook = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK) == AgentManager.ControlFlags.AGENT_CONTROL_MOUSELOOK;
-
-            // Direction in which the avatar is trying to move
-            Vector3 move = Vector3.Zero;
-            if (heldForward) { move.X += fwd.X; move.Y += fwd.Y; }
-            if (heldBack) { move.X -= fwd.X; move.Y -= fwd.Y; }
-            if (heldLeft) { move.X += left.X; move.Y += left.Y; }
-            if (heldRight) { move.X -= left.X; move.Y -= left.Y; }
-            if (heldUp) { move.Z += 1; }
-            if (heldDown) { move.Z -= 1; }
-
-            // Is the avatar trying to move?
-//            bool moving = (move != Vector3.Zero);
-            bool jumping = m_animTickJump != 0;
-
-            #endregion Inputs
-
-            #region Flying
-
-            if (actor != null && actor.Flying)
-            {
-                m_animTickFall = 0;
-                m_animTickJump = 0;
-
-                if (move.X != 0f || move.Y != 0f)
-                {
-                    return (m_useFlySlow ? "FLYSLOW" : "FLY");
-                }
-                else if (move.Z > 0f)
-                {
-                    return "HOVER_UP";
-                }
-                else if (move.Z < 0f)
-                {
-                    if (actor != null && actor.IsColliding)
-                        return "LAND";
-                    else
-                        return "HOVER_DOWN";
-                }
-                else
-                {
-                    return "HOVER";
-                }
-            }
-
-            #endregion Flying
-
-            #region Falling/Floating/Landing
-
-            if (actor == null || !actor.IsColliding)
-            {
-                float fallElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-                float fallVelocity = (actor != null) ? actor.Velocity.Z : 0.0f;
-
-                if (m_animTickFall == 0 || (fallElapsed > FALL_DELAY && fallVelocity >= 0.0f))
-                {
-                    // Just started falling
-                    m_animTickFall = Environment.TickCount;
-                }
-                else if (!jumping && fallElapsed > FALL_DELAY)
-                {
-                    // Falling long enough to trigger the animation
-                    return "FALLDOWN";
-                }
-
-                return m_movementAnimation;
-            }
-
-            #endregion Falling/Floating/Landing
-
-            #region Ground Movement
-
-            if (m_movementAnimation == "FALLDOWN")
-            {
-                m_animTickFall = Environment.TickCount;
-
-                // TODO: SOFT_LAND support
-                return "LAND";
-            }
-            else if (m_movementAnimation == "LAND")
-            {
-                float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-
-                if (landElapsed <= FALL_DELAY)
-                    return "LAND";
-            }
-
-            m_animTickFall = 0;
-
-            if (move.Z > 0f)
-            {
-                // Jumping
-                if (!jumping)
-                {
-                    // Begin prejump
-                    m_animTickJump = Environment.TickCount;
-                    return "PREJUMP";
-                }
-                else if (Environment.TickCount - m_animTickJump > PREJUMP_DELAY * 1000.0f)
-                {
-                    // Start actual jump
-                    if (m_animTickJump == -1)
-                    {
-                        // Already jumping! End the current jump
-                        m_animTickJump = 0;
-                        return "JUMP";
-                    }
-
-                    m_animTickJump = -1;
-                    return "JUMP";
-                }
-            }
-            else
-            {
-                // Not jumping
-                m_animTickJump = 0;
-
-                if (move.X != 0f || move.Y != 0f)
-                {
-                    // Walking / crouchwalking / running
-                    if (move.Z < 0f)
-                        return "CROUCHWALK";
-                    else if (m_setAlwaysRun)
-                        return "RUN";
-                    else
-                        return "WALK";
-                }
-                else
-                {
-                    // Not walking
-                    if (move.Z < 0f)
-                        return "CROUCH";
-                    else
-                        return "STAND";
-                }
-            }
-
-            #endregion Ground Movement
-
-            return m_movementAnimation;
-        }
-
-        /// <summary>
-        /// Update the movement animation of this avatar according to its current state
-        /// </summary>
-        protected void UpdateMovementAnimations()
-        {
-            m_movementAnimation = GetMovementAnimation();
-
-            if (m_movementAnimation == "PREJUMP" && !m_usePreJump)
-            {
-                // This was the previous behavior before PREJUMP
-                TrySetMovementAnimation("JUMP");
-            }
-            else
-            {
-                TrySetMovementAnimation(m_movementAnimation);
-            }
+            Animator.RemoveAnimation(animID);
         }
 
         /// <summary>
@@ -2289,8 +1950,8 @@ namespace OpenSim.Region.Framework.Scenes
                         direc.Z *= 3.0f;
 
                         // TODO: PreJump and jump happen too quickly.  Many times prejump gets ignored.
-                        TrySetMovementAnimation("PREJUMP");
-                        TrySetMovementAnimation("JUMP");
+                        Animator.TrySetMovementAnimation("PREJUMP");
+                        Animator.TrySetMovementAnimation("JUMP");
                     }
                 }
             }
@@ -2504,7 +2165,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         avatar.SendFullUpdateToOtherClient(this);
                         avatar.SendAppearanceToOtherAgent(this);
-                        avatar.SendAnimPackToClient(ControllingClient);
+                        avatar.Animator.SendAnimPackToClient(ControllingClient);
                     }
                 }
             }
@@ -2512,7 +2173,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.StatsReporter.AddAgentUpdates(avatars.Length);
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
-            //SendAnimPack();
+            //Animator.SendAnimPack();
         }
 
         public void SendFullUpdateToAllClients()
@@ -2529,7 +2190,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
 
-            SendAnimPack();
+            Animator.SendAnimPack();
         }
 
         /// <summary>
@@ -2646,7 +2307,7 @@ namespace OpenSim.Region.Framework.Scenes
             SendAppearanceToAllOtherAgents();
             if (!m_startAnimationSet)
             {
-                UpdateMovementAnimations();
+                Animator.UpdateMovementAnimations();
                 m_startAnimationSet = true;
             }
 
@@ -2673,54 +2334,6 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_appearance; }
             set { m_appearance = value; }
         }
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="animations"></param>
-        /// <param name="seqs"></param>
-        /// <param name="objectIDs"></param>
-        public void SendAnimPack(UUID[] animations, int[] seqs, UUID[] objectIDs)
-        {
-            if (m_isChildAgent)
-                return;
-
-            m_scene.ForEachClient(
-                delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId, objectIDs); });
-        }
-
-        public void SendAnimPackToClient(IClientAPI client)
-        {
-            if (m_isChildAgent)
-                return;
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
-
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
-
-            client.SendAnimations(animIDs, sequenceNums, m_controllingClient.AgentId, objectIDs);
-        }
-
-        /// <summary>
-        /// Send animation information about this avatar to all clients.
-        /// </summary>
-        public void SendAnimPack()
-        {
-            //m_log.Debug("Sending animation pack to all");
-            
-            if (m_isChildAgent)
-                return;
-
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
-
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
-
-            SendAnimPack(animIDs, sequenceNums, objectIDs);
-        }
-
 
         #endregion
 
@@ -2919,13 +2532,9 @@ namespace OpenSim.Region.Framework.Scenes
         public void Reset()
         {
             // Put the child agent back at the center
-            AbsolutePosition = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 70);
-            ResetAnimations();
-        }
-
-        public void ResetAnimations()
-        {
-            m_animations.Clear();
+            AbsolutePosition 
+                = new Vector3(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f), 70);
+            Animator.ResetAnimations();
         }
 
         /// <summary>
@@ -3149,7 +2758,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Animations
             try
             {
-                cAgent.Anims = m_animations.ToArray();
+                cAgent.Anims = Animator.Animations.ToArray();
             }
             catch { }
 
@@ -3228,15 +2837,13 @@ namespace OpenSim.Region.Framework.Scenes
             // Animations
             try
             {
-                m_animations.Clear();
-                m_animations.FromArray(cAgent.Anims);
+                Animator.ResetAnimations();
+                Animator.Animations.FromArray(cAgent.Anims);
             }
             catch {  }
 
             //cAgent.GroupID = ??
             //Groups???
-
-
         }
 
         public bool CopyAgent(out IAgentData agent)
@@ -3318,7 +2925,7 @@ namespace OpenSim.Region.Framework.Scenes
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
-            UpdateMovementAnimations();
+            Animator.UpdateMovementAnimations();
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
@@ -3327,7 +2934,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (coldata.Count != 0)
             {
-                switch (m_movementAnimation)
+                switch (Animator.CurrentMovementAnimation)
                 {
                     case "STAND":
                     case "WALK":
@@ -3415,6 +3022,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_attachments.Clear();
             }
+            
             lock (m_knownChildRegions)
             {
                 m_knownChildRegions.Clear();
@@ -3425,6 +3033,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_reprioritization_timer.Enabled = false;
                 m_reprioritization_timer.Elapsed -= new ElapsedEventHandler(Reprioritize);
             }
+            
             // I don't get it but mono crashes when you try to dispose of this timer,
             // unsetting the elapsed callback should be enough to allow for cleanup however.
             //m_reprioritizationTimer.Dispose();
@@ -3436,8 +3045,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence()
         {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;            
             CreateSceneViewer();
+            m_animator = new ScenePresenceAnimator(this);
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
@@ -3496,6 +3106,35 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return true;
         }
+
+        /// <summary>
+        /// Send a script event to this scene presence's attachments
+        /// </summary>
+        /// <param name="eventName">The name of the event</param>
+        /// <param name="args">The arguments for the event</param>
+        public void SendScriptEventToAttachments(string eventName, Object[] args)
+        {
+            if (m_scriptEngines != null)
+            {
+                lock (m_attachments)
+                {
+                    foreach (SceneObjectGroup grp in m_attachments)
+                    {
+                        // 16384 is CHANGED_ANIMATION
+                        //
+                        // Send this to all attachment root prims
+                        //
+                        foreach (IScriptModule m in m_scriptEngines)
+                        {
+                            if (m == null) // No script engine loaded
+                                continue;
+
+                            m.PostObjectEvent(grp.RootPart.UUID, "changed", new Object[] { 16384 });
+                        }
+                    }
+                }
+            }            
+        }        
 
         public bool CrossAttachmentsIntoNewRegion(ulong regionHandle, bool silent)
         {

@@ -26,42 +26,36 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Reflection;
 using Nini.Config;
-using log4net;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Data;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
-using OpenMetaverse;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.PresenceService
+namespace OpenSim.Server.Handlers.Presence
 {
-    public class PresenceService : PresenceServiceBase, IPresenceService
+    public class PresenceServiceConnector : ServiceConnector
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        private IPresenceService m_PresenceService;
+        private string m_ConfigName = "PresenceService";
 
-        public PresenceService(IConfigSource config)
-            : base(config)
+        public PresenceServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-        }
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
 
-        public bool Report(PresenceInfo presence)
-        {
-            PresenceData p = new PresenceData();
-            p.Data = new Dictionary<string, string>();
+            string gridService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
 
-            p.UUID = presence.PrincipalID;
-            p.currentRegion = presence.RegionID;
+            if (gridService == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
 
-            foreach (KeyValuePair<string, string> kvp in presence.Data)
-                p.Data[kvp.Key] = kvp.Value;
+            Object[] args = new Object[] { config };
+            m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(gridService, args);
 
-            return false;
+            server.AddStreamHandler(new PresenceServerPostHandler(m_PresenceService));
         }
     }
 }
