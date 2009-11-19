@@ -35,7 +35,7 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public UUID RegionID;
-        public Dictionary<string, object> Data;
+        public Dictionary<string, string> Data;
     }
 
     public interface IPresenceService

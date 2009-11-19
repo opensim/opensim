@@ -231,13 +231,14 @@ namespace OpenSim.Services.Connectors
             }
             catch (TimeoutException e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation to {0} timed out {0} {1}.", m_ServerURI,
-                     e.Source, e.Message);
+                m_log.ErrorFormat(
+                    "[INVENTORY CONNECTOR]: GetFolderContent operation to {0} for {1} timed out {2} {3}.",
+                    m_ServerURI, folderID, e.Source, e.Message);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation failed, {0} {1} (old server?).",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: GetFolderContent operation failed for {0}, {1} {2} (old server?).",
+                    folderID, e.Source, e.Message);
             }
 
             InventoryCollection nullCollection = new InventoryCollection();
@@ -256,8 +257,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Add new inventory folder operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Add new inventory folder operation failed for {0} {1}, {2} {3}",
+                     folder.Name, folder.ID, e.Source, e.Message);
             }
 
             return false;
@@ -272,8 +273,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Update inventory folder operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Update inventory folder operation failed for {0} {1}, {2} {3}",
+                    folder.Name, folder.ID, e.Source, e.Message);
             }
 
             return false;
@@ -307,8 +308,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Move inventory folder operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Move inventory folder operation failed for {0} {1}, {2} {3}",
+                    folder.Name, folder.ID, e.Source, e.Message);
             }
 
             return false;
@@ -323,8 +324,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Move inventory folder operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Purge inventory folder operation failed for {0} {1}, {2} {3}",
+                    folder.Name, folder.ID, e.Source, e.Message);
             }
 
             return false;
@@ -340,8 +341,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Get folder items operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Get folder items operation failed for folder {0}, {1} {2}",
+                    folderID, e.Source, e.Message);
             }
 
             return null;
@@ -356,8 +357,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Add new inventory item operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Add new inventory item operation failed for {0} {1}, {2} {3}",
+                    item.Name, item.ID, e.Source, e.Message);
             }
 
             return false;
@@ -372,8 +373,8 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Update new inventory item operation failed, {0} {1}",
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Update new inventory item operation failed for {0} {1}, {2} {3}",
+                    item.Name, item.ID, e.Source, e.Message);
             }
 
             return false;
@@ -443,7 +444,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Delete inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Delete inventory items operation failed, {0} {1}",
                      e.Source, e.Message);
             }
 
@@ -475,7 +476,7 @@ namespace OpenSim.Services.Connectors
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Query inventory item operation failed, {0} {1}",
+                m_log.ErrorFormat("[INVENTORY CONNECTOR]: Query inventory folder operation failed, {0} {1}",
                      e.Source, e.Message);
             }
 
@@ -576,9 +577,6 @@ namespace OpenSim.Services.Connectors
             }
 
             callback(folders, items);
-
         }
-
-
     }
 }
