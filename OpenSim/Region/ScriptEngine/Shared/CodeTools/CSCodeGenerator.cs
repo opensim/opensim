@@ -722,8 +722,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (fls.kids.Top is IdentExpression && 1 == fls.kids.Count)
                 return retstr;
 
-            foreach (SYMBOL s in fls.kids)
+            for (int i = 0; i < fls.kids.Count; i++)
             {
+                SYMBOL s = (SYMBOL)fls.kids[i];
+                
+                // Statements surrounded by parentheses in for loops
+                //
+                // e.g.  for ((i = 0), (j = 7); (i < 10); (++i))
+                //
+                // are legal in LSL but not in C# so we need to discard the parentheses
+                //
+                // The following, however, does not appear to be legal in LLS
+                //
+                // for ((i = 0, j = 7); (i < 10); (++i))
+                //
+                // As of Friday 20th November 2009, the Linden Lab simulators appear simply never to compile or run this
+                // script but with no debug or warnings at all!  Therefore, we won't deal with this yet (which looks
+                // like it would be considerably more complicated to handle).
+                while (s is ParenthesisExpression)
+                    s = (SYMBOL)s.kids.Pop();
+                    
                 retstr += GenerateNode(s);
                 if (0 < comma--)
                     retstr += Generate(", ");
