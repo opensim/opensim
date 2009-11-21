@@ -2398,6 +2398,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (!RotationOffset.ApproxEquals(m_lastRotation, ROTATION_TOLERANCE) ||
                     !Acceleration.Equals(m_lastAcceleration) ||
                     !Velocity.ApproxEquals(m_lastVelocity, VELOCITY_TOLERANCE) ||
+                    Velocity.ApproxEquals(Vector3.Zero, VELOCITY_TOLERANCE) ||
                     !AngularVelocity.ApproxEquals(m_lastAngularVelocity, VELOCITY_TOLERANCE) ||
                     !OffsetPosition.ApproxEquals(m_lastPosition, POSITION_TOLERANCE) ||
                     Environment.TickCount - m_lastTerseSent > TIME_MS_TOLERANCE)
