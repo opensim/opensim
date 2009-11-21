@@ -57,7 +57,12 @@ namespace OpenMetaverse
         /// Standard queue for our outgoing SyncBeginPrioritySend
         /// </summary>
         private List<UDPPacketBuffer> m_standardQueue = new List<UDPPacketBuffer>();
-        
+
+        /// <summary>
+        /// Medium priority queue for our outgoing SyncBeginPrioritySend
+        /// </summary>
+        private List<UDPPacketBuffer> m_mediumPriorityQueue = new List<UDPPacketBuffer>();
+
         /// <summary>
         /// Prioritised queue for our outgoing SyncBeginPrioritySend
         /// </summary>
@@ -285,13 +290,16 @@ namespace OpenMetaverse
                     }
                     else
                     {
-                        lock (m_standardQueue)
+                        if (Priority != 0)
                         {
-                            if (Priority != 0)
+                            lock (m_mediumPriorityQueue)
                             {
-                                m_standardQueue.Insert(0, buf);
+                                m_mediumPriorityQueue.Add(buf);
                             }
-                            else
+                        }
+                        else
+                        {
+                            lock (m_standardQueue)
                             {
                                 m_standardQueue.Add(buf);
                             }
@@ -339,17 +347,29 @@ namespace OpenMetaverse
                         }
                         else
                         {
-                            lock (m_standardQueue)
+                            lock (m_mediumPriorityQueue)
                             {
-                                if (m_standardQueue.Count > 0)
+                                if (m_mediumPriorityQueue.Count > 0)
                                 {
-                                    UDPPacketBuffer buf = m_standardQueue[0];
-                                    m_standardQueue.RemoveAt(0);
+                                    UDPPacketBuffer buf = m_mediumPriorityQueue[0];
+                                    m_mediumPriorityQueue.RemoveAt(0);
                                     AsyncBeginSend(buf);
                                 }
                                 else
                                 {
-                                    m_sendingData = false;
+                                    lock (m_standardQueue)
+                                    {
+                                        if (m_standardQueue.Count > 0)
+                                        {
+                                            UDPPacketBuffer buf = m_standardQueue[0];
+                                            m_standardQueue.RemoveAt(0);
+                                            AsyncBeginSend(buf);
+                                        }
+                                        else
+                                        {
+                                            m_sendingData = false;
+                                        }
+                                    }
                                 }
                             }
                         }

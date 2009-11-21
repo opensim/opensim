@@ -578,7 +578,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 SyncBeginPrioritySend(buffer, 2); // highest priority
             }
             else if (outgoingPacket.Type == PacketType.ObjectUpdate
-                || outgoingPacket.Type == PacketType.ChatFromSimulator
                 || outgoingPacket.Type == PacketType.LayerData)
             {
                 SyncBeginPrioritySend(buffer, 1); // medium priority
