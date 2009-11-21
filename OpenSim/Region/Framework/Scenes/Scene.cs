@@ -1266,7 +1266,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
 
-                        m_log.DebugFormat("[REGION]: Enabling Logins for {0}", RegionInfo.RegionName);
+                        m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
                         loginsdisabled = false;
                     }
                 }

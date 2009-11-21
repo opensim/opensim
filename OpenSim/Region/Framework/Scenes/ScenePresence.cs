@@ -995,6 +995,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.TrySetMovementAnimation("LAND");
             SendFullUpdateToAllClients();
+            ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
+                    AbsolutePosition, Velocity, -Vector3.UnitZ, m_bodyRot, Vector4.UnitW, m_uuid, null, GetUpdatePriority(ControllingClient)));
         }
 
         public void AddNeighbourRegion(ulong regionHandle, string cap)
