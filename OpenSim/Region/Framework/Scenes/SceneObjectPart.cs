@@ -2083,6 +2083,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (PhysActor != null)
             {
+                
                 Vector3 newpos = new Vector3(PhysActor.Position.GetBytes(), 0);
                 
                 if (m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.N) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.S) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.E) | m_parentGroup.Scene.TestBorderCross(newpos, Cardinals.W))
@@ -2090,6 +2091,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_parentGroup.AbsolutePosition = newpos;
                     return;
                 }
+                //m_parentGroup.RootPart.m_groupPosition = newpos;
             }
             ScheduleTerseUpdate();
 
@@ -2428,6 +2430,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ClearUpdateSchedule();
                 }
             }
+            ClearUpdateSchedule();
         }
 
         /// <summary>
