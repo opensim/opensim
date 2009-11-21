@@ -73,7 +73,7 @@ namespace OpenSim.Region.Framework.Scenes
 //        {
 //            m_log.Debug("[ScenePresence] Destructor called");
 //        }
-
+        
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly byte[] BAKE_INDICES = new byte[] { 8, 9, 10, 11, 19, 20 };
@@ -144,7 +144,6 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_perfMonMS;
 
         private bool m_setAlwaysRun;
-        
         private bool m_forceFly;
         private bool m_flyDisabled;
 
@@ -166,7 +165,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
 
-        private readonly Vector3[] Dir_Vectors = new Vector3[6];
+        private readonly Vector3[] Dir_Vectors = new Vector3[9];
+        private bool m_isNudging = false;
 
         // Position of agent's camera in world (region cordinates)
         protected Vector3 m_CameraCenter;
@@ -230,6 +230,8 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
             DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
             DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+            DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
+            DIR_CONTROL_FLAG_BACK_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
         
@@ -714,21 +716,41 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[3] = -Vector3.UnitY; //RIGHT
             Dir_Vectors[4] = Vector3.UnitZ; //UP
             Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
-            Dir_Vectors[5] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
+            Dir_Vectors[6] = new Vector3(0.5f, 0f, 0f); //FORWARD_NUDGE
+            Dir_Vectors[7] = new Vector3(-0.5f, 0f, 0f);  //BACK_NUDGE
+            Dir_Vectors[8] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
         private Vector3[] GetWalkDirectionVectors()
         {
-            Vector3[] vector = new Vector3[6];
+            Vector3[] vector = new Vector3[9];
             vector[0] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD
             vector[1] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK
             vector[2] = Vector3.UnitY; //LEFT
             vector[3] = -Vector3.UnitY; //RIGHT
             vector[4] = new Vector3(m_CameraAtAxis.Z, 0f, m_CameraUpAxis.Z); //UP
             vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN
-            vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_Nudge
+            vector[6] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD_NUDGE
+            vector[7] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK_NUDGE
+            vector[8] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_Nudge
             return vector;
         }
+        
+        private bool[] GetDirectionIsNudge()
+        {
+            bool[] isNudge = new bool[9];
+            isNudge[0] = false; //FORWARD
+            isNudge[1] = false; //BACK
+            isNudge[2] = false; //LEFT
+            isNudge[3] = false; //RIGHT
+            isNudge[4] = false; //UP
+            isNudge[5] = false; //DOWN
+            isNudge[6] = true; //FORWARD_NUDGE
+            isNudge[7] = true; //BACK_NUDGE
+            isNudge[8] = true; //DOWN_Nudge
+            return isNudge;
+        }
+
 
         #endregion
 
@@ -1147,7 +1169,6 @@ namespace OpenSim.Region.Framework.Scenes
             //    // m_log.Debug("DEBUG: HandleAgentUpdate: child agent");
             //    return;
             //}
-
             m_perfMonMS = Environment.TickCount;
 
             ++m_movementUpdateCount;
@@ -1229,7 +1250,6 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.PhysicsScene.RaycastWorld(m_pos, Vector3.Normalize(m_CameraCenter - posAdjusted), Vector3.Distance(m_CameraCenter, posAdjusted) + 0.3f, RayCastCameraCallback);
                 }
             }
-
             lock (scriptedcontrols)
             {
                 if (scriptedcontrols.Count > 0)
@@ -1261,7 +1281,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return;
             }
-
             if (m_allowMovement)
             {
                 int i = 0;
@@ -1289,6 +1308,11 @@ namespace OpenSim.Region.Framework.Scenes
                     update_rotation = true;
                 }
 
+                //guilty until proven innocent..
+                bool Nudging = true;
+                //Basically, if there is at least one non-nudge control then we don't need
+                //to worry about stopping the avatar
+
                 if (m_parentID == 0)
                 {
                     bool bAllowUpdateMoveToPosition = false;
@@ -1303,6 +1327,12 @@ namespace OpenSim.Region.Framework.Scenes
                     else
                         dirVectors = Dir_Vectors;
 
+                    bool[] isNudge = GetDirectionIsNudge();
+
+                    
+                    
+                    
+
                     foreach (Dir_ControlFlags DCF in DIR_CONTROL_FLAGS)
                     {
                         if (((uint)flags & (uint)DCF) != 0)
@@ -1312,6 +1342,10 @@ namespace OpenSim.Region.Framework.Scenes
                             try
                             {
                                 agent_control_v3 += dirVectors[i];
+                                if (isNudge[i] == false)
+                                {
+                                    Nudging = false;
+                                }
                             }
                             catch (IndexOutOfRangeException)
                             {
@@ -1373,6 +1407,9 @@ namespace OpenSim.Region.Framework.Scenes
                                 // Ignore z component of vector
                                 Vector3 LocalVectorToTarget2D = new Vector3((float)(LocalVectorToTarget3D.X), (float)(LocalVectorToTarget3D.Y), 0f);
                                 LocalVectorToTarget2D.Normalize();
+                                
+                                //We're not nudging
+                                Nudging = false;
                                 agent_control_v3 += LocalVectorToTarget2D;
 
                                 // update avatar movement flags. the avatar coordinate system is as follows:
@@ -1450,7 +1487,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //                    m_log.DebugFormat(
                     //                        "In {0} adding velocity to {1} of {2}", m_scene.RegionInfo.RegionName, Name, agent_control_v3);
 
-                    AddNewMovement(agent_control_v3, q);
+                    AddNewMovement(agent_control_v3, q, Nudging);
 
                     if (update_movementflag)
                         Animator.UpdateMovementAnimations();
@@ -1886,7 +1923,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="vec">The vector in which to move.  This is relative to the rotation argument</param>
         /// <param name="rotation">The direction in which this avatar should now face.
-        public void AddNewMovement(Vector3 vec, Quaternion rotation)
+        public void AddNewMovement(Vector3 vec, Quaternion rotation, bool Nudging)
         {
             if (m_isChildAgent)
             {
@@ -1960,7 +1997,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             // TODO: Add the force instead of only setting it to support multiple forces per frame?
             m_forceToApply = direc;
-
+            m_isNudging = Nudging;
             m_scene.StatsReporter.AddAgentTime(Environment.TickCount - m_perfMonMS);
         }
 
@@ -1975,7 +2012,7 @@ namespace OpenSim.Region.Framework.Scenes
             const float POSITION_TOLERANCE = 0.05f;
             //const int TIME_MS_TOLERANCE = 3000;
 
-            SendPrimUpdates();
+            
 
             if (m_newCoarseLocations)
             {
@@ -2011,6 +2048,9 @@ namespace OpenSim.Region.Framework.Scenes
                     CheckForBorderCrossing();
                 CheckForSignificantMovement(); // sends update to the modules.
             }
+            
+            //Sending prim updates AFTER the avatar terse updates are sent
+            SendPrimUpdates();
         }
 
         #endregion
@@ -2864,13 +2904,23 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_forceToApply.HasValue)
             {
-                Vector3 force = m_forceToApply.Value;
 
+                Vector3 force = m_forceToApply.Value;
                 m_updateflag = true;
-//                movementvector = force;
                 Velocity = force;
 
                 m_forceToApply = null;
+            }
+            else
+            {
+                if (m_isNudging)
+                {
+                    Vector3 force = Vector3.Zero;
+
+                    m_updateflag = true;
+                    Velocity = force;
+                    m_isNudging = false;
+                }
             }
         }
 

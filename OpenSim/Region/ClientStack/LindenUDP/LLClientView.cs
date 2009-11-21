@@ -3121,7 +3121,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             objupdate.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[1];
             objupdate.ObjectData[0] = CreateAvatarUpdateBlock(data);
-
             OutPacket(objupdate, ThrottleOutPacketType.Task);
         }
 
@@ -3172,8 +3171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     terse.ObjectData[i] = m_avatarTerseUpdates.Dequeue();
             }
 
-            // HACK: Using the task category until the tiered reprioritization code is in
-            OutPacket(terse, ThrottleOutPacketType.Task);
+            OutPacket(terse, ThrottleOutPacketType.State);
         }
 
         public void SendCoarseLocationUpdate(List<UUID> users, List<Vector3> CoarseLocations)

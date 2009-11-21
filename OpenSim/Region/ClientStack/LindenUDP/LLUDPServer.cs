@@ -571,23 +571,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Sorry, i know it's not optimal, but until the LL client
             //manages packets correctly and re-orders them as required, this is necessary.
 
-            if (outgoingPacket.Type == PacketType.ImprovedTerseObjectUpdate 
-                || outgoingPacket.Type == PacketType.ChatFromSimulator 
-                || outgoingPacket.Type == PacketType.ObjectUpdate
+            
+            // Put the UDP payload on the wire
+            if (outgoingPacket.Type == PacketType.ImprovedTerseObjectUpdate)
+            {
+                SyncBeginPrioritySend(buffer, 2); // highest priority
+            }
+            else if (outgoingPacket.Type == PacketType.ObjectUpdate
+                || outgoingPacket.Type == PacketType.ChatFromSimulator
                 || outgoingPacket.Type == PacketType.LayerData)
             {
-                sendSynchronous = true;
-            }
-
-            // Put the UDP payload on the wire
-            if (sendSynchronous == true)
-            {
-                SyncBeginSend(buffer);
+                SyncBeginPrioritySend(buffer, 1); // medium priority
             }
             else
             {
-                AsyncBeginSend(buffer);
+                SyncBeginPrioritySend(buffer, 0); // normal priority
             }
+            
+            //AsyncBeginSend(buffer);
+            
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
@@ -862,7 +864,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Buffer.BlockCopy(packetData, 0, buffer.Data, 0, length);
 
-            AsyncBeginSend(buffer);
+            SyncBeginPrioritySend(buffer, 1); //Setting this to a medium priority should help minimise resends
         }
 
         private bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)

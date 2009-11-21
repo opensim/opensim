@@ -1164,15 +1164,15 @@ namespace OpenSim.Region.Framework.Scenes
                     // Check if any objects have reached their targets
                     CheckAtTargets();
 
-                    // Update SceneObjectGroups that have scheduled themselves for updates
-                    // Objects queue their updates onto all scene presences
-                    if (m_frame % m_update_objects == 0)
-                        m_sceneGraph.UpdateObjectGroups();
-
                     // Run through all ScenePresences looking for updates
                     // Presence updates and queued object updates for each presence are sent to clients
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
+
+                    // Update SceneObjectGroups that have scheduled themselves for updates
+                    // Objects queue their updates onto all scene presences
+                    if (m_frame % m_update_objects == 0)
+                        m_sceneGraph.UpdateObjectGroups();
 
                     int TempPhysicsMS2 = Environment.TickCount;
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
