@@ -350,7 +350,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected IAssetService m_assetService;
         private IHyperAssetService m_hyperAssets;
-
+        private const bool m_checkPackets = true;
 
         #endregion Class Members
 
@@ -4043,7 +4043,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (collisionPlane == Vector4.Zero)
                     collisionPlane = Vector4.UnitW;
-
+                //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
                 collisionPlane.ToBytes(data, pos);
                 pos += 16;
             }
@@ -4128,12 +4128,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.PCode = (byte)PCode.Avatar;
             update.ProfileCurve = 1;
             update.PSBlock = Utils.EmptyBytes;
-            update.Scale = Vector3.One;
+            update.Scale = new Vector3(0.45f,0.6f,1.9f);
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
             update.TextureAnim = Utils.EmptyBytes;
             update.TextureEntry = data.TextureEntry ?? Utils.EmptyBytes;
-            update.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24); // TODO: Replace these numbers with PrimFlags
+            update.UpdateFlags = (uint)(PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner | PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer | PrimFlags.ObjectOwnerModify);//61 + (9 << 8) + (130 << 16) + (16 << 24); // TODO: Replace these numbers with PrimFlags
 
             return update;
         }
@@ -4280,6 +4280,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
             AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest);
             AddLocalPacketHandler(PacketType.GenericMessage, HandleGenericMessage);
+            AddLocalPacketHandler(PacketType.AvatarPropertiesRequest, HandleAvatarPropertiesRequest);
+            AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            AddLocalPacketHandler(PacketType.AvatarPropertiesUpdate, HandlerAvatarPropertiesUpdate);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
         }
 
         #region Packet Handlers
@@ -4492,6 +4497,98 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerViewerEffect(sender, args);
             }
 
+            return true;
+        }
+
+        private bool HandleAvatarPropertiesRequest(IClientAPI sender, Packet Pack)
+        {
+            AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avatarProperties.AgentData.SessionID != SessionId ||
+                    avatarProperties.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RequestAvatarProperties handlerRequestAvatarProperties = OnRequestAvatarProperties;
+            if (handlerRequestAvatarProperties != null)
+            {
+                handlerRequestAvatarProperties(this, avatarProperties.AgentData.AvatarID);
+            }
+            return true;
+        }
+
+        private bool HandleChatFromViewer(IClientAPI sender, Packet Pack)
+        {
+            ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (inchatpack.AgentData.SessionID != SessionId ||
+                    inchatpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            string fromName = String.Empty; //ClientAvatar.firstname + " " + ClientAvatar.lastname;
+            byte[] message = inchatpack.ChatData.Message;
+            byte type = inchatpack.ChatData.Type;
+            Vector3 fromPos = new Vector3(); // ClientAvatar.Pos;
+            // UUID fromAgentID = AgentId;
+
+            int channel = inchatpack.ChatData.Channel;
+
+            if (OnChatFromClient != null)
+            {
+                OSChatMessage args = new OSChatMessage();
+                args.Channel = channel;
+                args.From = fromName;
+                args.Message = Utils.BytesToString(message);
+                args.Type = (ChatTypeEnum)type;
+                args.Position = fromPos;
+
+                args.Scene = Scene;
+                args.Sender = this;
+                args.SenderUUID = this.AgentId;
+
+                ChatMessage handlerChatFromClient = OnChatFromClient;
+                if (handlerChatFromClient != null)
+                    handlerChatFromClient(this, args);
+            }
+            return true;
+        }
+
+        private bool HandlerAvatarPropertiesUpdate(IClientAPI sender, Packet Pack)
+        {
+            AvatarPropertiesUpdatePacket avatarProps = (AvatarPropertiesUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avatarProps.AgentData.SessionID != SessionId ||
+                    avatarProps.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UpdateAvatarProperties handlerUpdateAvatarProperties = OnUpdateAvatarProperties;
+            if (handlerUpdateAvatarProperties != null)
+            {
+                AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = avatarProps.PropertiesData;
+                UserProfileData UserProfile = new UserProfileData();
+                UserProfile.ID = AgentId;
+                UserProfile.AboutText = Utils.BytesToString(Properties.AboutText);
+                UserProfile.FirstLifeAboutText = Utils.BytesToString(Properties.FLAboutText);
+                UserProfile.FirstLifeImage = Properties.FLImageID;
+                UserProfile.Image = Properties.ImageID;
+                UserProfile.ProfileUrl = Utils.BytesToString(Properties.ProfileURL);
+
+                handlerUpdateAvatarProperties(this, UserProfile);
+            }
             return true;
         }
 
@@ -4986,13 +5083,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            const bool m_checkPackets = true;
+            
 
             // Main packet processing conditional
             switch (Pack.Type)
             {
                 #region Scene/Avatar
-
+                /*
                 case PacketType.AvatarPropertiesRequest:
                     AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
@@ -5012,7 +5109,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-
+                
                 case PacketType.ChatFromViewer:
                     ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
 
@@ -5051,7 +5148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerChatFromClient(this, args);
                     }
                     break;
-
+                
                 case PacketType.AvatarPropertiesUpdate:
                     AvatarPropertiesUpdatePacket avatarProps = (AvatarPropertiesUpdatePacket)Pack;
 
@@ -5079,7 +5176,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerUpdateAvatarProperties(this, UserProfile);
                     }
                     break;
-
+                */
                 case PacketType.ScriptDialogReply:
                     ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
 
