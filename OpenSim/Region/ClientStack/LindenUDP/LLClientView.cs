@@ -4060,7 +4060,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (collisionPlane == Vector4.Zero)
                     collisionPlane = Vector4.UnitW;
-
+                //m_log.DebugFormat("CollisionPlane: {0}",collisionPlane);
                 collisionPlane.ToBytes(data, pos);
                 pos += 16;
             }
@@ -4145,12 +4145,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             update.PCode = (byte)PCode.Avatar;
             update.ProfileCurve = 1;
             update.PSBlock = Utils.EmptyBytes;
-            update.Scale = Vector3.One;
+            update.Scale = new Vector3(0.45f,0.6f,1.9f);
             update.Text = Utils.EmptyBytes;
             update.TextColor = new byte[4];
             update.TextureAnim = Utils.EmptyBytes;
             update.TextureEntry = data.TextureEntry ?? Utils.EmptyBytes;
-            update.UpdateFlags = 61 + (9 << 8) + (130 << 16) + (16 << 24); // TODO: Replace these numbers with PrimFlags
+            update.UpdateFlags = (uint)(PrimFlags.Physics | PrimFlags.ObjectModify | PrimFlags.ObjectCopy | PrimFlags.ObjectAnyOwner | PrimFlags.ObjectYouOwner | PrimFlags.ObjectMove | PrimFlags.InventoryEmpty | PrimFlags.ObjectTransfer | PrimFlags.ObjectOwnerModify);//61 + (9 << 8) + (130 << 16) + (16 << 24); // TODO: Replace these numbers with PrimFlags
 
             return update;
         }
