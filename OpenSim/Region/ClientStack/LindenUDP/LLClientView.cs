@@ -4283,6 +4283,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.AvatarPropertiesRequest, HandleAvatarPropertiesRequest);
             AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             AddLocalPacketHandler(PacketType.AvatarPropertiesUpdate, HandlerAvatarPropertiesUpdate);
+            AddLocalPacketHandler(PacketType.ScriptDialogReply, HandlerScriptDialogReply);
+            AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage);
+            AddLocalPacketHandler(PacketType.AcceptFriendship, HandlerAcceptFriendship);
+            AddLocalPacketHandler(PacketType.DeclineFriendship, HandlerDeclineFriendship);
+            AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFrendship);
+            AddLocalPacketHandler(PacketType.RezObject, HandlerRezObject);
+            AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
+            AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
+            AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply);
+            AddLocalPacketHandler(PacketType.AgentWearablesRequest, HandlerAgentWearablesRequest);
+            AddLocalPacketHandler(PacketType.AgentSetAppearance, HandlerAgentSetAppearance);
+            AddLocalPacketHandler(PacketType.AgentIsNowWearing, HandlerAgentIsNowWearing);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
         }
@@ -4588,6 +4603,356 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 UserProfile.ProfileUrl = Utils.BytesToString(Properties.ProfileURL);
 
                 handlerUpdateAvatarProperties(this, UserProfile);
+            }
+            return true;
+        }
+
+        private bool HandlerScriptDialogReply(IClientAPI sender, Packet Pack)
+        {
+            ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (rdialog.AgentData.SessionID != SessionId ||
+                    rdialog.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            int ch = rdialog.Data.ChatChannel;
+            byte[] msg = rdialog.Data.ButtonLabel;
+            if (OnChatFromClient != null)
+            {
+                OSChatMessage args = new OSChatMessage();
+                args.Channel = ch;
+                args.From = String.Empty;
+                args.Message = Utils.BytesToString(msg);
+                args.Type = ChatTypeEnum.Shout;
+                args.Position = new Vector3();
+                args.Scene = Scene;
+                args.Sender = this;
+                ChatMessage handlerChatFromClient2 = OnChatFromClient;
+                if (handlerChatFromClient2 != null)
+                    handlerChatFromClient2(this, args);
+            }
+
+            return true;
+        }
+
+        private bool HandlerImprovedInstantMessage(IClientAPI sender, Packet Pack)
+        {
+            ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (msgpack.AgentData.SessionID != SessionId ||
+                    msgpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            string IMfromName = Util.FieldToString(msgpack.MessageBlock.FromAgentName);
+            string IMmessage = Utils.BytesToString(msgpack.MessageBlock.Message);
+            ImprovedInstantMessage handlerInstantMessage = OnInstantMessage;
+
+            if (handlerInstantMessage != null)
+            {
+                GridInstantMessage im = new GridInstantMessage(Scene,
+                        msgpack.AgentData.AgentID,
+                        IMfromName,
+                        msgpack.MessageBlock.ToAgentID,
+                        msgpack.MessageBlock.Dialog,
+                        msgpack.MessageBlock.FromGroup,
+                        IMmessage,
+                        msgpack.MessageBlock.ID,
+                        msgpack.MessageBlock.Offline != 0 ? true : false,
+                        msgpack.MessageBlock.Position,
+                        msgpack.MessageBlock.BinaryBucket);
+
+                handlerInstantMessage(this, im);
+            }
+            return true;
+
+        }
+
+        private bool HandlerAcceptFriendship(IClientAPI sender, Packet Pack)
+        {
+            AcceptFriendshipPacket afriendpack = (AcceptFriendshipPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (afriendpack.AgentData.SessionID != SessionId ||
+                    afriendpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            // My guess is this is the folder to stick the calling card into
+            List<UUID> callingCardFolders = new List<UUID>();
+
+            UUID agentID = afriendpack.AgentData.AgentID;
+            UUID transactionID = afriendpack.TransactionBlock.TransactionID;
+
+            for (int fi = 0; fi < afriendpack.FolderData.Length; fi++)
+            {
+                callingCardFolders.Add(afriendpack.FolderData[fi].FolderID);
+            }
+
+            FriendActionDelegate handlerApproveFriendRequest = OnApproveFriendRequest;
+            if (handlerApproveFriendRequest != null)
+            {
+                handlerApproveFriendRequest(this, agentID, transactionID, callingCardFolders);
+            }
+            return true;
+
+        }
+
+        private bool HandlerDeclineFriendship(IClientAPI sender, Packet Pack)
+        {
+            DeclineFriendshipPacket dfriendpack = (DeclineFriendshipPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dfriendpack.AgentData.SessionID != SessionId ||
+                    dfriendpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnDenyFriendRequest != null)
+            {
+                OnDenyFriendRequest(this,
+                                    dfriendpack.AgentData.AgentID,
+                                    dfriendpack.TransactionBlock.TransactionID,
+                                    null);
+            }
+            return true;
+        }
+
+        private bool HandlerTerminateFrendship(IClientAPI sender, Packet Pack)
+        {
+            TerminateFriendshipPacket tfriendpack = (TerminateFriendshipPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (tfriendpack.AgentData.SessionID != SessionId ||
+                    tfriendpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UUID listOwnerAgentID = tfriendpack.AgentData.AgentID;
+            UUID exFriendID = tfriendpack.ExBlock.OtherID;
+
+            FriendshipTermination handlerTerminateFriendship = OnTerminateFriendship;
+            if (handlerTerminateFriendship != null)
+            {
+                handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
+            }
+            return true;
+        }
+
+        private bool HandlerRezObject(IClientAPI sender, Packet Pack)
+        {
+            RezObjectPacket rezPacket = (RezObjectPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (rezPacket.AgentData.SessionID != SessionId ||
+                    rezPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RezObject handlerRezObject = OnRezObject;
+            if (handlerRezObject != null)
+            {
+                handlerRezObject(this, rezPacket.InventoryData.ItemID, rezPacket.RezData.RayEnd,
+                                 rezPacket.RezData.RayStart, rezPacket.RezData.RayTargetID,
+                                 rezPacket.RezData.BypassRaycast, rezPacket.RezData.RayEndIsIntersection,
+                                 rezPacket.RezData.RezSelected, rezPacket.RezData.RemoveItem,
+                                 rezPacket.RezData.FromTaskID);
+            }
+            return true;
+        }
+
+        private bool HandlerDeRezObject(IClientAPI sender, Packet Pack)
+        {
+            DeRezObjectPacket DeRezPacket = (DeRezObjectPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (DeRezPacket.AgentData.SessionID != SessionId ||
+                    DeRezPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DeRezObject handlerDeRezObject = OnDeRezObject;
+            if (handlerDeRezObject != null)
+            {
+                List<uint> deRezIDs = new List<uint>();
+
+                foreach (DeRezObjectPacket.ObjectDataBlock data in
+                    DeRezPacket.ObjectData)
+                {
+                    deRezIDs.Add(data.ObjectLocalID);
+                }
+                // It just so happens that the values on the DeRezAction enumerator match the Destination
+                // values given by a Second Life client
+                handlerDeRezObject(this, deRezIDs,
+                                   DeRezPacket.AgentBlock.GroupID,
+                                   (DeRezAction)DeRezPacket.AgentBlock.Destination,
+                                   DeRezPacket.AgentBlock.DestinationID);
+
+            }
+            return true;
+        }
+
+        private bool HandlerModifyLand(IClientAPI sender, Packet Pack)
+        {
+            ModifyLandPacket modify = (ModifyLandPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (modify.AgentData.SessionID != SessionId ||
+                    modify.AgentData.AgentID != AgentId)
+                    return true;
+            }
+
+            #endregion
+            //m_log.Info("[LAND]: LAND:" + modify.ToString());
+            if (modify.ParcelData.Length > 0)
+            {
+                if (OnModifyTerrain != null)
+                {
+                    for (int i = 0; i < modify.ParcelData.Length; i++)
+                    {
+                        ModifyTerrain handlerModifyTerrain = OnModifyTerrain;
+                        if (handlerModifyTerrain != null)
+                        {
+                            handlerModifyTerrain(AgentId, modify.ModifyBlock.Height, modify.ModifyBlock.Seconds,
+                                                 modify.ModifyBlock.BrushSize,
+                                                 modify.ModifyBlock.Action, modify.ParcelData[i].North,
+                                                 modify.ParcelData[i].West, modify.ParcelData[i].South,
+                                                 modify.ParcelData[i].East, AgentId);
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private bool HandlerRegionHandshakeReply(IClientAPI sender, Packet Pack)
+        {
+            Action<IClientAPI> handlerRegionHandShakeReply = OnRegionHandShakeReply;
+            if (handlerRegionHandShakeReply != null)
+            {
+                handlerRegionHandShakeReply(this);
+            }
+
+            return true;
+        }
+
+        private bool HandlerAgentWearablesRequest(IClientAPI sender, Packet Pack)
+        {
+            GenericCall2 handlerRequestWearables = OnRequestWearables;
+
+            if (handlerRequestWearables != null)
+            {
+                handlerRequestWearables();
+            }
+
+            Action<IClientAPI> handlerRequestAvatarsData = OnRequestAvatarsData;
+
+            if (handlerRequestAvatarsData != null)
+            {
+                handlerRequestAvatarsData(this);
+            }
+
+            return true;
+        }
+
+        private bool HandlerAgentSetAppearance(IClientAPI sender, Packet Pack)
+        {
+            AgentSetAppearancePacket appear = (AgentSetAppearancePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (appear.AgentData.SessionID != SessionId ||
+                    appear.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            SetAppearance handlerSetAppearance = OnSetAppearance;
+            if (handlerSetAppearance != null)
+            {
+                // Temporarily protect ourselves from the mantis #951 failure.
+                // However, we could do this for several other handlers where a failure isn't terminal
+                // for the client session anyway, in order to protect ourselves against bad code in plugins
+                try
+                {
+                    byte[] visualparams = new byte[appear.VisualParam.Length];
+                    for (int i = 0; i < appear.VisualParam.Length; i++)
+                        visualparams[i] = appear.VisualParam[i].ParamValue;
+
+                    Primitive.TextureEntry te = null;
+                    if (appear.ObjectData.TextureEntry.Length > 1)
+                        te = new Primitive.TextureEntry(appear.ObjectData.TextureEntry, 0, appear.ObjectData.TextureEntry.Length);
+
+                    handlerSetAppearance(te, visualparams);
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[CLIENT VIEW]: AgentSetApperance packet handler threw an exception, {0}",
+                        e);
+                }
+            }
+
+            return true;
+        }
+
+        private bool HandlerAgentIsNowWearing(IClientAPI sender, Packet Pack)
+        {
+            if (OnAvatarNowWearing != null)
+            {
+                AgentIsNowWearingPacket nowWearing = (AgentIsNowWearingPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (nowWearing.AgentData.SessionID != SessionId ||
+                        nowWearing.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                AvatarWearingArgs wearingArgs = new AvatarWearingArgs();
+                for (int i = 0; i < nowWearing.WearableData.Length; i++)
+                {
+                    AvatarWearingArgs.Wearable wearable =
+                        new AvatarWearingArgs.Wearable(nowWearing.WearableData[i].ItemID,
+                                                       nowWearing.WearableData[i].WearableType);
+                    wearingArgs.NowWearing.Add(wearable);
+                }
+
+                AvatarNowWearing handlerAvatarNowWearing = OnAvatarNowWearing;
+                if (handlerAvatarNowWearing != null)
+                {
+                    handlerAvatarNowWearing(this, wearingArgs);
+                }
             }
             return true;
         }
@@ -5089,6 +5454,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             switch (Pack.Type)
             {
                 #region Scene/Avatar
+                #region CommentedOut
                 /*
                 case PacketType.AvatarPropertiesRequest:
                     AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
@@ -5176,7 +5542,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerUpdateAvatarProperties(this, UserProfile);
                     }
                     break;
-                */
+                
                 case PacketType.ScriptDialogReply:
                     ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
 
@@ -5207,7 +5573,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-
+                
                 case PacketType.ImprovedInstantMessage:
                     ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
 
@@ -5241,7 +5607,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerInstantMessage(this, im);
                     }
                     break;
-
+                
                 case PacketType.AcceptFriendship:
                     AcceptFriendshipPacket afriendpack = (AcceptFriendshipPacket)Pack;
 
@@ -5314,7 +5680,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
                     }
                     break;
-
+                                    
                 case PacketType.RezObject:
                     RezObjectPacket rezPacket = (RezObjectPacket)Pack;
 
@@ -5369,7 +5735,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
-
+                
                 case PacketType.ModifyLand:
                     ModifyLandPacket modify = (ModifyLandPacket)Pack;
 
@@ -5501,7 +5867,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
-
+*/
+                #endregion
                 case PacketType.RezSingleAttachmentFromInv:
                     RezSingleAttachmentFromInv handlerRezSingleAttachment = OnRezSingleAttachmentFromInv;
                     if (handlerRezSingleAttachment != null)
