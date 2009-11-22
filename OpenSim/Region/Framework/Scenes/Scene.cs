@@ -387,6 +387,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return StatsReporter.getLastReportedSimFPS(); }
         }
+		
+		public float[] SimulatorStats
+		{
+			get { return StatsReporter.getLastReportedSimStats(); }
+		}
 
         public string DefaultScriptEngine
         {

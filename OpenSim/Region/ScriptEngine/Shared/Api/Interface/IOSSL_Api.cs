@@ -162,5 +162,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
+		LSL_List osGetRegionStats();
     }
 }

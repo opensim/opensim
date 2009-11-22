@@ -1948,5 +1948,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return key.ToString();
         }
+		
+		public LSL_List osGetRegionStats()
+		{
+            CheckThreatLevel(ThreatLevel.High, "osGetRegionStats");
+            m_host.AddScriptLPS(1);
+            LSL_List ret = new LSL_List();
+			float[] stats = World.SimulatorStats;
+			
+			for (int i = 0; i < 21; i++)
+			{
+				ret.Add(new LSL_Float( stats[i] ));
+			}
+			return ret;
+		}
+
     }
 }
