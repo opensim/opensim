@@ -4300,8 +4300,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.AvatarPropertiesRequest, HandleAvatarPropertiesRequest);
             AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             AddLocalPacketHandler(PacketType.AvatarPropertiesUpdate, HandlerAvatarPropertiesUpdate);
-            AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
         }
 
         #region Packet Handlers
