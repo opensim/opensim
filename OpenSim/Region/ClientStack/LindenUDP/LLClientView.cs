@@ -4312,11 +4312,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.AgentWearablesRequest, HandlerAgentWearablesRequest);
             AddLocalPacketHandler(PacketType.AgentSetAppearance, HandlerAgentSetAppearance);
             AddLocalPacketHandler(PacketType.AgentIsNowWearing, HandlerAgentIsNowWearing);
+            AddLocalPacketHandler(PacketType.RezSingleAttachmentFromInv, HandlerRezSingleAttachmentFromInv);
+            AddLocalPacketHandler(PacketType.RezMultipleAttachmentsFromInv, HandleRezMultipleAttachmentsFromInv);
+            AddLocalPacketHandler(PacketType.DetachAttachmentIntoInv, HandleDetachAttachmentIntoInv);
+            AddLocalPacketHandler(PacketType.ObjectAttach, HandleObjectAttach);
+            AddLocalPacketHandler(PacketType.ObjectDetach, HandleObjectDetach);
+            AddLocalPacketHandler(PacketType.ObjectDrop, HandleObjectDrop);
+            AddLocalPacketHandler(PacketType.SetAlwaysRun, HandleSetAlwaysRun);
+            AddLocalPacketHandler(PacketType.CompleteAgentMovement, HandleCompleteAgentMovement);
+            AddLocalPacketHandler(PacketType.AgentAnimation, HandleAgentAnimation);
+            AddLocalPacketHandler(PacketType.AgentRequestSit, HandleAgentRequestSit);
+            AddLocalPacketHandler(PacketType.AgentSit, HandleAgentSit);
+            AddLocalPacketHandler(PacketType.SoundTrigger, HandleSoundTrigger);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+
         }
 
         #region Packet Handlers
@@ -4973,6 +4985,281 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return true;
         }
+
+        private bool HandlerRezSingleAttachmentFromInv(IClientAPI sender, Packet Pack)
+        {
+            RezSingleAttachmentFromInv handlerRezSingleAttachment = OnRezSingleAttachmentFromInv;
+            if (handlerRezSingleAttachment != null)
+            {
+                RezSingleAttachmentFromInvPacket rez = (RezSingleAttachmentFromInvPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (rez.AgentData.SessionID != SessionId ||
+                        rez.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                handlerRezSingleAttachment(this, rez.ObjectData.ItemID,
+                                           rez.ObjectData.AttachmentPt);
+            }
+
+            return true;
+        }
+
+        private bool HandleRezMultipleAttachmentsFromInv(IClientAPI sender, Packet Pack)
+        {
+            RezMultipleAttachmentsFromInv handlerRezMultipleAttachments = OnRezMultipleAttachmentsFromInv;
+            if (handlerRezMultipleAttachments != null)
+            {
+                RezMultipleAttachmentsFromInvPacket rez = (RezMultipleAttachmentsFromInvPacket)Pack;
+                handlerRezMultipleAttachments(this, rez.HeaderData,
+                                              rez.ObjectData);
+            }
+
+            return true;
+        }
+
+        private bool HandleDetachAttachmentIntoInv(IClientAPI sender, Packet Pack)
+        {
+            UUIDNameRequest handlerDetachAttachmentIntoInv = OnDetachAttachmentIntoInv;
+            if (handlerDetachAttachmentIntoInv != null)
+            {
+                DetachAttachmentIntoInvPacket detachtoInv = (DetachAttachmentIntoInvPacket)Pack;
+
+                #region Packet Session and User Check
+                // UNSUPPORTED ON THIS PACKET
+                #endregion
+
+                UUID itemID = detachtoInv.ObjectData.ItemID;
+                // UUID ATTACH_agentID = detachtoInv.ObjectData.AgentID;
+
+                handlerDetachAttachmentIntoInv(itemID, this);
+            }
+            return true;
+        }
+
+        private bool HandleObjectAttach(IClientAPI sender, Packet Pack)
+        {
+            if (OnObjectAttach != null)
+            {
+                ObjectAttachPacket att = (ObjectAttachPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (att.AgentData.SessionID != SessionId ||
+                        att.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                ObjectAttach handlerObjectAttach = OnObjectAttach;
+
+                if (handlerObjectAttach != null)
+                {
+                    if (att.ObjectData.Length > 0)
+                    {
+                        handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation, false);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectDetach(IClientAPI sender, Packet Pack)
+        {
+            ObjectDetachPacket dett = (ObjectDetachPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dett.AgentData.SessionID != SessionId ||
+                    dett.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            for (int j = 0; j < dett.ObjectData.Length; j++)
+            {
+                uint obj = dett.ObjectData[j].ObjectLocalID;
+                ObjectDeselect handlerObjectDetach = OnObjectDetach;
+                if (handlerObjectDetach != null)
+                {
+                    handlerObjectDetach(obj, this);
+                }
+
+            }
+            return true;
+        }
+
+        private bool HandleObjectDrop(IClientAPI sender, Packet Pack)
+        {
+            ObjectDropPacket dropp = (ObjectDropPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dropp.AgentData.SessionID != SessionId ||
+                    dropp.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            for (int j = 0; j < dropp.ObjectData.Length; j++)
+            {
+                uint obj = dropp.ObjectData[j].ObjectLocalID;
+                ObjectDrop handlerObjectDrop = OnObjectDrop;
+                if (handlerObjectDrop != null)
+                {
+                    handlerObjectDrop(obj, this);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleSetAlwaysRun(IClientAPI sender, Packet Pack)
+        {
+            SetAlwaysRunPacket run = (SetAlwaysRunPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (run.AgentData.SessionID != SessionId ||
+                    run.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            SetAlwaysRun handlerSetAlwaysRun = OnSetAlwaysRun;
+            if (handlerSetAlwaysRun != null)
+                handlerSetAlwaysRun(this, run.AgentData.AlwaysRun);
+
+            return true;
+        }
+
+        private bool HandleCompleteAgentMovement(IClientAPI sender, Packet Pack)
+        {
+            GenericCall2 handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
+            if (handlerCompleteMovementToRegion != null)
+            {
+                handlerCompleteMovementToRegion();
+            }
+            handlerCompleteMovementToRegion = null;
+
+            return true;
+        }
+
+        private bool HandleAgentAnimation(IClientAPI sender, Packet Pack)
+        {
+            AgentAnimationPacket AgentAni = (AgentAnimationPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (AgentAni.AgentData.SessionID != SessionId ||
+                    AgentAni.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            StartAnim handlerStartAnim = null;
+            StopAnim handlerStopAnim = null;
+
+            for (int i = 0; i < AgentAni.AnimationList.Length; i++)
+            {
+                if (AgentAni.AnimationList[i].StartAnim)
+                {
+                    handlerStartAnim = OnStartAnim;
+                    if (handlerStartAnim != null)
+                    {
+                        handlerStartAnim(this, AgentAni.AnimationList[i].AnimID);
+                    }
+                }
+                else
+                {
+                    handlerStopAnim = OnStopAnim;
+                    if (handlerStopAnim != null)
+                    {
+                        handlerStopAnim(this, AgentAni.AnimationList[i].AnimID);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleAgentRequestSit(IClientAPI sender, Packet Pack)
+        {
+            if (OnAgentRequestSit != null)
+            {
+                AgentRequestSitPacket agentRequestSit = (AgentRequestSitPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (agentRequestSit.AgentData.SessionID != SessionId ||
+                        agentRequestSit.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                AgentRequestSit handlerAgentRequestSit = OnAgentRequestSit;
+                if (handlerAgentRequestSit != null)
+                    handlerAgentRequestSit(this, agentRequestSit.AgentData.AgentID,
+                                           agentRequestSit.TargetObject.TargetID, agentRequestSit.TargetObject.Offset);
+            }
+            return true;
+        }
+
+        private bool HandleAgentSit(IClientAPI sender, Packet Pack)
+        {
+            if (OnAgentSit != null)
+            {
+                AgentSitPacket agentSit = (AgentSitPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (agentSit.AgentData.SessionID != SessionId ||
+                        agentSit.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                AgentSit handlerAgentSit = OnAgentSit;
+                if (handlerAgentSit != null)
+                {
+                    OnAgentSit(this, agentSit.AgentData.AgentID);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleSoundTrigger(IClientAPI sender, Packet Pack)
+        {
+            SoundTriggerPacket soundTriggerPacket = (SoundTriggerPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                // UNSUPPORTED ON THIS PACKET
+            }
+            #endregion
+
+            SoundTrigger handlerSoundTrigger = OnSoundTrigger;
+            if (handlerSoundTrigger != null)
+            {
+                handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, soundTriggerPacket.SoundData.OwnerID,
+                    soundTriggerPacket.SoundData.ObjectID, soundTriggerPacket.SoundData.ParentID,
+                    soundTriggerPacket.SoundData.Gain, soundTriggerPacket.SoundData.Position,
+                    soundTriggerPacket.SoundData.Handle);
+
+            }
+            return true;
+        }
+
 
         #endregion Packet Handlers
 
@@ -5884,8 +6171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
-*/
-                #endregion
+
                 case PacketType.RezSingleAttachmentFromInv:
                     RezSingleAttachmentFromInv handlerRezSingleAttachment = OnRezSingleAttachmentFromInv;
                     if (handlerRezSingleAttachment != null)
@@ -5917,7 +6203,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-
+                
                 case PacketType.DetachAttachmentIntoInv:
                     UUIDNameRequest handlerDetachAttachmentIntoInv = OnDetachAttachmentIntoInv;
                     if (handlerDetachAttachmentIntoInv != null)
@@ -6025,7 +6311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerSetAlwaysRun(this, run.AgentData.AlwaysRun);
 
                     break;
-
+                
                 case PacketType.CompleteAgentMovement:
                     GenericCall2 handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
                     if (handlerCompleteMovementToRegion != null)
@@ -6135,7 +6421,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
-
+                */
+                #endregion
                 case PacketType.AvatarPickerRequest:
                     AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
 
