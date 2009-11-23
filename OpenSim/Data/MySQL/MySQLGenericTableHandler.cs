@@ -135,7 +135,7 @@ namespace OpenSim.Data.MySQL
 
             List<T> result = new List<T>();
 
-            while(reader.Read())
+            while (reader.Read())
             {
                 T row = new T();
 
@@ -146,7 +146,7 @@ namespace OpenSim.Data.MySQL
                         int v = Convert.ToInt32(reader[name]);
                         m_Fields[name].SetValue(row, v != 0 ? true : false);
                     }
-                    else if(m_Fields[name].GetValue(row) is UUID)
+                    else if (m_Fields[name].GetValue(row) is UUID)
                     {
                         UUID uuid = UUID.Zero;
 

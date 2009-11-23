@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             m_uuidGatherer.GatherAssetUuids(corruptAssetUuid, AssetType.Object, foundAssetUuids);
 
             // We count the uuid as gathered even if the asset itself is corrupt.
-            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));            
+            Assert.That(foundAssetUuids.Count, Is.EqualTo(1));
         }
         
         /// <summary>
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         {
             TestHelper.InMethod();
             
-            UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");            
+            UUID missingAssetUuid = UUID.Parse("00000000-0000-0000-0000-000000000666");
             IDictionary<UUID, int> foundAssetUuids = new Dictionary<UUID, int>();
             
             m_uuidGatherer.GatherAssetUuids(missingAssetUuid, AssetType.Object, foundAssetUuids);

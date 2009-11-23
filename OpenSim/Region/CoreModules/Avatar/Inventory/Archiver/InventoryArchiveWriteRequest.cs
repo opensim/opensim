@@ -270,7 +270,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     inventoryFolder.Name, inventoryFolder.ID, m_invPath);
 
                 //recurse through all dirs getting dirs and files
-                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);                                
+                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
             }
             else if (inventoryItem != null)
             {
@@ -278,7 +278,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
                     inventoryItem.Name, inventoryItem.ID, m_invPath);
 
-                SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);                
+                SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);
             }
             else
             {
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", errorMessage);
                 m_module.TriggerInventoryArchiveSaved(
                     m_id, false, m_userInfo, m_invPath, m_saveStream,
-                    new Exception(errorMessage));                
+                    new Exception(errorMessage));
                 return;
             }
 

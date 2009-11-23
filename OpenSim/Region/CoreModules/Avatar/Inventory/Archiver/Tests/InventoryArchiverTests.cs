@@ -133,7 +133,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);           
+            scene.AddInventoryItem(userId, item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -348,7 +348,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             InventoryFolderBase objsFolder 
                 = InventoryArchiveUtils.FindFolderByPath(scene.InventoryService, userId, "Objects");
             item1.Folder = objsFolder.ID;
-            scene.AddInventoryItem(userId, item1);           
+            scene.AddInventoryItem(userId, item1);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             archiverModule.OnInventoryArchiveSaved += SaveCompleted;
@@ -356,7 +356,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
             mre.Reset();
             archiverModule.ArchiveInventory(
                 Guid.NewGuid(), userFirstName, userLastName, "Objects", userPassword, archiveWriteStream);
-            mre.WaitOne(60000, false);           
+            mre.WaitOne(60000, false);
 
             // LOAD ITEM
             MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
@@ -373,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
 //                "Loaded item non-uuid creator doesn't match that of the loading user");
             Assert.That(
                 foundItem1.Name, Is.EqualTo(itemName), 
-                "Loaded item name doesn't match saved name");            
+                "Loaded item name doesn't match saved name");
         }
 
         /// <summary>

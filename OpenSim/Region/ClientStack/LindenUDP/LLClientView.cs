@@ -823,7 +823,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Column
             for (int j = y1 + 1; j <= y2; j++)
                 SendLayerData(x2, j, map);
-     
+
             if (x2 - x1 > 0)
                 SendLayerBottomLeft(map, x1, y1 + 1, x2 - 1, y2);
         }
@@ -1281,10 +1281,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //
             if (totalItems == 0 && totalFolders == 0)
                 currentPacket = CreateInventoryDescendentsPacket(ownerID, folderID, version, items.Count + folders.Count, 0, 0);
-            
+
             // To preserve SL compatibility, we will NOT combine folders and items in one packet
             //
-            while(itemsSent < totalItems || foldersSent < totalFolders)
+            while (itemsSent < totalItems || foldersSent < totalFolders)
             {
                 if (currentPacket == null) // Start a new packet
                 {
@@ -1304,7 +1304,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (foldersToSend-- > 0)
                     currentPacket.FolderData[foldersSent % MAX_FOLDERS_PER_PACKET] = CreateFolderDataBlock(folders[foldersSent++]);
-                else if(itemsToSend-- > 0)
+                else if (itemsToSend-- > 0)
                     currentPacket.ItemData[itemsSent % MAX_ITEMS_PER_PACKET] = CreateItemDataBlock(items[itemsSent++]);
                 else
                 {
@@ -2058,7 +2058,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.AgentData.SessionID = SessionId;
 
             packet.Effect = effectBlocks;
-            
+
             OutPacket(packet, ThrottleOutPacketType.State);
         }
 
@@ -2757,7 +2757,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              }
              llsd.Add("GroupData", GroupData);
              llsd.Add("NewGroupData", NewGroupData);
- 
+
              IEventQueue eq = this.Scene.RequestModuleInterface<IEventQueue>();
              if (eq != null)
              {
@@ -5752,8 +5752,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            
-
             // Main packet processing conditional
             switch (Pack.Type)
             {
@@ -5779,7 +5777,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-                
+
                 case PacketType.ChatFromViewer:
                     ChatFromViewerPacket inchatpack = (ChatFromViewerPacket)Pack;
 
@@ -5818,7 +5816,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerChatFromClient(this, args);
                     }
                     break;
-                
+
                 case PacketType.AvatarPropertiesUpdate:
                     AvatarPropertiesUpdatePacket avatarProps = (AvatarPropertiesUpdatePacket)Pack;
 
@@ -5846,7 +5844,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerUpdateAvatarProperties(this, UserProfile);
                     }
                     break;
-                
+
                 case PacketType.ScriptDialogReply:
                     ScriptDialogReplyPacket rdialog = (ScriptDialogReplyPacket)Pack;
 
@@ -5877,7 +5875,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-                
+
                 case PacketType.ImprovedInstantMessage:
                     ImprovedInstantMessagePacket msgpack = (ImprovedInstantMessagePacket)Pack;
 
@@ -5911,7 +5909,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerInstantMessage(this, im);
                     }
                     break;
-                
+
                 case PacketType.AcceptFriendship:
                     AcceptFriendshipPacket afriendpack = (AcceptFriendshipPacket)Pack;
 
@@ -5984,7 +5982,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerTerminateFriendship(this, listOwnerAgentID, exFriendID);
                     }
                     break;
-                                    
+
                 case PacketType.RezObject:
                     RezObjectPacket rezPacket = (RezObjectPacket)Pack;
 
@@ -6039,7 +6037,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
-                
+
                 case PacketType.ModifyLand:
                     ModifyLandPacket modify = (ModifyLandPacket)Pack;
 
@@ -6203,7 +6201,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
-                
+
                 case PacketType.DetachAttachmentIntoInv:
                     UUIDNameRequest handlerDetachAttachmentIntoInv = OnDetachAttachmentIntoInv;
                     if (handlerDetachAttachmentIntoInv != null)
@@ -6311,7 +6309,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerSetAlwaysRun(this, run.AgentData.AlwaysRun);
 
                     break;
-                
+
                 case PacketType.CompleteAgentMovement:
                     GenericCall2 handlerCompleteMovementToRegion = OnCompleteMovementToRegion;
                     if (handlerCompleteMovementToRegion != null)
@@ -10479,7 +10477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
                             Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
                     break;
-				                    
+
                 case PacketType.GrantUserRights:
                     GrantUserRightsPacket GrantUserRights =
                             (GrantUserRightsPacket)Pack;
@@ -10498,7 +10496,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             GrantUserRights.Rights[0].AgentRelated,
                             GrantUserRights.Rights[0].RelatedRights);
                     break;
-                    
+
                 case PacketType.PlacesQuery:
                     PlacesQueryPacket placesQueryPacket =
                             (PlacesQueryPacket)Pack;
