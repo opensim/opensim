@@ -89,7 +89,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
         /// issue #1716
         /// </summary>
-        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
+//        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
+        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.418f);
 
         public UUID currentParcelUUID = UUID.Zero;
 
@@ -113,7 +114,8 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 lastKnownAllowedPosition;
         public bool sentMessageAboutRestrictedParcelFlyingDown;
         public Vector4 CollisionPlane = Vector4.UnitW;
-
+        
+		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
@@ -1575,7 +1577,7 @@ namespace OpenSim.Region.Framework.Scenes
                         Velocity = Vector3.Zero;
                         SendFullUpdateToAllClients();
 
-                        //HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);
+                        HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);  //KF ??
                     }
                     //ControllingClient.SendSitResponse(m_requestedSitTargetID, m_requestedSitOffset, Quaternion.Identity, false, Vector3.Zero, Vector3.Zero, false);
                     m_requestedSitTargetUUID = UUID.Zero;
@@ -1688,7 +1690,7 @@ namespace OpenSim.Region.Framework.Scenes
                 bool SitTargetisSet =
                     (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f && avSitOrientation.W == 1f &&
                        avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f));
-
+							// this test is probably failing
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
                     //switch the target to this prim
@@ -1715,26 +1717,37 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // TODO: determine position to sit at based on scene geometry; don't trust offset from client
                 // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
-
+                
+				// part is the prim to sit on
+				// offset is the vector distance from that prim center to the click-spot
+				// UUID  is the UUID of the Avatar doing the clicking
+				
+				m_avInitialPos = AbsolutePosition; 			// saved to calculate unscripted sit rotation
+				
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.SitTargetPosition;
                 Quaternion avSitOrientation = part.SitTargetOrientation;
                 UUID avOnTargetAlready = part.GetAvatarOnSitTarget();
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
-                bool SitTargetisSet =
-                    (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f && avSitOrientation.W == 0f &&
-                       avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f));
+//                bool SitTargetisSet =
+//                  (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f && avSitOrientation.W == 0f &&
+//                   avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f));
 
+                bool SitTargetisSet = ((Vector3.Zero != avSitOffSet)  || (Quaternion.Identity != avSitOrientation));
+                    
+//Console.WriteLine("SendSitResponse offset=" + offset + "  UnOccup=" + SitTargetUnOccupied +
+//					"    TargSet=" + SitTargetisSet);
+					
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
                     part.SetAvatarOnSitTarget(UUID);
                     offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);
                     sitOrientation = avSitOrientation;
-                    autopilot = false;
+                    autopilot = false;						// Jump direct to scripted llSitPos()
                 }
 
-                pos = part.AbsolutePosition + offset;
+                pos = part.AbsolutePosition + offset;		// Region position where clicked
                 //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
                 //{
                    // offset = pos;
@@ -1747,17 +1760,17 @@ namespace OpenSim.Region.Framework.Scenes
                     m_sitAvatarHeight = m_physicsActor.Size.Z;
 
                     if (autopilot)
-                    {
+                    {				// its not a scripted sit
                         if (Util.GetDistanceTo(AbsolutePosition, pos) < 4.5)
                         {
-                            autopilot = false;
+                            autopilot = false;		// close enough
 
                             RemoveFromPhysicalScene();
-                            AbsolutePosition = pos + new Vector3(0.0f, 0.0f, m_sitAvatarHeight);
-                        }
+                            AbsolutePosition = pos + new Vector3(0.0f, 0.0f, (m_sitAvatarHeight / 2.0f));  // Warp av to Prim
+                        } // else the autopilot will get us close
                     }
                     else
-                    {
+                    {	// its a scripted sit
                         RemoveFromPhysicalScene();
                     }
                 }
@@ -1860,26 +1873,41 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part.GetAvatarOnSitTarget() == UUID)
                     {
+                    	// Scripted sit
                         Vector3 sitTargetPos = part.SitTargetPosition;
                         Quaternion sitTargetOrient = part.SitTargetOrientation;
-
-                        //Quaternion vq = new Quaternion(sitTargetPos.X, sitTargetPos.Y+0.2f, sitTargetPos.Z+0.2f, 0);
-                        //Quaternion nq = new Quaternion(-sitTargetOrient.X, -sitTargetOrient.Y, -sitTargetOrient.Z, sitTargetOrient.w);
-
-                        //Quaternion result = (sitTargetOrient * vq) * nq;
-
                         m_pos = new Vector3(sitTargetPos.X, sitTargetPos.Y, sitTargetPos.Z);
                         m_pos += SIT_TARGET_ADJUSTMENT;
                         m_bodyRot = sitTargetOrient;
-                        //Rotation = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
-
-                        //SendTerseUpdateToAllClients();
                     }
                     else
                     {
-                        m_pos -= part.AbsolutePosition;
+                    	// Non-scripted sit by Kitto Flora 21Nov09
+                    	// Calculate angle of line from prim to Av
+	                	float y_diff = (m_avInitialPos.Y - part.AbsolutePosition.Y);
+    	            	float x_diff = ( m_avInitialPos.X - part.AbsolutePosition.X);
+    	            	if(Math.Abs(x_diff) < 0.001f) x_diff = 0.001f;			// avoid div by 0
+    	            	if(Math.Abs(y_diff) < 0.001f) y_diff = 0.001f;			// avoid pol flip at 0
+    	            	float sit_angle = (float)Math.Atan2( (double)y_diff, (double)x_diff);
+						Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
+						// NOTE: when sitting m_ pos and m_bodyRot are *relative* to the prim location/rotation, not 'World'.
+    	            	//  Av sits at world euler <0,0, z>, translated by part rotation 
+    	            	m_bodyRot = partIRot * Quaternion.CreateFromEulers(0f, 0f, sit_angle);		// sit at 0,0,inv-click
+                        m_pos = new Vector3(0f, 0f, 0.05f) + 
+                        		(new Vector3(0.0f, 0f, 0.625f) * partIRot) + 
+                        		(new Vector3(0.25f, 0f, 0.0f) * m_bodyRot);  // sit at center of prim
                         m_parentPosition = part.AbsolutePosition;
+                        //Set up raytrace to find top surface of prim
+         			    Vector3 size = part.Scale;
+ 						float mag = 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
+ 						Vector3 start =  part.AbsolutePosition + new Vector3(0f, 0f, mag);
+ 						Vector3 down = new Vector3(0f, 0f, -1f);    
+	                    m_scene.PhysicsScene.RaycastWorld(
+                    		start,		// Vector3 position,
+                    		down, 		// Vector3 direction,
+                    		mag, 		// float length,
+                    		SitAltitudeCallback);          	// retMethod
                     }
                 }
                 else
@@ -1894,11 +1922,22 @@ namespace OpenSim.Region.Framework.Scenes
 
             Animator.TrySetMovementAnimation(sitAnimation);
             SendFullUpdateToAllClients();
-            // This may seem stupid, but Our Full updates don't send avatar rotation :P
-            // So we're also sending a terse update (which has avatar rotation)
-            // [Update] We do now.
-            //SendTerseUpdateToAllClients();
         }
+        
+        public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
+        {
+//			Console.WriteLine("[RAYCASTRESULT]: Hit={0}, Point={1}, ID={2}, Dist={3}", hitYN, collisionPoint, localid, distance);
+			if(hitYN)
+			{
+				// m_pos = Av offset from prim center to make look like on center
+				// m_parentPosition = Actual center pos of prim
+				// collisionPoint = spot on prim where we want to sit
+				SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
+				Vector3 offset =  (collisionPoint - m_parentPosition) * Quaternion.Inverse(part.RotationOffset);
+				m_pos += offset;
+//				Console.WriteLine("m_pos={0},  offset={1} 	newsit={2}",  m_pos,  offset,  newsit);
+			}
+		}
 
         /// <summary>
         /// Event handler for the 'Always run' setting on the client
