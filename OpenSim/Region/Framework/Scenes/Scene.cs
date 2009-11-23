@@ -3470,6 +3470,49 @@ namespace OpenSim.Region.Framework.Scenes
                     agent.startpos.Y = crossedBorder.BorderLine.Z - 1;
                 }
 
+                //Mitigate http://opensimulator.org/mantis/view.php?id=3522
+                // Check if start position is outside of region
+                // If it is, check the Z start position also..   if not, leave it alone.
+                if (BordersLocked)
+                {
+                    lock (EastBorders)
+                    {
+                        if (agent.startpos.X > EastBorders[0].BorderLine.Z)
+                        {
+                            m_log.Warn("FIX AGENT POSITION");
+                            agent.startpos.X = EastBorders[0].BorderLine.Z * 0.5f;
+                            if (agent.startpos.Z > 720)
+                                agent.startpos.Z = 720;
+                        }
+                    }
+                    lock (NorthBorders)
+                    {
+                        if (agent.startpos.Y > NorthBorders[0].BorderLine.Z)
+                        {
+                            m_log.Warn("FIX Agent POSITION");
+                            agent.startpos.Y = NorthBorders[0].BorderLine.Z * 0.5f;
+                            if (agent.startpos.Z > 720)
+                                agent.startpos.Z = 720;
+                        }
+                    }
+                }
+                else
+                {
+                    if (agent.startpos.X > EastBorders[0].BorderLine.Z)
+                    {
+                        m_log.Warn("FIX AGENT POSITION");
+                        agent.startpos.X = EastBorders[0].BorderLine.Z * 0.5f;
+                        if (agent.startpos.Z > 720)
+                            agent.startpos.Z = 720;
+                    }
+                    if (agent.startpos.Y > NorthBorders[0].BorderLine.Z)
+                    {
+                        m_log.Warn("FIX Agent POSITION");
+                        agent.startpos.Y = NorthBorders[0].BorderLine.Z * 0.5f;
+                        if (agent.startpos.Z > 720)
+                            agent.startpos.Z = 720;
+                    }
+                }
                 // Honor parcel landing type and position.
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
