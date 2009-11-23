@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Lifetime;
 using System.Threading;
@@ -544,6 +545,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             return true;
         }
 
+        [DebuggerNonUserCode] //Prevents the debugger from farting in this function
         public void SetState(string state)
         {
             if (state == State)
@@ -555,7 +557,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                                        new DetectParams[0]));
             PostEvent(new EventParams("state_entry", new Object[0],
                                        new DetectParams[0]));
-
+            
             throw new EventAbortException();
         }
 
@@ -824,6 +826,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                     new Object[0], new DetectParams[0]));
         }
 
+        [DebuggerNonUserCode] //Stops the VS debugger from farting in this function
         public void ApiResetScript()
         {
             // bool running = Running;

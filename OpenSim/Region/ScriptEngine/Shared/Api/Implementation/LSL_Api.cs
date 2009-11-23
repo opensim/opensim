@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
@@ -151,6 +152,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             get { return m_ScriptEngine.World; }
         }
 
+        [DebuggerNonUserCode]
         public void state(string newState)
         {
             m_ScriptEngine.SetState(m_itemID, newState);
@@ -160,6 +162,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// Reset the named script. The script must be present
         /// in the same prim.
         /// </summary>
+        [DebuggerNonUserCode]
         public void llResetScript()
         {
             m_host.AddScriptLPS(1);
@@ -3755,6 +3758,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(3000);
         }
 
+        [DebuggerNonUserCode]
         public void llRemoveInventory(string name)
         {
             m_host.AddScriptLPS(1);

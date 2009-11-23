@@ -30,6 +30,7 @@ using System.IO;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Security;
 using System.Security.Policy;
 using System.Reflection;
@@ -1119,6 +1120,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return false;
         }
 
+        [DebuggerNonUserCode]
         public void ApiResetScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
@@ -1170,6 +1172,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return UUID.Zero;
         }
 
+        [DebuggerNonUserCode]
         public void SetState(UUID itemID, string newState)
         {
             IScriptInstance instance = GetInstance(itemID);
