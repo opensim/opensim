@@ -48,6 +48,10 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private MySQLManager database;
 
+        private bool rollbackStore = false;
+        private bool opengridmode = false;
+        private string rollbackDir = "";
+
         public void Initialise()
         {
             m_log.Info("[MySQLInventoryData]: " + Name + " cannot be default-initialized!");
@@ -81,6 +85,10 @@ namespace OpenSim.Data.MySQL
                 string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
                 string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
                 string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+
+                rollbackDir = GridDataMySqlFile.ParseFileReadValue("rollbackdir");
+                rollbackStore = GridDataMySqlFile.ParseFileReadValue("rollback") == "true";
+                opengridmode = GridDataMySqlFile.ParseFileReadValue("opengridmode") == "true";
 
                 database =
                     new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
@@ -851,16 +859,25 @@ namespace OpenSim.Data.MySQL
         {
             List<InventoryFolderBase> subFolders = getFolderHierarchy(folderID);
 
-            //Delete all sub-folders
-            foreach (InventoryFolderBase f in subFolders)
+            // Dont delete in OGM - makes for easier restores if someone sends a malcious command. (just restore the folder entry)
+            if (opengridmode == false)
             {
-                deleteOneFolder(f.ID);
-                deleteItemsInFolder(f.ID);
+                //Delete all sub-folders
+                foreach (InventoryFolderBase f in subFolders)
+                {
+                    deleteOneFolder(f.ID);
+                    deleteItemsInFolder(f.ID);
+                }
             }
 
             //Delete the actual row
             deleteOneFolder(folderID);
-            deleteItemsInFolder(folderID);
+
+            // Just delete the folder context in OGM
+            if (opengridmode == false)
+            {
+                deleteItemsInFolder(folderID);
+            }
         }
         
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
