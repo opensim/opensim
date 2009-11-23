@@ -1949,9 +1949,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return key.ToString();
         }
 		
+       /// <summary>
+        /// Return information regarding various simulator statistics (sim fps, physics fps, time
+        /// dilation, total number of prims, total number of active scripts, script lps, various
+        /// timing data, packets in/out, etc. Basically much the information that's shown in the
+        /// client's Statistics Bar (Ctrl-Shift-1)
+        /// </summary>
+        /// <returns>List of floats</returns>
 		public LSL_List osGetRegionStats()
 		{
-            CheckThreatLevel(ThreatLevel.High, "osGetRegionStats");
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetRegionStats");
             m_host.AddScriptLPS(1);
             LSL_List ret = new LSL_List();
 			float[] stats = World.SimulatorStats;
