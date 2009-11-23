@@ -32,7 +32,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Tests.Common
-{       
+{
     public class AssetHelpers
     {
         /// <summary>

@@ -252,18 +252,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 m_Apis[api] = am.CreateApi(api);
                 m_Apis[api].Initialize(engine, part, m_LocalID, itemID);
-	    }
+        }
 
-	    try
-	    {
-		    if (dom != System.AppDomain.CurrentDomain)
-			    m_Script = (IScript)dom.CreateInstanceAndUnwrap(
-					    Path.GetFileNameWithoutExtension(assembly),
-					    "SecondLife.Script");
-		    else
-			    m_Script = (IScript)Assembly.Load(
-					    Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
-					    "SecondLife.Script");
+        try
+        {
+            if (dom != System.AppDomain.CurrentDomain)
+                m_Script = (IScript)dom.CreateInstanceAndUnwrap(
+                        Path.GetFileNameWithoutExtension(assembly),
+                        "SecondLife.Script");
+            else
+                m_Script = (IScript)Assembly.Load(
+                        Path.GetFileNameWithoutExtension(assembly)).CreateInstance(
+                        "SecondLife.Script");
 
 
                 //ILease lease = (ILease)RemotingServices.GetLifetimeService(m_Script as ScriptBaseClass);
@@ -903,7 +903,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             // If the state is different, update the disk file.
             UUID hash = UUID.Parse(Utils.MD5String(xml));
 
-            if(hash != m_CurrentStateHash)
+            if (hash != m_CurrentStateHash)
             {
                 try
                 {

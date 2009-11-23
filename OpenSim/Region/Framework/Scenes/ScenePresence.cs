@@ -247,7 +247,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// Script engines present in the scene
         /// </value>
-        private IScriptModule[] m_scriptEngines;         
+        private IScriptModule[] m_scriptEngines;
 
         #region Properties
 
@@ -674,7 +674,7 @@ namespace OpenSim.Region.Framework.Scenes
                              AvatarWearable[] wearables)
             : this(client, world, reginfo)
         {
-            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);            
+            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
@@ -3052,7 +3052,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence()
         {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;            
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
         }
@@ -3140,8 +3140,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            }            
-        }        
+            }
+        }
 
         public bool CrossAttachmentsIntoNewRegion(ulong regionHandle, bool silent)
         {

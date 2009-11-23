@@ -34,7 +34,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common
-{        
+{
     public class MockUserService : IUserService
     {
         public void AddTemporaryUserProfile(UserProfileData userProfile)
