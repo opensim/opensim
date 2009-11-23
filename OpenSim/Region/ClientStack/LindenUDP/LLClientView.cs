@@ -4324,14 +4324,56 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.AgentRequestSit, HandleAgentRequestSit);
             AddLocalPacketHandler(PacketType.AgentSit, HandleAgentSit);
             AddLocalPacketHandler(PacketType.SoundTrigger, HandleSoundTrigger);
+            AddLocalPacketHandler(PacketType.AvatarPickerRequest, HandleAvatarPickerRequest);
+            AddLocalPacketHandler(PacketType.AgentDataUpdateRequest, HandleAgentDataUpdateRequest);
+            AddLocalPacketHandler(PacketType.UserInfoRequest, HandleUserInfoRequest);
+            AddLocalPacketHandler(PacketType.UpdateUserInfo, HandleUpdateUserInfo);
+            AddLocalPacketHandler(PacketType.SetStartLocationRequest, HandleSetStartLocationRequest);
+            AddLocalPacketHandler(PacketType.AgentThrottle, HandleAgentThrottle);
+            AddLocalPacketHandler(PacketType.AgentPause, HandleAgentPause);
+            AddLocalPacketHandler(PacketType.AgentResume, HandleAgentResume);
+            AddLocalPacketHandler(PacketType.ForceScriptControlRelease, HandleForceScriptControlRelease);
+            AddLocalPacketHandler(PacketType.ObjectLink, HandleObjectLink);
+            AddLocalPacketHandler(PacketType.ObjectDelink, HandleObjectDelink);
+            AddLocalPacketHandler(PacketType.ObjectAdd, HandleObjectAdd);
+            AddLocalPacketHandler(PacketType.ObjectShape, HandleObjectShape);
+            AddLocalPacketHandler(PacketType.ObjectExtraParams, HandleObjectExtraParams);
+            AddLocalPacketHandler(PacketType.ObjectDuplicate, HandleObjectDuplicate);
+            AddLocalPacketHandler(PacketType.RequestMultipleObjects, HandleRequestMultipleObjects);
+            AddLocalPacketHandler(PacketType.ObjectSelect, HandleObjectSelect);
+            AddLocalPacketHandler(PacketType.ObjectDeselect, HandleObjectDeselect);
+            AddLocalPacketHandler(PacketType.ObjectPosition, HandleObjectPosition);
+            AddLocalPacketHandler(PacketType.ObjectScale, HandleObjectScale);
+            AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);
+            AddLocalPacketHandler(PacketType.ObjectFlagUpdate, HandleObjectFlagUpdate);
+            AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage);
+            AddLocalPacketHandler(PacketType.ObjectGrab, HandleObjectGrab);
+            AddLocalPacketHandler(PacketType.ObjectGrabUpdate, HandleObjectGrabUpdate);
+            AddLocalPacketHandler(PacketType.ObjectDeGrab, HandleObjectDeGrab);
+            AddLocalPacketHandler(PacketType.ObjectSpinStart, HandleObjectSpinStart);
+            AddLocalPacketHandler(PacketType.ObjectSpinUpdate, HandleObjectSpinUpdate);
+            AddLocalPacketHandler(PacketType.ObjectSpinStop, HandleObjectSpinStop);
+            AddLocalPacketHandler(PacketType.ObjectDescription, HandleObjectDescription);
+            AddLocalPacketHandler(PacketType.ObjectName, HandleObjectName);
+            AddLocalPacketHandler(PacketType.ObjectPermissions, HandleObjectPermissions);
+            AddLocalPacketHandler(PacketType.Undo, HandleUndo);
+            AddLocalPacketHandler(PacketType.ObjectDuplicateOnRay, HandleObjectDuplicateOnRay);
+            AddLocalPacketHandler(PacketType.RequestObjectPropertiesFamily, HandleRequestObjectPropertiesFamily);
+            AddLocalPacketHandler(PacketType.ObjectIncludeInSearch, HandleObjectIncludeInSearch);
+            AddLocalPacketHandler(PacketType.ScriptAnswerYes, HandleScriptAnswerYes);
+            AddLocalPacketHandler(PacketType.ObjectClickAction, HandleObjectClickAction);
+            AddLocalPacketHandler(PacketType.ObjectMaterial, HandleObjectMaterial);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
+            
 
         }
 
         #region Packet Handlers
+
+        #region Scene/Avatar
 
         private bool HandleAgentUpdate(IClientAPI sener, Packet Pack)
         {
@@ -5260,6 +5302,1041 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
+        private bool HandleAvatarPickerRequest(IClientAPI sender, Packet Pack)
+        {
+            AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avRequestQuery.AgentData.SessionID != SessionId ||
+                    avRequestQuery.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            AvatarPickerRequestPacket.AgentDataBlock Requestdata = avRequestQuery.AgentData;
+            AvatarPickerRequestPacket.DataBlock querydata = avRequestQuery.Data;
+            //m_log.Debug("Agent Sends:" + Utils.BytesToString(querydata.Name));
+
+            AvatarPickerRequest handlerAvatarPickerRequest = OnAvatarPickerRequest;
+            if (handlerAvatarPickerRequest != null)
+            {
+                handlerAvatarPickerRequest(this, Requestdata.AgentID, Requestdata.QueryID,
+                                           Utils.BytesToString(querydata.Name));
+            }
+            return true;
+        }
+
+        private bool HandleAgentDataUpdateRequest(IClientAPI sender, Packet Pack)
+        {
+            AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avRequestDataUpdatePacket.AgentData.SessionID != SessionId ||
+                    avRequestDataUpdatePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            FetchInventory handlerAgentDataUpdateRequest = OnAgentDataUpdateRequest;
+
+            if (handlerAgentDataUpdateRequest != null)
+            {
+                handlerAgentDataUpdateRequest(this, avRequestDataUpdatePacket.AgentData.AgentID, avRequestDataUpdatePacket.AgentData.SessionID);
+            }
+
+            return true;
+        }
+
+        private bool HandleUserInfoRequest(IClientAPI sender, Packet Pack)
+        {
+            UserInfoRequest handlerUserInfoRequest = OnUserInfoRequest;
+            if (handlerUserInfoRequest != null)
+            {
+                handlerUserInfoRequest(this);
+            }
+            else
+            {
+                SendUserInfoReply(false, true, "");
+            }
+            return true;
+
+        }
+
+        private bool HandleUpdateUserInfo(IClientAPI sender, Packet Pack)
+        {
+            UpdateUserInfoPacket updateUserInfo = (UpdateUserInfoPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (updateUserInfo.AgentData.SessionID != SessionId ||
+                    updateUserInfo.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UpdateUserInfo handlerUpdateUserInfo = OnUpdateUserInfo;
+            if (handlerUpdateUserInfo != null)
+            {
+                bool visible = true;
+                string DirectoryVisibility =
+                        Utils.BytesToString(updateUserInfo.UserData.DirectoryVisibility);
+                if (DirectoryVisibility == "hidden")
+                    visible = false;
+
+                handlerUpdateUserInfo(
+                        updateUserInfo.UserData.IMViaEMail,
+                        visible, this);
+            }
+            return true;
+        }
+
+        private bool HandleSetStartLocationRequest(IClientAPI sender, Packet Pack)
+        {
+            SetStartLocationRequestPacket avSetStartLocationRequestPacket = (SetStartLocationRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avSetStartLocationRequestPacket.AgentData.SessionID != SessionId ||
+                    avSetStartLocationRequestPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
+            {
+                TeleportLocationRequest handlerSetStartLocationRequest = OnSetStartLocationRequest;
+                if (handlerSetStartLocationRequest != null)
+                {
+                    handlerSetStartLocationRequest(this, 0, avSetStartLocationRequestPacket.StartLocationData.LocationPos,
+                                                   avSetStartLocationRequestPacket.StartLocationData.LocationLookAt,
+                                                   avSetStartLocationRequestPacket.StartLocationData.LocationID);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleAgentThrottle(IClientAPI sender, Packet Pack)
+        {
+            AgentThrottlePacket atpack = (AgentThrottlePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (atpack.AgentData.SessionID != SessionId ||
+                    atpack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            m_udpClient.SetThrottles(atpack.Throttle.Throttles);
+            return true;
+        }
+
+        private bool HandleAgentPause(IClientAPI sender, Packet Pack)
+        {
+            m_udpClient.IsPaused = true;
+            return true;
+        }
+
+        private bool HandleAgentResume(IClientAPI sender, Packet Pack)
+        {
+            m_udpClient.IsPaused = false;
+            SendStartPingCheck(m_udpClient.CurrentPingSequence++);
+            return true;
+        }
+
+        private bool HandleForceScriptControlRelease(IClientAPI sender, Packet Pack)
+        {
+            ForceReleaseControls handlerForceReleaseControls = OnForceReleaseControls;
+            if (handlerForceReleaseControls != null)
+            {
+                handlerForceReleaseControls(this, AgentId);
+            }
+            return true;
+        }
+
+        #endregion Scene/Avatar
+
+        #region Objects/m_sceneObjects
+
+        private bool HandleObjectLink(IClientAPI sender, Packet Pack)
+        {
+            ObjectLinkPacket link = (ObjectLinkPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (link.AgentData.SessionID != SessionId ||
+                    link.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            uint parentprimid = 0;
+            List<uint> childrenprims = new List<uint>();
+            if (link.ObjectData.Length > 1)
+            {
+                parentprimid = link.ObjectData[0].ObjectLocalID;
+
+                for (int i = 1; i < link.ObjectData.Length; i++)
+                {
+                    childrenprims.Add(link.ObjectData[i].ObjectLocalID);
+                }
+            }
+            LinkObjects handlerLinkObjects = OnLinkObjects;
+            if (handlerLinkObjects != null)
+            {
+                handlerLinkObjects(this, parentprimid, childrenprims);
+            }
+            return true;
+        }
+
+        private bool HandleObjectDelink(IClientAPI sender, Packet Pack)
+        {
+            ObjectDelinkPacket delink = (ObjectDelinkPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (delink.AgentData.SessionID != SessionId ||
+                    delink.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            // It appears the prim at index 0 is not always the root prim (for
+            // instance, when one prim of a link set has been edited independently
+            // of the others).  Therefore, we'll pass all the ids onto the delink
+            // method for it to decide which is the root.
+            List<uint> prims = new List<uint>();
+            for (int i = 0; i < delink.ObjectData.Length; i++)
+            {
+                prims.Add(delink.ObjectData[i].ObjectLocalID);
+            }
+            DelinkObjects handlerDelinkObjects = OnDelinkObjects;
+            if (handlerDelinkObjects != null)
+            {
+                handlerDelinkObjects(prims);
+            }
+
+            return true;
+        }
+
+        private bool HandleObjectAdd(IClientAPI sender, Packet Pack)
+        {
+            if (OnAddPrim != null)
+            {
+                ObjectAddPacket addPacket = (ObjectAddPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (addPacket.AgentData.SessionID != SessionId ||
+                        addPacket.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                PrimitiveBaseShape shape = GetShapeFromAddPacket(addPacket);
+                // m_log.Info("[REZData]: " + addPacket.ToString());
+                //BypassRaycast: 1
+                //RayStart: <69.79469, 158.2652, 98.40343>
+                //RayEnd: <61.97724, 141.995, 92.58341>
+                //RayTargetID: 00000000-0000-0000-0000-000000000000
+
+                //Check to see if adding the prim is allowed; useful for any module wanting to restrict the
+                //object from rezing initially
+
+                AddNewPrim handlerAddPrim = OnAddPrim;
+                if (handlerAddPrim != null)
+                    handlerAddPrim(AgentId, ActiveGroupId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);
+            }
+            return true;
+        }
+
+        private bool HandleObjectShape(IClientAPI sender, Packet Pack)
+        {
+            ObjectShapePacket shapePacket = (ObjectShapePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (shapePacket.AgentData.SessionID != SessionId ||
+                    shapePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UpdateShape handlerUpdatePrimShape = null;
+            for (int i = 0; i < shapePacket.ObjectData.Length; i++)
+            {
+                handlerUpdatePrimShape = OnUpdatePrimShape;
+                if (handlerUpdatePrimShape != null)
+                {
+                    UpdateShapeArgs shapeData = new UpdateShapeArgs();
+                    shapeData.ObjectLocalID = shapePacket.ObjectData[i].ObjectLocalID;
+                    shapeData.PathBegin = shapePacket.ObjectData[i].PathBegin;
+                    shapeData.PathCurve = shapePacket.ObjectData[i].PathCurve;
+                    shapeData.PathEnd = shapePacket.ObjectData[i].PathEnd;
+                    shapeData.PathRadiusOffset = shapePacket.ObjectData[i].PathRadiusOffset;
+                    shapeData.PathRevolutions = shapePacket.ObjectData[i].PathRevolutions;
+                    shapeData.PathScaleX = shapePacket.ObjectData[i].PathScaleX;
+                    shapeData.PathScaleY = shapePacket.ObjectData[i].PathScaleY;
+                    shapeData.PathShearX = shapePacket.ObjectData[i].PathShearX;
+                    shapeData.PathShearY = shapePacket.ObjectData[i].PathShearY;
+                    shapeData.PathSkew = shapePacket.ObjectData[i].PathSkew;
+                    shapeData.PathTaperX = shapePacket.ObjectData[i].PathTaperX;
+                    shapeData.PathTaperY = shapePacket.ObjectData[i].PathTaperY;
+                    shapeData.PathTwist = shapePacket.ObjectData[i].PathTwist;
+                    shapeData.PathTwistBegin = shapePacket.ObjectData[i].PathTwistBegin;
+                    shapeData.ProfileBegin = shapePacket.ObjectData[i].ProfileBegin;
+                    shapeData.ProfileCurve = shapePacket.ObjectData[i].ProfileCurve;
+                    shapeData.ProfileEnd = shapePacket.ObjectData[i].ProfileEnd;
+                    shapeData.ProfileHollow = shapePacket.ObjectData[i].ProfileHollow;
+
+                    handlerUpdatePrimShape(m_agentId, shapePacket.ObjectData[i].ObjectLocalID,
+                                           shapeData);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectExtraParams(IClientAPI sender, Packet Pack)
+        {
+            ObjectExtraParamsPacket extraPar = (ObjectExtraParamsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (extraPar.AgentData.SessionID != SessionId ||
+                    extraPar.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectExtraParams handlerUpdateExtraParams = OnUpdateExtraParams;
+            if (handlerUpdateExtraParams != null)
+            {
+                for (int i = 0; i < extraPar.ObjectData.Length; i++)
+                {
+                    handlerUpdateExtraParams(m_agentId, extraPar.ObjectData[i].ObjectLocalID,
+                                             extraPar.ObjectData[i].ParamType,
+                                             extraPar.ObjectData[i].ParamInUse, extraPar.ObjectData[i].ParamData);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectDuplicate(IClientAPI sender, Packet Pack)
+        {
+            ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dupe.AgentData.SessionID != SessionId ||
+                    dupe.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectDuplicatePacket.AgentDataBlock AgentandGroupData = dupe.AgentData;
+
+            ObjectDuplicate handlerObjectDuplicate = null;
+
+            for (int i = 0; i < dupe.ObjectData.Length; i++)
+            {
+                handlerObjectDuplicate = OnObjectDuplicate;
+                if (handlerObjectDuplicate != null)
+                {
+                    handlerObjectDuplicate(dupe.ObjectData[i].ObjectLocalID, dupe.SharedData.Offset,
+                                           dupe.SharedData.DuplicateFlags, AgentandGroupData.AgentID,
+                                           AgentandGroupData.GroupID);
+                }
+            }
+
+            return true;
+        }
+
+        private bool HandleRequestMultipleObjects(IClientAPI sender, Packet Pack)
+        {
+            RequestMultipleObjectsPacket incomingRequest = (RequestMultipleObjectsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (incomingRequest.AgentData.SessionID != SessionId ||
+                    incomingRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectRequest handlerObjectRequest = null;
+
+            for (int i = 0; i < incomingRequest.ObjectData.Length; i++)
+            {
+                handlerObjectRequest = OnObjectRequest;
+                if (handlerObjectRequest != null)
+                {
+                    handlerObjectRequest(incomingRequest.ObjectData[i].ID, this);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectSelect(IClientAPI sender, Packet Pack)
+        {
+            ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (incomingselect.AgentData.SessionID != SessionId ||
+                    incomingselect.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectSelect handlerObjectSelect = null;
+
+            for (int i = 0; i < incomingselect.ObjectData.Length; i++)
+            {
+                handlerObjectSelect = OnObjectSelect;
+                if (handlerObjectSelect != null)
+                {
+                    handlerObjectSelect(incomingselect.ObjectData[i].ObjectLocalID, this);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectDeselect(IClientAPI sender, Packet Pack)
+        {
+            ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (incomingdeselect.AgentData.SessionID != SessionId ||
+                    incomingdeselect.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectDeselect handlerObjectDeselect = null;
+
+            for (int i = 0; i < incomingdeselect.ObjectData.Length; i++)
+            {
+                handlerObjectDeselect = OnObjectDeselect;
+                if (handlerObjectDeselect != null)
+                {
+                    OnObjectDeselect(incomingdeselect.ObjectData[i].ObjectLocalID, this);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectPosition(IClientAPI sender, Packet Pack)
+        {
+            // DEPRECATED: but till libsecondlife removes it, people will use it
+            ObjectPositionPacket position = (ObjectPositionPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (position.AgentData.SessionID != SessionId ||
+                    position.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+
+            for (int i = 0; i < position.ObjectData.Length; i++)
+            {
+                UpdateVector handlerUpdateVector = OnUpdatePrimGroupPosition;
+                if (handlerUpdateVector != null)
+                    handlerUpdateVector(position.ObjectData[i].ObjectLocalID, position.ObjectData[i].Position, this);
+            }
+
+            return true;
+        }
+
+        private bool HandleObjectScale(IClientAPI sender, Packet Pack)
+        {
+            // DEPRECATED: but till libsecondlife removes it, people will use it
+            ObjectScalePacket scale = (ObjectScalePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (scale.AgentData.SessionID != SessionId ||
+                    scale.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            for (int i = 0; i < scale.ObjectData.Length; i++)
+            {
+                UpdateVector handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                if (handlerUpdatePrimGroupScale != null)
+                    handlerUpdatePrimGroupScale(scale.ObjectData[i].ObjectLocalID, scale.ObjectData[i].Scale, this);
+            }
+
+            return true;
+        }
+
+        private bool HandleObjectRotation(IClientAPI sender, Packet Pack)
+        {
+            // DEPRECATED: but till libsecondlife removes it, people will use it
+            ObjectRotationPacket rotation = (ObjectRotationPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (rotation.AgentData.SessionID != SessionId ||
+                    rotation.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            for (int i = 0; i < rotation.ObjectData.Length; i++)
+            {
+                UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
+                if (handlerUpdatePrimRotation != null)
+                    handlerUpdatePrimRotation(rotation.ObjectData[i].ObjectLocalID, rotation.ObjectData[i].Rotation, this);
+            }
+
+            return true;
+        }
+
+        private bool HandleObjectFlagUpdate(IClientAPI sender, Packet Pack)
+        {
+            ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (flags.AgentData.SessionID != SessionId ||
+                    flags.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UpdatePrimFlags handlerUpdatePrimFlags = OnUpdatePrimFlags;
+
+            if (handlerUpdatePrimFlags != null)
+            {
+                byte[] data = Pack.ToBytes();
+                // 46,47,48 are special positions within the packet
+                // This may change so perhaps we need a better way
+                // of storing this (OMV.FlagUpdatePacket.UsePhysics,etc?)
+                bool UsePhysics = (data[46] != 0) ? true : false;
+                bool IsTemporary = (data[47] != 0) ? true : false;
+                bool IsPhantom = (data[48] != 0) ? true : false;
+                handlerUpdatePrimFlags(flags.AgentData.ObjectLocalID, UsePhysics, IsTemporary, IsPhantom, this);
+            }
+            return true;
+        }
+
+        private bool HandleObjectImage(IClientAPI sender, Packet Pack)
+        {
+            ObjectImagePacket imagePack = (ObjectImagePacket)Pack;
+
+            UpdatePrimTexture handlerUpdatePrimTexture = null;
+            for (int i = 0; i < imagePack.ObjectData.Length; i++)
+            {
+                handlerUpdatePrimTexture = OnUpdatePrimTexture;
+                if (handlerUpdatePrimTexture != null)
+                {
+                    handlerUpdatePrimTexture(imagePack.ObjectData[i].ObjectLocalID,
+                                             imagePack.ObjectData[i].TextureEntry, this);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectGrab(IClientAPI sender, Packet Pack)
+        {
+            ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (grab.AgentData.SessionID != SessionId ||
+                    grab.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GrabObject handlerGrabObject = OnGrabObject;
+
+            if (handlerGrabObject != null)
+            {
+                List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                if ((grab.SurfaceInfo != null) && (grab.SurfaceInfo.Length > 0))
+                {
+                    foreach (ObjectGrabPacket.SurfaceInfoBlock surfaceInfo in grab.SurfaceInfo)
+                    {
+                        SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                        arg.Binormal = surfaceInfo.Binormal;
+                        arg.FaceIndex = surfaceInfo.FaceIndex;
+                        arg.Normal = surfaceInfo.Normal;
+                        arg.Position = surfaceInfo.Position;
+                        arg.STCoord = surfaceInfo.STCoord;
+                        arg.UVCoord = surfaceInfo.UVCoord;
+                        touchArgs.Add(arg);
+                    }
+                }
+                handlerGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this, touchArgs);
+            }
+            return true;
+        }
+
+        private bool HandleObjectGrabUpdate(IClientAPI sender, Packet Pack)
+        {
+            ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (grabUpdate.AgentData.SessionID != SessionId ||
+                    grabUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            MoveObject handlerGrabUpdate = OnGrabUpdate;
+
+            if (handlerGrabUpdate != null)
+            {
+                List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                if ((grabUpdate.SurfaceInfo != null) && (grabUpdate.SurfaceInfo.Length > 0))
+                {
+                    foreach (ObjectGrabUpdatePacket.SurfaceInfoBlock surfaceInfo in grabUpdate.SurfaceInfo)
+                    {
+                        SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                        arg.Binormal = surfaceInfo.Binormal;
+                        arg.FaceIndex = surfaceInfo.FaceIndex;
+                        arg.Normal = surfaceInfo.Normal;
+                        arg.Position = surfaceInfo.Position;
+                        arg.STCoord = surfaceInfo.STCoord;
+                        arg.UVCoord = surfaceInfo.UVCoord;
+                        touchArgs.Add(arg);
+                    }
+                }
+                handlerGrabUpdate(grabUpdate.ObjectData.ObjectID, grabUpdate.ObjectData.GrabOffsetInitial,
+                                  grabUpdate.ObjectData.GrabPosition, this, touchArgs);
+            }
+            return true;
+        }
+
+        private bool HandleObjectDeGrab(IClientAPI sender, Packet Pack)
+        {
+            ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (deGrab.AgentData.SessionID != SessionId ||
+                    deGrab.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DeGrabObject handlerDeGrabObject = OnDeGrabObject;
+            if (handlerDeGrabObject != null)
+            {
+                List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>();
+                if ((deGrab.SurfaceInfo != null) && (deGrab.SurfaceInfo.Length > 0))
+                {
+                    foreach (ObjectDeGrabPacket.SurfaceInfoBlock surfaceInfo in deGrab.SurfaceInfo)
+                    {
+                        SurfaceTouchEventArgs arg = new SurfaceTouchEventArgs();
+                        arg.Binormal = surfaceInfo.Binormal;
+                        arg.FaceIndex = surfaceInfo.FaceIndex;
+                        arg.Normal = surfaceInfo.Normal;
+                        arg.Position = surfaceInfo.Position;
+                        arg.STCoord = surfaceInfo.STCoord;
+                        arg.UVCoord = surfaceInfo.UVCoord;
+                        touchArgs.Add(arg);
+                    }
+                }
+                handlerDeGrabObject(deGrab.ObjectData.LocalID, this, touchArgs);
+            }
+            return true;
+        }
+
+        private bool HandleObjectSpinStart(IClientAPI sender, Packet Pack)
+        {
+            //m_log.Warn("[CLIENT]: unhandled ObjectSpinStart packet");
+            ObjectSpinStartPacket spinStart = (ObjectSpinStartPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (spinStart.AgentData.SessionID != SessionId ||
+                    spinStart.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            SpinStart handlerSpinStart = OnSpinStart;
+            if (handlerSpinStart != null)
+            {
+                handlerSpinStart(spinStart.ObjectData.ObjectID, this);
+            }
+            return true;
+        }
+
+        private bool HandleObjectSpinUpdate(IClientAPI sender, Packet Pack)
+        {
+            //m_log.Warn("[CLIENT]: unhandled ObjectSpinUpdate packet");
+            ObjectSpinUpdatePacket spinUpdate = (ObjectSpinUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (spinUpdate.AgentData.SessionID != SessionId ||
+                    spinUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            Vector3 axis;
+            float angle;
+            spinUpdate.ObjectData.Rotation.GetAxisAngle(out axis, out angle);
+            //m_log.Warn("[CLIENT]: ObjectSpinUpdate packet rot axis:" + axis + " angle:" + angle);
+
+            SpinObject handlerSpinUpdate = OnSpinUpdate;
+            if (handlerSpinUpdate != null)
+            {
+                handlerSpinUpdate(spinUpdate.ObjectData.ObjectID, spinUpdate.ObjectData.Rotation, this);
+            }
+            return true;
+        }
+
+        private bool HandleObjectSpinStop(IClientAPI sender, Packet Pack)
+        {
+            //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
+            ObjectSpinStopPacket spinStop = (ObjectSpinStopPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (spinStop.AgentData.SessionID != SessionId ||
+                    spinStop.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            SpinStop handlerSpinStop = OnSpinStop;
+            if (handlerSpinStop != null)
+            {
+                handlerSpinStop(spinStop.ObjectData.ObjectID, this);
+            }
+            return true;
+        }
+
+        private bool HandleObjectDescription(IClientAPI sender, Packet Pack)
+        {
+            ObjectDescriptionPacket objDes = (ObjectDescriptionPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (objDes.AgentData.SessionID != SessionId ||
+                    objDes.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GenericCall7 handlerObjectDescription = null;
+
+            for (int i = 0; i < objDes.ObjectData.Length; i++)
+            {
+                handlerObjectDescription = OnObjectDescription;
+                if (handlerObjectDescription != null)
+                {
+                    handlerObjectDescription(this, objDes.ObjectData[i].LocalID,
+                                             Util.FieldToString(objDes.ObjectData[i].Description));
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectName(IClientAPI sender, Packet Pack)
+        {
+            ObjectNamePacket objName = (ObjectNamePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (objName.AgentData.SessionID != SessionId ||
+                    objName.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GenericCall7 handlerObjectName = null;
+            for (int i = 0; i < objName.ObjectData.Length; i++)
+            {
+                handlerObjectName = OnObjectName;
+                if (handlerObjectName != null)
+                {
+                    handlerObjectName(this, objName.ObjectData[i].LocalID,
+                                      Util.FieldToString(objName.ObjectData[i].Name));
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectPermissions(IClientAPI sender, Packet Pack)
+        {
+            if (OnObjectPermissions != null)
+            {
+                ObjectPermissionsPacket newobjPerms = (ObjectPermissionsPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (newobjPerms.AgentData.SessionID != SessionId ||
+                        newobjPerms.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                UUID AgentID = newobjPerms.AgentData.AgentID;
+                UUID SessionID = newobjPerms.AgentData.SessionID;
+
+                ObjectPermissions handlerObjectPermissions = null;
+
+                for (int i = 0; i < newobjPerms.ObjectData.Length; i++)
+                {
+                    ObjectPermissionsPacket.ObjectDataBlock permChanges = newobjPerms.ObjectData[i];
+
+                    byte field = permChanges.Field;
+                    uint localID = permChanges.ObjectLocalID;
+                    uint mask = permChanges.Mask;
+                    byte set = permChanges.Set;
+
+                    handlerObjectPermissions = OnObjectPermissions;
+
+                    if (handlerObjectPermissions != null)
+                        handlerObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
+                }
+            }
+
+            // Here's our data,
+            // PermField contains the field the info goes into
+            // PermField determines which mask we're changing
+            //
+            // chmask is the mask of the change
+            // setTF is whether we're adding it or taking it away
+            //
+            // objLocalID is the localID of the object.
+
+            // Unfortunately, we have to pass the event the packet because objData is an array
+            // That means multiple object perms may be updated in a single packet.
+
+            return true;
+        }
+
+        private bool HandleUndo(IClientAPI sender, Packet Pack)
+        {
+            UndoPacket undoitem = (UndoPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (undoitem.AgentData.SessionID != SessionId ||
+                    undoitem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (undoitem.ObjectData.Length > 0)
+            {
+                for (int i = 0; i < undoitem.ObjectData.Length; i++)
+                {
+                    UUID objiD = undoitem.ObjectData[i].ObjectID;
+                    AgentSit handlerOnUndo = OnUndo;
+                    if (handlerOnUndo != null)
+                    {
+                        handlerOnUndo(this, objiD);
+                    }
+
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectDuplicateOnRay(IClientAPI sender, Packet Pack)
+        {
+            ObjectDuplicateOnRayPacket dupeOnRay = (ObjectDuplicateOnRayPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dupeOnRay.AgentData.SessionID != SessionId ||
+                    dupeOnRay.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectDuplicateOnRay handlerObjectDuplicateOnRay = null;
+
+            for (int i = 0; i < dupeOnRay.ObjectData.Length; i++)
+            {
+                handlerObjectDuplicateOnRay = OnObjectDuplicateOnRay;
+                if (handlerObjectDuplicateOnRay != null)
+                {
+                    handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
+                                                dupeOnRay.AgentData.AgentID, dupeOnRay.AgentData.GroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                                dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
+                                                dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
+                }
+            }
+
+            return true;
+        }
+
+        private bool HandleRequestObjectPropertiesFamily(IClientAPI sender, Packet Pack)
+        {
+            //This powers the little tooltip that appears when you move your mouse over an object
+            RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (packToolTip.AgentData.SessionID != SessionId ||
+                    packToolTip.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RequestObjectPropertiesFamilyPacket.ObjectDataBlock packObjBlock = packToolTip.ObjectData;
+
+            RequestObjectPropertiesFamily handlerRequestObjectPropertiesFamily = OnRequestObjectPropertiesFamily;
+
+            if (handlerRequestObjectPropertiesFamily != null)
+            {
+                handlerRequestObjectPropertiesFamily(this, m_agentId, packObjBlock.RequestFlags,
+                                                     packObjBlock.ObjectID);
+            }
+
+            return true;
+        }
+
+        private bool HandleObjectIncludeInSearch(IClientAPI sender, Packet Pack)
+        {
+            //This lets us set objects to appear in search (stuff like DataSnapshot, etc)
+            ObjectIncludeInSearchPacket packInSearch = (ObjectIncludeInSearchPacket)Pack;
+            ObjectIncludeInSearch handlerObjectIncludeInSearch = null;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (packInSearch.AgentData.SessionID != SessionId ||
+                    packInSearch.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            foreach (ObjectIncludeInSearchPacket.ObjectDataBlock objData in packInSearch.ObjectData)
+            {
+                bool inSearch = objData.IncludeInSearch;
+                uint localID = objData.ObjectLocalID;
+
+                handlerObjectIncludeInSearch = OnObjectIncludeInSearch;
+
+                if (handlerObjectIncludeInSearch != null)
+                {
+                    handlerObjectIncludeInSearch(this, inSearch, localID);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleScriptAnswerYes(IClientAPI sender, Packet Pack)
+        {
+            ScriptAnswerYesPacket scriptAnswer = (ScriptAnswerYesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (scriptAnswer.AgentData.SessionID != SessionId ||
+                    scriptAnswer.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ScriptAnswer handlerScriptAnswer = OnScriptAnswer;
+            if (handlerScriptAnswer != null)
+            {
+                handlerScriptAnswer(this, scriptAnswer.Data.TaskID, scriptAnswer.Data.ItemID, scriptAnswer.Data.Questions);
+            }
+            return true;
+        }
+
+        private bool HandleObjectClickAction(IClientAPI sender, Packet Pack)
+        {
+            ObjectClickActionPacket ocpacket = (ObjectClickActionPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (ocpacket.AgentData.SessionID != SessionId ||
+                    ocpacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GenericCall7 handlerObjectClickAction = OnObjectClickAction;
+            if (handlerObjectClickAction != null)
+            {
+                foreach (ObjectClickActionPacket.ObjectDataBlock odata in ocpacket.ObjectData)
+                {
+                    byte action = odata.ClickAction;
+                    uint localID = odata.ObjectLocalID;
+                    handlerObjectClickAction(this, localID, action.ToString());
+                }
+            }
+            return true;
+        }
+
+        private bool HandleObjectMaterial(IClientAPI sender, Packet Pack)
+        {
+            ObjectMaterialPacket ompacket = (ObjectMaterialPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (ompacket.AgentData.SessionID != SessionId ||
+                    ompacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GenericCall7 handlerObjectMaterial = OnObjectMaterial;
+            if (handlerObjectMaterial != null)
+            {
+                foreach (ObjectMaterialPacket.ObjectDataBlock odata in ompacket.ObjectData)
+                {
+                    byte material = odata.Material;
+                    uint localID = odata.ObjectLocalID;
+                    handlerObjectMaterial(this, localID, material.ToString());
+                }
+            }
+            return true;
+        }
+
+        #endregion Objects/m_sceneObjects
 
         #endregion Packet Handlers
 
@@ -5755,9 +6832,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Main packet processing conditional
             switch (Pack.Type)
             {
-                #region Scene/Avatar
                 #region CommentedOut
                 /*
+                #region Scene/Avatar
+                
+                
                 case PacketType.AvatarPropertiesRequest:
                     AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
@@ -6419,8 +7498,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
-                */
-                #endregion
+
                 case PacketType.AvatarPickerRequest:
                     AvatarPickerRequestPacket avRequestQuery = (AvatarPickerRequestPacket)Pack;
 
@@ -6444,7 +7522,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    Utils.BytesToString(querydata.Name));
                     }
                     break;
-
+                
                 case PacketType.AgentDataUpdateRequest:
                     AgentDataUpdateRequestPacket avRequestDataUpdatePacket = (AgentDataUpdateRequestPacket)Pack;
 
@@ -6564,7 +7642,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 #endregion
 
-                #region Objects/m_sceneObjects
+
+                //#region Objects/m_sceneObjects
 
                 case PacketType.ObjectLink:
                     ObjectLinkPacket link = (ObjectLinkPacket)Pack;
@@ -6723,6 +7802,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectDuplicate:
                     ObjectDuplicatePacket dupe = (ObjectDuplicatePacket)Pack;
 
@@ -6775,6 +7855,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectSelect:
                     ObjectSelectPacket incomingselect = (ObjectSelectPacket)Pack;
 
@@ -6798,6 +7879,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectDeselect:
                     ObjectDeselectPacket incomingdeselect = (ObjectDeselectPacket)Pack;
 
@@ -6821,6 +7903,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectPosition:
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectPositionPacket position = (ObjectPositionPacket)Pack;
@@ -6843,6 +7926,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.ObjectScale:
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectScalePacket scale = (ObjectScalePacket)Pack;
@@ -6864,6 +7948,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.ObjectRotation:
                     // DEPRECATED: but till libsecondlife removes it, people will use it
                     ObjectRotationPacket rotation = (ObjectRotationPacket)Pack;
@@ -6885,6 +7970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.ObjectFlagUpdate:
                     ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
 
@@ -6925,6 +8011,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectGrab:
                     ObjectGrabPacket grab = (ObjectGrabPacket)Pack;
 
@@ -6959,6 +8046,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerGrabObject(grab.ObjectData.LocalID, grab.ObjectData.GrabOffset, this, touchArgs);
                     }
                     break;
+
                 case PacketType.ObjectGrabUpdate:
                     ObjectGrabUpdatePacket grabUpdate = (ObjectGrabUpdatePacket)Pack;
 
@@ -6994,6 +8082,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                           grabUpdate.ObjectData.GrabPosition, this, touchArgs);
                     }
                     break;
+
                 case PacketType.ObjectDeGrab:
                     ObjectDeGrabPacket deGrab = (ObjectDeGrabPacket)Pack;
 
@@ -7027,6 +8116,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerDeGrabObject(deGrab.ObjectData.LocalID, this, touchArgs);
                     }
                     break;
+
                 case PacketType.ObjectSpinStart:
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinStart packet");
                     ObjectSpinStartPacket spinStart = (ObjectSpinStartPacket)Pack;
@@ -7070,6 +8160,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerSpinUpdate(spinUpdate.ObjectData.ObjectID, spinUpdate.ObjectData.Rotation, this);
                     }
                     break;
+
+
                 case PacketType.ObjectSpinStop:
                     //m_log.Warn("[CLIENT]: unhandled ObjectSpinStop packet");
                     ObjectSpinStopPacket spinStop = (ObjectSpinStopPacket)Pack;
@@ -7114,6 +8206,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectName:
                     ObjectNamePacket objName = (ObjectNamePacket)Pack;
 
@@ -7137,6 +8230,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectPermissions:
                     if (OnObjectPermissions != null)
                     {
@@ -7212,6 +8306,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.ObjectDuplicateOnRay:
                     ObjectDuplicateOnRayPacket dupeOnRay = (ObjectDuplicateOnRayPacket)Pack;
 
@@ -7239,6 +8334,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.RequestObjectPropertiesFamily:
                     //This powers the little tooltip that appears when you move your mouse over an object
                     RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;
@@ -7263,6 +8359,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.ObjectIncludeInSearch:
                     //This lets us set objects to appear in search (stuff like DataSnapshot, etc)
                     ObjectIncludeInSearchPacket packInSearch = (ObjectIncludeInSearchPacket)Pack;
@@ -7358,8 +8455,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
+                //#endregion
+                */
                 #endregion
-
                 #region Inventory/Asset/Other related packets
 
                 case PacketType.RequestImage:
