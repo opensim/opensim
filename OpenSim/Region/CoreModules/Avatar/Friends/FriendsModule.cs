@@ -395,7 +395,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             // if it leaves, we want to know, too
             client.OnLogout += OnLogout;
-			client.OnGrantUserRights += GrantUserFriendRights;
+            client.OnGrantUserRights += GrantUserFriendRights;
 
         }
 
@@ -1112,8 +1112,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
         private void GrantUserFriendRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
         {
-        	((Scene)remoteClient.Scene).CommsManager.UpdateUserFriendPerms(requester, target, (uint)rights);
-    	}
+            ((Scene)remoteClient.Scene).CommsManager.UpdateUserFriendPerms(requester, target, (uint)rights);
+        }
 
         public List<FriendListItem> GetUserFriends(UUID agentID)
         {
@@ -1126,6 +1126,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             return fl;
         }
-    }    	
+    }
     #endregion
 }

@@ -113,6 +113,6 @@ namespace OpenSim.Tests.Common.Setup
             userInfo.FetchInventory();
             
             return userInfo;
-        }        
+        }
     }
 }

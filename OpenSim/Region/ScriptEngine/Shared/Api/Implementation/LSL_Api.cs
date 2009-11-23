@@ -1271,11 +1271,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
             if (scale.x < 0.01)
-				scale.x = 0.01;
+                scale.x = 0.01;
             if (scale.y < 0.01)
-				scale.y = 0.01;
+                scale.y = 0.01;
             if (scale.z < 0.01)
-				scale.z = 0.01;
+                scale.z = 0.01;
 
             if (part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
             {

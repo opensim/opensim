@@ -325,7 +325,7 @@ namespace OpenSim.Region.RegionCombinerModule
                         >= (regionConnections.Y * (int)Constants.RegionSize)))
                     {
                         connectedYN = DoWorkForOneRegionOverXPlusY(conn, regionConnections, scene);
-                        break;    
+                        break;
                     }
 
                     // If we're one region over +x +y
@@ -338,7 +338,7 @@ namespace OpenSim.Region.RegionCombinerModule
                         >= (regionConnections.Y * (int)Constants.RegionSize)))
                     {
                         connectedYN = DoWorkForOneRegionOverPlusXPlusY(conn, regionConnections, scene);
-                        break;    
+                        break;
 
                     }
                 }

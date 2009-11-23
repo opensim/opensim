@@ -116,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 return startFolder;
 
             string[] components = SplitEscapedPath(path);
-            components[0] = UnescapePath(components[0]);            
+            components[0] = UnescapePath(components[0]);
 
             //string[] components = path.Split(new string[] { PATH_DELIMITER.ToString() }, 2, StringSplitOptions.None);
             
@@ -306,17 +306,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public static string EscapeArchivePath(string path)
         {
             // Only encode ampersands (for escaping anything) and / (since this is used as general dir separator).
-            return path.Replace("&", "&amp;").Replace("/", "&#47;");            
+            return path.Replace("&", "&amp;").Replace("/", "&#47;");
         }
 
         /// <summary>
         /// Unescape an archive path.
         /// </summary>
         /// <param name="path"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public static string UnescapeArchivePath(string path)
         {
-            return path.Replace("&#47;", "/").Replace("&amp;", "&");            
+            return path.Replace("&#47;", "/").Replace("&amp;", "&");
         }
     }
 }

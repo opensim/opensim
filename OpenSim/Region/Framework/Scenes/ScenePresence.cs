@@ -151,6 +151,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Quaternion m_bodyRot= Quaternion.Identity;
 
+        private const int LAND_VELOCITYMAG_MAX = 12;
+
         public bool IsRestrictedToRegion;
 
         public string JID = String.Empty;
@@ -247,7 +249,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// Script engines present in the scene
         /// </value>
-        private IScriptModule[] m_scriptEngines;         
+        private IScriptModule[] m_scriptEngines;
 
         #region Properties
 
@@ -674,7 +676,7 @@ namespace OpenSim.Region.Framework.Scenes
                              AvatarWearable[] wearables)
             : this(client, world, reginfo)
         {
-            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);            
+            m_appearance = new AvatarAppearance(m_uuid, wearables, visualParams);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, AvatarAppearance appearance)
@@ -1000,8 +1002,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void StopFlying()
         {
             // It turns out to get the agent to stop flying, you have to feed it stop flying velocities
-            // and send a full object update.
-            // There's no message to send the client to tell it to stop flying
+            // There's no explicit message to send the client to tell it to stop flying..   it relies on the 
+            // velocity, collision plane and avatar height
 
             // Add 1/6 the avatar's height to it's position so it doesn't shoot into the air
             // when the avatar stands up
@@ -1015,8 +1017,6 @@ namespace OpenSim.Region.Framework.Scenes
                 AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (1.56f / 6f));
             }
 
-            Animator.TrySetMovementAnimation("LAND");
-            //SendFullUpdateToAllClients();
             ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
                     AbsolutePosition, Velocity, Vector3.Zero, m_bodyRot, new Vector4(0,0,1,AbsolutePosition.Z - 0.5f), m_uuid, null, GetUpdatePriority(ControllingClient)));
         }
@@ -1468,6 +1468,8 @@ namespace OpenSim.Region.Framework.Scenes
                 // Only do this if we're flying
                 if (m_physicsActor != null && m_physicsActor.Flying && !m_forceFly)
                 {
+                    // Landing detection code
+
                     // Are the landing controls requirements filled?
                     bool controlland = (((flags & AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
                                         ((flags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
@@ -1477,7 +1479,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (m_physicsActor.Flying && colliding && controlland)
                     {
-                        StopFlying();
+                        // nesting this check because LengthSquared() is expensive and we don't 
+                        // want to do it every step when flying.
+                        if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
+                            StopFlying();
                     }
                 }
 
@@ -3097,7 +3102,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public ScenePresence()
         {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;            
+            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
         }
@@ -3185,8 +3190,8 @@ namespace OpenSim.Region.Framework.Scenes
                         }
                     }
                 }
-            }            
-        }        
+            }
+        }
 
         public bool CrossAttachmentsIntoNewRegion(ulong regionHandle, bool silent)
         {

@@ -835,7 +835,18 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // allows us to have different settings
                 
                 // We only need to test p2 for 'jump crouch purposes'
-                p2.IsColliding = true;
+                if (p2 is OdeCharacter)
+                {
+                    // Testing if the collision is at the feet of the avatar
+
+                    //m_log.DebugFormat("[PHYSICS]: {0} - {1} - {2} - {3}", curContact.pos.Z, p2.Position.Z, (p2.Position.Z - curContact.pos.Z), (p2.Size.Z * 0.6f));
+                    if ((p2.Position.Z - curContact.pos.Z) > (p2.Size.Z * 0.6f))
+                        p2.IsColliding = true;
+                }
+                else
+                {
+                    p2.IsColliding = true;
+                }
                 
                 //if ((framecount % m_returncollisions) == 0)
 

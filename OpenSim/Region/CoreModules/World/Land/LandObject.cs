@@ -318,7 +318,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         public void SendLandUpdateToClient(bool snap_selection, IClientAPI remote_client)
-        {	    
+        {
             SendLandProperties(0, snap_selection, 0, remote_client);
         }
 

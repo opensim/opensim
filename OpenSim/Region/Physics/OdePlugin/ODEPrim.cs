@@ -2185,9 +2185,30 @@ Console.WriteLine(" JointCreateFixed");
                     if (IsPhysical)
                     {
                         Vector3 iforce = Vector3.Zero;
-                        for (int i = 0; i < m_forcelist.Count; i++)
+                        int i = 0;
+                        try
                         {
-                            iforce = iforce + (m_forcelist[i] * 100);
+                            for (i = 0; i < m_forcelist.Count; i++)
+                            {
+
+                                iforce = iforce + (m_forcelist[i] * 100);
+                            }
+                        }
+                        catch (IndexOutOfRangeException)
+                        {
+                            m_forcelist = new List<Vector3>();
+                            m_collisionscore = 0;
+                            m_interpenetrationcount = 0;
+                            m_taintforce = false;
+                            return;
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            m_forcelist = new List<Vector3>();
+                            m_collisionscore = 0;
+                            m_interpenetrationcount = 0;
+                            m_taintforce = false;
+                            return;
                         }
                         d.BodyEnable(Body);
                         d.BodyAddForce(Body, iforce.X, iforce.Y, iforce.Z);
@@ -2521,7 +2542,9 @@ Console.WriteLine(" JointCreateFixed");
         {
             if (force.IsFinite())
             {
-                m_forcelist.Add(force);
+                lock (m_forcelist)
+                    m_forcelist.Add(force);
+
                 m_taintforce = true;
             }
             else

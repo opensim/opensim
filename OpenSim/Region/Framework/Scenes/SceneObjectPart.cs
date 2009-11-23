@@ -2430,7 +2430,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_updateFlag = 0; //Same here
                 }
             }
-            ClearUpdateSchedule();
+            m_updateFlag = 0;
         }
 
         /// <summary>

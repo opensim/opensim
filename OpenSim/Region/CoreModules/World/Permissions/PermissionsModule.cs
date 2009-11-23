@@ -486,21 +486,21 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
         protected bool IsFriendWithPerms(UUID user,UUID objectOwner)
         {
-        	
-        	if (user == UUID.Zero)
+            
+            if (user == UUID.Zero)
                 return false;
 
             if (m_friendsModule == null)
                 return false;
 
-        	List<FriendListItem> profile = m_friendsModule.GetUserFriends(user);
+            List<FriendListItem> profile = m_friendsModule.GetUserFriends(user);
 
-        	foreach (FriendListItem item in profile)
-        	{
-        		if(item.Friend == objectOwner && (item.FriendPerms & (uint)FriendRights.CanModifyObjects) != 0)
+            foreach (FriendListItem item in profile)
+            {
+                if (item.Friend == objectOwner && (item.FriendPerms & (uint)FriendRights.CanModifyObjects) != 0)
                     return true;
-        	}
-        	return false;
+            }
+            return false;
         }
 
         protected bool IsEstateManager(UUID user)

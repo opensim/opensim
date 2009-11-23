@@ -39,7 +39,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     /// Handle all animation duties for a scene presence
     /// </summary>
     public class ScenePresenceAnimator
-    {        
+    {
         public AnimationSet Animations
         {
             get { return m_animations;  }
@@ -53,19 +53,19 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             get { return m_movementAnimation; }
         }
-        protected string m_movementAnimation = "DEFAULT";        
+        protected string m_movementAnimation = "DEFAULT";
 
         private int m_animTickFall;
-        private int m_animTickJump;                          
+        private int m_animTickJump;
         
         /// <value>
         /// The scene presence that this animator applies to
         /// </value>
-        protected ScenePresence m_scenePresence;        
+        protected ScenePresence m_scenePresence;
         
         public ScenePresenceAnimator(ScenePresence sp)
         {
-            m_scenePresence = sp;            
+            m_scenePresence = sp;
         }
         
         public void AddAnimation(UUID animID, UUID objectID)
@@ -110,11 +110,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 return;
 
             RemoveAnimation(animID);
-        }        
+        }
 
         public void ResetAnimations()
         {
-            m_animations.Clear();            
+            m_animations.Clear();
         }
         
         /// <summary>
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero))
                 {
                     // 16384 is CHANGED_ANIMATION
-                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { 16384 });                    
+                    m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { 16384 });
                     SendAnimPack();
                 }
             }
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             #endregion Ground Movement
 
             return m_movementAnimation;
-        }        
+        }
 
         /// <summary>
         /// Update the movement animation of this avatar according to its current state
@@ -391,7 +391,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_scenePresence.Scene.AssetService.Store(Animasset);
             AddAnimation(Animasset.FullID, m_scenePresence.UUID);
             return anim;
-        }        
+        }
 
         /// <summary>
         ///
@@ -443,6 +443,6 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
 
             SendAnimPack(animIDs, sequenceNums, objectIDs);
-        }        
+        }
     }
 }

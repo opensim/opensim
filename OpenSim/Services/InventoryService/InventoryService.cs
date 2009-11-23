@@ -439,6 +439,7 @@ namespace OpenSim.Services.InventoryService
 
         public virtual bool DeleteFolders(UUID ownerID, List<UUID> folderIDs)
         {
+            m_log.InfoFormat("[INVENTORY SERVICE]: Deleting {0} folders from user {1}", folderIDs.Count, ownerID);
             foreach (UUID id in folderIDs)
             {
                 InventoryFolderBase folder = new InventoryFolderBase(id, ownerID);
