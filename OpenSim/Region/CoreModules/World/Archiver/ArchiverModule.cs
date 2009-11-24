@@ -45,6 +45,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         private Scene m_scene;
 
+        /// <value>
+        /// The file used to load and save an opensimulator archive if no filename has been specified
+        /// </value>
+        protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";        
+
         public string Name 
         { 
             get { return "RegionArchiverModule"; } 
@@ -80,6 +85,38 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
         }
 
+        /// <summary>
+        /// Load a whole region from an opensimulator archive.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length > 2)
+            {
+                DearchiveRegion(cmdparams[2]);
+            }
+            else
+            {
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME);
+            }
+        }        
+
+        /// <summary>
+        /// Save a region to a file, including all the assets needed to restore it.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        public void HandleSaveOarConsoleCommand(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length > 2)
+            {
+                ArchiveRegion(cmdparams[2]);
+            }
+            else
+            {
+                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME);
+            }
+        }
+        
         public void ArchiveRegion(string savePath)
         {
             ArchiveRegion(savePath, Guid.Empty);
