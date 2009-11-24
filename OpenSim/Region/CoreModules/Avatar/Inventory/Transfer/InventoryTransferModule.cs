@@ -389,7 +389,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         {
             // Check if this is ours to handle
             //
-            m_log.Info("OnFridInstantMessage");
+            //m_log.Info("OnFridInstantMessage");
             if (msg.dialog != (byte) InstantMessageDialog.InventoryOffered)
                 return;
 

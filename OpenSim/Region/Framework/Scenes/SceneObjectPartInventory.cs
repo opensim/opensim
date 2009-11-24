@@ -713,7 +713,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (fileData.Length > 2)
             {
-                m_log.Debug("Sending task inventory list of " + count.ToString() + " items to client " + client.AgentId.ToString());
                 xferManager.AddNewFile(m_inventoryFileName, fileData);
             }
         }
