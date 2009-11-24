@@ -4424,11 +4424,62 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.GetScriptRunning, HandleGetScriptRunning);
             AddLocalPacketHandler(PacketType.SetScriptRunning, HandleSetScriptRunning);
             AddLocalPacketHandler(PacketType.ScriptReset, HandleScriptReset);
-            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-
+            AddLocalPacketHandler(PacketType.ActivateGestures, HandleActivateGestures);
+            AddLocalPacketHandler(PacketType.DeactivateGestures, HandleDeactivateGestures);
+            AddLocalPacketHandler(PacketType.ObjectOwner, HandleObjectOwner);
+            AddLocalPacketHandler(PacketType.AgentFOV, HandleAgentFOV);
+            AddLocalPacketHandler(PacketType.ViewerStats, HandleViewerStats);
+            AddLocalPacketHandler(PacketType.MapItemRequest, HandleMapItemRequest);
+            AddLocalPacketHandler(PacketType.TransferAbort, HandleTransferAbort);
+            AddLocalPacketHandler(PacketType.MuteListRequest, HandleMuteListRequest);
+            AddLocalPacketHandler(PacketType.UseCircuitCode, HandleUseCircuitCode);
+            AddLocalPacketHandler(PacketType.AgentHeightWidth, HandleAgentHeightWidth);
+            AddLocalPacketHandler(PacketType.InventoryDescendents, HandleInventoryDescendents);
+            AddLocalPacketHandler(PacketType.DirPlacesQuery, HandleDirPlacesQuery);
+            AddLocalPacketHandler(PacketType.DirFindQuery, HandleDirFindQuery);
+            AddLocalPacketHandler(PacketType.DirLandQuery, HandleDirLandQuery);
+            AddLocalPacketHandler(PacketType.DirPopularQuery, HandleDirPopularQuery);
+            AddLocalPacketHandler(PacketType.DirClassifiedQuery, HandleDirClassifiedQuery);
+            AddLocalPacketHandler(PacketType.EventInfoRequest, HandleEventInfoRequest);
+            AddLocalPacketHandler(PacketType.OfferCallingCard, HandleOfferCallingCard);
+            AddLocalPacketHandler(PacketType.AcceptCallingCard, HandleAcceptCallingCard);
+            AddLocalPacketHandler(PacketType.DeclineCallingCard, HandleDeclineCallingCard);
+            AddLocalPacketHandler(PacketType.ActivateGroup, HandleActivateGroup);
+            AddLocalPacketHandler(PacketType.GroupTitlesRequest, HandleGroupTitlesRequest);
+            AddLocalPacketHandler(PacketType.GroupProfileRequest, HandleGroupProfileRequest);
+            AddLocalPacketHandler(PacketType.GroupMembersRequest, HandleGroupMembersRequest);
+            AddLocalPacketHandler(PacketType.GroupRoleDataRequest, HandleGroupRoleDataRequest);
+            AddLocalPacketHandler(PacketType.GroupRoleMembersRequest, HandleGroupRoleMembersRequest);
+            AddLocalPacketHandler(PacketType.CreateGroupRequest, HandleCreateGroupRequest);
+            AddLocalPacketHandler(PacketType.UpdateGroupInfo, HandleUpdateGroupInfo);
+            AddLocalPacketHandler(PacketType.SetGroupAcceptNotices, HandleSetGroupAcceptNotices);
+            AddLocalPacketHandler(PacketType.GroupTitleUpdate, HandleGroupTitleUpdate);
+            AddLocalPacketHandler(PacketType.ParcelDeedToGroup, HandleParcelDeedToGroup);
+            AddLocalPacketHandler(PacketType.GroupNoticesListRequest, HandleGroupNoticesListRequest);
+            AddLocalPacketHandler(PacketType.GroupNoticeRequest, HandleGroupNoticeRequest);
+            AddLocalPacketHandler(PacketType.GroupRoleUpdate, HandleGroupRoleUpdate);
+            AddLocalPacketHandler(PacketType.GroupRoleChanges, HandleGroupRoleChanges);
+            AddLocalPacketHandler(PacketType.JoinGroupRequest, HandleJoinGroupRequest);
+            AddLocalPacketHandler(PacketType.LeaveGroupRequest, HandleLeaveGroupRequest);
+            AddLocalPacketHandler(PacketType.EjectGroupMemberRequest, HandleEjectGroupMemberRequest);
+            AddLocalPacketHandler(PacketType.InviteGroupRequest, HandleInviteGroupRequest);
+            AddLocalPacketHandler(PacketType.StartLure, HandleStartLure);
+            AddLocalPacketHandler(PacketType.TeleportLureRequest, HandleTeleportLureRequest);
+            AddLocalPacketHandler(PacketType.ClassifiedInfoRequest, HandleClassifiedInfoRequest);
+            AddLocalPacketHandler(PacketType.ClassifiedInfoUpdate, HandleClassifiedInfoUpdate);
+            AddLocalPacketHandler(PacketType.ClassifiedDelete, HandleClassifiedDelete);
+            AddLocalPacketHandler(PacketType.ClassifiedGodDelete, HandleClassifiedGodDelete);
+            AddLocalPacketHandler(PacketType.EventGodDelete, HandleEventGodDelete);
+            AddLocalPacketHandler(PacketType.EventNotificationAddRequest, HandleEventNotificationAddRequest);
+            AddLocalPacketHandler(PacketType.EventNotificationRemoveRequest, HandleEventNotificationRemoveRequest);
+            AddLocalPacketHandler(PacketType.RetrieveInstantMessages, HandleRetrieveInstantMessages);
+            AddLocalPacketHandler(PacketType.PickDelete, HandlePickDelete);
+            AddLocalPacketHandler(PacketType.PickGodDelete, HandlePickGodDelete);
+            AddLocalPacketHandler(PacketType.PickInfoUpdate, HandlePickInfoUpdate);
+            AddLocalPacketHandler(PacketType.AvatarNotesUpdate, HandleAvatarNotesUpdate);
+            AddLocalPacketHandler(PacketType.AvatarInterestsUpdate, HandleAvatarInterestsUpdate);
+            AddLocalPacketHandler(PacketType.GrantUserRights, HandleGrantUserRights);
+            AddLocalPacketHandler(PacketType.PlacesQuery, HandlePlacesQuery);
         }
 
         #region Packet Handlers
@@ -7868,7 +7919,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     return true;
                 case "texturecommit":
                     OnCommitEstateTerrainTextureRequest(this);
-                    break;
+                    return true;
                 case "setregionterrain":
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
@@ -7954,7 +8005,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
                     {
                         if (messagePacket.ParamList.Length < 5)
-                            break;
+                            return true;
                         UUID invoice = messagePacket.MethodData.Invoice;
                         UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
                         string SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
@@ -8333,7 +8384,1459 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion Script Packets
 
+        #region Gesture Managment
 
+        private bool HandleActivateGestures(IClientAPI sender, Packet Pack)
+        {
+            ActivateGesturesPacket activateGesturePacket = (ActivateGesturesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (activateGesturePacket.AgentData.SessionID != SessionId ||
+                    activateGesturePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ActivateGesture handlerActivateGesture = OnActivateGesture;
+            if (handlerActivateGesture != null)
+            {
+                handlerActivateGesture(this,
+                                       activateGesturePacket.Data[0].AssetID,
+                                       activateGesturePacket.Data[0].ItemID);
+            }
+            else m_log.Error("Null pointer for activateGesture");
+
+            return true;
+        }
+        private bool HandleDeactivateGestures(IClientAPI sender, Packet Pack)
+        {
+            DeactivateGesturesPacket deactivateGesturePacket = (DeactivateGesturesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (deactivateGesturePacket.AgentData.SessionID != SessionId ||
+                    deactivateGesturePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DeactivateGesture handlerDeactivateGesture = OnDeactivateGesture;
+            if (handlerDeactivateGesture != null)
+            {
+                handlerDeactivateGesture(this, deactivateGesturePacket.Data[0].ItemID);
+            }
+            return true;
+        }
+        private bool HandleObjectOwner(IClientAPI sender, Packet Pack)
+        {
+            ObjectOwnerPacket objectOwnerPacket = (ObjectOwnerPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (objectOwnerPacket.AgentData.SessionID != SessionId ||
+                    objectOwnerPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            List<uint> localIDs = new List<uint>();
+
+            foreach (ObjectOwnerPacket.ObjectDataBlock d in objectOwnerPacket.ObjectData)
+                localIDs.Add(d.ObjectLocalID);
+
+            ObjectOwner handlerObjectOwner = OnObjectOwner;
+            if (handlerObjectOwner != null)
+            {
+                handlerObjectOwner(this, objectOwnerPacket.HeaderData.OwnerID, objectOwnerPacket.HeaderData.GroupID, localIDs);
+            }
+            return true;
+        }
+
+        #endregion Gesture Managment
+
+        private bool HandleAgentFOV(IClientAPI sender, Packet Pack)
+        {
+            AgentFOVPacket fovPacket = (AgentFOVPacket)Pack;
+
+            if (fovPacket.FOVBlock.GenCounter > m_agentFOVCounter)
+            {
+                m_agentFOVCounter = fovPacket.FOVBlock.GenCounter;
+                AgentFOV handlerAgentFOV = OnAgentFOV;
+                if (handlerAgentFOV != null)
+                {
+                    handlerAgentFOV(this, fovPacket.FOVBlock.VerticalAngle);
+                }
+            }
+            return true;
+        }
+
+        #region unimplemented handlers
+
+        private bool HandleViewerStats(IClientAPI sender, Packet Pack)
+        {
+            // TODO: handle this packet
+            //m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
+            return true;
+        }
+
+        private bool HandleMapItemRequest(IClientAPI sender, Packet Pack)
+        {
+            MapItemRequestPacket mirpk = (MapItemRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (mirpk.AgentData.SessionID != SessionId ||
+                    mirpk.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            //m_log.Debug(mirpk.ToString());
+            MapItemRequest handlerMapItemRequest = OnMapItemRequest;
+            if (handlerMapItemRequest != null)
+            {
+                handlerMapItemRequest(this, mirpk.AgentData.Flags, mirpk.AgentData.EstateID,
+                                      mirpk.AgentData.Godlike, mirpk.RequestData.ItemType,
+                                      mirpk.RequestData.RegionHandle);
+
+            }
+            return true;
+        }
+
+        private bool HandleTransferAbort(IClientAPI sender, Packet Pack)
+        {
+            return true;
+        }
+
+        private bool HandleMuteListRequest(IClientAPI sender, Packet Pack)
+        {
+            MuteListRequestPacket muteListRequest =
+                            (MuteListRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (muteListRequest.AgentData.SessionID != SessionId ||
+                    muteListRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            MuteListRequest handlerMuteListRequest = OnMuteListRequest;
+            if (handlerMuteListRequest != null)
+            {
+                handlerMuteListRequest(this, muteListRequest.MuteData.MuteCRC);
+            }
+            else
+            {
+                SendUseCachedMuteList();
+            }
+            return true;
+        }
+
+        private bool HandleUseCircuitCode(IClientAPI sender, Packet Pack)
+        {
+            return true;
+        }
+
+        private bool HandleAgentHeightWidth(IClientAPI sender, Packet Pack)
+        {
+            return true;
+        }
+
+        private bool HandleInventoryDescendents(IClientAPI sender, Packet Pack)
+        {
+            return true;
+        }
+
+        #endregion unimplemented handlers
+
+        #region Dir handlers
+
+        private bool HandleDirPlacesQuery(IClientAPI sender, Packet Pack)
+        {
+            DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;
+            //m_log.Debug(dirPlacesQueryPacket.ToString());
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dirPlacesQueryPacket.AgentData.SessionID != SessionId ||
+                    dirPlacesQueryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DirPlacesQuery handlerDirPlacesQuery = OnDirPlacesQuery;
+            if (handlerDirPlacesQuery != null)
+            {
+                handlerDirPlacesQuery(this,
+                                      dirPlacesQueryPacket.QueryData.QueryID,
+                                      Utils.BytesToString(
+                                          dirPlacesQueryPacket.QueryData.QueryText),
+                                      (int)dirPlacesQueryPacket.QueryData.QueryFlags,
+                                      (int)dirPlacesQueryPacket.QueryData.Category,
+                                      Utils.BytesToString(
+                                          dirPlacesQueryPacket.QueryData.SimName),
+                                      dirPlacesQueryPacket.QueryData.QueryStart);
+            }
+            return true;
+        }
+
+        private bool HandleDirFindQuery(IClientAPI sender, Packet Pack)
+        {
+            DirFindQueryPacket dirFindQueryPacket = (DirFindQueryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dirFindQueryPacket.AgentData.SessionID != SessionId ||
+                    dirFindQueryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DirFindQuery handlerDirFindQuery = OnDirFindQuery;
+            if (handlerDirFindQuery != null)
+            {
+                handlerDirFindQuery(this,
+                                    dirFindQueryPacket.QueryData.QueryID,
+                                    Utils.BytesToString(
+                                        dirFindQueryPacket.QueryData.QueryText),
+                                    dirFindQueryPacket.QueryData.QueryFlags,
+                                    dirFindQueryPacket.QueryData.QueryStart);
+            }
+            return true;
+        }
+
+        private bool HandleDirLandQuery(IClientAPI sender, Packet Pack)
+        {
+            DirLandQueryPacket dirLandQueryPacket = (DirLandQueryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dirLandQueryPacket.AgentData.SessionID != SessionId ||
+                    dirLandQueryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DirLandQuery handlerDirLandQuery = OnDirLandQuery;
+            if (handlerDirLandQuery != null)
+            {
+                handlerDirLandQuery(this,
+                                    dirLandQueryPacket.QueryData.QueryID,
+                                    dirLandQueryPacket.QueryData.QueryFlags,
+                                    dirLandQueryPacket.QueryData.SearchType,
+                                    dirLandQueryPacket.QueryData.Price,
+                                    dirLandQueryPacket.QueryData.Area,
+                                    dirLandQueryPacket.QueryData.QueryStart);
+            }
+            return true;
+        }
+
+        private bool HandleDirPopularQuery(IClientAPI sender, Packet Pack)
+        {
+            DirPopularQueryPacket dirPopularQueryPacket = (DirPopularQueryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dirPopularQueryPacket.AgentData.SessionID != SessionId ||
+                    dirPopularQueryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DirPopularQuery handlerDirPopularQuery = OnDirPopularQuery;
+            if (handlerDirPopularQuery != null)
+            {
+                handlerDirPopularQuery(this,
+                                       dirPopularQueryPacket.QueryData.QueryID,
+                                       dirPopularQueryPacket.QueryData.QueryFlags);
+            }
+            return true;
+        }
+
+        private bool HandleDirClassifiedQuery(IClientAPI sender, Packet Pack)
+        {
+            DirClassifiedQueryPacket dirClassifiedQueryPacket = (DirClassifiedQueryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dirClassifiedQueryPacket.AgentData.SessionID != SessionId ||
+                    dirClassifiedQueryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            DirClassifiedQuery handlerDirClassifiedQuery = OnDirClassifiedQuery;
+            if (handlerDirClassifiedQuery != null)
+            {
+                handlerDirClassifiedQuery(this,
+                                          dirClassifiedQueryPacket.QueryData.QueryID,
+                                          Utils.BytesToString(
+                                              dirClassifiedQueryPacket.QueryData.QueryText),
+                                          dirClassifiedQueryPacket.QueryData.QueryFlags,
+                                          dirClassifiedQueryPacket.QueryData.Category,
+                                          dirClassifiedQueryPacket.QueryData.QueryStart);
+            }
+            return true;
+        }
+
+        private bool HandleEventInfoRequest(IClientAPI sender, Packet Pack)
+        {
+            EventInfoRequestPacket eventInfoRequestPacket = (EventInfoRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (eventInfoRequestPacket.AgentData.SessionID != SessionId ||
+                    eventInfoRequestPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnEventInfoRequest != null)
+            {
+                OnEventInfoRequest(this, eventInfoRequestPacket.EventData.EventID);
+            }
+            return true;
+        }
+
+        #endregion
+
+        #region Calling Card
+
+        private bool HandleOfferCallingCard(IClientAPI sender, Packet Pack)
+        {
+            OfferCallingCardPacket offerCallingCardPacket = (OfferCallingCardPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (offerCallingCardPacket.AgentData.SessionID != SessionId ||
+                    offerCallingCardPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnOfferCallingCard != null)
+            {
+                OnOfferCallingCard(this,
+                                   offerCallingCardPacket.AgentBlock.DestID,
+                                   offerCallingCardPacket.AgentBlock.TransactionID);
+            }
+            return true;
+        }
+
+        private bool HandleAcceptCallingCard(IClientAPI sender, Packet Pack)
+        {
+            AcceptCallingCardPacket acceptCallingCardPacket = (AcceptCallingCardPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (acceptCallingCardPacket.AgentData.SessionID != SessionId ||
+                    acceptCallingCardPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            // according to http://wiki.secondlife.com/wiki/AcceptCallingCard FolderData should
+            // contain exactly one entry
+            if (OnAcceptCallingCard != null && acceptCallingCardPacket.FolderData.Length > 0)
+            {
+                OnAcceptCallingCard(this,
+                                    acceptCallingCardPacket.TransactionBlock.TransactionID,
+                                    acceptCallingCardPacket.FolderData[0].FolderID);
+            }
+            return true;
+        }
+
+        private bool HandleDeclineCallingCard(IClientAPI sender, Packet Pack)
+        {
+            DeclineCallingCardPacket declineCallingCardPacket = (DeclineCallingCardPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (declineCallingCardPacket.AgentData.SessionID != SessionId ||
+                    declineCallingCardPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnDeclineCallingCard != null)
+            {
+                OnDeclineCallingCard(this,
+                                     declineCallingCardPacket.TransactionBlock.TransactionID);
+            }
+            return true;
+        }
+
+        #endregion Calling Card
+
+        #region Groups
+
+        private bool HandleActivateGroup(IClientAPI sender, Packet Pack)
+        {
+            ActivateGroupPacket activateGroupPacket = (ActivateGroupPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (activateGroupPacket.AgentData.SessionID != SessionId ||
+                    activateGroupPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.ActivateGroup(this, activateGroupPacket.AgentData.GroupID);
+                m_GroupsModule.SendAgentGroupDataUpdate(this);
+            }
+            return true;
+
+        }
+
+        private bool HandleGroupTitlesRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupTitlesRequestPacket groupTitlesRequest =
+                            (GroupTitlesRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupTitlesRequest.AgentData.SessionID != SessionId ||
+                    groupTitlesRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                GroupTitlesReplyPacket groupTitlesReply = (GroupTitlesReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupTitlesReply);
+
+                groupTitlesReply.AgentData =
+                    new GroupTitlesReplyPacket.AgentDataBlock();
+
+                groupTitlesReply.AgentData.AgentID = AgentId;
+                groupTitlesReply.AgentData.GroupID =
+                    groupTitlesRequest.AgentData.GroupID;
+
+                groupTitlesReply.AgentData.RequestID =
+                    groupTitlesRequest.AgentData.RequestID;
+
+                List<GroupTitlesData> titles =
+                    m_GroupsModule.GroupTitlesRequest(this,
+                                                      groupTitlesRequest.AgentData.GroupID);
+
+                groupTitlesReply.GroupData =
+                    new GroupTitlesReplyPacket.GroupDataBlock[titles.Count];
+
+                int i = 0;
+                foreach (GroupTitlesData d in titles)
+                {
+                    groupTitlesReply.GroupData[i] =
+                        new GroupTitlesReplyPacket.GroupDataBlock();
+
+                    groupTitlesReply.GroupData[i].Title =
+                        Util.StringToBytes256(d.Name);
+                    groupTitlesReply.GroupData[i].RoleID =
+                        d.UUID;
+                    groupTitlesReply.GroupData[i].Selected =
+                        d.Selected;
+                    i++;
+                }
+
+                OutPacket(groupTitlesReply, ThrottleOutPacketType.Task);
+            }
+            return true;
+        }
+        private bool HandleGroupProfileRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupProfileRequestPacket groupProfileRequest =
+                       (GroupProfileRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupProfileRequest.AgentData.SessionID != SessionId ||
+                    groupProfileRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                GroupProfileReplyPacket groupProfileReply = (GroupProfileReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupProfileReply);
+
+                groupProfileReply.AgentData = new GroupProfileReplyPacket.AgentDataBlock();
+                groupProfileReply.GroupData = new GroupProfileReplyPacket.GroupDataBlock();
+                groupProfileReply.AgentData.AgentID = AgentId;
+
+                GroupProfileData d = m_GroupsModule.GroupProfileRequest(this,
+                                                                        groupProfileRequest.GroupData.GroupID);
+
+                groupProfileReply.GroupData.GroupID = d.GroupID;
+                groupProfileReply.GroupData.Name = Util.StringToBytes256(d.Name);
+                groupProfileReply.GroupData.Charter = Util.StringToBytes1024(d.Charter);
+                groupProfileReply.GroupData.ShowInList = d.ShowInList;
+                groupProfileReply.GroupData.MemberTitle = Util.StringToBytes256(d.MemberTitle);
+                groupProfileReply.GroupData.PowersMask = d.PowersMask;
+                groupProfileReply.GroupData.InsigniaID = d.InsigniaID;
+                groupProfileReply.GroupData.FounderID = d.FounderID;
+                groupProfileReply.GroupData.MembershipFee = d.MembershipFee;
+                groupProfileReply.GroupData.OpenEnrollment = d.OpenEnrollment;
+                groupProfileReply.GroupData.Money = d.Money;
+                groupProfileReply.GroupData.GroupMembershipCount = d.GroupMembershipCount;
+                groupProfileReply.GroupData.GroupRolesCount = d.GroupRolesCount;
+                groupProfileReply.GroupData.AllowPublish = d.AllowPublish;
+                groupProfileReply.GroupData.MaturePublish = d.MaturePublish;
+                groupProfileReply.GroupData.OwnerRole = d.OwnerRole;
+
+                OutPacket(groupProfileReply, ThrottleOutPacketType.Task);
+            }
+            return true;
+        }
+        private bool HandleGroupMembersRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupMembersRequestPacket groupMembersRequestPacket =
+                        (GroupMembersRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupMembersRequestPacket.AgentData.SessionID != SessionId ||
+                    groupMembersRequestPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                List<GroupMembersData> members =
+                    m_GroupsModule.GroupMembersRequest(this, groupMembersRequestPacket.GroupData.GroupID);
+
+                int memberCount = members.Count;
+
+                while (true)
+                {
+                    int blockCount = members.Count;
+                    if (blockCount > 40)
+                        blockCount = 40;
+
+                    GroupMembersReplyPacket groupMembersReply = (GroupMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupMembersReply);
+
+                    groupMembersReply.AgentData =
+                        new GroupMembersReplyPacket.AgentDataBlock();
+                    groupMembersReply.GroupData =
+                        new GroupMembersReplyPacket.GroupDataBlock();
+                    groupMembersReply.MemberData =
+                        new GroupMembersReplyPacket.MemberDataBlock[
+                            blockCount];
+
+                    groupMembersReply.AgentData.AgentID = AgentId;
+                    groupMembersReply.GroupData.GroupID =
+                        groupMembersRequestPacket.GroupData.GroupID;
+                    groupMembersReply.GroupData.RequestID =
+                        groupMembersRequestPacket.GroupData.RequestID;
+                    groupMembersReply.GroupData.MemberCount = memberCount;
+
+                    for (int i = 0; i < blockCount; i++)
+                    {
+                        GroupMembersData m = members[0];
+                        members.RemoveAt(0);
+
+                        groupMembersReply.MemberData[i] =
+                            new GroupMembersReplyPacket.MemberDataBlock();
+                        groupMembersReply.MemberData[i].AgentID =
+                            m.AgentID;
+                        groupMembersReply.MemberData[i].Contribution =
+                            m.Contribution;
+                        groupMembersReply.MemberData[i].OnlineStatus =
+                            Util.StringToBytes256(m.OnlineStatus);
+                        groupMembersReply.MemberData[i].AgentPowers =
+                            m.AgentPowers;
+                        groupMembersReply.MemberData[i].Title =
+                            Util.StringToBytes256(m.Title);
+                        groupMembersReply.MemberData[i].IsOwner =
+                            m.IsOwner;
+                    }
+                    OutPacket(groupMembersReply, ThrottleOutPacketType.Task);
+                    if (members.Count == 0)
+                        return true;
+                }
+            }
+            return true;
+        }
+        private bool HandleGroupRoleDataRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupRoleDataRequestPacket groupRolesRequest =
+                        (GroupRoleDataRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupRolesRequest.AgentData.SessionID != SessionId ||
+                    groupRolesRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                GroupRoleDataReplyPacket groupRolesReply = (GroupRoleDataReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleDataReply);
+
+                groupRolesReply.AgentData =
+                    new GroupRoleDataReplyPacket.AgentDataBlock();
+
+                groupRolesReply.AgentData.AgentID = AgentId;
+
+                groupRolesReply.GroupData =
+                    new GroupRoleDataReplyPacket.GroupDataBlock();
+
+                groupRolesReply.GroupData.GroupID =
+                    groupRolesRequest.GroupData.GroupID;
+
+                groupRolesReply.GroupData.RequestID =
+                    groupRolesRequest.GroupData.RequestID;
+
+                List<GroupRolesData> titles =
+                    m_GroupsModule.GroupRoleDataRequest(this,
+                                                        groupRolesRequest.GroupData.GroupID);
+
+                groupRolesReply.GroupData.RoleCount =
+                    titles.Count;
+
+                groupRolesReply.RoleData =
+                    new GroupRoleDataReplyPacket.RoleDataBlock[titles.Count];
+
+                int i = 0;
+                foreach (GroupRolesData d in titles)
+                {
+                    groupRolesReply.RoleData[i] =
+                        new GroupRoleDataReplyPacket.RoleDataBlock();
+
+                    groupRolesReply.RoleData[i].RoleID =
+                        d.RoleID;
+                    groupRolesReply.RoleData[i].Name =
+                        Util.StringToBytes256(d.Name);
+                    groupRolesReply.RoleData[i].Title =
+                        Util.StringToBytes256(d.Title);
+                    groupRolesReply.RoleData[i].Description =
+                        Util.StringToBytes1024(d.Description);
+                    groupRolesReply.RoleData[i].Powers =
+                        d.Powers;
+                    groupRolesReply.RoleData[i].Members =
+                        (uint)d.Members;
+
+                    i++;
+                }
+
+                OutPacket(groupRolesReply, ThrottleOutPacketType.Task);
+            }
+            return true;
+        }
+        private bool HandleGroupRoleMembersRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupRoleMembersRequestPacket groupRoleMembersRequest =
+                       (GroupRoleMembersRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupRoleMembersRequest.AgentData.SessionID != SessionId ||
+                    groupRoleMembersRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                List<GroupRoleMembersData> mappings =
+                        m_GroupsModule.GroupRoleMembersRequest(this,
+                        groupRoleMembersRequest.GroupData.GroupID);
+
+                int mappingsCount = mappings.Count;
+
+                while (mappings.Count > 0)
+                {
+                    int pairs = mappings.Count;
+                    if (pairs > 32)
+                        pairs = 32;
+
+                    GroupRoleMembersReplyPacket groupRoleMembersReply = (GroupRoleMembersReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupRoleMembersReply);
+                    groupRoleMembersReply.AgentData =
+                            new GroupRoleMembersReplyPacket.AgentDataBlock();
+                    groupRoleMembersReply.AgentData.AgentID =
+                            AgentId;
+                    groupRoleMembersReply.AgentData.GroupID =
+                            groupRoleMembersRequest.GroupData.GroupID;
+                    groupRoleMembersReply.AgentData.RequestID =
+                            groupRoleMembersRequest.GroupData.RequestID;
+
+                    groupRoleMembersReply.AgentData.TotalPairs =
+                            (uint)mappingsCount;
+
+                    groupRoleMembersReply.MemberData =
+                            new GroupRoleMembersReplyPacket.MemberDataBlock[pairs];
+
+                    for (int i = 0; i < pairs; i++)
+                    {
+                        GroupRoleMembersData d = mappings[0];
+                        mappings.RemoveAt(0);
+
+                        groupRoleMembersReply.MemberData[i] =
+                            new GroupRoleMembersReplyPacket.MemberDataBlock();
+
+                        groupRoleMembersReply.MemberData[i].RoleID =
+                                d.RoleID;
+                        groupRoleMembersReply.MemberData[i].MemberID =
+                                d.MemberID;
+                    }
+
+                    OutPacket(groupRoleMembersReply, ThrottleOutPacketType.Task);
+                }
+            }
+            return true;
+        }
+        private bool HandleCreateGroupRequest(IClientAPI sender, Packet Pack)
+        {
+            CreateGroupRequestPacket createGroupRequest =
+                       (CreateGroupRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (createGroupRequest.AgentData.SessionID != SessionId ||
+                    createGroupRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.CreateGroup(this,
+                                           Utils.BytesToString(createGroupRequest.GroupData.Name),
+                                           Utils.BytesToString(createGroupRequest.GroupData.Charter),
+                                           createGroupRequest.GroupData.ShowInList,
+                                           createGroupRequest.GroupData.InsigniaID,
+                                           createGroupRequest.GroupData.MembershipFee,
+                                           createGroupRequest.GroupData.OpenEnrollment,
+                                           createGroupRequest.GroupData.AllowPublish,
+                                           createGroupRequest.GroupData.MaturePublish);
+            }
+            return true;
+        }
+        private bool HandleUpdateGroupInfo(IClientAPI sender, Packet Pack)
+        {
+            UpdateGroupInfoPacket updateGroupInfo =
+                        (UpdateGroupInfoPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (updateGroupInfo.AgentData.SessionID != SessionId ||
+                    updateGroupInfo.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.UpdateGroupInfo(this,
+                                               updateGroupInfo.GroupData.GroupID,
+                                               Utils.BytesToString(updateGroupInfo.GroupData.Charter),
+                                               updateGroupInfo.GroupData.ShowInList,
+                                               updateGroupInfo.GroupData.InsigniaID,
+                                               updateGroupInfo.GroupData.MembershipFee,
+                                               updateGroupInfo.GroupData.OpenEnrollment,
+                                               updateGroupInfo.GroupData.AllowPublish,
+                                               updateGroupInfo.GroupData.MaturePublish);
+            }
+
+            return true;
+        }
+        private bool HandleSetGroupAcceptNotices(IClientAPI sender, Packet Pack)
+        {
+            SetGroupAcceptNoticesPacket setGroupAcceptNotices =
+                        (SetGroupAcceptNoticesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (setGroupAcceptNotices.AgentData.SessionID != SessionId ||
+                    setGroupAcceptNotices.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.SetGroupAcceptNotices(this,
+                                                     setGroupAcceptNotices.Data.GroupID,
+                                                     setGroupAcceptNotices.Data.AcceptNotices,
+                                                     setGroupAcceptNotices.NewData.ListInProfile);
+            }
+
+            return true;
+        }
+        private bool HandleGroupTitleUpdate(IClientAPI sender, Packet Pack)
+        {
+            GroupTitleUpdatePacket groupTitleUpdate =
+                        (GroupTitleUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupTitleUpdate.AgentData.SessionID != SessionId ||
+                    groupTitleUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.GroupTitleUpdate(this,
+                                                groupTitleUpdate.AgentData.GroupID,
+                                                groupTitleUpdate.AgentData.TitleRoleID);
+            }
+
+            return true;
+        }
+        private bool HandleParcelDeedToGroup(IClientAPI sender, Packet Pack)
+        {
+            ParcelDeedToGroupPacket parcelDeedToGroup = (ParcelDeedToGroupPacket)Pack;
+            if (m_GroupsModule != null)
+            {
+                ParcelDeedToGroup handlerParcelDeedToGroup = OnParcelDeedToGroup;
+                if (handlerParcelDeedToGroup != null)
+                {
+                    handlerParcelDeedToGroup(parcelDeedToGroup.Data.LocalID, parcelDeedToGroup.Data.GroupID, this);
+
+                }
+            }
+
+            return true;
+        }
+        private bool HandleGroupNoticesListRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupNoticesListRequestPacket groupNoticesListRequest =
+                        (GroupNoticesListRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupNoticesListRequest.AgentData.SessionID != SessionId ||
+                    groupNoticesListRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                GroupNoticeData[] gn =
+                    m_GroupsModule.GroupNoticesListRequest(this,
+                                                           groupNoticesListRequest.Data.GroupID);
+
+                GroupNoticesListReplyPacket groupNoticesListReply = (GroupNoticesListReplyPacket)PacketPool.Instance.GetPacket(PacketType.GroupNoticesListReply);
+                groupNoticesListReply.AgentData =
+                    new GroupNoticesListReplyPacket.AgentDataBlock();
+                groupNoticesListReply.AgentData.AgentID = AgentId;
+                groupNoticesListReply.AgentData.GroupID = groupNoticesListRequest.Data.GroupID;
+
+                groupNoticesListReply.Data = new GroupNoticesListReplyPacket.DataBlock[gn.Length];
+
+                int i = 0;
+                foreach (GroupNoticeData g in gn)
+                {
+                    groupNoticesListReply.Data[i] = new GroupNoticesListReplyPacket.DataBlock();
+                    groupNoticesListReply.Data[i].NoticeID =
+                        g.NoticeID;
+                    groupNoticesListReply.Data[i].Timestamp =
+                        g.Timestamp;
+                    groupNoticesListReply.Data[i].FromName =
+                        Util.StringToBytes256(g.FromName);
+                    groupNoticesListReply.Data[i].Subject =
+                        Util.StringToBytes256(g.Subject);
+                    groupNoticesListReply.Data[i].HasAttachment =
+                        g.HasAttachment;
+                    groupNoticesListReply.Data[i].AssetType =
+                        g.AssetType;
+                    i++;
+                }
+
+                OutPacket(groupNoticesListReply, ThrottleOutPacketType.Task);
+            }
+
+            return true;
+        }
+        private bool HandleGroupNoticeRequest(IClientAPI sender, Packet Pack)
+        {
+            GroupNoticeRequestPacket groupNoticeRequest =
+                        (GroupNoticeRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupNoticeRequest.AgentData.SessionID != SessionId ||
+                    groupNoticeRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.GroupNoticeRequest(this,
+                                                  groupNoticeRequest.Data.GroupNoticeID);
+            }
+            return true;
+        }
+        private bool HandleGroupRoleUpdate(IClientAPI sender, Packet Pack)
+        {
+            GroupRoleUpdatePacket groupRoleUpdate =
+                        (GroupRoleUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupRoleUpdate.AgentData.SessionID != SessionId ||
+                    groupRoleUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                foreach (GroupRoleUpdatePacket.RoleDataBlock d in
+                    groupRoleUpdate.RoleData)
+                {
+                    m_GroupsModule.GroupRoleUpdate(this,
+                                                   groupRoleUpdate.AgentData.GroupID,
+                                                   d.RoleID,
+                                                   Utils.BytesToString(d.Name),
+                                                   Utils.BytesToString(d.Description),
+                                                   Utils.BytesToString(d.Title),
+                                                   d.Powers,
+                                                   d.UpdateType);
+                }
+                m_GroupsModule.NotifyChange(groupRoleUpdate.AgentData.GroupID);
+            }
+            return true;
+        }
+        private bool HandleGroupRoleChanges(IClientAPI sender, Packet Pack)
+        {
+            GroupRoleChangesPacket groupRoleChanges =
+                        (GroupRoleChangesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (groupRoleChanges.AgentData.SessionID != SessionId ||
+                    groupRoleChanges.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                foreach (GroupRoleChangesPacket.RoleChangeBlock d in
+                    groupRoleChanges.RoleChange)
+                {
+                    m_GroupsModule.GroupRoleChanges(this,
+                                                    groupRoleChanges.AgentData.GroupID,
+                                                    d.RoleID,
+                                                    d.MemberID,
+                                                    d.Change);
+                }
+                m_GroupsModule.NotifyChange(groupRoleChanges.AgentData.GroupID);
+            }
+            return true;
+        }
+        private bool HandleJoinGroupRequest(IClientAPI sender, Packet Pack)
+        {
+            JoinGroupRequestPacket joinGroupRequest =
+                        (JoinGroupRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (joinGroupRequest.AgentData.SessionID != SessionId ||
+                    joinGroupRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.JoinGroupRequest(this,
+                        joinGroupRequest.GroupData.GroupID);
+            }
+            return true;
+        }
+        private bool HandleLeaveGroupRequest(IClientAPI sender, Packet Pack)
+        {
+            LeaveGroupRequestPacket leaveGroupRequest =
+                        (LeaveGroupRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (leaveGroupRequest.AgentData.SessionID != SessionId ||
+                    leaveGroupRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                m_GroupsModule.LeaveGroupRequest(this,
+                        leaveGroupRequest.GroupData.GroupID);
+            }
+            return true;
+        }
+        private bool HandleEjectGroupMemberRequest(IClientAPI sender, Packet Pack)
+        {
+            EjectGroupMemberRequestPacket ejectGroupMemberRequest =
+                       (EjectGroupMemberRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (ejectGroupMemberRequest.AgentData.SessionID != SessionId ||
+                    ejectGroupMemberRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                foreach (EjectGroupMemberRequestPacket.EjectDataBlock e
+                        in ejectGroupMemberRequest.EjectData)
+                {
+                    m_GroupsModule.EjectGroupMemberRequest(this,
+                            ejectGroupMemberRequest.GroupData.GroupID,
+                            e.EjecteeID);
+                }
+            }
+            return true;
+        }
+        private bool HandleInviteGroupRequest(IClientAPI sender, Packet Pack)
+        {
+            InviteGroupRequestPacket inviteGroupRequest =
+                        (InviteGroupRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (inviteGroupRequest.AgentData.SessionID != SessionId ||
+                    inviteGroupRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (m_GroupsModule != null)
+            {
+                foreach (InviteGroupRequestPacket.InviteDataBlock b in
+                        inviteGroupRequest.InviteData)
+                {
+                    m_GroupsModule.InviteGroupRequest(this,
+                            inviteGroupRequest.GroupData.GroupID,
+                            b.InviteeID,
+                            b.RoleID);
+                }
+            }
+            return true;
+        }
+
+        #endregion Groups
+
+        private bool HandleStartLure(IClientAPI sender, Packet Pack)
+        {
+            StartLurePacket startLureRequest = (StartLurePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (startLureRequest.AgentData.SessionID != SessionId ||
+                    startLureRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            StartLure handlerStartLure = OnStartLure;
+            if (handlerStartLure != null)
+                handlerStartLure(startLureRequest.Info.LureType,
+                                 Utils.BytesToString(
+                                    startLureRequest.Info.Message),
+                                 startLureRequest.TargetData[0].TargetID,
+                                 this);
+            return true;
+        }
+        private bool HandleTeleportLureRequest(IClientAPI sender, Packet Pack)
+        {
+            TeleportLureRequestPacket teleportLureRequest =
+                            (TeleportLureRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (teleportLureRequest.Info.SessionID != SessionId ||
+                    teleportLureRequest.Info.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            TeleportLureRequest handlerTeleportLureRequest = OnTeleportLureRequest;
+            if (handlerTeleportLureRequest != null)
+                handlerTeleportLureRequest(
+                         teleportLureRequest.Info.LureID,
+                         teleportLureRequest.Info.TeleportFlags,
+                         this);
+            return true;
+        }
+        private bool HandleClassifiedInfoRequest(IClientAPI sender, Packet Pack)
+        {
+            ClassifiedInfoRequestPacket classifiedInfoRequest =
+                            (ClassifiedInfoRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (classifiedInfoRequest.AgentData.SessionID != SessionId ||
+                    classifiedInfoRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ClassifiedInfoRequest handlerClassifiedInfoRequest = OnClassifiedInfoRequest;
+            if (handlerClassifiedInfoRequest != null)
+                handlerClassifiedInfoRequest(
+                         classifiedInfoRequest.Data.ClassifiedID,
+                         this);
+            return true;
+        }
+        private bool HandleClassifiedInfoUpdate(IClientAPI sender, Packet Pack)
+        {
+            ClassifiedInfoUpdatePacket classifiedInfoUpdate =
+                            (ClassifiedInfoUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (classifiedInfoUpdate.AgentData.SessionID != SessionId ||
+                    classifiedInfoUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ClassifiedInfoUpdate handlerClassifiedInfoUpdate = OnClassifiedInfoUpdate;
+            if (handlerClassifiedInfoUpdate != null)
+                handlerClassifiedInfoUpdate(
+                        classifiedInfoUpdate.Data.ClassifiedID,
+                        classifiedInfoUpdate.Data.Category,
+                        Utils.BytesToString(
+                                classifiedInfoUpdate.Data.Name),
+                        Utils.BytesToString(
+                                classifiedInfoUpdate.Data.Desc),
+                        classifiedInfoUpdate.Data.ParcelID,
+                        classifiedInfoUpdate.Data.ParentEstate,
+                        classifiedInfoUpdate.Data.SnapshotID,
+                        new Vector3(
+                            classifiedInfoUpdate.Data.PosGlobal),
+                        classifiedInfoUpdate.Data.ClassifiedFlags,
+                        classifiedInfoUpdate.Data.PriceForListing,
+                        this);
+            return true;
+        }
+        private bool HandleClassifiedDelete(IClientAPI sender, Packet Pack)
+        {
+            ClassifiedDeletePacket classifiedDelete =
+                           (ClassifiedDeletePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (classifiedDelete.AgentData.SessionID != SessionId ||
+                    classifiedDelete.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ClassifiedDelete handlerClassifiedDelete = OnClassifiedDelete;
+            if (handlerClassifiedDelete != null)
+                handlerClassifiedDelete(
+                         classifiedDelete.Data.ClassifiedID,
+                         this);
+            return true;
+        }
+        private bool HandleClassifiedGodDelete(IClientAPI sender, Packet Pack)
+        {
+            ClassifiedGodDeletePacket classifiedGodDelete =
+                            (ClassifiedGodDeletePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (classifiedGodDelete.AgentData.SessionID != SessionId ||
+                    classifiedGodDelete.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ClassifiedDelete handlerClassifiedGodDelete = OnClassifiedGodDelete;
+            if (handlerClassifiedGodDelete != null)
+                handlerClassifiedGodDelete(
+                         classifiedGodDelete.Data.ClassifiedID,
+                         this);
+            return true;
+        }
+        private bool HandleEventGodDelete(IClientAPI sender, Packet Pack)
+        {
+            EventGodDeletePacket eventGodDelete =
+                               (EventGodDeletePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (eventGodDelete.AgentData.SessionID != SessionId ||
+                    eventGodDelete.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            EventGodDelete handlerEventGodDelete = OnEventGodDelete;
+            if (handlerEventGodDelete != null)
+                handlerEventGodDelete(
+                        eventGodDelete.EventData.EventID,
+                        eventGodDelete.QueryData.QueryID,
+                        Utils.BytesToString(
+                                eventGodDelete.QueryData.QueryText),
+                        eventGodDelete.QueryData.QueryFlags,
+                        eventGodDelete.QueryData.QueryStart,
+                        this);
+            return true;
+        }
+        private bool HandleEventNotificationAddRequest(IClientAPI sender, Packet Pack)
+        {
+            EventNotificationAddRequestPacket eventNotificationAdd =
+                            (EventNotificationAddRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (eventNotificationAdd.AgentData.SessionID != SessionId ||
+                    eventNotificationAdd.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            EventNotificationAddRequest handlerEventNotificationAddRequest = OnEventNotificationAddRequest;
+            if (handlerEventNotificationAddRequest != null)
+                handlerEventNotificationAddRequest(
+                        eventNotificationAdd.EventData.EventID, this);
+            return true;
+        }
+        private bool HandleEventNotificationRemoveRequest(IClientAPI sender, Packet Pack)
+        {
+            EventNotificationRemoveRequestPacket eventNotificationRemove =
+                            (EventNotificationRemoveRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (eventNotificationRemove.AgentData.SessionID != SessionId ||
+                    eventNotificationRemove.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            EventNotificationRemoveRequest handlerEventNotificationRemoveRequest = OnEventNotificationRemoveRequest;
+            if (handlerEventNotificationRemoveRequest != null)
+                handlerEventNotificationRemoveRequest(
+                        eventNotificationRemove.EventData.EventID, this);
+            return true;
+        }
+        private bool HandleRetrieveInstantMessages(IClientAPI sender, Packet Pack)
+        {
+            RetrieveInstantMessagesPacket rimpInstantMessagePack = (RetrieveInstantMessagesPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (rimpInstantMessagePack.AgentData.SessionID != SessionId ||
+                    rimpInstantMessagePack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RetrieveInstantMessages handlerRetrieveInstantMessages = OnRetrieveInstantMessages;
+            if (handlerRetrieveInstantMessages != null)
+                handlerRetrieveInstantMessages(this);
+            return true;
+        }
+        private bool HandlePickDelete(IClientAPI sender, Packet Pack)
+        {
+            PickDeletePacket pickDelete =
+                            (PickDeletePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (pickDelete.AgentData.SessionID != SessionId ||
+                    pickDelete.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            PickDelete handlerPickDelete = OnPickDelete;
+            if (handlerPickDelete != null)
+                handlerPickDelete(this, pickDelete.Data.PickID);
+            return true;
+        }
+        private bool HandlePickGodDelete(IClientAPI sender, Packet Pack)
+        {
+            PickGodDeletePacket pickGodDelete =
+                           (PickGodDeletePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (pickGodDelete.AgentData.SessionID != SessionId ||
+                    pickGodDelete.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            PickGodDelete handlerPickGodDelete = OnPickGodDelete;
+            if (handlerPickGodDelete != null)
+                handlerPickGodDelete(this,
+                        pickGodDelete.AgentData.AgentID,
+                        pickGodDelete.Data.PickID,
+                        pickGodDelete.Data.QueryID);
+            return true;
+        }
+        private bool HandlePickInfoUpdate(IClientAPI sender, Packet Pack)
+        {
+            PickInfoUpdatePacket pickInfoUpdate =
+                            (PickInfoUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (pickInfoUpdate.AgentData.SessionID != SessionId ||
+                    pickInfoUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            PickInfoUpdate handlerPickInfoUpdate = OnPickInfoUpdate;
+            if (handlerPickInfoUpdate != null)
+                handlerPickInfoUpdate(this,
+                        pickInfoUpdate.Data.PickID,
+                        pickInfoUpdate.Data.CreatorID,
+                        pickInfoUpdate.Data.TopPick,
+                        Utils.BytesToString(pickInfoUpdate.Data.Name),
+                        Utils.BytesToString(pickInfoUpdate.Data.Desc),
+                        pickInfoUpdate.Data.SnapshotID,
+                        pickInfoUpdate.Data.SortOrder,
+                        pickInfoUpdate.Data.Enabled);
+            return true;
+        }
+        private bool HandleAvatarNotesUpdate(IClientAPI sender, Packet Pack)
+        {
+            AvatarNotesUpdatePacket avatarNotesUpdate =
+                            (AvatarNotesUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avatarNotesUpdate.AgentData.SessionID != SessionId ||
+                    avatarNotesUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            AvatarNotesUpdate handlerAvatarNotesUpdate = OnAvatarNotesUpdate;
+            if (handlerAvatarNotesUpdate != null)
+                handlerAvatarNotesUpdate(this,
+                        avatarNotesUpdate.Data.TargetID,
+                        Utils.BytesToString(avatarNotesUpdate.Data.Notes));
+            return true;
+        }
+        private bool HandleAvatarInterestsUpdate(IClientAPI sender, Packet Pack)
+        {
+            AvatarInterestsUpdatePacket avatarInterestUpdate =
+                            (AvatarInterestsUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (avatarInterestUpdate.AgentData.SessionID != SessionId ||
+                    avatarInterestUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            AvatarInterestUpdate handlerAvatarInterestUpdate = OnAvatarInterestUpdate;
+            if (handlerAvatarInterestUpdate != null)
+                handlerAvatarInterestUpdate(this,
+                    avatarInterestUpdate.PropertiesData.WantToMask,
+                    Utils.BytesToString(avatarInterestUpdate.PropertiesData.WantToText),
+                    avatarInterestUpdate.PropertiesData.SkillsMask,
+                    Utils.BytesToString(avatarInterestUpdate.PropertiesData.SkillsText),
+                    Utils.BytesToString(avatarInterestUpdate.PropertiesData.LanguagesText));
+            return true;
+        }
+        private bool HandleGrantUserRights(IClientAPI sender, Packet Pack)
+        {
+            GrantUserRightsPacket GrantUserRights =
+                            (GrantUserRightsPacket)Pack;
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (GrantUserRights.AgentData.SessionID != SessionId ||
+                    GrantUserRights.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+            GrantUserFriendRights GrantUserRightsHandler = OnGrantUserRights;
+            if (GrantUserRightsHandler != null)
+                GrantUserRightsHandler(this,
+                    GrantUserRights.AgentData.AgentID,
+                    GrantUserRights.Rights[0].AgentRelated,
+                    GrantUserRights.Rights[0].RelatedRights);
+            return true;
+        }
+        private bool HandlePlacesQuery(IClientAPI sender, Packet Pack)
+        {
+            PlacesQueryPacket placesQueryPacket =
+                            (PlacesQueryPacket)Pack;
+
+            PlacesQuery handlerPlacesQuery = OnPlacesQuery;
+
+            if (handlerPlacesQuery != null)
+                handlerPlacesQuery(placesQueryPacket.AgentData.QueryID,
+                        placesQueryPacket.TransactionData.TransactionID,
+                        Utils.BytesToString(
+                                placesQueryPacket.QueryData.QueryText),
+                        placesQueryPacket.QueryData.QueryFlags,
+                        (byte)placesQueryPacket.QueryData.Category,
+                        Utils.BytesToString(
+                                placesQueryPacket.QueryData.SimName),
+                        this);
+            return true;
+        }
 
         #endregion Packet Handlers
 
@@ -8823,6 +10326,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (ProcessPacketMethod(Pack))
             {
+                PacketPool.Instance.ReturnPacket(Pack);
                 return;
             }
 
@@ -12281,9 +13785,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
 
                 //#endregion
-                */
-                #endregion
-                #region Gesture Managment
+
+                //#region Gesture Managment
 
                 case PacketType.ActivateGestures:
                     ActivateGesturesPacket activateGesturePacket = (ActivateGesturesPacket)Pack;
@@ -12350,7 +13853,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
 
                 case PacketType.AgentFOV:
                     AgentFOVPacket fovPacket = (AgentFOVPacket)Pack;
@@ -12366,7 +13869,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #region unimplemented handlers
+                //#region unimplemented handlers
 
                 case PacketType.ViewerStats:
                     // TODO: handle this packet
@@ -12400,6 +13903,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     // TODO: handle this packet
                     //m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
                     break;
+
                 case PacketType.MuteListRequest:
                     MuteListRequestPacket muteListRequest =
                             (MuteListRequestPacket)Pack;
@@ -12423,6 +13927,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         SendUseCachedMuteList();
                     }
                     break;
+
                 case PacketType.UseCircuitCode:
                     // Don't display this one, we handle it at a lower level
                     break;
@@ -12437,6 +13942,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
 
                     break;
+
                 case PacketType.DirPlacesQuery:
                     DirPlacesQueryPacket dirPlacesQueryPacket = (DirPlacesQueryPacket)Pack;
                     //m_log.Debug(dirPlacesQueryPacket.ToString());
@@ -12464,6 +13970,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                               dirPlacesQueryPacket.QueryData.QueryStart);
                     }
                     break;
+
                 case PacketType.DirFindQuery:
                     DirFindQueryPacket dirFindQueryPacket = (DirFindQueryPacket)Pack;
 
@@ -12487,6 +13994,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             dirFindQueryPacket.QueryData.QueryStart);
                     }
                     break;
+
                 case PacketType.DirLandQuery:
                     DirLandQueryPacket dirLandQueryPacket = (DirLandQueryPacket)Pack;
 
@@ -12511,6 +14019,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             dirLandQueryPacket.QueryData.QueryStart);
                     }
                     break;
+
                 case PacketType.DirPopularQuery:
                     DirPopularQueryPacket dirPopularQueryPacket = (DirPopularQueryPacket)Pack;
 
@@ -12531,6 +14040,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                dirPopularQueryPacket.QueryData.QueryFlags);
                     }
                     break;
+
                 case PacketType.DirClassifiedQuery:
                     DirClassifiedQueryPacket dirClassifiedQueryPacket = (DirClassifiedQueryPacket)Pack;
 
@@ -12555,6 +14065,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                   dirClassifiedQueryPacket.QueryData.QueryStart);
                     }
                     break;
+
                 case PacketType.EventInfoRequest:
                     EventInfoRequestPacket eventInfoRequestPacket = (EventInfoRequestPacket)Pack;
 
@@ -12573,7 +14084,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #region Calling Card
+                //#region Calling Card
 
                 case PacketType.OfferCallingCard:
                     OfferCallingCardPacket offerCallingCardPacket = (OfferCallingCardPacket)Pack;
@@ -12635,9 +14146,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                              declineCallingCardPacket.TransactionBlock.TransactionID);
                     }
                     break;
-                #endregion
+                //#endregion
 
-                #region Groups
+                //#region Groups
                 case PacketType.ActivateGroup:
                     ActivateGroupPacket activateGroupPacket = (ActivateGroupPacket)Pack;
 
@@ -12656,6 +14167,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_GroupsModule.SendAgentGroupDataUpdate(this);
                     }
                     break;
+
 
                 case PacketType.GroupTitlesRequest:
                     GroupTitlesRequestPacket groupTitlesRequest =
@@ -13118,8 +14630,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         OutPacket(groupNoticesListReply, ThrottleOutPacketType.Task);
                     }
-
+             
                     break;
+
                 case PacketType.GroupNoticeRequest:
                     GroupNoticeRequestPacket groupNoticeRequest =
                         (GroupNoticeRequestPacket)Pack;
@@ -13290,7 +14803,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
+
                 case PacketType.StartLure:
                     StartLurePacket startLureRequest = (StartLurePacket)Pack;
 
@@ -13522,6 +15036,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (handlerPickDelete != null)
                         handlerPickDelete(this, pickDelete.Data.PickID);
                     break;
+
                 case PacketType.PickGodDelete:
                     PickGodDeletePacket pickGodDelete =
                             (PickGodDeletePacket)Pack;
@@ -13542,6 +15057,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 pickGodDelete.Data.PickID,
                                 pickGodDelete.Data.QueryID);
                     break;
+
                 case PacketType.PickInfoUpdate:
                     PickInfoUpdatePacket pickInfoUpdate =
                             (PickInfoUpdatePacket)Pack;
@@ -13567,6 +15083,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 pickInfoUpdate.Data.SortOrder,
                                 pickInfoUpdate.Data.Enabled);
                     break;
+
                 case PacketType.AvatarNotesUpdate:
                     AvatarNotesUpdatePacket avatarNotesUpdate =
                             (AvatarNotesUpdatePacket)Pack;
@@ -13599,7 +15116,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             break;
                     }
                     #endregion
-
+            
                     AvatarInterestUpdate handlerAvatarInterestUpdate = OnAvatarInterestUpdate;
                     if (handlerAvatarInterestUpdate != null)
                         handlerAvatarInterestUpdate(this,
@@ -13646,11 +15163,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                         placesQueryPacket.QueryData.SimName),
                                 this);
                     break;
+                */
+                #endregion
                 default:
                     m_log.Warn("[CLIENT]: unhandled packet " + Pack);
                     break;
-
-                #endregion
             }
 
             PacketPool.Instance.ReturnPacket(Pack);
