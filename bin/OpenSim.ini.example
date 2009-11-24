@@ -454,6 +454,9 @@
 
     ; Distance in meters that shouts should travel.  Default is 100m
     shout_distance = 100
+    
+    ; Append a prefix to the god avatar names appearing in chat whilst in god mode
+    ; admin_prefix = "@"
 
 
 [Messaging]

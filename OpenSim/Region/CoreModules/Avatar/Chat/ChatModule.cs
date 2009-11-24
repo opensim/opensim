@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
         private List<Scene> m_scenes = new List<Scene>();
-
+        private string m_adminPrefix = "";
         internal object m_syncy = new object();
 
         internal IConfig m_config;
@@ -76,6 +76,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
             m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
             m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+            m_adminPrefix = config.Configs["Chat"].GetString("admin_prefix", "");
         }
 
         public virtual void AddRegion(Scene scene)
@@ -185,6 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         protected virtual void DeliverChatToAvatars(ChatSourceType sourceType, OSChatMessage c)
         {
             string fromName = c.From;
+            string fromNamePrefix = "";
             UUID fromID = UUID.Zero;
             string message = c.Message;
             IScene scene = c.Scene;
@@ -207,7 +209,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Name;
                 fromID = c.Sender.AgentId;
-
+                if (avatar.GodLevel > 200)
+                {
+                    fromNamePrefix = m_adminPrefix;
+                }
                 break;
 
             case ChatSourceType.Object:
@@ -227,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
-                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType);
+                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix+fromName, c.Type, message, sourceType);
                     }
                 );
             }
