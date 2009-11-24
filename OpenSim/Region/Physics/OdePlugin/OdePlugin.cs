@@ -835,7 +835,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // allows us to have different settings
                 
                 // We only need to test p2 for 'jump crouch purposes'
-                if (p2 is OdeCharacter)
+                if (p2 is OdeCharacter && p1.PhysicsActorType == (int)ActorTypes.Prim)
                 {
                     // Testing if the collision is at the feet of the avatar
 

@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -463,6 +464,125 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        #region Inventory Rollback-via-.sql Support
+        /// <summary>
+        /// Not a good SQL escape function, but it'll do the job (if mutilate the data.)
+        /// Someone may want to write something better here.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        private static string cheapSQLescape(string str)
+        {
+            str = str.Replace("\\", "");
+            str = str.Replace("'", "");
+            str = str.Replace("\"", "");
+            return "'" + str + "'";
+        }
+
+        private static string InventoryItemToSql(InventoryItemBase item)
+        {
+            string sql =
+                            "REPLACE /*! INVITEM AT ***$SUBS$*** */ INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName"
+                                + ", inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType"
+                                + ", creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, inventoryGroupPermissions, salePrice, saleType"
+                                + ", creationDate, groupID, groupOwned, flags) VALUES ";
+            sql +=
+                "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription"
+                    + ", ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID"
+                    + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?inventoryGroupPermissions, ?salePrice, ?saleType, ?creationDate"
+                    + ", ?groupID, ?groupOwned, ?flags);\r\n";
+
+            string itemName = item.Name;
+            string itemDesc = item.Description;
+
+            sql = sql.Replace("$SUBS$", Util.UnixTimeSinceEpoch().ToString());
+
+            sql = sql.Replace("?inventoryID", cheapSQLescape(item.ID.ToString()));
+            sql = sql.Replace("?assetID", cheapSQLescape(item.AssetID.ToString()));
+            sql = sql.Replace("?assetType", cheapSQLescape(item.AssetType.ToString()));
+            sql = sql.Replace("?parentFolderID", cheapSQLescape(item.Folder.ToString()));
+            sql = sql.Replace("?avatarID", cheapSQLescape(item.Owner.ToString()));
+            sql = sql.Replace("?inventoryName", cheapSQLescape(itemName));
+            sql = sql.Replace("?inventoryDescription", cheapSQLescape(itemDesc));
+            sql = sql.Replace("?inventoryNextPermissions", cheapSQLescape(item.NextPermissions.ToString()));
+            sql = sql.Replace("?inventoryCurrentPermissions", cheapSQLescape(item.CurrentPermissions.ToString()));
+            sql = sql.Replace("?invType", cheapSQLescape(item.InvType.ToString()));
+            sql = sql.Replace("?creatorID", cheapSQLescape(item.CreatorId));
+            sql = sql.Replace("?inventoryBasePermissions", cheapSQLescape(item.BasePermissions.ToString()));
+            sql = sql.Replace("?inventoryEveryOnePermissions", cheapSQLescape(item.EveryOnePermissions.ToString()));
+            sql = sql.Replace("?inventoryGroupPermissions", cheapSQLescape(item.GroupPermissions.ToString()));
+            sql = sql.Replace("?salePrice", cheapSQLescape(item.SalePrice.ToString()));
+            sql = sql.Replace("?saleType", cheapSQLescape(unchecked((sbyte)item.SaleType).ToString()));
+            sql = sql.Replace("?creationDate", cheapSQLescape(item.CreationDate.ToString()));
+            sql = sql.Replace("?groupID", cheapSQLescape(item.GroupID.ToString()));
+            sql = sql.Replace("?groupOwned", cheapSQLescape(item.GroupOwned.ToString()));
+            sql = sql.Replace("?flags", cheapSQLescape(item.Flags.ToString()));
+
+            return sql;
+        }
+
+        private static string InventoryFolderToSql(InventoryFolderBase folder)
+        {
+            string sql =
+                "REPLACE /*! INVFOLDER AT ***$SUBS$*** */ INTO inventoryfolders (folderID, agentID, parentFolderID, folderName, type, version) VALUES ";
+            sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version);\r\n";
+
+            string folderName = folder.Name;
+
+            sql = sql.Replace("$SUBS$", Util.UnixTimeSinceEpoch().ToString());
+
+            sql = sql.Replace("?folderID", cheapSQLescape(folder.ID.ToString()));
+            sql = sql.Replace("?agentID", cheapSQLescape(folder.Owner.ToString()));
+            sql = sql.Replace("?parentFolderID", cheapSQLescape(folder.ParentID.ToString()));
+            sql = sql.Replace("?folderName", cheapSQLescape(folderName));
+            sql = sql.Replace("?type", cheapSQLescape(folder.Type.ToString()));
+            sql = sql.Replace("?version", cheapSQLescape(folder.Version.ToString()));
+
+            return sql;
+        }
+
+        private static string getRollbackFolderDate()
+        {
+            return DateTime.UtcNow.Year.ToString() + "-" + DateTime.UtcNow.Month.ToString() + "-" +
+                   DateTime.UtcNow.Day.ToString();
+        }
+
+        private void StoreRollbackItem(UUID ItemID)
+        {
+            if(rollbackStore == true)
+            {
+                string todaysPath = RollbackGetTodaysPath();
+
+                InventoryItemBase imb = getInventoryItem(ItemID);
+                string sql = InventoryItemToSql(imb);
+                File.AppendAllText(Path.Combine(todaysPath, imb.Owner.ToString()), sql);
+            }
+        }
+
+        private void StoreRollbackFolder(UUID FolderID)
+        {
+            if (rollbackStore == true)
+            {
+                string todaysPath = RollbackGetTodaysPath();
+
+                InventoryFolderBase ifb = getInventoryFolder(FolderID);
+                string sql = InventoryFolderToSql(ifb);
+                File.AppendAllText(Path.Combine(todaysPath, ifb.Owner.ToString()), sql);
+            }
+        }
+
+        private string RollbackGetTodaysPath()
+        {
+            if (!Directory.Exists(rollbackDir))
+                Directory.CreateDirectory(rollbackDir);
+
+            string todaysPath = Path.Combine(rollbackDir, getRollbackFolderDate());
+            if (!Directory.Exists(todaysPath))
+                Directory.CreateDirectory(todaysPath);
+            return todaysPath;
+        }
+        #endregion
+
         /// <summary>
         /// Adds a specified item to the database
         /// </summary>
@@ -549,6 +669,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="item">Inventory item to update</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
+            StoreRollbackItem(item.ID);
+
             addInventoryItem(item);
         }
 
@@ -558,6 +680,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="item">The inventory item UUID to delete</param>
         public void deleteInventoryItem(UUID itemID)
         {
+            StoreRollbackItem(itemID);
+
             try
             {
                 database.CheckConnection();
@@ -634,6 +758,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="folder">Folder to update</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
+            StoreRollbackFolder(folder.ID);
             addInventoryFolder(folder);
         }
 
@@ -644,6 +769,8 @@ namespace OpenSim.Data.MySQL
         /// <remarks>UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID</remarks>
         public void moveInventoryFolder(InventoryFolderBase folder)
         {
+            StoreRollbackFolder(folder.ID);
+
             string sql =
                 "UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID";
 
@@ -805,6 +932,8 @@ namespace OpenSim.Data.MySQL
         /// <param name="folderID">the folder UUID</param>
         protected void deleteOneFolder(UUID folderID)
         {
+            StoreRollbackFolder(folderID);
+
             try
             {
                 database.CheckConnection();
@@ -831,6 +960,14 @@ namespace OpenSim.Data.MySQL
         /// <param name="folderID">the folder UUID</param>
         protected void deleteItemsInFolder(UUID folderID)
         {
+            if (rollbackStore)
+            {
+                foreach (InventoryItemBase itemBase in getInventoryInFolder(folderID))
+                {
+                    StoreRollbackItem(itemBase.ID);
+                }
+            }
+
             try
             {
                 database.CheckConnection();
@@ -865,17 +1002,34 @@ namespace OpenSim.Data.MySQL
                 //Delete all sub-folders
                 foreach (InventoryFolderBase f in subFolders)
                 {
+                    StoreRollbackFolder(f.ID);
                     deleteOneFolder(f.ID);
+
+                    if(rollbackStore)
+                    {
+                        foreach (InventoryItemBase itemBase in getInventoryInFolder(f.ID))
+                        {
+                            StoreRollbackItem(itemBase.ID);
+                        }
+                    }
                     deleteItemsInFolder(f.ID);
                 }
             }
 
+            StoreRollbackFolder(folderID);
             //Delete the actual row
             deleteOneFolder(folderID);
 
             // Just delete the folder context in OGM
             if (opengridmode == false)
             {
+                if (rollbackStore)
+                {
+                    foreach (InventoryItemBase itemBase in getInventoryInFolder(folderID))
+                    {
+                        StoreRollbackItem(itemBase.ID);
+                    }
+                }
                 deleteItemsInFolder(folderID);
             }
         }
