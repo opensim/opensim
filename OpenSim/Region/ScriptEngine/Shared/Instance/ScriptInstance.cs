@@ -238,13 +238,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
 
             if (part != null)
             {
-                lock (part.TaskInventory)
+                part.TaskInventory.LockItemsForRead(true);
+                if (part.TaskInventory.ContainsKey(m_ItemID))
                 {
-                    if (part.TaskInventory.ContainsKey(m_ItemID))
-                    {
-                        m_thisScriptTask = part.TaskInventory[m_ItemID];
-                    }
+                    m_thisScriptTask = part.TaskInventory[m_ItemID];
                 }
+                part.TaskInventory.LockItemsForRead(false);
             }
 
             ApiManager am = new ApiManager();
@@ -429,14 +428,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
             {
                 int permsMask;
                 UUID permsGranter;
-                lock (part.TaskInventory)
+                part.TaskInventory.LockItemsForRead(true);
+                if (!part.TaskInventory.ContainsKey(m_ItemID))
                 {
-                    if (!part.TaskInventory.ContainsKey(m_ItemID))
-                        return;
-
-                    permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
-                    permsMask = part.TaskInventory[m_ItemID].PermsMask;
+                    part.TaskInventory.LockItemsForRead(false);
+                    return;
                 }
+                permsGranter = part.TaskInventory[m_ItemID].PermsGranter;
+                permsMask = part.TaskInventory[m_ItemID].PermsMask;
+                part.TaskInventory.LockItemsForRead(false);
 
                 if ((permsMask & ScriptBaseClass.PERMISSION_TAKE_CONTROLS) != 0)
                 {

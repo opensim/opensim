@@ -728,18 +728,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (target != null)
                 {
                     UUID animID=UUID.Zero;
-                    lock (m_host.TaskInventory)
+                    m_host.TaskInventory.LockItemsForRead(true);
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        if (inv.Value.Name == animation)
                         {
-                            if (inv.Value.Name == animation)
-                            {
-                                if (inv.Value.Type == (int)AssetType.Animation)
-                                    animID = inv.Value.AssetID;
-                                continue;
-                            }
+                            if (inv.Value.Type == (int)AssetType.Animation)
+                                animID = inv.Value.AssetID;
+                            continue;
                         }
                     }
+                    m_host.TaskInventory.LockItemsForRead(false);
                     if (animID == UUID.Zero)
                         target.Animator.AddAnimation(animation, m_host.UUID);
                     else
@@ -761,18 +760,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (target != null)
                 {
                     UUID animID=UUID.Zero;
-                    lock (m_host.TaskInventory)
+                    m_host.TaskInventory.LockItemsForRead(true);
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        if (inv.Value.Name == animation)
                         {
-                            if (inv.Value.Name == animation)
-                            {
-                                if (inv.Value.Type == (int)AssetType.Animation)
-                                    animID = inv.Value.AssetID;
-                                continue;
-                            }
+                            if (inv.Value.Type == (int)AssetType.Animation)
+                                animID = inv.Value.AssetID;
+                            continue;
                         }
                     }
+                    m_host.TaskInventory.LockItemsForRead(false);
                     
                     if (animID == UUID.Zero)
                         target.Animator.RemoveAnimation(animation);
@@ -1541,6 +1539,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1548,6 +1547,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)
@@ -1594,6 +1594,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1601,6 +1602,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)
@@ -1651,6 +1653,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1658,6 +1661,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)

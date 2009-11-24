@@ -246,21 +246,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
-                    lock (part.TaskInventory)
+                    part.TaskInventory.LockItemsForRead(true);
+                    TaskInventoryDictionary inv = part.TaskInventory;
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        TaskInventoryDictionary inv = part.TaskInventory;
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
+                        if (!ResolveUserUuid(kvp.Value.OwnerID))
                         {
-                            if (!ResolveUserUuid(kvp.Value.OwnerID))
-                            {
-                                kvp.Value.OwnerID = masterAvatarId;
-                            }
-                            if (!ResolveUserUuid(kvp.Value.CreatorID))
-                            {
-                                kvp.Value.CreatorID = masterAvatarId;
-                            }
+                            kvp.Value.OwnerID = masterAvatarId;
+                        }
+                        if (!ResolveUserUuid(kvp.Value.CreatorID))
+                        {
+                            kvp.Value.CreatorID = masterAvatarId;
                         }
                     }
+                    part.TaskInventory.LockItemsForRead(false);
                 }
 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))

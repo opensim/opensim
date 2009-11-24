@@ -1615,21 +1615,19 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                 if (part != null)
                 {
+                    part.TaskInventory.LockItemsForRead(true);
                     TaskInventoryDictionary taskIDict = part.TaskInventory;
                     if (taskIDict != null)
                     {
-                        lock (taskIDict)
+                        foreach (UUID taskID in taskIDict.Keys)
                         {
-                            foreach (UUID taskID in taskIDict.Keys)
-                            {
-                                UnRegisterControlEventsToScript(LocalId, taskID);
-                                taskIDict[taskID].PermsMask &= ~(
-                                    2048 | //PERMISSION_CONTROL_CAMERA
-                                    4); // PERMISSION_TAKE_CONTROLS
-                            }
+                            UnRegisterControlEventsToScript(LocalId, taskID);
+                            taskIDict[taskID].PermsMask &= ~(
+                                2048 | //PERMISSION_CONTROL_CAMERA
+                                4); // PERMISSION_TAKE_CONTROLS
                         }
-
                     }
+                    part.TaskInventory.LockItemsForRead(false);
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SetAvatarOnSitTarget(UUID.Zero);
