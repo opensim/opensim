@@ -4363,11 +4363,71 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ScriptAnswerYes, HandleScriptAnswerYes);
             AddLocalPacketHandler(PacketType.ObjectClickAction, HandleObjectClickAction);
             AddLocalPacketHandler(PacketType.ObjectMaterial, HandleObjectMaterial);
+            AddLocalPacketHandler(PacketType.RequestImage, HandleRequestImage);
+            AddLocalPacketHandler(PacketType.TransferRequest, HandleTransferRequest);
+            AddLocalPacketHandler(PacketType.AssetUploadRequest, HandleAssetUploadRequest);
+            AddLocalPacketHandler(PacketType.RequestXfer, HandleRequestXfer);
+            AddLocalPacketHandler(PacketType.SendXferPacket, HandleSendXferPacket);
+            AddLocalPacketHandler(PacketType.ConfirmXferPacket, HandleConfirmXferPacket);
+            AddLocalPacketHandler(PacketType.AbortXfer, HandleAbortXfer);
+            AddLocalPacketHandler(PacketType.CreateInventoryFolder, HandleCreateInventoryFolder);
+            AddLocalPacketHandler(PacketType.UpdateInventoryFolder, HandleUpdateInventoryFolder);
+            AddLocalPacketHandler(PacketType.MoveInventoryFolder, HandleMoveInventoryFolder);
+            AddLocalPacketHandler(PacketType.CreateInventoryItem, HandleCreateInventoryItem);
+            AddLocalPacketHandler(PacketType.FetchInventory, HandleFetchInventory);
+            AddLocalPacketHandler(PacketType.FetchInventoryDescendents, HandleFetchInventoryDescendents);
+            AddLocalPacketHandler(PacketType.PurgeInventoryDescendents, HandlePurgeInventoryDescendents);
+            AddLocalPacketHandler(PacketType.UpdateInventoryItem, HandleUpdateInventoryItem);
+            AddLocalPacketHandler(PacketType.CopyInventoryItem, HandleCopyInventoryItem);
+            AddLocalPacketHandler(PacketType.MoveInventoryItem, HandleMoveInventoryItem);
+            AddLocalPacketHandler(PacketType.RemoveInventoryItem, HandleRemoveInventoryItem);
+            AddLocalPacketHandler(PacketType.RemoveInventoryFolder, HandleRemoveInventoryFolder);
+            AddLocalPacketHandler(PacketType.RemoveInventoryObjects, HandleRemoveInventoryObjects);
+            AddLocalPacketHandler(PacketType.RequestTaskInventory, HandleRequestTaskInventory);
+            AddLocalPacketHandler(PacketType.UpdateTaskInventory, HandleUpdateTaskInventory);
+            AddLocalPacketHandler(PacketType.RemoveTaskInventory, HandleRemoveTaskInventory);
+            AddLocalPacketHandler(PacketType.MoveTaskInventory, HandleMoveTaskInventory);
+            AddLocalPacketHandler(PacketType.RezScript, HandleRezScript);
+            AddLocalPacketHandler(PacketType.MapLayerRequest, HandleMapLayerRequest);
+            AddLocalPacketHandler(PacketType.MapBlockRequest, HandleMapBlockRequest);
+            AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest);
+            AddLocalPacketHandler(PacketType.TeleportLandmarkRequest, HandleTeleportLandmarkRequest);
+            AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
+            AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest);
+            AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
+            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest);
+            AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest);
+            AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate);
+            AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest);
+            AddLocalPacketHandler(PacketType.ParcelDivide, HandleParcelDivide);
+            AddLocalPacketHandler(PacketType.ParcelJoin, HandleParcelJoin);
+            AddLocalPacketHandler(PacketType.ParcelPropertiesUpdate, HandleParcelPropertiesUpdate);
+            AddLocalPacketHandler(PacketType.ParcelSelectObjects, HandleParcelSelectObjects);
+            AddLocalPacketHandler(PacketType.ParcelObjectOwnersRequest, HandleParcelObjectOwnersRequest);
+            AddLocalPacketHandler(PacketType.ParcelGodForceOwner, HandleParcelGodForceOwner);
+            AddLocalPacketHandler(PacketType.ParcelRelease, HandleParcelRelease);
+            AddLocalPacketHandler(PacketType.ParcelReclaim, HandleParcelReclaim);
+            AddLocalPacketHandler(PacketType.ParcelReturnObjects, HandleParcelReturnObjects);
+            AddLocalPacketHandler(PacketType.ParcelSetOtherCleanTime, HandleParcelSetOtherCleanTime);
+            AddLocalPacketHandler(PacketType.LandStatRequest, HandleLandStatRequest);
+            AddLocalPacketHandler(PacketType.ParcelDwellRequest, HandleParcelDwellRequest);
+            AddLocalPacketHandler(PacketType.EstateOwnerMessage, HandleEstateOwnerMessage);
+            AddLocalPacketHandler(PacketType.RequestRegionInfo, HandleRequestRegionInfo);
+            AddLocalPacketHandler(PacketType.EstateCovenantRequest, HandleEstateCovenantRequest);
+            AddLocalPacketHandler(PacketType.RequestGodlikePowers, HandleRequestGodlikePowers);
+            AddLocalPacketHandler(PacketType.GodKickUser, HandleGodKickUser);
+            AddLocalPacketHandler(PacketType.MoneyBalanceRequest, HandleMoneyBalanceRequest);
+            AddLocalPacketHandler(PacketType.EconomyDataRequest, HandleEconomyDataRequest);
+            AddLocalPacketHandler(PacketType.RequestPayPrice, HandleRequestPayPrice);
+            AddLocalPacketHandler(PacketType.ObjectSaleInfo, HandleObjectSaleInfo);
+            AddLocalPacketHandler(PacketType.ObjectBuy, HandleObjectBuy);
+            AddLocalPacketHandler(PacketType.GetScriptRunning, HandleGetScriptRunning);
+            AddLocalPacketHandler(PacketType.SetScriptRunning, HandleSetScriptRunning);
+            AddLocalPacketHandler(PacketType.ScriptReset, HandleScriptReset);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             //AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
-            
 
         }
 
@@ -6337,6 +6397,1943 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         #endregion Objects/m_sceneObjects
+
+        #region Inventory/Asset/Other related packets
+
+        private bool HandleRequestImage(IClientAPI sender, Packet Pack)
+        {
+            RequestImagePacket imageRequest = (RequestImagePacket)Pack;
+            //m_log.Debug("image request: " + Pack.ToString());
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (imageRequest.AgentData.SessionID != SessionId ||
+                    imageRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            //handlerTextureRequest = null;
+            for (int i = 0; i < imageRequest.RequestImage.Length; i++)
+            {
+                if (OnRequestTexture != null)
+                {
+                    TextureRequestArgs args = new TextureRequestArgs();
+
+                    RequestImagePacket.RequestImageBlock block = imageRequest.RequestImage[i];
+
+                    args.RequestedAssetID = block.Image;
+                    args.DiscardLevel = block.DiscardLevel;
+                    args.PacketNumber = block.Packet;
+                    args.Priority = block.DownloadPriority;
+                    args.requestSequence = imageRequest.Header.Sequence;
+
+                    // NOTE: This is not a built in part of the LLUDP protocol, but we double the
+                    // priority of avatar textures to get avatars rezzing in faster than the
+                    // surrounding scene
+                    if ((ImageType)block.Type == ImageType.Baked)
+                        args.Priority *= 2.0f;
+
+                    //handlerTextureRequest = OnRequestTexture;
+
+                    //if (handlerTextureRequest != null)
+                    //OnRequestTexture(this, args);
+
+                    // in the end, we null this, so we have to check if it's null
+                    if (m_imageManager != null)
+                    {
+                        m_imageManager.EnqueueReq(args);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleTransferRequest(IClientAPI sender, Packet Pack)
+        {
+            //m_log.Debug("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
+
+            TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+            //m_log.Debug("Transfer Request: " + transfer.ToString());
+            // Validate inventory transfers
+            // Has to be done here, because AssetCache can't do it
+            //
+            UUID taskID = UUID.Zero;
+            if (transfer.TransferInfo.SourceType == 3)
+            {
+                taskID = new UUID(transfer.TransferInfo.Params, 48);
+                UUID itemID = new UUID(transfer.TransferInfo.Params, 64);
+                UUID requestID = new UUID(transfer.TransferInfo.Params, 80);
+                if (!(((Scene)m_scene).Permissions.BypassPermissions()))
+                {
+                    if (taskID != UUID.Zero) // Prim
+                    {
+                        SceneObjectPart part = ((Scene)m_scene).GetSceneObjectPart(taskID);
+                        if (part == null)
+                            return true;
+
+                        if (part.OwnerID != AgentId)
+                            return true;
+
+                        if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                            return true;
+
+                        TaskInventoryItem ti = part.Inventory.GetInventoryItem(itemID);
+                        if (ti == null)
+                            return true;
+
+                        if (ti.OwnerID != AgentId)
+                            return true;
+
+                        if ((ti.CurrentPermissions & ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify | (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                            return true;
+
+                        if (ti.AssetID != requestID)
+                            return true;
+                    }
+                    else // Agent
+                    {
+                        IInventoryService invService = m_scene.RequestModuleInterface<IInventoryService>();
+                        InventoryItemBase assetRequestItem = new InventoryItemBase(itemID, AgentId);
+                        assetRequestItem = invService.GetItem(assetRequestItem);
+                        if (assetRequestItem == null)
+                        {
+                            assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
+                            if (assetRequestItem == null)
+                                return true;
+                        }
+
+                        // At this point, we need to apply perms
+                        // only to notecards and scripts. All
+                        // other asset types are always available
+                        //
+                        if (assetRequestItem.AssetType == 10)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanViewScript(itemID, UUID.Zero, AgentId))
+                            {
+                                SendAgentAlertMessage("Insufficient permissions to view script", false);
+                                return true;
+                            }
+                        }
+                        else if (assetRequestItem.AssetType == 7)
+                        {
+                            if (!((Scene)m_scene).Permissions.CanViewNotecard(itemID, UUID.Zero, AgentId))
+                            {
+                                SendAgentAlertMessage("Insufficient permissions to view notecard", false);
+                                return true;
+                            }
+                        }
+
+                        if (assetRequestItem.AssetID != requestID)
+                            return true;
+                    }
+                }
+            }
+
+            //m_assetCache.AddAssetRequest(this, transfer);
+
+            MakeAssetRequest(transfer, taskID);
+
+            /* RequestAsset = OnRequestAsset;
+                 if (RequestAsset != null)
+                 {
+                     RequestAsset(this, transfer);
+                 }*/
+            return true;
+        }
+
+        private bool HandleAssetUploadRequest(IClientAPI sender, Packet Pack)
+        {
+            AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
+
+
+            // m_log.Debug("upload request " + request.ToString());
+            // m_log.Debug("upload request was for assetid: " + request.AssetBlock.TransactionID.Combine(this.SecureSessionId).ToString());
+            UUID temp = UUID.Combine(request.AssetBlock.TransactionID, SecureSessionId);
+
+            UDPAssetUploadRequest handlerAssetUploadRequest = OnAssetUploadRequest;
+
+            if (handlerAssetUploadRequest != null)
+            {
+                handlerAssetUploadRequest(this, temp,
+                                          request.AssetBlock.TransactionID, request.AssetBlock.Type,
+                                          request.AssetBlock.AssetData, request.AssetBlock.StoreLocal,
+                                          request.AssetBlock.Tempfile);
+            }
+            return true;
+        }
+
+        private bool HandleRequestXfer(IClientAPI sender, Packet Pack)
+        {
+            RequestXferPacket xferReq = (RequestXferPacket)Pack;
+
+            RequestXfer handlerRequestXfer = OnRequestXfer;
+
+            if (handlerRequestXfer != null)
+            {
+                handlerRequestXfer(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
+            }
+            return true;
+        }
+
+        private bool HandleSendXferPacket(IClientAPI sender, Packet Pack)
+        {
+            SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
+
+            XferReceive handlerXferReceive = OnXferReceive;
+            if (handlerXferReceive != null)
+            {
+                handlerXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
+            }
+            return true;
+        }
+
+        private bool HandleConfirmXferPacket(IClientAPI sender, Packet Pack)
+        {
+            ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
+
+            ConfirmXfer handlerConfirmXfer = OnConfirmXfer;
+            if (handlerConfirmXfer != null)
+            {
+                handlerConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
+            }
+            return true;
+        }
+
+        private bool HandleAbortXfer(IClientAPI sender, Packet Pack)
+        {
+            AbortXferPacket abortXfer = (AbortXferPacket)Pack;
+            AbortXfer handlerAbortXfer = OnAbortXfer;
+            if (handlerAbortXfer != null)
+            {
+                handlerAbortXfer(this, abortXfer.XferID.ID);
+            }
+
+            return true;
+        }
+
+        private bool HandleCreateInventoryFolder(IClientAPI sender, Packet Pack)
+        {
+            CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (invFolder.AgentData.SessionID != SessionId ||
+                    invFolder.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            CreateInventoryFolder handlerCreateInventoryFolder = OnCreateNewInventoryFolder;
+            if (handlerCreateInventoryFolder != null)
+            {
+                handlerCreateInventoryFolder(this, invFolder.FolderData.FolderID,
+                                             (ushort)invFolder.FolderData.Type,
+                                             Util.FieldToString(invFolder.FolderData.Name),
+                                             invFolder.FolderData.ParentID);
+            }
+            return true;
+        }
+
+        private bool HandleUpdateInventoryFolder(IClientAPI sender, Packet Pack)
+        {
+            if (OnUpdateInventoryFolder != null)
+            {
+                UpdateInventoryFolderPacket invFolderx = (UpdateInventoryFolderPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (invFolderx.AgentData.SessionID != SessionId ||
+                        invFolderx.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                UpdateInventoryFolder handlerUpdateInventoryFolder = null;
+
+                for (int i = 0; i < invFolderx.FolderData.Length; i++)
+                {
+                    handlerUpdateInventoryFolder = OnUpdateInventoryFolder;
+                    if (handlerUpdateInventoryFolder != null)
+                    {
+                        OnUpdateInventoryFolder(this, invFolderx.FolderData[i].FolderID,
+                                                (ushort)invFolderx.FolderData[i].Type,
+                                                Util.FieldToString(invFolderx.FolderData[i].Name),
+                                                invFolderx.FolderData[i].ParentID);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleMoveInventoryFolder(IClientAPI sender, Packet Pack)
+        {
+            if (OnMoveInventoryFolder != null)
+            {
+                MoveInventoryFolderPacket invFoldery = (MoveInventoryFolderPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (invFoldery.AgentData.SessionID != SessionId ||
+                        invFoldery.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                MoveInventoryFolder handlerMoveInventoryFolder = null;
+
+                for (int i = 0; i < invFoldery.InventoryData.Length; i++)
+                {
+                    handlerMoveInventoryFolder = OnMoveInventoryFolder;
+                    if (handlerMoveInventoryFolder != null)
+                    {
+                        OnMoveInventoryFolder(this, invFoldery.InventoryData[i].FolderID,
+                                              invFoldery.InventoryData[i].ParentID);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleCreateInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (createItem.AgentData.SessionID != SessionId ||
+                    createItem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            CreateNewInventoryItem handlerCreateNewInventoryItem = OnCreateNewInventoryItem;
+            if (handlerCreateNewInventoryItem != null)
+            {
+                handlerCreateNewInventoryItem(this, createItem.InventoryBlock.TransactionID,
+                                              createItem.InventoryBlock.FolderID,
+                                              createItem.InventoryBlock.CallbackID,
+                                              Util.FieldToString(createItem.InventoryBlock.Description),
+                                              Util.FieldToString(createItem.InventoryBlock.Name),
+                                              createItem.InventoryBlock.InvType,
+                                              createItem.InventoryBlock.Type,
+                                              createItem.InventoryBlock.WearableType,
+                                              createItem.InventoryBlock.NextOwnerMask,
+                                              Util.UnixTimeSinceEpoch());
+            }
+            return true;
+        }
+
+        private bool HandleFetchInventory(IClientAPI sender, Packet Pack)
+        {
+            if (OnFetchInventory != null)
+            {
+                FetchInventoryPacket FetchInventoryx = (FetchInventoryPacket)Pack;
+
+                #region Packet Session and User Check
+                if (m_checkPackets)
+                {
+                    if (FetchInventoryx.AgentData.SessionID != SessionId ||
+                        FetchInventoryx.AgentData.AgentID != AgentId)
+                        return true;
+                }
+                #endregion
+
+                FetchInventory handlerFetchInventory = null;
+
+                for (int i = 0; i < FetchInventoryx.InventoryData.Length; i++)
+                {
+                    handlerFetchInventory = OnFetchInventory;
+
+                    if (handlerFetchInventory != null)
+                    {
+                        OnFetchInventory(this, FetchInventoryx.InventoryData[i].ItemID,
+                                         FetchInventoryx.InventoryData[i].OwnerID);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleFetchInventoryDescendents(IClientAPI sender, Packet Pack)
+        {
+            FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (Fetch.AgentData.SessionID != SessionId ||
+                    Fetch.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            FetchInventoryDescendents handlerFetchInventoryDescendents = OnFetchInventoryDescendents;
+            if (handlerFetchInventoryDescendents != null)
+            {
+                handlerFetchInventoryDescendents(this, Fetch.InventoryData.FolderID, Fetch.InventoryData.OwnerID,
+                                                 Fetch.InventoryData.FetchFolders, Fetch.InventoryData.FetchItems,
+                                                 Fetch.InventoryData.SortOrder);
+            }
+            return true;
+        }
+
+        private bool HandlePurgeInventoryDescendents(IClientAPI sender, Packet Pack)
+        {
+            PurgeInventoryDescendentsPacket Purge = (PurgeInventoryDescendentsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (Purge.AgentData.SessionID != SessionId ||
+                    Purge.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            PurgeInventoryDescendents handlerPurgeInventoryDescendents = OnPurgeInventoryDescendents;
+            if (handlerPurgeInventoryDescendents != null)
+            {
+                handlerPurgeInventoryDescendents(this, Purge.InventoryData.FolderID);
+            }
+            return true;
+        }
+
+        private bool HandleUpdateInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            UpdateInventoryItemPacket inventoryItemUpdate = (UpdateInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (inventoryItemUpdate.AgentData.SessionID != SessionId ||
+                    inventoryItemUpdate.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnUpdateInventoryItem != null)
+            {
+                UpdateInventoryItem handlerUpdateInventoryItem = null;
+                for (int i = 0; i < inventoryItemUpdate.InventoryData.Length; i++)
+                {
+                    handlerUpdateInventoryItem = OnUpdateInventoryItem;
+
+                    if (handlerUpdateInventoryItem != null)
+                    {
+                        InventoryItemBase itemUpd = new InventoryItemBase();
+                        itemUpd.ID = inventoryItemUpdate.InventoryData[i].ItemID;
+                        itemUpd.Name = Util.FieldToString(inventoryItemUpdate.InventoryData[i].Name);
+                        itemUpd.Description = Util.FieldToString(inventoryItemUpdate.InventoryData[i].Description);
+                        itemUpd.GroupID = inventoryItemUpdate.InventoryData[i].GroupID;
+                        itemUpd.GroupOwned = inventoryItemUpdate.InventoryData[i].GroupOwned;
+                        itemUpd.GroupPermissions = inventoryItemUpdate.InventoryData[i].GroupMask;
+                        itemUpd.NextPermissions = inventoryItemUpdate.InventoryData[i].NextOwnerMask;
+                        itemUpd.EveryOnePermissions = inventoryItemUpdate.InventoryData[i].EveryoneMask;
+                        itemUpd.CreationDate = inventoryItemUpdate.InventoryData[i].CreationDate;
+                        itemUpd.Folder = inventoryItemUpdate.InventoryData[i].FolderID;
+                        itemUpd.InvType = inventoryItemUpdate.InventoryData[i].InvType;
+                        itemUpd.SalePrice = inventoryItemUpdate.InventoryData[i].SalePrice;
+                        itemUpd.SaleType = inventoryItemUpdate.InventoryData[i].SaleType;
+                        itemUpd.Flags = inventoryItemUpdate.InventoryData[i].Flags;
+
+                        OnUpdateInventoryItem(this, inventoryItemUpdate.InventoryData[i].TransactionID,
+                                              inventoryItemUpdate.InventoryData[i].ItemID,
+                                              itemUpd);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleCopyInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            CopyInventoryItemPacket copyitem = (CopyInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (copyitem.AgentData.SessionID != SessionId ||
+                    copyitem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            CopyInventoryItem handlerCopyInventoryItem = null;
+            if (OnCopyInventoryItem != null)
+            {
+                foreach (CopyInventoryItemPacket.InventoryDataBlock datablock in copyitem.InventoryData)
+                {
+                    handlerCopyInventoryItem = OnCopyInventoryItem;
+                    if (handlerCopyInventoryItem != null)
+                    {
+                        handlerCopyInventoryItem(this, datablock.CallbackID, datablock.OldAgentID,
+                                                 datablock.OldItemID, datablock.NewFolderID,
+                                                 Util.FieldToString(datablock.NewName));
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool HandleMoveInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            MoveInventoryItemPacket moveitem = (MoveInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (moveitem.AgentData.SessionID != SessionId ||
+                    moveitem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnMoveInventoryItem != null)
+            {
+                MoveInventoryItem handlerMoveInventoryItem = null;
+                InventoryItemBase itm = null;
+                List<InventoryItemBase> items = new List<InventoryItemBase>();
+                foreach (MoveInventoryItemPacket.InventoryDataBlock datablock in moveitem.InventoryData)
+                {
+                    itm = new InventoryItemBase(datablock.ItemID, AgentId);
+                    itm.Folder = datablock.FolderID;
+                    itm.Name = Util.FieldToString(datablock.NewName);
+                    // weird, comes out as empty string
+                    //m_log.DebugFormat("[XXX] new name: {0}", itm.Name);
+                    items.Add(itm);
+                }
+                handlerMoveInventoryItem = OnMoveInventoryItem;
+                if (handlerMoveInventoryItem != null)
+                {
+                    handlerMoveInventoryItem(this, items);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleRemoveInventoryItem(IClientAPI sender, Packet Pack)
+        {
+            RemoveInventoryItemPacket removeItem = (RemoveInventoryItemPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (removeItem.AgentData.SessionID != SessionId ||
+                    removeItem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnRemoveInventoryItem != null)
+            {
+                RemoveInventoryItem handlerRemoveInventoryItem = null;
+                List<UUID> uuids = new List<UUID>();
+                foreach (RemoveInventoryItemPacket.InventoryDataBlock datablock in removeItem.InventoryData)
+                {
+                    uuids.Add(datablock.ItemID);
+                }
+                handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                if (handlerRemoveInventoryItem != null)
+                {
+                    handlerRemoveInventoryItem(this, uuids);
+                }
+
+            }
+            return true;
+        }
+
+        private bool HandleRemoveInventoryFolder(IClientAPI sender, Packet Pack)
+        {
+            RemoveInventoryFolderPacket removeFolder = (RemoveInventoryFolderPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (removeFolder.AgentData.SessionID != SessionId ||
+                    removeFolder.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnRemoveInventoryFolder != null)
+            {
+                RemoveInventoryFolder handlerRemoveInventoryFolder = null;
+                List<UUID> uuids = new List<UUID>();
+                foreach (RemoveInventoryFolderPacket.FolderDataBlock datablock in removeFolder.FolderData)
+                {
+                    uuids.Add(datablock.FolderID);
+                }
+                handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
+                if (handlerRemoveInventoryFolder != null)
+                {
+                    handlerRemoveInventoryFolder(this, uuids);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleRemoveInventoryObjects(IClientAPI sender, Packet Pack)
+        {
+            RemoveInventoryObjectsPacket removeObject = (RemoveInventoryObjectsPacket)Pack;
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (removeObject.AgentData.SessionID != SessionId ||
+                    removeObject.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+            if (OnRemoveInventoryFolder != null)
+            {
+                RemoveInventoryFolder handlerRemoveInventoryFolder = null;
+                List<UUID> uuids = new List<UUID>();
+                foreach (RemoveInventoryObjectsPacket.FolderDataBlock datablock in removeObject.FolderData)
+                {
+                    uuids.Add(datablock.FolderID);
+                }
+                handlerRemoveInventoryFolder = OnRemoveInventoryFolder;
+                if (handlerRemoveInventoryFolder != null)
+                {
+                    handlerRemoveInventoryFolder(this, uuids);
+                }
+            }
+
+            if (OnRemoveInventoryItem != null)
+            {
+                RemoveInventoryItem handlerRemoveInventoryItem = null;
+                List<UUID> uuids = new List<UUID>();
+                foreach (RemoveInventoryObjectsPacket.ItemDataBlock datablock in removeObject.ItemData)
+                {
+                    uuids.Add(datablock.ItemID);
+                }
+                handlerRemoveInventoryItem = OnRemoveInventoryItem;
+                if (handlerRemoveInventoryItem != null)
+                {
+                    handlerRemoveInventoryItem(this, uuids);
+                }
+            }
+            return true;
+        }
+
+        private bool HandleRequestTaskInventory(IClientAPI sender, Packet Pack)
+        {
+            RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (requesttask.AgentData.SessionID != SessionId ||
+                    requesttask.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RequestTaskInventory handlerRequestTaskInventory = OnRequestTaskInventory;
+            if (handlerRequestTaskInventory != null)
+            {
+                handlerRequestTaskInventory(this, requesttask.InventoryData.LocalID);
+            }
+            return true;
+        }
+
+        private bool HandleUpdateTaskInventory(IClientAPI sender, Packet Pack)
+        {
+            UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (updatetask.AgentData.SessionID != SessionId ||
+                    updatetask.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (OnUpdateTaskInventory != null)
+            {
+                if (updatetask.UpdateData.Key == 0)
+                {
+                    UpdateTaskInventory handlerUpdateTaskInventory = OnUpdateTaskInventory;
+                    if (handlerUpdateTaskInventory != null)
+                    {
+                        TaskInventoryItem newTaskItem = new TaskInventoryItem();
+                        newTaskItem.ItemID = updatetask.InventoryData.ItemID;
+                        newTaskItem.ParentID = updatetask.InventoryData.FolderID;
+                        newTaskItem.CreatorID = updatetask.InventoryData.CreatorID;
+                        newTaskItem.OwnerID = updatetask.InventoryData.OwnerID;
+                        newTaskItem.GroupID = updatetask.InventoryData.GroupID;
+                        newTaskItem.BasePermissions = updatetask.InventoryData.BaseMask;
+                        newTaskItem.CurrentPermissions = updatetask.InventoryData.OwnerMask;
+                        newTaskItem.GroupPermissions = updatetask.InventoryData.GroupMask;
+                        newTaskItem.EveryonePermissions = updatetask.InventoryData.EveryoneMask;
+                        newTaskItem.NextPermissions = updatetask.InventoryData.NextOwnerMask;
+                        //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
+                        newTaskItem.Type = updatetask.InventoryData.Type;
+                        newTaskItem.InvType = updatetask.InventoryData.InvType;
+                        newTaskItem.Flags = updatetask.InventoryData.Flags;
+                        //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
+                        //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;;
+                        newTaskItem.Name = Util.FieldToString(updatetask.InventoryData.Name);
+                        newTaskItem.Description = Util.FieldToString(updatetask.InventoryData.Description);
+                        newTaskItem.CreationDate = (uint)updatetask.InventoryData.CreationDate;
+                        handlerUpdateTaskInventory(this, updatetask.InventoryData.TransactionID,
+                                                   newTaskItem, updatetask.UpdateData.LocalID);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private bool HandleRemoveTaskInventory(IClientAPI sender, Packet Pack)
+        {
+            RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (removeTask.AgentData.SessionID != SessionId ||
+                    removeTask.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RemoveTaskInventory handlerRemoveTaskItem = OnRemoveTaskItem;
+
+            if (handlerRemoveTaskItem != null)
+            {
+                handlerRemoveTaskItem(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
+            }
+
+            return true;
+        }
+
+        private bool HandleMoveTaskInventory(IClientAPI sender, Packet Pack)
+        {
+            MoveTaskInventoryPacket moveTaskInventoryPacket = (MoveTaskInventoryPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (moveTaskInventoryPacket.AgentData.SessionID != SessionId ||
+                    moveTaskInventoryPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            MoveTaskInventory handlerMoveTaskItem = OnMoveTaskItem;
+
+            if (handlerMoveTaskItem != null)
+            {
+                handlerMoveTaskItem(
+                    this, moveTaskInventoryPacket.AgentData.FolderID,
+                    moveTaskInventoryPacket.InventoryData.LocalID,
+                    moveTaskInventoryPacket.InventoryData.ItemID);
+            }
+
+            return true;
+        }
+
+        private bool HandleRezScript(IClientAPI sender, Packet Pack)
+        {
+            //m_log.Debug(Pack.ToString());
+            RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (rezScriptx.AgentData.SessionID != SessionId ||
+                    rezScriptx.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RezScript handlerRezScript = OnRezScript;
+            InventoryItemBase item = new InventoryItemBase();
+            item.ID = rezScriptx.InventoryBlock.ItemID;
+            item.Folder = rezScriptx.InventoryBlock.FolderID;
+            item.CreatorId = rezScriptx.InventoryBlock.CreatorID.ToString();
+            item.Owner = rezScriptx.InventoryBlock.OwnerID;
+            item.BasePermissions = rezScriptx.InventoryBlock.BaseMask;
+            item.CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask;
+            item.EveryOnePermissions = rezScriptx.InventoryBlock.EveryoneMask;
+            item.NextPermissions = rezScriptx.InventoryBlock.NextOwnerMask;
+            item.GroupPermissions = rezScriptx.InventoryBlock.GroupMask;
+            item.GroupOwned = rezScriptx.InventoryBlock.GroupOwned;
+            item.GroupID = rezScriptx.InventoryBlock.GroupID;
+            item.AssetType = rezScriptx.InventoryBlock.Type;
+            item.InvType = rezScriptx.InventoryBlock.InvType;
+            item.Flags = rezScriptx.InventoryBlock.Flags;
+            item.SaleType = rezScriptx.InventoryBlock.SaleType;
+            item.SalePrice = rezScriptx.InventoryBlock.SalePrice;
+            item.Name = Util.FieldToString(rezScriptx.InventoryBlock.Name);
+            item.Description = Util.FieldToString(rezScriptx.InventoryBlock.Description);
+            item.CreationDate = rezScriptx.InventoryBlock.CreationDate;
+
+            if (handlerRezScript != null)
+            {
+                handlerRezScript(this, item, rezScriptx.InventoryBlock.TransactionID, rezScriptx.UpdateBlock.ObjectLocalID);
+            }
+            return true;
+        }
+
+        private bool HandleMapLayerRequest(IClientAPI sender, Packet Pack)
+        {
+            RequestMapLayer();
+            return true;
+        }
+
+        private bool HandleMapBlockRequest(IClientAPI sender, Packet Pack)
+        {
+            MapBlockRequestPacket MapRequest = (MapBlockRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (MapRequest.AgentData.SessionID != SessionId ||
+                    MapRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RequestMapBlocks handlerRequestMapBlocks = OnRequestMapBlocks;
+            if (handlerRequestMapBlocks != null)
+            {
+                handlerRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY,
+                                        MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY, MapRequest.AgentData.Flags);
+            }
+            return true;
+        }
+
+        private bool HandleMapNameRequest(IClientAPI sender, Packet Pack)
+        {
+            MapNameRequestPacket map = (MapNameRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (map.AgentData.SessionID != SessionId ||
+                    map.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            string mapName = Util.UTF8.GetString(map.NameData.Name, 0,
+                                                     map.NameData.Name.Length - 1);
+            RequestMapName handlerMapNameRequest = OnMapNameRequest;
+            if (handlerMapNameRequest != null)
+            {
+                handlerMapNameRequest(this, mapName);
+            }
+            return true;
+        }
+
+        private bool HandleTeleportLandmarkRequest(IClientAPI sender, Packet Pack)
+        {
+            TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (tpReq.Info.SessionID != SessionId ||
+                    tpReq.Info.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UUID lmid = tpReq.Info.LandmarkID;
+            AssetLandmark lm;
+            if (lmid != UUID.Zero)
+            {
+                //AssetBase lma = m_assetCache.GetAsset(lmid, false);
+                AssetBase lma = m_assetService.Get(lmid.ToString());
+
+                if (lma == null)
+                {
+                    // Failed to find landmark
+                    TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                    tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                    tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                    OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                }
+
+                try
+                {
+                    lm = new AssetLandmark(lma);
+                }
+                catch (NullReferenceException)
+                {
+                    // asset not found generates null ref inside the assetlandmark constructor.
+                    TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                    tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                    tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                    OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                    return true;
+                }
+            }
+            else
+            {
+                // Teleport home request
+                UUIDNameRequest handlerTeleportHomeRequest = OnTeleportHomeRequest;
+                if (handlerTeleportHomeRequest != null)
+                {
+                    handlerTeleportHomeRequest(AgentId, this);
+                }
+                return true;
+            }
+
+            TeleportLandmarkRequest handlerTeleportLandmarkRequest = OnTeleportLandmarkRequest;
+            if (handlerTeleportLandmarkRequest != null)
+            {
+                handlerTeleportLandmarkRequest(this, lm.RegionID, lm.Position);
+            }
+            else
+            {
+                //no event handler so cancel request
+
+
+                TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                OutPacket(tpCancel, ThrottleOutPacketType.Task);
+
+            }
+            return true;
+        }
+
+        private bool HandleTeleportLocationRequest(IClientAPI sender, Packet Pack)
+        {
+            TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
+            // m_log.Debug(tpLocReq.ToString());
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (tpLocReq.AgentData.SessionID != SessionId ||
+                    tpLocReq.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            TeleportLocationRequest handlerTeleportLocationRequest = OnTeleportLocationRequest;
+            if (handlerTeleportLocationRequest != null)
+            {
+                handlerTeleportLocationRequest(this, tpLocReq.Info.RegionHandle, tpLocReq.Info.Position,
+                                               tpLocReq.Info.LookAt, 16);
+            }
+            else
+            {
+                //no event handler so cancel request
+                TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                tpCancel.Info.SessionID = tpLocReq.AgentData.SessionID;
+                tpCancel.Info.AgentID = tpLocReq.AgentData.AgentID;
+                OutPacket(tpCancel, ThrottleOutPacketType.Task);
+            }
+            return true;
+        }
+
+        #endregion Inventory/Asset/Other related packets
+
+        private bool HandleUUIDNameRequest(IClientAPI sender, Packet Pack)
+        {
+            UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
+
+            foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)
+            {
+                UUIDNameRequest handlerNameRequest = OnNameFromUUIDRequest;
+                if (handlerNameRequest != null)
+                {
+                    handlerNameRequest(UUIDBlock.ID, this);
+                }
+            }
+            return true;
+        }
+
+        #region Parcel related packets
+
+        private bool HandleRegionHandleRequest(IClientAPI sender, Packet Pack)
+        {
+            RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
+
+            RegionHandleRequest handlerRegionHandleRequest = OnRegionHandleRequest;
+            if (handlerRegionHandleRequest != null)
+            {
+                handlerRegionHandleRequest(this, rhrPack.RequestBlock.RegionID);
+            }
+            return true;
+        }
+
+        private bool HandleParcelInfoRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelInfoRequestPacket pirPack = (ParcelInfoRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (pirPack.AgentData.SessionID != SessionId ||
+                    pirPack.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelInfoRequest handlerParcelInfoRequest = OnParcelInfoRequest;
+            if (handlerParcelInfoRequest != null)
+            {
+                handlerParcelInfoRequest(this, pirPack.Data.ParcelID);
+            }
+            return true;
+        }
+
+        private bool HandleParcelAccessListRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelAccessListRequestPacket requestPacket = (ParcelAccessListRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (requestPacket.AgentData.SessionID != SessionId ||
+                    requestPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelAccessListRequest handlerParcelAccessListRequest = OnParcelAccessListRequest;
+
+            if (handlerParcelAccessListRequest != null)
+            {
+                handlerParcelAccessListRequest(requestPacket.AgentData.AgentID, requestPacket.AgentData.SessionID,
+                                               requestPacket.Data.Flags, requestPacket.Data.SequenceID,
+                                               requestPacket.Data.LocalID, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelAccessListUpdate(IClientAPI sender, Packet Pack)
+        {
+            ParcelAccessListUpdatePacket updatePacket = (ParcelAccessListUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (updatePacket.AgentData.SessionID != SessionId ||
+                    updatePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            List<ParcelManager.ParcelAccessEntry> entries = new List<ParcelManager.ParcelAccessEntry>();
+            foreach (ParcelAccessListUpdatePacket.ListBlock block in updatePacket.List)
+            {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                entry.AgentID = block.ID;
+                entry.Flags = (AccessList)block.Flags;
+                entry.Time = new DateTime();
+                entries.Add(entry);
+            }
+
+            ParcelAccessListUpdateRequest handlerParcelAccessListUpdateRequest = OnParcelAccessListUpdateRequest;
+            if (handlerParcelAccessListUpdateRequest != null)
+            {
+                handlerParcelAccessListUpdateRequest(updatePacket.AgentData.AgentID,
+                                                     updatePacket.AgentData.SessionID, updatePacket.Data.Flags,
+                                                     updatePacket.Data.LocalID, entries, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelPropertiesRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (propertiesRequest.AgentData.SessionID != SessionId ||
+                    propertiesRequest.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelPropertiesRequest handlerParcelPropertiesRequest = OnParcelPropertiesRequest;
+            if (handlerParcelPropertiesRequest != null)
+            {
+                handlerParcelPropertiesRequest((int)Math.Round(propertiesRequest.ParcelData.West),
+                                               (int)Math.Round(propertiesRequest.ParcelData.South),
+                                               (int)Math.Round(propertiesRequest.ParcelData.East),
+                                               (int)Math.Round(propertiesRequest.ParcelData.North),
+                                               propertiesRequest.ParcelData.SequenceID,
+                                               propertiesRequest.ParcelData.SnapSelection, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelDivide(IClientAPI sender, Packet Pack)
+        {
+            ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (landDivide.AgentData.SessionID != SessionId ||
+                    landDivide.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelDivideRequest handlerParcelDivideRequest = OnParcelDivideRequest;
+            if (handlerParcelDivideRequest != null)
+            {
+                handlerParcelDivideRequest((int)Math.Round(landDivide.ParcelData.West),
+                                           (int)Math.Round(landDivide.ParcelData.South),
+                                           (int)Math.Round(landDivide.ParcelData.East),
+                                           (int)Math.Round(landDivide.ParcelData.North), this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelJoin(IClientAPI sender, Packet Pack)
+        {
+            ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (landJoin.AgentData.SessionID != SessionId ||
+                    landJoin.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelJoinRequest handlerParcelJoinRequest = OnParcelJoinRequest;
+
+            if (handlerParcelJoinRequest != null)
+            {
+                handlerParcelJoinRequest((int)Math.Round(landJoin.ParcelData.West),
+                                         (int)Math.Round(landJoin.ParcelData.South),
+                                         (int)Math.Round(landJoin.ParcelData.East),
+                                         (int)Math.Round(landJoin.ParcelData.North), this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelPropertiesUpdate(IClientAPI sender, Packet Pack)
+        {
+            ParcelPropertiesUpdatePacket parcelPropertiesPacket = (ParcelPropertiesUpdatePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (parcelPropertiesPacket.AgentData.SessionID != SessionId ||
+                    parcelPropertiesPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelPropertiesUpdateRequest handlerParcelPropertiesUpdateRequest = OnParcelPropertiesUpdateRequest;
+
+            if (handlerParcelPropertiesUpdateRequest != null)
+            {
+                LandUpdateArgs args = new LandUpdateArgs();
+
+                args.AuthBuyerID = parcelPropertiesPacket.ParcelData.AuthBuyerID;
+                args.Category = (ParcelCategory)parcelPropertiesPacket.ParcelData.Category;
+                args.Desc = Utils.BytesToString(parcelPropertiesPacket.ParcelData.Desc);
+                args.GroupID = parcelPropertiesPacket.ParcelData.GroupID;
+                args.LandingType = parcelPropertiesPacket.ParcelData.LandingType;
+                args.MediaAutoScale = parcelPropertiesPacket.ParcelData.MediaAutoScale;
+                args.MediaID = parcelPropertiesPacket.ParcelData.MediaID;
+                args.MediaURL = Utils.BytesToString(parcelPropertiesPacket.ParcelData.MediaURL);
+                args.MusicURL = Utils.BytesToString(parcelPropertiesPacket.ParcelData.MusicURL);
+                args.Name = Utils.BytesToString(parcelPropertiesPacket.ParcelData.Name);
+                args.ParcelFlags = parcelPropertiesPacket.ParcelData.ParcelFlags;
+                args.PassHours = parcelPropertiesPacket.ParcelData.PassHours;
+                args.PassPrice = parcelPropertiesPacket.ParcelData.PassPrice;
+                args.SalePrice = parcelPropertiesPacket.ParcelData.SalePrice;
+                args.SnapshotID = parcelPropertiesPacket.ParcelData.SnapshotID;
+                args.UserLocation = parcelPropertiesPacket.ParcelData.UserLocation;
+                args.UserLookAt = parcelPropertiesPacket.ParcelData.UserLookAt;
+                handlerParcelPropertiesUpdateRequest(args, parcelPropertiesPacket.ParcelData.LocalID, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelSelectObjects(IClientAPI sender, Packet Pack)
+        {
+            ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (selectPacket.AgentData.SessionID != SessionId ||
+                    selectPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            List<UUID> returnIDs = new List<UUID>();
+
+            foreach (ParcelSelectObjectsPacket.ReturnIDsBlock rb in
+                     selectPacket.ReturnIDs)
+            {
+                returnIDs.Add(rb.ReturnID);
+            }
+
+            ParcelSelectObjects handlerParcelSelectObjects = OnParcelSelectObjects;
+
+            if (handlerParcelSelectObjects != null)
+            {
+                handlerParcelSelectObjects(selectPacket.ParcelData.LocalID,
+                                           Convert.ToInt32(selectPacket.ParcelData.ReturnType), returnIDs, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelObjectOwnersRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (reqPacket.AgentData.SessionID != SessionId ||
+                    reqPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = OnParcelObjectOwnerRequest;
+
+            if (handlerParcelObjectOwnerRequest != null)
+            {
+                handlerParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
+            }
+            return true;
+
+        }
+
+        private bool HandleParcelGodForceOwner(IClientAPI sender, Packet Pack)
+        {
+            ParcelGodForceOwnerPacket godForceOwnerPacket = (ParcelGodForceOwnerPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (godForceOwnerPacket.AgentData.SessionID != SessionId ||
+                    godForceOwnerPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelGodForceOwner handlerParcelGodForceOwner = OnParcelGodForceOwner;
+            if (handlerParcelGodForceOwner != null)
+            {
+                handlerParcelGodForceOwner(godForceOwnerPacket.Data.LocalID, godForceOwnerPacket.Data.OwnerID, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelRelease(IClientAPI sender, Packet Pack)
+        {
+            ParcelReleasePacket releasePacket = (ParcelReleasePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (releasePacket.AgentData.SessionID != SessionId ||
+                    releasePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelAbandonRequest handlerParcelAbandonRequest = OnParcelAbandonRequest;
+            if (handlerParcelAbandonRequest != null)
+            {
+                handlerParcelAbandonRequest(releasePacket.Data.LocalID, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelReclaim(IClientAPI sender, Packet Pack)
+        {
+            ParcelReclaimPacket reclaimPacket = (ParcelReclaimPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (reclaimPacket.AgentData.SessionID != SessionId ||
+                    reclaimPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelReclaim handlerParcelReclaim = OnParcelReclaim;
+            if (handlerParcelReclaim != null)
+            {
+                handlerParcelReclaim(reclaimPacket.Data.LocalID, this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelReturnObjects(IClientAPI sender, Packet Pack)
+        {
+            ParcelReturnObjectsPacket parcelReturnObjects = (ParcelReturnObjectsPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (parcelReturnObjects.AgentData.SessionID != SessionId ||
+                    parcelReturnObjects.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            UUID[] puserselectedOwnerIDs = new UUID[parcelReturnObjects.OwnerIDs.Length];
+            for (int parceliterator = 0; parceliterator < parcelReturnObjects.OwnerIDs.Length; parceliterator++)
+                puserselectedOwnerIDs[parceliterator] = parcelReturnObjects.OwnerIDs[parceliterator].OwnerID;
+
+            UUID[] puserselectedTaskIDs = new UUID[parcelReturnObjects.TaskIDs.Length];
+
+            for (int parceliterator = 0; parceliterator < parcelReturnObjects.TaskIDs.Length; parceliterator++)
+                puserselectedTaskIDs[parceliterator] = parcelReturnObjects.TaskIDs[parceliterator].TaskID;
+
+            ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest = OnParcelReturnObjectsRequest;
+            if (handlerParcelReturnObjectsRequest != null)
+            {
+                handlerParcelReturnObjectsRequest(parcelReturnObjects.ParcelData.LocalID, parcelReturnObjects.ParcelData.ReturnType, puserselectedOwnerIDs, puserselectedTaskIDs, this);
+
+            }
+            return true;
+        }
+
+        private bool HandleParcelSetOtherCleanTime(IClientAPI sender, Packet Pack)
+        {
+            ParcelSetOtherCleanTimePacket parcelSetOtherCleanTimePacket = (ParcelSetOtherCleanTimePacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (parcelSetOtherCleanTimePacket.AgentData.SessionID != SessionId ||
+                    parcelSetOtherCleanTimePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelSetOtherCleanTime handlerParcelSetOtherCleanTime = OnParcelSetOtherCleanTime;
+            if (handlerParcelSetOtherCleanTime != null)
+            {
+                handlerParcelSetOtherCleanTime(this,
+                                               parcelSetOtherCleanTimePacket.ParcelData.LocalID,
+                                               parcelSetOtherCleanTimePacket.ParcelData.OtherCleanTime);
+            }
+            return true;
+        }
+
+        private bool HandleLandStatRequest(IClientAPI sender, Packet Pack)
+        {
+            LandStatRequestPacket lsrp = (LandStatRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (lsrp.AgentData.SessionID != SessionId ||
+                    lsrp.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            GodLandStatRequest handlerLandStatRequest = OnLandStatRequest;
+            if (handlerLandStatRequest != null)
+            {
+                handlerLandStatRequest(lsrp.RequestData.ParcelLocalID, lsrp.RequestData.ReportType, lsrp.RequestData.RequestFlags, Utils.BytesToString(lsrp.RequestData.Filter), this);
+            }
+            return true;
+        }
+
+        private bool HandleParcelDwellRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelDwellRequestPacket dwellrq =
+                            (ParcelDwellRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (dwellrq.AgentData.SessionID != SessionId ||
+                    dwellrq.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ParcelDwellRequest handlerParcelDwellRequest = OnParcelDwellRequest;
+            if (handlerParcelDwellRequest != null)
+            {
+                handlerParcelDwellRequest(dwellrq.Data.LocalID, this);
+            }
+            return true;
+        }
+
+        #endregion Parcel related packets
+
+        #region Estate Packets
+
+        private bool HandleEstateOwnerMessage(IClientAPI sender, Packet Pack)
+        {
+            EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
+            //m_log.Debug(messagePacket.ToString());
+            GodLandStatRequest handlerLandStatRequest;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (messagePacket.AgentData.SessionID != SessionId ||
+                    messagePacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            switch (Utils.BytesToString(messagePacket.MethodData.Method))
+            {
+                case "getinfo":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        OnDetailedEstateDataRequest(this, messagePacket.MethodData.Invoice);
+                    }
+                    return true;
+                case "setregioninfo":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter), convertParamStringToBool(messagePacket.ParamList[1].Parameter),
+                                                convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
+                                                Convert.ToInt16(Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[4].Parameter))),
+                                                (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter)),
+                                                Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[6].Parameter)),
+                                                convertParamStringToBool(messagePacket.ParamList[7].Parameter), convertParamStringToBool(messagePacket.ParamList[8].Parameter));
+                    }
+                    return true;
+                //                            case "texturebase":
+                //                                if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                //                                {
+                //                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                //                                    {
+                //                                        string s = Utils.BytesToString(block.Parameter);
+                //                                        string[] splitField = s.Split(' ');
+                //                                        if (splitField.Length == 2)
+                //                                        {
+                //                                            UUID tempUUID = new UUID(splitField[1]);
+                //                                            OnSetEstateTerrainBaseTexture(this, Convert.ToInt16(splitField[0]), tempUUID);
+                //                                        }
+                //                                    }
+                //                                }
+                //                                break;
+                case "texturedetail":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                        {
+                            string s = Utils.BytesToString(block.Parameter);
+                            string[] splitField = s.Split(' ');
+                            if (splitField.Length == 2)
+                            {
+                                Int16 corner = Convert.ToInt16(splitField[0]);
+                                UUID textureUUID = new UUID(splitField[1]);
+
+                                OnSetEstateTerrainDetailTexture(this, corner, textureUUID);
+                            }
+                        }
+                    }
+
+                    return true;
+                case "textureheights":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                        {
+                            string s = Utils.BytesToString(block.Parameter);
+                            string[] splitField = s.Split(' ');
+                            if (splitField.Length == 3)
+                            {
+                                Int16 corner = Convert.ToInt16(splitField[0]);
+                                float lowValue = (float)Convert.ToDecimal(splitField[1]);
+                                float highValue = (float)Convert.ToDecimal(splitField[2]);
+
+                                OnSetEstateTerrainTextureHeights(this, corner, lowValue, highValue);
+                            }
+                        }
+                    }
+                    return true;
+                case "texturecommit":
+                    OnCommitEstateTerrainTextureRequest(this);
+                    break;
+                case "setregionterrain":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        if (messagePacket.ParamList.Length != 9)
+                        {
+                            m_log.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                string tmp = Utils.BytesToString(messagePacket.ParamList[0].Parameter);
+                                if (!tmp.Contains(".")) tmp += ".00";
+                                float WaterHeight = (float)Convert.ToDecimal(tmp);
+                                tmp = Utils.BytesToString(messagePacket.ParamList[1].Parameter);
+                                if (!tmp.Contains(".")) tmp += ".00";
+                                float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp);
+                                tmp = Utils.BytesToString(messagePacket.ParamList[2].Parameter);
+                                if (!tmp.Contains(".")) tmp += ".00";
+                                float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                                bool UseEstateSun = convertParamStringToBool(messagePacket.ParamList[3].Parameter);
+                                bool UseFixedSun = convertParamStringToBool(messagePacket.ParamList[4].Parameter);
+                                float SunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter));
+                                bool UseGlobal = convertParamStringToBool(messagePacket.ParamList[6].Parameter);
+                                bool EstateFixedSun = convertParamStringToBool(messagePacket.ParamList[7].Parameter);
+                                float EstateSunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[8].Parameter));
+
+                                OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseEstateSun, UseFixedSun, SunHour, UseGlobal, EstateFixedSun, EstateSunHour);
+
+                            }
+                            catch (Exception ex)
+                            {
+                                m_log.Error("EstateOwnerMessage: Exception while setting terrain settings: \n" + messagePacket + "\n" + ex);
+                            }
+                        }
+                    }
+
+                    return true;
+                case "restart":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        // There's only 1 block in the estateResetSim..   and that's the number of seconds till restart.
+                        foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                        {
+                            float timeSeconds;
+                            Utils.TryParseSingle(Utils.BytesToString(block.Parameter), out timeSeconds);
+                            timeSeconds = (int)timeSeconds;
+                            OnEstateRestartSimRequest(this, (int)timeSeconds);
+
+                        }
+                    }
+                    return true;
+                case "estatechangecovenantid":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                        {
+                            UUID newCovenantID = new UUID(Utils.BytesToString(block.Parameter));
+                            OnEstateChangeCovenantRequest(this, newCovenantID);
+                        }
+                    }
+                    return true;
+                case "estateaccessdelta": // Estate access delta manages the banlist and allow list too.
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        int estateAccessType = Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                        OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice, estateAccessType, new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter)));
+
+                    }
+                    return true;
+                case "simulatormessage":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
+                        string SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
+                        string Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
+                        UUID sessionID = messagePacket.AgentData.SessionID;
+                        OnSimulatorBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
+                    }
+                    return true;
+                case "instantmessage":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        if (messagePacket.ParamList.Length < 5)
+                            break;
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = new UUID(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
+                        string SenderName = Utils.BytesToString(messagePacket.ParamList[3].Parameter);
+                        string Message = Utils.BytesToString(messagePacket.ParamList[4].Parameter);
+                        UUID sessionID = messagePacket.AgentData.SessionID;
+                        OnEstateBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
+                    }
+                    return true;
+                case "setregiondebug":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        bool scripted = convertParamStringToBool(messagePacket.ParamList[0].Parameter);
+                        bool collisionEvents = convertParamStringToBool(messagePacket.ParamList[1].Parameter);
+                        bool physics = convertParamStringToBool(messagePacket.ParamList[2].Parameter);
+
+                        OnEstateDebugRegionRequest(this, invoice, SenderID, scripted, collisionEvents, physics);
+                    }
+                    return true;
+                case "teleporthomeuser":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UUID Prey;
+
+                        UUID.TryParse(Utils.BytesToString(messagePacket.ParamList[1].Parameter), out Prey);
+
+                        OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
+                    }
+                    return true;
+                case "teleporthomeallusers":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        OnEstateTeleportAllUsersHomeRequest(this, invoice, SenderID);
+                    }
+                    return true;
+                case "colliders":
+                    handlerLandStatRequest = OnLandStatRequest;
+                    if (handlerLandStatRequest != null)
+                    {
+                        handlerLandStatRequest(0, 1, 0, "", this);
+                    }
+                    return true;
+                case "scripts":
+                    handlerLandStatRequest = OnLandStatRequest;
+                    if (handlerLandStatRequest != null)
+                    {
+                        handlerLandStatRequest(0, 0, 0, "", this);
+                    }
+                    return true;
+                case "terrain":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        if (messagePacket.ParamList.Length > 0)
+                        {
+                            if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "bake")
+                            {
+                                BakeTerrain handlerBakeTerrain = OnBakeTerrain;
+                                if (handlerBakeTerrain != null)
+                                {
+                                    handlerBakeTerrain(this);
+                                }
+                            }
+                            if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "download filename")
+                            {
+                                if (messagePacket.ParamList.Length > 1)
+                                {
+                                    RequestTerrain handlerRequestTerrain = OnRequestTerrain;
+                                    if (handlerRequestTerrain != null)
+                                    {
+                                        handlerRequestTerrain(this, Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                                    }
+                                }
+                            }
+                            if (Utils.BytesToString(messagePacket.ParamList[0].Parameter) == "upload filename")
+                            {
+                                if (messagePacket.ParamList.Length > 1)
+                                {
+                                    RequestTerrain handlerUploadTerrain = OnUploadTerrain;
+                                    if (handlerUploadTerrain != null)
+                                    {
+                                        handlerUploadTerrain(this, Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                                    }
+                                }
+                            }
+
+                        }
+
+
+                    }
+                    return true;
+
+                case "estatechangeinfo":
+                    if (((Scene)m_scene).Permissions.CanIssueEstateCommand(AgentId, false))
+                    {
+                        UUID invoice = messagePacket.MethodData.Invoice;
+                        UUID SenderID = messagePacket.AgentData.AgentID;
+                        UInt32 param1 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[1].Parameter));
+                        UInt32 param2 = Convert.ToUInt32(Utils.BytesToString(messagePacket.ParamList[2].Parameter));
+
+                        EstateChangeInfo handlerEstateChangeInfo = OnEstateChangeInfo;
+                        if (handlerEstateChangeInfo != null)
+                        {
+                            handlerEstateChangeInfo(this, invoice, SenderID, param1, param2);
+                        }
+                    }
+                    return true;
+
+                default:
+                    m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket);
+                    return true;
+            }
+
+            //int parcelID, uint reportType, uint requestflags, string filter
+
+            //lsrp.RequestData.ParcelLocalID;
+            //lsrp.RequestData.ReportType; // 1 = colliders, 0 = scripts
+            //lsrp.RequestData.RequestFlags;
+            //lsrp.RequestData.Filter;
+
+            return true;
+        }
+        private bool HandleRequestRegionInfo(IClientAPI sender, Packet Pack)
+        {
+            RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (mPacket.SessionID != SessionId ||
+                    mPacket.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            RegionInfoRequest handlerRegionInfoRequest = OnRegionInfoRequest;
+            if (handlerRegionInfoRequest != null)
+            {
+                handlerRegionInfoRequest(this);
+            }
+            return true;
+        }
+        private bool HandleEstateCovenantRequest(IClientAPI sender, Packet Pack)
+        {
+
+            //EstateCovenantRequestPacket.AgentDataBlock epack =
+            //     ((EstateCovenantRequestPacket)Pack).AgentData;
+
+            EstateCovenantRequest handlerEstateCovenantRequest = OnEstateCovenantRequest;
+            if (handlerEstateCovenantRequest != null)
+            {
+                handlerEstateCovenantRequest(this);
+            }
+            return true;
+
+        }
+
+        #endregion Estate Packets
+
+        #region GodPackets
+
+        private bool HandleRequestGodlikePowers(IClientAPI sender, Packet Pack)
+        {
+            RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
+            RequestGodlikePowersPacket.RequestBlockBlock rblock = rglpPack.RequestBlock;
+            UUID token = rblock.Token;
+
+            RequestGodlikePowersPacket.AgentDataBlock ablock = rglpPack.AgentData;
+
+            RequestGodlikePowers handlerReqGodlikePowers = OnRequestGodlikePowers;
+
+            if (handlerReqGodlikePowers != null)
+            {
+                handlerReqGodlikePowers(ablock.AgentID, ablock.SessionID, token, rblock.Godlike, this);
+            }
+
+            return true;
+        }
+        private bool HandleGodKickUser(IClientAPI sender, Packet Pack)
+        {
+            GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
+
+            if (gkupack.UserInfo.GodSessionID == SessionId && AgentId == gkupack.UserInfo.GodID)
+            {
+                GodKickUser handlerGodKickUser = OnGodKickUser;
+                if (handlerGodKickUser != null)
+                {
+                    handlerGodKickUser(gkupack.UserInfo.GodID, gkupack.UserInfo.GodSessionID,
+                                       gkupack.UserInfo.AgentID, (uint)0, gkupack.UserInfo.Reason);
+                }
+            }
+            else
+            {
+                SendAgentAlertMessage("Kick request denied", false);
+            }
+            //KickUserPacket kupack = new KickUserPacket();
+            //KickUserPacket.UserInfoBlock kupackib = kupack.UserInfo;
+
+            //kupack.UserInfo.AgentID = gkupack.UserInfo.AgentID;
+            //kupack.UserInfo.SessionID = gkupack.UserInfo.GodSessionID;
+
+            //kupack.TargetBlock.TargetIP = (uint)0;
+            //kupack.TargetBlock.TargetPort = (ushort)0;
+            //kupack.UserInfo.Reason = gkupack.UserInfo.Reason;
+
+            //OutPacket(kupack, ThrottleOutPacketType.Task);
+            return true;
+        }
+        #endregion GodPackets
+
+        #region Economy/Transaction Packets
+
+        private bool HandleMoneyBalanceRequest(IClientAPI sender, Packet Pack)
+        {
+            MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (moneybalancerequestpacket.AgentData.SessionID != SessionId ||
+                    moneybalancerequestpacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            MoneyBalanceRequest handlerMoneyBalanceRequest = OnMoneyBalanceRequest;
+
+            if (handlerMoneyBalanceRequest != null)
+            {
+                handlerMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
+            }
+
+            return true;
+        }
+        private bool HandleEconomyDataRequest(IClientAPI sender, Packet Pack)
+        {
+            EconomyDataRequest handlerEconomoyDataRequest = OnEconomyDataRequest;
+            if (handlerEconomoyDataRequest != null)
+            {
+                handlerEconomoyDataRequest(AgentId);
+            }
+            return true;
+        }
+        private bool HandleRequestPayPrice(IClientAPI sender, Packet Pack)
+        {
+            RequestPayPricePacket requestPayPricePacket = (RequestPayPricePacket)Pack;
+
+            RequestPayPrice handlerRequestPayPrice = OnRequestPayPrice;
+            if (handlerRequestPayPrice != null)
+            {
+                handlerRequestPayPrice(this, requestPayPricePacket.ObjectData.ObjectID);
+            }
+            return true;
+        }
+        private bool HandleObjectSaleInfo(IClientAPI sender, Packet Pack)
+        {
+            ObjectSaleInfoPacket objectSaleInfoPacket = (ObjectSaleInfoPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (objectSaleInfoPacket.AgentData.SessionID != SessionId ||
+                    objectSaleInfoPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectSaleInfo handlerObjectSaleInfo = OnObjectSaleInfo;
+            if (handlerObjectSaleInfo != null)
+            {
+                foreach (ObjectSaleInfoPacket.ObjectDataBlock d
+                    in objectSaleInfoPacket.ObjectData)
+                {
+                    handlerObjectSaleInfo(this,
+                                          objectSaleInfoPacket.AgentData.AgentID,
+                                          objectSaleInfoPacket.AgentData.SessionID,
+                                          d.LocalID,
+                                          d.SaleType,
+                                          d.SalePrice);
+                }
+            }
+            return true;
+        }
+        private bool HandleObjectBuy(IClientAPI sender, Packet Pack)
+        {
+            ObjectBuyPacket objectBuyPacket = (ObjectBuyPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (objectBuyPacket.AgentData.SessionID != SessionId ||
+                    objectBuyPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ObjectBuy handlerObjectBuy = OnObjectBuy;
+
+            if (handlerObjectBuy != null)
+            {
+                foreach (ObjectBuyPacket.ObjectDataBlock d
+                    in objectBuyPacket.ObjectData)
+                {
+                    handlerObjectBuy(this,
+                                     objectBuyPacket.AgentData.AgentID,
+                                     objectBuyPacket.AgentData.SessionID,
+                                     objectBuyPacket.AgentData.GroupID,
+                                     objectBuyPacket.AgentData.CategoryID,
+                                     d.ObjectLocalID,
+                                     d.SaleType,
+                                     d.SalePrice);
+                }
+            }
+            return true;
+        }
+        
+        #endregion Economy/Transaction Packets
+
+        #region Script Packets
+        private bool HandleGetScriptRunning(IClientAPI sender, Packet Pack)
+        {
+            GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
+
+            GetScriptRunning handlerGetScriptRunning = OnGetScriptRunning;
+            if (handlerGetScriptRunning != null)
+            {
+                handlerGetScriptRunning(this, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
+            }
+            return true;
+        }
+        private bool HandleSetScriptRunning(IClientAPI sender, Packet Pack)
+        {
+            SetScriptRunningPacket setScriptRunning = (SetScriptRunningPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (setScriptRunning.AgentData.SessionID != SessionId ||
+                    setScriptRunning.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            SetScriptRunning handlerSetScriptRunning = OnSetScriptRunning;
+            if (handlerSetScriptRunning != null)
+            {
+                handlerSetScriptRunning(this, setScriptRunning.Script.ObjectID, setScriptRunning.Script.ItemID, setScriptRunning.Script.Running);
+            }
+            return true;
+        }
+
+        private bool HandleScriptReset(IClientAPI sender, Packet Pack)
+        {
+            ScriptResetPacket scriptResetPacket = (ScriptResetPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (scriptResetPacket.AgentData.SessionID != SessionId ||
+                    scriptResetPacket.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            ScriptReset handlerScriptReset = OnScriptReset;
+            if (handlerScriptReset != null)
+            {
+                handlerScriptReset(this, scriptResetPacket.Script.ObjectID, scriptResetPacket.Script.ItemID);
+            }
+            return true;
+        }
+
+        #endregion Script Packets
+
+
 
         #endregion Packet Handlers
 
@@ -8456,9 +10453,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     break;
 
                 //#endregion
-                */
-                #endregion
-                #region Inventory/Asset/Other related packets
+
+                //#region Inventory/Asset/Other related packets
 
                 case PacketType.RequestImage:
                     RequestImagePacket imageRequest = (RequestImagePacket)Pack;
@@ -8592,12 +10588,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     MakeAssetRequest(transfer, taskID);
 
-                    /* RequestAsset = OnRequestAsset;
-                         if (RequestAsset != null)
-                         {
-                             RequestAsset(this, transfer);
-                         }*/
+                    // RequestAsset = OnRequestAsset;
+                    //     if (RequestAsset != null)
+                    //     {
+                    //         RequestAsset(this, transfer);
+                    //     }
+
                     break;
+
                 case PacketType.AssetUploadRequest:
                     AssetUploadRequestPacket request = (AssetUploadRequestPacket)Pack;
 
@@ -8616,6 +10614,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                   request.AssetBlock.Tempfile);
                     }
                     break;
+
                 case PacketType.RequestXfer:
                     RequestXferPacket xferReq = (RequestXferPacket)Pack;
 
@@ -8626,6 +10625,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerRequestXfer(this, xferReq.XferID.ID, Util.FieldToString(xferReq.XferID.Filename));
                     }
                     break;
+
                 case PacketType.SendXferPacket:
                     SendXferPacketPacket xferRec = (SendXferPacketPacket)Pack;
 
@@ -8635,6 +10635,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerXferReceive(this, xferRec.XferID.ID, xferRec.XferID.Packet, xferRec.DataPacket.Data);
                     }
                     break;
+
                 case PacketType.ConfirmXferPacket:
                     ConfirmXferPacketPacket confirmXfer = (ConfirmXferPacketPacket)Pack;
 
@@ -8644,6 +10645,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerConfirmXfer(this, confirmXfer.XferID.ID, confirmXfer.XferID.Packet);
                     }
                     break;
+
                 case PacketType.AbortXfer:
                     AbortXferPacket abortXfer = (AbortXferPacket)Pack;
                     AbortXfer handlerAbortXfer = OnAbortXfer;
@@ -8653,6 +10655,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.CreateInventoryFolder:
                     CreateInventoryFolderPacket invFolder = (CreateInventoryFolderPacket)Pack;
 
@@ -8674,6 +10677,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                      invFolder.FolderData.ParentID);
                     }
                     break;
+
                 case PacketType.UpdateInventoryFolder:
                     if (OnUpdateInventoryFolder != null)
                     {
@@ -8703,6 +10707,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.MoveInventoryFolder:
                     if (OnMoveInventoryFolder != null)
                     {
@@ -8730,6 +10735,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.CreateInventoryItem:
                     CreateInventoryItemPacket createItem = (CreateInventoryItemPacket)Pack;
 
@@ -8757,6 +10763,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                       Util.UnixTimeSinceEpoch());
                     }
                     break;
+
                 case PacketType.FetchInventory:
                     if (OnFetchInventory != null)
                     {
@@ -8785,6 +10792,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.FetchInventoryDescendents:
                     FetchInventoryDescendentsPacket Fetch = (FetchInventoryDescendentsPacket)Pack;
 
@@ -8805,6 +10813,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                          Fetch.InventoryData.SortOrder);
                     }
                     break;
+
                 case PacketType.PurgeInventoryDescendents:
                     PurgeInventoryDescendentsPacket Purge = (PurgeInventoryDescendentsPacket)Pack;
 
@@ -8823,6 +10832,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerPurgeInventoryDescendents(this, Purge.InventoryData.FolderID);
                     }
                     break;
+
                 case PacketType.UpdateInventoryItem:
                     UpdateInventoryItemPacket inventoryItemUpdate = (UpdateInventoryItemPacket)Pack;
 
@@ -8867,6 +10877,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.CopyInventoryItem:
                     CopyInventoryItemPacket copyitem = (CopyInventoryItemPacket)Pack;
 
@@ -8894,6 +10905,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.MoveInventoryItem:
                     MoveInventoryItemPacket moveitem = (MoveInventoryItemPacket)Pack;
 
@@ -8927,6 +10939,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.RemoveInventoryItem:
                     RemoveInventoryItemPacket removeItem = (RemoveInventoryItemPacket)Pack;
 
@@ -8955,6 +10968,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
+
                 case PacketType.RemoveInventoryFolder:
                     RemoveInventoryFolderPacket removeFolder = (RemoveInventoryFolderPacket)Pack;
 
@@ -8982,6 +10996,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.RemoveInventoryObjects:
                     RemoveInventoryObjectsPacket removeObject = (RemoveInventoryObjectsPacket)Pack;
                     #region Packet Session and User Check
@@ -9022,6 +11037,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                     }
                     break;
+
                 case PacketType.RequestTaskInventory:
                     RequestTaskInventoryPacket requesttask = (RequestTaskInventoryPacket)Pack;
 
@@ -9040,6 +11056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerRequestTaskInventory(this, requesttask.InventoryData.LocalID);
                     }
                     break;
+
                 case PacketType.UpdateTaskInventory:
                     UpdateTaskInventoryPacket updatetask = (UpdateTaskInventoryPacket)Pack;
 
@@ -9217,6 +11234,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerMapNameRequest(this, mapName);
                     }
                     break;
+
                 case PacketType.TeleportLandmarkRequest:
                     TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
 
@@ -9287,7 +11305,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     }
                     break;
-
+         
                 case PacketType.TeleportLocationRequest:
                     TeleportLocationRequestPacket tpLocReq = (TeleportLocationRequestPacket)Pack;
                     // m_log.Debug(tpLocReq.ToString());
@@ -9317,7 +11335,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
 
                 case PacketType.UUIDNameRequest:
                     UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
@@ -9332,7 +11350,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #region Parcel related packets
+                //#region Parcel related packets
+                
 
                 case PacketType.RegionHandleRequest:
                     RegionHandleRequestPacket rhrPack = (RegionHandleRequestPacket)Pack;
@@ -9415,6 +11434,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                              updatePacket.Data.LocalID, entries, this);
                     }
                     break;
+
                 case PacketType.ParcelPropertiesRequest:
 
                     ParcelPropertiesRequestPacket propertiesRequest = (ParcelPropertiesRequestPacket)Pack;
@@ -9439,6 +11459,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                        propertiesRequest.ParcelData.SnapSelection, this);
                     }
                     break;
+
                 case PacketType.ParcelDivide:
                     ParcelDividePacket landDivide = (ParcelDividePacket)Pack;
 
@@ -9460,6 +11481,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    (int)Math.Round(landDivide.ParcelData.North), this);
                     }
                     break;
+
                 case PacketType.ParcelJoin:
                     ParcelJoinPacket landJoin = (ParcelJoinPacket)Pack;
 
@@ -9482,6 +11504,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                  (int)Math.Round(landJoin.ParcelData.North), this);
                     }
                     break;
+
                 case PacketType.ParcelPropertiesUpdate:
                     ParcelPropertiesUpdatePacket parcelPropertiesPacket = (ParcelPropertiesUpdatePacket)Pack;
 
@@ -9520,6 +11543,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelPropertiesUpdateRequest(args, parcelPropertiesPacket.ParcelData.LocalID, this);
                     }
                     break;
+
                 case PacketType.ParcelSelectObjects:
                     ParcelSelectObjectsPacket selectPacket = (ParcelSelectObjectsPacket)Pack;
 
@@ -9548,6 +11572,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                    Convert.ToInt32(selectPacket.ParcelData.ReturnType), returnIDs, this);
                     }
                     break;
+
                 case PacketType.ParcelObjectOwnersRequest:
                     //m_log.Debug(Pack.ToString());
                     ParcelObjectOwnersRequestPacket reqPacket = (ParcelObjectOwnersRequestPacket)Pack;
@@ -9568,6 +11593,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelObjectOwnerRequest(reqPacket.ParcelData.LocalID, this);
                     }
                     break;
+
                 case PacketType.ParcelGodForceOwner:
                     ParcelGodForceOwnerPacket godForceOwnerPacket = (ParcelGodForceOwnerPacket)Pack;
 
@@ -9586,6 +11612,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelGodForceOwner(godForceOwnerPacket.Data.LocalID, godForceOwnerPacket.Data.OwnerID, this);
                     }
                     break;
+
                 case PacketType.ParcelRelease:
                     ParcelReleasePacket releasePacket = (ParcelReleasePacket)Pack;
 
@@ -9604,6 +11631,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelAbandonRequest(releasePacket.Data.LocalID, this);
                     }
                     break;
+
                 case PacketType.ParcelReclaim:
                     ParcelReclaimPacket reclaimPacket = (ParcelReclaimPacket)Pack;
 
@@ -9622,6 +11650,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelReclaim(reclaimPacket.Data.LocalID, this);
                     }
                     break;
+
                 case PacketType.ParcelReturnObjects:
 
 
@@ -9713,9 +11742,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
 
-                #region Estate Packets
+                //#region Estate Packets
 
                 case PacketType.EstateOwnerMessage:
                     EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
@@ -10033,6 +12062,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerRegionInfoRequest(this);
                     }
                     break;
+        
                 case PacketType.EstateCovenantRequest:
 
                     //EstateCovenantRequestPacket.AgentDataBlock epack =
@@ -10045,9 +12075,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
 
-                #region GodPackets
+                //#region GodPackets
 
                 case PacketType.RequestGodlikePowers:
                     RequestGodlikePowersPacket rglpPack = (RequestGodlikePowersPacket)Pack;
@@ -10064,6 +12094,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.GodKickUser:
                     GodKickUserPacket gkupack = (GodKickUserPacket)Pack;
 
@@ -10093,9 +12124,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //OutPacket(kupack, ThrottleOutPacketType.Task);
                     break;
 
-                #endregion
+                //#endregion
 
-                #region Economy/Transaction Packets
+                //#region Economy/Transaction Packets
 
                 case PacketType.MoneyBalanceRequest:
                     MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
@@ -10117,6 +12148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     break;
+
                 case PacketType.EconomyDataRequest:
 
 
@@ -10126,6 +12158,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerEconomoyDataRequest(AgentId);
                     }
                     break;
+
                 case PacketType.RequestPayPrice:
                     RequestPayPricePacket requestPayPricePacket = (RequestPayPricePacket)Pack;
 
@@ -10195,9 +12228,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
-                #endregion
+                //#endregion
 
-                #region Script Packets
+                //#region Script Packets
 
                 case PacketType.GetScriptRunning:
                     GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
@@ -10247,8 +12280,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     break;
 
+                //#endregion
+                */
                 #endregion
-
                 #region Gesture Managment
 
                 case PacketType.ActivateGestures:
