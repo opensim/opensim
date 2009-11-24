@@ -80,6 +80,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected internal void ReceivedAllAssets(
             ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
         {
+            try
+            {
+                Save(assetsFoundUuids, assetsNotFoundUuids);
+            }
+            finally
+            {
+                m_archiveWriter.Close();
+            }
+            
+            m_log.InfoFormat("[ARCHIVER]: Finished writing out OAR for {0}", m_scene.RegionInfo.RegionName);
+
+            m_scene.EventManager.TriggerOarFileSaved(m_requestId, String.Empty);            
+        }
+
+        protected internal void Save(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
+        {
             foreach (UUID uuid in assetsNotFoundUuids)
             {
                 m_log.DebugFormat("[ARCHIVER]: Could not find asset {0}", uuid);
@@ -143,12 +159,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             }
 
             m_log.InfoFormat("[ARCHIVER]: Added scene objects to archive.");
-
-            m_archiveWriter.Close();
-
-            m_log.InfoFormat("[ARCHIVER]: Finished writing out OAR for {0}", m_scene.RegionInfo.RegionName);
-
-            m_scene.EventManager.TriggerOarFileSaved(m_requestId, String.Empty);
         }
 
         /// <summary>
