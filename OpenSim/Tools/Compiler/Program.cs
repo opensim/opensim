@@ -36,7 +36,8 @@ namespace OpenSim.Tools.LSL.Compiler
 {
     class Program
     {
-        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
+//        Commented out because generated warning since m_positionMap could never be anything other than null
+//        private static Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> m_positionMap; 
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
 
         static void Main(string[] args)
@@ -210,16 +211,16 @@ namespace OpenSim.Tools.LSL.Compiler
             sfs.Close();
 
             string posmap = String.Empty;
-            if (m_positionMap != null)
-            {
-                foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
-                {
-                    KeyValuePair<int, int> k = kvp.Key;
-                    KeyValuePair<int, int> v = kvp.Value;
-                    posmap += String.Format("{0},{1},{2},{3}\n",
-                            k.Key, k.Value, v.Key, v.Value);
-                }
-            }
+//            if (m_positionMap != null)
+//            {
+//                foreach (KeyValuePair<KeyValuePair<int, int>, KeyValuePair<int, int>> kvp in m_positionMap)
+//                {
+//                    KeyValuePair<int, int> k = kvp.Key;
+//                    KeyValuePair<int, int> v = kvp.Value;
+//                    posmap += String.Format("{0},{1},{2},{3}\n",
+//                            k.Key, k.Value, v.Key, v.Value);
+//                }
+//            }
 
             buf = enc.GetBytes(posmap);
 
@@ -253,7 +254,8 @@ namespace OpenSim.Tools.LSL.Compiler
 
         private static KeyValuePair<int, int> FindErrorPosition(int line, int col)
         {
-            return FindErrorPosition(line, col, m_positionMap);
+            //return FindErrorPosition(line, col, m_positionMap);
+            return FindErrorPosition(line, col, null);
         }
 
         private class kvpSorter : IComparer<KeyValuePair<int,int>>
