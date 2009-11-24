@@ -840,8 +840,12 @@ namespace OpenSim.Region.Framework.Scenes
         public void RemoveTaskInventory(IClientAPI remoteClient, UUID itemID, uint localID)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
-            SceneObjectGroup group = part.ParentGroup;
-            if (group != null)
+            SceneObjectGroup group = null;
+            if (part != null)
+            {
+                group = part.ParentGroup;
+            }            
+            if (part != null && group != null)
             {
                 TaskInventoryItem item = group.GetInventoryItem(localID, itemID);
                 if (item == null)

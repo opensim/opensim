@@ -266,25 +266,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
-
-            ((Scene)c.Scene).ForEachScenePresence(
-                delegate(ScenePresence presence)
-                {
-                    // ignore chat from child agents
-                    if (presence.IsChildAgent) return;
-                    
-                    IClientAPI client = presence.ControllingClient;
-                    
-                    // don't forward SayOwner chat from objects to
-                    // non-owner agents
-                    if ((c.Type == ChatTypeEnum.Owner) &&
-                        (null != c.SenderObject) &&
-                        (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
-                        return;
-                    
-                    client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
-                                           (byte)sourceType, (byte)ChatAudibleLevel.Fully);
-                });
+            if (c.Scene != null)
+            {
+                ((Scene)c.Scene).ForEachScenePresence
+                (
+                    delegate(ScenePresence presence)
+                    {
+                        // ignore chat from child agents
+                        if (presence.IsChildAgent) return;
+                        
+                        IClientAPI client = presence.ControllingClient;
+                        
+                        // don't forward SayOwner chat from objects to
+                        // non-owner agents
+                        if ((c.Type == ChatTypeEnum.Owner) &&
+                            (null != c.SenderObject) &&
+                            (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
+                            return;
+                        
+                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
+                                               (byte)sourceType, (byte)ChatAudibleLevel.Fully);
+                    }
+                );
+             }
         }
 
 
