@@ -247,8 +247,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             else if (m_movementAnimation == "LAND")
             {
                 float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
-
-                if (landElapsed <= FALL_DELAY)
+                if ((m_animTickFall != 0) && (landElapsed <= FALL_DELAY))
                     return "LAND";
             }
 
