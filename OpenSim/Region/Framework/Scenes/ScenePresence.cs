@@ -1445,10 +1445,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // nesting this check because LengthSquared() is expensive and we don't 
                         // want to do it every step when flying.
                         if ((Velocity.LengthSquared() <= LAND_VELOCITYMAG_MAX))
-                        {
                             StopFlying();
-                            m_physicsActor.Flying = false;
-                        }
                     }
                 }
 
