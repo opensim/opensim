@@ -232,7 +232,7 @@ namespace OpenSim
                                           "Save named prim to XML2", SavePrimsXml2);
 
             m_console.Commands.AddCommand("region", false, "load oar",
-                                          "load oar <oar name>",
+                                          "load oar [--merge] <oar name>",
                                           "Load a region's data from OAR archive", LoadOar);
 
             m_console.Commands.AddCommand("region", false, "save oar",
