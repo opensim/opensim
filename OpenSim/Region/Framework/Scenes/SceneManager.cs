@@ -241,24 +241,24 @@ namespace OpenSim.Region.Framework.Scenes
         /// Save the current scene to an OpenSimulator archive.  This archive will eventually include the prim's assets
         /// as well as the details of the prims themselves.
         /// </summary>
-        /// <param name="filename"></param>
-        public void SaveCurrentSceneToArchive(string filename)
+        /// <param name="cmdparams"></param>
+        public void SaveCurrentSceneToArchive(string[] cmdparams)
         {
             IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
             if (archiver != null)
-                archiver.ArchiveRegion(filename);
+                archiver.HandleSaveOarConsoleCommand(string.Empty, cmdparams);
         }
 
         /// <summary>
         /// Load an OpenSim archive into the current scene.  This will load both the shapes of the prims and upload
         /// their assets to the asset service.
         /// </summary>
-        /// <param name="filename"></param>
-        public void LoadArchiveToCurrentScene(string filename)
+        /// <param name="cmdparams"></param>
+        public void LoadArchiveToCurrentScene(string[] cmdparams)
         {
             IRegionArchiverModule archiver = CurrentOrFirstScene.RequestModuleInterface<IRegionArchiverModule>();
             if (archiver != null)
-                archiver.DearchiveRegion(filename);
+                archiver.HandleLoadOarConsoleCommand(string.Empty, cmdparams);
         }
 
         public string SaveCurrentSceneMapToXmlString()

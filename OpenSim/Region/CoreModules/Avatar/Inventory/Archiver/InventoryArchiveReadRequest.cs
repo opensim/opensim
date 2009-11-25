@@ -121,45 +121,51 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             byte[] data;
             TarArchiveReader.TarEntryType entryType;
-            while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
+
+            try
             {
-                if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
-                    if (LoadAsset(filePath, data))
-                        successfulAssetRestores++;
-                    else
-                        failedAssetRestores++;
-
-                    if ((successfulAssetRestores) % 50 == 0)
-                        m_log.DebugFormat(
-                            "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
-                            successfulAssetRestores);
-                }
-                else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
-                {
-                    InventoryFolderBase foundFolder 
-                        = ReplicateArchivePathToUserInventory(
-                            filePath, TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType, 
-                            rootDestinationFolder, foldersCreated, nodesLoaded);
-
-                    if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
+                    if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                     {
-                        InventoryItemBase item = LoadItem(data, foundFolder);
-
-                        if (item != null)
+                        if (LoadAsset(filePath, data))
+                            successfulAssetRestores++;
+                        else
+                            failedAssetRestores++;
+    
+                        if ((successfulAssetRestores) % 50 == 0)
+                            m_log.DebugFormat(
+                                "[INVENTORY ARCHIVER]: Loaded {0} assets...", 
+                                successfulAssetRestores);
+                    }
+                    else if (filePath.StartsWith(ArchiveConstants.INVENTORY_PATH))
+                    {
+                        InventoryFolderBase foundFolder 
+                            = ReplicateArchivePathToUserInventory(
+                                filePath, TarArchiveReader.TarEntryType.TYPE_DIRECTORY == entryType, 
+                                rootDestinationFolder, foldersCreated, nodesLoaded);
+    
+                        if (TarArchiveReader.TarEntryType.TYPE_DIRECTORY != entryType)
                         {
-                            successfulItemRestores++;
-                            
-                            // If we're loading an item directly into the given destination folder then we need to record
-                            // it separately from any loaded root folders
-                            if (rootDestinationFolder == foundFolder)
-                                nodesLoaded.Add(item);
+                            InventoryItemBase item = LoadItem(data, foundFolder);
+    
+                            if (item != null)
+                            {
+                                successfulItemRestores++;
+                                
+                                // If we're loading an item directly into the given destination folder then we need to record
+                                // it separately from any loaded root folders
+                                if (rootDestinationFolder == foundFolder)
+                                    nodesLoaded.Add(item);
+                            }
                         }
                     }
                 }
             }
-
-            archive.Close();
+            finally
+            {
+                archive.Close();
+            }
 
             m_log.DebugFormat(
                 "[INVENTORY ARCHIVER]: Successfully loaded {0} assets with {1} failures", 
