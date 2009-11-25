@@ -200,7 +200,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 else if (move.Z < 0f)
                 {
                     if (actor != null && actor.IsColliding)
+                    {
+                        //Console.WriteLine("LAND");
                         return "LAND";
+                    }
                     else
                         return "HOVER_DOWN";
                 }
@@ -249,7 +252,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 float landElapsed = (float)(Environment.TickCount - m_animTickFall) / 1000f;
 
                 if (landElapsed <= FALL_DELAY)
+                {
+                    m_animTickFall = 0;
                     return "LAND";
+                }
             }
 
             m_animTickFall = 0;
