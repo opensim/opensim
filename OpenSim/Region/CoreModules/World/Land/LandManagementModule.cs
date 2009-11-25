@@ -67,7 +67,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         private const int landArrayMax = ((int)((int)Constants.RegionSize / 4) >= 64) ? (int)((int)Constants.RegionSize / 4) : 64;
         #pragma warning restore 0429
 
+        /// <value>
+        /// Local land ids at specified region co-ordinates (region size / 4) 
+        /// </value>
         private readonly int[,] m_landIDList = new int[landArrayMax, landArrayMax];
+
+        /// <value>
+        /// Land objects keyed by local id 
+        /// </value>
         private readonly Dictionary<int, ILandObject> m_landList = new Dictionary<int, ILandObject>();
 
         private bool m_landPrimCountTainted;
@@ -570,6 +577,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             if (x_float > Constants.RegionSize || x_float <= 0 || y_float > Constants.RegionSize || y_float <= 0)
                 return null;
+            
             try
             {
                 x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / 4.0));
@@ -584,6 +592,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 return null;
             }
+            
             lock (m_landList)
             {
                 // Corner case. If an autoreturn happens during sim startup
@@ -603,6 +612,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // they happen every time at border crossings
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
+            
             lock (m_landIDList)
             {
                 try
@@ -617,7 +627,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return null;
                 }
             }
-        }
+        }      
 
         #endregion
 

@@ -57,21 +57,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
         {
-
             m_config = config.Configs["Chat"];
 
             if (null == m_config)
             {
                 m_log.Info("[CHAT]: no config found, plugin disabled");
+                m_enabled = false;
                 return;
             }
 
-            if (!m_config.GetBoolean("enabled", false))
+            if (!m_config.GetBoolean("enabled", true))
             {
                 m_log.Info("[CHAT]: plugin disabled by configuration");
+                m_enabled = false;
                 return;
             }
-            m_enabled = true;
 
             m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
             m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
