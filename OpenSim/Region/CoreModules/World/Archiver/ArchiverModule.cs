@@ -93,19 +93,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="cmdparams"></param>
         public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
         {
-            OptionSet options = new OptionSet() {};
+            bool mergeOar = false;
+            
+            OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
             List<string> mainParams = options.Parse(cmdparams);
-
-            foreach (string param in mainParams)
-                m_log.DebugFormat("Found param [{0}]", param);
+          
+//            m_log.DebugFormat("MERGE OAR IS [{0}]", mergeOar);
+//
+//            foreach (string param in mainParams)
+//                m_log.DebugFormat("GOT PARAM [{0}]", param);
             
             if (mainParams.Count > 2)
             {
-                DearchiveRegion(cmdparams[2]);
+                DearchiveRegion(mainParams[2], mergeOar, Guid.Empty);
             }
             else
             {
-                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME);
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, Guid.Empty);
             }
         }        
 
