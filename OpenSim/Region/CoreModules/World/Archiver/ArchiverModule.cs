@@ -26,9 +26,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using log4net;
+using NDesk.Options;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -91,7 +93,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="cmdparams"></param>
         public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 2)
+            OptionSet options = new OptionSet() {};
+            List<string> mainParams = options.Parse(cmdparams);
+
+            foreach (string param in mainParams)
+                m_log.DebugFormat("Found param [{0}]", param);
+            
+            if (mainParams.Count > 2)
             {
                 DearchiveRegion(cmdparams[2]);
             }
