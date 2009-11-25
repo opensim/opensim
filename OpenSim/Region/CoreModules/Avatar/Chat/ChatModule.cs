@@ -57,7 +57,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
         {
-
             m_config = config.Configs["Chat"];
 
             if (null == m_config)
