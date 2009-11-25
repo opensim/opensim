@@ -1294,14 +1294,7 @@ namespace OpenSim
         {
             try
             {
-                if (cmdparams.Length > 2)
-                {
-                    m_sceneManager.LoadArchiveToCurrentScene(cmdparams[2]);
-                }
-                else
-                {
-                    m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
-                }
+                m_sceneManager.LoadArchiveToCurrentScene(cmdparams);
             }
             catch (Exception e)
             {
@@ -1315,14 +1308,7 @@ namespace OpenSim
         /// <param name="cmdparams"></param>
         protected void SaveOar(string module, string[] cmdparams)
         {
-            if (cmdparams.Length > 2)
-            {
-                m_sceneManager.SaveCurrentSceneToArchive(cmdparams[2]);
-            }
-            else
-            {
-                m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
-            }
+            m_sceneManager.SaveCurrentSceneToArchive(cmdparams);
         }
 
         private static string CombineParams(string[] commandParams, int pos)

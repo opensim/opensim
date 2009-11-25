@@ -56,6 +56,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="savePath">The path to which to save data.</param>
+        /// <param name="requestId">The id associated with this request</param>
+        /// <exception cref="System.IO.IOException">
+        /// If there was a problem opening a stream for the file specified by the savePath
+        /// </exception>
         public ArchiveWriteRequestPreparation(Scene scene, string savePath, Guid requestId)
         {
             m_scene = scene;

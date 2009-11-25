@@ -8113,8 +8113,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //lsrp.RequestData.RequestFlags;
             //lsrp.RequestData.Filter;
 
-            return true;
+//            return true;
         }
+        
         private bool HandleRequestRegionInfo(IClientAPI sender, Packet Pack)
         {
             RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
@@ -8135,6 +8136,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             return true;
         }
+        
         private bool HandleEstateCovenantRequest(IClientAPI sender, Packet Pack)
         {
 
