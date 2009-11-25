@@ -93,6 +93,16 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             List<EntityBase> entities = m_scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
+            /*
+                foreach (ILandObject lo in m_scene.LandChannel.AllParcels())
+                {
+                    if (name == lo.LandData.Name)
+                    {
+                        // This is the parcel we want
+                    }
+                }
+                */
+     
             // Filter entities so that we only have scene objects.
             // FIXME: Would be nicer to have this as a proper list in SceneGraph, since lots of methods
             // end up having to do this

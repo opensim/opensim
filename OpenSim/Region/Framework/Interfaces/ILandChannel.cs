@@ -33,26 +33,41 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public interface ILandChannel
     {
-        List<ILandObject> ParcelsNearPoint(Vector3 position);
+        /// <summary>
+        /// Get all parcels
+        /// </summary>
+        /// <returns></returns>
         List<ILandObject> AllParcels();
              
         /// <summary>
-        /// Get the land object at the specified point
+        /// Get the parcel at the specified point
         /// </summary>
         /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>
         ILandObject GetLandObject(int x, int y);
 
-        ILandObject GetLandObject(int localID);
-
         /// <summary>
-        /// Get the land object at the specified point
+        /// Get the parcel at the specified point
         /// </summary>
         /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
         /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>
         ILandObject GetLandObject(float x, float y);
+
+        /// <summary>
+        /// Get the parcels near the specified point
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        List<ILandObject> ParcelsNearPoint(Vector3 position);        
+
+        /// <summary>
+        /// Get the parcel given the land's local id.
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
+        ILandObject GetLandObject(int localID);
         
         bool IsLandPrimCountTainted();
         bool IsForcefulBansAllowed();
