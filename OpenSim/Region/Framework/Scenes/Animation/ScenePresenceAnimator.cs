@@ -53,8 +53,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             get { return m_movementAnimation; }
         }
-        protected string m_movementAnimation = "DEFAULT";
-
+ //       protected string m_movementAnimation = "DEFAULT"; 	//KF: 'DEFAULT' does not exist!
+        protected string m_movementAnimation = "CROUCH";		//KF: CROUCH ensures reliable Av Anim. init.
         private int m_animTickFall;
         private int m_animTickJump;
         
@@ -123,17 +123,22 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         public void TrySetMovementAnimation(string anim)
         {
-            //m_log.DebugFormat("Updating movement animation to {0}", anim);
+//Console.WriteLine("Updating movement animation to {0}", anim);
 
             if (!m_scenePresence.IsChildAgent)
             {
                 if (m_animations.TrySetDefaultAnimation(
                     anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero))
                 {
+//Console.WriteLine("TSMA {0} success.", anim);    
                     // 16384 is CHANGED_ANIMATION
                     m_scenePresence.SendScriptEventToAttachments("changed", new Object[] { 16384 });
                     SendAnimPack();
                 }
+                else
+                {
+//Console.WriteLine("TSMA {0} fail.", anim);                   
+				}
             }
         }
 
@@ -313,7 +318,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public void UpdateMovementAnimations()
         {
             m_movementAnimation = GetMovementAnimation();
-
+//Console.WriteLine("UMA got {0}", m_movementAnimation);
             if (m_movementAnimation == "PREJUMP" && !m_scenePresence.Scene.m_usePreJump)
             {
                 // This was the previous behavior before PREJUMP

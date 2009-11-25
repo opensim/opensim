@@ -90,6 +90,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// issue #1716
         /// </summary>
 //        private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.1f, 0.0f, 0.3f);
+		// Value revised by KF 091121 by comparison with SL.
         private static readonly Vector3 SIT_TARGET_ADJUSTMENT = new Vector3(0.0f, 0.0f, 0.418f);
 
         public UUID currentParcelUUID = UUID.Zero;
@@ -205,6 +206,9 @@ namespace OpenSim.Region.Framework.Scenes
         private bool m_followCamAuto;
 
         private int m_movementUpdateCount;
+        private int m_lastColCount = -1;		//KF: Look for Collision chnages
+        private int m_updateCount = 0;			//KF: Update Anims for a while
+        private static readonly int UPDATE_COUNT = 10;		// how many frames to update for
 
         private const int NumMovementsBetweenRayCast = 5;
 
@@ -662,9 +666,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             AdjustKnownSeeds();
 
-            // TODO: I think, this won't send anything, as we are still a child here...
-            Animator.TrySetMovementAnimation("STAND"); 
-
+           Animator.TrySetMovementAnimation("STAND"); 
             // we created a new ScenePresence (a new child agent) in a fresh region.
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
@@ -1018,7 +1020,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AbsolutePosition = AbsolutePosition + new Vector3(0f, 0f, (1.56f / 6f));
             }
-
+            
+            m_updateCount = UPDATE_COUNT;				//KF: Trigger Anim updates to catch falling anim. 
+            
             ControllingClient.SendAvatarTerseUpdate(new SendAvatarTerseData(m_rootRegionHandle, (ushort)(m_scene.TimeDilation * ushort.MaxValue), LocalId,
                     AbsolutePosition, Velocity, Vector3.Zero, m_bodyRot, new Vector4(0,0,1,AbsolutePosition.Z - 0.5f), m_uuid, null, GetUpdatePriority(ControllingClient)));
         }
@@ -1266,9 +1270,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
-                // TODO: This doesn't prevent the user from walking yet.
-                // Setting parent ID would fix this, if we knew what value
-                // to use.  Or we could add a m_isSitting variable.
+                m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
                 Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
             }
 
@@ -1926,7 +1928,6 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
         {
-//			Console.WriteLine("[RAYCASTRESULT]: Hit={0}, Point={1}, ID={2}, Dist={3}", hitYN, collisionPoint, localid, distance);
 			if(hitYN)
 			{
 				// m_pos = Av offset from prim center to make look like on center
@@ -2964,6 +2965,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_updateflag = true;
                     Velocity = force;
                     m_isNudging = false;
+                    m_updateCount = UPDATE_COUNT;			//KF: Update anims to pickup "STAND"
                 }
             }
         }
@@ -3015,19 +3017,29 @@ namespace OpenSim.Region.Framework.Scenes
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
+			if (m_updateCount > 0)			//KF: Update Anims for a short period. Many Anim
+			{								// changes are very asynchronous.
+            	Animator.UpdateMovementAnimations();
+            	m_updateCount--;
+			}
+			
             if (e == null)
                 return;
 
-            //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
-            Animator.UpdateMovementAnimations();
-
+            
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
             CollisionPlane = Vector4.UnitW;
 
+			if (m_lastColCount != coldata.Count)
+			{	
+				m_updateCount = 10;
+				m_lastColCount = coldata.Count;
+			}
+			
             if (coldata.Count != 0)
             {
                 switch (Animator.CurrentMovementAnimation)
