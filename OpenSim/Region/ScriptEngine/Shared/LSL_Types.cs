@@ -429,6 +429,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 }
             }
 
+            public int Size
+            {
+                get { return 0; }
+            }
+
             public object[] Data
             {
                 get {
