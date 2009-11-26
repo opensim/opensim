@@ -1452,7 +1452,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
 
             FileStream mfs = File.Create(mappath);
-            StreamWriter msw = new StreamWriter(sfs);
+            StreamWriter msw = new StreamWriter(mfs);
 
             msw.Write(mapE.InnerText);
 
