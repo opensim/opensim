@@ -1248,20 +1248,97 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public string GetAssemblyName(UUID itemID)
-        {
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return "";
-            return instance.GetAssemblyName();
-        }
-
         public string GetXMLState(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
                 return "";
-            return instance.GetXMLState();
+            string xml = instance.GetXMLState();
+
+            XmlDocument sdoc = new XmlDocument();
+            sdoc.LoadXml(xml);
+            XmlNodeList rootL = sdoc.GetElementsByTagName("ScriptState");
+            XmlNode rootNode = rootL[0];
+
+            // Create <State UUID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+            XmlDocument doc = new XmlDocument();
+            XmlElement stateData = doc.CreateElement("", "State", "");
+            XmlAttribute stateID = doc.CreateAttribute("", "UUID", "");
+            stateID.Value = itemID.ToString();
+            stateData.Attributes.Append(stateID);
+            XmlAttribute assetID = doc.CreateAttribute("", "Asset", "");
+            assetID.Value = instance.AssetID.ToString();
+            stateData.Attributes.Append(assetID);
+            doc.AppendChild(stateData);
+
+            // Add <ScriptState>...</ScriptState>
+            XmlNode xmlstate = doc.ImportNode(rootNode, true);
+            stateData.AppendChild(xmlstate);
+
+            string assemName = instance.GetAssemblyName();
+
+            string fn = Path.GetFileName(assemName);
+
+            string assem = String.Empty;
+
+            if (File.Exists(assemName + ".text"))
+            {
+                FileInfo tfi = new FileInfo(assemName + ".text");
+
+                if (tfi != null)
+                {
+                    Byte[] tdata = new Byte[tfi.Length];
+
+                    try
+                    {
+                        FileStream tfs = File.Open(assemName + ".text",
+                                FileMode.Open, FileAccess.Read);
+                        tfs.Read(tdata, 0, tdata.Length);
+                        tfs.Close();
+
+                        assem = new System.Text.ASCIIEncoding().GetString(tdata);
+                    }
+                    catch (Exception e)
+                    {
+                         m_log.DebugFormat("[XEngine]: Unable to open script textfile {0}, reason: {1}", assemName+".text", e.Message);
+                    }
+                }
+            }
+            else
+            {
+                FileInfo fi = new FileInfo(assemName);
+
+                if (fi != null)
+                {
+                    Byte[] data = new Byte[fi.Length];
+
+                    try
+                    {
+                        FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read);
+                        fs.Read(data, 0, data.Length);
+                        fs.Close();
+
+                        assem = System.Convert.ToBase64String(data);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
+                    }
+
+                }
+            }
+
+            XmlElement assemblyData = doc.CreateElement("", "Assembly", "");
+            XmlAttribute assemblyName = doc.CreateAttribute("", "Filename", "");
+
+            assemblyName.Value = fn;
+            assemblyData.Attributes.Append(assemblyName);
+
+            assemblyData.InnerText = assem;
+
+            stateData.AppendChild(assemblyData);
+
+            return doc.InnerXml;
         }
 
         public bool CanBeDeleted(UUID itemID)

@@ -880,36 +880,6 @@ namespace OpenSim.Region.Framework.Scenes
             return ret;
         }
         
-        public string[] GetScriptAssemblies()
-        {
-            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-
-            List<string> ret = new List<string>();
-            if (engines == null) // No engine at all
-                return new string[0];
-
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                if (item.InvType == (int)InventoryType.LSL)
-                {
-                    foreach (IScriptModule e in engines)
-                    {
-                        if (e != null)
-                        {
-                            string n = e.GetAssemblyName(item.ItemID);
-                            if (n != String.Empty)
-                            {
-                                if (!ret.Contains(n))
-                                    ret.Add(n);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            return ret.ToArray();
-        }
-        
         public Dictionary<UUID, string> GetScriptStates()
         {
             IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
