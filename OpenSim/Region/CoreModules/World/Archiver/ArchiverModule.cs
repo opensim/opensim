@@ -26,9 +26,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using log4net;
+using NDesk.Options;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -44,6 +46,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
+
+        /// <value>
+        /// The file used to load and save an opensimulator archive if no filename has been specified
+        /// </value>
+        protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";        
 
         public string Name 
         { 
@@ -80,6 +87,48 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
         }
 
+        /// <summary>
+        /// Load a whole region from an opensimulator archive.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        public void HandleLoadOarConsoleCommand(string module, string[] cmdparams)
+        {
+            bool mergeOar = false;
+            
+            OptionSet options = new OptionSet().Add("m|merge", delegate (string v) { mergeOar = v != null; });
+            List<string> mainParams = options.Parse(cmdparams);
+          
+//            m_log.DebugFormat("MERGE OAR IS [{0}]", mergeOar);
+//
+//            foreach (string param in mainParams)
+//                m_log.DebugFormat("GOT PARAM [{0}]", param);
+            
+            if (mainParams.Count > 2)
+            {
+                DearchiveRegion(mainParams[2], mergeOar, Guid.Empty);
+            }
+            else
+            {
+                DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, Guid.Empty);
+            }
+        }        
+
+        /// <summary>
+        /// Save a region to a file, including all the assets needed to restore it.
+        /// </summary>
+        /// <param name="cmdparams"></param>
+        public void HandleSaveOarConsoleCommand(string module, string[] cmdparams)
+        {
+            if (cmdparams.Length > 2)
+            {
+                ArchiveRegion(cmdparams[2]);
+            }
+            else
+            {
+                ArchiveRegion(DEFAULT_OAR_BACKUP_FILENAME);
+            }
+        }
+        
         public void ArchiveRegion(string savePath)
         {
             ArchiveRegion(savePath, Guid.Empty);

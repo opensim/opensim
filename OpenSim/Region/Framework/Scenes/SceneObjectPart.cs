@@ -389,12 +389,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <value>
-        /// Access should be via Inventory directly - this property temporarily remains for xml serialization purposes
+        /// Get the inventory list
         /// </value>
         public TaskInventoryDictionary TaskInventory
         {
-            get { return m_inventory.Items; }
-            set { m_inventory.Items = value; }
+            get {
+                return m_inventory.Items;
+            }
+            set {
+                m_inventory.Items = value;
+            }
         }
 
         public uint ObjectFlags
@@ -2101,17 +2105,18 @@ namespace OpenSim.Region.Framework.Scenes
                 //Trys to fetch sound id from prim's inventory.
                 //Prim's inventory doesn't support non script items yet
                 
-                lock (TaskInventory)
+                TaskInventory.LockItemsForRead(true);
+
+                foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
                 {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
+                    if (item.Value.Name == sound)
                     {
-                        if (item.Value.Name == sound)
-                        {
-                            soundID = item.Value.ItemID;
-                            break;
-                        }
+                        soundID = item.Value.ItemID;
+                        break;
                     }
                 }
+
+                TaskInventory.LockItemsForRead(false);
             }
 
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
@@ -2457,17 +2462,16 @@ namespace OpenSim.Region.Framework.Scenes
             if (!UUID.TryParse(sound, out soundID))
             {
                 // search sound file from inventory
-                lock (TaskInventory)
+                TaskInventory.LockItemsForRead(true);
+                foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
                 {
-                    foreach (KeyValuePair<UUID, TaskInventoryItem> item in TaskInventory)
+                    if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
                     {
-                        if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
-                        {
-                            soundID = item.Value.ItemID;
-                            break;
-                        }
+                        soundID = item.Value.ItemID;
+                        break;
                     }
                 }
+                TaskInventory.LockItemsForRead(false);
             }
 
             if (soundID == UUID.Zero)
@@ -3802,11 +3806,6 @@ namespace OpenSim.Region.Framework.Scenes
             _everyoneMask &= _nextOwnerMask;
 
             Inventory.ApplyNextOwnerPermissions();
-        }
-
-        public bool CanBeDeleted()
-        {
-            return Inventory.CanBeDeleted();
         }
     }
 }

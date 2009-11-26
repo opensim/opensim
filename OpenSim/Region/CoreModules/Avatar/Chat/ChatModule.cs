@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
         private List<Scene> m_scenes = new List<Scene>();
-
+        private string m_adminPrefix = "";
         internal object m_syncy = new object();
 
         internal IConfig m_config;
@@ -57,25 +57,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
         {
-
             m_config = config.Configs["Chat"];
 
             if (null == m_config)
             {
                 m_log.Info("[CHAT]: no config found, plugin disabled");
+                m_enabled = false;
                 return;
             }
 
-            if (!m_config.GetBoolean("enabled", false))
+            if (!m_config.GetBoolean("enabled", true))
             {
                 m_log.Info("[CHAT]: plugin disabled by configuration");
+                m_enabled = false;
                 return;
             }
-            m_enabled = true;
 
             m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
             m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
             m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+            m_adminPrefix = config.Configs["Chat"].GetString("admin_prefix", "");
         }
 
         public virtual void AddRegion(Scene scene)
@@ -185,6 +186,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         protected virtual void DeliverChatToAvatars(ChatSourceType sourceType, OSChatMessage c)
         {
             string fromName = c.From;
+            string fromNamePrefix = "";
             UUID fromID = UUID.Zero;
             string message = c.Message;
             IScene scene = c.Scene;
@@ -207,7 +209,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 fromPos = avatar.AbsolutePosition;
                 fromName = avatar.Name;
                 fromID = c.Sender.AgentId;
-
+                if (avatar.GodLevel > 200)
+                {
+                    fromNamePrefix = m_adminPrefix;
+                }
                 break;
 
             case ChatSourceType.Object:
@@ -227,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
-                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromName, c.Type, message, sourceType);
+                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix+fromName, c.Type, message, sourceType);
                     }
                 );
             }
@@ -266,25 +271,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
             
             // m_log.DebugFormat("[CHAT] Broadcast: fromID {0} fromName {1}, cType {2}, sType {3}", fromID, fromName, cType, sourceType);
-
-            ((Scene)c.Scene).ForEachScenePresence(
-                delegate(ScenePresence presence)
-                {
-                    // ignore chat from child agents
-                    if (presence.IsChildAgent) return;
-                    
-                    IClientAPI client = presence.ControllingClient;
-                    
-                    // don't forward SayOwner chat from objects to
-                    // non-owner agents
-                    if ((c.Type == ChatTypeEnum.Owner) &&
-                        (null != c.SenderObject) &&
-                        (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
-                        return;
-                    
-                    client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
-                                           (byte)sourceType, (byte)ChatAudibleLevel.Fully);
-                });
+            if (c.Scene != null)
+            {
+                ((Scene)c.Scene).ForEachScenePresence
+                (
+                    delegate(ScenePresence presence)
+                    {
+                        // ignore chat from child agents
+                        if (presence.IsChildAgent) return;
+                        
+                        IClientAPI client = presence.ControllingClient;
+                        
+                        // don't forward SayOwner chat from objects to
+                        // non-owner agents
+                        if ((c.Type == ChatTypeEnum.Owner) &&
+                            (null != c.SenderObject) &&
+                            (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
+                            return;
+                        
+                        client.SendChatMessage(c.Message, (byte)cType, CenterOfRegion, fromName, fromID, 
+                                               (byte)sourceType, (byte)ChatAudibleLevel.Fully);
+                    }
+                );
+             }
         }
 
 

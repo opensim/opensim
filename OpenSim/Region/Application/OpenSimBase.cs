@@ -75,11 +75,6 @@ namespace OpenSim
         /// </value>
         protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
-        /// <value>
-        /// The file used to load and save an opensimulator archive if no filename has been specified
-        /// </value>
-        protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";
-
         public ConfigSettings ConfigurationSettings
         {
             get { return m_configSettings; }

@@ -27,9 +27,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -45,6 +48,105 @@ namespace OpenSim.Framework
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof (TaskInventoryItem));
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        private Thread LockedByThread;
+        /// <value>
+        /// An advanced lock for inventory data
+        /// </value>
+        private System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
+
+        /// <summary>
+        /// Are we readlocked by the calling thread?
+        /// </summary>
+        public bool IsReadLockedByMe()
+        {
+            if (m_itemLock.RecursiveReadCount > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Lock our inventory list for reading (many can read, one can write)
+        /// </summary>
+        public void LockItemsForRead(bool locked)
+        {
+            if (locked)
+            {
+                if (m_itemLock.IsWriteLockHeld && LockedByThread != null)
+                {
+                    if (!LockedByThread.IsAlive)
+                    {
+                        //Locked by dead thread, reset.
+                        m_itemLock = new System.Threading.ReaderWriterLockSlim(); 
+                    }
+                }
+
+                if (m_itemLock.RecursiveReadCount > 0)
+                {
+                    m_log.Error("[TaskInventoryDictionary] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
+                    m_itemLock.ExitReadLock();
+                }
+                if (m_itemLock.RecursiveWriteCount > 0)
+                {
+                    m_log.Error("[TaskInventoryDictionary] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+                    m_itemLock.ExitWriteLock();
+                }
+                
+                while (!m_itemLock.TryEnterReadLock(60000))
+                {
+                    m_log.Error("Thread lock detected while trying to aquire READ lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                    if (m_itemLock.IsWriteLockHeld)
+                    {
+                        m_itemLock = new System.Threading.ReaderWriterLockSlim();
+                    }
+                }
+            }
+            else
+            {
+                m_itemLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
+        /// Lock our inventory list for writing (many can read, one can write)
+        /// </summary>
+        public void LockItemsForWrite(bool locked)
+        {
+            if (locked)
+            {
+                //Enter a write lock, wait indefinately for one to open.
+                if (m_itemLock.RecursiveReadCount > 0)
+                {
+                    m_log.Error("[TaskInventoryDictionary] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
+                    m_itemLock.ExitReadLock();
+                }
+                if (m_itemLock.RecursiveWriteCount > 0)
+                {
+                    m_log.Error("[TaskInventoryDictionary] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+                    m_itemLock.ExitWriteLock();
+                }
+                while (!m_itemLock.TryEnterWriteLock(60000))
+                {
+                    m_log.Error("Thread lock detected while trying to aquire WRITE lock in TaskInventoryDictionary. Locked by thread " + LockedByThread.Name + ". I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                    if (m_itemLock.IsWriteLockHeld)
+                    {
+                        m_itemLock = new System.Threading.ReaderWriterLockSlim();
+                    }
+                }
+
+                LockedByThread = Thread.CurrentThread;
+            }
+            else
+            {
+                m_itemLock.ExitWriteLock();
+            }
+        }
 
         #region ICloneable Members
 
@@ -52,13 +154,12 @@ namespace OpenSim.Framework
         {
             TaskInventoryDictionary clone = new TaskInventoryDictionary();
 
-            lock (this)
+            m_itemLock.EnterReadLock();
+            foreach (UUID uuid in Keys)
             {
-                foreach (UUID uuid in Keys)
-                {
-                    clone.Add(uuid, (TaskInventoryItem) this[uuid].Clone());
-                }
+                clone.Add(uuid, (TaskInventoryItem) this[uuid].Clone());
             }
+            m_itemLock.ExitReadLock();
 
             return clone;
         }

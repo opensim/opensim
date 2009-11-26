@@ -263,8 +263,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                     {
                         // We need to make a local copy of the object
                         ISceneObject sogClone = sog.CloneForNewScene();
-                        sogClone.SetState(sog.GetStateSnapshot(),
-                                s.RegionInfo.RegionID);
+                        sogClone.SetState(sog.GetStateSnapshot(), s);
                         return s.IncomingCreateObject(sogClone);
                     }
                     else
@@ -294,15 +293,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
         #region Misc
 
-        public UUID GetRegionID(ulong regionhandle)
+        public Scene GetScene(ulong regionhandle)
         {
             foreach (Scene s in m_sceneList)
             {
                 if (s.RegionInfo.RegionHandle == regionhandle)
-                    return s.RegionInfo.RegionID;
+                    return s;
             }
             // ? weird. should not happen
-            return m_sceneList[0].RegionInfo.RegionID;
+            return m_sceneList[0];
         }
 
         public bool IsLocalRegion(ulong regionhandle)

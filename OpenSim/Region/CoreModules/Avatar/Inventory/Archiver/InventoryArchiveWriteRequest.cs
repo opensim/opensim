@@ -117,19 +117,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
-        {
-            // We're almost done.  Just need to write out the control file now
-            m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
-            m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
-            
+        {               
             Exception reportedException = null;
             bool succeeded = true;
-
+            
             try
-            {
+            {            
+                // We're almost done.  Just need to write out the control file now
+                m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
+                m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
+
                 m_archiveWriter.Close();
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 m_saveStream.Close();
                 reportedException = e;
@@ -261,39 +261,47 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 //inventoryItem = m_userInfo.RootFolder.FindItemByPath(m_invPath);
             }
 
-            m_archiveWriter = new TarArchiveWriter(m_saveStream);
-
-            if (inventoryFolder != null)
-            {
-                m_log.DebugFormat(
-                    "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
-                    inventoryFolder.Name, inventoryFolder.ID, m_invPath);
-
-                //recurse through all dirs getting dirs and files
-                SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
-            }
-            else if (inventoryItem != null)
-            {
-                m_log.DebugFormat(
-                    "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
-                    inventoryItem.Name, inventoryItem.ID, m_invPath);
-
-                SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);
-            }
-            else
+            if (null == inventoryFolder && null == inventoryItem)
             {
                 // We couldn't find the path indicated 
-                m_saveStream.Close();
                 string errorMessage = string.Format("Aborted save.  Could not find inventory path {0}", m_invPath);
                 m_log.ErrorFormat("[INVENTORY ARCHIVER]: {0}", errorMessage);
                 m_module.TriggerInventoryArchiveSaved(
                     m_id, false, m_userInfo, m_invPath, m_saveStream,
                     new Exception(errorMessage));
-                return;
+                return;                
             }
+            
+            m_archiveWriter = new TarArchiveWriter(m_saveStream);
 
-            // Don't put all this profile information into the archive right now.
-            //SaveUsers();
+            try
+            {
+                if (inventoryFolder != null)
+                {
+                    m_log.DebugFormat(
+                        "[INVENTORY ARCHIVER]: Found folder {0} {1} at {2}",
+                        inventoryFolder.Name, inventoryFolder.ID, m_invPath);
+    
+                    //recurse through all dirs getting dirs and files
+                    SaveInvFolder(inventoryFolder, ArchiveConstants.INVENTORY_PATH, !foundStar);
+                }
+                else if (inventoryItem != null)
+                {
+                    m_log.DebugFormat(
+                        "[INVENTORY ARCHIVER]: Found item {0} {1} at {2}",
+                        inventoryItem.Name, inventoryItem.ID, m_invPath);
+    
+                    SaveInvItem(inventoryItem, ArchiveConstants.INVENTORY_PATH);
+                }
+            
+                // Don't put all this profile information into the archive right now.
+                //SaveUsers();
+            }
+            catch (Exception)
+            {
+                m_archiveWriter.Close();
+                throw;
+            }
             
             new AssetsRequest(
                 new AssetsArchiver(m_archiveWriter), m_assetUuids.Keys, 

@@ -83,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         // Teleport commands
         void osTeleportAgent(string agent, string regionName, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
-        void osTeleportAgent(string agent, uint regionX, uint regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
+        void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
         void osTeleportAgent(string agent, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat);
 
         // Animation commands
@@ -162,5 +162,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
+		LSL_List osGetRegionStats();
     }
 }

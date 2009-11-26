@@ -30,6 +30,7 @@ using System.IO;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Security;
 using System.Security.Policy;
 using System.Reflection;
@@ -1119,6 +1120,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return false;
         }
 
+        [DebuggerNonUserCode]
         public void ApiResetScript(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
@@ -1170,6 +1172,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return UUID.Zero;
         }
 
+        [DebuggerNonUserCode]
         public void SetState(UUID itemID, string newState)
         {
             IScriptInstance instance = GetInstance(itemID);
@@ -1245,34 +1248,219 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        public string GetAssemblyName(UUID itemID)
-        {
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return "";
-            return instance.GetAssemblyName();
-        }
-
         public string GetXMLState(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
             if (instance == null)
                 return "";
-            return instance.GetXMLState();
-        }
+            string xml = instance.GetXMLState();
 
-        public bool CanBeDeleted(UUID itemID)
-        {
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return true;
+            XmlDocument sdoc = new XmlDocument();
+            sdoc.LoadXml(xml);
+            XmlNodeList rootL = sdoc.GetElementsByTagName("ScriptState");
+            XmlNode rootNode = rootL[0];
 
-            return instance.CanBeDeleted();
+            // Create <State UUID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+            XmlDocument doc = new XmlDocument();
+            XmlElement stateData = doc.CreateElement("", "State", "");
+            XmlAttribute stateID = doc.CreateAttribute("", "UUID", "");
+            stateID.Value = itemID.ToString();
+            stateData.Attributes.Append(stateID);
+            XmlAttribute assetID = doc.CreateAttribute("", "Asset", "");
+            assetID.Value = instance.AssetID.ToString();
+            stateData.Attributes.Append(assetID);
+            doc.AppendChild(stateData);
+
+            // Add <ScriptState>...</ScriptState>
+            XmlNode xmlstate = doc.ImportNode(rootNode, true);
+            stateData.AppendChild(xmlstate);
+
+            string assemName = instance.GetAssemblyName();
+
+            string fn = Path.GetFileName(assemName);
+
+            string assem = String.Empty;
+
+            if (File.Exists(assemName + ".text"))
+            {
+                FileInfo tfi = new FileInfo(assemName + ".text");
+
+                if (tfi != null)
+                {
+                    Byte[] tdata = new Byte[tfi.Length];
+
+                    try
+                    {
+                        FileStream tfs = File.Open(assemName + ".text",
+                                FileMode.Open, FileAccess.Read);
+                        tfs.Read(tdata, 0, tdata.Length);
+                        tfs.Close();
+
+                        assem = new System.Text.ASCIIEncoding().GetString(tdata);
+                    }
+                    catch (Exception e)
+                    {
+                         m_log.DebugFormat("[XEngine]: Unable to open script textfile {0}, reason: {1}", assemName+".text", e.Message);
+                    }
+                }
+            }
+            else
+            {
+                FileInfo fi = new FileInfo(assemName);
+
+                if (fi != null)
+                {
+                    Byte[] data = new Byte[fi.Length];
+
+                    try
+                    {
+                        FileStream fs = File.Open(assemName, FileMode.Open, FileAccess.Read);
+                        fs.Read(data, 0, data.Length);
+                        fs.Close();
+
+                        assem = System.Convert.ToBase64String(data);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.DebugFormat("[XEngine]: Unable to open script assembly {0}, reason: {1}", assemName, e.Message);
+                    }
+
+                }
+            }
+
+            string map = String.Empty;
+
+            if (File.Exists(fn + ".map"))
+            {
+                FileStream mfs = File.Open(fn + ".map", FileMode.Open, FileAccess.Read);
+                StreamReader msr = new StreamReader(mfs);
+
+                map = msr.ReadToEnd();
+
+                msr.Close();
+                mfs.Close();
+            }
+
+            XmlElement assemblyData = doc.CreateElement("", "Assembly", "");
+            XmlAttribute assemblyName = doc.CreateAttribute("", "Filename", "");
+
+            assemblyName.Value = fn;
+            assemblyData.Attributes.Append(assemblyName);
+
+            assemblyData.InnerText = assem;
+
+            stateData.AppendChild(assemblyData);
+
+            XmlElement mapData = doc.CreateElement("", "LineMap", "");
+            XmlAttribute mapName = doc.CreateAttribute("", "Filename", "");
+
+            mapName.Value = fn + ".map";
+            mapData.Attributes.Append(mapName);
+
+            mapData.InnerText = map;
+
+            stateData.AppendChild(mapData);
+            return doc.InnerXml;
         }
 
         private bool ShowScriptSaveResponse(UUID ownerID, UUID assetID, string text, bool compiled)
         {
             return false;
+        }
+
+        public void SetXMLState(UUID itemID, string xml)
+        {
+            if (xml == String.Empty)
+                return;
+
+            XmlDocument doc = new XmlDocument();
+
+            try
+            {
+                doc.LoadXml(xml);
+            }
+            catch (Exception)
+            {
+                m_log.Error("[XEngine]: Exception decoding XML data from region transfer");
+                return;
+            }
+
+            XmlNodeList rootL = doc.GetElementsByTagName("State");
+            if (rootL.Count < 1)
+                return;
+
+            XmlElement rootE = (XmlElement)rootL[0];
+
+            if (rootE.GetAttribute("UUID") != itemID.ToString())
+                return;
+
+            string assetID = rootE.GetAttribute("Asset");
+
+            XmlNodeList stateL = rootE.GetElementsByTagName("ScriptState");
+
+            if (stateL.Count != 1)
+                return;
+
+            XmlElement stateE = (XmlElement)stateL[0];
+
+            if (World.m_trustBinaries)
+            {
+                XmlNodeList assemL = rootE.GetElementsByTagName("Assembly");
+
+                if (assemL.Count != 1)
+                    return;
+
+                XmlElement assemE = (XmlElement)assemL[0];
+
+                string fn = assemE.GetAttribute("Filename");
+                string base64 = assemE.InnerText;
+
+                string path = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+                path = Path.Combine(path, fn);
+
+                if (!File.Exists(path))
+                {
+                    Byte[] filedata = Convert.FromBase64String(base64);
+
+                    FileStream fs = File.Create(path);
+                    fs.Write(filedata, 0, filedata.Length);
+                    fs.Close();
+
+                    fs = File.Create(path + ".text");
+                    StreamWriter sw = new StreamWriter(fs);
+
+                    sw.Write(base64);
+
+                    sw.Close();
+                    fs.Close();
+                }
+            }
+
+            string statepath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+            statepath = Path.Combine(statepath, itemID.ToString() + ".state");
+
+            FileStream sfs = File.Create(statepath);
+            StreamWriter ssw = new StreamWriter(sfs);
+
+            ssw.Write(stateE.OuterXml);
+
+            ssw.Close();
+            sfs.Close();
+
+            XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
+            
+            XmlElement mapE = (XmlElement)mapL[0];
+
+            string mappath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+            mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+
+            FileStream mfs = File.Create(mappath);
+            StreamWriter msw = new StreamWriter(mfs);
+
+            msw.Write(mapE.InnerText);
+
+            msw.Close();
+            mfs.Close();
         }
     }
 }

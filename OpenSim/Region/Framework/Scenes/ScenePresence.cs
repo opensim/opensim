@@ -171,7 +171,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected RegionInfo m_regionInfo;
         protected ulong crossingFromRegion;
 
-        private readonly Vector3[] Dir_Vectors = new Vector3[9];
+        private readonly Vector3[] Dir_Vectors = new Vector3[11];
         private bool m_isNudging = false;
 
         // Position of agent's camera in world (region cordinates)
@@ -241,6 +241,8 @@ namespace OpenSim.Region.Framework.Scenes
             DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
             DIR_CONTROL_FLAG_FORWARD_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS,
             DIR_CONTROL_FLAG_BACK_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG,
             DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
         }
         
@@ -725,12 +727,14 @@ namespace OpenSim.Region.Framework.Scenes
             Dir_Vectors[5] = -Vector3.UnitZ; //DOWN
             Dir_Vectors[6] = new Vector3(0.5f, 0f, 0f); //FORWARD_NUDGE
             Dir_Vectors[7] = new Vector3(-0.5f, 0f, 0f);  //BACK_NUDGE
-            Dir_Vectors[8] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
+            Dir_Vectors[8] = new Vector3(0f, 0.5f, 0f);  //LEFT_NUDGE
+            Dir_Vectors[9] = new Vector3(0f, -0.5f, 0f);  //RIGHT_NUDGE
+            Dir_Vectors[10] = new Vector3(0f, 0f, -0.5f); //DOWN_Nudge
         }
 
         private Vector3[] GetWalkDirectionVectors()
         {
-            Vector3[] vector = new Vector3[9];
+            Vector3[] vector = new Vector3[11];
             vector[0] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD
             vector[1] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK
             vector[2] = Vector3.UnitY; //LEFT
@@ -739,13 +743,15 @@ namespace OpenSim.Region.Framework.Scenes
             vector[5] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN
             vector[6] = new Vector3(m_CameraUpAxis.Z, 0f, -m_CameraAtAxis.Z); //FORWARD_NUDGE
             vector[7] = new Vector3(-m_CameraUpAxis.Z, 0f, m_CameraAtAxis.Z); //BACK_NUDGE
-            vector[8] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_Nudge
+            vector[8] = Vector3.UnitY; //LEFT_NUDGE
+            vector[9] = -Vector3.UnitY; //RIGHT_NUDGE
+            vector[10] = new Vector3(-m_CameraAtAxis.Z, 0f, -m_CameraUpAxis.Z); //DOWN_NUDGE
             return vector;
         }
         
         private bool[] GetDirectionIsNudge()
         {
-            bool[] isNudge = new bool[9];
+            bool[] isNudge = new bool[11];
             isNudge[0] = false; //FORWARD
             isNudge[1] = false; //BACK
             isNudge[2] = false; //LEFT
@@ -754,7 +760,9 @@ namespace OpenSim.Region.Framework.Scenes
             isNudge[5] = false; //DOWN
             isNudge[6] = true; //FORWARD_NUDGE
             isNudge[7] = true; //BACK_NUDGE
-            isNudge[8] = true; //DOWN_Nudge
+            isNudge[8] = true; //LEFT_NUDGE
+            isNudge[9] = true; //RIGHT_NUDGE
+            isNudge[10] = true; //DOWN_Nudge
             return isNudge;
         }
 
@@ -1618,21 +1626,19 @@ namespace OpenSim.Region.Framework.Scenes
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                 if (part != null)
                 {
+                    part.TaskInventory.LockItemsForRead(true);
                     TaskInventoryDictionary taskIDict = part.TaskInventory;
                     if (taskIDict != null)
                     {
-                        lock (taskIDict)
+                        foreach (UUID taskID in taskIDict.Keys)
                         {
-                            foreach (UUID taskID in taskIDict.Keys)
-                            {
-                                UnRegisterControlEventsToScript(LocalId, taskID);
-                                taskIDict[taskID].PermsMask &= ~(
-                                    2048 | //PERMISSION_CONTROL_CAMERA
-                                    4); // PERMISSION_TAKE_CONTROLS
-                            }
+                            UnRegisterControlEventsToScript(LocalId, taskID);
+                            taskIDict[taskID].PermsMask &= ~(
+                                2048 | //PERMISSION_CONTROL_CAMERA
+                                4); // PERMISSION_TAKE_CONTROLS
                         }
-
                     }
+                    part.TaskInventory.LockItemsForRead(false);
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SetAvatarOnSitTarget(UUID.Zero);

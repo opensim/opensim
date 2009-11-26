@@ -92,12 +92,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 scene.AddCommand(
                     this, "load iar",
                     "load iar <first> <last> <inventory path> <password> [<archive path>]",
-                    "Load user inventory archive.  EXPERIMENTAL", HandleLoadInvConsoleCommand); 
+                    "Load user inventory archive.", HandleLoadInvConsoleCommand); 
                 
                 scene.AddCommand(
                     this, "save iar",
                     "save iar <first> <last> <inventory path> <password> [<archive path>]",
-                    "Save user inventory archive.  EXPERIMENTAL", HandleSaveInvConsoleCommand);
+                    "Save user inventory archive.", HandleSaveInvConsoleCommand);
 
                 m_aScene = scene;
             }
@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             string savePath = (cmdparams.Length > 6 ? cmdparams[6] : DEFAULT_INV_BACKUP_FILENAME);
 
             m_log.InfoFormat(
-                "[INVENTORY ARCHIVER]: Saving archive {0} from inventory path {1} for {2} {3}",
+                "[INVENTORY ARCHIVER]: Saving archive {0} using inventory path {1} for {2} {3}",
                 savePath, invPath, firstName, lastName);
 
             Guid id = Guid.NewGuid();

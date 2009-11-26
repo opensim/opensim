@@ -387,6 +387,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return StatsReporter.getLastReportedSimFPS(); }
         }
+		
+		public float[] SimulatorStats
+		{
+			get { return StatsReporter.getLastReportedSimStats(); }
+		}
 
         public string DefaultScriptEngine
         {
@@ -618,7 +623,7 @@ namespace OpenSim.Region.Framework.Scenes
                   startupConfig.GetLong("MaximumTimeBeforePersistenceConsidered", DEFAULT_MAX_TIME_FOR_PERSISTENCE);
                 m_persistAfter *= 10000000;
 
-                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "DotNetEngine");
+                m_defaultScriptEngine = startupConfig.GetString("DefaultScriptEngine", "XEngine");
 
                 IConfig packetConfig = m_config.Configs["PacketPool"];
                 if (packetConfig != null)
@@ -873,6 +878,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="seconds">float indicating duration before restart.</param>
         public virtual void Restart(float seconds)
         {
+            Restart(seconds, true);
+        }
+
+        /// <summary>
+        /// Given float seconds, this will restart the region. showDialog will optionally alert the users.
+        /// </summary>
+        /// <param name="seconds">float indicating duration before restart.</param>
+        public virtual void Restart(float seconds, bool showDialog)
+        {
             // notifications are done in 15 second increments
             // so ..   if the number of seconds is less then 15 seconds, it's not really a restart request
             // It's a 'Cancel restart' request.
@@ -893,8 +907,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
                 m_log.Info("[REGION]: Restarting Region in " + (seconds / 60) + " minutes");
                 m_restartTimer.Start();
-                m_dialogModule.SendNotificationToUsersInRegion(
-                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                if (showDialog)
+                {
+                    m_dialogModule.SendNotificationToUsersInRegion(
+                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " + (seconds / 60).ToString() + " Minutes");
+                }
             }
         }
 
@@ -2381,103 +2398,6 @@ namespace OpenSim.Region.Framework.Scenes
             return successYN;
         }
 
-        /// <summary>
-        /// Handle a scene object that is crossing into this region from another.
-        /// NOTE: Unused as of 2009-02-09. Soon to be deleted.
-        /// </summary>
-        /// <param name="regionHandle"></param>
-        /// <param name="primID"></param>
-        /// <param name="objXMLData"></param>
-        /// <param name="XMLMethod"></param>
-        /// <returns></returns>
-        public bool IncomingInterRegionPrimGroup(UUID primID, string objXMLData, int XMLMethod)
-        {
-            if (XMLMethod == 0)
-            {
-                m_log.DebugFormat("[INTERREGION]: A new prim {0} arrived from a neighbor", primID);
-                SceneObjectGroup sceneObject = m_serialiser.DeserializeGroupFromXml2(objXMLData);
-                if (sceneObject.IsAttachment)
-                    sceneObject.RootPart.ObjectFlags |= (uint)PrimFlags.Phantom;
-
-                return AddSceneObject(sceneObject);
-            }
-            else if ((XMLMethod == 100) && m_allowScriptCrossings)
-            {
-                m_log.Warn("[INTERREGION]: Prim state data arrived from a neighbor");
-
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(objXMLData);
-
-                XmlNodeList rootL = doc.GetElementsByTagName("ScriptData");
-                if (rootL.Count == 1)
-                {
-                    XmlNode rootNode = rootL[0];
-                    if (rootNode != null)
-                    {
-                        XmlNodeList partL = rootNode.ChildNodes;
-
-                        foreach (XmlNode part in partL)
-                        {
-                            XmlNodeList nodeL = part.ChildNodes;
-
-                            switch (part.Name)
-                            {
-                            case "Assemblies":
-                                foreach (XmlNode asm in nodeL)
-                                {
-                                    string fn = asm.Attributes.GetNamedItem("Filename").Value;
-
-                                    Byte[] filedata = Convert.FromBase64String(asm.InnerText);
-                                    string path = Path.Combine("ScriptEngines", RegionInfo.RegionID.ToString());
-                                    path = Path.Combine(path, fn);
-
-                                    if (!File.Exists(path))
-                                    {
-                                        FileStream fs = File.Create(path);
-                                        fs.Write(filedata, 0, filedata.Length);
-                                        fs.Close();
-                                    }
-                                }
-                                break;
-                            case "ScriptStates":
-                                foreach (XmlNode st in nodeL)
-                                {
-                                    string id = st.Attributes.GetNamedItem("UUID").Value;
-                                    UUID uuid = new UUID(id);
-                                    XmlNode state = st.ChildNodes[0];
-
-                                    XmlDocument sdoc = new XmlDocument();
-                                    XmlNode sxmlnode = sdoc.CreateNode(
-                                            XmlNodeType.XmlDeclaration,
-                                            "", "");
-                                    sdoc.AppendChild(sxmlnode);
-
-                                    XmlNode newnode = sdoc.ImportNode(state, true);
-                                    sdoc.AppendChild(newnode);
-
-                                    string spath = Path.Combine("ScriptEngines", RegionInfo.RegionID.ToString());
-                                    spath = Path.Combine(spath, uuid.ToString());
-                                    FileStream sfs = File.Create(spath + ".state");
-                                    ASCIIEncoding enc = new ASCIIEncoding();
-                                    Byte[] buf = enc.GetBytes(sdoc.InnerXml);
-                                    sfs.Write(buf, 0, buf.Length);
-                                    sfs.Close();
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                SceneObjectPart RootPrim = GetSceneObjectPart(primID);
-                RootPrim.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
-
-                return true;
-            }
-
-            return true;
-        }
-
         public bool IncomingCreateObject(ISceneObject sog)
         {
             //m_log.Debug(" >>> IncomingCreateObject <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
@@ -3350,7 +3270,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.OnCloseAgentConnection += IncomingCloseAgent;
             //m_eventManager.OnRegionUp += OtherRegionUp;
             //m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
-            m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
             m_sceneGridService.KiPrimitive += SendKillObject;
@@ -3374,7 +3293,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.KiPrimitive -= SendKillObject;
             m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
             //m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
-            m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             //m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
             //m_eventManager.OnRegionUp -= OtherRegionUp;
             m_sceneGridService.OnExpectUser -= HandleNewUserConnection;

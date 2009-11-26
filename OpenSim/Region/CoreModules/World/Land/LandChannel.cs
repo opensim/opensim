@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.LandData.Name = "NO LAND";
             return obj;
-        }
+        }      
 
         public List<ILandObject> AllParcels()
         {
@@ -154,6 +154,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landManagementModule.UpdateLandObject(localID, data);
             }
         }
+        
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             if (m_landManagementModule != null)

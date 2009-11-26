@@ -636,13 +636,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         }
 
         // Teleport functions
-        public void osTeleportAgent(string agent, uint regionX, uint regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
+        public void osTeleportAgent(string agent, int regionX, int regionY, LSL_Types.Vector3 position, LSL_Types.Vector3 lookat)
         {
             // High because there is no security check. High griefer potential
             //
             CheckThreatLevel(ThreatLevel.High, "osTeleportAgent");
 
-            ulong regionHandle = Util.UIntsToLong((regionX * (uint)Constants.RegionSize), (regionY * (uint)Constants.RegionSize));
+            ulong regionHandle = Util.UIntsToLong(((uint)regionX * (uint)Constants.RegionSize), ((uint)regionY * (uint)Constants.RegionSize));
 
             m_host.AddScriptLPS(1);
             UUID agentId = new UUID();
@@ -728,18 +728,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (target != null)
                 {
                     UUID animID=UUID.Zero;
-                    lock (m_host.TaskInventory)
+                    m_host.TaskInventory.LockItemsForRead(true);
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        if (inv.Value.Name == animation)
                         {
-                            if (inv.Value.Name == animation)
-                            {
-                                if (inv.Value.Type == (int)AssetType.Animation)
-                                    animID = inv.Value.AssetID;
-                                continue;
-                            }
+                            if (inv.Value.Type == (int)AssetType.Animation)
+                                animID = inv.Value.AssetID;
+                            continue;
                         }
                     }
+                    m_host.TaskInventory.LockItemsForRead(false);
                     if (animID == UUID.Zero)
                         target.Animator.AddAnimation(animation, m_host.UUID);
                     else
@@ -761,18 +760,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (target != null)
                 {
                     UUID animID=UUID.Zero;
-                    lock (m_host.TaskInventory)
+                    m_host.TaskInventory.LockItemsForRead(true);
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
                     {
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+                        if (inv.Value.Name == animation)
                         {
-                            if (inv.Value.Name == animation)
-                            {
-                                if (inv.Value.Type == (int)AssetType.Animation)
-                                    animID = inv.Value.AssetID;
-                                continue;
-                            }
+                            if (inv.Value.Type == (int)AssetType.Animation)
+                                animID = inv.Value.AssetID;
+                            continue;
                         }
                     }
+                    m_host.TaskInventory.LockItemsForRead(false);
                     
                     if (animID == UUID.Zero)
                         target.Animator.RemoveAnimation(animation);
@@ -1541,6 +1539,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1548,6 +1547,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)
@@ -1594,6 +1594,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1601,6 +1602,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)
@@ -1651,6 +1653,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (!UUID.TryParse(name, out assetID))
             {
+                m_host.TaskInventory.LockItemsForRead(true);
                 foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
                 {
                     if (item.Type == 7 && item.Name == name)
@@ -1658,6 +1661,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         assetID = item.AssetID;
                     }
                 }
+                m_host.TaskInventory.LockItemsForRead(false);
             }
 
             if (assetID == UUID.Zero)
@@ -1948,5 +1952,27 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return key.ToString();
         }
+		
+       /// <summary>
+        /// Return information regarding various simulator statistics (sim fps, physics fps, time
+        /// dilation, total number of prims, total number of active scripts, script lps, various
+        /// timing data, packets in/out, etc. Basically much the information that's shown in the
+        /// client's Statistics Bar (Ctrl-Shift-1)
+        /// </summary>
+        /// <returns>List of floats</returns>
+		public LSL_List osGetRegionStats()
+		{
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetRegionStats");
+            m_host.AddScriptLPS(1);
+            LSL_List ret = new LSL_List();
+			float[] stats = World.SimulatorStats;
+			
+			for (int i = 0; i < 21; i++)
+			{
+				ret.Add(new LSL_Float( stats[i] ));
+			}
+			return ret;
+		}
+
     }
 }

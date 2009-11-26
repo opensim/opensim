@@ -1596,6 +1596,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
+      <Reference name="NDesk.Options"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenMetaverse.dll"/>
@@ -3414,7 +3415,7 @@
       </Files>
     </Project>
 
-  <?include file="addon-modules/*/prebuild.xml" ?>
+  <?include file="addon-modules/*/prebuild*.xml" ?>
 
   </Solution>
 

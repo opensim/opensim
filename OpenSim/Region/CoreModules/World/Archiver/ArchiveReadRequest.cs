@@ -103,14 +103,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             List<string> serialisedSceneObjects = new List<string>();
             List<string> serialisedParcels = new List<string>();
             string filePath = "NONE";
+
+            TarArchiveReader archive = new TarArchiveReader(m_loadStream);          
+            byte[] data;
+            TarArchiveReader.TarEntryType entryType;
             
             try
             {
-                TarArchiveReader archive = new TarArchiveReader(m_loadStream);
-               
-                byte[] data;
-                TarArchiveReader.TarEntryType entryType;
-
                 while ((data = archive.ReadEntry(out filePath, out entryType)) != null)
                 {
                     //m_log.DebugFormat(
@@ -152,8 +151,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 //m_log.Debug("[ARCHIVER]: Reached end of archive");
-
-                archive.Close();
             }
             catch (Exception e)
             {
@@ -162,6 +159,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_errorMessage += e.ToString();
                 m_scene.EventManager.TriggerOarFileLoaded(m_requestId, m_errorMessage);
                 return;
+            }
+            finally
+            {
+                archive.Close();
             }
 
             m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
@@ -246,21 +247,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     // Fix ownership/creator of inventory items
                     // Not doing so results in inventory items
                     // being no copy/no mod for everyone
-                    lock (part.TaskInventory)
+                    part.TaskInventory.LockItemsForRead(true);
+                    TaskInventoryDictionary inv = part.TaskInventory;
+                    foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
                     {
-                        TaskInventoryDictionary inv = part.TaskInventory;
-                        foreach (KeyValuePair<UUID, TaskInventoryItem> kvp in inv)
+                        if (!ResolveUserUuid(kvp.Value.OwnerID))
                         {
-                            if (!ResolveUserUuid(kvp.Value.OwnerID))
-                            {
-                                kvp.Value.OwnerID = masterAvatarId;
-                            }
-                            if (!ResolveUserUuid(kvp.Value.CreatorID))
-                            {
-                                kvp.Value.CreatorID = masterAvatarId;
-                            }
+                            kvp.Value.OwnerID = masterAvatarId;
+                        }
+                        if (!ResolveUserUuid(kvp.Value.CreatorID))
+                        {
+                            kvp.Value.CreatorID = masterAvatarId;
                         }
                     }
+                    part.TaskInventory.LockItemsForRead(false);
                 }
 
                 if (m_scene.AddRestoredSceneObject(sceneObject, true, false))
