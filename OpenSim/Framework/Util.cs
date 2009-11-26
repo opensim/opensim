@@ -990,19 +990,19 @@ namespace OpenSim.Framework
         {
             string os = String.Empty;
 
-            if (Environment.OSVersion.Platform != PlatformID.Unix)
-            {
-                os = Environment.OSVersion.ToString();
-            }
-            else
-            {
-                os = ReadEtcIssue();
-            }
-                      
-            if (os.Length > 45)
-            {
-                os = os.Substring(0, 45);
-            }
+//            if (Environment.OSVersion.Platform != PlatformID.Unix)
+//            {
+//                os = Environment.OSVersion.ToString();
+//            }
+//            else
+//            {
+//                os = ReadEtcIssue();
+//            }
+//                      
+//            if (os.Length > 45)
+//            {
+//                os = os.Substring(0, 45);
+//            }
             
             return os;
         }
