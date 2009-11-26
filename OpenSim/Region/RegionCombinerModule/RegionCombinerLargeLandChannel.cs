@@ -118,6 +118,7 @@ public class RegionCombinerLargeLandChannel : ILandChannel
                         return regionData.RegionScene.LandChannel.GetLandObject(x - offsetX, y - offsetY);
                     }
                 }
+                
                 ILandObject obj = new LandObject(UUID.Zero, false, RegData.RegionScene);
                 obj.LandData.Name = "NO LAND";
                 return obj;

@@ -78,8 +78,9 @@ namespace OpenSim.Framework.Tests
             foo[0] = 1;
             cachedItem.Store(foo);
             cache.Store(cacheItemUUID.ToString(), cachedItem);
-            
-            object citem = cache.Get(cacheItemUUID.ToString());
+
+            cache.Get(cacheItemUUID.ToString());
+            //object citem = cache.Get(cacheItemUUID.ToString());
             //Assert.That(citem == null, "Item should not be in Cache because the expiry time was before now");
         }
 
@@ -94,7 +95,8 @@ namespace OpenSim.Framework.Tests
             cachedItem.Store(foo);
             cache.Store(cacheItemUUID.ToString(), cachedItem);
             cache.Invalidate(ImmediateExpiryUUID.ToString());
-            object citem = cache.Get(cacheItemUUID.ToString());
+            cache.Get(cacheItemUUID.ToString());
+            //object citem = cache.Get(cacheItemUUID.ToString());
             //Assert.That(citem == null, "Item should not be in Cache because we manually invalidated it");
         }
 
