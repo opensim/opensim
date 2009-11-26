@@ -886,30 +886,5 @@ namespace OpenSim.Region.Framework.Scenes
             }
             return ret;
         }
-
-        public bool CanBeDeleted()
-        {
-            if (!ContainsScripts())
-                return true;
-
-            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-
-            if (engines == null) // No engine at all
-                return true;
-
-            foreach (TaskInventoryItem item in m_items.Values)
-            {
-                if (item.InvType == (int)InventoryType.LSL)
-                {
-                    foreach (IScriptModule e in engines)
-                    {
-                        if (!e.CanBeDeleted(item.ItemID))
-                            return false;
-                    }
-                }
-            }
-
-            return true;
-        }
     }
 }

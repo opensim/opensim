@@ -351,10 +351,27 @@ namespace OpenSim.Region.Framework.Scenes
             return xmldoc.InnerXml;
         }
 
-        public void SetState(string objXMLData, UUID RegionID)
+        public void SetState(string objXMLData, IScene ins)
         {
-m_log.Debug("SetState called with " + objXMLData);
+            if (!(ins is Scene))
+                return;
+
+            Scene s = (Scene)ins;
+
             if (objXMLData == String.Empty)
+                return;
+
+            IScriptModule scriptModule = null;
+            
+            foreach (IScriptModule sm in s.RequestModuleInterfaces<IScriptModule>())
+            {
+                if (sm.ScriptEngineName == s.DefaultScriptEngine)
+                    scriptModule = sm;
+                else if (scriptModule == null)
+                    scriptModule = sm;
+            }
+
+            if (scriptModule == null)
                 return;
 
             XmlDocument doc = new XmlDocument();
@@ -374,69 +391,23 @@ m_log.Debug("SetState called with " + objXMLData);
             }
 
             XmlNodeList rootL = doc.GetElementsByTagName("ScriptData");
-            if (rootL.Count == 1)
+            if (rootL.Count != 1)
+                return;
+
+            XmlElement rootE = (XmlElement)rootL[0];
+
+            XmlNodeList dataL = rootE.GetElementsByTagName("ScriptStates");
+            if (dataL.Count != 1)
+                return;
+
+            XmlElement dataE = (XmlElement)dataL[0];
+            
+            foreach (XmlNode n in dataE.ChildNodes)
             {
-                XmlNode rootNode = rootL[0];
-                if (rootNode != null)
-                {
-                    XmlNodeList partL = rootNode.ChildNodes;
+                XmlElement stateE = (XmlElement)n;
+                UUID itemID = new UUID(stateE.GetAttribute("UUID"));
 
-                    foreach (XmlNode part in partL)
-                    {
-                        XmlNodeList nodeL = part.ChildNodes;
-
-                        switch (part.Name)
-                        {
-                            case "Assemblies":
-                                foreach (XmlNode asm in nodeL)
-                                {
-                                    string fn = asm.Attributes.GetNamedItem("Filename").Value;
-
-                                    Byte[] filedata = Convert.FromBase64String(asm.InnerText);
-                                    string path = Path.Combine("ScriptEngines", RegionID.ToString());
-                                    path = Path.Combine(path, fn);
-
-                                    if (!File.Exists(path))
-                                    {
-                                        FileStream fs = File.Create(path);
-                                        fs.Write(filedata, 0, filedata.Length);
-                                        fs.Close();
-
-                                        Byte[] textbytes = new System.Text.ASCIIEncoding().GetBytes(asm.InnerText);
-                                        fs = File.Create(path+".text");
-                                        fs.Write(textbytes, 0, textbytes.Length);
-                                        fs.Close();
-                                    }
-                                }
-                                break;
-                            case "ScriptStates":
-                                foreach (XmlNode st in nodeL)
-                                {
-                                    string id = st.Attributes.GetNamedItem("UUID").Value;
-                                    UUID uuid = new UUID(id);
-                                    XmlNode state = st.ChildNodes[0];
-
-                                    XmlDocument sdoc = new XmlDocument();
-                                    XmlNode sxmlnode = sdoc.CreateNode(
-                                            XmlNodeType.XmlDeclaration,
-                                            "", "");
-                                    sdoc.AppendChild(sxmlnode);
-
-                                    XmlNode newnode = sdoc.ImportNode(state, true);
-                                    sdoc.AppendChild(newnode);
-
-                                    string spath = Path.Combine("ScriptEngines", RegionID.ToString());
-                                    spath = Path.Combine(spath, uuid.ToString());
-                                    FileStream sfs = File.Create(spath + ".state");
-                                    System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                                    Byte[] buf = enc.GetBytes(sdoc.InnerXml);
-                                    sfs.Write(buf, 0, buf.Length);
-                                    sfs.Close();
-                                }
-                                break;
-                        }
-                    }
-                }
+                scriptModule.SetXMLState(itemID, n.OuterXml);
             }
         }
     }
