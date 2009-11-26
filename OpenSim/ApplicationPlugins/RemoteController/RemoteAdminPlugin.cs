@@ -213,9 +213,59 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 if (!m_app.SceneManager.TryGetScene(regionID, out rebootedScene))
                     throw new Exception("region not found");
 
+                int timeout = 30000;
+                string message;
+
+                if (requestData.ContainsKey("restart")
+                    && ((string)requestData["restart"] == "delayed")
+                    && requestData.ContainsKey("milliseconds"))
+                {
+                    timeout = Int32.Parse(requestData["milliseconds"].ToString());
+
+                    if (timeout < 15000)
+                    {
+                        //It must be at least 15 seconds or we'll cancel the reboot request
+                        timeout = 15000;
+                    }
+
+                    message
+                        = "Region is restarting in " + ((int)(timeout / 1000)).ToString()
+                          + " second(s). Please save what you are doing and log out.";
+                }
+                else
+                {
+                    message = "Region is restarting in 30 second(s). Please save what you are doing and log out.";
+                }
+
+                if (requestData.ContainsKey("noticetype")
+                    && ((string)requestData["noticetype"] == "dialog"))
+                {
+                    m_app.SceneManager.ForEachScene(
+                    delegate(Scene scene)
+                    {
+                        IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                        if (dialogModule != null)
+                            dialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
+                    });
+                }
+                else
+                {
+                    if (!requestData.ContainsKey("noticetype")
+                    || ((string)requestData["noticetype"] != "none"))
+                    {
+                        m_app.SceneManager.ForEachScene(
+                        delegate(Scene scene)
+                        {
+                            IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                            if (dialogModule != null)
+                                dialogModule.SendGeneralAlert(message);
+                        });
+                    }
+                }
+
                 responseData["rebooting"] = true;
                 response.Value = responseData;
-                rebootedScene.Restart(30);
+                rebootedScene.Restart(timeout / 1000,false);
             }
             catch (Exception e)
             {
@@ -419,13 +469,33 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     message = "Region is going down now.";
                 }
 
-                m_app.SceneManager.ForEachScene(
+                if (requestData.ContainsKey("noticetype")
+                    && ((string) requestData["noticetype"] == "dialog"))
+                {
+                    m_app.SceneManager.ForEachScene(
                     delegate(Scene scene)
+                        {
+                            IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
+                            if (dialogModule != null)
+                                dialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
+                        });
+                }
+                else
+                {
+                    if (!requestData.ContainsKey("noticetype")
+                    || ((string)requestData["noticetype"] != "none"))
+                    {
+                        m_app.SceneManager.ForEachScene(
+                        delegate(Scene scene)
                         {
                             IDialogModule dialogModule = scene.RequestModuleInterface<IDialogModule>();
                             if (dialogModule != null)
                                 dialogModule.SendGeneralAlert(message);
                         });
+                    }
+                }
+
+                
 
                 // Perform shutdown
                 System.Timers.Timer shutdownTimer = new System.Timers.Timer(timeout); // Wait before firing

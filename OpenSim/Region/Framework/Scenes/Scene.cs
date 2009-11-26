@@ -873,6 +873,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="seconds">float indicating duration before restart.</param>
         public virtual void Restart(float seconds)
         {
+            Restart(seconds, true);
+        }
+
+        /// <summary>
+        /// Given float seconds, this will restart the region. showDialog will optionally alert the users.
+        /// </summary>
+        /// <param name="seconds">float indicating duration before restart.</param>
+        public virtual void Restart(float seconds, bool showDialog)
+        {
             // notifications are done in 15 second increments
             // so ..   if the number of seconds is less then 15 seconds, it's not really a restart request
             // It's a 'Cancel restart' request.
@@ -893,8 +902,11 @@ namespace OpenSim.Region.Framework.Scenes
                 m_restartTimer.Elapsed += new ElapsedEventHandler(RestartTimer_Elapsed);
                 m_log.Info("[REGION]: Restarting Region in " + (seconds / 60) + " minutes");
                 m_restartTimer.Start();
-                m_dialogModule.SendNotificationToUsersInRegion(
-                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in 2 Minutes");
+                if (showDialog)
+                {
+                    m_dialogModule.SendNotificationToUsersInRegion(
+                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " + (seconds / 60).ToString() + " Minutes");
+                }
             }
         }
 
