@@ -117,6 +117,7 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector4 CollisionPlane = Vector4.UnitW;
         
 		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation
+		private Vector3 m_avUnscriptedSitPos;	// for non-scripted prims
         private Vector3 m_lastPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
@@ -1644,9 +1645,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     AddToPhysicalScene(false);
                 }
-
                 m_pos += m_parentPosition + new Vector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
                 m_parentPosition = Vector3.Zero;
+//Console.WriteLine("Stand Pos {0}", m_pos);
 
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
@@ -1740,21 +1741,37 @@ namespace OpenSim.Region.Framework.Scenes
                     
 //Console.WriteLine("SendSitResponse offset=" + offset + "  UnOccup=" + SitTargetUnOccupied +
 //					"    TargSet=" + SitTargetisSet);
-					
-                if (SitTargetisSet && SitTargetUnOccupied)
+				// Sit analysis rewritten by KF 091125 
+                if (SitTargetisSet) 		// scipted sit
                 {
-                    part.SetAvatarOnSitTarget(UUID);
-                    offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);
-                    sitOrientation = avSitOrientation;
-                    autopilot = false;						// Jump direct to scripted llSitPos()
-                }
+					if (SitTargetUnOccupied)
+					{
+    	                part.SetAvatarOnSitTarget(UUID);		// set that Av will be on it
+    	                offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
+    	                sitOrientation = avSitOrientation;		// Change rotatione to the scripted one
+    	                autopilot = false;						// Jump direct to scripted llSitPos()
+    	            }
+    	        	else return;
+    	        }
+    	        else	// Not Scripted
+    	        {
+    	        	if ( (Math.Abs(offset.X) > 0.5f) || (Math.Abs(offset.Y) > 0.5f) ) // large prim
+    	        	{
+    	        		Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
+    	        		m_avUnscriptedSitPos = offset * partIRot;		// sit where clicked
+    	        		pos = part.AbsolutePosition + (offset  * partIRot);
+    	        	}
+    	        	else		// small prim
+    	        	{
+						if (SitTargetUnOccupied)
+						{
+							m_avUnscriptedSitPos = Vector3.Zero;	// Sit on unoccupied small prim center
+							pos = part.AbsolutePosition;
+    	        		}
+    	        		else return; 		// occupied small
+    	        	}	// end large/small
+    	        } // end Scripted/not
 
-                pos = part.AbsolutePosition + offset;		// Region position where clicked
-                //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
-                //{
-                   // offset = pos;
-                    //autopilot = false;
-                //}
                 if (m_physicsActor != null)
                 {
                     // If we're not using the client autopilot, we're immediately warping the avatar to the location
@@ -1887,8 +1904,9 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                     	// Non-scripted sit by Kitto Flora 21Nov09
                     	// Calculate angle of line from prim to Av
-	                	float y_diff = (m_avInitialPos.Y - part.AbsolutePosition.Y);
-    	            	float x_diff = ( m_avInitialPos.X - part.AbsolutePosition.X);
+                    	Vector3 sitTargetPos= part.AbsolutePosition + m_avUnscriptedSitPos;
+	                	float y_diff = (m_avInitialPos.Y - sitTargetPos.Y);
+    	            	float x_diff = ( m_avInitialPos.X - sitTargetPos.X);
     	            	if(Math.Abs(x_diff) < 0.001f) x_diff = 0.001f;			// avoid div by 0
     	            	if(Math.Abs(y_diff) < 0.001f) y_diff = 0.001f;			// avoid pol flip at 0
     	            	float sit_angle = (float)Math.Atan2( (double)y_diff, (double)x_diff);
@@ -1896,23 +1914,30 @@ namespace OpenSim.Region.Framework.Scenes
 						// NOTE: when sitting m_ pos and m_bodyRot are *relative* to the prim location/rotation, not 'World'.
     	            	//  Av sits at world euler <0,0, z>, translated by part rotation 
     	            	m_bodyRot = partIRot * Quaternion.CreateFromEulers(0f, 0f, sit_angle);		// sit at 0,0,inv-click
-                        m_pos = new Vector3(0f, 0f, 0.05f) + 
-                        		(new Vector3(0.0f, 0f, 0.625f) * partIRot) + 
-                        		(new Vector3(0.25f, 0f, 0.0f) * m_bodyRot);  // sit at center of prim
                         m_parentPosition = part.AbsolutePosition;
-                        //Set up raytrace to find top surface of prim
-         			    Vector3 size = part.Scale;
- 						float mag = 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
- 						Vector3 start =  part.AbsolutePosition + new Vector3(0f, 0f, mag);
- 						Vector3 down = new Vector3(0f, 0f, -1f);    
-	                    m_scene.PhysicsScene.RaycastWorld(
-                    		start,		// Vector3 position,
-                    		down, 		// Vector3 direction,
-                    		mag, 		// float length,
-                    		SitAltitudeCallback);          	// retMethod
-                    }
+    	            	if(m_avUnscriptedSitPos != Vector3.Zero)
+    	            	{				// sit where clicked on big prim
+	                    	m_pos = m_avUnscriptedSitPos + (new Vector3(0.0f, 0f, 0.625f) * partIRot);
+	                    }
+	                    else
+	                    {		  // sit at center of small prim
+	                        m_pos = new Vector3(0f, 0f, 0.05f) + 
+	                        		(new Vector3(0.0f, 0f, 0.625f) * partIRot) + 
+	                        		(new Vector3(0.25f, 0f, 0.0f) * m_bodyRot);
+	                        //Set up raytrace to find top surface of prim
+	         			    Vector3 size = part.Scale;
+	 						float mag = 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
+	 						Vector3 start =  part.AbsolutePosition + new Vector3(0f, 0f, mag);
+	 						Vector3 down = new Vector3(0f, 0f, -1f);    
+		                    m_scene.PhysicsScene.RaycastWorld(
+	                    		start,		// Vector3 position,
+	                    		down, 		// Vector3 direction,
+	                    		mag, 		// float length,
+	                    		SitAltitudeCallback);          	// retMethod
+	                    } // end small/big
+	                } // end scripted/not
                 }
-                else
+                else  // no Av
                 {
                     return;
                 }
