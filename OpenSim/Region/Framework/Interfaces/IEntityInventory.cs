@@ -185,19 +185,11 @@ namespace OpenSim.Region.Framework.Interfaces
         List<UUID> GetInventoryList();
         
         /// <summary>
-        /// Get the names of the assemblies associated with scripts in this inventory.
-        /// </summary>
-        /// <returns></returns>
-        string[] GetScriptAssemblies();
-        
-        /// <summary>
         /// Get the xml representing the saved states of scripts in this inventory.
         /// </summary>
         /// <returns>
         /// A <see cref="Dictionary`2"/>
         /// </returns>
         Dictionary<UUID, string> GetScriptStates();
-
-        bool CanBeDeleted();
     }
 }

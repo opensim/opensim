@@ -82,6 +82,7 @@ namespace OpenSim.Region.Framework.Scenes
         private int m_fps = 0;
         // saved last reported value so there is something available for llGetRegionFPS 
         private float lastReportedSimFPS = 0;
+		private float[] lastReportedSimStats = new float[21];
         private float m_pfps = 0;
         private int m_agentUpdates = 0;
 
@@ -259,6 +260,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                 sb[20].StatID = (uint)Stats.ScriptLinesPerSecond;
                 sb[20].StatValue = m_scriptLinesPerSecond / statsUpdateFactor;
+				
+				for (int i = 0; i < 21; i++)
+				{
+					lastReportedSimStats[i] = sb[i].StatValue;
+				}
               
                 SimStats simStats 
                     = new SimStats(
@@ -438,6 +444,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             return lastReportedSimFPS;
         }
+		
+		public float[] getLastReportedSimStats()
+		{
+			return lastReportedSimStats;
+		}
 
         public void AddPacketsStats(int inPackets, int outPackets, int unAckedBytes)
         {

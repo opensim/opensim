@@ -632,5 +632,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetRegionMapTexture(regionName);
         }
+		
+		public LSL_List osGetRegionStats()
+		{
+			return m_OSSL_Functions.osGetRegionStats();
+		}
     }
 }

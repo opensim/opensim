@@ -515,6 +515,29 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const string TEXTURE_PLYWOOD = "89556747-24cb-43ed-920b-47caed15465f";
         public const string TEXTURE_TRANSPARENT = "8dcd4a48-2d37-4909-9f78-f7a9eb4ef903";
         public const string TEXTURE_MEDIA = "8b5fec65-8d8d-9dc5-cda8-8fdf2716e361";
+		
+		// Constants for osGetRegionStats
+		public const int STATS_TIME_DILATION = 0;
+		public const int STATS_SIM_FPS = 1;
+		public const int STATS_PHYSICS_FPS = 2;
+		public const int STATS_AGENT_UPDATES = 3;
+		public const int STATS_ROOT_AGENTS = 4;
+		public const int STATS_CHILD_AGENTS = 5;
+		public const int STATS_TOTAL_PRIMS = 6;
+		public const int STATS_ACTIVE_PRIMS = 7;
+		public const int STATS_FRAME_MS = 8;
+		public const int STATS_NET_MS = 9;
+		public const int STATS_PHYSICS_MS = 10;
+		public const int STATS_IMAGE_MS = 11;
+		public const int STATS_OTHER_MS = 12;
+		public const int STATS_IN_PACKETS_PER_SECOND = 13;
+		public const int STATS_OUT_PACKETS_PER_SECOND = 14;
+		public const int STATS_UNACKED_BYTES = 15;
+		public const int STATS_AGENT_MS = 16;
+		public const int STATS_PENDING_DOWNLOADS = 17;
+		public const int STATS_PENDING_UPLOADS = 18;
+		public const int STATS_ACTIVE_SCRIPTS = 19;
+		public const int STATS_SCRIPT_LPS = 20;
 
     }
 }

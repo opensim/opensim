@@ -62,7 +62,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             
         public void Initialise(IConfigSource config)
         {
-            m_log.Info("[RegionReady] Initialising");
+            //m_log.Info("[RegionReady] Initialising");
 
             m_config = config.Configs["RegionReady"];
             if (m_config != null) 
@@ -74,8 +74,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 } 
             }
 
-            if (!m_enabled)
-                m_log.Info("[RegionReady] disabled.");
+//            if (!m_enabled)
+//                m_log.Info("[RegionReady] disabled.");
         }
 
         public void AddRegion(Scene scene)
@@ -92,7 +92,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             m_scene.EventManager.OnEmptyScriptCompileQueue += OnEmptyScriptCompileQueue;
             m_scene.EventManager.OnOarFileLoaded += OnOarFileLoaded;
 
-            m_log.InfoFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
+            m_log.DebugFormat("[RegionReady]: Enabled for region {0}", scene.RegionInfo.RegionName);
         }
 
         public void RemoveRegion(Scene scene)
@@ -120,7 +120,6 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
         }
 
         #endregion
-
         
         void OnEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {

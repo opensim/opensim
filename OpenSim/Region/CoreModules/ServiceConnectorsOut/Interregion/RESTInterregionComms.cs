@@ -641,7 +641,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             if (args["extra"] != null)
                 extraStr = args["extra"].AsString();
 
-            UUID regionID = m_localBackend.GetRegionID(regionhandle);
+            IScene s = m_localBackend.GetScene(regionhandle);
             SceneObjectGroup sog = null;
             try
             {
@@ -663,7 +663,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 {
                     try
                     {
-                        sog.SetState(stateXmlStr, regionID);
+                        sog.SetState(stateXmlStr, s);
                     }
                     catch (Exception ex)
                     {
@@ -694,8 +694,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 userID = args["userid"].AsUUID();
             if (args["itemid"] != null)
                 itemID = args["itemid"].AsUUID();
-
-            //UUID regionID = m_localBackend.GetRegionID(regionhandle);
 
             // This is the meaning of PUT object
             bool result = m_localBackend.SendCreateObject(regionhandle, userID, itemID);
