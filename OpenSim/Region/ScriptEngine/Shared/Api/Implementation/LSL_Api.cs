@@ -1987,6 +1987,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
 //KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
 //          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
+            
+            // So, after thinking about this for a bit, the issue with the part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition line
+            // is it isn't compatible with vehicles because it causes the vehicle body to have to be broken down and rebuilt
+            // It's perfectly okay when the object is not an active physical body though.
+            // So, part.ParentGroup.ResetChildPrimPhysicsPositions(); does the thing that Kitto is warning against
+            // but only if the object is not physial and active.   This is important for rotating doors.
+            // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
+            // scene
+            if (part.PhysActor != null && !part.PhysActor.IsPhysical)
+            {
+                part.ParentGroup.ResetChildPrimPhysicsPositions();
+            }
         }
 
         /// <summary>
