@@ -131,11 +131,6 @@ namespace OpenSim.Region.Framework.Scenes
                     if (left > 0)
                     {
                         x = m_inventoryDeletes.Dequeue();
-                        if (!x.objectGroup.CanBeDeleted())
-                        {
-                            m_inventoryDeletes.Enqueue(x);
-                            return true;
-                        }
 
                         m_log.DebugFormat(
                             "[SCENE]: Sending object to user's inventory, {0} item(s) remaining.", left);

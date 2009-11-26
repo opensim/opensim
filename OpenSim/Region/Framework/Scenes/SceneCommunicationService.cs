@@ -85,7 +85,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// A Prim will arrive shortly
         /// </summary>
-        public event ExpectPrimDelegate OnExpectPrim;
         public event CloseAgentConnection OnCloseAgentConnection;
 
         /// <summary>
@@ -116,7 +115,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
-        private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
         private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         //private RegionUp handlerRegionUp = null; // OnRegionUp;
@@ -147,30 +145,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// <exception cref="System.Exception">Thrown if region registration fails.</exception>
         public void RegisterRegion(IInterregionCommsOut comms_out, RegionInfo regionInfos)
         {
-            //m_interregionCommsOut = comms_out;
-
-            //m_regionInfo = regionInfos;
-            //m_commsProvider.GridService.gdebugRegionName = regionInfos.RegionName;
-            //regionCommsHost = m_commsProvider.GridService.RegisterRegion(m_regionInfo);
-
-            //if (regionCommsHost != null)
-            //{
-            //    //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: registered with gridservice and got" + regionCommsHost.ToString());
-
-            //    regionCommsHost.debugRegionName = regionInfos.RegionName;
-            //    regionCommsHost.OnExpectPrim += IncomingPrimCrossing;
-            //    regionCommsHost.OnExpectUser += NewUserConnection;
-            //    regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
-            //    regionCommsHost.OnCloseAgentConnection += CloseConnection;
-            //    regionCommsHost.OnRegionUp += newRegionUp;
-            //    regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
-            //    regionCommsHost.OnLogOffUser += GridLogOffUser;
-            //    regionCommsHost.OnGetLandData += FetchLandData;
-            //}
-            //else
-            //{
-            //    //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: registered with gridservice and got null");
-            //}
         }
 
         /// <summary>
@@ -179,31 +153,6 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void Close()
         {
-
-            //if (regionCommsHost != null)
-            //{
-            //    regionCommsHost.OnLogOffUser -= GridLogOffUser;
-            //    regionCommsHost.OnChildAgentUpdate -= ChildAgentUpdate;
-            //    regionCommsHost.OnRegionUp -= newRegionUp;
-            //    regionCommsHost.OnExpectUser -= NewUserConnection;
-            //    regionCommsHost.OnExpectPrim -= IncomingPrimCrossing;
-            //    regionCommsHost.OnAvatarCrossingIntoRegion -= AgentCrossing;
-            //    regionCommsHost.OnCloseAgentConnection -= CloseConnection;
-            //    regionCommsHost.OnGetLandData -= FetchLandData;
-                
-            //    try
-            //    {
-            //        m_commsProvider.GridService.DeregisterRegion(m_regionInfo);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        m_log.ErrorFormat(
-            //            "[GRID]: Deregistration of region {0} from the grid failed - {1}.  Continuing", 
-            //            m_regionInfo.RegionName, e);
-            //    }
-                
-            //    regionCommsHost = null;
-            //}
         }
 
         #region CommsManager Event handlers
@@ -261,27 +210,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 handlerAvatarCrossingIntoRegion(agentID, position, isFlying);
             }
-        }
-
-        /// <summary>
-        /// We have a new prim from a neighbor
-        /// </summary>
-        /// <param name="primID">unique ID for the primative</param>
-        /// <param name="objXMLData">XML2 encoded data of the primative</param>
-        /// <param name="XMLMethod">An Int that represents the version of the XMLMethod</param>
-        /// <returns>True if the prim was accepted, false if it was not</returns>
-        protected bool IncomingPrimCrossing(UUID primID, String objXMLData, int XMLMethod)
-        {
-            handlerExpectPrim = OnExpectPrim;
-            if (handlerExpectPrim != null)
-            {
-                return handlerExpectPrim(primID, objXMLData, XMLMethod);
-            }
-            else
-            {
-                return false;
-            }
-
         }
 
         protected void PrimCrossing(UUID primID, Vector3 position, bool isPhysical)

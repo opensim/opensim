@@ -3341,17 +3341,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         #endregion 
 
-        public bool CanBeDeleted()
-        {
-            foreach (SceneObjectPart part in Children.Values)
-            {
-                if (!part.CanBeDeleted())
-                    return false;
-            }
-
-            return true;
-        }
-
         public double GetUpdatePriority(IClientAPI client)
         {
             switch (Scene.UpdatePrioritizationScheme)
