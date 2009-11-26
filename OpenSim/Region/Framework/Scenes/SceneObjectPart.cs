@@ -3807,10 +3807,5 @@ namespace OpenSim.Region.Framework.Scenes
 
             Inventory.ApplyNextOwnerPermissions();
         }
-
-        public bool CanBeDeleted()
-        {
-            return Inventory.CanBeDeleted();
-        }
     }
 }

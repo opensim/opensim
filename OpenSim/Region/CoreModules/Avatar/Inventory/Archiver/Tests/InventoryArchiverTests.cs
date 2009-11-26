@@ -259,9 +259,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver.Tests
                 = InventoryArchiveUtils.FindItemByPath(scene.InventoryService, userInfo.UserProfile.ID, item1Name);
             
             Assert.That(foundItem1, Is.Not.Null, "Didn't find loaded item 1");
+
+// We have to disable this check since loaded items that did find users via OSPA resolution are now only storing the
+// UUID, not the OSPA itself.
+//            Assert.That(
+//                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
+//                "Loaded item non-uuid creator doesn't match original");
             Assert.That(
-                foundItem1.CreatorId, Is.EqualTo(item1.CreatorId), 
+                foundItem1.CreatorId, Is.EqualTo(userItemCreatorUuid.ToString()), 
                 "Loaded item non-uuid creator doesn't match original");
+            
             Assert.That(
                 foundItem1.CreatorIdAsUuid, Is.EqualTo(userItemCreatorUuid), 
                 "Loaded item uuid creator doesn't match original");
