@@ -2158,7 +2158,10 @@ Console.WriteLine(" JointCreateFixed");
                 // Re creates body on size.
                 // EnableBody also does setMass()
                 enableBody();
-                d.BodyEnable(Body);
+                if (Body != IntPtr.Zero)
+                {
+                    d.BodyEnable(Body);
+                }
             }
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
