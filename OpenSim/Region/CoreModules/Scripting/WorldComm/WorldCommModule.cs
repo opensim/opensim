@@ -602,9 +602,12 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 ListenerInfo info =
                         ListenerInfo.FromData(localID, itemID, hostID, item);
 
-                if (!m_listeners.ContainsKey((int)item[2]))
-                    m_listeners.Add((int)item[2], new List<ListenerInfo>());
-                m_listeners[(int)item[2]].Add(info);
+                lock (m_listeners)
+                {
+                    if (!m_listeners.ContainsKey((int)item[2]))
+                        m_listeners.Add((int)item[2], new List<ListenerInfo>());
+                    m_listeners[(int)item[2]].Add(info);
+                }
 
                 idx+=6;
             }
