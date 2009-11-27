@@ -1052,7 +1052,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.TouchUV;
         }
 
-        public void llDie()
+        public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
             throw new SelfDeleteException();
