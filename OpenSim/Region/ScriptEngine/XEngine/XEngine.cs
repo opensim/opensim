@@ -1391,7 +1391,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (rootE.GetAttribute("UUID") != itemID.ToString())
                 return;
 
-            string assetID = rootE.GetAttribute("Asset");
+//            string assetID = rootE.GetAttribute("Asset");
 
             XmlNodeList stateL = rootE.GetElementsByTagName("ScriptState");
 
