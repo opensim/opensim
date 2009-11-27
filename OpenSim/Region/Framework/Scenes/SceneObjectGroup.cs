@@ -1199,6 +1199,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (!silent)
                         {
+                            part.UpdateFlag = 0;
                             if (part == m_rootPart)
                                 avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                         }
