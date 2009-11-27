@@ -101,6 +101,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Dictionary<UUID, IScriptInstance> m_Scripts =
                 new Dictionary<UUID, IScriptInstance>();
 
+        private OpenMetaverse.ReaderWriterLockSlim m_scriptsLock = new OpenMetaverse.ReaderWriterLockSlim();
+
         // Maps the asset ID to the assembly
 
         private Dictionary<UUID, string> m_Assemblies =
@@ -121,6 +123,65 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private ScriptCompileQueue m_CompileQueue = new ScriptCompileQueue();
         IWorkItemResult m_CurrentCompile = null;
+
+        private void lockScriptsForRead(bool locked)
+        {
+            if (locked)
+            {
+                if (m_scriptsLock.RecursiveReadCount > 0)
+                {
+                    m_log.Error("[XEngine.m_Scripts] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
+                    m_scriptsLock.ExitReadLock();
+                }
+                if (m_scriptsLock.RecursiveWriteCount > 0)
+                {
+                    m_log.Error("[XEngine.m_Scripts] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+                    m_scriptsLock.ExitWriteLock();
+                }
+
+                while (!m_scriptsLock.TryEnterReadLock(60000))
+                {
+                    m_log.Error("[XEngine.m_Scripts] Thread lock detected while trying to aquire READ lock of m_scripts in XEngine. I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                    if (m_scriptsLock.IsWriteLockHeld)
+                    {
+                        m_scriptsLock = new OpenMetaverse.ReaderWriterLockSlim();
+                    }
+                }
+            }
+            else
+            {
+                m_scriptsLock.ExitReadLock();
+            }
+        }
+        private void lockScriptsForWrite(bool locked)
+        {
+            if (locked)
+            {
+                if (m_scriptsLock.RecursiveReadCount > 0)
+                {
+                    m_log.Error("[XEngine.m_Scripts] Recursive read lock requested. This should not happen and means something needs to be fixed. For now though, it's safe to continue.");
+                    m_scriptsLock.ExitReadLock();
+                }
+                if (m_scriptsLock.RecursiveWriteCount > 0)
+                {
+                    m_log.Error("[XEngine.m_Scripts] Recursive write lock requested. This should not happen and means something needs to be fixed.");
+                    m_scriptsLock.ExitWriteLock();
+                }
+
+                while (!m_scriptsLock.TryEnterWriteLock(60000))
+                {
+                    m_log.Error("[XEngine.m_Scripts] Thread lock detected while trying to aquire WRITE lock of m_scripts in XEngine. I'm going to try to solve the thread lock automatically to preserve region stability, but this needs to be fixed.");
+                    if (m_scriptsLock.IsWriteLockHeld)
+                    {
+                        m_scriptsLock = new OpenMetaverse.ReaderWriterLockSlim();
+                    }
+                }
+            }
+            else
+            {
+                m_scriptsLock.ExitWriteLock();
+            }
+        }
 
         public string ScriptEngineName
         {
@@ -261,43 +322,45 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void RemoveRegion(Scene scene)
         {
-            lock (m_Scripts)
+            lockScriptsForRead(true);
+            foreach (IScriptInstance instance in m_Scripts.Values)
             {
-                foreach (IScriptInstance instance in m_Scripts.Values)
+                // Force a final state save
+                //
+                if (m_Assemblies.ContainsKey(instance.AssetID))
                 {
-                    // Force a final state save
-                    //
-                    if (m_Assemblies.ContainsKey(instance.AssetID))
-                    {
-                        string assembly = m_Assemblies[instance.AssetID];
-                        instance.SaveState(assembly);
-                    }
-
-                    // Clear the event queue and abort the instance thread
-                    //
-                    instance.ClearQueue();
-                    instance.Stop(0);
-
-                    // Release events, timer, etc
-                    //
-                    instance.DestroyScriptInstance();
-
-                    // Unload scripts and app domains
-                    // Must be done explicitly because they have infinite
-                    // lifetime
-                    //
-                    m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-                    if (m_DomainScripts[instance.AppDomain].Count == 0)
-                    {
-                        m_DomainScripts.Remove(instance.AppDomain);
-                        UnloadAppDomain(instance.AppDomain);
-                    }
+                    string assembly = m_Assemblies[instance.AssetID];
+                    instance.SaveState(assembly);
                 }
-                m_Scripts.Clear();
-                m_PrimObjects.Clear();
-                m_Assemblies.Clear();
-                m_DomainScripts.Clear();
+
+                // Clear the event queue and abort the instance thread
+                //
+                instance.ClearQueue();
+                instance.Stop(0);
+
+                // Release events, timer, etc
+                //
+                instance.DestroyScriptInstance();
+
+                // Unload scripts and app domains
+                // Must be done explicitly because they have infinite
+                // lifetime
+                //
+                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+                if (m_DomainScripts[instance.AppDomain].Count == 0)
+                {
+                    m_DomainScripts.Remove(instance.AppDomain);
+                    UnloadAppDomain(instance.AppDomain);
+                }
             }
+            lockScriptsForRead(false);
+            lockScriptsForWrite(true);
+            m_Scripts.Clear();
+            lockScriptsForWrite(false);
+            m_PrimObjects.Clear();
+            m_Assemblies.Clear();
+            m_DomainScripts.Clear();
+           
             lock (m_ScriptEngines)
             {
                 m_ScriptEngines.Remove(this);
@@ -356,22 +419,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             List<IScriptInstance> instances = new List<IScriptInstance>();
 
-            lock (m_Scripts)
-            {
-                foreach (IScriptInstance instance in m_Scripts.Values)
+            lockScriptsForRead(true);
+                 foreach (IScriptInstance instance in m_Scripts.Values)
                     instances.Add(instance);
-            }
+            lockScriptsForRead(false);
 
             foreach (IScriptInstance i in instances)
             {
                 string assembly = String.Empty;
 
-                lock (m_Scripts)
-                {
+                
                     if (!m_Assemblies.ContainsKey(i.AssetID))
                         continue;
                     assembly = m_Assemblies[i.AssetID];
-                }
+                
 
                 i.SaveState(assembly);
             }
@@ -673,172 +734,183 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return false;
             }
 
-            lock (m_Scripts)
+            
+
+            ScriptInstance instance = null;
+            // Create the object record
+            lockScriptsForRead(true);
+            if ((!m_Scripts.ContainsKey(itemID)) ||
+                (m_Scripts[itemID].AssetID != assetID))
             {
-                ScriptInstance instance = null;
-                // Create the object record
+                lockScriptsForRead(false);
 
-                if ((!m_Scripts.ContainsKey(itemID)) ||
-                    (m_Scripts[itemID].AssetID != assetID))
+                UUID appDomain = assetID;
+
+                if (part.ParentGroup.IsAttachment)
+                    appDomain = part.ParentGroup.RootPart.UUID;
+
+                if (!m_AppDomains.ContainsKey(appDomain))
                 {
-                    UUID appDomain = assetID;
-
-                    if (part.ParentGroup.IsAttachment)
-                        appDomain = part.ParentGroup.RootPart.UUID;
-
-                    if (!m_AppDomains.ContainsKey(appDomain))
+                    try
                     {
-                        try
-                        {
-                            AppDomainSetup appSetup = new AppDomainSetup();
-//                            appSetup.ApplicationBase = Path.Combine(
-//                                    "ScriptEngines",
-//                                    m_Scene.RegionInfo.RegionID.ToString());
+                        AppDomainSetup appSetup = new AppDomainSetup();
+                        //                            appSetup.ApplicationBase = Path.Combine(
+                        //                                    "ScriptEngines",
+                        //                                    m_Scene.RegionInfo.RegionID.ToString());
 
-                            Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
-                            Evidence evidence = new Evidence(baseEvidence);
+                        Evidence baseEvidence = AppDomain.CurrentDomain.Evidence;
+                        Evidence evidence = new Evidence(baseEvidence);
 
-                            AppDomain sandbox;
-                            if (m_AppDomainLoading)
-                                sandbox = AppDomain.CreateDomain(
-                                                m_Scene.RegionInfo.RegionID.ToString(),
-                                                evidence, appSetup);
-                            else
-                                sandbox = AppDomain.CurrentDomain;
-                            
-                            //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
-                            //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
-                            //PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
-                            //PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
-                            //CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
-                            //sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
-                            //sandbox.SetAppDomainPolicy(sandboxPolicy);
-                            
-                            m_AppDomains[appDomain] = sandbox;
+                        AppDomain sandbox;
+                        if (m_AppDomainLoading)
+                            sandbox = AppDomain.CreateDomain(
+                                            m_Scene.RegionInfo.RegionID.ToString(),
+                                            evidence, appSetup);
+                        else
+                            sandbox = AppDomain.CurrentDomain;
 
-                            m_AppDomains[appDomain].AssemblyResolve +=
-                                new ResolveEventHandler(
-                                    AssemblyResolver.OnAssemblyResolve);
-                            m_DomainScripts[appDomain] = new List<UUID>();
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.ErrorFormat("[XEngine] Exception creating app domain:\n {0}", e.ToString());
-                            m_ScriptErrorMessage += "Exception creating app domain:\n";
-                            m_ScriptFailCount++;
-                            lock (m_AddingAssemblies) 
-                            {
-                                m_AddingAssemblies[assembly]--;
-                            }
-                            return false;
-                        }
+                        //PolicyLevel sandboxPolicy = PolicyLevel.CreateAppDomainLevel();
+                        //AllMembershipCondition sandboxMembershipCondition = new AllMembershipCondition();
+                        //PermissionSet sandboxPermissionSet = sandboxPolicy.GetNamedPermissionSet("Internet");
+                        //PolicyStatement sandboxPolicyStatement = new PolicyStatement(sandboxPermissionSet);
+                        //CodeGroup sandboxCodeGroup = new UnionCodeGroup(sandboxMembershipCondition, sandboxPolicyStatement);
+                        //sandboxPolicy.RootCodeGroup = sandboxCodeGroup;
+                        //sandbox.SetAppDomainPolicy(sandboxPolicy);
+
+                        m_AppDomains[appDomain] = sandbox;
+
+                        m_AppDomains[appDomain].AssemblyResolve +=
+                            new ResolveEventHandler(
+                                AssemblyResolver.OnAssemblyResolve);
+                        m_DomainScripts[appDomain] = new List<UUID>();
                     }
-                    m_DomainScripts[appDomain].Add(itemID);
-
-                    instance = new ScriptInstance(this, part,
-                                                  itemID, assetID, assembly,
-                                                  m_AppDomains[appDomain],
-                                                  part.ParentGroup.RootPart.Name,
-                                                  item.Name, startParam, postOnRez,
-                                                  stateSource, m_MaxScriptQueue);
-                    
-                    m_log.DebugFormat("[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
-                            part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, part.ParentGroup.RootPart.AbsolutePosition.ToString());
-
-                    if (presence != null)
+                    catch (Exception e)
                     {
-                        ShowScriptSaveResponse(item.OwnerID,
-                                assetID, "Compile successful", true);
+                        m_log.ErrorFormat("[XEngine] Exception creating app domain:\n {0}", e.ToString());
+                        m_ScriptErrorMessage += "Exception creating app domain:\n";
+                        m_ScriptFailCount++;
+                        lock (m_AddingAssemblies)
+                        {
+                            m_AddingAssemblies[assembly]--;
+                        }
+                        return false;
                     }
-
-                    instance.AppDomain = appDomain;
-                    instance.LineMap = linemap;
-
-                    m_Scripts[itemID] = instance;
                 }
+                m_DomainScripts[appDomain].Add(itemID);
 
-                lock (m_PrimObjects)
+                instance = new ScriptInstance(this, part,
+                                              itemID, assetID, assembly,
+                                              m_AppDomains[appDomain],
+                                              part.ParentGroup.RootPart.Name,
+                                              item.Name, startParam, postOnRez,
+                                              stateSource, m_MaxScriptQueue);
+
+                m_log.DebugFormat("[XEngine] Loaded script {0}.{1}, script UUID {2}, prim UUID {3} @ {4}",
+                        part.ParentGroup.RootPart.Name, item.Name, assetID, part.UUID, part.ParentGroup.RootPart.AbsolutePosition.ToString());
+
+                if (presence != null)
                 {
-                    if (!m_PrimObjects.ContainsKey(localID))
-                        m_PrimObjects[localID] = new List<UUID>();
-
-                    if (!m_PrimObjects[localID].Contains(itemID))
-                        m_PrimObjects[localID].Add(itemID);
-
+                    ShowScriptSaveResponse(item.OwnerID,
+                            assetID, "Compile successful", true);
                 }
 
-                if (!m_Assemblies.ContainsKey(assetID))
-                    m_Assemblies[assetID] = assembly;
-
-                lock (m_AddingAssemblies) 
-                {
-                    m_AddingAssemblies[assembly]--;
-                }
-
-                if (instance!=null) 
-                    instance.Init();
+                instance.AppDomain = appDomain;
+                instance.LineMap = linemap;
+                lockScriptsForWrite(true);
+                m_Scripts[itemID] = instance;
+                lockScriptsForWrite(false);
             }
+            else
+            {
+                lockScriptsForRead(false);
+            }
+            lock (m_PrimObjects)
+            {
+                if (!m_PrimObjects.ContainsKey(localID))
+                    m_PrimObjects[localID] = new List<UUID>();
+
+                if (!m_PrimObjects[localID].Contains(itemID))
+                    m_PrimObjects[localID].Add(itemID);
+
+            }
+
+            if (!m_Assemblies.ContainsKey(assetID))
+                m_Assemblies[assetID] = assembly;
+
+            lock (m_AddingAssemblies) 
+            {
+                m_AddingAssemblies[assembly]--;
+            }
+
+            if (instance!=null) 
+                instance.Init();
+            
             return true;
         }
 
         public void OnRemoveScript(uint localID, UUID itemID)
         {
-            lock (m_Scripts)
+            lockScriptsForRead(true);
+            // Do we even have it?
+            if (!m_Scripts.ContainsKey(itemID))
             {
-                // Do we even have it?
-                if (!m_Scripts.ContainsKey(itemID))
-                    return;
+                lockScriptsForRead(false);
+                return;
+            }
+             
 
-                IScriptInstance instance=m_Scripts[itemID];
-                m_Scripts.Remove(itemID);
+            IScriptInstance instance=m_Scripts[itemID];
+            lockScriptsForRead(false);
+            lockScriptsForWrite(true);
+            m_Scripts.Remove(itemID);
+            lockScriptsForWrite(false);
+            instance.ClearQueue();
+            instance.Stop(0);
 
-                instance.ClearQueue();
-                instance.Stop(0);
+            SceneObjectPart part =
+                m_Scene.GetSceneObjectPart(localID);
 
-                SceneObjectPart part =
-                    m_Scene.GetSceneObjectPart(localID);
-
-                if (part != null)
-                    part.RemoveScriptEvents(itemID);
+            if (part != null)
+                part.RemoveScriptEvents(itemID);
 
 //                bool objectRemoved = false;
 
-                lock (m_PrimObjects)
+            lock (m_PrimObjects)
+            {
+                // Remove the script from it's prim
+                if (m_PrimObjects.ContainsKey(localID))
                 {
-                    // Remove the script from it's prim
-                    if (m_PrimObjects.ContainsKey(localID))
-                    {
-                        // Remove inventory item record
-                        if (m_PrimObjects[localID].Contains(itemID))
-                            m_PrimObjects[localID].Remove(itemID);
+                    // Remove inventory item record
+                    if (m_PrimObjects[localID].Contains(itemID))
+                        m_PrimObjects[localID].Remove(itemID);
 
-                        // If there are no more scripts, remove prim
-                        if (m_PrimObjects[localID].Count == 0)
-                        {
-                            m_PrimObjects.Remove(localID);
+                    // If there are no more scripts, remove prim
+                    if (m_PrimObjects[localID].Count == 0)
+                    {
+                        m_PrimObjects.Remove(localID);
 //                            objectRemoved = true;
-                        }
                     }
                 }
-
-                instance.RemoveState();
-                instance.DestroyScriptInstance();
-
-                m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
-                if (m_DomainScripts[instance.AppDomain].Count == 0)
-                {
-                    m_DomainScripts.Remove(instance.AppDomain);
-                    UnloadAppDomain(instance.AppDomain);
-                }
-
-                instance = null;
-
-                ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
-                if (handlerObjectRemoved != null)
-                    handlerObjectRemoved(part.UUID);
-
-                CleanAssemblies();
             }
+
+            instance.RemoveState();
+            instance.DestroyScriptInstance();
+
+            m_DomainScripts[instance.AppDomain].Remove(instance.ItemID);
+            if (m_DomainScripts[instance.AppDomain].Count == 0)
+            {
+                m_DomainScripts.Remove(instance.AppDomain);
+                UnloadAppDomain(instance.AppDomain);
+            }
+
+            instance = null;
+
+            ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
+            if (handlerObjectRemoved != null)
+                handlerObjectRemoved(part.UUID);
+
+            CleanAssemblies();
+            
 
             ScriptRemoved handlerScriptRemoved = OnScriptRemoved;
             if (handlerScriptRemoved != null)
@@ -1091,12 +1163,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private IScriptInstance GetInstance(UUID itemID)
         {
             IScriptInstance instance;
-            lock (m_Scripts)
+            lockScriptsForRead(true);
+            if (!m_Scripts.ContainsKey(itemID))
             {
-                if (!m_Scripts.ContainsKey(itemID))
-                    return null;
-                instance = m_Scripts[itemID];
+                lockScriptsForRead(false);
+                return null;
             }
+            instance = m_Scripts[itemID];
+            lockScriptsForRead(false);
             return instance;
         }
 
@@ -1200,11 +1274,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             List<IScriptInstance> instances = new List<IScriptInstance>();
 
-            lock (m_Scripts)
-            {
-                foreach (IScriptInstance instance in m_Scripts.Values)
+            lockScriptsForRead(true);
+            foreach (IScriptInstance instance in m_Scripts.Values)
                     instances.Add(instance);
-            }
+            lockScriptsForRead(false);
 
             foreach (IScriptInstance i in instances)
             {

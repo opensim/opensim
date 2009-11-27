@@ -2950,8 +2950,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return m_host.OwnerID.ToString();
         }
 
+        [DebuggerNonUserCode]
         public void llInstantMessage(string user, string message)
         {
+            UUID result;
+            if (!UUID.TryParse(user, out result))
+            {
+                throw new Exception(String.Format("An invalid key of '{0} was passed to llInstantMessage", user));
+                return;
+            }
+            
+
             m_host.AddScriptLPS(1);
 
             // We may be able to use ClientView.SendInstantMessage here, but we need a client instance.
@@ -2966,7 +2975,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID friendTransactionID = UUID.Random();
 
             //m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
-
+            
             GridInstantMessage msg = new GridInstantMessage();
             msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.Guid;
             msg.toAgentID = new Guid(user); // toAgentID.Guid;
