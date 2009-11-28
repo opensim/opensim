@@ -154,13 +154,14 @@ namespace OpenSim.Data.Tests
                 );
         }
 
-        //[Test]
-        // Currently fails occasionally
+        [Test]
         public void T012_EstateSettingsRandomStorage()
         {
             // Letting estate store generate rows to database for us
             EstateSettings originalSettings = db.LoadEstateSettings(REGION_ID);
-            new PropertyScrambler<EstateSettings>().Scramble(originalSettings);
+            new PropertyScrambler<EstateSettings>()
+                .DontScramble(x=>x.EstateID)
+                .Scramble(originalSettings);
 
             // Saving settings.
             db.StoreEstateSettings(originalSettings);
