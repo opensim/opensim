@@ -749,7 +749,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                           ChatTypeEnum.Whisper, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llSay(int channelID, string text)
@@ -769,7 +770,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                               ChatTypeEnum.Say, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
                 IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-                wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
+                if (wComm != null)
+                    wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
             }
         }
 
@@ -784,7 +786,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                           ChatTypeEnum.Shout, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llRegionSay(int channelID, string text)
@@ -801,7 +804,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)
@@ -810,21 +814,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID;
             UUID.TryParse(ID, out keyID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
+            if (wComm != null)
+                return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
+            else
+                return -1;
         }
 
         public void llListenControl(int number, int active)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenControl(m_itemID, number, active);
+            if (wComm != null)
+                wComm.ListenControl(m_itemID, number, active);
         }
 
         public void llListenRemove(int number)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenRemove(m_itemID, number);
+            if (wComm != null)
+                wComm.ListenRemove(m_itemID, number);
         }
 
         public void llSensor(string name, string id, int type, double range, double arc)

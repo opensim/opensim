@@ -166,7 +166,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 ts.next = DateTime.Now.Ticks + (long)data[idx+1];
                 idx += 2;
 
-                Timers.Add(MakeTimerKey(localID,itemID), ts);
+                lock (TimerListLock)
+                {
+                    Timers.Add(MakeTimerKey(localID, itemID), ts);
+                }
             }
         }
     }

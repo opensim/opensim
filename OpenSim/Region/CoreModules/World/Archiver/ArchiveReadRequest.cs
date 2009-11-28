@@ -453,6 +453,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Resolve path to a working FileStream
         /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         private Stream GetStream(string path)
         {
             if (File.Exists(path))
@@ -499,8 +501,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             WebResponse response = request.GetResponse();
             Stream file = response.GetResponseStream();
 
-            if (response.ContentType != "application/x-oar")
-                throw new Exception(String.Format("{0} does not identify an OAR file", uri.ToString()));
+            // justincc: gonna ignore the content type for now and just try anything
+            //if (response.ContentType != "application/x-oar")
+            //    throw new Exception(String.Format("{0} does not identify an OAR file", uri.ToString()));
 
             if (response.ContentLength == 0)
                 throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));

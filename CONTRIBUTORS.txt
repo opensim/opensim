@@ -86,6 +86,7 @@ what it is today.
 * Kevin Cozens
 * kinoc (Daxtron Labs)
 * Kitto Flora
+* KittyLiu
 * Kurt Taylor (IBM)
 * lulurun 
 * M.Igarashi
@@ -104,6 +105,7 @@ what it is today.
 * otakup0pe
 * ralphos
 * RemedyTomm
+* Revolution
 * Richard Alimi (IBM)
 * Rick Alther (IBM)
 * Rob Smart (IBM)

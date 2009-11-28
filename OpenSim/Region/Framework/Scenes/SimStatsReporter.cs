@@ -238,7 +238,7 @@ namespace OpenSim.Region.Framework.Scenes
                 sb[12].StatValue = m_otherMS / statsUpdateFactor;
 
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
-                sb[13].StatValue = (m_inPacketsPerSecond);
+                sb[13].StatValue = (m_inPacketsPerSecond / statsUpdateFactor);
 
                 sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
                 sb[14].StatValue = (m_outPacketsPerSecond / statsUpdateFactor);
@@ -285,8 +285,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_fps = 0;
             m_pfps = 0;
             m_agentUpdates = 0;
-            m_inPacketsPerSecond = 0;
-            m_outPacketsPerSecond = 0;
+            //m_inPacketsPerSecond = 0;
+            //m_outPacketsPerSecond = 0;
             m_unAckedBytes = 0;
             m_scriptLinesPerSecond = 0;
 
@@ -373,12 +373,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void AddInPackets(int numPackets)
         {
-            m_inPacketsPerSecond += numPackets;
+            m_inPacketsPerSecond = numPackets;
         }
 
         public void AddOutPackets(int numPackets)
         {
-            m_outPacketsPerSecond += numPackets;
+            m_outPacketsPerSecond = numPackets;
         }
 
         public void AddunAckedBytes(int numBytes)

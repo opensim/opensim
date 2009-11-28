@@ -4410,16 +4410,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        #region Avatar Appearance Default
-
-        public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
-        {
-            visualParams = AvatarAppearance.GetDefaultVisualParams();
-            wearables = AvatarWearable.DefaultWearables;
-        }
-
-        #endregion
-
         public void RegionHandleRequest(IClientAPI client, UUID regionID)
         {
             ulong handle = 0;
