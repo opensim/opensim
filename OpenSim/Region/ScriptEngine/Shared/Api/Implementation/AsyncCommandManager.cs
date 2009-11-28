@@ -236,7 +236,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             iHttpReq.StopHttpRequest(localID, itemID);
 
             IWorldComm comms = engine.World.RequestModuleInterface<IWorldComm>();
-            comms.DeleteListener(itemID);
+            if (comms != null)
+                comms.DeleteListener(itemID);
 
             IXMLRPC xmlrpc = engine.World.RequestModuleInterface<IXMLRPC>();
             xmlrpc.DeleteChannels(itemID);
