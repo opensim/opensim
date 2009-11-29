@@ -193,6 +193,9 @@ namespace OpenSim.Region.Framework.Scenes
                 // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
                 // Then we divide the whole amount by the amount of seconds pass in between stats updates.
 
+                // 'statsUpdateFactor' is how often stats packets are sent in seconds. Used below to change
+                // values to X-per-second values.
+
                 for (int i = 0; i<21;i++)
                 {
                     sb[i] = new SimStatsPacket.StatBlock();

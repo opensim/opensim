@@ -97,6 +97,7 @@ what it is today.
 * Mike Osias (IBM)
 * Mike Pitman (IBM)
 * mikkopa/_someone - RealXtend
+* Misterblue (Intel)
 * Mircea Kitsune
 * mpallari
 * nornalbion

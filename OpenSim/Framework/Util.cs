@@ -1390,5 +1390,29 @@ namespace OpenSim.Framework
         }
 
         #endregion FireAndForget Threading Pattern
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. This trims down TickCount so it doesn't wrap
+        /// for the callers. 
+        /// This trims it to a 12 day interval so don't let your frame time get too long.
+        /// </summary>
+        /// <returns></returns>
+        public static Int32 EnvironmentTickCount()
+        {
+            return Environment.TickCount & EnvironmentTickCountMask;
+        }
+        const Int32 EnvironmentTickCountMask = 0x3fffffff;
+
+        /// <summary>
+        /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
+        /// and negative every 24.9 days. Subtracts the passed value (previously fetched by
+        /// 'EnvironmentTickCount()') and accounts for any wrapping.
+        /// </summary>
+        /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
+        public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
+        {
+            Int32 diff = EnvironmentTickCount() - prevValue;
+            return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
+        }
     }
 }

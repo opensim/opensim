@@ -310,7 +310,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Thread HeartbeatThread;
         private volatile bool shuttingdown;
 
-        private int m_lastUpdate = Environment.TickCount;
+        private int m_lastUpdate;
         private bool m_firstHeartbeat = true;
 
         private UpdatePrioritizationSchemes m_update_prioritization_scheme = UpdatePrioritizationSchemes.Time;
@@ -526,6 +526,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_regionHandle = m_regInfo.RegionHandle;
             m_regionName = m_regInfo.RegionName;
             m_datastore = m_regInfo.DataStore;
+            m_lastUpdate = Util.EnvironmentTickCount();
 
             m_physicalPrim = physicalPrim;
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
@@ -735,6 +736,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_regInfo = regInfo;
             m_eventManager = new EventManager();
+
+            m_lastUpdate = Util.EnvironmentTickCount();
         }
 
         #endregion
@@ -1089,7 +1092,7 @@ namespace OpenSim.Region.Framework.Scenes
                 HeartbeatThread.Abort();
                 HeartbeatThread = null;
             }
-            m_lastUpdate = Environment.TickCount;
+            m_lastUpdate = Util.EnvironmentTickCount();
 
             HeartbeatThread = Watchdog.StartThread(Heartbeat, "Heartbeat for region " + RegionInfo.RegionName, ThreadPriority.Normal, false);
         }
@@ -1130,7 +1133,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 Update();
 
-                m_lastUpdate = Environment.TickCount;
+                m_lastUpdate = Util.EnvironmentTickCount();
                 m_firstHeartbeat = false;
             }
             catch (ThreadAbortException)
@@ -1158,8 +1161,9 @@ namespace OpenSim.Region.Framework.Scenes
                 TimeSpan SinceLastFrame = DateTime.UtcNow - m_lastupdate;
                 physicsFPS = 0f;
 
-                maintc = otherMS = Environment.TickCount;
+                maintc = Util.EnvironmentTickCount();
                 int tmpFrameMS = maintc;
+                tempOnRezMS = eventMS = backupMS = terrainMS = landMS = 0;
 
                 // Increment the frame counter
                 ++m_frame;
@@ -1179,16 +1183,15 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_frame % m_update_presences == 0)
                         m_sceneGraph.UpdatePresences();
 
-                    int TempPhysicsMS2 = Environment.TickCount;
+                    int tmpPhysicsMS2 = Util.EnvironmentTickCount();
                     if ((m_frame % m_update_physics == 0) && m_physics_enabled)
                         m_sceneGraph.UpdatePreparePhysics();
-                    TempPhysicsMS2 = Environment.TickCount - TempPhysicsMS2;
-                    physicsMS2 = TempPhysicsMS2;
+                    physicsMS2 = Util.EnvironmentTickCountSubtract(tmpPhysicsMS2);
 
                     if (m_frame % m_update_entitymovement == 0)
                         m_sceneGraph.UpdateScenePresenceMovement();
 
-                    int TempPhysicsMS = Environment.TickCount;
+                    int tmpPhysicsMS = Util.EnvironmentTickCount();
                     if (m_frame % m_update_physics == 0)
                     {
                         if (m_physics_enabled)
@@ -1196,57 +1199,49 @@ namespace OpenSim.Region.Framework.Scenes
                         if (SynchronizeScene != null)
                             SynchronizeScene(this);
                     }
-                    TempPhysicsMS = Environment.TickCount - TempPhysicsMS;
-                    physicsMS = TempPhysicsMS;
+                    physicsMS = Util.EnvironmentTickCountSubtract(tmpPhysicsMS);
 
                     // Delete temp-on-rez stuff
                     if (m_frame % m_update_backup == 0)
                     {
-                        int tozMS = Environment.TickCount;
+                        int tmpTempOnRezMS = Util.EnvironmentTickCount();
                         CleanTempObjects();
-                        tozMS -= Environment.TickCount;
-                        tempOnRezMS = tozMS;
+                        tempOnRezMS = Util.EnvironmentTickCountSubtract(tmpTempOnRezMS);
                     }
 
                     if (RegionStatus != RegionStatus.SlaveScene)
                     {
                         if (m_frame % m_update_events == 0)
                         {
-                            int evMS = Environment.TickCount;
+                            int evMS = Util.EnvironmentTickCount();
                             UpdateEvents();
-                            evMS -= Environment.TickCount;
-                            eventMS = evMS;
+                            eventMS = Util.EnvironmentTickCountSubtract(evMS); ;
                         }
 
                         if (m_frame % m_update_backup == 0)
                         {
-                            int backMS = Environment.TickCount;
+                            int backMS = Util.EnvironmentTickCount();
                             UpdateStorageBackup();
-                            backMS -= Environment.TickCount;
-                            backupMS = backMS;
+                            backupMS = Util.EnvironmentTickCountSubtract(backMS);
                         }
 
                         if (m_frame % m_update_terrain == 0)
                         {
-                            int terMS = Environment.TickCount;
+                            int terMS = Util.EnvironmentTickCount();
                             UpdateTerrain();
-                            terMS -= Environment.TickCount;
-                            terrainMS = terMS;
+                            terrainMS = Util.EnvironmentTickCountSubtract(terMS);
                         }
 
                         if (m_frame % m_update_land == 0)
                         {
-                            int ldMS = Environment.TickCount;
+                            int ldMS = Util.EnvironmentTickCount();
                             UpdateLand();
-                            ldMS -= Environment.TickCount;
-                            landMS = ldMS;
+                            landMS = Util.EnvironmentTickCountSubtract(ldMS);
                         }
 
-                        int tickCount = Environment.TickCount;
-                        otherMS = tickCount - otherMS;
-                        tmpFrameMS -= tickCount;
-                        frameMS = tmpFrameMS;
-                        lastCompletedFrame = tickCount;
+                        frameMS = Util.EnvironmentTickCountSubtract(tmpFrameMS);
+                        otherMS = tempOnRezMS + eventMS + backupMS + terrainMS + landMS;
+                        lastCompletedFrame = Util.EnvironmentTickCount();
 
                         // if (m_frame%m_update_avatars == 0)
                         //   UpdateInWorldTime();
@@ -1299,8 +1294,8 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_lastupdate = DateTime.UtcNow;
                 }
-                
-                maintc = Environment.TickCount - maintc;
+
+                maintc = Util.EnvironmentTickCountSubtract(maintc);
                 maintc = (int)(m_timespan * 1000) - maintc;
 
                 if ((maintc < (m_timespan * 1000)) && maintc > 0)
@@ -1311,6 +1306,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        
 
         public void AddGroupTarget(SceneObjectGroup grp)
         {
@@ -2587,7 +2583,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            m_LastLogin = Environment.TickCount;
+            m_LastLogin = Util.EnvironmentTickCount();
             EventManager.TriggerOnNewClient(client);
         }
 
@@ -4656,14 +4652,14 @@ namespace OpenSim.Region.Framework.Scenes
             //
             int health=1; // Start at 1, means we're up
 
-            if ((Environment.TickCount - m_lastUpdate) < 1000)
+            if ((Util.EnvironmentTickCountSubtract(m_lastUpdate)) < 1000)
                 health+=1;
             else
                 return health;
 
             // A login in the last 4 mins? We can't be doing too badly
             //
-            if ((Environment.TickCount - m_LastLogin) < 240000)
+            if ((Util.EnvironmentTickCountSubtract(m_LastLogin)) < 240000)
                 health++;
             else
                 return health;
@@ -4861,7 +4857,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_firstHeartbeat)
                 return;
 
-            if (System.Environment.TickCount - m_lastUpdate > 2000)
+            if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 2000)
                 StartTimer();
         }
     }
