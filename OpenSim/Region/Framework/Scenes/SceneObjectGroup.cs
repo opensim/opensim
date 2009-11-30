@@ -1199,6 +1199,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         if (!silent)
                         {
+                            part.UpdateFlag = 0;
                             if (part == m_rootPart)
                                 avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                         }
@@ -3340,17 +3341,6 @@ namespace OpenSim.Region.Framework.Scenes
             SetFromItemID(uuid);
         }
         #endregion 
-
-        public bool CanBeDeleted()
-        {
-            foreach (SceneObjectPart part in Children.Values)
-            {
-                if (!part.CanBeDeleted())
-                    return false;
-            }
-
-            return true;
-        }
 
         public double GetUpdatePriority(IClientAPI client)
         {

@@ -32,7 +32,6 @@ namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(AgentCircuitData agent);
 
-    public delegate bool ExpectPrimDelegate(UUID primID, string objData, int XMLMethod);
 
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
 
@@ -55,7 +54,6 @@ namespace OpenSim.Framework
     public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
-        event ExpectPrimDelegate OnExpectPrim;
         event GenericCall2 OnExpectChildAgent;
         event AgentCrossing OnAvatarCrossingIntoRegion;
         event PrimCrossing OnPrimCrossingIntoRegion;

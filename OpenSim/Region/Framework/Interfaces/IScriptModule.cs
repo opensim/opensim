@@ -34,9 +34,8 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         string ScriptEngineName { get; }
 
-        string GetAssemblyName(UUID itemID);
         string GetXMLState(UUID itemID);
-        bool CanBeDeleted(UUID itemID);
+        void SetXMLState(UUID itemID, string xml);
 
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
         bool PostObjectEvent(UUID itemID, string name, Object[] args);

@@ -734,7 +734,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                           ChatTypeEnum.Whisper, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llSay(int channelID, string text)
@@ -754,7 +755,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                               ChatTypeEnum.Say, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
                 IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-                wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
+                if (wComm != null)
+                    wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
             }
         }
 
@@ -769,7 +771,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                           ChatTypeEnum.Shout, channelID, m_host.ParentGroup.RootPart.AbsolutePosition, m_host.Name, m_host.UUID, true);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llRegionSay(int channelID, string text)
@@ -786,7 +789,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
+            if (wComm != null)
+                wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public LSL_Integer llListen(int channelID, string name, string ID, string msg)
@@ -795,21 +799,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             UUID keyID;
             UUID.TryParse(ID, out keyID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
+            if (wComm != null)
+                return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
+            else
+                return -1;
         }
 
         public void llListenControl(int number, int active)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenControl(m_itemID, number, active);
+            if (wComm != null)
+                wComm.ListenControl(m_itemID, number, active);
         }
 
         public void llListenRemove(int number)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenRemove(m_itemID, number);
+            if (wComm != null)
+                wComm.ListenRemove(m_itemID, number);
         }
 
         public void llSensor(string name, string id, int type, double range, double arc)
@@ -1037,7 +1046,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.TouchUV;
         }
 
-        public void llDie()
+        public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
             throw new SelfDeleteException();
@@ -1987,6 +1996,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
 //KF:  Do NOT use this next line if using ODE physics engine. This need a switch based on .ini Phys Engine type
 //          part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
+            
+            // So, after thinking about this for a bit, the issue with the part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition line
+            // is it isn't compatible with vehicles because it causes the vehicle body to have to be broken down and rebuilt
+            // It's perfectly okay when the object is not an active physical body though.
+            // So, part.ParentGroup.ResetChildPrimPhysicsPositions(); does the thing that Kitto is warning against
+            // but only if the object is not physial and active.   This is important for rotating doors.
+            // without the absoluteposition = absoluteposition happening, the doors do not move in the physics
+            // scene
+            if (part.PhysActor != null && !part.PhysActor.IsPhysical)
+            {
+                part.ParentGroup.ResetChildPrimPhysicsPositions();
+            }
         }
 
         /// <summary>
@@ -5772,6 +5793,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             return World.SimulatorFPS;
         }
+		
 
         /* particle system rules should be coming into this routine as doubles, that is
         rule[0] should be an integer from this list and rule[1] should be the arg

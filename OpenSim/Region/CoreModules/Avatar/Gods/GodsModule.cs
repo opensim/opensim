@@ -98,7 +98,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         /// <param name="godID">The person doing the kicking</param>
         /// <param name="sessionID">The session of the person doing the kicking</param>
         /// <param name="agentID">the person that is being kicked</param>
-        /// <param name="kickflags">This isn't used apparently</param>
+        /// <param name="kickflags">Tells what to do to the user</param>
         /// <param name="reason">The message to send to the user after it's been turned into a field</param>
         public void KickUser(UUID godID, UUID sessionID, UUID agentID, uint kickflags, byte[] reason)
         {
@@ -110,39 +110,56 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             {
                 if (m_scene.Permissions.IsGod(godID))
                 {
-                    if (agentID == kickUserID)
+                    if (kickflags == 0)
                     {
-                        string reasonStr = Utils.BytesToString(reason);
+                        if (agentID == kickUserID)
+                        {
+                            string reasonStr = Utils.BytesToString(reason);
 
-                        m_scene.ForEachClient(
-                            delegate(IClientAPI controller)
-                            {
-                                if (controller.AgentId != godID)
-                                    controller.Kick(reasonStr);
-                            }
-                        );
-
-                        // This is a bit crude. It seems the client will be null before it actually stops the thread
-                        // The thread will kill itself eventually :/
-                        // Is there another way to make sure *all* clients get this 'inter region' message?
-                        m_scene.ForEachScenePresence(
-                            delegate(ScenePresence p)
-                            {
-                                if (p.UUID != godID && !p.IsChildAgent)
-                                {
-                                    // Possibly this should really be p.Close() though that method doesn't send a close
-                                    // to the client
-                                    p.ControllingClient.Close();
+                            m_scene.ForEachClient(
+                                delegate(IClientAPI controller)
+                				{
+                                    if (controller.AgentId != godID)
+                                        controller.Kick(reasonStr);
                                 }
-                            }
-                        );
-                    }
-                    else
-                    {
-                        m_scene.SceneGraph.removeUserCount(!sp.IsChildAgent);
+                            );
 
-                        sp.ControllingClient.Kick(Utils.BytesToString(reason));
-                        sp.ControllingClient.Close();
+                            // This is a bit crude. It seems the client will be null before it actually stops the thread
+                            // The thread will kill itself eventually :/
+                            // Is there another way to make sure *all* clients get this 'inter region' message?
+                            m_scene.ForEachScenePresence(
+                                delegate(ScenePresence p)
+                                {
+                                    if (p.UUID != godID && !p.IsChildAgent)
+                                    {
+                                        // Possibly this should really be p.Close() though that method doesn't send a close
+                                        // to the client
+                                        p.ControllingClient.Close();
+                                    }
+                                }
+                            );
+                        }
+                        else
+                        {
+                            m_scene.SceneGraph.removeUserCount(!sp.IsChildAgent);
+
+                            sp.ControllingClient.Kick(Utils.BytesToString(reason));
+                            sp.ControllingClient.Close();
+                        }
+                    }
+                    
+                    if (kickflags == 1)
+                    {
+                        sp.AllowMovement = false;
+                        m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                        m_dialogModule.SendAlertToUser(godID, "User Frozen");
+                    }
+                    
+                    if (kickflags == 2)
+                    {
+                        sp.AllowMovement = true;
+                        m_dialogModule.SendAlertToUser(agentID, Utils.BytesToString(reason));
+                        m_dialogModule.SendAlertToUser(godID, "User Unfrozen");
                     }
                 }
                 else

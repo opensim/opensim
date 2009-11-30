@@ -138,6 +138,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// whether or not to sleep</summary>
         private bool m_packetSent;
 
+        /// <summary>Environment.TickCount of the last time that packet stats were reported to the scene</summary>
+        private int m_elapsedMSSinceLastStatReport = 0;
         /// <summary>Environment.TickCount of the last time the outgoing packet handler executed</summary>
         private int m_tickLastOutgoingPacketHandler;
         /// <summary>Keeps track of the number of elapsed milliseconds since the last time the outgoing packet handler looped</summary>
@@ -246,6 +248,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Start the packet processing threads
             Watchdog.StartThread(IncomingPacketHandler, "Incoming Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false);
             Watchdog.StartThread(OutgoingPacketHandler, "Outgoing Packets (" + m_scene.RegionInfo.RegionName + ")", ThreadPriority.Normal, false);
+            m_elapsedMSSinceLastStatReport = Environment.TickCount;
         }
 
         public new void Stop()
@@ -716,6 +719,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // We don't need to do anything else with ping checks
                 StartPingCheckPacket startPing = (StartPingCheckPacket)packet;
                 CompletePing(udpClient, startPing.PingID.PingID);
+
+                if ((Environment.TickCount - m_elapsedMSSinceLastStatReport) >= 3000)
+                {
+                    udpClient.SendPacketStats();
+                    m_elapsedMSSinceLastStatReport = Environment.TickCount;
+                }
                 return;
             }
             else if (packet.Type == PacketType.CompletePingCheck)

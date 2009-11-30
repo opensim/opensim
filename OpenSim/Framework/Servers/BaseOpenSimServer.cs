@@ -442,7 +442,7 @@ namespace OpenSim.Framework.Servers
             if (File.Exists(gitCommitFileName))
             {
                 StreamReader CommitFile = File.OpenText(gitCommitFileName);
-                buildVersion = Environment.NewLine + "git# " + CommitFile.ReadLine();
+                buildVersion = CommitFile.ReadLine();
                 CommitFile.Close();
                 m_version += buildVersion ?? "";
             }
