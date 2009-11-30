@@ -2871,11 +2871,9 @@ namespace OpenSim.Region.Framework.Scenes
                 scale.Y = m_scene.m_maxNonphys;
             if (scale.Z > m_scene.m_maxNonphys)
                 scale.Z = m_scene.m_maxNonphys;
-
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.Resize(scale);
                 if (part.PhysActor != null)
                 {
                     if (part.PhysActor.IsPhysical)
@@ -2890,7 +2888,7 @@ namespace OpenSim.Region.Framework.Scenes
                     part.PhysActor.Size = scale;
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
-                //if (part.UUID != m_rootPart.UUID)
+                part.Resize(scale);
 
                 HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
@@ -2931,77 +2929,76 @@ namespace OpenSim.Region.Framework.Scenes
                 float y = (scale.Y / part.Scale.Y);
                 float z = (scale.Z / part.Scale.Z);
 
-                lock (m_parts)
+                lockPartsForRead(true);
+                if (x > 1.0f || y > 1.0f || z > 1.0f)
                 {
-                    if (x > 1.0f || y > 1.0f || z > 1.0f)
+                    foreach (SceneObjectPart obPart in m_parts.Values)
                     {
-                        foreach (SceneObjectPart obPart in m_parts.Values)
+                        if (obPart.UUID != m_rootPart.UUID)
                         {
-                            if (obPart.UUID != m_rootPart.UUID)
+                            Vector3 oldSize = new Vector3(obPart.Scale);
+
+                            float f = 1.0f;
+                            float a = 1.0f;
+
+                            if (part.PhysActor != null && part.PhysActor.IsPhysical)
                             {
-                                Vector3 oldSize = new Vector3(obPart.Scale);
-
-                                float f = 1.0f;
-                                float a = 1.0f;
-
-                                if (part.PhysActor != null && part.PhysActor.IsPhysical)
+                                if (oldSize.X*x > m_scene.m_maxPhys)
                                 {
-                                    if (oldSize.X*x > m_scene.m_maxPhys)
-                                    {
-                                        f = m_scene.m_maxPhys / oldSize.X;
-                                        a = f / x;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
-                                    if (oldSize.Y*y > m_scene.m_maxPhys)
-                                    {
-                                        f = m_scene.m_maxPhys / oldSize.Y;
-                                        a = f / y;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
-                                    if (oldSize.Z*z > m_scene.m_maxPhys)
-                                    {
-                                        f = m_scene.m_maxPhys / oldSize.Z;
-                                        a = f / z;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
+                                    f = m_scene.m_maxPhys / oldSize.X;
+                                    a = f / x;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
                                 }
-                                else
+                                if (oldSize.Y*y > m_scene.m_maxPhys)
                                 {
-                                    if (oldSize.X*x > m_scene.m_maxNonphys)
-                                    {
-                                        f = m_scene.m_maxNonphys / oldSize.X;
-                                        a = f / x;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
-                                    if (oldSize.Y*y > m_scene.m_maxNonphys)
-                                    {
-                                        f = m_scene.m_maxNonphys / oldSize.Y;
-                                        a = f / y;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
-                                    if (oldSize.Z*z > m_scene.m_maxNonphys)
-                                    {
-                                        f = m_scene.m_maxNonphys / oldSize.Z;
-                                        a = f / z;
-                                        x *= a;
-                                        y *= a;
-                                        z *= a;
-                                    }
+                                    f = m_scene.m_maxPhys / oldSize.Y;
+                                    a = f / y;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
+                                }
+                                if (oldSize.Z*z > m_scene.m_maxPhys)
+                                {
+                                    f = m_scene.m_maxPhys / oldSize.Z;
+                                    a = f / z;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
+                                }
+                            }
+                            else
+                            {
+                                if (oldSize.X*x > m_scene.m_maxNonphys)
+                                {
+                                    f = m_scene.m_maxNonphys / oldSize.X;
+                                    a = f / x;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
+                                }
+                                if (oldSize.Y*y > m_scene.m_maxNonphys)
+                                {
+                                    f = m_scene.m_maxNonphys / oldSize.Y;
+                                    a = f / y;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
+                                }
+                                if (oldSize.Z*z > m_scene.m_maxNonphys)
+                                {
+                                    f = m_scene.m_maxNonphys / oldSize.Z;
+                                    a = f / z;
+                                    x *= a;
+                                    y *= a;
+                                    z *= a;
                                 }
                             }
                         }
                     }
                 }
+                lockPartsForRead(false);
 
                 Vector3 prevScale = part.Scale;
                 prevScale.X *= x;
