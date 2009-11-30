@@ -939,8 +939,8 @@ namespace OpenSim
                     m_log.Info(String.Format("\nAgents connected: {0}\n", agents.Count));
 
                     m_log.Info(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Root/Child", "Region"));
+                        String.Format("{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}{5,-30}", "Firstname", "Lastname",
+                                      "Agent ID", "Root/Child", "Region", "Position"));
 
                     foreach (ScenePresence presence in agents)
                     {
@@ -958,12 +958,13 @@ namespace OpenSim
 
                         m_log.Info(
                             String.Format(
-                                "{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}",
+                                "{0,-16}{1,-16}{2,-37}{3,-11}{4,-16}{5,-30}",
                                 presence.Firstname,
                                 presence.Lastname,
                                 presence.UUID,
                                 presence.IsChildAgent ? "Child" : "Root",
-                                regionName));
+                                regionName,
+                                presence.AbsolutePosition.ToString()));
                     }
 
                     m_log.Info(String.Empty);
