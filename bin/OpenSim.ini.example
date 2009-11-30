@@ -1152,7 +1152,6 @@
     safemode = false
 
 [VivoxVoice]
-
     ; The VivoxVoice module will allow you to provide voice on your
     ; region(s). It uses the same voice technology as the LL grid and
     ; works with recent LL clients (we have tested 1.22.9.110075, so
@@ -1292,6 +1291,15 @@
      ReprioritizationInterval = 2000.0
      RootReprioritizationDistance = 10.0
      ChildReprioritizationDistance = 20.0
+
+
+[WebStats]
+; View region statistics via a web page
+; See http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page 
+; Use a web browser and type in the "Login URI" + "/SStats/"
+; For example- http://127.0.0.1:9000/SStats/
+; enabled=false
+
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].
