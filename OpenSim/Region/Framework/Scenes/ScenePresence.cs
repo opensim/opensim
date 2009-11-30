@@ -3048,6 +3048,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneViewer.Close();
 
             RemoveFromPhysicalScene();
+            m_animator.Close();
+            m_animator = null;
         }
 
         public ScenePresence()
