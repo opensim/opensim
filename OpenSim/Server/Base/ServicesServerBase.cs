@@ -226,6 +226,10 @@ namespace OpenSim.Server.Base
                     "quit",
                     "Quit the application", HandleQuit);
 
+            MainConsole.Instance.Commands.AddCommand("base", false, "shutdown",
+                    "shutdown",
+                    "Quit the application", HandleQuit);
+
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
             //
