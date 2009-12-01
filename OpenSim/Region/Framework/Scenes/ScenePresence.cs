@@ -3043,7 +3043,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             // I don't get it but mono crashes when you try to dispose of this timer,
             // unsetting the elapsed callback should be enough to allow for cleanup however.
-            //m_reprioritizationTimer.Dispose();
+            // m_reprioritizationTimer.Dispose(); 
 
             m_sceneViewer.Close();
 
