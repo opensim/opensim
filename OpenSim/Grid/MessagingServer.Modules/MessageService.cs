@@ -350,7 +350,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
                 ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
-                m_log.InfoFormat("[LOGIN]: User {0} {1} logged into region {2} as {3} agent, building indexes for user",
+                m_log.DebugFormat("[LOGIN]: User {0} {1} logged into region {2} as {3} agent, building indexes for user",
                                  agentData.firstname, agentData.lastname, regionHandle, agentData.child ? "child" : "root");
 
                 UserPresenceData up = new UserPresenceData();
@@ -363,7 +363,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[LOGIN]: Exception on UserLoggedOn: {0}", e);
+                m_log.ErrorFormat("[LOGIN]: Exception on UserLoggedOn: {0} {1}", e.Message, e.StackTrace);
             }
 
             return new XmlRpcResponse();

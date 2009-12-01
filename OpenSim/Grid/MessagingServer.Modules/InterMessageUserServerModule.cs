@@ -124,12 +124,15 @@ namespace OpenSim.Grid.MessagingServer.Modules
                     else
                         m_log.DebugFormat("[SERVER]: Registered with user service at {0}", srv);
                 }
-                catch
+                catch (Exception e)
                 {
-                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
+                    m_log.ErrorFormat(
+                        "[SERVER]: Unable to connect to server {0} for registration. User service not running?  Exception {1} {2}",
+                        srv, e.Message, e.StackTrace);
                     success = false;
                 }
             }
+            
             return success;
         }
 
@@ -176,9 +179,11 @@ namespace OpenSim.Grid.MessagingServer.Modules
                     if (!UserRespData.ContainsKey("responsestring"))
                         success = false;
                 }
-                catch
+                catch (Exception e)
                 {
-                    m_log.ErrorFormat("Unable to connect to server {0}. Server not running?", srv);
+                    m_log.ErrorFormat(
+                        "[SERVER]: Unable to connect to server {0} for send. Server not running?  Exception {0} {1}", 
+                        srv, e.Message, e.StackTrace);
                     success = false;
                 }
             }
