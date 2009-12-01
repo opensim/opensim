@@ -151,7 +151,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             }
             else
             {
-                m_log.WarnFormat("no data found for user {0}", receiver.agentData.AgentID);
+                m_log.WarnFormat("[PRESENCE]: no data found for user {0}", receiver.agentData.AgentID);
                 // Skip because we can't find any data on the user
             }
         }
@@ -281,7 +281,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             }
             catch (WebException e)
             {
-                m_log.Warn("Error when trying to fetch Avatar's friends list: " +
+                m_log.Warn("[FRIENDS]: Error when trying to fetch Avatar's friends list: " +
                                       e.Message);
                 // Return Empty list (no friends)
             }
@@ -350,7 +350,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
                 ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
-                m_log.InfoFormat("[LOGON]: User {0} {1} logged into region {2} as {3} agent, building indexes for user",
+                m_log.InfoFormat("[LOGIN]: User {0} {1} logged into region {2} as {3} agent, building indexes for user",
                                  agentData.firstname, agentData.lastname, regionHandle, agentData.child ? "child" : "root");
 
                 UserPresenceData up = new UserPresenceData();
@@ -476,7 +476,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
             UUID regionID;
             if (UUID.TryParse((string)requestData["regionid"], out regionID))
             {
-                m_log.DebugFormat("[PRESENCE] Processing region restart for {0}", regionID);
+                m_log.DebugFormat("[PRESENCE]: Processing region restart for {0}", regionID);
                 result["success"] = "TRUE";
 
                 foreach (UserPresenceData up in m_presences.Values)
@@ -485,7 +485,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
                     {
                         if (up.OnlineYN)
                         {
-                            m_log.DebugFormat("[PRESENCE] Logging off {0} because the region they were in has gone", up.agentData.AgentID);
+                            m_log.DebugFormat("[PRESENCE]: Logging off {0} because the region they were in has gone", up.agentData.AgentID);
                             ProcessLogOff(up.agentData.AgentID);
                         }
                     }
