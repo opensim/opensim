@@ -92,7 +92,6 @@ namespace OpenSim.Grid.MessagingServer.Modules
         public void RegisterHandlers()
         {
             //have these in separate method as some servers restart the http server and reregister all the handlers.
-
         }
 
         #region FriendList Methods
@@ -361,7 +360,6 @@ namespace OpenSim.Grid.MessagingServer.Modules
                 up.OnlineYN = true;
                 up.lookupUserRegionYN = false;
                 ProcessFriendListSubscriptions(up);
-
             }
             catch (Exception e)
             {
@@ -369,7 +367,6 @@ namespace OpenSim.Grid.MessagingServer.Modules
             }
 
             return new XmlRpcResponse();
-
         }
 
         /// <summary>

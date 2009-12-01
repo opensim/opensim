@@ -50,7 +50,10 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         private IGridServiceCore m_messageCore;
 
-        private Timer reconnectTimer = new Timer(300000); // 5 mins
+        /// <value>
+        /// Reregister with the user service every 5 minutes
+        /// </value>
+        private Timer reconnectTimer = new Timer(300000);
 
         public InterMessageUserServerModule(MessageServerConfig config, IGridServiceCore messageCore)
         {
@@ -69,13 +72,11 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
         public void PostInitialise()
         {
-
         }
 
         public void RegisterHandlers()
         {
-            //have these in separate method as some servers restart the http server and reregister all the handlers.
-           
+            //have these in separate method as some servers restart the http server and reregister all the handlers.           
         }
 
         public void registerWithUserServer(object sender, ElapsedEventArgs e)
@@ -121,7 +122,7 @@ namespace OpenSim.Grid.MessagingServer.Modules
                     if (!GridRespData.ContainsKey("responsestring"))
                         success = false;
                     else
-                        m_log.InfoFormat("[SERVER] Registered with {0}", srv);
+                        m_log.DebugFormat("[SERVER]: Registered with user service at {0}", srv);
                 }
                 catch
                 {
