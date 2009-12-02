@@ -147,6 +147,7 @@ namespace OpenSim.Grid.UserServer.Modules
                 MessageServers["URI"] = msginfo;
             }
         }
+        
         public void RemoveResponsibleRegion(string URI, ulong regionhandle)
         {
             if (!MessageServers.ContainsKey(URI))
@@ -164,6 +165,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
 
         }
+        
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -182,9 +184,15 @@ namespace OpenSim.Grid.UserServer.Modules
                 RegisterMessageServer(URI, m);
                 responseData["responsestring"] = "TRUE";
                 response.Value = responseData;
+
+                m_log.DebugFormat(
+                    "[MSGSERVER]: Successfully processed message service registration request from {0}", 
+                    remoteClient.Address);
             }
+            
             return response;
         }
+        
         public XmlRpcResponse XmlRPCDeRegisterMessageServer(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
