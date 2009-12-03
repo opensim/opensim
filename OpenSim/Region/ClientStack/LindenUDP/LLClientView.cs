@@ -5521,6 +5521,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
             {
+                // Linden Client limitation..     
+                if (avSetStartLocationRequestPacket.StartLocationData.LocationPos.X == 255.5f
+                    || avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y == 255.5f)
+                {
+                    ScenePresence avatar = null;
+                    if (((Scene)m_scene).TryGetAvatar(AgentId, out avatar))
+                    {
+                        if (avSetStartLocationRequestPacket.StartLocationData.LocationPos.X == 255.5f)
+                        {
+                            avSetStartLocationRequestPacket.StartLocationData.LocationPos.X = avatar.AbsolutePosition.X;
+                        }
+                        if (avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y == 255.5f)
+                        {
+                            avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y = avatar.AbsolutePosition.Y;
+                        }
+                    }
+
+                }
                 TeleportLocationRequest handlerSetStartLocationRequest = OnSetStartLocationRequest;
                 if (handlerSetStartLocationRequest != null)
                 {

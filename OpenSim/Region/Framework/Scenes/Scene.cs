@@ -3034,24 +3034,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // TODO: The next line can be removed, as soon as only homeRegionID based UserServers are around.
                 // TODO: The HomeRegion property can be removed then, too
                 UserProfile.HomeRegion = RegionInfo.RegionHandle;
-                
-                // Linden Client limitation..     
-                if (position.X == 255.5f || position.Y == 255.5f)
-                {
-                    ScenePresence avatar = null;
-                    if (TryGetAvatar(remoteClient.AgentId, out avatar))
-                    {
-                        if (position.X == 255.5f)
-                        {
-                            position.X = avatar.AbsolutePosition.X;
-                        }
-                        if (position.Y == 255.5f)
-                        {
-                            position.Y = avatar.AbsolutePosition.Y;
-                        }
-                    }
-                        
-                }
 
                 UserProfile.HomeLocation = position;
                 UserProfile.HomeLookAt = lookAt;
