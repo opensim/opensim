@@ -201,6 +201,7 @@ namespace OpenSim.Grid.UserServer.Modules
             }
             return response;
         }
+        
         public XmlRpcResponse XmlRPCUserMovedtoRegion(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             XmlRpcResponse response = new XmlRpcResponse();
