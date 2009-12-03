@@ -168,6 +168,10 @@ namespace OpenSim.Grid.UserServer.Modules
         
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request, IPEndPoint remoteClient)
         {
+            m_log.DebugFormat(
+                "[MSGSERVER]: Beginning processing message service registration request from {0}",
+                remoteClient.Address);
+
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -175,8 +179,8 @@ namespace OpenSim.Grid.UserServer.Modules
             if (requestData.Contains("uri"))
             {
                 string URI = (string)requestData["uri"];
-                string sendkey=(string)requestData["sendkey"];
-                string recvkey=(string)requestData["recvkey"];
+                string sendkey = (string)requestData["sendkey"];
+                string recvkey = (string)requestData["recvkey"];
                 MessageServerInfo m = new MessageServerInfo();
                 m.URI = URI;
                 m.sendkey = sendkey;
@@ -186,7 +190,13 @@ namespace OpenSim.Grid.UserServer.Modules
                 response.Value = responseData;
 
                 m_log.DebugFormat(
-                    "[MSGSERVER]: Successfully processed message service registration request from {0}", 
+                    "[MSGSERVER]: Successfully processed message service registration request from {0}",
+                    remoteClient.Address);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[MSGSERVER]: Message service registration request from {0} did not contain a uri, not registering",
                     remoteClient.Address);
             }
             
