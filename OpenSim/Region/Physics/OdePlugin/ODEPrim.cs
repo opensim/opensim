@@ -723,6 +723,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         break;
                 }
             }
+            if (returnMass > _parent_scene.maximumMassObject)
+                returnMass = _parent_scene.maximumMassObject;
             return returnMass;
         }// end CalculateMass
 
@@ -733,6 +735,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (Body != (IntPtr) 0)
             {
                 float newmass = CalculateMass();
+
                 //m_log.Info("[PHYSICS]: New Mass: " + newmass.ToString());
 
                 d.MassSetBoxTotal(out pMass, newmass, _size.X, _size.Y, _size.Z);

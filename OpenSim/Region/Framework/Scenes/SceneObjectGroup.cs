@@ -2589,7 +2589,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
-                        if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
+                        if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
+                            part.Scale.Y > m_scene.RegionInfo.PhysPrimMax ||
+                            part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
                         {
                             UsePhysics = false; // Reset physics
                             break;

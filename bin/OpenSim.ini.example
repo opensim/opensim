@@ -594,6 +594,9 @@
     body_motor_joint_maxforce_tensor_linux = 5
     body_motor_joint_maxforce_tensor_win = 5
 
+    ; Maximum mass an object can be before it is clamped
+    maximum_mass_object = 10000.01
+
     ; ##
     ; ## Sculpted Prim settings
     ; ##
