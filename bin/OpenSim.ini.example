@@ -91,7 +91,7 @@
 
     ; Maximum total size, and maximum size where a prim can be physical
     NonPhysicalPrimMax = 256
-    PhysicalPrimMax = 10
+    PhysicalPrimMax = 10 ; (I think this was moved to the Regions.ini!)
     ClampPrimSize = false
 
     ; Region crossing
