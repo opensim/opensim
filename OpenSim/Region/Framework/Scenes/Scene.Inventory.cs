@@ -2393,6 +2393,12 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
+
+                if (m_AvatarFactory != null)
+                {
+                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+
             }
         }
 

@@ -315,8 +315,21 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
                 if (null == terrainModule) throw new Exception("terrain module not available");
-                terrainModule.LoadFromFile(file);
-
+                if (Uri.IsWellFormedUriString(file, UriKind.Absolute))
+                {
+                    m_log.Info("[RADMIN]: Terrain path is URL");
+                    Uri result;
+                    if (Uri.TryCreate(file, UriKind.RelativeOrAbsolute, out result))
+                    {
+                        // the url is valid
+                        string fileType = file.Substring(file.LastIndexOf('/') + 1);                       
+                        terrainModule.LoadFromStream(fileType, result);                        
+                    }
+                }
+                else
+                {
+                    terrainModule.LoadFromFile(file);
+                }
                 responseData["success"] = false;
 
                 response.Value = responseData;
