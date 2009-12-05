@@ -119,8 +119,6 @@ namespace OpenSim.Framework
         /// </summary>
         private string m_profileUrl;
 
-        private UUID m_rootInventoryFolderId;
-
         /// <summary>
         /// The second component of a users account name
         /// </summary>
@@ -310,12 +308,6 @@ namespace OpenSim.Framework
         {
             get { return m_lastLogin; }
             set { m_lastLogin = value; }
-        }
-
-        public UUID RootInventoryFolderID
-        {
-            get { return m_rootInventoryFolderId; }
-            set { m_rootInventoryFolderId = value; }
         }
 
         public string UserInventoryURI
