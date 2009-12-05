@@ -2932,14 +2932,15 @@ namespace OpenSim.Region.Framework.Scenes
             //if ((Math.Abs(Velocity.X) > 0.1e-9f) || (Math.Abs(Velocity.Y) > 0.1e-9f))
             // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
-            Animator.UpdateMovementAnimations();
+            if (Animator!=null)
+                Animator.UpdateMovementAnimations();
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
 
             CollisionPlane = Vector4.UnitW;
 
-            if (coldata.Count != 0)
+            if (coldata.Count != 0 && Animator != null)
             {
                 switch (Animator.CurrentMovementAnimation)
                 {
