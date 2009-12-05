@@ -724,12 +724,20 @@ namespace OpenSim.Framework.Servers.HttpServer
                         }
                         catch(Exception e)
                         {
+                            string errorMessage
+                                = String.Format(
+                                    "Requested method [{0}] from {1} threw exception: {2} {3}",
+                                    methodName, request.RemoteIPEndPoint.Address, e.Message, e.StackTrace);
+
+                            m_log.ErrorFormat("[BASE HTTP SERVER]: {0}", errorMessage);
+
                             // if the registered XmlRpc method threw an exception, we pass a fault-code along
                             xmlRpcResponse = new XmlRpcResponse();
+
                             // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
-                            xmlRpcResponse.SetFault(-32603, String.Format("Requested method [{0}] threw exception: {1}",
-                                                                          methodName, e.Message));
+                            xmlRpcResponse.SetFault(-32603, errorMessage);                            
                         }
+
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here
                         response.KeepAlive = m_rpcHandlersKeepAlive[methodName];
                     }

@@ -2776,8 +2776,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                     {
-                        UsePhysics = false; // Reset physics
-                        break;
+                        if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
+                            part.Scale.Y > m_scene.RegionInfo.PhysPrimMax ||
+                            part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
+                        {
+                            UsePhysics = false; // Reset physics
+                            break;
+                        }
                     }
                 }
 

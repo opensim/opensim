@@ -91,7 +91,7 @@
 
     ; Maximum total size, and maximum size where a prim can be physical
     NonPhysicalPrimMax = 256
-    PhysicalPrimMax = 10
+    PhysicalPrimMax = 10 ; (I think this was moved to the Regions.ini!)
     ClampPrimSize = false
 
     ; Region crossing
@@ -596,6 +596,9 @@
     ; Used for llSetStatus.  How rigid the object rotation is held on the axis specified
     body_motor_joint_maxforce_tensor_linux = 5
     body_motor_joint_maxforce_tensor_win = 5
+
+    ; Maximum mass an object can be before it is clamped
+    maximum_mass_object = 10000.01
 
     ; ##
     ; ## Sculpted Prim settings

@@ -188,7 +188,15 @@ namespace OpenSim.Framework.Servers.HttpServer
                 try
                 {
                     IPAddress addr = IPAddress.Parse(req.Headers["remote_addr"]);
-                    int port = Int32.Parse(req.Headers["remote_port"]);
+                    // sometimes req.Headers["remote_port"] returns a comma separated list, so use
+                    // the first one in the list and log it 
+                    string[] strPorts = req.Headers["remote_port"].Split(new char[] { ',' });
+                    if (strPorts.Length > 1)
+                    {
+                        _log.ErrorFormat("[OSHttpRequest]: format exception on addr/port {0}:{1}, ignoring",
+                                     req.Headers["remote_addr"], req.Headers["remote_port"]);
+                    }
+                    int port = Int32.Parse(strPorts[0]);
                     _remoteIPEndPoint = new IPEndPoint(addr, port);
                 }
                 catch (FormatException)

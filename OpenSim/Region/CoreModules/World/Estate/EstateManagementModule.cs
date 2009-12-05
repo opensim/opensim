@@ -471,20 +471,45 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (terr != null)
             {
                 m_log.Warn("[CLIENT]: Got Request to Send Terrain in region " + m_scene.RegionInfo.RegionName);
-                if (File.Exists(Util.dataDir() + "/terrain.raw"))
-                {
-                    File.Delete(Util.dataDir() + "/terrain.raw");
-                }
+
                 try
                 {
-                    FileStream input = new FileStream(Util.dataDir() + "/terrain.raw", FileMode.CreateNew);
+
+                    string localfilename = "terrain.raw";
+
+                    if (terrainData.Length == 851968)
+                    {
+                        localfilename = Path.Combine(Util.dataDir(),"terrain.raw"); // It's a .LLRAW
+                    }
+
+                    if (terrainData.Length == 196662) // 24-bit 256x256 Bitmap
+                        localfilename = Path.Combine(Util.dataDir(), "terrain.bmp");
+
+                    if (terrainData.Length == 256 * 256 * 4) // It's a .R32
+                        localfilename = Path.Combine(Util.dataDir(), "terrain.r32");
+
+                    if (terrainData.Length == 256 * 256 * 8) // It's a .R64
+                        localfilename = Path.Combine(Util.dataDir(), "terrain.r64");
+
+                    if (File.Exists(localfilename))
+                    {
+                        File.Delete(localfilename);
+                    }
+
+                    FileStream input = new FileStream(localfilename, FileMode.CreateNew);
                     input.Write(terrainData, 0, terrainData.Length);
                     input.Close();
+
+                    FileInfo x = new FileInfo(localfilename);
+
+                    terr.LoadFromFile(localfilename);
+                    remoteClient.SendAlertMessage("Your terrain was loaded as a ." + x.Extension + " file. It may take a few moments to appear.");
+
                 }
                 catch (IOException e)
                 {
                     m_log.ErrorFormat("[TERRAIN]: Error Saving a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
-                    remoteClient.SendAlertMessage("There was an IO Exception loading your terrain.  Please check free space");
+                    remoteClient.SendAlertMessage("There was an IO Exception loading your terrain.  Please check free space.");
 
                     return;
                 }
@@ -502,29 +527,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
                     return;
                 }
-
-
-
-
-                try
-                {
-                    terr.LoadFromFile(Util.dataDir() + "/terrain.raw");
-                    remoteClient.SendAlertMessage("Your terrain was loaded. Give it a minute or two to apply");
-                }
                 catch (Exception e)
                 {
                     m_log.ErrorFormat("[TERRAIN]: Error loading a terrain file uploaded via the estate tools.  It gave us the following error: {0}", e.ToString());
                     remoteClient.SendAlertMessage("There was a general error loading your terrain.  Please fix the terrain file and try again");
                 }
-
             }
             else
             {
                 remoteClient.SendAlertMessage("Unable to apply terrain.  Cannot get an instance of the terrain module");
             }
-
-
-
         }
 
         private void handleUploadTerrain(IClientAPI remote_client, string clientFileName)
