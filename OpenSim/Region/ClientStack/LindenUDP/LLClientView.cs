@@ -352,6 +352,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private IHyperAssetService m_hyperAssets;
         private const bool m_checkPackets = true;
 
+        private Timer m_propertiesPacketTimer;
+        private List<ObjectPropertiesPacket.ObjectDataBlock> m_propertiesBlocks = new List<ObjectPropertiesPacket.ObjectDataBlock>();
+
         #endregion Class Members
 
         #region Properties
@@ -432,6 +435,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_udpClient = udpClient;
             m_udpClient.OnQueueEmpty += HandleQueueEmpty;
             m_udpClient.OnPacketStats += PopulateStats;
+
+            m_propertiesPacketTimer = new Timer(100);
+            m_propertiesPacketTimer.Elapsed += ProcessObjectPropertiesPacket;
 
             RegisterLocalPacketHandlers();
         }
@@ -3579,42 +3585,88 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
             uint BaseMask, byte saleType, int salePrice)
         {
-            ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+            //ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
             // TODO: don't create new blocks if recycling an old packet
 
-            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
-            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
-            proper.ObjectData[0].ItemID = ItemID;
-            proper.ObjectData[0].CreationDate = CreationDate;
-            proper.ObjectData[0].CreatorID = CreatorUUID;
-            proper.ObjectData[0].FolderID = FolderUUID;
-            proper.ObjectData[0].FromTaskID = FromTaskUUID;
-            proper.ObjectData[0].GroupID = GroupUUID;
-            proper.ObjectData[0].InventorySerial = InventorySerial;
+            ObjectPropertiesPacket.ObjectDataBlock block =
+                    new ObjectPropertiesPacket.ObjectDataBlock();
 
-            proper.ObjectData[0].LastOwnerID = LastOwnerUUID;
+            block.ItemID = ItemID;
+            block.CreationDate = CreationDate;
+            block.CreatorID = CreatorUUID;
+            block.FolderID = FolderUUID;
+            block.FromTaskID = FromTaskUUID;
+            block.GroupID = GroupUUID;
+            block.InventorySerial = InventorySerial;
+
+            block.LastOwnerID = LastOwnerUUID;
             //            proper.ObjectData[0].LastOwnerID = UUID.Zero;
 
-            proper.ObjectData[0].ObjectID = ObjectUUID;
+            block.ObjectID = ObjectUUID;
             if (OwnerUUID == GroupUUID)
-                proper.ObjectData[0].OwnerID = UUID.Zero;
+                block.OwnerID = UUID.Zero;
             else
-                proper.ObjectData[0].OwnerID = OwnerUUID;
-            proper.ObjectData[0].TouchName = Util.StringToBytes256(TouchTitle);
-            proper.ObjectData[0].TextureID = TextureID;
-            proper.ObjectData[0].SitName = Util.StringToBytes256(SitTitle);
-            proper.ObjectData[0].Name = Util.StringToBytes256(ItemName);
-            proper.ObjectData[0].Description = Util.StringToBytes256(ItemDescription);
-            proper.ObjectData[0].OwnerMask = OwnerMask;
-            proper.ObjectData[0].NextOwnerMask = NextOwnerMask;
-            proper.ObjectData[0].GroupMask = GroupMask;
-            proper.ObjectData[0].EveryoneMask = EveryoneMask;
-            proper.ObjectData[0].BaseMask = BaseMask;
+                block.OwnerID = OwnerUUID;
+            block.TouchName = Util.StringToBytes256(TouchTitle);
+            block.TextureID = TextureID;
+            block.SitName = Util.StringToBytes256(SitTitle);
+            block.Name = Util.StringToBytes256(ItemName);
+            block.Description = Util.StringToBytes256(ItemDescription);
+            block.OwnerMask = OwnerMask;
+            block.NextOwnerMask = NextOwnerMask;
+            block.GroupMask = GroupMask;
+            block.EveryoneMask = EveryoneMask;
+            block.BaseMask = BaseMask;
             //            proper.ObjectData[0].AggregatePerms = 53;
             //            proper.ObjectData[0].AggregatePermTextures = 0;
             //            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
-            proper.ObjectData[0].SaleType = saleType;
-            proper.ObjectData[0].SalePrice = salePrice;
+            block.SaleType = saleType;
+            block.SalePrice = salePrice;
+
+            lock (m_propertiesPacketTimer)
+            {
+                m_propertiesBlocks.Add(block);
+
+                int length = 0;
+                foreach (ObjectPropertiesPacket.ObjectDataBlock b in m_propertiesBlocks)
+                {
+                    length += b.Length;
+                }
+                if (length > 1100) // FIXME: use real MTU
+                {
+                    ProcessObjectPropertiesPacket(null, null);
+                    m_propertiesPacketTimer.Stop();
+                    return;
+                }
+                    
+                m_propertiesPacketTimer.Stop();
+                m_propertiesPacketTimer.Start();
+            }
+
+            //proper.Header.Zerocoded = true;
+            //OutPacket(proper, ThrottleOutPacketType.Task);
+        }
+
+        private void ProcessObjectPropertiesPacket(Object sender, ElapsedEventArgs e)
+        {
+            ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+
+            lock (m_propertiesPacketTimer)
+            {
+                m_propertiesPacketTimer.Stop();
+
+                proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[m_propertiesBlocks.Count];
+
+                int index = 0;
+
+                foreach (ObjectPropertiesPacket.ObjectDataBlock b in m_propertiesBlocks)
+                {
+                    proper.ObjectData[index++] = b;
+                }
+
+                m_propertiesBlocks.Clear();
+            }
+
             proper.Header.Zerocoded = true;
             OutPacket(proper, ThrottleOutPacketType.Task);
         }
