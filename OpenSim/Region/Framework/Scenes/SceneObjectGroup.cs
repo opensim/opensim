@@ -2207,8 +2207,8 @@ namespace OpenSim.Region.Framework.Scenes
             // unmoved prims!
             ResetChildPrimPhysicsPositions();
 
-            HasGroupChanged = true;
-            ScheduleGroupForFullUpdate();
+            //HasGroupChanged = true;
+            //ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -2299,8 +2299,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             linkPart.Rezzed = RootPart.Rezzed;
 
-            HasGroupChanged = true;
-            ScheduleGroupForFullUpdate();
+            //HasGroupChanged = true;
+            //ScheduleGroupForFullUpdate();
         }
 
         /// <summary>

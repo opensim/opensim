@@ -1593,6 +1593,8 @@ namespace OpenSim.Region.Framework.Scenes
             // occur on link to invoke this elsewhere (such as object selection)
             parentGroup.RootPart.AddFlag(PrimFlags.CreateSelected);
             parentGroup.TriggerScriptChangedEvent(Changed.LINK);
+            parentGroup.HasGroupChanged = true;
+            parentGroup.ScheduleGroupForFullUpdate();
             
             if (client != null)
             {
