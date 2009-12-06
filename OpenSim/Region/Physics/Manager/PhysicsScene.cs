@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.Manager
 {
     public delegate void physicsCrash();
 
-    public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance);
+    public delegate void RaycastCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal);
 
     public abstract class PhysicsScene
     {
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Physics.Manager
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, RaycastCallback retMethod)
         {
             if (retMethod != null)
-                retMethod(false, Vector3.Zero, 0, 999999999999f);
+                retMethod(false, Vector3.Zero, 0, 999999999999f, Vector3.Zero);
         }
 
         private class NullPhysicsScene : PhysicsScene
