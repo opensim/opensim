@@ -2114,14 +2114,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
             // Make sure we have sent any pending unlinks or stuff.
-            if (objectGroup.RootPart.UpdateFlag > 0)
-            {
-                m_log.WarnFormat(
-                    "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
-                    objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
+            //if (objectGroup.RootPart.UpdateFlag > 0)
+            //{
+            //    m_log.WarnFormat(
+            //        "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
+            //        objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
-                objectGroup.RootPart.SendScheduledUpdates();
-            }
+            //    objectGroup.RootPart.SendScheduledUpdates();
+            //}
 
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
