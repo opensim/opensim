@@ -1648,14 +1648,17 @@ namespace OpenSim.Region.Framework.Scenes
                     SceneObjectPart part = m_parentScene.GetSceneObjectPart(primID);
                     if (part != null)
                     {
-                        if (part.LinkNum < 2) // Root or single
-                            rootParts.Add(part);
-                        else
-                            childParts.Add(part);
+                        if (part.ParentGroup.Children.Count != 1) // Skip single
+                        {
+                            if (part.LinkNum < 2) // Root
+                                rootParts.Add(part);
+                            else
+                                childParts.Add(part);
 
-                        SceneObjectGroup group = part.ParentGroup;
-                        if (!affectedGroups.Contains(group))
-                            affectedGroups.Add(group);
+                            SceneObjectGroup group = part.ParentGroup;
+                            if (!affectedGroups.Contains(group))
+                                affectedGroups.Add(group);
+                        }
                     }
                     else
                     {
