@@ -1562,7 +1562,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
         {
-            lock (m_updateLock)
+            Monitor.Enter(m_updateLock);
+            try
             {
                 SceneObjectGroup parentGroup = GetGroupByPrim(parentPrimId);
 
@@ -1617,6 +1618,10 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+            finally
+            {
+                Monitor.Exit(m_updateLock);
+            }
         }
 
         /// <summary>
@@ -1630,7 +1635,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void DelinkObjects(List<uint> primIds, bool sendEvents)
         {
-            lock (m_updateLock)
+            Monitor.Enter(m_updateLock);
+            try
             {
                 List<SceneObjectPart> childParts = new List<SceneObjectPart>();
                 List<SceneObjectPart> rootParts = new List<SceneObjectPart>();
@@ -1736,6 +1742,10 @@ namespace OpenSim.Region.Framework.Scenes
                     g.HasGroupChanged = true; // Persist
                     g.ScheduleGroupForFullUpdate();
                 }
+            }
+            finally
+            {
+                Monitor.Exit(m_updateLock);
             }
         }
 
