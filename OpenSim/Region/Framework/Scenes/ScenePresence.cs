@@ -1642,7 +1642,6 @@ namespace OpenSim.Region.Framework.Scenes
                     // Reset sit target.
                     if (part.GetAvatarOnSitTarget() == UUID)
                         part.SetAvatarOnSitTarget(UUID.Zero);
-
                     m_parentPosition = part.GetWorldPosition();
                     ControllingClient.SendClearFollowCamProperties(part.ParentUUID);
                 }
@@ -1659,7 +1658,6 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 		        AbsolutePosition = wso;                	 //KF: Fix stand up.
                 m_parentPosition = Vector3.Zero;
-                
 				m_parentID = 0;
                 part.IsOccupied = false;
                 SendFullUpdateToAllClients();

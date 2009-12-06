@@ -513,9 +513,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                if (actor != null && _parentID == 0)
+                if (actor != null) 
                 {
-                    m_groupPosition = actor.Position;
+                	if (_parentID == 0)
+                	{
+                    	m_groupPosition = actor.Position;
+                	}
+                	else
+                	{
+                		m_groupPosition = ParentGroup.AbsolutePosition;  // KF+Casper Update Child prims too!
+                	}
                 }
 
                 if (IsAttachment)
@@ -1743,9 +1750,13 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
 
             Vector3 axPos = OffsetPosition;
-
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
+            
+            int tx =  (int)GroupPosition.X;
+            int ty =  (int)GroupPosition.Y;
+            int tz =  (int)GroupPosition.Z;
+
             return GroupPosition + translationOffsetPosition;
         }
 
