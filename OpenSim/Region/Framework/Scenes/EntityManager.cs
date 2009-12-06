@@ -40,7 +40,7 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly Dictionary<UUID,EntityBase> m_eb_uuid = new Dictionary<UUID, EntityBase>();
         private readonly Dictionary<uint, EntityBase> m_eb_localID = new Dictionary<uint, EntityBase>();
         //private readonly Dictionary<UUID, ScenePresence> m_pres_uuid = new Dictionary<UUID, ScenePresence>();
-        private readonly Object m_lock = new Object();
+        private System.Threading.ReaderWriterLockSlim m_lock = new System.Threading.ReaderWriterLockSlim();
 
         [Obsolete("Use Add() instead.")]
         public void Add(UUID id, EntityBase eb)
@@ -50,7 +50,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void Add(EntityBase entity)
         {
-            lock (m_lock)
+            m_lock.EnterWriteLock();
+            try
             {
                 try
                 {
@@ -62,11 +63,16 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("Add Entity failed: {0}", e.Message);
                 }
             }
+            finally
+            {
+                m_lock.ExitWriteLock();
+            }
         }
 
         public void InsertOrReplace(EntityBase entity)
         {
-            lock (m_lock)
+            m_lock.EnterWriteLock();
+            try
             {
                 try
                 {
@@ -78,14 +84,23 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("Insert or Replace Entity failed: {0}", e.Message);
                 }
             }
+            finally
+            {
+                m_lock.ExitWriteLock();
+            }
         }
 
         public void Clear()
         {
-            lock (m_lock)
+            m_lock.EnterWriteLock();
+            try
             {
                 m_eb_uuid.Clear();
                 m_eb_localID.Clear();
+            }
+            finally
+            {
+                m_lock.ExitWriteLock();
             }
         }
 
@@ -123,7 +138,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool Remove(uint localID)
         {
-            lock (m_lock)
+            m_lock.EnterWriteLock();
+            try
             {
                 try
                 {
@@ -141,11 +157,16 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
                 }
             }
+            finally
+            {
+                m_lock.ExitWriteLock();
+            }
         }
 
         public bool Remove(UUID id)
         {
-            lock (m_lock)
+            m_lock.EnterWriteLock();
+            try
             {
                 try 
                 {
@@ -163,13 +184,18 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
                 }
             }
+            finally
+            {
+                m_lock.ExitWriteLock();
+            }
         }
 
         public List<EntityBase> GetAllByType<T>()
         {
             List<EntityBase> tmp = new List<EntityBase>();
 
-            lock (m_lock)
+            m_lock.EnterReadLock();
+            try
             {
                 try
                 {
@@ -187,15 +213,24 @@ namespace OpenSim.Region.Framework.Scenes
                     tmp = null;
                 }
             }
+            finally
+            {
+                m_lock.ExitReadLock();
+            }
 
             return tmp;
         }
 
         public List<EntityBase> GetEntities()
         {
-            lock (m_lock)
+            m_lock.EnterReadLock();
+            try
             {
                 return new List<EntityBase>(m_eb_uuid.Values);
+            }
+            finally
+            {
+                m_lock.ExitReadLock();
             }
         }
 
@@ -203,13 +238,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_lock)
+                m_lock.EnterReadLock();
+                try
                 {
                     EntityBase entity;
                     if (m_eb_uuid.TryGetValue(id, out entity))
                         return entity;
                     else
                         return null;
+                }
+                finally
+                {
+                    m_lock.ExitReadLock();
                 }
             }
             set
@@ -222,13 +262,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get
             {
-                lock (m_lock)
+                m_lock.EnterReadLock();
+                try
                 {
                     EntityBase entity;
                     if (m_eb_localID.TryGetValue(localID, out entity))
                         return entity;
                     else
                         return null;
+                }
+                finally
+                {
+                    m_lock.ExitReadLock();
                 }
             }
             set
@@ -239,17 +284,27 @@ namespace OpenSim.Region.Framework.Scenes
 
         public bool TryGetValue(UUID key, out EntityBase obj)
         {
-            lock (m_lock)
+            m_lock.EnterReadLock();
+            try
             {
                 return m_eb_uuid.TryGetValue(key, out obj);
+            }
+            finally
+            {
+                m_lock.ExitReadLock();
             }
         }
 
         public bool TryGetValue(uint key, out EntityBase obj)
         {
-            lock (m_lock)
+            m_lock.EnterReadLock();
+            try
             {
                 return m_eb_localID.TryGetValue(key, out obj);
+            }
+            finally
+            {
+                m_lock.ExitReadLock();
             }
         }
 
