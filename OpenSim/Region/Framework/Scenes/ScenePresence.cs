@@ -1972,7 +1972,7 @@ namespace OpenSim.Region.Framework.Scenes
             SendFullUpdateToAllClients();
         }
         
-        public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
+        public void SitAltitudeCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 normal)
         {
 			if(hitYN)
 			{
