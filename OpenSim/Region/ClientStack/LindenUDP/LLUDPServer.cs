@@ -964,12 +964,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     if (packetInbox.Dequeue(100, ref incomingPacket))
-                    {
-                        if (incomingPacket.Packet.Type != PacketType.ObjectSelect)
-                            Util.FireAndForget(ProcessInPacket, incomingPacket);
-                        else
-                            ProcessInPacket(incomingPacket);
-                    }
+                        Util.FireAndForget(ProcessInPacket, incomingPacket);
                 }
                 catch (Exception ex)
                 {
