@@ -1105,7 +1105,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="collisionPoint"></param>
         /// <param name="localid"></param>
         /// <param name="distance"></param>
-        public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance)
+        public void RayCastCameraCallback(bool hitYN, Vector3 collisionPoint, uint localid, float distance, Vector3 pNormal)
         {
             const float POSITION_TOLERANCE = 0.02f;
             const float VELOCITY_TOLERANCE = 0.02f;
@@ -1686,8 +1686,13 @@ namespace OpenSim.Region.Framework.Scenes
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != UUID.Zero));
                 bool SitTargetisSet =
-                    (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f && avSitOrientation.W == 0f &&
-                       avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f));
+                    (!(avSitOffSet.X == 0f && avSitOffSet.Y == 0f && avSitOffSet.Z == 0f &&
+                       (
+                           avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 1f // Valid Zero Rotation quaternion
+                           || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 1f && avSitOrientation.W == 0f // W-Z Mapping was invalid at one point
+                           || avSitOrientation.X == 0f && avSitOrientation.Y == 0f && avSitOrientation.Z == 0f && avSitOrientation.W == 0f // Invalid Quaternion
+                       )
+                       ));
 
                 if (SitTargetisSet && SitTargetUnOccupied)
                 {
@@ -1750,7 +1755,7 @@ namespace OpenSim.Region.Framework.Scenes
                 StandUp();
             }
             m_nextSitAnimation = "SIT";
-
+            
             //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
             SceneObjectPart part = FindNextAvailableSitTarget(targetID);
 
@@ -1762,12 +1767,23 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 m_requestedSitTargetID = part.LocalId;
                 //m_requestedSitOffset = offset;
+                //offset.X += part.Scale.X;// *offset.X;
+                //offset.Y += part.Scale.Y;// * offset.Y;
+                //offset.Z += part.Scale.Z;// * offset.Z;
+                //m_requestedSitOffset = offset;
+                m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
             }
             else
             {
                 
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
+
+            if (m_scene.PhysicsScene.SupportsRayCast())
+            {
+                //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
+            }
+
             SendSitResponse(remoteClient, targetID, offset);
         }
         
