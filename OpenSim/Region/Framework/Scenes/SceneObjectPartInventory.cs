@@ -320,17 +320,18 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (m_items.ContainsKey(itemId))
                 {
+                    m_items.LockItemsForRead(false);
                     CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
                 }
                 else
                 {
+                    m_items.LockItemsForRead(false);
                     m_log.ErrorFormat(
                         "[PRIM INVENTORY]: " +
                         "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
                         itemId, m_part.Name, m_part.UUID, 
                         m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
                 }
-                m_items.LockItemsForRead(false);
             }
             else
             {

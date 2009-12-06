@@ -126,7 +126,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_partsLock.ExitReadLock();
+                if (m_partsLock.RecursiveReadCount > 0)
+                {
+                    m_partsLock.ExitReadLock();
+                }
             }
         }
         public void lockPartsForWrite(bool locked)
@@ -155,7 +158,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_partsLock.ExitWriteLock();
+                if (m_partsLock.RecursiveWriteCount > 0)
+                {
+                    m_partsLock.ExitWriteLock();
+                }
             }
         }
 
