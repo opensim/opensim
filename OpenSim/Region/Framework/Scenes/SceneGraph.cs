@@ -1606,17 +1606,17 @@ namespace OpenSim.Region.Framework.Scenes
                 parentGroup.HasGroupChanged = true;
                 parentGroup.ScheduleGroupForFullUpdate();
                 
-                if (client != null)
-                {
-                    parentGroup.GetProperties(client);
-                }
-                else
-                {
-                    foreach (ScenePresence p in GetScenePresences())
-                    {
-                        parentGroup.GetProperties(p.ControllingClient);
-                    }
-                }
+//                if (client != null)
+//                {
+//                    parentGroup.GetProperties(client);
+//                }
+//                else
+//                {
+//                    foreach (ScenePresence p in GetScenePresences())
+//                    {
+//                        parentGroup.GetProperties(p.ControllingClient);
+//                    }
+//                }
             }
             finally
             {
