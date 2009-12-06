@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
@@ -95,6 +96,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected internal Dictionary<uint, SceneObjectGroup> SceneObjectGroupsByLocalID = new Dictionary<uint, SceneObjectGroup>();
         protected internal Dictionary<UUID, SceneObjectGroup> SceneObjectGroupsByFullID = new Dictionary<UUID, SceneObjectGroup>();
         private readonly Object m_dictionary_lock = new Object();
+
+        private Object m_updateLock = new Object();
 
         #endregion
 
@@ -369,6 +372,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected internal void UpdateObjectGroups()
         {
+            if (!Monitor.TryEnter(m_updateLock))
+                return;
+
             List<SceneObjectGroup> updates;
 
             // Some updates add more updates to the updateList. 
@@ -395,6 +401,7 @@ namespace OpenSim.Region.Framework.Scenes
                         "[INNER SCENE]: Failed to update {0}, {1} - {2}", sog.Name, sog.UUID, e);
                 }
             }
+            Monitor.Exit(m_updateLock);
         }
 
         protected internal void AddPhysicalPrim(int number)
@@ -1555,56 +1562,59 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrims"></param>
         protected internal void LinkObjects(IClientAPI client, uint parentPrimId, List<uint> childPrimIds)
         {
-            SceneObjectGroup parentGroup = GetGroupByPrim(parentPrimId);
-
-            List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
-            if (parentGroup != null)
+            lock (m_updateLock)
             {
-                // We do this in reverse to get the link order of the prims correct
-                for (int i = childPrimIds.Count - 1; i >= 0; i--)
+                SceneObjectGroup parentGroup = GetGroupByPrim(parentPrimId);
+
+                List<SceneObjectGroup> childGroups = new List<SceneObjectGroup>();
+                if (parentGroup != null)
                 {
-                    SceneObjectGroup child = GetGroupByPrim(childPrimIds[i]);
-                    if (child != null)
+                    // We do this in reverse to get the link order of the prims correct
+                    for (int i = childPrimIds.Count - 1; i >= 0; i--)
                     {
-                        // Make sure no child prim is set for sale
-                        // So that, on delink, no prims are unwittingly
-                        // left for sale and sold off
-                        child.RootPart.ObjectSaleType = 0;
-                        child.RootPart.SalePrice = 10;
-                        childGroups.Add(child);
+                        SceneObjectGroup child = GetGroupByPrim(childPrimIds[i]);
+                        if (child != null)
+                        {
+                            // Make sure no child prim is set for sale
+                            // So that, on delink, no prims are unwittingly
+                            // left for sale and sold off
+                            child.RootPart.ObjectSaleType = 0;
+                            child.RootPart.SalePrice = 10;
+                            childGroups.Add(child);
+                        }
                     }
                 }
-            }
-            else
-            {
-                return; // parent is null so not in this region
-            }
-
-            foreach (SceneObjectGroup child in childGroups)
-            {
-                parentGroup.LinkToGroup(child);
-
-                // this is here so physics gets updated!
-                // Don't remove!  Bad juju!  Stay away! or fix physics!
-                child.AbsolutePosition = child.AbsolutePosition;
-            }
-
-            // We need to explicitly resend the newly link prim's object properties since no other actions
-            // occur on link to invoke this elsewhere (such as object selection)
-            parentGroup.RootPart.AddFlag(PrimFlags.CreateSelected);
-            parentGroup.TriggerScriptChangedEvent(Changed.LINK);
-            parentGroup.HasGroupChanged = true;
-            parentGroup.ScheduleGroupForFullUpdate();
-            
-            if (client != null)
-            {
-                parentGroup.GetProperties(client);
-            }
-            else
-            {
-                foreach (ScenePresence p in GetScenePresences())
+                else
                 {
-                    parentGroup.GetProperties(p.ControllingClient);
+                    return; // parent is null so not in this region
+                }
+
+                foreach (SceneObjectGroup child in childGroups)
+                {
+                    parentGroup.LinkToGroup(child);
+
+                    // this is here so physics gets updated!
+                    // Don't remove!  Bad juju!  Stay away! or fix physics!
+                    child.AbsolutePosition = child.AbsolutePosition;
+                }
+
+                // We need to explicitly resend the newly link prim's object properties since no other actions
+                // occur on link to invoke this elsewhere (such as object selection)
+                parentGroup.RootPart.AddFlag(PrimFlags.CreateSelected);
+                parentGroup.TriggerScriptChangedEvent(Changed.LINK);
+                parentGroup.HasGroupChanged = true;
+                parentGroup.ScheduleGroupForFullUpdate();
+                
+                if (client != null)
+                {
+                    parentGroup.GetProperties(client);
+                }
+                else
+                {
+                    foreach (ScenePresence p in GetScenePresences())
+                    {
+                        parentGroup.GetProperties(p.ControllingClient);
+                    }
                 }
             }
         }
@@ -1620,109 +1630,112 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected internal void DelinkObjects(List<uint> primIds, bool sendEvents)
         {
-            List<SceneObjectPart> childParts = new List<SceneObjectPart>();
-            List<SceneObjectPart> rootParts = new List<SceneObjectPart>();
-            List<SceneObjectGroup> affectedGroups = new List<SceneObjectGroup>();
-            // Look them all up in one go, since that is comparatively expensive
-            //
-            foreach (uint primID in primIds)
+            lock (m_updateLock)
             {
-                SceneObjectPart part = m_parentScene.GetSceneObjectPart(primID);
-                if (part != null)
-                {
-                    if (part.LinkNum < 2) // Root or single
-                        rootParts.Add(part);
-                    else
-                        childParts.Add(part);
-
-                    SceneObjectGroup group = part.ParentGroup;
-                    if (!affectedGroups.Contains(group))
-                        affectedGroups.Add(group);
-                }
-                else
-                {
-                    m_log.ErrorFormat("Viewer requested unlink of nonexistent part {0}", primID);
-                }
-            }
-
-            foreach (SceneObjectPart child in childParts)
-            {
-                // Unlink all child parts from their groups
+                List<SceneObjectPart> childParts = new List<SceneObjectPart>();
+                List<SceneObjectPart> rootParts = new List<SceneObjectPart>();
+                List<SceneObjectGroup> affectedGroups = new List<SceneObjectGroup>();
+                // Look them all up in one go, since that is comparatively expensive
                 //
-                child.ParentGroup.DelinkFromGroup(child, sendEvents);
-            }
-
-            foreach (SceneObjectPart root in rootParts)
-            {
-                // In most cases, this will run only one time, and the prim
-                // will be a solo prim
-                // However, editing linked parts and unlinking may be different
-                //
-                SceneObjectGroup group = root.ParentGroup;
-                List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Children.Values);
-                int numChildren = group.Children.Count;
-
-                // If there are prims left in a link set, but the root is
-                // slated for unlink, we need to do this
-                //
-                if (numChildren != 1)
+                foreach (uint primID in primIds)
                 {
-                    // Unlink the remaining set
-                    //
-                    bool sendEventsToRemainder = true;
-                    if (numChildren > 1)
-                        sendEventsToRemainder = false;
-
-                    foreach (SceneObjectPart p in newSet)
+                    SceneObjectPart part = m_parentScene.GetSceneObjectPart(primID);
+                    if (part != null)
                     {
-                        if (p != group.RootPart)
-                            group.DelinkFromGroup(p, sendEventsToRemainder);
+                        if (part.LinkNum < 2) // Root or single
+                            rootParts.Add(part);
+                        else
+                            childParts.Add(part);
+
+                        SceneObjectGroup group = part.ParentGroup;
+                        if (!affectedGroups.Contains(group))
+                            affectedGroups.Add(group);
                     }
-
-                    // If there is more than one prim remaining, we
-                    // need to re-link
-                    //
-                    if (numChildren > 2)
+                    else
                     {
-                        // Remove old root
-                        //
-                        if (newSet.Contains(root))
-                            newSet.Remove(root);
+                        m_log.ErrorFormat("Viewer requested unlink of nonexistent part {0}", primID);
+                    }
+                }
 
-                        // Preserve link ordering
+                foreach (SceneObjectPart child in childParts)
+                {
+                    // Unlink all child parts from their groups
+                    //
+                    child.ParentGroup.DelinkFromGroup(child, sendEvents);
+                }
+
+                foreach (SceneObjectPart root in rootParts)
+                {
+                    // In most cases, this will run only one time, and the prim
+                    // will be a solo prim
+                    // However, editing linked parts and unlinking may be different
+                    //
+                    SceneObjectGroup group = root.ParentGroup;
+                    List<SceneObjectPart> newSet = new List<SceneObjectPart>(group.Children.Values);
+                    int numChildren = group.Children.Count;
+
+                    // If there are prims left in a link set, but the root is
+                    // slated for unlink, we need to do this
+                    //
+                    if (numChildren != 1)
+                    {
+                        // Unlink the remaining set
                         //
-                        newSet.Sort(delegate (SceneObjectPart a, SceneObjectPart b)
+                        bool sendEventsToRemainder = true;
+                        if (numChildren > 1)
+                            sendEventsToRemainder = false;
+
+                        foreach (SceneObjectPart p in newSet)
                         {
-                            return a.LinkNum.CompareTo(b.LinkNum);
-                        });
-
-                        // Determine new root
-                        //
-                        SceneObjectPart newRoot = newSet[0];
-                        newSet.RemoveAt(0);
-
-                        List<uint> linkIDs = new List<uint>();
-
-                        foreach (SceneObjectPart newChild in newSet)
-                        {
-                            newChild.UpdateFlag = 0;
-                            linkIDs.Add(newChild.LocalId);
+                            if (p != group.RootPart)
+                                group.DelinkFromGroup(p, sendEventsToRemainder);
                         }
 
-                        LinkObjects(null, newRoot.LocalId, linkIDs);
-                        if (!affectedGroups.Contains(newRoot.ParentGroup))
-                            affectedGroups.Add(newRoot.ParentGroup);
+                        // If there is more than one prim remaining, we
+                        // need to re-link
+                        //
+                        if (numChildren > 2)
+                        {
+                            // Remove old root
+                            //
+                            if (newSet.Contains(root))
+                                newSet.Remove(root);
+
+                            // Preserve link ordering
+                            //
+                            newSet.Sort(delegate (SceneObjectPart a, SceneObjectPart b)
+                            {
+                                return a.LinkNum.CompareTo(b.LinkNum);
+                            });
+
+                            // Determine new root
+                            //
+                            SceneObjectPart newRoot = newSet[0];
+                            newSet.RemoveAt(0);
+
+                            List<uint> linkIDs = new List<uint>();
+
+                            foreach (SceneObjectPart newChild in newSet)
+                            {
+                                newChild.UpdateFlag = 0;
+                                linkIDs.Add(newChild.LocalId);
+                            }
+
+                            LinkObjects(null, newRoot.LocalId, linkIDs);
+                            if (!affectedGroups.Contains(newRoot.ParentGroup))
+                                affectedGroups.Add(newRoot.ParentGroup);
+                        }
                     }
                 }
-            }
 
-            // Finally, trigger events in the roots
-            //
-            foreach (SceneObjectGroup g in affectedGroups)
-            {
-                g.TriggerScriptChangedEvent(Changed.LINK);
-                g.HasGroupChanged = true; // Persist
-                g.ScheduleGroupForFullUpdate();
+                // Finally, trigger events in the roots
+                //
+                foreach (SceneObjectGroup g in affectedGroups)
+                {
+                    g.TriggerScriptChangedEvent(Changed.LINK);
+                    g.HasGroupChanged = true; // Persist
+                    g.ScheduleGroupForFullUpdate();
+                }
             }
         }
 
