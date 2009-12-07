@@ -244,7 +244,6 @@ namespace OpenSim.Framework.Communications.Services
                             InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
                             ArrayList InventoryRoot = new ArrayList();
                             InventoryRoot.Add(InventoryRootHash);
-                            userProfile.RootInventoryFolderID = inventData.RootFolderID;
 
                             logResponse.InventoryRoot = InventoryRoot;
                             logResponse.InventorySkeleton = AgentInventoryArray;
@@ -501,7 +500,6 @@ namespace OpenSim.Framework.Communications.Services
                         InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
-                        userProfile.RootInventoryFolderID = inventData.RootFolderID;
 
 
                         // Inventory Library Section

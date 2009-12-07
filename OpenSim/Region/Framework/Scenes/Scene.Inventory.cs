@@ -1726,10 +1726,19 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (folderID == UUID.Zero && folder == null)
                 {
-                    // Catch all. Use lost & found
-                    //
+                    if (action == DeRezAction.Delete)
+                    {
+                        // Deletes go to trash by default
+                        //
+                        folder = InventoryService.GetFolderForType(userID, AssetType.TrashFolder);
+                    }
+                    else
+                    {
+                        // Catch all. Use lost & found
+                        //
 
-                    folder = InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                        folder = InventoryService.GetFolderForType(userID, AssetType.LostAndFoundFolder);
+                    }
                 }
 
                 if (folder == null) // None of the above
@@ -2388,6 +2397,12 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
                 presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
+
+                if (m_AvatarFactory != null)
+                {
+                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+
             }
         }
 

@@ -126,7 +126,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_partsLock.ExitReadLock();
+                if (m_partsLock.RecursiveReadCount > 0)
+                {
+                    m_partsLock.ExitReadLock();
+                }
             }
         }
         public void lockPartsForWrite(bool locked)
@@ -155,7 +158,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_partsLock.ExitWriteLock();
+                if (m_partsLock.RecursiveWriteCount > 0)
+                {
+                    m_partsLock.ExitWriteLock();
+                }
             }
         }
 
@@ -2292,14 +2298,14 @@ namespace OpenSim.Region.Framework.Scenes
         public void LinkToGroup(SceneObjectGroup objectGroup)
         {
             // Make sure we have sent any pending unlinks or stuff.
-            if (objectGroup.RootPart.UpdateFlag > 0)
-            {
-                m_log.WarnFormat(
-                    "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
-                    objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
+            //if (objectGroup.RootPart.UpdateFlag > 0)
+            //{
+            //    m_log.WarnFormat(
+            //        "[SCENE OBJECT GROUP]: Forcing send of linkset {0}, {1} to {2}, {3} as its still waiting.",
+            //        objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
-                objectGroup.RootPart.SendScheduledUpdates();
-            }
+            //    objectGroup.RootPart.SendScheduledUpdates();
+            //}
 
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
@@ -2389,8 +2395,8 @@ namespace OpenSim.Region.Framework.Scenes
             // unmoved prims!
             ResetChildPrimPhysicsPositions();
 
-            HasGroupChanged = true;
-            ScheduleGroupForFullUpdate();
+            //HasGroupChanged = true;
+            //ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -2483,8 +2489,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             linkPart.Rezzed = RootPart.Rezzed;
 
-            HasGroupChanged = true;
-            ScheduleGroupForFullUpdate();
+            //HasGroupChanged = true;
+            //ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -2776,8 +2782,13 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                     {
-                        UsePhysics = false; // Reset physics
-                        break;
+                        if (part.Scale.X > m_scene.RegionInfo.PhysPrimMax || 
+                            part.Scale.Y > m_scene.RegionInfo.PhysPrimMax ||
+                            part.Scale.Z > m_scene.RegionInfo.PhysPrimMax)
+                        {
+                            UsePhysics = false; // Reset physics
+                            break;
+                        }
                     }
                 }
 

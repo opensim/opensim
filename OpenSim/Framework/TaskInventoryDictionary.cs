@@ -109,7 +109,10 @@ namespace OpenSim.Framework
             }
             else
             {
-                m_itemLock.ExitReadLock();
+                if (m_itemLock.RecursiveReadCount>0)
+                {
+                    m_itemLock.ExitReadLock();
+                }
             }
         }
 
@@ -144,7 +147,10 @@ namespace OpenSim.Framework
             }
             else
             {
-                m_itemLock.ExitWriteLock();
+                if (m_itemLock.RecursiveWriteCount > 0)
+                {
+                    m_itemLock.ExitWriteLock();
+                }
             }
         }
 

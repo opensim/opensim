@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Net;
 using log4net;
 using Nini.Config;
 using OpenMetaverse;
@@ -259,6 +260,16 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         }
 
         /// <summary>
+        /// Loads a terrain file from the specified URI
+        /// </summary>
+        /// <param name="filename">The name of the terrain to load</param>
+        /// <param name="pathToTerrainHeightmap">The URI to the terrain height map</param>
+        public void LoadFromStream(string filename, Uri pathToTerrainHeightmap)
+        {
+            LoadFromStream(filename, URIFetch(pathToTerrainHeightmap));
+        }
+
+        /// <summary>
         /// Loads a terrain file from a stream and installs it in the scene.
         /// </summary>
         /// <param name="filename">Filename to terrain file. Type is determined by extension.</param>
@@ -267,7 +278,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
             {
-                if (@filename.EndsWith(loader.Key))
+                if (filename.EndsWith(loader.Key))
                 {
                     lock (m_scene)
                     {
@@ -293,6 +304,25 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             }
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader available for that format.");
             throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
+        }
+
+        private static Stream URIFetch(Uri uri)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+
+            // request.Credentials = credentials;
+
+            request.ContentLength = 0;
+            request.KeepAlive = false;
+
+            WebResponse response = request.GetResponse();
+            Stream file = response.GetResponseStream();
+
+            if (response.ContentLength == 0)
+                throw new Exception(String.Format("{0} returned an empty file", uri.ToString()));
+
+            // return new BufferedStream(file, (int) response.ContentLength);
+            return new BufferedStream(file, 1000000);
         }
 
         /// <summary>

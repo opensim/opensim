@@ -150,7 +150,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                m_scriptsLock.ExitReadLock();
+                if (m_scriptsLock.RecursiveReadCount > 0)
+                {
+                    m_scriptsLock.ExitReadLock();
+                }
             }
         }
         private void lockScriptsForWrite(bool locked)
@@ -179,7 +182,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                m_scriptsLock.ExitWriteLock();
+                if (m_scriptsLock.RecursiveWriteCount > 0)
+                {
+                    m_scriptsLock.ExitWriteLock();
+                }
             }
         }
 

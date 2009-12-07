@@ -269,8 +269,9 @@ namespace OpenSim.Region.Framework.Scenes
                                    {
                                        m_log.ErrorFormat(
                                            "[PRIM INVENTORY]: " +
-                                           "Couldn't start script {0}, {1} since asset ID {2} could not be found",
-                                           item.Name, item.ItemID, item.AssetID);
+                                           "Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
+                                           item.Name, item.ItemID, m_part.AbsolutePosition, 
+                                           m_part.ParentGroup.Scene.RegionInfo.RegionName, item.AssetID);
                                    }
                                    else
                                    {
@@ -317,9 +318,20 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.LockItemsForRead(true);
             if (m_items.ContainsKey(itemId))
             {
-                TaskInventoryItem item = m_items[itemId];
-                m_items.LockItemsForRead(false);
-                CreateScriptInstance(item, startParam, postOnRez, engine, stateSource);
+                if (m_items.ContainsKey(itemId))
+                {
+                    m_items.LockItemsForRead(false);
+                    CreateScriptInstance(m_items[itemId], startParam, postOnRez, engine, stateSource);
+                }
+                else
+                {
+                    m_items.LockItemsForRead(false);
+                    m_log.ErrorFormat(
+                        "[PRIM INVENTORY]: " +
+                        "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
+                        itemId, m_part.Name, m_part.UUID, 
+                        m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
+                }
             }
             else
             {
@@ -347,8 +359,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
-                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}",
-                    itemId, m_part.Name, m_part.UUID);
+                    "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2} at {3} in {4}",
+                    itemId, m_part.Name, m_part.UUID, 
+                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
         }
 
@@ -542,8 +555,9 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
-                    "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                    item.ItemID, m_part.Name, m_part.UUID);
+                    "Tried to retrieve item ID {0} from prim {1}, {2} at {3} in {4} but the item does not exist in this inventory",
+                    item.ItemID, m_part.Name, m_part.UUID, 
+                    m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
             }
             m_items.LockItemsForWrite(false);
 

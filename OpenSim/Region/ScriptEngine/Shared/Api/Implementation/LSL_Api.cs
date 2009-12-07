@@ -3588,6 +3588,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 {
                     parentPrim.DelinkFromGroup(part.LocalId, true);
                 }
+                parentPrim.HasGroupChanged = true;
+                parentPrim.ScheduleGroupForFullUpdate();
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
 
                 if (parts.Count > 0)
@@ -3599,6 +3601,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         part.UpdateFlag = 0;
                         newRoot.ParentGroup.LinkToGroup(part.ParentGroup);
                     }
+                    newRoot.ParentGroup.HasGroupChanged = true;
+                    newRoot.ParentGroup.ScheduleGroupForFullUpdate();
                 }
             }
             else
@@ -3607,6 +3611,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return;
 
                 parentPrim.DelinkFromGroup(childPrim.LocalId, true);
+                parentPrim.HasGroupChanged = true;
+                parentPrim.ScheduleGroupForFullUpdate();
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             }
         }
@@ -3626,6 +3632,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 parentPrim.DelinkFromGroup(part.LocalId, true);
                 parentPrim.TriggerScriptChangedEvent(Changed.LINK);
             }
+            parentPrim.HasGroupChanged = true;
+            parentPrim.ScheduleGroupForFullUpdate();
         }
 
         public LSL_String llGetLinkKey(int linknum)

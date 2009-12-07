@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
             UnAckedBytes = 24,
         }
 
-        // Sending a stats update every 3 seconds
+        // Sending a stats update every 3 seconds-
         private int statsUpdatesEveryMS = 3000;
         private float statsUpdateFactor = 0;
         private float m_timeDilation = 0;

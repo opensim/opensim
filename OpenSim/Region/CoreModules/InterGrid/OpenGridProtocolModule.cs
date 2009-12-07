@@ -527,7 +527,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.Partner = UUID.Zero;
             userProfile.PasswordHash = "$1$";
             userProfile.PasswordSalt = "";
-            userProfile.RootInventoryFolderID = UUID.Zero;
             userProfile.SurName = agentData.lastname;
             userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
             userProfile.UserFlags = 0;
