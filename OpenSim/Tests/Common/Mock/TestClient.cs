@@ -491,7 +491,7 @@ namespace OpenSim.Tests.Common.Mock
 
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, List<byte[]> message)
         {
 
         }

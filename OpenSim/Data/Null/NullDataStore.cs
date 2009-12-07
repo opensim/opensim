@@ -50,7 +50,12 @@ namespace OpenSim.Data.Null
         public void StoreRegionSettings(RegionSettings rs)
         {
         }
-
+        public RegionMeta7WindlightData LoadRegionWindlightSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the windlight module yet
+            //Return default LL windlight settings
+            return new RegionMeta7WindlightData();
+        }
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
             return null;

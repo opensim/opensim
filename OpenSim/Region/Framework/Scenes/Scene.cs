@@ -539,6 +539,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
+            m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(m_regInfo.RegionID);
+
             if (m_storageManager.EstateDataStore != null)
             {
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);

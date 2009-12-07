@@ -671,7 +671,12 @@ VALUES
                 cmd.ExecuteNonQuery();
             }
         }
-
+        public RegionMeta7WindlightData LoadRegionWindlightSettings(UUID regionUUID)
+        {
+            //This connector doesn't support the windlight module yet
+            //Return default LL windlight settings
+            return new RegionMeta7WindlightData();
+        }
         /// <summary>
         /// Loads the settings of a region.
         /// </summary>
@@ -696,7 +701,7 @@ VALUES
                 }
             }
 
-            //If comes here then there is now region setting for that region
+            //If we reach this point then there are new region settings for that region
             regionSettings = new RegionSettings();
             regionSettings.RegionUUID = regionUUID;
             regionSettings.OnSave += StoreRegionSettings;
