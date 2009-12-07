@@ -819,7 +819,10 @@ namespace OpenSim.Data.SQLite
             SQLiteUtil.createCol(users, "homeLookAtZ", typeof (Double));
             SQLiteUtil.createCol(users, "created", typeof (Int32));
             SQLiteUtil.createCol(users, "lastLogin", typeof (Int32));
+
+            //TODO: Please delete this column.  It's now a brick
             SQLiteUtil.createCol(users, "rootInventoryFolderID", typeof (String));
+
             SQLiteUtil.createCol(users, "userInventoryURI", typeof (String));
             SQLiteUtil.createCol(users, "userAssetURI", typeof (String));
             SQLiteUtil.createCol(users, "profileCanDoMask", typeof (Int32));
@@ -980,7 +983,6 @@ namespace OpenSim.Data.SQLite
 
             user.Created = Convert.ToInt32(row["created"]);
             user.LastLogin = Convert.ToInt32(row["lastLogin"]);
-            user.RootInventoryFolderID = new UUID((String) row["rootInventoryFolderID"]);
             user.UserInventoryURI = (String) row["userInventoryURI"];
             user.UserAssetURI = (String) row["userAssetURI"];
             user.CanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
@@ -1026,7 +1028,8 @@ namespace OpenSim.Data.SQLite
 
             row["created"] = user.Created;
             row["lastLogin"] = user.LastLogin;
-            row["rootInventoryFolderID"] = user.RootInventoryFolderID.ToString();
+            //TODO: Get rid of rootInventoryFolderID in a safe way.
+            row["rootInventoryFolderID"] = UUID.Zero.ToString();
             row["userInventoryURI"] = user.UserInventoryURI;
             row["userAssetURI"] = user.UserAssetURI;
             row["profileCanDoMask"] = user.CanDoMask;

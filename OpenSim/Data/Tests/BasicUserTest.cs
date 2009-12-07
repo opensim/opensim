@@ -170,8 +170,8 @@ namespace OpenSim.Data.Tests
         {
             UserProfileData u0 = NewUser(zero,fname0,lname0); 
             UserProfileData u4 = NewUser(user4,fname2,lname2);
-            db.AddNewUserProfile(u0);
-            db.AddNewUserProfile(u4);
+            db.AddNewUserProfile(u0); //UserID 0 should fail to save.
+            db.AddNewUserProfile(u4); //The first name and last name are already in use (from T010), so this should fail too
             Assert.That(db.GetUserByUUID(zero),Is.Null);
             Assert.That(db.GetUserByUUID(user4),Is.Null);
         }
@@ -267,8 +267,6 @@ namespace OpenSim.Data.Tests
             Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt), "Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt))");
             Assert.That(created,Is.EqualTo(u1a.Created), "Assert.That(created,Is.EqualTo(u1a.Created))");
             Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin), "Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin))");
-            // RootInventoryFolderID is not tested because it is saved in SQLite,
-            // but not in MySQL
             Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI), "Assert.That(userinvuri,Is.EqualTo(u1a.UserInventoryURI))");
             Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI), "Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI))");
             Assert.That(candomask,Is.EqualTo(u1a.CanDoMask), "Assert.That(candomask,Is.EqualTo(u1a.CanDoMask))");
@@ -367,8 +365,6 @@ namespace OpenSim.Data.Tests
             Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt), "Assert.That(homelookat,Is.EqualTo(u1a.HomeLookAt))");
             Assert.That(created,Is.EqualTo(u1a.Created), "Assert.That(created,Is.EqualTo(u1a.Created))");
             Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin), "Assert.That(lastlogin,Is.EqualTo(u1a.LastLogin))");
-            // RootInventoryFolderID is not tested because it is saved in SQLite,
-            // but not in MySQL
             Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI), "Assert.That(userasseturi,Is.EqualTo(u1a.UserAssetURI))");
             Assert.That(candomask,Is.EqualTo(u1a.CanDoMask), "Assert.That(candomask,Is.EqualTo(u1a.CanDoMask))");
             Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask), "Assert.That(wantdomask,Is.EqualTo(u1a.WantDoMask))");
@@ -395,7 +391,6 @@ namespace OpenSim.Data.Tests
             Assert.That(u1a, Constraints.PropertyCompareConstraint(u)
                 .IgnoreProperty(x=>x.HomeRegionX)
                 .IgnoreProperty(x=>x.HomeRegionY)
-                .IgnoreProperty(x=>x.RootInventoryFolderID)
                 );
         }
         
