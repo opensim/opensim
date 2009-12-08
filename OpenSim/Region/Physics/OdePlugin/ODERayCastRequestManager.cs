@@ -106,13 +106,20 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (m_PendingRequests.Count > 0)
                 {
+                    ODERayCastRequest[] reqs = m_PendingRequests.ToArray();
+                    for (int i = 0; i < reqs.Length; i++)
+                    {
+                        if (reqs[i].callbackMethod != null) // quick optimization here, don't raycast 
+                            RayCast(reqs[i]);               // if there isn't anyone to send results   
+                    }
+                    /*
                     foreach (ODERayCastRequest req in m_PendingRequests)
                     {
                         if (req.callbackMethod != null) // quick optimization here, don't raycast 
                             RayCast(req);               // if there isn't anyone to send results to
                             
                     }
-
+                    */
                     m_PendingRequests.Clear();
                 }
             }
