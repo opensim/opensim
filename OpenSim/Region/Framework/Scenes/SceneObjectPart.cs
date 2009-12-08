@@ -849,7 +849,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (IsAttachment)
                     return GroupPosition;
 
-                return m_offsetPosition + m_groupPosition; }
+//                return m_offsetPosition + m_groupPosition; }
+                return m_groupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset) ; }  //KF: Rotation was ignored!
         }
 
         public SceneObjectGroup ParentGroup
