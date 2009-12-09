@@ -163,10 +163,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         key osGetMapTexture();
         key osGetRegionMapTexture(string regionName);
 		LSL_List osGetRegionStats();
-
-        // Windlight Functions
-        LSL_List osGetWindlightScene(LSL_List rules);
-        int osSetWindlightScene(LSL_List rules);
-
     }
 }

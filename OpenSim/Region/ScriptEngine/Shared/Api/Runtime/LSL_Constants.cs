@@ -539,43 +539,5 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 		public const int STATS_ACTIVE_SCRIPTS = 19;
 		public const int STATS_SCRIPT_LPS = 20;
 
-        // Constants for osWindlight*
-        public const int WL_WATER_COLOR = 0;
-        public const int WL_WATER_FOG_DENSITY_EXPONENT = 1;
-        public const int WL_UNDERWATER_FOG_MODIFIER = 2;
-        public const int WL_REFLECTION_WAVELET_SCALE = 3;
-        public const int WL_FRESNEL_SCALE = 4;
-        public const int WL_FRESNEL_OFFSET = 5;
-        public const int WL_REFRACT_SCALE_ABOVE = 6;
-        public const int WL_REFRACT_SCALE_BELOW = 7;
-        public const int WL_BLUR_MULTIPLIER = 8;
-        public const int WL_BIG_WAVE_DIRECTION = 9;
-        public const int WL_LITTLE_WAVE_DIRECTION = 10;
-        public const int WL_NORMAL_MAP_TEXTURE = 11;
-        public const int WL_HORIZON = 12;
-        public const int WL_HAZE_HORIZON = 13;
-        public const int WL_BLUE_DENSITY = 14;
-        public const int WL_HAZE_DENSITY = 15;
-        public const int WL_DENSITY_MULTIPLIER = 16;
-        public const int WL_DISTANCE_MULTIPLIER = 17;
-        public const int WL_MAX_ALTITUDE = 18;
-        public const int WL_SUN_MOON_COLOR = 19;
-        public const int WL_AMBIENT = 20;
-        public const int WL_EAST_ANGLE = 21;
-        public const int WL_SUN_GLOW_FOCUS = 22;
-        public const int WL_SUN_GLOW_SIZE = 23;
-        public const int WL_SCENE_GAMMA = 24;
-        public const int WL_STAR_BRIGHTNESS = 25;
-        public const int WL_CLOUD_COLOR = 26;
-        public const int WL_CLOUD_XY_DENSITY = 27;
-        public const int WL_CLOUD_COVERAGE = 28;
-        public const int WL_CLOUD_SCALE = 29;
-        public const int WL_CLOUD_DETAIL_XY_DENSITY = 30;
-        public const int WL_CLOUD_SCROLL_X = 31;
-        public const int WL_CLOUD_SCROLL_Y = 32;
-        public const int WL_CLOUD_SCROLL_Y_LOCK = 33;
-        public const int WL_CLOUD_SCROLL_X_LOCK = 34;
-        public const int WL_DRAW_CLASSIC_CLOUDS = 35;
-
     }
 }
