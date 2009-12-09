@@ -539,6 +539,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Load region settings
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
+            m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(m_regInfo.RegionID);
+
             if (m_storageManager.EstateDataStore != null)
             {
                 m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
@@ -1501,6 +1503,19 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveTerrain()
         {
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
+        }
+        
+        public void StoreWindlightProfile(RegionMeta7WindlightData wl)
+        {
+            m_regInfo.WindlightSettings = wl;
+            m_storageManager.DataStore.StoreRegionWindlightSettings(wl);
+            m_eventManager.TriggerOnSaveNewWindlightProfile();
+        }
+
+        public void LoadWindlightProfile()
+        {
+            m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(RegionInfo.RegionID);
+            m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
 
         /// <summary>

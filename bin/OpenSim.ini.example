@@ -825,6 +825,12 @@
     ; default is 1000
     cloud_update_rate = 1000
 
+[Meta7Windlight]
+
+    ; This enables the transmission of Windlight scenes to supporting clients, such as the Meta7 viewer.
+    ; It has no ill effect on viewers which do not support server-side windlight settings.
+    ; Currently we only have support for MySQL databases.
+    enable_windlight = false;
 
 [Trees]
     ; Enable this to allow the tree module to manage your sim trees, including growing, reproducing and dying

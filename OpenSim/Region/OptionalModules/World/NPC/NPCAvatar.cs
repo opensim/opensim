@@ -522,7 +522,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, List<byte[]> message)
         {
 
         }

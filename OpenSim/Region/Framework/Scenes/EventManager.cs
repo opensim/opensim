@@ -193,7 +193,9 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
         public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
+        public delegate void OnSaveNewWindlightProfileDelegate();
         public event OnMakeRootAgentDelegate OnMakeRootAgent;
+        public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
         public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
 
@@ -411,6 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
         private IncomingInstantMessage handlerUnhandledInstantMessage = null; //OnUnhandledInstantMessage;
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
+        private OnSaveNewWindlightProfileDelegate handlerSaveNewWindlightProfile = null; //OnSaveNewWindlightProfile;
         private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
@@ -769,6 +772,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerMakeChildAgent != null)
             {
                 handlerMakeChildAgent(presence);
+            }
+        }
+
+        public void TriggerOnSaveNewWindlightProfile()
+        {
+            handlerSaveNewWindlightProfile = OnSaveNewWindlightProfile;
+            if (handlerSaveNewWindlightProfile != null)
+            {
+                handlerSaveNewWindlightProfile();
             }
         }
 

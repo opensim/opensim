@@ -637,5 +637,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 		{
 			return m_OSSL_Functions.osGetRegionStats();
 		}
+
+        public LSL_List osGetWindlightScene(LSL_List rules)
+        {
+            return m_OSSL_Functions.osGetWindlightScene(rules);
+        }
+
+        public int osSetWindlightScene(LSL_List rules)
+        {
+            return m_OSSL_Functions.osSetWindlightScene(rules);
+        }
     }
 }

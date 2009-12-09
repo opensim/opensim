@@ -103,6 +103,8 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void StoreRegionSettings(RegionSettings rs);
         RegionSettings LoadRegionSettings(UUID regionUUID);
+        RegionMeta7WindlightData LoadRegionWindlightSettings(UUID regionUUID);
+        void StoreRegionWindlightSettings(RegionMeta7WindlightData wl);
 
         void Shutdown();
     }
