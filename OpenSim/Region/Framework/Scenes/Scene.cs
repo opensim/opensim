@@ -1504,11 +1504,17 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
         }
-
+        
         public void StoreWindlightProfile(RegionMeta7WindlightData wl)
         {
             m_regInfo.WindlightSettings = wl;
             m_storageManager.DataStore.StoreRegionWindlightSettings(wl);
+            m_eventManager.TriggerOnSaveNewWindlightProfile();
+        }
+
+        public void LoadWindlightProfile()
+        {
+            m_regInfo.WindlightSettings = m_storageManager.DataStore.LoadRegionWindlightSettings(RegionInfo.RegionID);
             m_eventManager.TriggerOnSaveNewWindlightProfile();
         }
 
