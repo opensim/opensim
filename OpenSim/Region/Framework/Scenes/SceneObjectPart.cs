@@ -212,6 +212,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition;
         private string m_sitAnimation = "SIT";
+        private bool m_occupied;					// KF if any av is sitting on this prim
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
@@ -512,9 +513,16 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                if (actor != null && _parentID == 0)
+                if (actor != null) 
                 {
-                    m_groupPosition = actor.Position;
+                	if (_parentID == 0)
+                	{
+                    	m_groupPosition = actor.Position;
+                	}
+                	else
+                	{
+                		m_groupPosition = ParentGroup.AbsolutePosition;  // KF+Casper Update Child prims too!
+                	}
                 }
 
                 if (IsAttachment)
@@ -841,7 +849,8 @@ namespace OpenSim.Region.Framework.Scenes
                 if (IsAttachment)
                     return GroupPosition;
 
-                return m_offsetPosition + m_groupPosition; }
+//                return m_offsetPosition + m_groupPosition; }
+                return m_groupPosition + (m_offsetPosition * ParentGroup.RootPart.RotationOffset) ; }  //KF: Rotation was ignored!
         }
 
         public SceneObjectGroup ParentGroup
@@ -992,6 +1001,13 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return _flags; }
             set { _flags = value; }
+        }
+        
+        [XmlIgnore]
+        public bool IsOccupied				// KF If an av is sittingon this prim
+        {
+        	get { return m_occupied; }
+        	set { m_occupied = value; }
         }
 
         [XmlIgnore]
@@ -1735,9 +1751,13 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
 
             Vector3 axPos = OffsetPosition;
-
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
+            
+            int tx =  (int)GroupPosition.X;
+            int ty =  (int)GroupPosition.Y;
+            int tz =  (int)GroupPosition.Z;
+
             return GroupPosition + translationOffsetPosition;
         }
 
