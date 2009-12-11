@@ -139,9 +139,16 @@ namespace OpenSim.Framework.Communications.Cache
                 else
                 {
                     UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(fname, lname);
-                
+
                     if (userProfile != null)
+                    {
+                        if (userProfile.UserAssetURI == null || userProfile.UserAssetURI == "")
+                            userProfile.UserAssetURI = m_commsManager.NetworkServersInfo.AssetURL;
+                        if (userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "")
+                            userProfile.UserInventoryURI = m_commsManager.NetworkServersInfo.InventoryURL;
+
                         return AddToCaches(userProfile);
+                    }
                     else
                         return null;
                 }
@@ -169,7 +176,14 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
                     if (userProfile != null)
+                    {
+                        if (userProfile.UserAssetURI == null || userProfile.UserAssetURI == "")
+                            userProfile.UserAssetURI = m_commsManager.NetworkServersInfo.AssetURL;
+                        if (userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "")
+                            userProfile.UserInventoryURI = m_commsManager.NetworkServersInfo.InventoryURL;
+
                         return AddToCaches(userProfile);
+                    }
                     else
                         return null;
                 }
