@@ -142,9 +142,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (userProfile != null)
                     {
-                        if (userProfile.UserAssetURI == null || userProfile.UserAssetURI == "")
+                        if ((userProfile.UserAssetURI == null || userProfile.UserAssetURI == "") && m_commsManager.NetworkServersInfo != null)
                             userProfile.UserAssetURI = m_commsManager.NetworkServersInfo.AssetURL;
-                        if (userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "")
+                        if ((userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "") && m_commsManager.NetworkServersInfo != null)
                             userProfile.UserInventoryURI = m_commsManager.NetworkServersInfo.InventoryURL;
 
                         return AddToCaches(userProfile);
@@ -177,9 +177,9 @@ namespace OpenSim.Framework.Communications.Cache
                     UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
                     if (userProfile != null)
                     {
-                        if (userProfile.UserAssetURI == null || userProfile.UserAssetURI == "")
+                        if ((userProfile.UserAssetURI == null || userProfile.UserAssetURI == "") && m_commsManager.NetworkServersInfo != null)
                             userProfile.UserAssetURI = m_commsManager.NetworkServersInfo.AssetURL;
-                        if (userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "")
+                        if ((userProfile.UserInventoryURI == null || userProfile.UserInventoryURI == "") && m_commsManager.NetworkServersInfo != null)
                             userProfile.UserInventoryURI = m_commsManager.NetworkServersInfo.InventoryURL;
 
                         return AddToCaches(userProfile);
