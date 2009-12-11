@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
             // Yikes!! Remove this as soon as user services get refactored
-            LocalAssetServerURI = scene.CommsManager.NetworkServersInfo.UserURL;
+            LocalAssetServerURI = scene.CommsManager.NetworkServersInfo.AssetURL;
             LocalInventoryServerURI = scene.CommsManager.NetworkServersInfo.InventoryURL;
             LocalUserServerURI = scene.CommsManager.NetworkServersInfo.UserURL;
             HGNetworkServersInfo.Init(LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI);
