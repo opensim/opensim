@@ -480,7 +480,7 @@ namespace OpenSim.Data.MySQL
                     else
                     {
                         m_log.WarnFormat(
-                            "[REGION DB]: Database contains an orphan child prim {0} {1} in region {3} pointing to missing parent {4}.  This prim will not be loaded.",
+                            "[REGION DB]: Database contains an orphan child prim {0} {1} in region {2} pointing to missing parent {3}.  This prim will not be loaded.",
                             prim.Name, prim.UUID, regionID, prim.ParentUUID);
                     }
                 }
