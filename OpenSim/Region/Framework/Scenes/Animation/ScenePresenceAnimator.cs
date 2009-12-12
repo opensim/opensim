@@ -128,7 +128,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             if (!m_scenePresence.IsChildAgent)
             {
                 if (m_animations.TrySetDefaultAnimation(
-                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, UUID.Zero))
+                    anim, m_scenePresence.ControllingClient.NextAnimationSequenceNumber, m_scenePresence.UUID))
                 {
 //Console.WriteLine("TSMA {0} success.", anim);    
                     // 16384 is CHANGED_ANIMATION

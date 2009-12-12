@@ -128,6 +128,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
+        private Vector3 m_requestedSitOffset;
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
         private bool m_startAnimationSet;
@@ -1296,10 +1297,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return;
             }
+            
+            bool update_movementflag = false;
+
             if (m_allowMovement)
             {
                 int i = 0;
-                bool update_movementflag = false;
+                
                 bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
@@ -1451,27 +1455,33 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (LocalVectorToTarget2D.Y > 0)//MoveLeft
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                                    //AgentControlFlags
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                                     update_movementflag = true;
                                 }
                                 else if (LocalVectorToTarget2D.Y < 0) //MoveRight
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                                     update_movementflag = true;
                                 }
                                 if (LocalVectorToTarget2D.X < 0) //MoveBack
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                                     update_movementflag = true;
                                 }
                                 else if (LocalVectorToTarget2D.X > 0) //Move Forward
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                                     update_movementflag = true;
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
                                 //Avoid system crash, can be slower but...
+                                m_log.DebugFormat("Crash! {0}", e.ToString());
                             }
                         }
                     }
@@ -1509,10 +1519,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     AddNewMovement(agent_control_v3, q, Nudging);
 
-                    if (update_movementflag)
-                        Animator.UpdateMovementAnimations();
+                    
                 }
             }
+
+            if (update_movementflag)
+                Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
 
@@ -1712,11 +1724,12 @@ namespace OpenSim.Region.Framework.Scenes
             return targetPart;
         }
 
-        private void SendSitResponse(IClientAPI remoteClient, UUID targetID, Vector3 offset)
+        private void SendSitResponse(IClientAPI remoteClient, UUID targetID, Vector3 offset, Quaternion pSitOrientation)
         {
             bool autopilot = true;
             Vector3 autopilotTarget = new Vector3();
             Quaternion sitOrientation = Quaternion.Identity;
+            Vector3 pos = new Vector3();
             Vector3 cameraEyeOffset = Vector3.Zero;
             Vector3 cameraAtOffset = Vector3.Zero;
             bool forceMouselook = false;
@@ -1843,12 +1856,17 @@ namespace OpenSim.Region.Framework.Scenes
                     m_nextSitAnimation = part.SitAnimation;
                 }
                 m_requestedSitTargetID = part.LocalId;
-                //m_requestedSitOffset = offset;
-                //offset.X += part.Scale.X;// *offset.X;
-                //offset.Y += part.Scale.Y;// * offset.Y;
-                //offset.Z += part.Scale.Z;// * offset.Z;
-                //m_requestedSitOffset = offset;
+                m_requestedSitOffset = offset;
+                m_requestedSitTargetUUID = targetID;
+                
                 m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
+                
+                if (m_scene.PhysicsScene.SupportsRayCast())
+                {
+                    //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
+                    //SitRayCastAvatarPosition(part);
+                    //return;
+                }
             }
             else
             {
@@ -1856,14 +1874,201 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
 
-            if (m_scene.PhysicsScene.SupportsRayCast())
+            
+
+            SendSitResponse(remoteClient, targetID, offset, Quaternion.Identity);
+        }
+        /*
+        public void SitRayCastAvatarPosition(SceneObjectPart part)
+        {
+            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
+            Vector3 StartRayCastPosition = AbsolutePosition;
+            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
+            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
+            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastAvatarPositionResponse);
+        }
+
+        public void SitRayCastAvatarPositionResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
+        {
+            SceneObjectPart part =  FindNextAvailableSitTarget(m_requestedSitTargetUUID);
+            if (part != null)
             {
-                //m_scene.PhysicsScene.RaycastWorld(Vector3.Zero,Vector3.Zero, 0.01f,new RaycastCallback());
+                if (hitYN)
+                {
+                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
+                    {
+                        SitRaycastFindEdge(collisionPoint, normal);
+                        m_log.DebugFormat("[SIT]: Raycast Avatar Position succeeded at point: {0}, normal:{1}", collisionPoint, normal );
+                    }
+                    else
+                    {
+                        SitRayCastAvatarPositionCameraZ(part);
+                    }
+                }
+                else
+                {
+                    SitRayCastAvatarPositionCameraZ(part);
+                }
+            }
+            else
+            {
+                ControllingClient.SendAlertMessage("Sit position no longer exists");
+                m_requestedSitTargetUUID = UUID.Zero;
+                m_requestedSitTargetID = 0;
+                m_requestedSitOffset = Vector3.Zero;
             }
 
-            SendSitResponse(remoteClient, targetID, offset);
         }
-        
+
+        public void SitRayCastAvatarPositionCameraZ(SceneObjectPart part)
+        {
+            // Next, try to raycast from the camera Z position
+            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
+            Vector3 StartRayCastPosition = AbsolutePosition; StartRayCastPosition.Z = CameraPosition.Z;
+            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
+            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
+            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastAvatarPositionCameraZResponse);
+        }
+
+        public void SitRayCastAvatarPositionCameraZResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
+        {
+            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
+            if (part != null)
+            {
+                if (hitYN)
+                {
+                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
+                    {
+                        SitRaycastFindEdge(collisionPoint, normal);
+                        m_log.DebugFormat("[SIT]: Raycast Avatar Position + CameraZ succeeded at point: {0}, normal:{1}", collisionPoint, normal);
+                    }
+                    else
+                    {
+                        SitRayCastCameraPosition(part);
+                    }
+                }
+                else
+                {
+                    SitRayCastCameraPosition(part);
+                }
+            }
+            else
+            {
+                ControllingClient.SendAlertMessage("Sit position no longer exists");
+                m_requestedSitTargetUUID = UUID.Zero;
+                m_requestedSitTargetID = 0;
+                m_requestedSitOffset = Vector3.Zero;
+            }
+
+        }
+
+        public void SitRayCastCameraPosition(SceneObjectPart part)
+        {
+            // Next, try to raycast from the camera position
+            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
+            Vector3 StartRayCastPosition = CameraPosition;
+            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
+            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
+            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastCameraPositionResponse);
+        }
+
+        public void SitRayCastCameraPositionResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
+        {
+            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
+            if (part != null)
+            {
+                if (hitYN)
+                {
+                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
+                    {
+                        SitRaycastFindEdge(collisionPoint, normal);
+                        m_log.DebugFormat("[SIT]: Raycast Camera Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
+                    }
+                    else
+                    {
+                        SitRayHorizontal(part);
+                    }
+                }
+                else
+                {
+                    SitRayHorizontal(part);
+                }
+            }
+            else
+            {
+                ControllingClient.SendAlertMessage("Sit position no longer exists");
+                m_requestedSitTargetUUID = UUID.Zero;
+                m_requestedSitTargetID = 0;
+                m_requestedSitOffset = Vector3.Zero;
+            }
+
+        }
+
+        public void SitRayHorizontal(SceneObjectPart part)
+        {
+            // Next, try to raycast from the avatar position to fwd
+            Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
+            Vector3 StartRayCastPosition = CameraPosition;
+            Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
+            float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
+            m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastHorizontalResponse);
+        }
+
+        public void SitRayCastHorizontalResponse(bool hitYN, Vector3 collisionPoint, uint localid, float pdistance, Vector3 normal)
+        {
+            SceneObjectPart part = FindNextAvailableSitTarget(m_requestedSitTargetUUID);
+            if (part != null)
+            {
+                if (hitYN)
+                {
+                    if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
+                    {
+                        SitRaycastFindEdge(collisionPoint, normal);
+                        m_log.DebugFormat("[SIT]: Raycast Horizontal Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
+                        // Next, try to raycast from the camera position
+                        Vector3 EndRayCastPosition = part.AbsolutePosition + m_requestedSitOffset;
+                        Vector3 StartRayCastPosition = CameraPosition;
+                        Vector3 direction = Vector3.Normalize(EndRayCastPosition - StartRayCastPosition);
+                        float distance = Vector3.Distance(EndRayCastPosition, StartRayCastPosition);
+                        //m_scene.PhysicsScene.RaycastWorld(StartRayCastPosition, direction, distance, SitRayCastResponseAvatarPosition);
+                    }
+                    else
+                    {
+                        ControllingClient.SendAlertMessage("Sit position not accessable.");
+                        m_requestedSitTargetUUID = UUID.Zero;
+                        m_requestedSitTargetID = 0;
+                        m_requestedSitOffset = Vector3.Zero;
+                    }
+                }
+                else
+                {
+                    ControllingClient.SendAlertMessage("Sit position not accessable.");
+                    m_requestedSitTargetUUID = UUID.Zero;
+                    m_requestedSitTargetID = 0;
+                    m_requestedSitOffset = Vector3.Zero;
+                }
+            }
+            else
+            {
+                ControllingClient.SendAlertMessage("Sit position no longer exists");
+                m_requestedSitTargetUUID = UUID.Zero;
+                m_requestedSitTargetID = 0;
+                m_requestedSitOffset = Vector3.Zero;
+            }
+
+        }
+
+        private void SitRaycastFindEdge(Vector3 collisionPoint, Vector3 collisionNormal)
+        {
+            int i = 0;
+            //throw new NotImplementedException();
+            //m_requestedSitTargetUUID = UUID.Zero;
+            //m_requestedSitTargetID = 0;
+            //m_requestedSitOffset = Vector3.Zero;
+
+            SendSitResponse(ControllingClient, m_requestedSitTargetUUID, collisionPoint - m_requestedSitOffset, Quaternion.Identity);
+        }
+        */
         public void HandleAgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset, string sitAnimation)
         {
             if (m_parentID != 0)
@@ -1884,14 +2089,23 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 m_requestedSitTargetID = part.LocalId; 
-                //m_requestedSitOffset = offset;
+                m_requestedSitOffset = offset;
+                m_requestedSitTargetUUID = targetID;
+
+                m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
+
+                if (m_scene.PhysicsScene.SupportsRayCast())
+                {
+                    //SitRayCastAvatarPosition(part);
+                    //return;
+                }
             }
             else
             {
                 m_log.Warn("Sit requested on unknown object: " + targetID);
             }
             
-            SendSitResponse(remoteClient, targetID, offset);
+            SendSitResponse(remoteClient, targetID, offset, Quaternion.Identity);
         }
 
         public void HandleAgentSit(IClientAPI remoteClient, UUID agentID)
