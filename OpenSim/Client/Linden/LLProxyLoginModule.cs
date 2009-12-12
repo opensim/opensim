@@ -304,7 +304,7 @@ namespace OpenSim.Client.Linden
             }
             catch (Exception e)
             {
-                m_log.WarnFormat("[CLIENT]: Unable to receive user. Reason: {0}", e);
+                m_log.WarnFormat("[CLIENT]: Unable to receive user. Reason: {0} ({1})", e, e.StackTrace);
                 Hashtable respdata = new Hashtable();
                 respdata["success"] = "FALSE";
                 respdata["reason"] = "Exception occurred";

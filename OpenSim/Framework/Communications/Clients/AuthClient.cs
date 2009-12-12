@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Communications.Clients
             }
 
             Hashtable responseData = (Hashtable)UserResp.Value;
-            if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
+            if (responseData != null && responseData.ContainsKey("auth_session") && responseData["auth_session"] != null && responseData["auth_session"].ToString() == "TRUE")
             {
                 //System.Console.WriteLine("[Authorization]: userserver reported authorized session for user " + userID);
                 return true;
