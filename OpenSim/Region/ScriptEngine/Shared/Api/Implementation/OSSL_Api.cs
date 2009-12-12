@@ -1972,7 +1972,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public int osGetSimulatorMemory()
         {
-            CheckThreatLevel(ThreatLevel.Moderate, "osGetRegionStats");
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetSimulatorMemory");
             m_host.AddScriptLPS(1);
             long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
 
