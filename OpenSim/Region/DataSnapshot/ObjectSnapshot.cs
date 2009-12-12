@@ -45,6 +45,10 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_stale = true;
 
+        private static UUID m_DefaultImage = new UUID("89556747-24cb-43ed-920b-47caed15465f");
+        private static UUID m_BlankImage = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+
+
         public void Initialize(Scene scene, DataSnapshotManager parent)
         {
             m_scene = scene;
@@ -142,6 +146,19 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             node.InnerText = land.LandData.GlobalID.ToString();
                             xmlobject.AppendChild(node);
 
+                            node = nodeFactory.CreateNode(XmlNodeType.Element, "location", "");
+                            Vector3 loc = obj.AbsolutePosition;
+                            node.InnerText = loc.X.ToString() + "/" + loc.Y.ToString() + "/" + loc.Z.ToString();
+                            xmlobject.AppendChild(node);
+
+                            string bestImage = GuessImage(obj);
+                            if (bestImage != string.Empty)
+                            {
+                                node = nodeFactory.CreateNode(XmlNodeType.Element, "image", "");
+                                node.InnerText = bestImage;
+                                xmlobject.AppendChild(node);
+                            }
+
                             parent.AppendChild(xmlobject);
                         }
                     }
@@ -173,5 +190,58 @@ namespace OpenSim.Region.DataSnapshot.Providers
         }
 
         public event ProviderStale OnStale;
+
+        /// <summary>
+        /// Guesses the best image, based on a simple heuristic. It guesses only for boxes.
+        /// We're optimizing for boxes, because those are the most common objects
+        /// marked "Show in search" -- boxes with content inside.For other shapes,
+        /// it's really hard to tell which texture should be grabbed.
+        /// </summary>
+        /// <param name="sog"></param>
+        /// <returns></returns>
+        private string GuessImage(SceneObjectGroup sog)
+        {
+            string bestguess = string.Empty;
+            Dictionary<UUID, int> counts = new Dictionary<UUID, int>();
+            if (sog.RootPart.Shape != null && sog.RootPart.Shape.ProfileShape == ProfileShape.Square &&
+                sog.RootPart.Shape.Textures != null && sog.RootPart.Shape.Textures.FaceTextures != null)
+            {
+                if (sog.RootPart.Shape.Textures.DefaultTexture.TextureID != UUID.Zero &&
+                    sog.RootPart.Shape.Textures.DefaultTexture.TextureID != m_DefaultImage &&
+                    sog.RootPart.Shape.Textures.DefaultTexture.TextureID != m_BlankImage &&
+                    sog.RootPart.Shape.Textures.DefaultTexture.RGBA.A < 50)
+                {
+                    counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] = 8;
+                }
+
+                foreach (Primitive.TextureEntryFace tentry in sog.RootPart.Shape.Textures.FaceTextures)
+                {
+                    if (tentry != null)
+                    {
+                        if (tentry.TextureID != UUID.Zero && tentry.TextureID != m_DefaultImage && tentry.TextureID != m_BlankImage && tentry.RGBA.A < 50)
+                        {
+                            int c = 0;
+                            counts.TryGetValue(tentry.TextureID, out c);
+                            counts[tentry.TextureID] = c + 1;
+                            // decrease the default texture count
+                            if (counts.ContainsKey(sog.RootPart.Shape.Textures.DefaultTexture.TextureID))
+                                counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] = counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] - 1;
+                        }
+                    }
+                }
+
+                // Let's pick the most unique texture
+                int min = 9999;
+                foreach (KeyValuePair<UUID, int> kv in counts)
+                {
+                    if (kv.Value < min && kv.Value >= 1)
+                    {
+                        bestguess = kv.Key.ToString();
+                        min = kv.Value;
+                    }
+                }
+            }
+            return bestguess;
+        }
     }
 }
