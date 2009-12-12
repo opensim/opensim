@@ -1262,11 +1262,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 return;
             }
+            
+            bool update_movementflag = false;
 
             if (m_allowMovement)
             {
                 int i = 0;
-                bool update_movementflag = false;
+                
                 bool update_rotation = false;
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = Vector3.Zero;
@@ -1400,27 +1402,33 @@ namespace OpenSim.Region.Framework.Scenes
                                 if (LocalVectorToTarget2D.Y > 0)//MoveLeft
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
+                                    //AgentControlFlags
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_LEFT;
                                     update_movementflag = true;
                                 }
                                 else if (LocalVectorToTarget2D.Y < 0) //MoveRight
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_RIGHT;
                                     update_movementflag = true;
                                 }
                                 if (LocalVectorToTarget2D.X < 0) //MoveBack
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_BACK;
                                     update_movementflag = true;
                                 }
                                 else if (LocalVectorToTarget2D.X > 0) //Move Forward
                                 {
                                     m_movementflag += (byte)(uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
+                                    AgentControlFlags |= (uint)Dir_ControlFlags.DIR_CONTROL_FLAG_FORWARD;
                                     update_movementflag = true;
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
                                 //Avoid system crash, can be slower but...
+                                m_log.DebugFormat("Crash! {0}", e.ToString());
                             }
                         }
                     }
@@ -1458,10 +1466,12 @@ namespace OpenSim.Region.Framework.Scenes
 
                     AddNewMovement(agent_control_v3, q);
 
-                    if (update_movementflag)
-                        Animator.UpdateMovementAnimations();
+                    
                 }
             }
+
+            if (update_movementflag)
+                Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
 
