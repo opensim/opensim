@@ -1660,16 +1660,27 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 				// part.GetWorldRotation()   is the rotation of the object being sat on
 				// Rotation  is the sittiing Av's rotation
-				
-				Quaternion wr = Quaternion.Inverse(Quaternion.Inverse(Rotation) * Quaternion.Inverse(part.GetWorldRotation())); // world or. of the av
-				Vector3 so = new Vector3(1.0f, 0f, 0f) * wr;		// 1M infront of av
-				Vector3 wso = so + part.GetWorldPosition() + ( m_pos * part.GetWorldRotation());			// + av sit offset!
+
+	           	Quaternion partRot;
+	            if (part.LinkNum == 1)
+	            {				// Root prim of linkset
+	                partRot = part.ParentGroup.RootPart.RotationOffset;
+	            }
+	            else
+	            {				// single or child prim
+	                partRot = part.GetWorldRotation();
+	            }                       
+	            Quaternion partIRot = Quaternion.Inverse(partRot);
+
+				Quaternion avatarRot = Quaternion.Inverse(Quaternion.Inverse(Rotation) * partIRot); // world or. of the av
+				Vector3 avStandUp = new Vector3(1.0f, 0f, 0f) * avatarRot;		// 1M infront of av
+				Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + ( m_pos * partRot);			// + av sit offset!
 
                 if (m_physicsActor == null)
                 {
                     AddToPhysicalScene(false);
                 }
-		        AbsolutePosition = wso;                	 //KF: Fix stand up.
+		        AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
                 m_parentPosition = Vector3.Zero;
 				m_parentID = 0;
                 part.IsOccupied = false;
@@ -1752,8 +1763,17 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion avSitOrientation = part.SitTargetOrientation;
 
             bool SitTargetisSet = (Vector3.Zero != avSitOffSet);		//NB Latest SL Spec shows Sit Rotation setting is ignored.
-        	Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
-                       
+   //     	Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
+           	Quaternion partRot;
+            if (part.LinkNum == 1)
+            {				// Root prim of linkset
+                partRot = part.ParentGroup.RootPart.RotationOffset;
+            }
+            else
+            {				// single or child prim
+                partRot = part.GetWorldRotation();
+            }                       
+           	Quaternion partIRot = Quaternion.Inverse(partRot);
 //Console.WriteLine("SendSitResponse offset=" + offset + "  Occup=" + part.IsOccupied + "    TargSet=" + SitTargetisSet);
 			// Sit analysis rewritten by KF 091125 
             if (SitTargetisSet) 		// scipted sit
@@ -1800,6 +1820,8 @@ namespace OpenSim.Region.Framework.Scenes
             cameraAtOffset = part.GetCameraAtOffset();
             cameraEyeOffset = part.GetCameraEyeOffset();
             forceMouselook = part.GetForceMouselook();
+            if(cameraAtOffset == Vector3.Zero) cameraAtOffset =  new Vector3(0f, 0f, 0.1f); // 
+            if(cameraEyeOffset == Vector3.Zero) cameraEyeOffset =  new Vector3(0f, 0f, 0.1f); // 
 
             if (m_physicsActor != null)
             {
@@ -1823,7 +1845,29 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else return;    // physactor is null! 
 
-			Vector3 offsetr = offset * partIRot;		
+			Vector3 offsetr; // = offset * partIRot;	
+			// KF: In a linkset, offsetr needs to be relative to the group root!  091208	
+	//		offsetr = (part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) + (offset * partIRot);
+            if (part.LinkNum < 2)
+            {				// Single, or Root prim of linkset, target is ClickOffset * RootRot
+            	offsetr = offset * partIRot;
+            }
+            else
+            {	// Child prim, offset is (ChildOffset * RootRot) + (ClickOffset * ChildRot)
+            	offsetr = //(part.OffsetPosition * Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset)) +	
+            				(offset * partRot);
+            }
+
+Console.WriteLine(" ");
+Console.WriteLine("link number ={0}", part.LinkNum);		
+Console.WriteLine("Prim offset ={0}", part.OffsetPosition );			
+Console.WriteLine("Root Rotate ={0}", part.ParentGroup.RootPart.RotationOffset);
+Console.WriteLine("Click offst ={0}", offset);
+Console.WriteLine("Prim Rotate ={0}", part.GetWorldRotation());
+Console.WriteLine("offsetr     ={0}", offsetr);
+Console.WriteLine("Camera At   ={0}", cameraAtOffset);
+Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
+
             ControllingClient.SendSitResponse(part.UUID, offsetr, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
             // This calls HandleAgentSit twice, once from here, and the client calls
@@ -2142,13 +2186,20 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-//Console.WriteLine("NON Scripted Sit");
 						// if m_avUnscriptedSitPos is zero then Av sits above center
 						// Else Av sits at m_avUnscriptedSitPos						
 						
                     	// Non-scripted sit by Kitto Flora 21Nov09
                     	// Calculate angle of line from prim to Av
-                    	Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
+                    	Quaternion partIRot;
+                    	if (part.LinkNum == 1)
+                    	{				// Root prim of linkset
+                    		partIRot = Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset);
+                    	}
+                    	else
+                    	{				// single or child prim
+                    		partIRot = Quaternion.Inverse(part.GetWorldRotation());
+                    	}
                     	Vector3 sitTargetPos= part.AbsolutePosition + m_avUnscriptedSitPos;
 	                	float y_diff = (m_avInitialPos.Y - sitTargetPos.Y);
     	            	float x_diff = ( m_avInitialPos.X - sitTargetPos.X);
@@ -2203,11 +2254,21 @@ namespace OpenSim.Region.Framework.Scenes
 				// collisionPoint = spot on prim where we want to sit
 				// collisionPoint.Z = global sit surface height
 				SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
-				Quaternion partIRot = Quaternion.Inverse(part.GetWorldRotation());
+				Quaternion partIRot;
+	            if (part.LinkNum == 1)
+    	        {				// Root prim of linkset
+    	            partIRot = Quaternion.Inverse(part.ParentGroup.RootPart.RotationOffset);
+    	        }
+    	        else
+    	        {				// single or child prim
+    	            partIRot = Quaternion.Inverse(part.GetWorldRotation());
+    	        }                       
 				float offZ = collisionPoint.Z - m_initialSitTarget.Z;
 				Vector3 offset = new Vector3(0.0f, 0.0f, offZ) * partIRot; // Altitude correction
 //Console.WriteLine("sitPoint={0},  offset={1}",  sitPoint,  offset);
 				m_pos += offset;
+  ControllingClient.SendClearFollowCamProperties(part.UUID);
+				
 			}
 		} // End SitAltitudeCallback  KF.
 
