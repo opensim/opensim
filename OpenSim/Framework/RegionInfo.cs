@@ -320,7 +320,7 @@ namespace OpenSim.Framework
         }
     }
 
-    public class RegionInfo : SimpleRegionInfo
+    public class RegionInfo
     {
         // private static readonly log4net.ILog m_log
         //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -356,6 +356,21 @@ namespace OpenSim.Framework
         private int m_objectCapacity = 0;
         private string m_regionType = String.Empty;
         private RegionMeta7WindlightData m_windlight = new RegionMeta7WindlightData();
+        protected uint m_httpPort;
+        protected string m_serverURI;
+        protected string m_regionName = String.Empty;
+        protected bool Allow_Alternate_Ports;
+        public bool m_allow_alternate_ports;
+        protected string m_externalHostName;
+        protected IPEndPoint m_internalEndPoint;
+        protected uint? m_regionLocX;
+        protected uint? m_regionLocY;
+        protected uint m_remotingPort;
+        public UUID RegionID = UUID.Zero;
+        public string RemotingAddress;
+        public UUID ScopeID = UUID.Zero;
+
+
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
         // MT: Yes. Estates can't span trust boundaries. Therefore, it can be
@@ -436,42 +451,17 @@ namespace OpenSim.Framework
             configMember.performConfigurationRetrieve();
         }
 
-        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri) :
-            base(regionLocX, regionLocY, internalEndPoint, externalUri)
+        public RegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
+            m_regionLocX = regionLocX;
+            m_regionLocY = regionLocY;
+
+            m_internalEndPoint = internalEndPoint;
+            m_externalHostName = externalUri;
         }
 
         public RegionInfo()
         {
-        }
-
-        public RegionInfo(SerializableRegionInfo ConvertFrom)
-        {
-            m_regionLocX = ConvertFrom.RegionLocX;
-            m_regionLocY = ConvertFrom.RegionLocY;
-            m_internalEndPoint = ConvertFrom.InternalEndPoint;
-            m_externalHostName = ConvertFrom.ExternalHostName;
-            m_remotingPort = ConvertFrom.RemotingPort;
-            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
-            RemotingAddress = ConvertFrom.RemotingAddress;
-            RegionID = UUID.Zero;
-            proxyUrl = ConvertFrom.ProxyUrl;
-            originRegionID = ConvertFrom.OriginRegionID;
-            RegionName = ConvertFrom.RegionName;
-            ServerURI = ConvertFrom.ServerURI;
-        }
-
-        public RegionInfo(SimpleRegionInfo ConvertFrom)
-        {
-            m_regionLocX = ConvertFrom.RegionLocX;
-            m_regionLocY = ConvertFrom.RegionLocY;
-            m_internalEndPoint = ConvertFrom.InternalEndPoint;
-            m_externalHostName = ConvertFrom.ExternalHostName;
-            m_remotingPort = ConvertFrom.RemotingPort;
-            m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
-            RemotingAddress = ConvertFrom.RemotingAddress;
-            RegionID = UUID.Zero;
-            ServerURI = ConvertFrom.ServerURI;
         }
 
         public EstateSettings EstateSettings
@@ -547,6 +537,111 @@ namespace OpenSim.Framework
         public string RegionType
         {
             get { return m_regionType; }
+        }
+
+        /// <summary>
+        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
+        /// </summary>
+        public uint HttpPort
+        {
+            get { return m_httpPort; }
+            set { m_httpPort = value; }
+        }
+
+        /// <summary>
+        /// A well-formed URI for the host region server (namely "http://" + ExternalHostName)
+        /// </summary>
+        public string ServerURI
+        {
+            get { return m_serverURI; }
+            set { m_serverURI = value; }
+        }
+
+        public string RegionName
+        {
+            get { return m_regionName; }
+            set { m_regionName = value; }
+        }
+
+        public uint RemotingPort
+        {
+            get { return m_remotingPort; }
+            set { m_remotingPort = value; }
+        }
+
+        /// <value>
+        /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
+        ///
+        /// XXX Isn't this really doing too much to be a simple getter, rather than an explict method?
+        /// </value>
+        public IPEndPoint ExternalEndPoint
+        {
+            get
+            {
+                // Old one defaults to IPv6
+                //return new IPEndPoint(Dns.GetHostAddresses(m_externalHostName)[0], m_internalEndPoint.Port);
+
+                IPAddress ia = null;
+                // If it is already an IP, don't resolve it - just return directly
+                if (IPAddress.TryParse(m_externalHostName, out ia))
+                    return new IPEndPoint(ia, m_internalEndPoint.Port);
+
+                // Reset for next check
+                ia = null;
+                try
+                {
+                    foreach (IPAddress Adr in Dns.GetHostAddresses(m_externalHostName))
+                    {
+                        if (ia == null)
+                            ia = Adr;
+
+                        if (Adr.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ia = Adr;
+                            break;
+                        }
+                    }
+                }
+                catch (SocketException e)
+                {
+                    throw new Exception(
+                        "Unable to resolve local hostname " + m_externalHostName + " innerException of type '" +
+                        e + "' attached to this exception", e);
+                }
+
+                return new IPEndPoint(ia, m_internalEndPoint.Port);
+            }
+
+            set { m_externalHostName = value.ToString(); }
+        }
+
+        public string ExternalHostName
+        {
+            get { return m_externalHostName; }
+            set { m_externalHostName = value; }
+        }
+
+        public IPEndPoint InternalEndPoint
+        {
+            get { return m_internalEndPoint; }
+            set { m_internalEndPoint = value; }
+        }
+
+        public uint RegionLocX
+        {
+            get { return m_regionLocX.Value; }
+            set { m_regionLocX = value; }
+        }
+
+        public uint RegionLocY
+        {
+            get { return m_regionLocY.Value; }
+            set { m_regionLocY = value; }
+        }
+
+        public ulong RegionHandle
+        {
+            get { return Util.UIntsToLong((RegionLocX * (uint) Constants.RegionSize), (RegionLocY * (uint) Constants.RegionSize)); }
         }
 
         public void SetEndPoint(string ipaddr, int port)
@@ -1139,5 +1234,27 @@ namespace OpenSim.Framework
             return regionInfo;
         }
 
+        public int getInternalEndPointPort()
+        {
+            return m_internalEndPoint.Port;
+        }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> kvp = new Dictionary<string, object>();
+            kvp["uuid"] = RegionID.ToString();
+            kvp["locX"] = RegionLocX.ToString();
+            kvp["locY"] = RegionLocY.ToString();
+            kvp["external_ip_address"] = ExternalEndPoint.Address.ToString();
+            kvp["external_port"] = ExternalEndPoint.Port.ToString();
+            kvp["external_host_name"] = ExternalHostName;
+            kvp["http_port"] = HttpPort.ToString();
+            kvp["internal_ip_address"] = InternalEndPoint.Address.ToString();
+            kvp["internal_port"] = InternalEndPoint.Port.ToString();
+            kvp["alternate_ports"] = m_allow_alternate_ports.ToString();
+            kvp["server_uri"] = ServerURI;
+
+            return kvp;
+        }
     }
 }
