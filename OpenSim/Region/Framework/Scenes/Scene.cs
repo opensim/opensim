@@ -574,10 +574,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             StatsReporter.SetObjectCapacity(objectCapacity);
 
+            // Old
+            /*
             m_simulatorVersion = simulatorVersion
                 + " (OS " + Util.GetOperatingSystemInformation() + ")"
                 + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
                 + " PhysPrim:" + m_physicalPrim.ToString();
+            */
+
+            m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
 
             try
             {

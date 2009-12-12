@@ -91,6 +91,9 @@ namespace OpenSim.Data.MySQL
                 rollbackStore = GridDataMySqlFile.ParseFileReadValue("rollback") == "true";
                 opengridmode = GridDataMySqlFile.ParseFileReadValue("opengridmode") == "true";
 
+                if(rollbackStore)
+                    m_log.Warn("[MysqlInventory] Enabling rollback mode in: " + rollbackDir);
+
                 database =
                     new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                      settingPort);

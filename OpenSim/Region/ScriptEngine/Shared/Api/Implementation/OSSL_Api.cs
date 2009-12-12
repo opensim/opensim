@@ -1970,5 +1970,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 			return ret;
 		}
 
+        public int osGetSimulatorMemory()
+        {
+            CheckThreatLevel(ThreatLevel.Moderate, "osGetRegionStats");
+            m_host.AddScriptLPS(1);
+            long pws = System.Diagnostics.Process.GetCurrentProcess().WorkingSet64;
+
+            if (pws > Int32.MaxValue)
+                return Int32.MaxValue;
+            if (pws < 0)
+                return 0;
+
+            return (int)pws;
+        }
     }
 }
