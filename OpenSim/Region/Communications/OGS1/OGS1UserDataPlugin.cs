@@ -655,9 +655,12 @@ namespace OpenSim.Region.Communications.OGS1
                 userData.Email = (string)data["email"];
             userData.ID = new UUID((string)data["uuid"]);
             userData.Created = Convert.ToInt32(data["profile_created"]);
-            userData.UserInventoryURI = (string)data["server_inventory"];
-            userData.UserAssetURI = (string)data["server_asset"];
-            userData.FirstLifeAboutText = (string)data["profile_firstlife_about"];
+            if (data.Contains("server_inventory") && data["server_inventory"] != null)
+                userData.UserInventoryURI = (string)data["server_inventory"];
+            if (data.Contains("server_asset") && data["server_asset"] != null)
+                userData.UserAssetURI = (string)data["server_asset"];
+            if (data.Contains("profile_firstlife_about") && data["profile_firstlife_about"] != null)
+                userData.FirstLifeAboutText = (string)data["profile_firstlife_about"];
             userData.FirstLifeImage = new UUID((string)data["profile_firstlife_image"]);
             userData.CanDoMask = Convert.ToUInt32((string)data["profile_can_do"]);
             userData.WantDoMask = Convert.ToUInt32(data["profile_want_do"]);
