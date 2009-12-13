@@ -4381,7 +4381,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFrendship);
             AddLocalPacketHandler(PacketType.RezObject, HandlerRezObject);
             AddLocalPacketHandler(PacketType.DeRezObject, HandlerDeRezObject);
-            AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand, false);
+            AddLocalPacketHandler(PacketType.ModifyLand, HandlerModifyLand);
             AddLocalPacketHandler(PacketType.RegionHandshakeReply, HandlerRegionHandshakeReply);
             AddLocalPacketHandler(PacketType.AgentWearablesRequest, HandlerAgentWearablesRequest);
             AddLocalPacketHandler(PacketType.AgentSetAppearance, HandlerAgentSetAppearance);
