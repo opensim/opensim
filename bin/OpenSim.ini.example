@@ -107,7 +107,15 @@
     ; Combine all contiguous regions into one large region
     ; Order your regions from South to North, West to East in your regions.ini and then set this to true
     ; Warning!  Don't use this with regions that have existing content!, This will likely break them
-     CombineContiguousRegions=false
+    CombineContiguousRegions = false
+
+    ; If you have only one region in an instance, or to avoid the many bugs
+    ; that you can trigger in modules by restarting a region, set this to
+    ; true to make the entire instance exit instead of restarting the region.
+    ; This is meant to be used on systems where some external system like
+    ; Monit will restart any instance that exits, thereby making the shutdown
+    ; into a restart.
+    ;InworldRestartShutsDown = false
 
     ; ##
     ; ## STORAGE
