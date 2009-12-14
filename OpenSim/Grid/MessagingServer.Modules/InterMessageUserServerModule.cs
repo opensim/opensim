@@ -114,7 +114,8 @@ namespace OpenSim.Grid.MessagingServer.Modules
                 try
                 {
                     XmlRpcRequest UserReq = new XmlRpcRequest("register_messageserver", SendParams);
-                    XmlRpcResponse UserResp = UserReq.Send(srv, 16000);
+                    XmlRpcResponse UserResp = (XmlRpcResponse)UserReq.Invoke(srv);
+                    //XmlRpcResponse UserResp = UserReq.Send(srv, 16000);
 
                     // Process Response
                     Hashtable GridRespData = (Hashtable)UserResp.Value;
