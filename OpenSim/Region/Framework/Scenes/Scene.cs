@@ -576,10 +576,15 @@ namespace OpenSim.Region.Framework.Scenes
 
             StatsReporter.SetObjectCapacity(objectCapacity);
 
+            // Old
+            /*
             m_simulatorVersion = simulatorVersion
                 + " (OS " + Util.GetOperatingSystemInformation() + ")"
                 + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString()
                 + " PhysPrim:" + m_physicalPrim.ToString();
+            */
+
+            m_simulatorVersion = simulatorVersion + " (" + Util.GetRuntimeInformation() + ")";
 
             try
             {
@@ -915,7 +920,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (showDialog)
                 {
                     m_dialogModule.SendNotificationToUsersInRegion(
-                    UUID.Random(), String.Empty, RegionInfo.RegionName + ": Restarting in " + (seconds / 60).ToString() + " Minutes");
+                    UUID.Random(), String.Empty, RegionInfo.RegionName + String.Format(": Restarting in {0} Minutes", (int)(seconds / 60.0)));
                 }
             }
         }
@@ -946,6 +951,16 @@ namespace OpenSim.Region.Framework.Scenes
         // This causes the region to restart immediatley.
         public void RestartNow()
         {
+            IConfig startupConfig = m_config.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                if (startupConfig.GetBoolean("InworldRestartShutsDown", false))
+                {
+                    MainConsole.Instance.RunCommand("shutdown");
+                    return;
+                }
+            }
+
             if (PhysicsScene != null)
             {
                 PhysicsScene.Dispose();
@@ -953,6 +968,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_log.Error("[REGION]: Closing");
             Close();
+
             m_log.Error("[REGION]: Firing Region Restart Message");
             base.Restart(0);
         }

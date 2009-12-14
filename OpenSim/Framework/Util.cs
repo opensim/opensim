@@ -1007,6 +1007,26 @@ namespace OpenSim.Framework
             return os;
         }
 
+        public static string GetRuntimeInformation()
+        {
+            string ru = String.Empty;
+
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+                ru = "Unix/Mono";
+            else
+                if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                    ru = "OSX/Mono";
+                else
+                {
+                    if (Type.GetType("Mono.Runtime") != null)
+                        ru = "Win/Mono";
+                    else
+                        ru = "Win/.NET";
+                }
+
+            return ru;
+        }
+
         /// <summary>
         /// Is the given string a UUID?
         /// </summary>
