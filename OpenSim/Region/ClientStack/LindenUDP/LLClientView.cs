@@ -332,7 +332,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private AgentUpdateArgs lastarg;
         private bool m_IsActive = true;
 
-        protected Dictionary<PacketType, PacketMethod> m_packetHandlers = new Dictionary<PacketType, PacketMethod>();
+        protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
         protected Scene m_scene;
         protected LLImageManager m_imageManager;
@@ -540,12 +540,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler)
         {
+            return AddLocalPacketHandler(packetType, handler, true);
+        }
+
+        public bool AddLocalPacketHandler(PacketType packetType, PacketMethod handler, bool async)
+        {
             bool result = false;
             lock (m_packetHandlers)
             {
                 if (!m_packetHandlers.ContainsKey(packetType))
                 {
-                    m_packetHandlers.Add(packetType, handler);
+                    m_packetHandlers.Add(packetType, new PacketProcessor() { method = handler, Async = async });
                     result = true;
                 }
             }
@@ -576,15 +581,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual bool ProcessPacketMethod(Packet packet)
         {
             bool result = false;
-            PacketMethod method;
-            if (m_packetHandlers.TryGetValue(packet.Type, out method))
+            PacketProcessor pprocessor;
+            if (m_packetHandlers.TryGetValue(packet.Type, out pprocessor))
             {
                 //there is a local handler for this packet type
-                result = method(this, packet);
+                if (pprocessor.Async)
+                {
+                    object obj = new AsyncPacketProcess(this, pprocessor.method, packet);
+                    Util.FireAndForget(ProcessSpecificPacketAsync,obj);
+                    result = true;
+                }
+                else
+                {
+                    result = pprocessor.method(this, packet);
+                }
             }
             else
             {
                 //there is not a local handler so see if there is a Global handler
+                PacketMethod method = null;
                 bool found;
                 lock (PacketHandlers)
                 {
@@ -596,6 +611,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
             return result;
+        }
+
+        public void ProcessSpecificPacketAsync(object state)
+        {
+            AsyncPacketProcess packetObject = (AsyncPacketProcess)state;
+            packetObject.result = packetObject.Method(packetObject.ClientView, packetObject.Pack);
+            
         }
 
         #endregion Packet Handling
@@ -4340,20 +4362,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected virtual void RegisterLocalPacketHandlers()
         {
             AddLocalPacketHandler(PacketType.LogoutRequest, HandleLogout);
-            AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate);
-            AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect);
-            AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached);
-            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate);
-            AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
-            AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
-            AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
-            AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest);
+            AddLocalPacketHandler(PacketType.AgentUpdate, HandleAgentUpdate, false);
+            AddLocalPacketHandler(PacketType.ViewerEffect, HandleViewerEffect, false);
+            AddLocalPacketHandler(PacketType.AgentCachedTexture, HandleAgentTextureCached, false);
+            AddLocalPacketHandler(PacketType.MultipleObjectUpdate, HandleMultipleObjUpdate, false);
+            AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest, false);
+            AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest, false);
+            AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest, false);
             AddLocalPacketHandler(PacketType.GenericMessage, HandleGenericMessage);
             AddLocalPacketHandler(PacketType.AvatarPropertiesRequest, HandleAvatarPropertiesRequest);
             AddLocalPacketHandler(PacketType.ChatFromViewer, HandleChatFromViewer);
             AddLocalPacketHandler(PacketType.AvatarPropertiesUpdate, HandlerAvatarPropertiesUpdate);
             AddLocalPacketHandler(PacketType.ScriptDialogReply, HandlerScriptDialogReply);
-            AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage);
+            AddLocalPacketHandler(PacketType.ImprovedInstantMessage, HandlerImprovedInstantMessage, false);
             AddLocalPacketHandler(PacketType.AcceptFriendship, HandlerAcceptFriendship);
             AddLocalPacketHandler(PacketType.DeclineFriendship, HandlerDeclineFriendship);
             AddLocalPacketHandler(PacketType.TerminateFriendship, HandlerTerminateFrendship);
@@ -4370,9 +4392,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectAttach, HandleObjectAttach);
             AddLocalPacketHandler(PacketType.ObjectDetach, HandleObjectDetach);
             AddLocalPacketHandler(PacketType.ObjectDrop, HandleObjectDrop);
-            AddLocalPacketHandler(PacketType.SetAlwaysRun, HandleSetAlwaysRun);
+            AddLocalPacketHandler(PacketType.SetAlwaysRun, HandleSetAlwaysRun, false);
             AddLocalPacketHandler(PacketType.CompleteAgentMovement, HandleCompleteAgentMovement);
-            AddLocalPacketHandler(PacketType.AgentAnimation, HandleAgentAnimation);
+            AddLocalPacketHandler(PacketType.AgentAnimation, HandleAgentAnimation, false);
             AddLocalPacketHandler(PacketType.AgentRequestSit, HandleAgentRequestSit);
             AddLocalPacketHandler(PacketType.AgentSit, HandleAgentSit);
             AddLocalPacketHandler(PacketType.SoundTrigger, HandleSoundTrigger);
@@ -4381,9 +4403,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.UserInfoRequest, HandleUserInfoRequest);
             AddLocalPacketHandler(PacketType.UpdateUserInfo, HandleUpdateUserInfo);
             AddLocalPacketHandler(PacketType.SetStartLocationRequest, HandleSetStartLocationRequest);
-            AddLocalPacketHandler(PacketType.AgentThrottle, HandleAgentThrottle);
-            AddLocalPacketHandler(PacketType.AgentPause, HandleAgentPause);
-            AddLocalPacketHandler(PacketType.AgentResume, HandleAgentResume);
+            AddLocalPacketHandler(PacketType.AgentThrottle, HandleAgentThrottle, false);
+            AddLocalPacketHandler(PacketType.AgentPause, HandleAgentPause, false);
+            AddLocalPacketHandler(PacketType.AgentResume, HandleAgentResume, false);
             AddLocalPacketHandler(PacketType.ForceScriptControlRelease, HandleForceScriptControlRelease);
             AddLocalPacketHandler(PacketType.ObjectLink, HandleObjectLink);
             AddLocalPacketHandler(PacketType.ObjectDelink, HandleObjectDelink);
@@ -4399,22 +4421,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectRotation, HandleObjectRotation);
             AddLocalPacketHandler(PacketType.ObjectFlagUpdate, HandleObjectFlagUpdate);
             AddLocalPacketHandler(PacketType.ObjectImage, HandleObjectImage);
-            AddLocalPacketHandler(PacketType.ObjectGrab, HandleObjectGrab);
-            AddLocalPacketHandler(PacketType.ObjectGrabUpdate, HandleObjectGrabUpdate);
+            AddLocalPacketHandler(PacketType.ObjectGrab, HandleObjectGrab, false);
+            AddLocalPacketHandler(PacketType.ObjectGrabUpdate, HandleObjectGrabUpdate, false);
             AddLocalPacketHandler(PacketType.ObjectDeGrab, HandleObjectDeGrab);
-            AddLocalPacketHandler(PacketType.ObjectSpinStart, HandleObjectSpinStart);
-            AddLocalPacketHandler(PacketType.ObjectSpinUpdate, HandleObjectSpinUpdate);
-            AddLocalPacketHandler(PacketType.ObjectSpinStop, HandleObjectSpinStop);
-            AddLocalPacketHandler(PacketType.ObjectDescription, HandleObjectDescription);
-            AddLocalPacketHandler(PacketType.ObjectName, HandleObjectName);
-            AddLocalPacketHandler(PacketType.ObjectPermissions, HandleObjectPermissions);
-            AddLocalPacketHandler(PacketType.Undo, HandleUndo);
+            AddLocalPacketHandler(PacketType.ObjectSpinStart, HandleObjectSpinStart, false);
+            AddLocalPacketHandler(PacketType.ObjectSpinUpdate, HandleObjectSpinUpdate, false);
+            AddLocalPacketHandler(PacketType.ObjectSpinStop, HandleObjectSpinStop, false);
+            AddLocalPacketHandler(PacketType.ObjectDescription, HandleObjectDescription, false);
+            AddLocalPacketHandler(PacketType.ObjectName, HandleObjectName, false);
+            AddLocalPacketHandler(PacketType.ObjectPermissions, HandleObjectPermissions, false);
+            AddLocalPacketHandler(PacketType.Undo, HandleUndo, false);
             AddLocalPacketHandler(PacketType.ObjectDuplicateOnRay, HandleObjectDuplicateOnRay);
-            AddLocalPacketHandler(PacketType.RequestObjectPropertiesFamily, HandleRequestObjectPropertiesFamily);
+            AddLocalPacketHandler(PacketType.RequestObjectPropertiesFamily, HandleRequestObjectPropertiesFamily, false);
             AddLocalPacketHandler(PacketType.ObjectIncludeInSearch, HandleObjectIncludeInSearch);
-            AddLocalPacketHandler(PacketType.ScriptAnswerYes, HandleScriptAnswerYes);
-            AddLocalPacketHandler(PacketType.ObjectClickAction, HandleObjectClickAction);
-            AddLocalPacketHandler(PacketType.ObjectMaterial, HandleObjectMaterial);
+            AddLocalPacketHandler(PacketType.ScriptAnswerYes, HandleScriptAnswerYes, false);
+            AddLocalPacketHandler(PacketType.ObjectClickAction, HandleObjectClickAction, false);
+            AddLocalPacketHandler(PacketType.ObjectMaterial, HandleObjectMaterial, false);
             AddLocalPacketHandler(PacketType.RequestImage, HandleRequestImage);
             AddLocalPacketHandler(PacketType.TransferRequest, HandleTransferRequest);
             AddLocalPacketHandler(PacketType.AssetUploadRequest, HandleAssetUploadRequest);
@@ -4440,17 +4462,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.RemoveTaskInventory, HandleRemoveTaskInventory);
             AddLocalPacketHandler(PacketType.MoveTaskInventory, HandleMoveTaskInventory);
             AddLocalPacketHandler(PacketType.RezScript, HandleRezScript);
-            AddLocalPacketHandler(PacketType.MapLayerRequest, HandleMapLayerRequest);
-            AddLocalPacketHandler(PacketType.MapBlockRequest, HandleMapBlockRequest);
-            AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest);
+            AddLocalPacketHandler(PacketType.MapLayerRequest, HandleMapLayerRequest, false);
+            AddLocalPacketHandler(PacketType.MapBlockRequest, HandleMapBlockRequest, false);
+            AddLocalPacketHandler(PacketType.MapNameRequest, HandleMapNameRequest, false);
             AddLocalPacketHandler(PacketType.TeleportLandmarkRequest, HandleTeleportLandmarkRequest);
             AddLocalPacketHandler(PacketType.TeleportLocationRequest, HandleTeleportLocationRequest);
-            AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest);
+            AddLocalPacketHandler(PacketType.UUIDNameRequest, HandleUUIDNameRequest, false);
             AddLocalPacketHandler(PacketType.RegionHandleRequest, HandleRegionHandleRequest);
-            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest);
-            AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest);
-            AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate);
-            AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest);
+            AddLocalPacketHandler(PacketType.ParcelInfoRequest, HandleParcelInfoRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelAccessListRequest, HandleParcelAccessListRequest, false);
+            AddLocalPacketHandler(PacketType.ParcelAccessListUpdate, HandleParcelAccessListUpdate, false);
+            AddLocalPacketHandler(PacketType.ParcelPropertiesRequest, HandleParcelPropertiesRequest, false);
             AddLocalPacketHandler(PacketType.ParcelDivide, HandleParcelDivide);
             AddLocalPacketHandler(PacketType.ParcelJoin, HandleParcelJoin);
             AddLocalPacketHandler(PacketType.ParcelPropertiesUpdate, HandleParcelPropertiesUpdate);
@@ -4464,7 +4486,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.LandStatRequest, HandleLandStatRequest);
             AddLocalPacketHandler(PacketType.ParcelDwellRequest, HandleParcelDwellRequest);
             AddLocalPacketHandler(PacketType.EstateOwnerMessage, HandleEstateOwnerMessage);
-            AddLocalPacketHandler(PacketType.RequestRegionInfo, HandleRequestRegionInfo);
+            AddLocalPacketHandler(PacketType.RequestRegionInfo, HandleRequestRegionInfo, false);
             AddLocalPacketHandler(PacketType.EstateCovenantRequest, HandleEstateCovenantRequest);
             AddLocalPacketHandler(PacketType.RequestGodlikePowers, HandleRequestGodlikePowers);
             AddLocalPacketHandler(PacketType.GodKickUser, HandleGodKickUser);
@@ -4479,13 +4501,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ActivateGestures, HandleActivateGestures);
             AddLocalPacketHandler(PacketType.DeactivateGestures, HandleDeactivateGestures);
             AddLocalPacketHandler(PacketType.ObjectOwner, HandleObjectOwner);
-            AddLocalPacketHandler(PacketType.AgentFOV, HandleAgentFOV);
+            AddLocalPacketHandler(PacketType.AgentFOV, HandleAgentFOV, false);
             AddLocalPacketHandler(PacketType.ViewerStats, HandleViewerStats);
-            AddLocalPacketHandler(PacketType.MapItemRequest, HandleMapItemRequest);
-            AddLocalPacketHandler(PacketType.TransferAbort, HandleTransferAbort);
-            AddLocalPacketHandler(PacketType.MuteListRequest, HandleMuteListRequest);
+            AddLocalPacketHandler(PacketType.MapItemRequest, HandleMapItemRequest, false);
+            AddLocalPacketHandler(PacketType.TransferAbort, HandleTransferAbort, false);
+            AddLocalPacketHandler(PacketType.MuteListRequest, HandleMuteListRequest, false);
             AddLocalPacketHandler(PacketType.UseCircuitCode, HandleUseCircuitCode);
-            AddLocalPacketHandler(PacketType.AgentHeightWidth, HandleAgentHeightWidth);
+            AddLocalPacketHandler(PacketType.AgentHeightWidth, HandleAgentHeightWidth, false);
             AddLocalPacketHandler(PacketType.InventoryDescendents, HandleInventoryDescendents);
             AddLocalPacketHandler(PacketType.DirPlacesQuery, HandleDirPlacesQuery);
             AddLocalPacketHandler(PacketType.DirFindQuery, HandleDirFindQuery);
@@ -15757,6 +15779,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             #endregion
         }
+
+        public struct PacketProcessor
+        {
+            public PacketMethod method;
+            public bool Async;
+        }
+        public class AsyncPacketProcess
+        {
+            public bool result = false;
+            public readonly LLClientView ClientView = null;
+            public readonly Packet Pack = null;
+            public readonly PacketMethod Method = null;
+            public AsyncPacketProcess(LLClientView pClientview, PacketMethod pMethod, Packet pPack)
+            {
+                ClientView = pClientview;
+                Method = pMethod;
+                Pack = pPack;
+            }
+        }
+
         #endregion
 
         public static OSD BuildEvent(string eventName, OSD eventBody)
