@@ -670,8 +670,7 @@ namespace OpenSim.Region.Framework.Scenes
 
 
             AdjustKnownSeeds();
-
-           Animator.TrySetMovementAnimation("STAND"); 
+            Animator.TrySetMovementAnimation("STAND"); 
             // we created a new ScenePresence (a new child agent) in a fresh region.
             // Request info about all the (root) agents in this region
             // Note: This won't send data *to* other clients in that region (children don't send)
@@ -1691,7 +1690,6 @@ namespace OpenSim.Region.Framework.Scenes
                     SetHeight(m_avHeight);
                 }
             }
-
             Animator.TrySetMovementAnimation("STAND");
         }
 
@@ -1858,15 +1856,15 @@ namespace OpenSim.Region.Framework.Scenes
             				(offset * partRot);
             }
 
-Console.WriteLine(" ");
-Console.WriteLine("link number ={0}", part.LinkNum);		
-Console.WriteLine("Prim offset ={0}", part.OffsetPosition );			
-Console.WriteLine("Root Rotate ={0}", part.ParentGroup.RootPart.RotationOffset);
-Console.WriteLine("Click offst ={0}", offset);
-Console.WriteLine("Prim Rotate ={0}", part.GetWorldRotation());
-Console.WriteLine("offsetr     ={0}", offsetr);
-Console.WriteLine("Camera At   ={0}", cameraAtOffset);
-Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
+//Console.WriteLine(" ");
+//Console.WriteLine("link number ={0}", part.LinkNum);		
+//Console.WriteLine("Prim offset ={0}", part.OffsetPosition );			
+//Console.WriteLine("Root Rotate ={0}", part.ParentGroup.RootPart.RotationOffset);
+//Console.WriteLine("Click offst ={0}", offset);
+//Console.WriteLine("Prim Rotate ={0}", part.GetWorldRotation());
+//Console.WriteLine("offsetr     ={0}", offsetr);
+//Console.WriteLine("Camera At   ={0}", cameraAtOffset);
+//Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
             ControllingClient.SendSitResponse(part.UUID, offsetr, sitOrientation, autopilot, cameraAtOffset, cameraEyeOffset, forceMouselook);
             m_requestedSitTargetUUID = part.UUID;		//KF: Correct autopilot target
@@ -2218,7 +2216,7 @@ Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
                         		m_avUnscriptedSitPos;							// adds click offset, if any
 	                    //Set up raytrace to find top surface of prim
 	         			Vector3 size = part.Scale;
-	 					float mag = 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
+	 					float mag = 2.0f; // 0.1f + (float)Math.Sqrt((size.X * size.X) + (size.Y * size.Y) + (size.Z * size.Z));
 						Vector3 start =  part.AbsolutePosition + new Vector3(0f, 0f, mag);
 	 					Vector3 down = new Vector3(0f, 0f, -1f);    
 //Console.WriteLine("st={0}  do={1}  ma={2}", start, down, mag);	 					
@@ -2267,7 +2265,7 @@ Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 				Vector3 offset = new Vector3(0.0f, 0.0f, offZ) * partIRot; // Altitude correction
 //Console.WriteLine("sitPoint={0},  offset={1}",  sitPoint,  offset);
 				m_pos += offset;
-  ControllingClient.SendClearFollowCamProperties(part.UUID);
+//  ControllingClient.SendClearFollowCamProperties(part.UUID);
 				
 			}
 		} // End SitAltitudeCallback  KF.
@@ -3297,7 +3295,7 @@ Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
                     m_updateflag = true;
                     Velocity = force;
                     m_isNudging = false;
-                    m_updateCount = UPDATE_COUNT;			//KF: Update anims to pickup "STAND"
+                   	m_updateCount = UPDATE_COUNT;			//KF: Update anims to pickup "STAND"
                 }
             }
         }
@@ -3349,19 +3347,19 @@ Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
-			if (m_updateCount > 0)			//KF: Update Anims for a short period. Many Anim
-			{								// changes are very asynchronous.
-            	Animator.UpdateMovementAnimations();
-            	m_updateCount--;
-			}
-			
             if (e == null)
                 return;
-
-            // The Physics Scene will send updates every 500 ms grep: m_physicsActor.SubscribeEvents(
+                
+            // The Physics Scene will send (spam!) updates every 500 ms grep: m_physicsActor.SubscribeEvents(
             // as of this comment the interval is set in AddToPhysicalScene
             if (Animator!=null)
-                Animator.UpdateMovementAnimations();
+            {
+				if (m_updateCount > 0)			//KF: DO NOT call UpdateMovementAnimations outside of the m_updateCount wrapper,
+				{								//  else its will lock out other animation changes, like ground sit.
+	            	Animator.UpdateMovementAnimations();
+	            	m_updateCount--;
+				}
+			}
 
             CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
             Dictionary<uint, ContactPoint> coldata = collisionData.m_objCollisionList;
@@ -3370,7 +3368,7 @@ Console.WriteLine("Camera Eye  ={0}", cameraEyeOffset);
 
 			if (m_lastColCount != coldata.Count)
 			{	
-				m_updateCount = 10;
+				m_updateCount = UPDATE_COUNT;
 				m_lastColCount = coldata.Count;
 			}
 			
