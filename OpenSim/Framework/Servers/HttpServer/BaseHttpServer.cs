@@ -253,60 +253,66 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void OnRequest(object source, RequestEventArgs args)
         {
-            IHttpClientContext context = (IHttpClientContext)source;
-            IHttpRequest request = args.Request;
-            
-            PollServiceEventArgs psEvArgs;
-
-            if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
+            try
             {
-                PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
-
-                if (psEvArgs.Request != null)
+                IHttpClientContext context = (IHttpClientContext)source;
+                IHttpRequest request = args.Request;
+                
+                PollServiceEventArgs psEvArgs;
+    
+                if (TryGetPollServiceHTTPHandler(request.UriPath.ToString(), out psEvArgs))
                 {
-                    OSHttpRequest req = new OSHttpRequest(context, request);
-                    
-                    Stream requestStream = req.InputStream;
-
-                    Encoding encoding = Encoding.UTF8;
-                    StreamReader reader = new StreamReader(requestStream, encoding);
-
-                    string requestBody = reader.ReadToEnd();
-
-                    Hashtable keysvals = new Hashtable();
-                    Hashtable headervals = new Hashtable();
-
-                    string[] querystringkeys = req.QueryString.AllKeys;
-                    string[] rHeaders = req.Headers.AllKeys;
-
-                    keysvals.Add("body", requestBody);
-                    keysvals.Add("uri", req.RawUrl);
-                    keysvals.Add("content-type", req.ContentType);
-                    keysvals.Add("http-method", req.HttpMethod);
-
-                    foreach (string queryname in querystringkeys)
+                    PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, context, request);
+    
+                    if (psEvArgs.Request != null)
                     {
-                        keysvals.Add(queryname, req.QueryString[queryname]);
+                        OSHttpRequest req = new OSHttpRequest(context, request);
+                        
+                        Stream requestStream = req.InputStream;
+    
+                        Encoding encoding = Encoding.UTF8;
+                        StreamReader reader = new StreamReader(requestStream, encoding);
+    
+                        string requestBody = reader.ReadToEnd();
+    
+                        Hashtable keysvals = new Hashtable();
+                        Hashtable headervals = new Hashtable();
+    
+                        string[] querystringkeys = req.QueryString.AllKeys;
+                        string[] rHeaders = req.Headers.AllKeys;
+    
+                        keysvals.Add("body", requestBody);
+                        keysvals.Add("uri", req.RawUrl);
+                        keysvals.Add("content-type", req.ContentType);
+                        keysvals.Add("http-method", req.HttpMethod);
+    
+                        foreach (string queryname in querystringkeys)
+                        {
+                            keysvals.Add(queryname, req.QueryString[queryname]);
+                        }
+    
+                        foreach (string headername in rHeaders)
+                        {
+                            headervals[headername] = req.Headers[headername];
+                        }
+    
+                        keysvals.Add("headers",headervals);
+                        keysvals.Add("querystringkeys", querystringkeys);
+    
+                        psEvArgs.Request(psreq.RequestID, keysvals);
                     }
-
-                    foreach (string headername in rHeaders)
-                    {
-                        headervals[headername] = req.Headers[headername];
-                    }
-
-                    keysvals.Add("headers",headervals);
-                    keysvals.Add("querystringkeys", querystringkeys);
-
-                    psEvArgs.Request(psreq.RequestID, keysvals);
+    
+                    m_PollServiceManager.Enqueue(psreq);
                 }
-
-                m_PollServiceManager.Enqueue(psreq);
+                else
+                {
+                    OnHandleRequestIOThread(context, request);
+                }
             }
-            else
+            catch (Exception e)
             {
-                OnHandleRequestIOThread(context, request);
+                m_log.ErrorFormat("[BASE HTTP SERVER]: OnRequest() failed with {0} {1}", e.Message, e.StackTrace);
             }
-
         }
 
         public void OnHandleRequestIOThread(IHttpClientContext context, IHttpRequest request)
