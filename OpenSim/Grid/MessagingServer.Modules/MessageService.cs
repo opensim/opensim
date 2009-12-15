@@ -269,10 +269,11 @@ namespace OpenSim.Grid.MessagingServer.Modules
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
-                XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);
-                XmlRpcResponse resp = (XmlRpcResponse)req.Invoke(m_cfg.UserServerURL);
+                XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);                
                 //XmlRpcResponse resp = req.Send(m_cfg.UserServerURL, 3000);
-                Hashtable respData = (Hashtable)resp.Value;
+                //Hashtable respData = (Hashtable)resp.Value;
+
+                Hashtable respData = (Hashtable)req.Invoke(m_cfg.UserServerURL);
 
                 if (respData.Contains("avcount"))
                 {
