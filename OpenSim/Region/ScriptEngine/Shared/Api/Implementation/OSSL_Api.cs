@@ -1743,7 +1743,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridNick");
             m_host.AddScriptLPS(1);
             string nick = "hippogrid";
-            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            IConfigSource config = m_ScriptEngine.ConfigSource;
             if (config.Configs["GridInfo"] != null)
                 nick = config.Configs["GridInfo"].GetString("gridnick", nick);
             return nick;
@@ -1754,7 +1754,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridName");
             m_host.AddScriptLPS(1);
             string name = "the lost continent of hippo";
-            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            IConfigSource config = m_ScriptEngine.ConfigSource;
             if (config.Configs["GridInfo"] != null)
                 name = config.Configs["GridInfo"].GetString("gridname", name);
             return name;
@@ -1765,7 +1765,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Moderate, "osGetGridLoginURI");
             m_host.AddScriptLPS(1);
             string loginURI = "http://127.0.0.1:9000/";
-            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            IConfigSource config = m_ScriptEngine.ConfigSource;
             if (config.Configs["GridInfo"] != null)
                 loginURI = config.Configs["GridInfo"].GetString("login", loginURI);
             return loginURI;

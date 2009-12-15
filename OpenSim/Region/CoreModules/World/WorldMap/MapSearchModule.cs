@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             {
                 // OK, we tried but there are no regions matching that name.
                 // Let's check quickly if this is a domain name, and if so link to it
-                if (mapName.Contains(".") && mapName.Contains(":"))
+                if (mapName.Contains("."))
                 {
                     // It probably is a domain name. Try to link to it.
                     GridRegion regInfo;
