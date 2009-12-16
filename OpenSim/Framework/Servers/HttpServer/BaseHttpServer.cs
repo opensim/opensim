@@ -41,6 +41,7 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
+using CoolHttpServer = HttpServer;
 using HttpListener=System.Net.HttpListener;
 
 namespace OpenSim.Framework.Servers.HttpServer
@@ -1819,32 +1820,30 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// There is also a UseTraceLogs line in this file that can be uncommented for more detailed log information
     public class HttpServerLogWriter : ILogWriter
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Write(object source, LogPrio priority, string message)
         {
-            /*
             switch (priority)
             {
-                case HttpServer.LogPrio.Debug:
+                case CoolHttpServer.LogPrio.Debug:
                     m_log.DebugFormat("[{0}]: {1}", source.ToString(), message);
                     break;
-                case HttpServer.LogPrio.Error:
+                case CoolHttpServer.LogPrio.Error:
                     m_log.ErrorFormat("[{0}]: {1}", source.ToString(), message);
                     break;
-                case HttpServer.LogPrio.Info:
+                case CoolHttpServer.LogPrio.Info:
                     m_log.InfoFormat("[{0}]: {1}", source.ToString(), message);
                     break;
-                case HttpServer.LogPrio.Warning:
+                case CoolHttpServer.LogPrio.Warning:
                     m_log.WarnFormat("[{0}]: {1}", source.ToString(), message);
                     break;
-                case HttpServer.LogPrio.Fatal:
+                case CoolHttpServer.LogPrio.Fatal:
                     m_log.ErrorFormat("[{0}]: FATAL! - {1}", source.ToString(), message);
                     break;
                 default:
                     break;
             }
-            */
             
             return;
         }
