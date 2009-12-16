@@ -68,9 +68,9 @@ namespace OpenSim.Grid.UserServer.Modules
         {
             m_httpServer = httpServer;
 
-            m_httpServer.AddXmlRPCHandler("add_new_user_friend", XmlRpcResponseXmlRPCAddUserFriend);
-            m_httpServer.AddXmlRPCHandler("remove_user_friend", XmlRpcResponseXmlRPCRemoveUserFriend);
-            m_httpServer.AddXmlRPCHandler("update_user_friend_perms", XmlRpcResponseXmlRPCUpdateUserFriendPerms);
+            m_httpServer.AddXmlRPCHandler("add_new_user_friend", XmlRpcResponseXmlRPCAddUserFriend, false);
+            m_httpServer.AddXmlRPCHandler("remove_user_friend", XmlRpcResponseXmlRPCRemoveUserFriend, false);
+            m_httpServer.AddXmlRPCHandler("update_user_friend_perms", XmlRpcResponseXmlRPCUpdateUserFriendPerms, false);
             m_httpServer.AddXmlRPCHandler("get_user_friend_list", XmlRpcResponseXmlRPCGetUserFriendList, false);
         }
 

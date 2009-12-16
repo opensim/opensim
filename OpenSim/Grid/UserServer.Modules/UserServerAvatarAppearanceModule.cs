@@ -67,8 +67,8 @@ namespace OpenSim.Grid.UserServer.Modules
         {
             m_httpServer = httpServer;
 
-            m_httpServer.AddXmlRPCHandler("get_avatar_appearance", XmlRPCGetAvatarAppearance);
-            m_httpServer.AddXmlRPCHandler("update_avatar_appearance", XmlRPCUpdateAvatarAppearance);
+            m_httpServer.AddXmlRPCHandler("get_avatar_appearance", XmlRPCGetAvatarAppearance, false);
+            m_httpServer.AddXmlRPCHandler("update_avatar_appearance", XmlRPCUpdateAvatarAppearance, false);
         }
 
         public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request, IPEndPoint remoteClient)

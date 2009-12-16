@@ -69,7 +69,7 @@ namespace OpenSim.Grid.UserServer.Modules
             m_httpServer = httpServer;
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
                                                                m_gridInfoService.RestGetGridInfoMethod));
-            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
+            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod, false);
         }
 
         public void Close()

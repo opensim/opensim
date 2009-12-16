@@ -82,9 +82,9 @@ namespace OpenSim.Grid.UserServer.Modules
         {
             m_httpServer = httpServer;
 
-            httpServer.AddXmlRPCHandler("hg_login", XmlRpcLoginMethod);
-            httpServer.AddXmlRPCHandler("hg_new_auth_key", XmlRpcGenerateKeyMethod);
-            httpServer.AddXmlRPCHandler("hg_verify_auth_key", XmlRpcVerifyKeyMethod);
+            httpServer.AddXmlRPCHandler("hg_login", XmlRpcLoginMethod, false);
+            httpServer.AddXmlRPCHandler("hg_new_auth_key", XmlRpcGenerateKeyMethod, false);
+            httpServer.AddXmlRPCHandler("hg_verify_auth_key", XmlRpcVerifyKeyMethod, false);
         }
 
 

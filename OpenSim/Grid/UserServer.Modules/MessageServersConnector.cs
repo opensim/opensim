@@ -106,14 +106,14 @@ namespace OpenSim.Grid.UserServer.Modules
         {
             m_httpServer = httpServer;
 
-            m_httpServer.AddXmlRPCHandler("region_startup", RegionStartup);
-            m_httpServer.AddXmlRPCHandler("region_shutdown", RegionShutdown);
-            m_httpServer.AddXmlRPCHandler("agent_location", AgentLocation);
-            m_httpServer.AddXmlRPCHandler("agent_leaving", AgentLeaving);
+            m_httpServer.AddXmlRPCHandler("region_startup", RegionStartup, false);
+            m_httpServer.AddXmlRPCHandler("region_shutdown", RegionShutdown, false);
+            m_httpServer.AddXmlRPCHandler("agent_location", AgentLocation, false);
+            m_httpServer.AddXmlRPCHandler("agent_leaving", AgentLeaving, false);
             // Message Server ---> User Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", XmlRPCRegisterMessageServer, false);
-            m_httpServer.AddXmlRPCHandler("agent_change_region", XmlRPCUserMovedtoRegion);
-            m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer);
+            m_httpServer.AddXmlRPCHandler("agent_change_region", XmlRPCUserMovedtoRegion, false);
+            m_httpServer.AddXmlRPCHandler("deregister_messageserver", XmlRPCDeRegisterMessageServer, false);
         }
 
         public void RegisterMessageServer(string URI, MessageServerInfo serverData)

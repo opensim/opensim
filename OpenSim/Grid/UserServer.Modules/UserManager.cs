@@ -104,18 +104,18 @@ namespace OpenSim.Grid.UserServer.Modules
 
             m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/users/", RESTGetUserProfile));
 
-            m_httpServer.AddXmlRPCHandler("get_user_by_name", XmlRPCGetUserMethodName);
-            m_httpServer.AddXmlRPCHandler("get_user_by_uuid", XmlRPCGetUserMethodUUID);
-            m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", XmlRPCGetAvatarPickerAvatar);
+            m_httpServer.AddXmlRPCHandler("get_user_by_name", XmlRPCGetUserMethodName, false);
+            m_httpServer.AddXmlRPCHandler("get_user_by_uuid", XmlRPCGetUserMethodUUID, false);
+            m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", XmlRPCGetAvatarPickerAvatar, false);
 
             // Used by IAR module to do password checks
-            m_httpServer.AddXmlRPCHandler("authenticate_user_by_password", XmlRPCAuthenticateUserMethodPassword);
+            m_httpServer.AddXmlRPCHandler("authenticate_user_by_password", XmlRPCAuthenticateUserMethodPassword, false);
 
-            m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion);
-            m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID);
-            m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", XmlRPCGetAgentMethodUUID);
+            m_httpServer.AddXmlRPCHandler("update_user_current_region", XmlRPCAtRegion, false);
+            m_httpServer.AddXmlRPCHandler("logout_of_simulator", XmlRPCLogOffUserMethodUUID, false);
+            m_httpServer.AddXmlRPCHandler("get_agent_by_uuid", XmlRPCGetAgentMethodUUID, false);
 
-            m_httpServer.AddXmlRPCHandler("update_user_profile", XmlRpcResponseXmlRPCUpdateUserProfile);
+            m_httpServer.AddXmlRPCHandler("update_user_profile", XmlRpcResponseXmlRPCUpdateUserProfile, false);
 
             m_httpServer.AddStreamHandler(new RestStreamHandler("DELETE", "/usersessions/", RestDeleteUserSessionMethod));
         }
