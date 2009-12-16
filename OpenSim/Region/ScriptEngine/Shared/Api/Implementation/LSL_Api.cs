@@ -4412,8 +4412,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             double x, y, z, s, t;
 
-            s = Math.Cos(angle / 2);
-            t = Math.Sin(angle / 2); // temp value to avoid 2 more sin() calcs
+            s = Math.Cos(angle * 0.5);
+            t = Math.Sin(angle * 0.5); // temp value to avoid 2 more sin() calcs
             x = axis.x * t;
             y = axis.y * t;
             z = axis.z * t;
