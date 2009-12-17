@@ -43,7 +43,7 @@ namespace OpenSim.Grid.UserServer.Modules
 {
     public class UserServerFriendsModule
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserDataBaseService m_userDataBaseService;
 
@@ -56,12 +56,10 @@ namespace OpenSim.Grid.UserServer.Modules
 
         public void Initialise(IGridServiceCore core)
         {
-
         }
 
         public void PostInitialise()
         {
-
         }
 
         public void RegisterHandlers(BaseHttpServer httpServer)
@@ -159,6 +157,9 @@ namespace OpenSim.Grid.UserServer.Modules
 
         public XmlRpcResponse XmlRpcResponseXmlRPCGetUserFriendList(XmlRpcRequest request, IPEndPoint remoteClient)
         {
+            m_log.DebugFormat(
+                "[USER SERVER FRIENDS MODULE]: BEGIN XmlRpcResponseXmlRPCGetUserFriendList from {0}", remoteClient);
+
             // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
             // Hashtable responseData = new Hashtable();
@@ -169,6 +170,9 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 returndata = m_userDataBaseService.GetUserFriendList(new UUID((string)requestData["ownerID"]));
             }
+
+            m_log.DebugFormat(
+                "[USER SERVER FRIENDS MODULE]: END XmlRpcResponseXmlRPCGetUserFriendList from {0}", remoteClient);
 
             return FriendListItemListtoXmlRPCResponse(returndata);
         }

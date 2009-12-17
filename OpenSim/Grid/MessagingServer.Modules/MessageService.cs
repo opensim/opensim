@@ -260,6 +260,10 @@ namespace OpenSim.Grid.MessagingServer.Modules
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data for.</param>
         private Dictionary<UUID, FriendListItem> GetUserFriendList(UUID friendlistowner)
         {
+            m_log.DebugFormat(
+                "[MESSAGE SERVICE]: Requesting friends list for {0} from {1}", 
+                friendlistowner, m_cfg.UserServerURL);
+
             Dictionary<UUID, FriendListItem> buddies = new Dictionary<UUID,FriendListItem>();
 
             try
