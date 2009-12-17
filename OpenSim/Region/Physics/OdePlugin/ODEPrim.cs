@@ -2673,7 +2673,7 @@ Console.WriteLine(" JointCreateFixed");
 
                     m_lastposition = _position;
                     m_lastorientation = _orientation;
-
+                    
                     l_position.X = vec.X;
                     l_position.Y = vec.Y;
                     l_position.Z = vec.Z;
@@ -2681,6 +2681,10 @@ Console.WriteLine(" JointCreateFixed");
                     l_orientation.Y = ori.Y;
                     l_orientation.Z = ori.Z;
                     l_orientation.W = ori.W;
+                    
+//	if(l_position.Y != m_lastposition.Y){
+//		Console.WriteLine("UP&V {0}  {1}", m_primName, l_position);
+//	}
 
                     if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || l_position.X < 0f || l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || l_position.Y < 0f)
                     {
