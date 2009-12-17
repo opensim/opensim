@@ -194,7 +194,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
         public delegate void OnSaveNewWindlightProfileDelegate();
+        public delegate void OnSendNewWindlightProfileTargetedDelegate(RegionMeta7WindlightData wl, UUID user);
         public event OnMakeRootAgentDelegate OnMakeRootAgent;
+        public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
         public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
         public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
@@ -414,6 +416,7 @@ namespace OpenSim.Region.Framework.Scenes
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
         private OnSaveNewWindlightProfileDelegate handlerSaveNewWindlightProfile = null; //OnSaveNewWindlightProfile;
+        private OnSendNewWindlightProfileTargetedDelegate handlerSendNewWindlightProfileTargeted = null; //OnSendNewWindlightProfileTargeted;
         private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
@@ -772,6 +775,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerMakeChildAgent != null)
             {
                 handlerMakeChildAgent(presence);
+            }
+        }
+
+        public void TriggerOnSendNewWindlightProfileTargeted(RegionMeta7WindlightData wl, UUID user)
+        {
+            handlerSendNewWindlightProfileTargeted = OnSendNewWindlightProfileTargeted;
+            if (handlerSendNewWindlightProfileTargeted != null)
+            {
+                handlerSendNewWindlightProfileTargeted(wl, user);
             }
         }
 

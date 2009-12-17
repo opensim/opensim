@@ -71,63 +71,85 @@ namespace OpenSim.Region.CoreModules.World.Meta7Windlight
             {
                 m_scene.EventManager.OnMakeRootAgent += EventManager_OnMakeRootAgent;
                 m_scene.EventManager.OnSaveNewWindlightProfile += EventManager_OnSaveNewWindlightProfile;
+                m_scene.EventManager.OnSendNewWindlightProfileTargeted += EventManager_OnSendNewWindlightProfileTargeted;
             }
 
             InstallCommands();
 
             m_log.Debug("[WINDLIGHT]: Initialised windlight module");
         }
+
+        private List<byte[]> compileWindlightSettings(RegionMeta7WindlightData wl)
+        {
+            byte[] mBlock = new Byte[249];
+            int pos = 0;
+
+            wl.waterColor.ToBytes(mBlock, 0); pos += 12;
+            Utils.FloatToBytes(wl.waterFogDensityExponent).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.underwaterFogModifier).CopyTo(mBlock, pos); pos += 4;
+            wl.reflectionWaveletScale.ToBytes(mBlock, pos); pos += 12;
+            Utils.FloatToBytes(wl.fresnelScale).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.fresnelOffset).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.refractScaleAbove).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.refractScaleBelow).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.blurMultiplier).CopyTo(mBlock, pos); pos += 4;
+            wl.bigWaveDirection.ToBytes(mBlock, pos); pos += 8;
+            wl.littleWaveDirection.ToBytes(mBlock, pos); pos += 8;
+            wl.normalMapTexture.ToBytes(mBlock, pos); pos += 16;
+            wl.horizon.ToBytes(mBlock, pos); pos += 16;
+            Utils.FloatToBytes(wl.hazeHorizon).CopyTo(mBlock, pos); pos += 4;
+            wl.blueDensity.ToBytes(mBlock, pos); pos += 16;
+            Utils.FloatToBytes(wl.hazeDensity).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.densityMultiplier).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.distanceMultiplier).CopyTo(mBlock, pos); pos += 4;
+            wl.sunMoonColor.ToBytes(mBlock, pos); pos += 16;
+            Utils.FloatToBytes(wl.sunMoonPosition).CopyTo(mBlock, pos); pos += 4;
+            wl.ambient.ToBytes(mBlock, pos); pos += 16;
+            Utils.FloatToBytes(wl.eastAngle).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.sunGlowFocus).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.sunGlowSize).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.sceneGamma).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.starBrightness).CopyTo(mBlock, pos); pos += 4;
+            wl.cloudColor.ToBytes(mBlock, pos); pos += 16;
+            wl.cloudXYDensity.ToBytes(mBlock, pos); pos += 12;
+            Utils.FloatToBytes(wl.cloudCoverage).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.cloudScale).CopyTo(mBlock, pos); pos += 4;
+            wl.cloudDetailXYDensity.ToBytes(mBlock, pos); pos += 12;
+            Utils.FloatToBytes(wl.cloudScrollX).CopyTo(mBlock, pos); pos += 4;
+            Utils.FloatToBytes(wl.cloudScrollY).CopyTo(mBlock, pos); pos += 4;
+            Utils.UInt16ToBytes(wl.maxAltitude).CopyTo(mBlock, pos); pos += 2;
+            mBlock[pos] = Convert.ToByte(wl.cloudScrollXLock); pos++;
+            mBlock[pos] = Convert.ToByte(wl.cloudScrollYLock); pos++;
+            mBlock[pos] = Convert.ToByte(wl.drawClassicClouds); pos++;
+            List<byte[]> param = new List<byte[]>();
+            param.Add(mBlock);
+            return param;
+        }
         public void SendProfileToClient(ScenePresence presence)
         {
+            IClientAPI client = presence.ControllingClient;
             if (m_enableWindlight)
             {
                 if (presence.IsChildAgent == false)
                 {
-                    IClientAPI client = presence.ControllingClient;
-                    RegionMeta7WindlightData wl = m_scene.RegionInfo.WindlightSettings;
-                    byte[] mBlock = new Byte[249];
-                    int pos = 0;
-
-                    wl.waterColor.ToBytes(mBlock, 0); pos += 12;
-                    Utils.FloatToBytes(wl.waterFogDensityExponent).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.underwaterFogModifier).CopyTo(mBlock, pos); pos += 4;
-                    wl.reflectionWaveletScale.ToBytes(mBlock, pos); pos += 12;
-                    Utils.FloatToBytes(wl.fresnelScale).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.fresnelOffset).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.refractScaleAbove).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.refractScaleBelow).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.blurMultiplier).CopyTo(mBlock, pos); pos += 4;
-                    wl.bigWaveDirection.ToBytes(mBlock, pos); pos += 8;
-                    wl.littleWaveDirection.ToBytes(mBlock, pos); pos += 8;
-                    wl.normalMapTexture.ToBytes(mBlock, pos); pos += 16;
-                    wl.horizon.ToBytes(mBlock, pos); pos += 16;
-                    Utils.FloatToBytes(wl.hazeHorizon).CopyTo(mBlock, pos); pos += 4;
-                    wl.blueDensity.ToBytes(mBlock, pos); pos += 16;
-                    Utils.FloatToBytes(wl.hazeDensity).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.densityMultiplier).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.distanceMultiplier).CopyTo(mBlock, pos); pos += 4;
-                    wl.sunMoonColor.ToBytes(mBlock, pos); pos += 16;
-                    Utils.FloatToBytes(wl.sunMoonPosition).CopyTo(mBlock, pos); pos += 4;
-                    wl.ambient.ToBytes(mBlock, pos); pos += 16;
-                    Utils.FloatToBytes(wl.eastAngle).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.sunGlowFocus).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.sunGlowSize).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.sceneGamma).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.starBrightness).CopyTo(mBlock, pos); pos += 4;
-                    wl.cloudColor.ToBytes(mBlock, pos); pos += 16;
-                    wl.cloudXYDensity.ToBytes(mBlock, pos); pos += 12;
-                    Utils.FloatToBytes(wl.cloudCoverage).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.cloudScale).CopyTo(mBlock, pos); pos += 4;
-                    wl.cloudDetailXYDensity.ToBytes(mBlock, pos); pos += 12;
-                    Utils.FloatToBytes(wl.cloudScrollX).CopyTo(mBlock, pos); pos += 4;
-                    Utils.FloatToBytes(wl.cloudScrollY).CopyTo(mBlock, pos); pos += 4;
-                    Utils.UInt16ToBytes(wl.maxAltitude).CopyTo(mBlock, pos); pos += 2;
-                    mBlock[pos] = Convert.ToByte(wl.cloudScrollXLock); pos++;
-                    mBlock[pos] = Convert.ToByte(wl.cloudScrollYLock); pos++;
-                    mBlock[pos] = Convert.ToByte(wl.drawClassicClouds); pos++;
-                    List<byte[]> param = new List<byte[]>();
-                    param.Add(mBlock);
-
+                    List<byte[]> param = compileWindlightSettings(m_scene.RegionInfo.WindlightSettings);
+                    client.SendGenericMessage("Windlight", param);
+                }
+            }
+            else
+            {
+                //We probably don't want to spam chat with this.. probably
+                //m_log.Debug("[WINDLIGHT]: Module disabled");
+            }
+        }
+        public void SendProfileToClient(ScenePresence presence, RegionMeta7WindlightData wl)
+        {
+            IClientAPI client = presence.ControllingClient;
+            if (m_enableWindlight)
+            {
+                if (presence.IsChildAgent == false)
+                {
+                    List<byte[]> param = compileWindlightSettings(wl);
                     client.SendGenericMessage("Windlight", param);
                 }
             }
@@ -142,7 +164,14 @@ namespace OpenSim.Region.CoreModules.World.Meta7Windlight
             m_log.Debug("[WINDLIGHT]: Sending windlight scene to new client");
             SendProfileToClient(presence);
         }
-
+        private void EventManager_OnSendNewWindlightProfileTargeted(RegionMeta7WindlightData wl, UUID pUUID)
+        {
+            ScenePresence Sc;
+            if (m_scene.TryGetAvatar(pUUID,out Sc))
+            {
+                SendProfileToClient(Sc,wl);
+            }
+        }
         private void EventManager_OnSaveNewWindlightProfile()
         {
             m_scene.ForEachScenePresence(SendProfileToClient);

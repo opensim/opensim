@@ -67,5 +67,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_CM_Functions.cmSetWindlightScene(rules);
         }
+
+        public int cmSetWindlightSceneTargeted(LSL_List rules, key target)
+        {
+            return m_CM_Functions.cmSetWindlightSceneTargeted(rules, target);
+        }
     }
 }

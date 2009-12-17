@@ -16,5 +16,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         // Windlight Functions
         LSL_List cmGetWindlightScene(LSL_List rules);
         int cmSetWindlightScene(LSL_List rules);
+        int cmSetWindlightSceneTargeted(LSL_List rules, key target);
     }
 }

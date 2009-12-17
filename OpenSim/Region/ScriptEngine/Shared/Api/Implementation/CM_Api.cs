@@ -231,6 +231,179 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         }
 
+        private RegionMeta7WindlightData getWindlightProfileFromRules(LSL_List rules)
+        {
+            RegionMeta7WindlightData wl = (RegionMeta7WindlightData)m_host.ParentGroup.Scene.RegionInfo.WindlightSettings.Clone();
+
+            LSL_List values = new LSL_List();
+            int idx = 0;
+            while (idx < rules.Length)
+            {
+                uint rule = (uint)rules.GetLSLIntegerItem(idx);
+                LSL_Types.Quaternion iQ;
+                LSL_Types.Vector3 iV;
+                switch (rule)
+                {
+                    case (int)ScriptBaseClass.WL_AMBIENT:
+                        idx++;
+                        iQ = rules.GetQuaternionItem(idx);
+                        wl.ambient = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        break;
+                    case (int)ScriptBaseClass.WL_BIG_WAVE_DIRECTION:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.bigWaveDirection = new Vector2((float)iV.x, (float)iV.y);
+                        break;
+                    case (int)ScriptBaseClass.WL_BLUE_DENSITY:
+                        idx++;
+                        iQ = rules.GetQuaternionItem(idx);
+                        wl.blueDensity = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        break;
+                    case (int)ScriptBaseClass.WL_BLUR_MULTIPLIER:
+                        idx++;
+                        wl.blurMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_COLOR:
+                        idx++;
+                        iQ = rules.GetQuaternionItem(idx);
+                        wl.cloudColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_COVERAGE:
+                        idx++;
+                        wl.cloudCoverage = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_DETAIL_XY_DENSITY:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.cloudDetailXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_SCALE:
+                        idx++;
+                        wl.cloudScale = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X:
+                        idx++;
+                        wl.cloudScrollX = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X_LOCK:
+                        idx++;
+                        wl.cloudScrollXLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y:
+                        idx++;
+                        wl.cloudScrollY = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y_LOCK:
+                        idx++;
+                        wl.cloudScrollYLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        break;
+                    case (int)ScriptBaseClass.WL_CLOUD_XY_DENSITY:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.cloudDetailXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
+                        break;
+                    case (int)ScriptBaseClass.WL_DENSITY_MULTIPLIER:
+                        idx++;
+                        wl.densityMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_DISTANCE_MULTIPLIER:
+                        idx++;
+                        wl.distanceMultiplier = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_DRAW_CLASSIC_CLOUDS:
+                        idx++;
+                        wl.drawClassicClouds = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
+                        break;
+                    case (int)ScriptBaseClass.WL_EAST_ANGLE:
+                        idx++;
+                        wl.eastAngle = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_FRESNEL_OFFSET:
+                        idx++;
+                        wl.fresnelOffset = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_FRESNEL_SCALE:
+                        idx++;
+                        wl.fresnelScale = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_HAZE_DENSITY:
+                        idx++;
+                        wl.hazeDensity = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_HAZE_HORIZON:
+                        idx++;
+                        wl.hazeHorizon = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_HORIZON:
+                        idx++;
+                        iQ = rules.GetQuaternionItem(idx);
+                        wl.horizon = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        break;
+                    case (int)ScriptBaseClass.WL_LITTLE_WAVE_DIRECTION:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.littleWaveDirection = new Vector2((float)iV.x, (float)iV.y);
+                        break;
+                    case (int)ScriptBaseClass.WL_MAX_ALTITUDE:
+                        idx++;
+                        wl.maxAltitude = (ushort)rules.GetLSLIntegerItem(idx).value;
+                        break;
+                    case (int)ScriptBaseClass.WL_NORMAL_MAP_TEXTURE:
+                        idx++;
+                        wl.normalMapTexture = new UUID(rules.GetLSLStringItem(idx).m_string);
+                        break;
+                    case (int)ScriptBaseClass.WL_REFLECTION_WAVELET_SCALE:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.reflectionWaveletScale = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
+                        break;
+                    case (int)ScriptBaseClass.WL_REFRACT_SCALE_ABOVE:
+                        idx++;
+                        wl.refractScaleAbove = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_REFRACT_SCALE_BELOW:
+                        idx++;
+                        wl.refractScaleBelow = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_SCENE_GAMMA:
+                        idx++;
+                        wl.sceneGamma = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_STAR_BRIGHTNESS:
+                        idx++;
+                        wl.starBrightness = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_SUN_GLOW_FOCUS:
+                        idx++;
+                        wl.sunGlowFocus = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_SUN_GLOW_SIZE:
+                        idx++;
+                        wl.sunGlowSize = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_SUN_MOON_COLOR:
+                        idx++;
+                        iQ = rules.GetQuaternionItem(idx);
+                        wl.sunMoonColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
+                        break;
+                    case (int)ScriptBaseClass.WL_UNDERWATER_FOG_MODIFIER:
+                        idx++;
+                        wl.underwaterFogModifier = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                    case (int)ScriptBaseClass.WL_WATER_COLOR:
+                        idx++;
+                        iV = rules.GetVector3Item(idx);
+                        wl.waterColor = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
+                        break;
+                    case (int)ScriptBaseClass.WL_WATER_FOG_DENSITY_EXPONENT:
+                        idx++;
+                        wl.waterFogDensityExponent = (float)rules.GetLSLFloatItem(idx);
+                        break;
+                }
+                idx++;
+            }
+            return wl;
+        }
         /// <summary>
         /// Set the current Windlight scene
         /// </summary>
@@ -243,185 +416,55 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 CMShoutError("Careminster functions are not enabled.");
                 return 0;
             }
+            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            {
+                CMShoutError("cmSetWindlightScene can only be used by estate managers or owners.");
+                return 0;
+            }
             int success = 0;
             m_host.AddScriptLPS(1);
             if (Meta7WindlightModule.EnableWindlight)
             {
-                RegionMeta7WindlightData wl = m_host.ParentGroup.Scene.RegionInfo.WindlightSettings;
-
-                LSL_List values = new LSL_List();
-                int idx = 0;
-                success = 1;
-                while (idx < rules.Length)
-                {
-                    uint rule = (uint)rules.GetLSLIntegerItem(idx);
-                    LSL_Types.Quaternion iQ;
-                    LSL_Types.Vector3 iV;
-                    switch (rule)
-                    {
-                        case (int)ScriptBaseClass.WL_AMBIENT:
-                            idx++;
-                            iQ = rules.GetQuaternionItem(idx);
-                            wl.ambient = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
-                            break;
-                        case (int)ScriptBaseClass.WL_BIG_WAVE_DIRECTION:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.bigWaveDirection = new Vector2((float)iV.x, (float)iV.y);
-                            break;
-                        case (int)ScriptBaseClass.WL_BLUE_DENSITY:
-                            idx++;
-                            iQ = rules.GetQuaternionItem(idx);
-                            wl.blueDensity = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
-                            break;
-                        case (int)ScriptBaseClass.WL_BLUR_MULTIPLIER:
-                            idx++;
-                            wl.blurMultiplier = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_COLOR:
-                            idx++;
-                            iQ = rules.GetQuaternionItem(idx);
-                            wl.cloudColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_COVERAGE:
-                            idx++;
-                            wl.cloudCoverage = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_DETAIL_XY_DENSITY:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.cloudDetailXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_SCALE:
-                            idx++;
-                            wl.cloudScale = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X:
-                            idx++;
-                            wl.cloudScrollX = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_SCROLL_X_LOCK:
-                            idx++;
-                            wl.cloudScrollXLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y:
-                            idx++;
-                            wl.cloudScrollY = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_SCROLL_Y_LOCK:
-                            idx++;
-                            wl.cloudScrollYLock = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
-                            break;
-                        case (int)ScriptBaseClass.WL_CLOUD_XY_DENSITY:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.cloudDetailXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
-                            break;
-                        case (int)ScriptBaseClass.WL_DENSITY_MULTIPLIER:
-                            idx++;
-                            wl.densityMultiplier = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_DISTANCE_MULTIPLIER:
-                            idx++;
-                            wl.distanceMultiplier = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_DRAW_CLASSIC_CLOUDS:
-                            idx++;
-                            wl.drawClassicClouds = rules.GetLSLIntegerItem(idx).value == 1 ? true : false;
-                            break;
-                        case (int)ScriptBaseClass.WL_EAST_ANGLE:
-                            idx++;
-                            wl.eastAngle = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_FRESNEL_OFFSET:
-                            idx++;
-                            wl.fresnelOffset = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_FRESNEL_SCALE:
-                            idx++;
-                            wl.fresnelScale = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_HAZE_DENSITY:
-                            idx++;
-                            wl.hazeDensity = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_HAZE_HORIZON:
-                            idx++;
-                            wl.hazeHorizon = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_HORIZON:
-                            idx++;
-                            iQ = rules.GetQuaternionItem(idx);
-                            wl.horizon = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
-                            break;
-                        case (int)ScriptBaseClass.WL_LITTLE_WAVE_DIRECTION:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.littleWaveDirection = new Vector2((float)iV.x, (float)iV.y);
-                            break;
-                        case (int)ScriptBaseClass.WL_MAX_ALTITUDE:
-                            idx++;
-                            wl.maxAltitude = (ushort)rules.GetLSLIntegerItem(idx).value;
-                            break;
-                        case (int)ScriptBaseClass.WL_NORMAL_MAP_TEXTURE:
-                            idx++;
-                            wl.normalMapTexture = new UUID(rules.GetLSLStringItem(idx).m_string);
-                            break;
-                        case (int)ScriptBaseClass.WL_REFLECTION_WAVELET_SCALE:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.reflectionWaveletScale = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
-                            break;
-                        case (int)ScriptBaseClass.WL_REFRACT_SCALE_ABOVE:
-                            idx++;
-                            wl.refractScaleAbove = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_REFRACT_SCALE_BELOW:
-                            idx++;
-                            wl.refractScaleBelow = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_SCENE_GAMMA:
-                            idx++;
-                            wl.sceneGamma = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_STAR_BRIGHTNESS:
-                            idx++;
-                            wl.starBrightness = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_SUN_GLOW_FOCUS:
-                            idx++;
-                            wl.sunGlowFocus = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_SUN_GLOW_SIZE:
-                            idx++;
-                            wl.sunGlowSize = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_SUN_MOON_COLOR:
-                            idx++;
-                            iQ = rules.GetQuaternionItem(idx);
-                            wl.sunMoonColor = new Vector4((float)iQ.x, (float)iQ.y, (float)iQ.z, (float)iQ.s);
-                            break;
-                        case (int)ScriptBaseClass.WL_UNDERWATER_FOG_MODIFIER:
-                            idx++;
-                            wl.underwaterFogModifier = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        case (int)ScriptBaseClass.WL_WATER_COLOR:
-                            idx++;
-                            iV = rules.GetVector3Item(idx);
-                            wl.waterColor = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
-                            break;
-                        case (int)ScriptBaseClass.WL_WATER_FOG_DENSITY_EXPONENT:
-                            idx++;
-                            wl.waterFogDensityExponent = (float)rules.GetLSLFloatItem(idx);
-                            break;
-                        default:
-                            success = 0;
-                            break;
-                    }
-                    idx++;
-                }
+                RegionMeta7WindlightData wl = getWindlightProfileFromRules(rules);
                 m_host.ParentGroup.Scene.StoreWindlightProfile(wl);
-
+                success = 1;
+            }
+            else
+            {
+                CMShoutError("Windlight module is disabled");
+                return 0;
+            }
+            return success;
+        }
+        /// <summary>
+        /// Set the current Windlight scene to a target avatar
+        /// </summary>
+        /// <param name="rules"></param>
+        /// <returns>success: true or false</returns>
+        public int cmSetWindlightSceneTargeted(LSL_List rules, LSL_Key target)
+        {
+            if (!m_CMFunctionsEnabled)
+            {
+                CMShoutError("Careminster functions are not enabled.");
+                return 0;
+            }
+            if (!World.RegionInfo.EstateSettings.IsEstateManager(m_host.OwnerID) && World.GetScenePresence(m_host.OwnerID).GodLevel < 200)
+            {
+                CMShoutError("cmSetWindlightSceneTargeted can only be used by estate managers or owners.");
+                return 0;
+            }
+            int success = 0;
+            m_host.AddScriptLPS(1);
+            if (Meta7WindlightModule.EnableWindlight)
+            { 
+                RegionMeta7WindlightData wl = getWindlightProfileFromRules(rules);
+                World.EventManager.TriggerOnSendNewWindlightProfileTargeted(wl, new UUID(target.m_string));
+                success = 1;
+            }
+            else
+            {
+                CMShoutError("Windlight module is disabled");
+                return 0;
             }
             return success;
         }

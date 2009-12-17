@@ -39,7 +39,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
-    public class RegionMeta7WindlightData
+    public class RegionMeta7WindlightData : ICloneable
     {
         public UUID regionID = UUID.Zero;
         public Vector3 waterColor = new Vector3(4.0f,38.0f,64.0f);
@@ -54,19 +54,19 @@ namespace OpenSim.Framework
         public Vector2 bigWaveDirection = new Vector2(1.05f,-0.42f);
         public Vector2 littleWaveDirection = new Vector2(1.11f,-1.16f);
         public UUID normalMapTexture = new UUID("822ded49-9a6c-f61c-cb89-6df54f42cdf4");
-        public Vector4 horizon = new Vector4(0.26f, 0.24f, 0.34f, 0.33f);
+        public Vector4 horizon = new Vector4(0.25f, 0.25f, 0.32f, 0.32f);
         public float hazeHorizon = 0.19f;
-        public Vector4 blueDensity = new Vector4(0.10f, 0.93f, 0.02f, 0.93f);
+        public Vector4 blueDensity = new Vector4(0.12f, 0.22f, 0.38f, 0.38f);
         public float hazeDensity = 0.70f;
         public float densityMultiplier = 0.18f;
         public float distanceMultiplier = 0.8f;
         public UInt16 maxAltitude = 1605;
         public Vector4 sunMoonColor = new Vector4(0.24f, 0.26f, 0.30f, 0.30f);
-        public float sunMoonPosition = 0.335f;
+        public float sunMoonPosition = 0.317f;
         public Vector4 ambient = new Vector4(0.35f,0.35f,0.35f,0.35f);
         public float eastAngle = 0.0f;
         public float sunGlowFocus = 0.10f;
-        public float sunGlowSize = 0.10f;
+        public float sunGlowSize = 1.75f;
         public float sceneGamma = 1.0f;
         public float starBrightness = 0.0f;
         public Vector4 cloudColor = new Vector4(0.41f, 0.41f, 0.41f, 0.41f);
@@ -78,7 +78,7 @@ namespace OpenSim.Framework
         public bool cloudScrollXLock = false;
         public float cloudScrollY = 0.01f;
         public bool cloudScrollYLock = false;
-        public bool drawClassicClouds = false;
+        public bool drawClassicClouds = true;
 
         public delegate void SaveDelegate(RegionMeta7WindlightData wl);
         public event SaveDelegate OnSave;
@@ -87,6 +87,11 @@ namespace OpenSim.Framework
             if (OnSave != null)
                 OnSave(this);
         }
+        public object Clone()
+        {
+            return this.MemberwiseClone();      // call clone method
+        }
+
     }
 
     [Serializable]
