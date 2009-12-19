@@ -405,6 +405,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (parts.Length >= 2)
             {
                 portstr = parts[1];
+                //m_log.Debug("-- port = " + portstr);
                 if (!UInt32.TryParse(portstr, out port))
                     regionName = parts[1];
             }
@@ -620,8 +621,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 clonedRegion.RegionLocX = (int)x;
                 clonedRegion.RegionLocY = (int)y;
 
-                // Get the user's home region information
-                GridRegion home = m_aScene.GridService.GetRegionByUUID(m_aScene.RegionInfo.ScopeID, uinfo.UserProfile.HomeRegionID);
+                // Get the user's home region information and adapt the region handle
+                GridRegion home = GetRegionByUUID(m_aScene.RegionInfo.ScopeID, uinfo.UserProfile.HomeRegionID);
+                if (m_HyperlinkHandles.ContainsKey(uinfo.UserProfile.HomeRegionID))
+                {
+                    ulong realHandle = m_HyperlinkHandles[uinfo.UserProfile.HomeRegionID];
+                    Utils.LongToUInts(realHandle, out x, out y);
+                    m_log.DebugFormat("[HGrid]: Foreign user is going elsewhere. Adjusting home handle from {0}-{1} to {2}-{3}", home.RegionLocX, home.RegionLocY, x, y);
+                    home.RegionLocX = (int)x;
+                    home.RegionLocY = (int)y;
+                }
 
                 // Get the user's service URLs
                 string serverURI = "";

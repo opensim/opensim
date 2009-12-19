@@ -92,12 +92,12 @@ namespace OpenSim.Services.Connectors.Grid
                 try
                 {
                     UUID.TryParse((string)hash["uuid"], out uuid);
-                    m_log.Debug(">> HERE, uuid: " + uuid);
+                    //m_log.Debug(">> HERE, uuid: " + uuid);
                     info.RegionID = uuid;
                     if ((string)hash["handle"] != null)
                     {
                         realHandle = Convert.ToUInt64((string)hash["handle"]);
-                        m_log.Debug(">> HERE, realHandle: " + realHandle);
+                        //m_log.Debug(">> HERE, realHandle: " + realHandle);
                     }
                     //if (hash["region_image"] != null)
                     //{
