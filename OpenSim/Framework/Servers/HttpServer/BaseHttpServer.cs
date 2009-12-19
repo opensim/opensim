@@ -700,10 +700,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             try
             {
-                xmlRprcRequest = (XmlRpcRequest) (new XmlRpcRequestDeserializer()).Deserialize(requestBody);
+                xmlRprcRequest = (XmlRpcRequest)(new XmlRpcRequestDeserializer()).Deserialize(requestBody);
             }
-            catch (XmlException)
+            catch (XmlException e)
             {
+                m_log.WarnFormat(
+                    "[BASE HTTP SERVER]: Ignoring XMLRPC request from {0} due to deserialization exception {1} {2}", 
+                    request.RemoteIPEndPoint, e.Message, e.StackTrace);
             }
 
             if (xmlRprcRequest != null)
