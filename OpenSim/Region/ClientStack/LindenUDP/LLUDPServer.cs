@@ -402,7 +402,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             #region Queue or Send
 
             OutgoingPacket outgoingPacket = new OutgoingPacket(udpClient, buffer, category);
-            outgoingPacket.Type = type;
 
             if (!outgoingPacket.Client.EnqueueOutgoing(outgoingPacket))
                 SendPacketFinal(outgoingPacket);
@@ -514,7 +513,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte flags = buffer.Data[0];
             bool isResend = (flags & Helpers.MSG_RESENT) != 0;
             bool isReliable = (flags & Helpers.MSG_RELIABLE) != 0;
-            bool sendSynchronous = false;
             LLUDPClient udpClient = outgoingPacket.Client;
 
             if (!udpClient.IsConnected)
@@ -570,28 +568,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (isReliable)
                 Interlocked.Add(ref udpClient.UnackedBytes, outgoingPacket.Buffer.DataLength);
 
-            //Some packet types need to be sent synchonously.
-            //Sorry, i know it's not optimal, but until the LL client
-            //manages packets correctly and re-orders them as required, this is necessary.
-
-            
             // Put the UDP payload on the wire
-            if (outgoingPacket.Type == PacketType.ImprovedTerseObjectUpdate)
-            {
-                SyncBeginPrioritySend(buffer, 2); // highest priority
-            }
-            else if (outgoingPacket.Type == PacketType.ObjectUpdate
-                || outgoingPacket.Type == PacketType.LayerData)
-            {
-                SyncBeginPrioritySend(buffer, 1); // medium priority
-            }
-            else
-            {
-                SyncBeginPrioritySend(buffer, 0); // normal priority
-            }
-            
-            //AsyncBeginSend(buffer);
-            
+            AsyncBeginSend(buffer);
+
             // Keep track of when this packet was sent out (right now)
             outgoingPacket.TickCount = Environment.TickCount & Int32.MaxValue;
         }
@@ -872,7 +851,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             Buffer.BlockCopy(packetData, 0, buffer.Data, 0, length);
 
-            SyncBeginPrioritySend(buffer, 1); //Setting this to a medium priority should help minimise resends
+            AsyncBeginSend(buffer);
         }
 
         private bool IsClientAuthorized(UseCircuitCodePacket useCircuitCode, out AuthenticateResponse sessionInfo)

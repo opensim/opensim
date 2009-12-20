@@ -29,7 +29,6 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections.Generic;
 using log4net;
 
 namespace OpenMetaverse
@@ -53,29 +52,11 @@ namespace OpenMetaverse
         /// <summary>Local IP address to bind to in server mode</summary>
         protected IPAddress m_localBindAddress;
 
-        /// <summary>
-        /// Standard queue for our outgoing SyncBeginPrioritySend
-        /// </summary>
-        private List<UDPPacketBuffer> m_standardQueue = new List<UDPPacketBuffer>();
-
-        /// <summary>
-        /// Medium priority queue for our outgoing SyncBeginPrioritySend
-        /// </summary>
-        private List<UDPPacketBuffer> m_mediumPriorityQueue = new List<UDPPacketBuffer>();
-
-        /// <summary>
-        /// Prioritised queue for our outgoing SyncBeginPrioritySend
-        /// </summary>
-        private List<UDPPacketBuffer> m_priorityQueue = new List<UDPPacketBuffer>();
-
         /// <summary>UDP socket, used in either client or server mode</summary>
         private Socket m_udpSocket;
 
         /// <summary>Flag to process packets asynchronously or synchronously</summary>
         private bool m_asyncPacketHandling;
-
-        /// <summary>Are we currently sending data asynchronously?</summary>
-        private volatile bool m_sendingData = false;
 
         /// <summary>The all important shutdown flag</summary>
         private volatile bool m_shutdownFlag = true;
@@ -265,51 +246,7 @@ namespace OpenMetaverse
             }
         }
 
-        public void SyncBeginPrioritySend(UDPPacketBuffer buf, int Priority)
-        {
-            if (!m_shutdownFlag)
-            {
-                if (!m_sendingData)
-                {
-                    m_sendingData = true;
-                    try
-                    {
-                        AsyncBeginSend(buf);
-                    }
-                    catch (SocketException) { }
-                    catch (ObjectDisposedException) { }
-                }
-                else
-                {
-                    if (Priority == 2)
-                    {
-                        lock (m_priorityQueue)
-                        {
-                            m_priorityQueue.Add(buf);
-                        }
-                    }
-                    else
-                    {
-                        if (Priority != 0)
-                        {
-                            lock (m_mediumPriorityQueue)
-                            {
-                                m_mediumPriorityQueue.Add(buf);
-                            }
-                        }
-                        else
-                        {
-                            lock (m_standardQueue)
-                            {
-                                m_standardQueue.Add(buf);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void AsyncBeginSend(UDPPacketBuffer buf)
+        public void AsyncBeginSend(UDPPacketBuffer buf)
         {
             if (!m_shutdownFlag)
             {
@@ -333,48 +270,8 @@ namespace OpenMetaverse
         {
             try
             {
+//                UDPPacketBuffer buf = (UDPPacketBuffer)result.AsyncState;
                 m_udpSocket.EndSendTo(result);
-
-                if (m_sendingData)
-                {
-                    lock (m_priorityQueue)
-                    {
-                        if (m_priorityQueue.Count > 0)
-                        {
-                            UDPPacketBuffer buf = m_priorityQueue[0];
-                            m_priorityQueue.RemoveAt(0);
-                            AsyncBeginSend(buf);
-                        }
-                        else
-                        {
-                            lock (m_mediumPriorityQueue)
-                            {
-                                if (m_mediumPriorityQueue.Count > 0)
-                                {
-                                    UDPPacketBuffer buf = m_mediumPriorityQueue[0];
-                                    m_mediumPriorityQueue.RemoveAt(0);
-                                    AsyncBeginSend(buf);
-                                }
-                                else
-                                {
-                                    lock (m_standardQueue)
-                                    {
-                                        if (m_standardQueue.Count > 0)
-                                        {
-                                            UDPPacketBuffer buf = m_standardQueue[0];
-                                            m_standardQueue.RemoveAt(0);
-                                            AsyncBeginSend(buf);
-                                        }
-                                        else
-                                        {
-                                            m_sendingData = false;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
             catch (SocketException) { }
             catch (ObjectDisposedException) { }
