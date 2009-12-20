@@ -1328,7 +1328,7 @@ namespace OpenSim.Region.Framework.Scenes
                 maintc = Util.EnvironmentTickCountSubtract(maintc);
                 maintc = (int)(m_timespan * 1000) - maintc;
 
-                if ((maintc < (m_timespan * 1000)) && maintc > 0)
+                if (maintc > 0)
                     Thread.Sleep(maintc);
 
                 // Tell the watchdog that this thread is still alive
