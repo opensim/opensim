@@ -513,24 +513,11 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
                 PhysicsActor actor = PhysActor;
-                
                 if (actor != null && _parentID == 0)
                 {
                     m_groupPosition = actor.Position;
-                }                
-/*                
-                if (actor != null) 
-                {
-                	if (_parentID == 0)
-                	{
-	                   	m_groupPosition = actor.Position;
-                	}
-                	else
-                	{
-                		m_groupPosition = ParentGroup.AbsolutePosition;  // KF+Casper Update Child prims too!
-                	}
                 }
-*/
+
                 if (IsAttachment)
                 {
                     ScenePresence sp = m_parentGroup.Scene.GetScenePresence(AttachedAvatar);
@@ -545,7 +532,6 @@ namespace OpenSim.Region.Framework.Scenes
                 StoreUndoState();
 
                 m_groupPosition = value;
-
                 PhysicsActor actor = PhysActor;
                 if (actor != null)
                 {
@@ -1755,16 +1741,17 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 GetWorldPosition()
         {
             Quaternion parentRot = ParentGroup.RootPart.RotationOffset;
-
             Vector3 axPos = OffsetPosition;
             axPos *= parentRot;
             Vector3 translationOffsetPosition = axPos;
-            
-            int tx =  (int)GroupPosition.X;
-            int ty =  (int)GroupPosition.Y;
-            int tz =  (int)GroupPosition.Z;
-
-            return GroupPosition + translationOffsetPosition;
+            if(_parentID == 0)
+            {
+     	       return GroupPosition;
+     	    }
+     	    else
+     	    {
+            	return ParentGroup.AbsolutePosition + translationOffsetPosition; //KF: Fix child prim position
+            }
         }
 
         /// <summary>
@@ -1775,7 +1762,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             Quaternion newRot;
 
-            if (this.LinkNum == 0)
+            if (this.LinkNum < 2)			//KF Single or root prim
             {
                 newRot = RotationOffset;
             }
