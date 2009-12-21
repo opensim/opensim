@@ -1266,6 +1266,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XmlAttribute assetID = doc.CreateAttribute("", "Asset", "");
             assetID.Value = instance.AssetID.ToString();
             stateData.Attributes.Append(assetID);
+            XmlAttribute engineName = doc.CreateAttribute("", "Engine", "");
+            engineName.Value = ScriptEngineName;
+            stateData.Attributes.Append(engineName);
             doc.AppendChild(stateData);
 
             // Add <ScriptState>...</ScriptState>
@@ -1387,6 +1390,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
 
             XmlElement rootE = (XmlElement)rootL[0];
+
+            if (rootE.GetAttribute("Engine") != ScriptEngineName)
+                return;
 
             if (rootE.GetAttribute("UUID") != itemID.ToString())
                 return;
