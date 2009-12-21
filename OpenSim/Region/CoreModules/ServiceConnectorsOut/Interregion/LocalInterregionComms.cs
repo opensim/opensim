@@ -157,7 +157,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             }
 
 //            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", regionHandle);
-            reason = "Did not find region.";
+            uint x = 0, y = 0;
+            Utils.LongToUInts(regionHandle, out x, out y);
+            reason = "Did not find region " + x + "-" + y;
             return false;
         }
 

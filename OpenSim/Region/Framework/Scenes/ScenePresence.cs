@@ -129,7 +129,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
-        private Vector3 m_requestedSitOffset;
+
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
         private bool m_startAnimationSet;
@@ -1926,7 +1926,7 @@ namespace OpenSim.Region.Framework.Scenes
                     m_nextSitAnimation = part.SitAnimation;
                 }
                 m_requestedSitTargetID = part.LocalId;
-                m_requestedSitOffset = offset;
+                //m_requestedSitOffset = offset;
                 m_requestedSitTargetUUID = targetID;
                 
                 m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);
@@ -2159,7 +2159,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (part != null)
             {
                 m_requestedSitTargetID = part.LocalId; 
-                m_requestedSitOffset = offset;
+                //m_requestedSitOffset = offset;
                 m_requestedSitTargetUUID = targetID;
 
                 m_log.DebugFormat("[SIT]: Client requested Sit Position: {0}", offset);

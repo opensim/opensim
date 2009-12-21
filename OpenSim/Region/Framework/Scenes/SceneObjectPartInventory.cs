@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Xml;
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
@@ -295,15 +296,55 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void RestoreSavedScriptState(UUID oldID, UUID newID)
         {
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return;
+
             if (m_part.ParentGroup.m_savedScriptState.ContainsKey(oldID))
             {
-                string fpath = Path.Combine("ScriptEngines/"+m_part.ParentGroup.Scene.RegionInfo.RegionID.ToString(),
-                                    newID.ToString()+".state");
-                FileStream fs = File.Create(fpath);
-                Byte[] buffer = enc.GetBytes(m_part.ParentGroup.m_savedScriptState[oldID]);
-                fs.Write(buffer,0,buffer.Length);
-                fs.Close();
-                m_part.ParentGroup.m_savedScriptState.Remove(oldID);
+                XmlDocument doc = new XmlDocument();
+
+                doc.LoadXml(m_part.ParentGroup.m_savedScriptState[oldID]);
+                
+                ////////// CRUFT WARNING ///////////////////////////////////
+                //
+                // Old objects will have <ScriptState><State> ...
+                // This format is XEngine ONLY
+                //
+                // New objects have <State Engine="...." ...><ScriptState>...
+                // This can be passed to any engine
+                //
+                XmlNode n = doc.SelectSingleNode("ScriptState");
+                if (n != null) // Old format data
+                {
+                    XmlDocument newDoc = new XmlDocument();
+
+                    XmlElement rootN = newDoc.CreateElement("", "State", "");
+                    XmlAttribute uuidA = newDoc.CreateAttribute("", "UUID", "");
+                    uuidA.Value = oldID.ToString();
+                    rootN.Attributes.Append(uuidA);
+                    XmlAttribute engineA = newDoc.CreateAttribute("", "Engine", "");
+                    engineA.Value = "XEngine";
+                    rootN.Attributes.Append(engineA);
+
+                    newDoc.AppendChild(rootN);
+
+                    XmlNode stateN = newDoc.ImportNode(n, true);
+                    rootN.AppendChild(stateN);
+
+                    // This created document has only the minimun data
+                    // necessary for XEngine to parse it successfully
+
+                    m_part.ParentGroup.m_savedScriptState[oldID] = newDoc.OuterXml;
+                }
+                foreach (IScriptModule e in engines)
+                {
+                    if (e != null)
+                    {
+                        if (e.SetXMLState(newID, m_part.ParentGroup.m_savedScriptState[oldID]))
+                            break;
+                    }
+                }
             }
         }
 
