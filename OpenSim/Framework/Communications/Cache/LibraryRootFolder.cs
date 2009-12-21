@@ -171,6 +171,7 @@ namespace OpenSim.Framework.Communications.Cache
             item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
             item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
             item.BasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
+            item.Flags = (uint)config.GetInt("flags", 0);
 
             if (libraryFolders.ContainsKey(item.Folder))
             {
