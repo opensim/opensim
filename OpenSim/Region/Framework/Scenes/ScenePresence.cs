@@ -119,6 +119,7 @@ namespace OpenSim.Region.Framework.Scenes
 		private Vector3 m_avInitialPos;		// used to calculate unscripted sit rotation
 		private Vector3 m_avUnscriptedSitPos;	// for non-scripted prims
         private Vector3 m_lastPosition;
+        private Vector3 m_lastWorldPosition;
         private Quaternion m_lastRotation;
         private Vector3 m_lastVelocity;
         //private int m_lastTerseSent;
@@ -1667,24 +1668,45 @@ namespace OpenSim.Region.Framework.Scenes
 //	            }
 //	            else
 //	            {				// single or child prim
-	                partRot = part.GetWorldRotation();
+
 //	            }                       
+                if (part == null) //CW: Part may be gone. llDie() for example.
+                {
+                    partRot = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+                }
+                else
+                {
+                    partRot = part.GetWorldRotation();
+                }
+
 	            Quaternion partIRot = Quaternion.Inverse(partRot);
 
 				Quaternion avatarRot = Quaternion.Inverse(Quaternion.Inverse(Rotation) * partIRot); // world or. of the av
 				Vector3 avStandUp = new Vector3(1.0f, 0f, 0f) * avatarRot;		// 1M infront of av
-				Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + ( m_pos * partRot);			// + av sit offset!
 
+                
                 if (m_physicsActor == null)
                 {
                     AddToPhysicalScene(false);
                 }
-		        AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
-                m_parentPosition = Vector3.Zero;
+                //CW: If the part isn't null then we can set the current position 
+                if (part != null)
+                {
+                    Vector3 avWorldStandUp = avStandUp + part.GetWorldPosition() + (m_pos * partRot);			// + av sit offset!
+                    AbsolutePosition = avWorldStandUp;                	 //KF: Fix stand up.
+                    part.IsOccupied = false;
+                }
+                else
+                {
+                    //CW: Since the part doesn't exist, a coarse standup position isn't an issue
+                    AbsolutePosition = m_lastWorldPosition;
+                }
+                
+		        m_parentPosition = Vector3.Zero;
 				m_parentID = 0;
-                part.IsOccupied = false;
                 SendFullUpdateToAllClients();
                 m_requestedSitTargetID = 0;
+
                 if ((m_physicsActor != null) && (m_avHeight > 0))
                 {
                     SetHeight(m_avHeight);
@@ -1778,7 +1800,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
 				if (!part.IsOccupied)
 				{
-//Console.WriteLine("Scripted, unoccupied");					
+//Console.WriteLine("Scripted, unoccupied");
     	            part.SetAvatarOnSitTarget(UUID);		// set that Av will be on it
     	            offset = new Vector3(avSitOffSet.X, avSitOffSet.Y, avSitOffSet.Z);	// change ofset to the scripted one
     	            sitOrientation = avSitOrientation;		// Change rotatione to the scripted one
@@ -1832,12 +1854,18 @@ namespace OpenSim.Region.Framework.Scenes
 					if( (Math.Abs(AbsolutePosition.X - autopilotTarget.X) < 2.0f) && (Math.Abs(AbsolutePosition.Y - autopilotTarget.Y) < 2.0f) )
                     {
                         autopilot = false;		// close enough
+                        m_lastWorldPosition = m_pos; /* CW - This give us a position to return the avatar to if the part is killed before standup.
+                                                             Not using the part's position because returning the AV to the last known standing
+                                                             position is likely to be more friendly, isn't it? */
                         RemoveFromPhysicalScene();
                         AbsolutePosition = autopilotTarget + new Vector3(0.0f, 0.0f, (m_sitAvatarHeight / 2.0f));  // Warp av to over sit target
                     } // else the autopilot will get us close
                 }
                 else
                 {	// its a scripted sit
+                    m_lastWorldPosition = part.AbsolutePosition;  /* CW - This give us a position to return the avatar to if the part is killed before standup.
+                                                                          I *am* using the part's position this time because we have no real idea how far away
+                                                                          the avatar is from the sit target. */
                     RemoveFromPhysicalScene();
                 }
             }
