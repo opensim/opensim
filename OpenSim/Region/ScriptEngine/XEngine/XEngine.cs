@@ -1394,10 +1394,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (rootE.GetAttribute("Engine") != ScriptEngineName)
                 return;
 
-            if (rootE.GetAttribute("UUID") != itemID.ToString())
-                return;
-
-//            string assetID = rootE.GetAttribute("Asset");
+//          On rez from inventory, that ID will have changed. It was only
+//          advisory anyway. So we don't check it anymore.
+//
+//            if (rootE.GetAttribute("UUID") != itemID.ToString())
+//                return;
 
             XmlNodeList stateL = rootE.GetElementsByTagName("ScriptState");
 
