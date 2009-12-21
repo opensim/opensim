@@ -151,6 +151,9 @@ namespace OpenSim.Services.Connectors.Grid
 
                 m_AssetService.Store(ass);
 
+                // finally
+                info.TerrainImage = ass.FullID;
+
             }
             catch // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
