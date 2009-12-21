@@ -1368,10 +1368,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return false;
         }
 
-        public void SetXMLState(UUID itemID, string xml)
+        public bool SetXMLState(UUID itemID, string xml)
         {
             if (xml == String.Empty)
-                return;
+                return false;
 
             XmlDocument doc = new XmlDocument();
 
@@ -1382,17 +1382,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             catch (Exception)
             {
                 m_log.Error("[XEngine]: Exception decoding XML data from region transfer");
-                return;
+                return false;
             }
 
             XmlNodeList rootL = doc.GetElementsByTagName("State");
             if (rootL.Count < 1)
-                return;
+                return false;
 
             XmlElement rootE = (XmlElement)rootL[0];
 
             if (rootE.GetAttribute("Engine") != ScriptEngineName)
-                return;
+                return false;
 
 //          On rez from inventory, that ID will have changed. It was only
 //          advisory anyway. So we don't check it anymore.
@@ -1403,7 +1403,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XmlNodeList stateL = rootE.GetElementsByTagName("ScriptState");
 
             if (stateL.Count != 1)
-                return;
+                return false;
 
             XmlElement stateE = (XmlElement)stateL[0];
 
@@ -1412,7 +1412,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 XmlNodeList assemL = rootE.GetElementsByTagName("Assembly");
 
                 if (assemL.Count != 1)
-                    return;
+                    return false;
 
                 XmlElement assemE = (XmlElement)assemL[0];
 
@@ -1452,19 +1452,23 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             sfs.Close();
 
             XmlNodeList mapL = rootE.GetElementsByTagName("LineMap");
-            
-            XmlElement mapE = (XmlElement)mapL[0];
+            if (mapL.Count > 0)
+            {
+                XmlElement mapE = (XmlElement)mapL[0];
 
-            string mappath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
-            mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
+                string mappath = Path.Combine("ScriptEngines", World.RegionInfo.RegionID.ToString());
+                mappath = Path.Combine(mappath, mapE.GetAttribute("Filename"));
 
-            FileStream mfs = File.Create(mappath);
-            StreamWriter msw = new StreamWriter(mfs);
+                FileStream mfs = File.Create(mappath);
+                StreamWriter msw = new StreamWriter(mfs);
 
-            msw.Write(mapE.InnerText);
+                msw.Write(mapE.InnerText);
 
-            msw.Close();
-            mfs.Close();
+                msw.Close();
+                mfs.Close();
+            }
+
+            return true;
         }
     }
 }
