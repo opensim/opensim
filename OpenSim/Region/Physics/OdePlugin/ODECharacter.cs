@@ -1205,7 +1205,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override float APIDDamping{ set { return; } }
 
-
         public override void SubscribeEvents(int ms)
         {
             m_requestedUpdateFrequency = ms;

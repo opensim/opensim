@@ -570,7 +570,6 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public override float APIDStrength { set { return; } }
         public override float APIDDamping { set { return; } }
         
-
         public override void AddForce(Vector3 force, bool pushforce)
         {
             m_forcelist.Add(force);

@@ -56,6 +56,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private ISessionAuthInventoryService m_HGService;
 
         private string m_LocalGridInventoryURI = string.Empty;
+
+        private string LocalGridInventory
+        {
+            get
+            {
+                if (m_LocalGridInventoryURI == null || m_LocalGridInventoryURI == "")
+                    m_LocalGridInventoryURI = m_Scene.CommsManager.NetworkServersInfo.InventoryURL;
+                return m_LocalGridInventoryURI;
+            }
+        }
+
         public Type ReplaceableInterface 
         {
             get { return null; }
@@ -533,7 +544,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             
             string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
 
-            string uri = m_LocalGridInventoryURI.TrimEnd('/');
+            string uri = LocalGridInventory.TrimEnd('/');
 
             if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
             {
@@ -545,7 +556,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private string GetUserInventoryURI(UUID userID)
         {
-            string invURI = m_LocalGridInventoryURI;
+            string invURI = LocalGridInventory;
 
             CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
             if ((uinfo == null) || (uinfo.UserProfile == null))

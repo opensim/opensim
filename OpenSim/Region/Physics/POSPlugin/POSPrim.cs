@@ -299,6 +299,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
             set { return; }
         }
+
         public override Quaternion APIDTarget
         {
             set { return; }

@@ -345,6 +345,7 @@ namespace OpenSim.Region.Framework.Scenes
                             break;
                     }
                 }
+                m_part.ParentGroup.m_savedScriptState.Remove(oldID);
             }
         }
 
