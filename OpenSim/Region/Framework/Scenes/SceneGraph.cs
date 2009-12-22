@@ -542,6 +542,18 @@ namespace OpenSim.Region.Framework.Scenes
                     if (group.GetFromItemID() == itemID)
                     {
                         m_parentScene.SendAttachEvent(group.LocalId, itemID, UUID.Zero);
+						bool hasScripts = false;
+						foreach (SceneObjectPart part in group.Children)
+						{
+							if (part..Inventory.ContainsScripts())
+							{
+								hasScripts = true;
+								break;
+							}
+						}
+
+                        if (hasScripts) // Allow the object to execute the attach(NULL_KEY) event
+                            System.Threading.Thread.Sleep(100);
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " +
                                 ((uint)group.GetAttachmentPoint()).ToString());
