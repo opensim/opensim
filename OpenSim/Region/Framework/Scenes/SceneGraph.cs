@@ -543,7 +543,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         m_parentScene.SendAttachEvent(group.LocalId, itemID, UUID.Zero);
 						bool hasScripts = false;
-						foreach (SceneObjectPart part in group.Children)
+						foreach (SceneObjectPart part in group.Children.Values)
 						{
 							if (part.Inventory.ContainsScripts())
 							{
