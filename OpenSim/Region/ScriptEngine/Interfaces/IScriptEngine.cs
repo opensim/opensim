@@ -76,6 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         void SetScriptState(UUID itemID, bool state);
         bool GetScriptState(UUID itemID);
+        void SetState(UUID itemID, string newState);
         void ApiResetScript(UUID itemID);
         void ResetScript(UUID itemID);
         IConfig Config { get; }
