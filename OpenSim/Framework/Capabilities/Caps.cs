@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Capabilities
 
     public delegate UUID UpdateItem(UUID itemID, byte[] data);
 
-    public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data);
+    public delegate void UpdateTaskScript(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors);
 
     public delegate void NewInventoryItem(UUID userID, InventoryItemBase item);
 
@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Capabilities
 
     public delegate UUID ItemUpdatedCallback(UUID userID, UUID itemID, byte[] data);
 
-    public delegate void TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
+    public delegate ArrayList TaskScriptUpdatedCallback(UUID userID, UUID itemID, UUID primID,
                                                    bool isScriptRunning, byte[] data);
 
     public delegate InventoryCollection FetchInventoryDescendentsCAPS(UUID agentID, UUID folderID, UUID ownerID,
@@ -940,11 +940,13 @@ namespace OpenSim.Framework.Capabilities
         /// <param name="primID">Prim containing item to update</param>
         /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
         /// <param name="data">New asset data</param>
-        public void TaskScriptUpdated(UUID itemID, UUID primID, bool isScriptRunning, byte[] data)
+        public void TaskScriptUpdated(UUID itemID, UUID primID, bool isScriptRunning, byte[] data, ref ArrayList errors)
         {
             if (TaskScriptUpdatedCall != null)
             {
-                TaskScriptUpdatedCall(m_agentID, itemID, primID, isScriptRunning, data);
+                ArrayList e = TaskScriptUpdatedCall(m_agentID, itemID, primID, isScriptRunning, data);
+                foreach (Object item in e)
+                    errors.Add(item);
             }
         }
 
@@ -1174,17 +1176,20 @@ namespace OpenSim.Framework.Capabilities
 //                                     data, path, param));
 
                     string res = String.Empty;
-                    LLSDTaskInventoryUploadComplete uploadComplete = new LLSDTaskInventoryUploadComplete();
+                    LLSDTaskScriptUploadComplete uploadComplete = new LLSDTaskScriptUploadComplete();
 
+                    ArrayList errors = new ArrayList();
                     handlerUpdateTaskScript = OnUpLoad;
                     if (handlerUpdateTaskScript != null)
                     {
-                        handlerUpdateTaskScript(inventoryItemID, primID, isScriptRunning, data);
+                        handlerUpdateTaskScript(inventoryItemID, primID, isScriptRunning, data, ref errors);
                     }
 
-                    uploadComplete.item_id = inventoryItemID;
-                    uploadComplete.task_id = primID;
+                    uploadComplete.new_asset = inventoryItemID;
+                    uploadComplete.compiled = errors.Count > 0 ? false : true;
                     uploadComplete.state = "complete";
+                    uploadComplete.errors = new OSDArray();
+                    uploadComplete.errors.Array = errors;
 
                     res = LLSDHelpers.SerialiseLLSDReply(uploadComplete);
 
