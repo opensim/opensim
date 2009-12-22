@@ -1182,21 +1182,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return UUID.Zero;
         }
 
-        public void SetState(UUID itemID, string newState)
-        {
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return;
-            instance.SetState(newState);
-        }
-        public string GetState(UUID itemID)
-        {
-            IScriptInstance instance = GetInstance(itemID);
-            if (instance == null)
-                return "default";
-            return instance.State;
-        }
-
         public int GetStartParameter(UUID itemID)
         {
             IScriptInstance instance = GetInstance(itemID);
