@@ -21,6 +21,18 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Revised August 26 2009 by Kitto Flora. ODEDynamics.cs replaces
+ * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
+ * ODEPrim.cs contains methods dealing with Prim editing, Prim
+ * characteristics and Kinetic motion.
+ * ODEDynamics.cs contains methods dealing with Prim Physical motion
+ * (dynamics) and the associated settings. Old Linear and angular
+ * motors for dynamic motion have been replace with  MoveLinear()
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
+ * switch between 'VEHICLE' parameter use and general dynamics
+ * settings use.
  */
 
 /*
@@ -81,7 +93,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float m_PIDTau;
         private float PID_D = 35f;
         private float PID_G = 25f;
-        private bool m_usePID;
+        private bool m_usePID = false;
+        
+        private Quaternion m_APIDTarget = new Quaternion();
+        private float m_APIDStrength = 0.5f;
+        private float m_APIDDamping = 0.5f;
+        private bool m_useAPID = false;
 
         // KF: These next 7 params apply to llSetHoverHeight(float height, integer water, float tau),
         // and are for non-VEHICLES only.
@@ -182,6 +199,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private ODEDynamics m_vehicle;
 
         internal int m_material = (int)Material.Wood;
+        
+        private int frcount = 0;										// Used to limit dynamics debug output to 
+
 
         public OdePrim(String primName, OdeScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
@@ -1561,9 +1581,14 @@ Console.WriteLine(" JointCreateFixed");
             float fy = 0;
             float fz = 0;
 
+            frcount++;					// used to limit debug comment output
+            if (frcount > 100)
+                frcount = 0;
                 
             if (IsPhysical && (Body != IntPtr.Zero) && !m_isSelected && !childPrim)		// KF: Only move root prims.
             {
+//if(frcount == 0) Console.WriteLine("Move " +  m_primName + "  VTyp " + m_vehicle.Type +
+			//			"    usePID=" + m_usePID  + "    seHover=" + m_useHoverPID  + "  useAPID=" + m_useAPID);           	
             	if (m_vehicle.Type != Vehicle.TYPE_NONE)
             	{
             		// 'VEHICLES' are dealt with in ODEDynamics.cs
@@ -1571,7 +1596,6 @@ Console.WriteLine(" JointCreateFixed");
             	}
             	else
             	{
-//Console.WriteLine("Move " +  m_primName);           	
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
 	                if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
@@ -1593,21 +1617,18 @@ Console.WriteLine(" JointCreateFixed");
                     //m_log.Info(m_collisionFlags.ToString());
 
 	                
-	                //KF: m_buoyancy should be set by llSetBuoyancy() for non-vehicle.
-	                // would come from SceneObjectPart.cs, public void SetBuoyancy(float fvalue) , PhysActor.Buoyancy = fvalue; ??
+	                //KF: m_buoyancy is set by llSetBuoyancy() and is for non-vehicle.
 	                // m_buoyancy: (unlimited value) <0=Falls fast; 0=1g; 1=0g; >1 = floats up 
-	                // gravityz multiplier = 1 - m_buoyancy
-	                fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass;
+	                // NB Prims in ODE are no subject to global gravity
+	                fz = _parent_scene.gravityz * (1.0f - m_buoyancy) * m_mass; // force = acceleration * mass
 
 	                if (m_usePID)
 	                {
-//Console.WriteLine("PID " +  m_primName);           	
-                    	// KF - this is for object move? eg. llSetPos() ?
+//if(frcount == 0) Console.WriteLine("PID " +  m_primName);           	
+                    	// KF - this is for object MoveToTarget.
+                    	
 	                    //if (!d.BodyIsEnabled(Body))
 	                    //d.BodySetForce(Body, 0f, 0f, 0f);
-	                    // If we're using the PID controller, then we have no gravity
-	                    //fz = (-1 * _parent_scene.gravityz) * m_mass; 	//KF: ?? Prims have no global gravity,so simply...
-	                    fz = 0f;
 
 	                    //  no lock; for now it's only called from within Simulate()
 	
@@ -1742,7 +1763,7 @@ Console.WriteLine(" JointCreateFixed");
     	                    d.BodySetPosition(Body, pos.X, pos.Y, m_targetHoverHeight);
     	                    d.BodySetLinearVel(Body, vel.X, vel.Y, 0);
     	                    d.BodyAddForce(Body, 0, 0, fz);
-    	                    return;
+    	            //KF this prevents furthur motions        return;
     	                }
     	                else
     	                {
@@ -1751,8 +1772,46 @@ Console.WriteLine(" JointCreateFixed");
     	                    // We're flying and colliding with something
     	                    fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
     	                }
-    	            }
-
+    	            } // end m_useHoverPID && !m_usePID
+    	            
+	                if (m_useAPID)
+	                {
+	                	// RotLookAt, apparently overrides all other rotation sources. Inputs:
+	                	// Quaternion m_APIDTarget
+						// float m_APIDStrength		// From SL experiments, this is the time to get there
+						// float m_APIDDamping		// From SL experiments, this is damping, 1.0 = damped, 0.1 = wobbly
+													// Also in SL the mass of the object has no effect on time to get there.
+						// Factors:
+//if(frcount == 0) Console.WriteLine("APID ");							
+			    	    // get present body rotation
+			    	    float limit = 1.0f;
+			    	    float scaler = 50f;		// adjusts damping time
+			    	    float RLAservo = 0f;
+			    	    
+			    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
+			    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+			    	    Quaternion rot_diff = Quaternion.Inverse(rotq) * m_APIDTarget;
+                        float diff_angle;
+                        Vector3 diff_axis;
+                        rot_diff.GetAxisAngle(out diff_axis, out diff_angle);
+                        diff_axis.Normalize();
+						if(diff_angle > 0.01f)			// diff_angle is always +ve
+						{
+//	                        PhysicsVector rotforce = new PhysicsVector(diff_axis.X, diff_axis.Y, diff_axis.Z);
+	                        Vector3 rotforce = new Vector3(diff_axis.X, diff_axis.Y, diff_axis.Z);
+    	                    rotforce = rotforce * rotq;
+    	                    if(diff_angle > limit) diff_angle = limit;		// cap the rotate rate
+//    	                    RLAservo = timestep / m_APIDStrength * m_mass * scaler;
+  //  	                    rotforce = rotforce * RLAservo * diff_angle ;
+    //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
+    	                    RLAservo = timestep / m_APIDStrength * scaler;
+    	                    rotforce = rotforce * RLAservo * diff_angle ;
+							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
+//Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
+						}
+//if(frcount == 0) Console.WriteLine("mass= " + m_mass + "  servo= " + RLAservo + "   angle= " + diff_angle);							
+	                } // end m_useAPID
+	                
     	            fx *= m_mass;
     	            fy *= m_mass;
     	            //fz *= m_mass;
@@ -2614,7 +2673,7 @@ Console.WriteLine(" JointCreateFixed");
 
                     m_lastposition = _position;
                     m_lastorientation = _orientation;
-
+                    
                     l_position.X = vec.X;
                     l_position.Y = vec.Y;
                     l_position.Z = vec.Z;
@@ -2622,6 +2681,10 @@ Console.WriteLine(" JointCreateFixed");
                     l_orientation.Y = ori.Y;
                     l_orientation.Z = ori.Z;
                     l_orientation.W = ori.W;
+                    
+//	if(l_position.Y != m_lastposition.Y){
+//		Console.WriteLine("UP&V {0}  {1}", m_primName, l_position);
+//	}
 
                     if (l_position.X > ((int)_parent_scene.WorldExtents.X - 0.05f) || l_position.X < 0f || l_position.Y > ((int)_parent_scene.WorldExtents.Y - 0.05f) || l_position.Y < 0f)
                     {
@@ -2822,20 +2885,17 @@ Console.WriteLine(" JointCreateFixed");
         }
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
+        
+		// For RotLookAt        
+        public  override Quaternion APIDTarget { set { m_APIDTarget = value; } }
+        public  override bool APIDActive { set { m_useAPID = value; } }
+        public  override float APIDStrength { set { m_APIDStrength = value; } }
+        public  override float APIDDamping { set { m_APIDDamping = value; } }
 
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
         public override bool PIDHoverActive { set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
-        
-        public override Quaternion APIDTarget{ set { return; } }
-
-        public override bool APIDActive{ set { return; } }
-
-        public override float APIDStrength{ set { return; } }
-
-        public override float APIDDamping{ set { return; } }
-
 
         private void createAMotor(Vector3 axis)
         {

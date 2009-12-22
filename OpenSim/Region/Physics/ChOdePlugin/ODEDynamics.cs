@@ -23,6 +23,19 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Revised Aug, Sept 2009 by Kitto Flora. ODEDynamics.cs replaces
+ * ODEVehicleSettings.cs. It and ODEPrim.cs are re-organised:
+ * ODEPrim.cs contains methods dealing with Prim editing, Prim
+ * characteristics and Kinetic motion.
+ * ODEDynamics.cs contains methods dealing with Prim Physical motion
+ * (dynamics) and the associated settings. Old Linear and angular
+ * motors for dynamic motion have been replace with  MoveLinear()
+ * and MoveAngular(); 'Physical' is used only to switch ODE dynamic 
+ * simualtion on/off; VEHICAL_TYPE_NONE/VEHICAL_TYPE_<other> is to
+ * switch between 'VEHICLE' parameter use and general dynamics
+ * settings use.
+ * 
  */
 
 /* Revised Aug, Sept 2009 by Kitto Flora. ODEDynamics.cs replaces
@@ -120,7 +133,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
         private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height 
-        private float m_VehicleBuoyancy = 0f;			//KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
+        private float m_VehicleBuoyancy = 0f;			// Set by VEHICLE_BUOYANCY, for a vehicle.
         			// Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity) 
         			// KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
         			// Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity. 
@@ -479,7 +492,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 	        Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);	// rotq = rotation of object
 	        m_dir *= rotq;							// apply obj rotation to velocity vector
 
-			// add Gravity andBuoyancy
+			// add Gravity and Buoyancy
 			// KF: So far I have found no good method to combine a script-requested
 			// .Z velocity and gravity. Therefore only 0g will used script-requested
 			// .Z velocity. >0g (m_VehicleBuoyancy < 1) will used modified gravity only.
@@ -561,6 +574,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 	        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular velocity  decay rate
 	        private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
 			*/
+//if(frcount == 0) Console.WriteLine("MoveAngular ");	
         
         	// Get what the body is doing, this includes 'external' influences
         	d.Vector3 angularVelocity = d.BodyGetAngularVel(Body);
@@ -636,7 +650,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 			// Deflection section tba
 			
 			// Sum velocities
-			m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // + bank + deflection
+			m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // tba: + bank + deflection
 			
         	if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
             {
