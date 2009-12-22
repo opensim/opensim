@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
 using System.Text;
 using System.Timers;
@@ -215,13 +216,13 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="primID">The prim which contains the item to update</param>
         /// <param name="isScriptRunning">Indicates whether the script to update is currently running</param>
         /// <param name="data"></param>
-        public void CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
+        public ArrayList CapsUpdateTaskInventoryScriptAsset(IClientAPI remoteClient, UUID itemId,
                                                        UUID primId, bool isScriptRunning, byte[] data)
         {
             if (!Permissions.CanEditScript(itemId, primId, remoteClient.AgentId))
             {
                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
-                return;
+                return new ArrayList();
             }
 
             // Retrieve group
@@ -234,7 +235,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "Prim inventory update requested for item ID {0} in prim ID {1} but this prim does not exist",
                     itemId, primId);
 
-                return;
+                return new ArrayList();
             }
 
             // Retrieve item
@@ -247,7 +248,7 @@ namespace OpenSim.Region.Framework.Scenes
                         + " but the item does not exist in this inventory",
                     itemId, part.Name, part.UUID);
 
-                return;
+                return new ArrayList();
             }
 
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
@@ -264,29 +265,33 @@ namespace OpenSim.Region.Framework.Scenes
             part.GetProperties(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
+            ArrayList errors = new ArrayList();
+
             if (isScriptRunning)
             {
                 // Needs to determine which engine was running it and use that
                 //
                 part.Inventory.CreateScriptInstance(item.ItemID, 0, false, DefaultScriptEngine, 0);
+                errors = part.Inventory.GetScriptErrors(item.ItemID);
             }
             else
             {
                 remoteClient.SendAgentAlertMessage("Script saved", false);
             }
+            return errors;
         }
 
         /// <summary>
         /// <see>CapsUpdateTaskInventoryScriptAsset(IClientAPI, UUID, UUID, bool, byte[])</see>
         /// </summary>
-        public void CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
+        public ArrayList CapsUpdateTaskInventoryScriptAsset(UUID avatarId, UUID itemId,
                                                         UUID primId, bool isScriptRunning, byte[] data)
         {
             ScenePresence avatar;
 
             if (TryGetAvatar(avatarId, out avatar))
             {
-                CapsUpdateTaskInventoryScriptAsset(
+                return CapsUpdateTaskInventoryScriptAsset(
                     avatar.ControllingClient, itemId, primId, isScriptRunning, data);
             }
             else
@@ -295,6 +300,7 @@ namespace OpenSim.Region.Framework.Scenes
                     "[PRIM INVENTORY]: " +
                     "Avatar {0} cannot be found to update its prim item asset",
                     avatarId);
+                return new ArrayList();
             }
         }
 

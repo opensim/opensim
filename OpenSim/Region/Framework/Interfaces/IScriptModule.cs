@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -39,5 +40,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         bool PostScriptEvent(UUID itemID, string name, Object[] args);
         bool PostObjectEvent(UUID itemID, string name, Object[] args);
+
+        ArrayList GetScriptErrors(UUID itemID);
     }
 }
