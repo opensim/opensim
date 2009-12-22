@@ -1673,7 +1673,7 @@ default
             {
                 // The syntax error is on line 6, char 5 (expected ';', found
                 // '}').
-                Assert.AreEqual("Line (4,4) syntax error", e.Message);
+                Assert.AreEqual("(4,4) syntax error", e.Message);
                 throw;
             }
         }
@@ -1698,7 +1698,7 @@ default
             catch (System.Exception e)
             {
                 // The syntax error is on line 5, char 14 (Syntax error)
-                Assert.AreEqual("Line (3,13) syntax error", e.Message);
+                Assert.AreEqual("(3,13) syntax error", e.Message);
 
                 throw;
             }

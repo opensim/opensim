@@ -974,7 +974,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                             if (col == 0)
                                 col++;
                             message = string.Format("Runtime error:\n" +
-                                    "Line ({0}): {1}", scriptLine - 1,
+                                    "({0}): {1}", scriptLine - 1,
                                     e.InnerException.Message);
 
                             System.Console.WriteLine(e.ToString()+"\n");

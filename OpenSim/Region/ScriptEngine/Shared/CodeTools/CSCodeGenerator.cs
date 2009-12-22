@@ -111,7 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 if (emessage.StartsWith(slinfo+": "))
                     emessage = emessage.Substring(slinfo.Length+2);
 
-                message = String.Format("Line ({0},{1}) {2}",
+                message = String.Format("({0},{1}) {2}",
                         e.slInfo.lineNumber - 2,
                         e.slInfo.charPosition - 1, emessage);
 
