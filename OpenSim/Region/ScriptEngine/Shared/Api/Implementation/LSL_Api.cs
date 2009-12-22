@@ -2724,7 +2724,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llStopLookAt()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopLookAt");
+//            NotImplemented("llStopLookAt");
+            m_host.StopLookAt();
         }
 
         public void llSetTimerEvent(double sec)
@@ -3071,7 +3072,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRotLookAt");
+//            NotImplemented("llRotLookAt");
+            m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
         }
 
         public LSL_Integer llStringLength(string str)

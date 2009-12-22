@@ -2827,6 +2827,15 @@ Console.WriteLine(" JointCreateFixed");
         public override bool PIDHoverActive { set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
+        
+        public override Quaternion APIDTarget{ set { return; } }
+
+        public override bool APIDActive{ set { return; } }
+
+        public override float APIDStrength{ set { return; } }
+
+        public override float APIDDamping{ set { return; } }
+
 
         private void createAMotor(Vector3 axis)
         {

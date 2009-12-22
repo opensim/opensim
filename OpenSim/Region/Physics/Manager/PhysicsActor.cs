@@ -243,7 +243,12 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PIDHoverType PIDHoverType { set;}
         public abstract float PIDHoverTau { set;}
 
-
+		// For RotLookAt        
+        public abstract Quaternion APIDTarget { set;}
+        public abstract bool APIDActive { set;}
+        public abstract float APIDStrength { set;}
+        public abstract float APIDDamping { set;}
+        
         public abstract void AddForce(Vector3 force, bool pushforce);
         public abstract void AddAngularForce(Vector3 force, bool pushforce);
         public abstract void SetMomentum(Vector3 momentum);
@@ -476,7 +481,12 @@ namespace OpenSim.Region.Physics.Manager
         public override bool PIDHoverActive { set { return; } }
         public override PIDHoverType PIDHoverType { set { return; } }
         public override float PIDHoverTau { set { return; } }
-
+        
+        public override Quaternion APIDTarget { set { return; } }
+        public override bool APIDActive { set { return; } }
+        public override float APIDStrength { set { return; } }
+        public override float APIDDamping { set { return; } }
+        
         public override void SetMomentum(Vector3 momentum)
         {
         }

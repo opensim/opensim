@@ -2185,6 +2185,11 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
+        
+        public void RotLookAt(Quaternion target, float strength, float damping)
+        {
+            m_parentGroup.rotLookAt(target, strength, damping);
+        }
 
         /// <summary>
         /// Schedules this prim for a full update
@@ -2668,7 +2673,14 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
+        
+        public void StopLookAt()
+        {
+            m_parentGroup.stopLookAt();
 
+            m_parentGroup.ScheduleGroupForTerseUpdate();        
+        }        
+        
         /// <summary>
         /// Set the text displayed for this part.
         /// </summary>
