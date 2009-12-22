@@ -1217,8 +1217,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             set { return; }
         }
 
-
-
         public override void SubscribeEvents(int ms)
         {
             m_requestedUpdateFrequency = ms;

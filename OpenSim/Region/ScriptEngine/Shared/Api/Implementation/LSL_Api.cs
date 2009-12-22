@@ -2742,7 +2742,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             
         }
 
-
         public void llStopLookAt()
         {
             m_host.AddScriptLPS(1);

@@ -2886,16 +2886,19 @@ Console.WriteLine(" JointCreateFixed");
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = value; } }
         
-		// For RotLookAt        
-        public override Quaternion APIDTarget { set { m_APIDTarget = value; } }
-        public override bool APIDActive { set { m_useAPID = value; } }
-        public override float APIDStrength { set { m_APIDStrength = value; } }
-        public override float APIDDamping { set { m_APIDDamping = value; } }
-
         public override float PIDHoverHeight { set { m_PIDHoverHeight = value; ; } }
         public override bool PIDHoverActive { set { m_useHoverPID = value; } }
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
+        
+        public override Quaternion APIDTarget{ set { return; } }
+
+        public override bool APIDActive{ set { return; } }
+
+        public override float APIDStrength{ set { return; } }
+
+        public override float APIDDamping{ set { return; } }
+
 
         private void createAMotor(Vector3 axis)
         {

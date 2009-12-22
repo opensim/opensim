@@ -487,7 +487,6 @@ namespace OpenSim.Region.Physics.Manager
         public override float APIDStrength { set { return; } }
         public override float APIDDamping { set { return; } }
         
-
         public override void SetMomentum(Vector3 momentum)
         {
         }
