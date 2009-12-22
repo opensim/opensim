@@ -545,7 +545,7 @@ namespace OpenSim.Region.Framework.Scenes
 						bool hasScripts = false;
 						foreach (SceneObjectPart part in group.Children)
 						{
-							if (part..Inventory.ContainsScripts())
+							if (part.Inventory.ContainsScripts())
 							{
 								hasScripts = true;
 								break;
