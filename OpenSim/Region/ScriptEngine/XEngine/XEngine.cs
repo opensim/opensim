@@ -1552,5 +1552,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             return true;
         }
+
+        public ArrayList GetScriptErrors(UUID itemID)
+        {
+            return new ArrayList();
+        }
     }
 }
