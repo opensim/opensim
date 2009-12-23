@@ -258,6 +258,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     = rawDirsToCreate[i].LastIndexOf(
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
 
+                if (identicalNameIdentifierIndex < 0)
+                {
+                    i++;
+                    continue;
+                }
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
 
                 newFolderName = InventoryArchiveUtils.UnescapeArchivePath(newFolderName);
