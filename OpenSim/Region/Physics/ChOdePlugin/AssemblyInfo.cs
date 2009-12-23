@@ -25,22 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using OpenMetaverse;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace OpenSim.Region.Framework.Interfaces
-{
-    public interface IScriptModule: INonSharedRegionModule
-    {
-        string ScriptEngineName { get; }
+// Information about this assembly is defined by the following
+// attributes.
+//
+// change them to the information which is associated with the assembly
+// you compile.
 
-        string GetXMLState(UUID itemID);
-        bool SetXMLState(UUID itemID, string xml);
+[assembly : AssemblyTitle("OdePlugin")]
+[assembly : AssemblyDescription("")]
+[assembly : AssemblyConfiguration("")]
+[assembly : AssemblyCompany("http://opensimulator.org")]
+[assembly : AssemblyProduct("OdePlugin")]
+[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2009")]
+[assembly : AssemblyTrademark("")]
+[assembly : AssemblyCulture("")]
 
-        bool PostScriptEvent(UUID itemID, string name, Object[] args);
-        bool PostObjectEvent(UUID itemID, string name, Object[] args);
+// This sets the default COM visibility of types in the assembly to invisible.
+// If you need to expose a type to COM, use [ComVisible(true)] on that type.
 
-        ArrayList GetScriptErrors(UUID itemID);
-    }
-}
+[assembly : ComVisible(false)]
+
+// The assembly version has following format :
+//
+// Major.Minor.Build.Revision
+//
+// You can specify all values by your own or you can build default build and revision
+// numbers with the '*' character (the default):
+
+[assembly : AssemblyVersion("0.6.5.*")]

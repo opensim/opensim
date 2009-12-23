@@ -2684,7 +2684,7 @@ namespace OpenSim.Region.Framework.Scenes
             ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
-
+        
         /// <summary>
         /// Set the text displayed for this part.
         /// </summary>

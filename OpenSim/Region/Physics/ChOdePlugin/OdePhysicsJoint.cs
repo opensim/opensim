@@ -26,21 +26,23 @@
  */
 
 using System;
-using System.Collections;
 using OpenMetaverse;
+using Ode.NET;
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Physics.OdePlugin;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Region.Physics.OdePlugin
 {
-    public interface IScriptModule: INonSharedRegionModule
+    class OdePhysicsJoint : PhysicsJoint
     {
-        string ScriptEngineName { get; }
-
-        string GetXMLState(UUID itemID);
-        bool SetXMLState(UUID itemID, string xml);
-
-        bool PostScriptEvent(UUID itemID, string name, Object[] args);
-        bool PostObjectEvent(UUID itemID, string name, Object[] args);
-
-        ArrayList GetScriptErrors(UUID itemID);
+        public override bool IsInPhysicsEngine
+        {
+            get
+            {
+                return (jointID != IntPtr.Zero);
+            }
+        }
+        public IntPtr jointID;
     }
 }

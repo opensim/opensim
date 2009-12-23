@@ -29,6 +29,7 @@ using System;
 using System.Xml;
 using System.IO;
 using System.Collections.Generic;
+using System.Collections;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
@@ -210,6 +211,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public ArrayList GetScriptErrors(UUID itemID)
+        {
+            ArrayList ret = new ArrayList();
+
+            IScriptModule[] engines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
+            if (engines == null) // No engine at all
+                return ret;
+
+            foreach (IScriptModule e in engines)
+            {
+                if (e != null)
+                {
+                    ArrayList errors = e.GetScriptErrors(itemID);
+                    foreach (Object line in errors)
+                        ret.Add(line);
+                }
+            }
+
+            return ret;
+        }
+
         /// <summary>
         /// Stop all the scripts in this prim.
         /// </summary>
@@ -345,6 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
                             break;
                     }
                 }
+                m_part.ParentGroup.m_savedScriptState.Remove(oldID);
             }
         }
 

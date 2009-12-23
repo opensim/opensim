@@ -1853,7 +1853,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
-
+        
         public void rotLookAt(Quaternion target, float strength, float damping)
         {
             SceneObjectPart rootpart = m_rootPart;
@@ -1880,6 +1880,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
         }
+
         public void stopLookAt()
         {
             SceneObjectPart rootpart = m_rootPart;

@@ -25,22 +25,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenMetaverse;
 using System;
 using System.Collections;
-using OpenMetaverse;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Framework.Capabilities
 {
-    public interface IScriptModule: INonSharedRegionModule
+    [OSDMap]
+    public class LLSDTaskScriptUploadComplete
     {
-        string ScriptEngineName { get; }
+        /// <summary>
+        /// The task inventory item that was updated
+        /// </summary>
+        public UUID new_asset;
 
-        string GetXMLState(UUID itemID);
-        bool SetXMLState(UUID itemID, string xml);
+        /// <summary>
+        /// Was it compiled?
+        /// </summary>
+        public bool compiled;
 
-        bool PostScriptEvent(UUID itemID, string name, Object[] args);
-        bool PostObjectEvent(UUID itemID, string name, Object[] args);
+        /// <summary>
+        /// State of the upload.  So far have only even seen this set to "complete"
+        /// </summary>
+        public string state;
 
-        ArrayList GetScriptErrors(UUID itemID);
+        public OSDArray errors;
     }
 }

@@ -623,7 +623,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
                         // The Second Life viewer's script editor begins
                         // countingn lines and columns at 0, so we subtract 1.
-                        errtext += String.Format("Line ({0},{1}): {4} {2}: {3}\n",
+                        errtext += String.Format("({0},{1}): {4} {2}: {3}\n",
                                 lslPos.Key - 1, lslPos.Value - 1,
                                 CompErr.ErrorNumber, text, severity);
                         hadErrors = true;
