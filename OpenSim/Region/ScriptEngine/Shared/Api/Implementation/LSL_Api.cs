@@ -222,6 +222,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public List<SceneObjectPart> GetLinkParts(int linkType)
         {
             List<SceneObjectPart> ret = new List<SceneObjectPart>();
+            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+                return ret;
             ret.Add(m_host);
 
             switch (linkType)
@@ -1137,6 +1139,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetStatus(int status, int value)
         {
+            if (m_host == null || m_host.ParentGroup == null || m_host.ParentGroup.IsDeleted)
+                return;
             m_host.AddScriptLPS(1);
 
             int statusrotationaxis = 0;
@@ -1350,6 +1354,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetColor(SceneObjectPart part, LSL_Vector color, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
             if (face >= 0 && face < GetNumberOfSides(part))
@@ -1387,6 +1394,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void SetTexGen(SceneObjectPart part, int face,int style)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             MappingType textype;
             textype = MappingType.Default;
@@ -1417,6 +1427,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void SetGlow(SceneObjectPart part, int face, float glow)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             if (face >= 0 && face < GetNumberOfSides(part))
             {
@@ -1442,6 +1455,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void SetShiny(SceneObjectPart part, int face, int shiny, Bumpiness bump)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
 
             Shininess sval = new Shininess();
 
@@ -1492,6 +1507,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void SetFullBright(SceneObjectPart part, int face, bool bright)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
              Primitive.TextureEntry tex = part.Shape.Textures;
              if (face >= 0 && face < GetNumberOfSides(part))
              {
@@ -1559,6 +1577,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetAlpha(SceneObjectPart part, double alpha, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
             if (face >= 0 && face < GetNumberOfSides(part))
@@ -1604,7 +1625,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction,
             float wind, float tension, LSL_Vector Force)
         {
-            if (part == null)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
             if (flexi)
@@ -1639,7 +1660,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         /// <param name="falloff"></param>
         protected void SetPointLight(SceneObjectPart part, bool light, LSL_Vector color, float intensity, float radius, float falloff)
         {
-            if (part == null)
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
                 return;
 
             if (light)
@@ -1725,6 +1746,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetTexture(SceneObjectPart part, string texture, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             UUID textureID=new UUID();
 
             if (!UUID.TryParse(texture, out textureID))
@@ -1770,6 +1794,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void ScaleTexture(SceneObjectPart part, double u, double v, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             if (face >= 0 && face < GetNumberOfSides(part))
             {
@@ -1806,6 +1833,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void OffsetTexture(SceneObjectPart part, double u, double v, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             if (face >= 0 && face < GetNumberOfSides(part))
             {
@@ -1842,6 +1872,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void RotateTexture(SceneObjectPart part, double rotation, int face)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             Primitive.TextureEntry tex = part.Shape.Textures;
             if (face >= 0 && face < GetNumberOfSides(part))
             {
@@ -1912,6 +1945,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPos(SceneObjectPart part, LSL_Vector targetPos)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             // Capped movemment if distance > 10m (http://wiki.secondlife.com/wiki/LlSetPos)
             LSL_Vector currentPos = llGetLocalPos();
 
@@ -2006,6 +2042,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetRot(SceneObjectPart part, Quaternion rot)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             part.UpdateRotation(rot);
             // Update rotation does not move the object in the physics scene if it's a linkset.
 
@@ -6502,6 +6541,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected ObjectShapePacket.ObjectDataBlock SetPrimitiveBlockShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist)
         {
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return shapeBlock;
 
             if (holeshape != (int)ScriptBaseClass.PRIM_HOLE_DEFAULT &&
                 holeshape != (int)ScriptBaseClass.PRIM_HOLE_CIRCLE &&
@@ -6571,6 +6612,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector taper_b, LSL_Vector topshear, byte fudge)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
             shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
@@ -6619,6 +6663,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector dimple, byte fudge)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
             shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
@@ -6660,6 +6707,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPrimitiveShapeParams(SceneObjectPart part, int holeshape, LSL_Vector cut, float hollow, LSL_Vector twist, LSL_Vector holesize, LSL_Vector topshear, LSL_Vector profilecut, LSL_Vector taper_a, float revolutions, float radiusoffset, float skew, byte fudge)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             ObjectShapePacket.ObjectDataBlock shapeBlock;
 
             shapeBlock = SetPrimitiveBlockShapeParams(part, holeshape, cut, hollow, twist);
@@ -6780,6 +6830,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPrimitiveShapeParams(SceneObjectPart part, string map, int type)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
             UUID sculptId;
 
@@ -6820,7 +6873,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_List rules)
         {
-            m_host.AddScriptLPS(1);
+             m_host.AddScriptLPS(1);
 
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
@@ -6830,6 +6883,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         protected void SetPrimParams(SceneObjectPart part, LSL_List rules)
         {
+            if (part == null || part.ParentGroup == null || part.ParentGroup.IsDeleted)
+                return;
+
             int idx = 0;
 
             while (idx < rules.Length)
