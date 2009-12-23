@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Servers.HttpServer
     public class BaseHttpServer : IHttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
+//        private HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
         
         private volatile int NotSocketErrors = 0;
         public volatile bool HTTPDRunning = false;
@@ -1593,7 +1593,9 @@ namespace OpenSim.Framework.Servers.HttpServer
                     //m_httpListener.Prefixes.Add("http://10.1.1.5:" + m_port + "/");
                     m_httpListener2 = CoolHTTPListener.Create(m_listenIPAddress, (int)m_port);
                     m_httpListener2.ExceptionThrown += httpServerException;
-                    m_httpListener2.LogWriter = httpserverlog;
+
+                    // Uncomment this line (and the httpserverlog field) for HttpServer.dll logging
+                    //m_httpListener2.LogWriter = httpserverlog;
                     
                     // Uncomment this line in addition to those in HttpServerLogWriter 
                     // if you want more detailed trace information from the HttpServer
