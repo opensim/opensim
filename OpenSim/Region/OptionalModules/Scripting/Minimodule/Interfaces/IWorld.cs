@@ -41,6 +41,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
     {
         public string Text;
         public IEntity Sender;
+        public int Channel;
     }
 
     public delegate void OnChatDelegate(IWorld sender, ChatEventArgs e);

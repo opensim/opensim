@@ -384,6 +384,15 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             m_rootScene.SimChat(msg, ChatTypeEnum.Say, sop.AbsolutePosition, sop.Name, sop.UUID, false);
         }
 
+        public void Say(string msg,int channel)		
+        {
+            if (!CanEdit())
+                return;
+
+            SceneObjectPart sop = GetSOP();
+            m_rootScene.SimChat(Utils.StringToBytes(msg), ChatTypeEnum.Say,channel, sop.AbsolutePosition, sop.Name, sop.UUID, false);
+        }
+            	
         #endregion
 
 
