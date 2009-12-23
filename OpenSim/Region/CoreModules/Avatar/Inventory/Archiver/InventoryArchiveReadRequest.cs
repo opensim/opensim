@@ -174,7 +174,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return nodesLoaded;
         }
-        
+
+        public void Close()
+        {
+            if (m_loadStream != null)
+                m_loadStream.Close();
+        }
+
         /// <summary>
         /// Replicate the inventory paths in the archive to the user's inventory as necessary.
         /// </summary>
