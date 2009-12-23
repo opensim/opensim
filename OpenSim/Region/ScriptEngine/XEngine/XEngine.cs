@@ -1264,6 +1264,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return UUID.Zero;
         }
 
+        [DebuggerNonUserCode]
         public void SetState(UUID itemID, string newState)
         {
             IScriptInstance instance = GetInstance(itemID);
