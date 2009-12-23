@@ -322,15 +322,15 @@ namespace OpenSim.Framework.Servers.HttpServer
             HandleRequest(req, resp);
         }
 
-        public void ConvertIHttpClientContextToOSHttp(object stateinfo)
-        {
-            HttpServerContextObj objstate = (HttpServerContextObj)stateinfo;
+        // public void ConvertIHttpClientContextToOSHttp(object stateinfo)
+        // {
+        //     HttpServerContextObj objstate = (HttpServerContextObj)stateinfo;
 
-            OSHttpRequest request = objstate.oreq;
-            OSHttpResponse resp = objstate.oresp;
+        //     OSHttpRequest request = objstate.oreq;
+        //     OSHttpResponse resp = objstate.oresp;
 
-            HandleRequest(request,resp);
-        }
+        //     HandleRequest(request,resp);
+        // }
 
         public virtual void HandleRequest(OSHttpRequest request, OSHttpResponse response)
         {

@@ -148,7 +148,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 ChatEventArgs e = new ChatEventArgs();
                 e.Sender = new SOPObject(m_internalScene, ((SceneObjectPart) chat.SenderObject).LocalId, m_security);
                 e.Text = chat.Message;
-
+                e.Channel = chat.Channel;
+				
                 _OnChat(this, e);
                 return;
             }
@@ -158,7 +159,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
                 ChatEventArgs e = new ChatEventArgs();
                 e.Sender = new SPAvatar(m_internalScene, chat.SenderUUID, m_security);
                 e.Text = chat.Message;
-
+                e.Channel = chat.Channel;
+				
                 _OnChat(this, e);
                 return;
             }

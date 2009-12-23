@@ -179,6 +179,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         /// </summary>
         /// <param name="msg">The message to send to the user</param>
         void Say(string msg);
+		
+		void Say(string msg,int channel);
 
         //// <value>
         /// Grants access to the objects inventory

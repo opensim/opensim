@@ -232,7 +232,26 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns></returns>
         public Dictionary<UUID, InventoryFolderImpl> RequestSelfAndDescendentFolders()
         {
-            return libraryFolders;
+            Dictionary<UUID, InventoryFolderImpl> fs = new Dictionary<UUID, InventoryFolderImpl>();
+            fs.Add(ID, this);
+            List<InventoryFolderImpl> fis = TraverseFolder(this);
+            foreach (InventoryFolderImpl f in fis)
+            {
+                fs.Add(f.ID, f);
+            }
+            //return libraryFolders;
+            return fs;
+        }
+
+        private List<InventoryFolderImpl> TraverseFolder(InventoryFolderImpl node)
+        {
+            List<InventoryFolderImpl> folders = node.RequestListOfFolderImpls();
+            List<InventoryFolderImpl> subs = new List<InventoryFolderImpl>();
+            foreach (InventoryFolderImpl f in folders)
+                subs.AddRange(TraverseFolder(f));
+
+            folders.AddRange(subs);
+            return folders;
         }
     }
 }
