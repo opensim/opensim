@@ -704,9 +704,20 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch (XmlException e)
             {
-                m_log.WarnFormat(
-                    "[BASE HTTP SERVER]: Ignoring XMLRPC request from {0} due to deserialization exception {1} {2}", 
-                    request.RemoteIPEndPoint, e.Message, e.StackTrace);
+// Don't log this for now since HandleXmlRpcRequests() acts as the final processing catch all for all requests
+// that aren't dealt with by another method.  Enabling can result in false positives, for instance
+//                
+// 14:59:12 - [BASE HTTP SERVER]: Ignoring XMLRPC request from 80.175.122.121:20478
+// due to deserialization exception Data at the root level is invalid. Line 1, pos
+// ition 1.    at System.Xml.XmlTextReaderImpl.Throw(Exception e)
+// 14:59:12 - [BASE HTTP SERVER]: Request body auth_token=x3EA9wjAwTjuJwawE6PGqhQ%3
+// D%3D%3A0%3A9303959503950%3A%3A
+//
+// on the region simulator when the client makes a request that we don't deal with
+//
+//                m_log.WarnFormat(
+//                    "[BASE HTTP SERVER]: Ignoring XMLRPC request from {0} due to deserialization exception {1} {2}", 
+//                    request.RemoteIPEndPoint, e.Message, e.StackTrace);
             }
 
             if (xmlRprcRequest != null)
