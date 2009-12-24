@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             InventoryFolderImpl lib = m_Scene.CommsManager.UserProfileCacheService.LibraryRoot;
             if (lib == null)
             {
-                m_log.Debug("[LIBRARY MODULE]: No library.");
+                m_log.Debug("[LIBRARY MODULE]: No library. Ignoring Library Module");
                 return;
             }
 
