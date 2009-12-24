@@ -6502,6 +6502,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // retain pathcurve
             shapeBlock.PathCurve = part.Shape.PathCurve;
 
+            part.Shape.SculptEntry = false;
             return shapeBlock;
         }
 
@@ -6550,6 +6551,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.PathShearX = (byte)(100 * topshear.x);
             shapeBlock.PathShearY = (byte)(100 * topshear.y);
 
+            part.Shape.SculptEntry = false;
             part.UpdateShape(shapeBlock);
         }
 
@@ -6591,6 +6593,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             shapeBlock.ProfileBegin = (ushort)(50000 * dimple.x);
             shapeBlock.ProfileEnd   = (ushort)(50000 * (1 - dimple.y));
 
+            part.Shape.SculptEntry = false;
             part.UpdateShape(shapeBlock);
         }
 
@@ -6711,6 +6714,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             shapeBlock.PathSkew = (sbyte)(100 * skew);
 
+            part.Shape.SculptEntry = false;
             part.UpdateShape(shapeBlock);
         }
 
