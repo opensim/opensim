@@ -422,10 +422,49 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public int Length
             {
-                get {
+                get
+                {
                     if (m_data == null)
                         m_data=new Object[0];
                     return m_data.Length;
+                }
+            }
+
+            public int Size
+            {
+                get
+                {
+                    if (m_data == null)
+                        m_data=new Object[0];
+
+                    int size = 0;
+
+                    foreach (Object o in m_data)
+                    {
+                        if (o is LSL_Types.LSLInteger)
+                            size += 4;
+                        else if (o is LSL_Types.LSLFloat)
+                            size += 8;
+                        else if (o is LSL_Types.LSLString)
+                            size += ((LSL_Types.LSLString)o).m_string.Length;
+                        else if (o is LSL_Types.key)
+                            size += ((LSL_Types.key)o).value.Length;
+                        else if (o is LSL_Types.Vector3)
+                            size += 32;
+                        else if (o is LSL_Types.Quaternion)
+                            size += 64;
+                        else if (o is int)
+                            size += 4;
+                        else if (o is string)
+                            size += ((string)o).Length;
+                        else if (o is float)
+                            size += 8;
+                        else if (o is double)
+                            size += 16;
+                        else
+                            throw new Exception("Unknown type in List.Size: " + o.GetType().ToString());
+                    }
+                    return size;
                 }
             }
 
