@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -314,7 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // If it can be parsed as a UUID, it is an asset ID
                 UUID uuid;
-                if (UUID.Parse(id, out uuid))
+                if (UUID.TryParse(id, out uuid))
                     assetUuids[uuid] = 1;
             }
         }
