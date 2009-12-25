@@ -215,6 +215,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     parent_scene.GetTerrainHeightAtXY(((float)Constants.RegionSize * 0.5f), ((float)Constants.RegionSize * 0.5f)) + 0.5f);
                 m_log.Warn("[PHYSICS]: Got nonFinite Object create Position");
             }
+            
             _position = pos;
             m_taintposition = pos;
             PID_D = parent_scene.bodyPIDD;
@@ -254,7 +255,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             _parent_scene = parent_scene;
             m_targetSpace = (IntPtr)0;
 
-            if (pos.Z < 0)
+//            if (pos.Z < 0)
+            if (pos.Z < parent_scene.GetTerrainHeightAtXY(pos.X, pos.Y))
                 m_isphysical = false;
             else
             {
