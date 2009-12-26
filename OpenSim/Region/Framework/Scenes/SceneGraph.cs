@@ -226,9 +226,9 @@ namespace OpenSim.Region.Framework.Scenes
 			Vector3 npos = new Vector3(sceneObject.RootPart.GroupPosition.X,
                						   sceneObject.RootPart.GroupPosition.Y,
                						   sceneObject.RootPart.GroupPosition.Z);
-			if (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
+			if (!(((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0))) && (npos.X < 0.0 || npos.Y < 0.0 || npos.Z < 0.0 ||
 			    npos.X > Constants.RegionSize ||
-			    npos.Y > Constants.RegionSize)
+			    npos.Y > Constants.RegionSize))
 			{
 				if (npos.X < 0.0) npos.X = 1.0f;
 				if (npos.Y < 0.0) npos.Y = 1.0f;
