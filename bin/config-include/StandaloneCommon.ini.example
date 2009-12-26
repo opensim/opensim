@@ -39,3 +39,7 @@
     ;;--- For MySql region storage (alternative)
  	;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 	;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
+
+[LibraryModule]
+    ; Set this if you want to change the name of the OpenSim Library
+    ;LibraryName = "My World's Library"

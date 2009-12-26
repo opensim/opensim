@@ -1624,5 +1624,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendRebakeAvatarTextures(UUID textureID)
         {
         }
+
+        public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
+        {
+        }
     }
 }

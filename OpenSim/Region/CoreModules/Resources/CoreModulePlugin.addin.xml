@@ -20,6 +20,7 @@
         <RegionModule id="CoreAssetCache" type="OpenSim.Region.CoreModules.Asset.CoreAssetCache" />
         <RegionModule id="GlynnTuckerAssetCache" type="OpenSim.Region.CoreModules.Asset.GlynnTuckerAssetCache" />
         <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
+        <RegionModule id="LibraryModule" type="OpenSim.Region.CoreModules.Framework.Library.LibraryModule"/>
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.LocalUserServicesConnector" />
         <RegionModule id="RemoteUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.RemoteUserServicesConnector" />

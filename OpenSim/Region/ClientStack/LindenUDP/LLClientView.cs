@@ -15792,5 +15792,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             return osdEvent;
         }
+
+        public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
+        {
+            AvatarInterestsReplyPacket packet = (AvatarInterestsReplyPacket)PacketPool.Instance.GetPacket(PacketType.AvatarInterestsReply);
+
+            packet.AgentData = new AvatarInterestsReplyPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+            packet.AgentData.AvatarID = avatarID;
+
+            packet.PropertiesData = new AvatarInterestsReplyPacket.PropertiesDataBlock();
+            packet.PropertiesData.WantToMask = wantMask;
+            packet.PropertiesData.WantToText = Utils.StringToBytes(wantText);
+            packet.PropertiesData.SkillsMask = skillsMask;
+            packet.PropertiesData.SkillsText = Utils.StringToBytes(skillsText);
+            packet.PropertiesData.LanguagesText = Utils.StringToBytes(languages);
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
     }
 }

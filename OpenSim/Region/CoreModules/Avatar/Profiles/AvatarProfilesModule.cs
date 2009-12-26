@@ -43,6 +43,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
         private IProfileModule m_profileModule = null;
+        private bool m_enabled = true;
 
         public AvatarProfilesModule()
         {
@@ -52,12 +53,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            IConfig profileConfig = config.Configs["Profile"];
+            if (profileConfig != null)
+            {
+                if (profileConfig.GetString("Module", Name) != Name)
+                {
+                    m_enabled = false;
+                    return;
+                }
+            }
+
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
         }
 
         public void PostInitialise()
         {
+            if (!m_enabled)
+                return;
             m_profileModule = m_scene.RequestModuleInterface<IProfileModule>();
         }
 

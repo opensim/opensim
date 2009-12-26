@@ -174,7 +174,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             return nodesLoaded;
         }
-        
+
+        public void Close()
+        {
+            if (m_loadStream != null)
+                m_loadStream.Close();
+        }
+
         /// <summary>
         /// Replicate the inventory paths in the archive to the user's inventory as necessary.
         /// </summary>
@@ -258,6 +264,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     = rawDirsToCreate[i].LastIndexOf(
                         ArchiveConstants.INVENTORY_NODE_NAME_COMPONENT_SEPARATOR);
 
+                if (identicalNameIdentifierIndex < 0)
+                {
+                    i++;
+                    continue;
+                }
                 string newFolderName = rawDirsToCreate[i].Remove(identicalNameIdentifierIndex);
 
                 newFolderName = InventoryArchiveUtils.UnescapeArchivePath(newFolderName);

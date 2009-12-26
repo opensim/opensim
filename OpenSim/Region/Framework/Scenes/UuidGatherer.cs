@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -90,6 +91,10 @@ namespace OpenSim.Region.Framework.Scenes
             if (AssetType.Bodypart == assetType || AssetType.Clothing == assetType)
             {
                 GetWearableAssetUuids(assetUuid, assetUuids);
+            }
+            else if (AssetType.Gesture == assetType)
+            {
+                GetGestureAssetUuids(assetUuid, assetUuids);
             }
             else if (AssetType.LSLText == assetType)
             {
@@ -276,6 +281,42 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (null != sog)
                     GatherAssetUuids(sog, assetUuids);
+            }
+        }
+
+        protected void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, int> assetUuids)
+        {
+            AssetBase assetBase = GetAsset(gestureUuid);
+
+            MemoryStream ms = new MemoryStream(assetBase.Data);
+            StreamReader sr = new StreamReader(ms);
+
+            sr.ReadLine(); // Unknown (Version?)
+            sr.ReadLine(); // Unknown
+            sr.ReadLine(); // Unknown
+            sr.ReadLine(); // Name
+            sr.ReadLine(); // Comment ?
+            int count = Convert.ToInt32(sr.ReadLine()); // Item count
+
+            for (int i = 0 ; i < count ; i++)
+            {
+                string type = sr.ReadLine();
+                if (type == null)
+                    break;
+                string name = sr.ReadLine();
+                if (name == null)
+                    break;
+                string id = sr.ReadLine();
+                if (id == null)
+                    break;
+                string unknown = sr.ReadLine();
+                if (unknown == null)
+                    break;
+
+                // If it can be parsed as a UUID, it is an asset ID
+                UUID uuid;
+                if (UUID.TryParse(id, out uuid))
+                    assetUuids[uuid] = 1;
             }
         }
     }
