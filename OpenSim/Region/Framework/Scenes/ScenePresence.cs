@@ -838,6 +838,21 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
+            //If they're TP'ing in or logging in, we haven't had time to add any known child regions yet.
+            //This has the unfortunate consequence that if somebody is TP'ing who is already a child agent,
+            //they'll bypass the landing point. But I can't think of any decent way of fixing this.
+            if (KnownChildRegionHandles.Count == 0)
+            {
+                ILandObject land = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                if (land != null)
+                {
+                    //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_godlevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
+                    {
+                        pos = land.LandData.UserLocation;
+                    }
+                }
+            }
 
             if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
             {
@@ -973,9 +988,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void Teleport(Vector3 pos)
         {
             bool isFlying = false;
+            
             if (m_physicsActor != null)
                 isFlying = m_physicsActor.Flying;
-            
+
             RemoveFromPhysicalScene();
             Velocity = Vector3.Zero;
             AbsolutePosition = pos;
@@ -987,6 +1003,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             SendTerseUpdateToAllClients();
+            
         }
 
         public void TeleportWithMomentum(Vector3 pos)

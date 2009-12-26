@@ -3460,6 +3460,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 // Honor parcel landing type and position.
+                /*
                 ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
                 {
@@ -3468,6 +3469,7 @@ namespace OpenSim.Region.Framework.Scenes
                         agent.startpos = land.LandData.UserLocation;
                     }
                 }
+                */// This is now handled properly in ScenePresence.MakeRootAgent
             }
 
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);

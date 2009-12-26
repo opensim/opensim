@@ -719,6 +719,31 @@ namespace OpenSim.Region.Framework.Scenes
                     position = emergencyPos;
                 }
 
+                Vector3 currentPos = avatar.AbsolutePosition;
+                ILandObject srcLand = m_scene.LandChannel.GetLandObject(currentPos.X, currentPos.Y);
+                ILandObject destLand = m_scene.LandChannel.GetLandObject(position.X, position.Y);
+                if (srcLand != null && destLand != null && (teleportFlags & (uint)TeleportFlags.ViaLure) == 0 && (teleportFlags & (uint)TeleportFlags.ViaGodlikeLure) == 0)
+                {
+                    if (srcLand.LandData.LocalID == destLand.LandData.LocalID)
+                    {
+                        //TPing within the same parcel. If the landing point is restricted, block the TP.
+                        //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
+                        if (destLand.LandData.LandingType == (byte)1 && destLand.LandData.UserLocation != Vector3.Zero && avatar.GodLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar.UUID) && destLand.LandData.OwnerID != avatar.UUID)
+                        {
+                            avatar.ControllingClient.SendAgentAlertMessage("Can't TP to the destination; landing point set.", false);
+                            position = currentPos;
+                        }
+                    }
+                    else
+                    {
+                        //Tping to a different parcel. Respect the landing point on the destination parcel.
+                        if (destLand.LandData.LandingType == (byte)1 && destLand.LandData.UserLocation != Vector3.Zero && avatar.GodLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar.UUID) && destLand.LandData.OwnerID != avatar.UUID)
+                        {
+                            position = destLand.LandData.UserLocation;
+                        }
+                    }
+                }
+
                 // TODO: Get proper AVG Height
                 float localAVHeight = 1.56f;
                 float posZLimit = 22;
