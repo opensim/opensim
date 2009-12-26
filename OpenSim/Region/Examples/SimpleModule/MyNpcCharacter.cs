@@ -1099,5 +1099,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendRebakeAvatarTextures(UUID textureID)
         {
         }
+
+        public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
+        {
+        }
     }
 }

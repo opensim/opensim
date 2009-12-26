@@ -1392,5 +1392,7 @@ namespace OpenSim.Framework
         bool AddGenericPacketHandler(string MethodName, GenericMessage handler);
 
         void SendRebakeAvatarTextures(UUID textureID);
+
+        void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages);
     }
 }

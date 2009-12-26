@@ -1159,6 +1159,9 @@ namespace OpenSim.Tests.Common.Mock
         public void SendRebakeAvatarTextures(UUID textureID)
         {
         }
-
+        
+        public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
+        {
+        }
     }
 }
