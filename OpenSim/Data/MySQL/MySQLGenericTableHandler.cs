@@ -216,11 +216,12 @@ namespace OpenSim.Data.MySQL
                 foreach (KeyValuePair<string, string> kvp in data)
                 {
                     names.Add(kvp.Key);
-                    values.Add(kvp.Value);
+                    values.Add("?" + kvp.Key);
+                    cmd.Parameters.AddWithValue("?" + kvp.Key, kvp.Value);
                 }
             }
 
-            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values ('" + String.Join("','", values.ToArray()) + "')";
+            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
 
             cmd.CommandText = query;
 
