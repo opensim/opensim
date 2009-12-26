@@ -195,6 +195,31 @@ namespace OpenSim.Data.MySQL
             MySqlCommand cmd = new MySqlCommand();
 
             string query = "";
+            List<String> names = new List<String>();
+            List<String> values = new List<String>();
+
+            foreach (FieldInfo fi in m_Fields.Values)
+            {
+                names.Add(fi.Name);
+                values.Add(fi.GetValue(row).ToString());
+            }
+
+            if (m_DataField != null)
+            {
+                Dictionary<string, string> data =
+                        (Dictionary<string, string>)m_DataField.GetValue(row);
+
+                foreach (KeyValuePair<string, string> kvp in data)
+                {
+                    names.Add(kvp.Key);
+                    values.Add(kvp.Value);
+                }
+            }
+
+            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values ('" + String.Join("','", values.ToArray()) + "')";
+
+            if (ExecuteNonQuery(cmd) > 0)
+                return true;
 
             return false;
         }
