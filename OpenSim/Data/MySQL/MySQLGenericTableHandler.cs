@@ -37,7 +37,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.MySQL
 {
-    public class MySQLGenericTableHandler<T> : MySqlFramework where T: struct
+    public class MySQLGenericTableHandler<T> : MySqlFramework where T: class, new()
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -63,7 +63,7 @@ namespace OpenSim.Data.MySQL
             }
 
             Type t = typeof(T);
-            FieldInfo[] fields = t.GetFields(BindingFlags.NonPublic |
+            FieldInfo[] fields = t.GetFields(BindingFlags.Public |
                                              BindingFlags.Instance |
                                              BindingFlags.DeclaredOnly);
 
@@ -165,7 +165,11 @@ namespace OpenSim.Data.MySQL
                             new Dictionary<string, string>();
 
                     foreach (string col in m_ColumnNames)
+                    {
                         data[col] = reader[col].ToString();
+                        if (data[col] == null)
+                            data[col] = String.Empty;
+                    }
 
                     m_DataField.SetValue(row, data);
                 }
@@ -217,6 +221,8 @@ namespace OpenSim.Data.MySQL
             }
 
             query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values ('" + String.Join("','", values.ToArray()) + "')";
+
+            cmd.CommandText = query;
 
             if (ExecuteNonQuery(cmd) > 0)
                 return true;
