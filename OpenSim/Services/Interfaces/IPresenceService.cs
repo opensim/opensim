@@ -36,8 +36,6 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public UUID RegionID;
-        public UUID SessionID;
-        public UUID SecureSessionID;
         public bool Online;
         public DateTime Login;
         public DateTime Logout;

@@ -107,8 +107,6 @@ namespace OpenSim.Services.PresenceService
 
             ret.PrincipalID = data.PrincipalID;
             ret.RegionID = data.RegionID;
-            ret.SessionID = data.SessionID;
-            ret.SecureSessionID = new UUID(data.Data["SecureSessionID"]);
             ret.Online = bool.Parse(data.Data["Online"]);
             ret.Login = Util.ToDateTime(Convert.ToInt32(data.Data["Login"]));
             ret.Logout = Util.ToDateTime(Convert.ToInt32(data.Data["Logout"]));
@@ -133,8 +131,6 @@ namespace OpenSim.Services.PresenceService
 
                     ret.PrincipalID = d.PrincipalID;
                     ret.RegionID = d.RegionID;
-                    ret.SessionID = d.SessionID;
-                    ret.SecureSessionID = new UUID(d.Data["SecureSessionID"]);
                     ret.Online = bool.Parse(d.Data["Online"]);
                     ret.Login = Util.ToDateTime(Convert.ToInt32(
                             d.Data["Login"]));
