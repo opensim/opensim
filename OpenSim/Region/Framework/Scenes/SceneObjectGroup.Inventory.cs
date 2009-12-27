@@ -46,12 +46,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ForceInventoryPersistence()
         {
-            lock (m_parts)
+            lockPartsForRead(true);
+            List<SceneObjectPart> values = new List<SceneObjectPart>(m_parts.Values);
+            lockPartsForRead(false);
+            foreach (SceneObjectPart part in values)
             {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    part.Inventory.ForceInventoryPersistence();
-                }
+                part.Inventory.ForceInventoryPersistence();
             }
         }
 
@@ -76,13 +76,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void RemoveScriptInstances()
         {
-            lock (m_parts)
+            lockPartsForRead(true);
+            List<SceneObjectPart> values = new List<SceneObjectPart>(m_parts.Values);
+            lockPartsForRead(false);
+            
+            foreach (SceneObjectPart part in values)
             {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    part.Inventory.RemoveScriptInstances();
-                }
+                part.Inventory.RemoveScriptInstances();
             }
+            
         }
 
         /// <summary>
