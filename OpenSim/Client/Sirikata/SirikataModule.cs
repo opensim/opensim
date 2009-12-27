@@ -60,8 +60,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using Nini.Config;
 using OpenMetaverse;
+using OpenSim.Client.Sirikata.ClientStack;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -72,16 +75,48 @@ namespace OpenSim.Client.Sirikata
 {
     class SirikataModule : IRegionModule
     {
+        private bool m_enabled = false;
+
+        private TcpListener m_listener;
+        private bool m_running = true;
+
+        private List<Scene> m_scenes = new List<Scene>();
+        private Dictionary<UUID,SirikataClientView> m_clients = new Dictionary<UUID, SirikataClientView>();
+
         #region Implementation of IRegionModule
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            
+            lock (m_scenes)
+                m_scenes.Add(scene);
         }
 
         public void PostInitialise()
         {
+            if(!m_enabled)
+                return;
+
+            m_listener = new TcpListener(IPAddress.Any, 5943);
             
+        }
+
+        private void ListenLoop()
+        {
+            while(m_running)
+            {
+                m_listener.BeginAcceptTcpClient(AcceptSocket, m_listener);
+            }
+        }
+
+        private void AcceptSocket(IAsyncResult ar)
+        {
+            TcpListener listener = (TcpListener) ar.AsyncState;
+            TcpClient client = listener.EndAcceptTcpClient(ar);
+
+            SirikataClientView clientView = new SirikataClientView(client);
+
+            lock (m_clients)
+                m_clients.Add(clientView.SessionId, clientView);
         }
 
         public void Close()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using OpenMetaverse;
 using OpenMetaverse.Packets;
@@ -11,6 +12,26 @@ namespace OpenSim.Client.Sirikata.ClientStack
 {
     class SirikataClientView : IClientAPI, IClientCore 
     {
+        private readonly NetworkStream stream;
+
+        public SirikataClientView(TcpClient client)
+        {
+            stream = client.GetStream();
+
+            sessionId = UUID.Random();
+
+
+            // Handshake with client
+            string con = "SSTTCP01" + sessionId;
+            byte[] handshake = Util.UTF8.GetBytes(con);
+
+            byte[] clientHandshake = new byte[2+6+36];
+
+            stream.Read(clientHandshake, 0, handshake.Length);
+            stream.Write(handshake, 0, handshake.Length - 1); // Remove null terminator (hence the -1)
+        }
+
+
         #region Implementation of IClientAPI
 
         private Vector3 startPos;
