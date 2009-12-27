@@ -47,17 +47,13 @@ namespace OpenSim.Services.Interfaces
 
     public interface IPresenceService
     {
-        // this should really be:
-        //bool LoginAgent(UUID userID, UUID agentID, UUID sessionID, UUID secureSessionID);
-        // but we'd have to add userID to the agents table
-        bool LoginAgent(UUID agentID, UUID sessionID, UUID secureSessionID);
-        bool LogoutAgent(UUID agentID);
-        bool LogoutAllAgents(UUID regionID);
+        bool LoginAgent(UUID principalID, UUID sessionID, UUID secureSessionID);
+        bool LogoutAgent(UUID sessionID);
+        bool LogoutRegionAgents(UUID regionID);
 
-        bool AgentArriving(UUID agentID, UUID regionID);
-        bool AgentLeaving(UUID agentID, UUID regionID);
+        bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt);
 
-        bool TryGetAgent(UUID agentID, out PresenceInfo presence);
-        bool TryGetAgents(UUID[] agentIDs, out PresenceInfo[] presences);
+        PresenceInfo GetAgent(UUID sessionID);
+        PresenceInfo[] GetAgents(UUID[] PrincipalIDs);
     }
 }
