@@ -4857,6 +4857,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 UserProfile.FirstLifeImage = Properties.FLImageID;
                 UserProfile.Image = Properties.ImageID;
                 UserProfile.ProfileUrl = Utils.BytesToString(Properties.ProfileURL);
+                Userprofile.Flags &= ~3;
+                Userprofile.Flags |= Properties.AllowPublish ? 1 : 0;
+                Userprofile.Flags |= Properties.MaturePublish ? 2 : 0;
 
                 handlerUpdateAvatarProperties(this, UserProfile);
             }
