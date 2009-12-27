@@ -205,7 +205,8 @@ namespace OpenSim.Data.MySQL
             foreach (FieldInfo fi in m_Fields.Values)
             {
                 names.Add(fi.Name);
-                values.Add(fi.GetValue(row).ToString());
+                values.Add("?" + fi.Name);
+                cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
             }
 
             if (m_DataField != null)
