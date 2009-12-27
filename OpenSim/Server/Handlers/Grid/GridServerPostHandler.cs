@@ -69,13 +69,13 @@ namespace OpenSim.Server.Handlers.Grid
 
             try
             {
-                Dictionary<string, string> request =
+                Dictionary<string, object> request =
                         ServerUtils.ParseQueryString(body);
 
                 if (!request.ContainsKey("METHOD"))
                     return FailureResult();
 
-                string method = request["METHOD"];
+                string method = request["METHOD"].ToString();
 
                 switch (method)
                 {
@@ -117,22 +117,22 @@ namespace OpenSim.Server.Handlers.Grid
 
         #region Method-specific handlers
 
-        byte[] Register(Dictionary<string, string> request)
+        byte[] Register(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
             if (request.ContainsKey("SCOPEID"))
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to register region");
 
             int versionNumberMin = 0, versionNumberMax = 0;
             if (request.ContainsKey("VERSIONMIN"))
-                Int32.TryParse(request["VERSIONMIN"], out versionNumberMin);
+                Int32.TryParse(request["VERSIONMIN"].ToString(), out versionNumberMin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no minimum protocol version in request to register region");
 
             if (request.ContainsKey("VERSIONMAX"))
-                Int32.TryParse(request["VERSIONMAX"], out versionNumberMax);
+                Int32.TryParse(request["VERSIONMAX"].ToString(), out versionNumberMax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no maximum protocol version in request to register region");
 
@@ -147,8 +147,8 @@ namespace OpenSim.Server.Handlers.Grid
             GridRegion rinfo = null;
             try
             {
-                foreach (KeyValuePair<string, string> kvp in request)
-                    rinfoData[kvp.Key] = kvp.Value;
+                foreach (KeyValuePair<string, object> kvp in request)
+                    rinfoData[kvp.Key] = kvp.Value.ToString();
                 rinfo = new GridRegion(rinfoData);
             }
             catch (Exception e)
@@ -166,11 +166,11 @@ namespace OpenSim.Server.Handlers.Grid
                 return FailureResult();
         }
 
-        byte[] Deregister(Dictionary<string, string> request)
+        byte[] Deregister(Dictionary<string, object> request)
         {
             UUID regionID = UUID.Zero;
-            if (request["REGIONID"] != null)
-                UUID.TryParse(request["REGIONID"], out regionID);
+            if (request.ContainsKey("REGIONID"))
+                UUID.TryParse(request["REGIONID"].ToString(), out regionID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to deregister region");
 
@@ -183,17 +183,17 @@ namespace OpenSim.Server.Handlers.Grid
 
         }
 
-        byte[] GetNeighbours(Dictionary<string, string> request)
+        byte[] GetNeighbours(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get neighbours");
 
             UUID regionID = UUID.Zero;
-            if (request["REGIONID"] != null)
-                UUID.TryParse(request["REGIONID"], out regionID);
+            if (request.ContainsKey("REGIONID"))
+                UUID.TryParse(request["REGIONID"].ToString(), out regionID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
 
@@ -221,17 +221,17 @@ namespace OpenSim.Server.Handlers.Grid
 
         }
 
-        byte[] GetRegionByUUID(Dictionary<string, string> request)
+        byte[] GetRegionByUUID(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get neighbours");
 
             UUID regionID = UUID.Zero;
-            if (request["REGIONID"] != null)
-                UUID.TryParse(request["REGIONID"], out regionID);
+            if (request.ContainsKey("REGIONID"))
+                UUID.TryParse(request["REGIONID"].ToString(), out regionID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
 
@@ -250,21 +250,21 @@ namespace OpenSim.Server.Handlers.Grid
             return encoding.GetBytes(xmlString);
         }
 
-        byte[] GetRegionByPosition(Dictionary<string, string> request)
+        byte[] GetRegionByPosition(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region by position");
 
             int x = 0, y = 0;
-            if (request["X"] != null)
-                Int32.TryParse(request["X"], out x);
+            if (request.ContainsKey("X"))
+                Int32.TryParse(request["X"].ToString(), out x);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no X in request to get region by position");
-            if (request["Y"] != null)
-                Int32.TryParse(request["Y"], out y);
+            if (request.ContainsKey("Y"))
+                Int32.TryParse(request["Y"].ToString(), out y);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Y in request to get region by position");
 
@@ -283,17 +283,17 @@ namespace OpenSim.Server.Handlers.Grid
             return encoding.GetBytes(xmlString);
         }
 
-        byte[] GetRegionByName(Dictionary<string, string> request)
+        byte[] GetRegionByName(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region by name");
 
             string regionName = string.Empty;
-            if (request["NAME"] != null)
-                regionName = request["NAME"];
+            if (request.ContainsKey("NAME"))
+                regionName = request["NAME"].ToString();
             else
                 m_log.WarnFormat("[GRID HANDLER]: no name in request to get region by name");
 
@@ -312,23 +312,23 @@ namespace OpenSim.Server.Handlers.Grid
             return encoding.GetBytes(xmlString);
         }
 
-        byte[] GetRegionsByName(Dictionary<string, string> request)
+        byte[] GetRegionsByName(Dictionary<string, object> request)
         {
             UUID scopeID = UUID.Zero;
-            if (request["SCOPEID"] != null)
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get regions by name");
 
             string regionName = string.Empty;
-            if (request["NAME"] != null)
-                regionName = request["NAME"];
+            if (request.ContainsKey("NAME"))
+                regionName = request["NAME"].ToString();
             else
                 m_log.WarnFormat("[GRID HANDLER]: no NAME in request to get regions by name");
 
             int max = 0;
-            if (request["MAX"] != null)
-                Int32.TryParse(request["MAX"], out max);
+            if (request.ContainsKey("MAX"))
+                Int32.TryParse(request["MAX"].ToString(), out max);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no MAX in request to get regions by name");
 
@@ -355,30 +355,30 @@ namespace OpenSim.Server.Handlers.Grid
             return encoding.GetBytes(xmlString);
         }
 
-        byte[] GetRegionRange(Dictionary<string, string> request)
+        byte[] GetRegionRange(Dictionary<string, object> request)
         {
             //m_log.DebugFormat("[GRID HANDLER]: GetRegionRange");
             UUID scopeID = UUID.Zero;
             if (request.ContainsKey("SCOPEID"))
-                UUID.TryParse(request["SCOPEID"], out scopeID);
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get region range");
 
             int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
             if (request.ContainsKey("XMIN"))
-                Int32.TryParse(request["XMIN"], out xmin);
+                Int32.TryParse(request["XMIN"].ToString(), out xmin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMIN in request to get region range");
             if (request.ContainsKey("XMAX"))
-                Int32.TryParse(request["XMAX"], out xmax);
+                Int32.TryParse(request["XMAX"].ToString(), out xmax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMAX in request to get region range");
             if (request.ContainsKey("YMIN"))
-                Int32.TryParse(request["YMIN"], out ymin);
+                Int32.TryParse(request["YMIN"].ToString(), out ymin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMIN in request to get region range");
             if (request.ContainsKey("YMAX"))
-                Int32.TryParse(request["YMAX"], out ymax);
+                Int32.TryParse(request["YMAX"].ToString(), out ymax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMAX in request to get region range");
 

@@ -84,7 +84,7 @@ namespace OpenSim.Services.Connectors
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
-            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["LIFETIME"] = lifetime.ToString();
             sendData["PRINCIPAL"] = principalID.ToString();
             sendData["PASSWORD"] = password;
@@ -106,7 +106,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Verify(UUID principalID, string token, int lifetime)
         {
-            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["LIFETIME"] = lifetime.ToString();
             sendData["PRINCIPAL"] = principalID.ToString();
             sendData["TOKEN"] = token;
@@ -128,7 +128,7 @@ namespace OpenSim.Services.Connectors
 
         public bool Release(UUID principalID, string token)
         {
-            Dictionary<string, string> sendData = new Dictionary<string, string>();
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
             sendData["PRINCIPAL"] = principalID.ToString();
             sendData["TOKEN"] = token;
 

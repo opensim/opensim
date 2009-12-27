@@ -160,9 +160,9 @@ namespace OpenSim.Server.Base
             }
         }
 
-        public static Dictionary<string, string> ParseQueryString(string query)
+        public static Dictionary<string, object> ParseQueryString(string query)
         {
-            Dictionary<string, string> result = new Dictionary<string, string>();
+            Dictionary<string, object> result = new Dictionary<string, object>();
             string[] terms = query.Split(new char[] {'&'});
 
             if (terms.Length == 0)
@@ -186,17 +186,17 @@ namespace OpenSim.Server.Base
             return result;
         }
 
-        public static string BuildQueryString(Dictionary<string, string> data)
+        public static string BuildQueryString(Dictionary<string, object> data)
         {
             string qstring = String.Empty;
 
-            foreach (KeyValuePair<string, string> kvp in data)
+            foreach (KeyValuePair<string, object> kvp in data)
             {
                 string part;
-                if (kvp.Value != String.Empty)
+                if (kvp.Value.ToString() != String.Empty)
                 {
                     part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
-                            "=" + System.Web.HttpUtility.UrlEncode(kvp.Value);
+                            "=" + System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
                 }
                 else
                 {
