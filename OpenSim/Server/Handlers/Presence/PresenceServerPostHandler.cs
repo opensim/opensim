@@ -68,13 +68,13 @@ namespace OpenSim.Server.Handlers.Presence
 
             try
             {
-                Dictionary<string, string> request =
+                Dictionary<string, object> request =
                         ServerUtils.ParseQueryString(body);
 
                 if (!request.ContainsKey("METHOD"))
                     return FailureResult();
 
-                string method = request["METHOD"];
+                string method = request["METHOD"].ToString();
 
                 switch (method)
                 {
@@ -92,12 +92,12 @@ namespace OpenSim.Server.Handlers.Presence
 
         }
 
-        byte[] Report(Dictionary<string, string> request)
+        byte[] Report(Dictionary<string, object> request)
         {
             PresenceInfo info = new PresenceInfo();
             info.Data = new Dictionary<string, string>();
 
-            if (request["PrincipalID"] == null || request["RegionID"] == null)
+            if (!request.ContainsKey("PrincipalID") || !request.ContainsKey("RegionID"))
                 return FailureResult();
 
             if (!UUID.TryParse(request["PrincipalID"].ToString(),

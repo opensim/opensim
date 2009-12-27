@@ -86,14 +86,14 @@ namespace OpenSim.Server.Handlers.Authentication
 
         private byte[] DoPlainMethods(string body)
         {
-            Dictionary<string, string> request =
+            Dictionary<string, object> request =
                     ServerUtils.ParseQueryString(body);
 
             int lifetime = 30;
 
             if (request.ContainsKey("LIFETIME"))
             {
-                lifetime = Convert.ToInt32(request["LIFETIME"]);
+                lifetime = Convert.ToInt32(request["LIFETIME"].ToString());
                 if (lifetime > 30)
                     lifetime = 30;
             }
@@ -103,12 +103,12 @@ namespace OpenSim.Server.Handlers.Authentication
             if (!request.ContainsKey("PRINCIPAL"))
                 return FailureResult();
 
-            string method = request["METHOD"];
+            string method = request["METHOD"].ToString();
 
             UUID principalID;
             string token;
 
-            if (!UUID.TryParse(request["PRINCIPAL"], out principalID))
+            if (!UUID.TryParse(request["PRINCIPAL"].ToString(), out principalID))
                 return FailureResult();
 
             switch (method)
@@ -117,7 +117,7 @@ namespace OpenSim.Server.Handlers.Authentication
                 if (!request.ContainsKey("PASSWORD"))
                     return FailureResult();
                 
-                token = m_AuthenticationService.Authenticate(principalID, request["PASSWORD"], lifetime);
+                token = m_AuthenticationService.Authenticate(principalID, request["PASSWORD"].ToString(), lifetime);
 
                 if (token != String.Empty)
                     return SuccessResult(token);
@@ -126,7 +126,7 @@ namespace OpenSim.Server.Handlers.Authentication
                 if (!request.ContainsKey("TOKEN"))
                     return FailureResult();
                 
-                if (m_AuthenticationService.Verify(principalID, request["TOKEN"], lifetime))
+                if (m_AuthenticationService.Verify(principalID, request["TOKEN"].ToString(), lifetime))
                     return SuccessResult();
 
                 return FailureResult();
@@ -134,7 +134,7 @@ namespace OpenSim.Server.Handlers.Authentication
                 if (!request.ContainsKey("TOKEN"))
                     return FailureResult();
 
-                if (m_AuthenticationService.Release(principalID, request["TOKEN"]))
+                if (m_AuthenticationService.Release(principalID, request["TOKEN"].ToString()))
                     return SuccessResult();
 
                 return FailureResult();
