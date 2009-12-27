@@ -32,10 +32,11 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
-    public struct PresenceData
+    // This MUST be a ref type!
+    public class PresenceData
     {
-        public UUID UUID;
-        public UUID currentRegion;
+        public UUID PrincipalID;
+        public UUID RegionID;
         public Dictionary<string, string> Data;
     }
 
@@ -47,9 +48,6 @@ namespace OpenSim.Data
         bool Store(PresenceData data);
 
         PresenceData Get(UUID principalID);
-
-        bool SetUserDataItem(UUID principalID, string item, string value);
-        bool SetRegionDataItem(UUID principalID, string item, string value);
 
         bool Delete(UUID regionID);
     }

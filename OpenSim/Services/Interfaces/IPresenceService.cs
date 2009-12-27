@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenSim.Framework;
 using System.Collections.Generic;
 using OpenMetaverse;
@@ -35,7 +36,13 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public UUID RegionID;
-        public Dictionary<string, string> Data;
+        public UUID SessionID;
+        public UUID SecureSessionID;
+        public bool Online;
+        public DateTime Login;
+        public DateTime Logout;
+        public Vector3 Position;
+        public Vector3 LookAt;
     }
 
     public interface IPresenceService

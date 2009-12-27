@@ -95,7 +95,6 @@ namespace OpenSim.Server.Handlers.Presence
         byte[] Report(Dictionary<string, string> request)
         {
             PresenceInfo info = new PresenceInfo();
-            info.Data = new Dictionary<string, string>();
 
             if (request["PrincipalID"] == null || request["RegionID"] == null)
                 return FailureResult();
@@ -108,15 +107,6 @@ namespace OpenSim.Server.Handlers.Presence
                     out info.RegionID))
                 return FailureResult();
 
-            foreach (KeyValuePair<string, string> kvp in request)
-            {
-                if (kvp.Key == "METHOD" ||
-                        kvp.Key == "PrincipalID" ||
-                        kvp.Key == "RegionID")
-                    continue;
-
-                info.Data[kvp.Key] = kvp.Value;
-            }
 
             if (m_PresenceService.Report(info))
                 return SuccessResult();

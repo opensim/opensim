@@ -55,11 +55,8 @@ namespace OpenSim.Services.PresenceService
             PresenceData p = new PresenceData();
             p.Data = new Dictionary<string, string>();
 
-            p.UUID = presence.PrincipalID;
-            p.currentRegion = presence.RegionID;
-
-            foreach (KeyValuePair<string, string> kvp in presence.Data)
-                p.Data[kvp.Key] = kvp.Value;
+            p.PrincipalID = presence.PrincipalID;
+            p.RegionID = presence.RegionID;
 
             return false;
         }
