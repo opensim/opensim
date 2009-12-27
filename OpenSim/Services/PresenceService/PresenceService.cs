@@ -53,33 +53,101 @@ namespace OpenSim.Services.PresenceService
         public bool LoginAgent(UUID principalID, UUID sessionID,
                 UUID secureSessionID)
         {
-            return false;
+            // We have just logged in. If there is any info in the table
+            // it's OK to overwrite. So we won't bother reading it first
+            //
+            PresenceData data = new PresenceData();
+
+            data.PrincipalID = principalID;
+            data.RegionID = UUID.Zero;
+            data.SessionID = sessionID;
+            data.Data["SecureSessionID"] = secureSessionID.ToString();
+            data.Data["Login"] = Util.UnixTimeSinceEpoch().ToString();
+            
+            m_Database.Store(data);
+
+            return true;
         }
 
         public bool LogoutAgent(UUID sessionID)
         {
+            PresenceData data = m_Database.Get(sessionID);
+            if (data == null)
+                return false;
+
+            data.Data["Online"] = "false";
+            data.Data["Logout"] = Util.UnixTimeSinceEpoch().ToString();
+
+            m_Database.Store(data);
+
             return false;
         }
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-            return false;
+            m_Database.LogoutRegionAgents(regionID);
+
+            return true;
         }
 
 
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            return false;
+            return m_Database.ReportAgent(sessionID, regionID,
+                    position.ToString(), lookAt.ToString());
         }
 
         public PresenceInfo GetAgent(UUID sessionID)
         {
-            return null;
+            PresenceInfo ret = new PresenceInfo();
+            
+            PresenceData data = m_Database.Get(sessionID);
+            if (data == null)
+                return null;
+
+            ret.PrincipalID = data.PrincipalID;
+            ret.RegionID = data.RegionID;
+            ret.SessionID = data.SessionID;
+            ret.SecureSessionID = new UUID(data.Data["SecureSessionID"]);
+            ret.Online = bool.Parse(data.Data["Online"]);
+            ret.Login = Util.ToDateTime(Convert.ToInt32(data.Data["Login"]));
+            ret.Logout = Util.ToDateTime(Convert.ToInt32(data.Data["Logout"]));
+            ret.Position = Vector3.Parse(data.Data["Position"]);
+            ret.LookAt = Vector3.Parse(data.Data["LookAt"]);
+
+            return ret;
         }
 
         public PresenceInfo[] GetAgents(UUID[] PrincipalIDs)
         {
-            return null;
+            List<PresenceInfo> info = new List<PresenceInfo>();
+
+            foreach (UUID principalID in PrincipalIDs)
+            {
+                PresenceData[] data = m_Database.Get("PrincipalID",
+                        principalID.ToString());
+
+                foreach (PresenceData d in data)
+                {
+                    PresenceInfo ret = new PresenceInfo();
+
+                    ret.PrincipalID = d.PrincipalID;
+                    ret.RegionID = d.RegionID;
+                    ret.SessionID = d.SessionID;
+                    ret.SecureSessionID = new UUID(d.Data["SecureSessionID"]);
+                    ret.Online = bool.Parse(d.Data["Online"]);
+                    ret.Login = Util.ToDateTime(Convert.ToInt32(
+                            d.Data["Login"]));
+                    ret.Logout = Util.ToDateTime(Convert.ToInt32(
+                            d.Data["Logout"]));
+                    ret.Position = Vector3.Parse(d.Data["Position"]);
+                    ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
+
+                    info.Add(ret);
+                }
+            }
+
+            return info.ToArray();
         }
     }
 }

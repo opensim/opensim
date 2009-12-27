@@ -37,6 +37,7 @@ namespace OpenSim.Data
     {
         public UUID PrincipalID;
         public UUID RegionID;
+        public UUID SessionID;
         public Dictionary<string, string> Data;
     }
 
@@ -47,8 +48,9 @@ namespace OpenSim.Data
     {
         bool Store(PresenceData data);
 
-        PresenceData Get(UUID principalID);
-
-        bool Delete(UUID regionID);
+        PresenceData Get(UUID sessionID);
+        void LogoutRegionAgents(UUID regionID);
+        bool ReportAgent(UUID sessionID, UUID regionID, string position, string lookAt);
+        PresenceData[] Get(string field, string data);
     }
 }
