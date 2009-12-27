@@ -108,8 +108,8 @@ namespace OpenSim.Server.Handlers.Presence
                 return FailureResult();
 
 
-            if (m_PresenceService.Report(info))
-                return SuccessResult();
+//            if (m_PresenceService.ReportAgent(info))
+//                return SuccessResult();
 
             return FailureResult();
         }

@@ -50,15 +50,36 @@ namespace OpenSim.Services.PresenceService
         {
         }
 
-        public bool Report(PresenceInfo presence)
+        public bool LoginAgent(UUID principalID, UUID sessionID,
+                UUID secureSessionID)
         {
-            PresenceData p = new PresenceData();
-            p.Data = new Dictionary<string, string>();
-
-            p.PrincipalID = presence.PrincipalID;
-            p.RegionID = presence.RegionID;
-
             return false;
+        }
+
+        public bool LogoutAgent(UUID sessionID)
+        {
+            return false;
+        }
+
+        public bool LogoutRegionAgents(UUID regionID)
+        {
+            return false;
+        }
+
+
+        public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
+        {
+            return false;
+        }
+
+        public PresenceInfo GetAgent(UUID sessionID)
+        {
+            return null;
+        }
+
+        public PresenceInfo[] GetAgents(UUID[] PrincipalIDs)
+        {
+            return null;
         }
     }
 }
