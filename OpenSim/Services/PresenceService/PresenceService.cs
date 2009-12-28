@@ -116,30 +116,34 @@ namespace OpenSim.Services.PresenceService
             return ret;
         }
 
-        public PresenceInfo[] GetAgents(UUID[] PrincipalIDs)
+        public PresenceInfo[] GetAgents(string[] principalIDs)
         {
             List<PresenceInfo> info = new List<PresenceInfo>();
 
-            foreach (UUID principalID in PrincipalIDs)
+            foreach (string principalIDStr in principalIDs)
             {
-                PresenceData[] data = m_Database.Get("PrincipalID",
-                        principalID.ToString());
-
-                foreach (PresenceData d in data)
+                UUID principalID = UUID.Zero;
+                if (UUID.TryParse(principalIDStr, out principalID))
                 {
-                    PresenceInfo ret = new PresenceInfo();
+                    PresenceData[] data = m_Database.Get("PrincipalID",
+                            principalID.ToString());
 
-                    ret.PrincipalID = d.PrincipalID;
-                    ret.RegionID = d.RegionID;
-                    ret.Online = bool.Parse(d.Data["Online"]);
-                    ret.Login = Util.ToDateTime(Convert.ToInt32(
-                            d.Data["Login"]));
-                    ret.Logout = Util.ToDateTime(Convert.ToInt32(
-                            d.Data["Logout"]));
-                    ret.Position = Vector3.Parse(d.Data["Position"]);
-                    ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
+                    foreach (PresenceData d in data)
+                    {
+                        PresenceInfo ret = new PresenceInfo();
 
-                    info.Add(ret);
+                        ret.PrincipalID = d.PrincipalID;
+                        ret.RegionID = d.RegionID;
+                        ret.Online = bool.Parse(d.Data["Online"]);
+                        ret.Login = Util.ToDateTime(Convert.ToInt32(
+                                d.Data["Login"]));
+                        ret.Logout = Util.ToDateTime(Convert.ToInt32(
+                                d.Data["Logout"]));
+                        ret.Position = Vector3.Parse(d.Data["Position"]);
+                        ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
+
+                        info.Add(ret);
+                    }
                 }
             }
 

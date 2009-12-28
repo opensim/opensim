@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
                     if (serviceDll == String.Empty)
                     {
-                        m_log.Error("[LOCAL PRESENCE CONNECTOR]: No LocalServiceModule named in section InventoryService");
+                        m_log.Error("[LOCAL PRESENCE CONNECTOR]: No LocalServiceModule named in section PresenceService");
                         return;
                     }
 
@@ -176,7 +176,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return m_PresenceService.GetAgent(sessionID);
         }
 
-        public PresenceInfo[] GetAgents(UUID[] principalIDs)
+        public PresenceInfo[] GetAgents(string[] principalIDs)
         {
             return m_PresenceService.GetAgents(principalIDs);
         }
