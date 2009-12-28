@@ -31,13 +31,13 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public struct PresenceInfo
     {
-        public UUID userID;
-        public UUID regionID;
+        public string UserID;
+        public UUID RegionID;
         
-        public PresenceInfo(UUID userID, UUID regionID)
+        public PresenceInfo(string userID, UUID regionID)
         {
-            this.userID = userID;
-            this.regionID = regionID;
+            UserID = userID;
+            RegionID = regionID;
         }
     }
 
