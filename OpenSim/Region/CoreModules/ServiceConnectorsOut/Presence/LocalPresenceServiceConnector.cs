@@ -180,6 +180,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return m_PresenceService.GetAgents(userIDs);
         }
 
+        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        {
+            return m_PresenceService.SetHomeLocation(userID, regionID, position, lookAt);
+        }
+
         #endregion
 
     }

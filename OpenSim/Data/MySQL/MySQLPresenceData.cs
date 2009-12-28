@@ -93,5 +93,57 @@ namespace OpenSim.Data.MySQL
 
             return true;
         }
+
+        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        {
+            PresenceData[] pd = Get("UserID", userID);
+            if (pd.Length == 0)
+                return false;
+
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("update {0} set HomeRegionID=?HomeRegionID, HomePosition=?HomePosition, HomeLookAt=?HomeLookAt where UserID=?UserID", m_Realm);
+
+            cmd.Parameters.AddWithValue("?UserID", userID);
+            cmd.Parameters.AddWithValue("?HomeRegionID", regionID.ToString());
+            cmd.Parameters.AddWithValue("?HomePosition", position);
+            cmd.Parameters.AddWithValue("?HomeLookAt", lookAt);
+
+            if (ExecuteNonQuery(cmd) == 0)
+                return false;
+
+            return true;
+        }
+
+        public void Prune(string userID)
+        {
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("select * from {0} where UserID=?UserID", m_Realm);
+
+            cmd.Parameters.AddWithValue("?UserID", userID);
+
+            IDataReader reader = ExecuteReader(cmd);
+
+            List<UUID> deleteSessions = new List<UUID>();
+            int online = 0;
+
+            while(reader.Read())
+            {
+                if (bool.Parse(reader["Online"].ToString()))
+                    online++;
+                else
+                    deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
+            }
+
+            if (online == 0 && deleteSessions.Count > 0)
+                deleteSessions.RemoveAt(0);
+
+            reader.Close();
+            CloseReaderCommand(cmd);
+
+            foreach (UUID s in deleteSessions)
+                Delete("SessionID", s.ToString());
+        }
     }
 }

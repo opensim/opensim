@@ -177,6 +177,8 @@ namespace OpenSim.Data.MySQL
                 result.Add(row);
             }
 
+            reader.Close();
+
             CloseReaderCommand(cmd);
 
             return result.ToArray();

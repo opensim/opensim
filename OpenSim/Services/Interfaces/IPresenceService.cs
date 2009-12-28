@@ -41,6 +41,9 @@ namespace OpenSim.Services.Interfaces
         public DateTime Logout;
         public Vector3 Position;
         public Vector3 LookAt;
+        public UUID HomeRegionID;
+        public Vector3 HomePosition;
+        public Vector3 HomeLookAt;
 
         public PresenceInfo()
         {
@@ -87,6 +90,7 @@ namespace OpenSim.Services.Interfaces
         bool LogoutRegionAgents(UUID regionID);
 
         bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt);
+        bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt);
 
         PresenceInfo GetAgent(UUID sessionID);
         PresenceInfo[] GetAgents(string[] userIDs);

@@ -54,9 +54,10 @@ namespace OpenSim.Services.PresenceService
         public bool LoginAgent(string userID, UUID sessionID,
                 UUID secureSessionID)
         {
-            // We have just logged in. If there is any info in the table
-            // it's OK to overwrite. So we won't bother reading it first
-            //
+            m_Database.Prune(userID);
+
+            PresenceData[] d = m_Database.Get("UserID", userID);
+
             PresenceData data = new PresenceData();
 
             data.UserID = userID;
@@ -64,6 +65,12 @@ namespace OpenSim.Services.PresenceService
             data.SessionID = sessionID;
             data.Data["SecureSessionID"] = secureSessionID.ToString();
             data.Data["Login"] = Util.UnixTimeSinceEpoch().ToString();
+            if (d.Length > 0)
+            {
+                data.Data["HomeRegionID"] = d[0].Data["HomeRegionID"];
+                data.Data["HomePosition"] = d[0].Data["HomePosition"];
+                data.Data["HomeLookAt"] = d[0].Data["HomeLookAt"];
+            }
             
             m_Database.Store(data);
 
@@ -76,12 +83,20 @@ namespace OpenSim.Services.PresenceService
             if (data == null)
                 return false;
 
+            PresenceData[] d = m_Database.Get("UserID", data.UserID);
+
+            if (d.Length > 1)
+            {
+                m_Database.Delete("SessionID", sessionID.ToString());
+                return true;
+            }
+
             data.Data["Online"] = "false";
             data.Data["Logout"] = Util.UnixTimeSinceEpoch().ToString();
 
             m_Database.Store(data);
 
-            return false;
+            return true;
         }
 
         public bool LogoutRegionAgents(UUID regionID)
@@ -114,6 +129,9 @@ namespace OpenSim.Services.PresenceService
             ret.Logout = Util.ToDateTime(Convert.ToInt32(data.Data["Logout"]));
             ret.Position = Vector3.Parse(data.Data["Position"]);
             ret.LookAt = Vector3.Parse(data.Data["LookAt"]);
+            ret.HomeRegionID = new UUID(data.Data["HomeRegionID"]);
+            ret.HomePosition = Vector3.Parse(data.Data["HomePosition"]);
+            ret.HomeLookAt = Vector3.Parse(data.Data["HomeLookAt"]);
 
             return ret;
         }
@@ -140,12 +158,20 @@ namespace OpenSim.Services.PresenceService
                             d.Data["Logout"]));
                     ret.Position = Vector3.Parse(d.Data["Position"]);
                     ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
+                    ret.HomeRegionID = new UUID(d.Data["HomeRegionID"]);
+                    ret.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
+                    ret.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
 
                     info.Add(ret);
                 }
             }
 
             return info.ToArray();
+        }
+
+        public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
+        {
+            return m_Database.SetHomeLocation(userID, regionID, position, lookAt);
         }
     }
 }
