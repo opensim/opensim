@@ -138,7 +138,14 @@ namespace OpenSim.Data
                 cmd.CommandText = kvp.Value;
                 // we need to up the command timeout to infinite as we might be doing long migrations.
                 cmd.CommandTimeout = 0;
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.Debug("[MIGRATIONS]: An error has occurred in the migration. This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.");
+                }
 
                 if (version == 0)
                 {
