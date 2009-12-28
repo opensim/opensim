@@ -1,0 +1,6 @@
+BEGIN;
+
+CREATE UNIQUE INDEX SessionID ON Presence(SessionID);
+CREATE INDEX UserID ON Presence(UserID);
+
+COMMIT;
