@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors
 
         #region IPresenceService
 
-        public bool LoginAgent(UUID principalID, UUID sessionID, UUID secureSessionID)
+        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
@@ -94,7 +94,7 @@ namespace OpenSim.Services.Connectors
             sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
             sendData["METHOD"] = "login";
 
-            sendData["PrincipalID"] = principalID.ToString();
+            sendData["UserID"] = userID;
             sendData["SessionID"] = sessionID.ToString();
             sendData["SecureSessionID"] = secureSessionID.ToString();
 

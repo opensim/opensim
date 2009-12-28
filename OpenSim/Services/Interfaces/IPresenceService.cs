@@ -34,7 +34,7 @@ namespace OpenSim.Services.Interfaces
 {
     public class PresenceInfo
     {
-        public UUID PrincipalID;
+        public string UserID;
         public UUID RegionID;
         public bool Online;
         public DateTime Login;
@@ -48,8 +48,8 @@ namespace OpenSim.Services.Interfaces
 
         public PresenceInfo(Dictionary<string, object> kvp)
         {
-            if (kvp.ContainsKey("PrincipalID"))
-                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
+            if (kvp.ContainsKey("UserID"))
+                UserID = kvp["UserID"].ToString();
             if (kvp.ContainsKey("RegionID"))
                 UUID.TryParse(kvp["RegionID"].ToString(), out RegionID);
             if (kvp.ContainsKey("login"))
@@ -68,7 +68,7 @@ namespace OpenSim.Services.Interfaces
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PrincipalID"] = PrincipalID.ToString();
+            result["UserID"] = UserID;
             result["RegionID"] = RegionID.ToString();
             result["online"] = Online.ToString();
             result["login"] = Login.ToString();
@@ -82,7 +82,7 @@ namespace OpenSim.Services.Interfaces
 
     public interface IPresenceService
     {
-        bool LoginAgent(UUID principalID, UUID sessionID, UUID secureSessionID);
+        bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID);
         bool LogoutAgent(UUID sessionID);
         bool LogoutRegionAgents(UUID regionID);
 

@@ -104,15 +104,14 @@ namespace OpenSim.Server.Handlers.Presence
 
         byte[] LoginAgent(Dictionary<string, object> request)
         {
-            UUID principal = UUID.Zero;
+            string user = String.Empty;
             UUID session = UUID.Zero;
             UUID ssession = UUID.Zero;
 
-            if (!request.ContainsKey("PrincipalID") || !request.ContainsKey("SessionID"))
+            if (!request.ContainsKey("UserID") || !request.ContainsKey("SessionID"))
                 return FailureResult();
 
-            if (!UUID.TryParse(request["PrincipalID"].ToString(), out principal))
-                return FailureResult();
+            user = request["UserID"].ToString();
 
             if (!UUID.TryParse(request["SessionID"].ToString(), out session))
                 return FailureResult();
@@ -121,7 +120,7 @@ namespace OpenSim.Server.Handlers.Presence
                 // If it's malformed, we go on with a Zero on it
                 UUID.TryParse(request["SecureSessionID"].ToString(), out ssession);
 
-            if (m_PresenceService.LoginAgent(principal, session, ssession))
+            if (m_PresenceService.LoginAgent(user, session, ssession))
                 return SuccessResult();
 
             return FailureResult();

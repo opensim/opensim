@@ -50,7 +50,7 @@ namespace OpenSim.Services.PresenceService
         {
         }
 
-        public bool LoginAgent(UUID principalID, UUID sessionID,
+        public bool LoginAgent(string userID, UUID sessionID,
                 UUID secureSessionID)
         {
             // We have just logged in. If there is any info in the table
@@ -58,7 +58,7 @@ namespace OpenSim.Services.PresenceService
             //
             PresenceData data = new PresenceData();
 
-            data.PrincipalID = principalID;
+            data.UserID = userID;
             data.RegionID = UUID.Zero;
             data.SessionID = sessionID;
             data.Data["SecureSessionID"] = secureSessionID.ToString();
@@ -105,7 +105,7 @@ namespace OpenSim.Services.PresenceService
             if (data == null)
                 return null;
 
-            ret.PrincipalID = data.PrincipalID;
+            ret.UserID = data.UserID;
             ret.RegionID = data.RegionID;
             ret.Online = bool.Parse(data.Data["Online"]);
             ret.Login = Util.ToDateTime(Convert.ToInt32(data.Data["Login"]));
@@ -116,34 +116,30 @@ namespace OpenSim.Services.PresenceService
             return ret;
         }
 
-        public PresenceInfo[] GetAgents(string[] principalIDs)
+        public PresenceInfo[] GetAgents(string[] userIDs)
         {
             List<PresenceInfo> info = new List<PresenceInfo>();
 
-            foreach (string principalIDStr in principalIDs)
+            foreach (string userIDStr in userIDs)
             {
-                UUID principalID = UUID.Zero;
-                if (UUID.TryParse(principalIDStr, out principalID))
+                PresenceData[] data = m_Database.Get("UserID",
+                        userIDStr);
+
+                foreach (PresenceData d in data)
                 {
-                    PresenceData[] data = m_Database.Get("PrincipalID",
-                            principalID.ToString());
+                    PresenceInfo ret = new PresenceInfo();
 
-                    foreach (PresenceData d in data)
-                    {
-                        PresenceInfo ret = new PresenceInfo();
+                    ret.UserID = d.UserID;
+                    ret.RegionID = d.RegionID;
+                    ret.Online = bool.Parse(d.Data["Online"]);
+                    ret.Login = Util.ToDateTime(Convert.ToInt32(
+                            d.Data["Login"]));
+                    ret.Logout = Util.ToDateTime(Convert.ToInt32(
+                            d.Data["Logout"]));
+                    ret.Position = Vector3.Parse(d.Data["Position"]);
+                    ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
 
-                        ret.PrincipalID = d.PrincipalID;
-                        ret.RegionID = d.RegionID;
-                        ret.Online = bool.Parse(d.Data["Online"]);
-                        ret.Login = Util.ToDateTime(Convert.ToInt32(
-                                d.Data["Login"]));
-                        ret.Logout = Util.ToDateTime(Convert.ToInt32(
-                                d.Data["Logout"]));
-                        ret.Position = Vector3.Parse(d.Data["Position"]);
-                        ret.LookAt = Vector3.Parse(d.Data["LookAt"]);
-
-                        info.Add(ret);
-                    }
+                    info.Add(ret);
                 }
             }
 

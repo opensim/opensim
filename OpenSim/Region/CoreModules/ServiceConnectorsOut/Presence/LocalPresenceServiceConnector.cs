@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         #region IPresenceService
 
-        public bool LoginAgent(UUID principalID, UUID sessionID, UUID secureSessionID)
+        public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
         {
             m_log.Warn("[LOCAL PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
             return false;
@@ -175,9 +175,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return m_PresenceService.GetAgent(sessionID);
         }
 
-        public PresenceInfo[] GetAgents(string[] principalIDs)
+        public PresenceInfo[] GetAgents(string[] userIDs)
         {
-            return m_PresenceService.GetAgents(principalIDs);
+            return m_PresenceService.GetAgents(userIDs);
         }
 
         #endregion

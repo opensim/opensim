@@ -35,7 +35,7 @@ namespace OpenSim.Data
     // This MUST be a ref type!
     public class PresenceData
     {
-        public UUID PrincipalID;
+        public string UserID;
         public UUID RegionID;
         public UUID SessionID;
         public Dictionary<string, string> Data;
