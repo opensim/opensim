@@ -41,6 +41,43 @@ namespace OpenSim.Services.Interfaces
         public DateTime Logout;
         public Vector3 Position;
         public Vector3 LookAt;
+
+        public PresenceInfo()
+        {
+        }
+
+        public PresenceInfo(Dictionary<string, object> kvp)
+        {
+            if (kvp.ContainsKey("PrincipalID"))
+                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
+            if (kvp.ContainsKey("RegionID"))
+                UUID.TryParse(kvp["RegionID"].ToString(), out RegionID);
+            if (kvp.ContainsKey("login"))
+                DateTime.TryParse(kvp["login"].ToString(), out Login);
+            if (kvp.ContainsKey("logout"))
+                DateTime.TryParse(kvp["logout"].ToString(), out Logout);
+            if (kvp.ContainsKey("lookAt"))
+                Vector3.TryParse(kvp["lookAt"].ToString(), out LookAt);
+            if (kvp.ContainsKey("online"))
+                Boolean.TryParse(kvp["online"].ToString(), out Online);
+            if (kvp.ContainsKey("position"))
+                Vector3.TryParse(kvp["position"].ToString(), out Position);
+
+        }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["PrincipalID"] = PrincipalID.ToString();
+            result["RegionID"] = RegionID.ToString();
+            result["online"] = Online.ToString();
+            result["login"] = Login.ToString();
+            result["logout"] = Logout.ToString();
+            result["position"] = Position.ToString();
+            result["lookAt"] = LookAt.ToString();
+
+            return result;
+        }
     }
 
     public interface IPresenceService
@@ -52,6 +89,6 @@ namespace OpenSim.Services.Interfaces
         bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt);
 
         PresenceInfo GetAgent(UUID sessionID);
-        PresenceInfo[] GetAgents(string[] principalIDs);
+        PresenceInfo[] GetAgents(string[] userIDs);
     }
 }

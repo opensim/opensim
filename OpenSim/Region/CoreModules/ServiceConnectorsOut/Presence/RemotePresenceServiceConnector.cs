@@ -40,7 +40,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
-    public class LocalPresenceServiceConnector : ISharedRegionModule, IPresenceService
+    public class RemotePresenceServiceConnector : ISharedRegionModule, IPresenceService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         private bool m_Enabled = false;
 
         private PresenceDetector m_PresenceDetector;
-        private IPresenceService m_PresenceService;
+        private IPresenceService m_RemoteConnector;
 
         public Type ReplaceableInterface
         {
@@ -58,7 +58,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public string Name
         {
-            get { return "LocalPresenceServiceConnector"; }
+            get { return "RemotePresenceServiceConnector"; }
         }
 
         public void Initialise(IConfigSource source)
@@ -69,41 +69,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                 string name = moduleConfig.GetString("PresenceServices", "");
                 if (name == Name)
                 {
-                    IConfig inventoryConfig = source.Configs["PresenceService"];
-                    if (inventoryConfig == null)
-                    {
-                        m_log.Error("[LOCAL PRESENCE CONNECTOR]: PresenceService missing from OpenSim.ini");
-                        return;
-                    }
+                    //m_RemoteConnector = new PresenceServicesConnector(source);
 
-                    string serviceDll = inventoryConfig.GetString("LocalServiceModule", String.Empty);
-
-                    if (serviceDll == String.Empty)
-                    {
-                        m_log.Error("[LOCAL PRESENCE CONNECTOR]: No LocalServiceModule named in section PresenceService");
-                        return;
-                    }
-
-                    Object[] args = new Object[] { source };
-                    m_log.DebugFormat("[LOCAL PRESENCE CONNECTOR]: Service dll = {0}", serviceDll);
-
-                    m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(serviceDll, args);
-
-                    if (m_PresenceService == null)
-                    {
-                        m_log.Error("[LOCAL PRESENCE CONNECTOR]: Can't load presence service");
-                        //return;
-                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
-                    }
-
-                    //Init(source);
+                    m_Enabled = true;
 
                     m_PresenceDetector = new PresenceDetector(this);
 
-                    m_Enabled = true;
-                    m_log.Info("[LOCAL PRESENCE CONNECTOR]: Local presence connector enabled");
+                    m_log.Info("[INVENTORY CONNECTOR]: Remote presence enabled");
                 }
             }
+
         }
 
         public void PostInitialise()
@@ -119,13 +94,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             if (!m_Enabled)
                 return;
 
-            //            m_log.DebugFormat(
-            //                "[LOCAL PRESENCE CONNECTOR]: Registering IPresenceService to scene {0}", scene.RegionInfo.RegionName);
-
             scene.RegisterModuleInterface<IPresenceService>(this);
             m_PresenceDetector.AddRegion(scene);
 
-            m_log.InfoFormat("[LOCAL PRESENCE CONNECTOR]: Enabled local presence for region {0}", scene.RegionInfo.RegionName);
+            m_log.InfoFormat("[REMOTE PRESENCE CONNECTOR]: Enabled remote presence for region {0}", scene.RegionInfo.RegionName);
 
         }
 
@@ -150,34 +122,34 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public bool LoginAgent(UUID principalID, UUID sessionID, UUID secureSessionID)
         {
-            m_log.Warn("[LOCAL PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
+            m_log.Warn("[REMOTE PRESENCE CONNECTOR]: LoginAgent connector not implemented at the simulators");
             return false;
         }
 
         public bool LogoutAgent(UUID sessionID)
         {
-            return m_PresenceService.LogoutAgent(sessionID);
+            return m_RemoteConnector.LogoutAgent(sessionID);
         }
 
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-            return m_PresenceService.LogoutRegionAgents(regionID);
+            return m_RemoteConnector.LogoutRegionAgents(regionID);
         }
 
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            return m_PresenceService.ReportAgent(sessionID, regionID, position, lookAt);
+            return m_RemoteConnector.ReportAgent(sessionID, regionID, position, lookAt);
         }
 
         public PresenceInfo GetAgent(UUID sessionID)
         {
-            return m_PresenceService.GetAgent(sessionID);
+            return m_RemoteConnector.GetAgent(sessionID);
         }
 
         public PresenceInfo[] GetAgents(string[] principalIDs)
         {
-            return m_PresenceService.GetAgents(principalIDs);
+            return m_RemoteConnector.GetAgents(principalIDs);
         }
 
         #endregion
