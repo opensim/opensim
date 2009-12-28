@@ -61,9 +61,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            MainServer.Instance.AddXmlRPCHandler(
-                "grid_instant_message", processXMLRPCGridInstantMessage);
-
             m_Enabled = true;
         }
 
@@ -82,6 +79,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public virtual void PostInitialise()
         {
+            if (!m_Enabled)
+                return;
+
+            MainServer.Instance.AddXmlRPCHandler(
+                "grid_instant_message", processXMLRPCGridInstantMessage);
         }
 
         public virtual void RegionLoaded(Scene scene)

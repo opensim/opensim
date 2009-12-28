@@ -65,9 +65,13 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
         public void Initialise (OpenSimBase openSim)
         {
-            m_log.DebugFormat("[REGIONMODULES]: Initializing...");
             m_openSim = openSim;
-            openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
+        }
+
+        public void PostInitialise ()
+        {
+            m_log.DebugFormat("[REGIONMODULES]: Initializing...");
+            m_openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
 
             // Who we are
             string id = AddinManager.CurrentAddin.Id;
@@ -81,9 +85,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             // The [Modules] section in the ini file
             IConfig modulesConfig =
-                    openSim.ConfigSource.Source.Configs["Modules"];
+                    m_openSim.ConfigSource.Source.Configs["Modules"];
             if (modulesConfig == null)
-                modulesConfig = openSim.ConfigSource.Source.AddConfig("Modules");
+                modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
 
             // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in
@@ -195,7 +199,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
                 // OK, we're up and running
                 m_sharedInstances.Add(module);
-                module.Initialise(openSim.ConfigSource.Source);
+                module.Initialise(m_openSim.ConfigSource.Source);
             }
 
             // Immediately run PostInitialise on shared modules
@@ -203,10 +207,6 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             {
                 module.PostInitialise();
             }
-        }
-
-        public void PostInitialise ()
-        {
         }
 
 #endregion

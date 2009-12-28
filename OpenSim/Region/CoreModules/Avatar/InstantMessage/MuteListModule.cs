@@ -37,7 +37,7 @@ using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace OpenSim.Region.CoreModules.Avatar.MuteList
+namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
     public class MuteListModule : ISharedRegionModule
     {
