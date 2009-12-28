@@ -75,6 +75,10 @@ namespace OpenSim.Data.MySQL
         public bool ReportAgent(UUID sessionID, UUID regionID, string position,
                 string lookAt)
         {
+            PresenceData[] pd = Get("SessionID", sessionID.ToString());
+            if (pd.Length == 0)
+                return false;
+
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, Position=?Position, LookAt=?LookAt', Online='true' where `SessionID`=?SessionID", m_Realm);
