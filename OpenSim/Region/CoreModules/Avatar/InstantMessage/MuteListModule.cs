@@ -39,7 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.MuteList
 {
-    public class MuteListModule : IRegionModule
+    public class MuteListModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -47,11 +47,8 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
         private List<Scene> m_SceneList = new List<Scene>();
         private string m_RestURL = String.Empty;
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            if (!enabled)
-                return;
-
             IConfig cnf = config.Configs["Messaging"];
             if (cnf == null)
             {
@@ -59,39 +56,53 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
                 return;
             }
 
-            if (cnf != null && cnf.GetString(
-                    "MuteListModule", "None") !=
+            if (cnf != null && cnf.GetString("MuteListModule", "None") !=
                     "MuteListModule")
             {
                 enabled = false;
                 return;
             }
 
+            m_RestURL = cnf.GetString("MuteListURL", "");
+            if (m_RestURL == "")
+            {
+                m_log.Error("[MUTE LIST] Module was enabled, but no URL is given, disabling");
+                enabled = false;
+                return;
+            }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!enabled)
+                return;
+
             lock (m_SceneList)
             {
-                if (m_SceneList.Count == 0)
-                {
-                    m_RestURL = cnf.GetString("MuteListURL", "");
-                    if (m_RestURL == "")
-                    {
-                        m_log.Error("[MUTE LIST] Module was enabled, but no URL is given, disabling");
-                        enabled = false;
-                        return;
-                    }
-                }
-                if (!m_SceneList.Contains(scene))
-                    m_SceneList.Add(scene);
+                m_SceneList.Add(scene);
 
                 scene.EventManager.OnNewClient += OnNewClient;
+            }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!enabled)
+                return;
+
+            lock (m_SceneList)
+            {
+                m_SceneList.Remove(scene);
             }
         }
 
         public void PostInitialise()
         {
             if (!enabled)
-                return;
-
-            if (m_SceneList.Count == 0)
                 return;
 
             m_log.Debug("[MUTE LIST] Mute list enabled");
@@ -102,26 +113,15 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
             get { return "MuteListModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
         
         public void Close()
         {
         }
        
-//        private IClientAPI FindClient(UUID agentID)
-//        {
-//            foreach (Scene s in m_SceneList)
-//            {
-//                ScenePresence presence = s.GetScenePresence(agentID);
-//                if (presence != null && !presence.IsChildAgent)
-//                    return presence.ControllingClient;
-//            }
-//            return null;
-//        }
-
         private void OnNewClient(IClientAPI client)
         {
             client.OnMuteListRequest += OnMuteListRequest;

@@ -40,18 +40,17 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    public class MessageTransferModule : IRegionModule, IMessageTransferModule
+    public class MessageTransferModule : ISharedRegionModule, IMessageTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private bool m_Enabled = false;
-        protected bool m_Gridmode = false;
+        private bool m_Enabled = false;
         protected List<Scene> m_Scenes = new List<Scene>();
         protected Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
 
         public event UndeliveredMessage OnUndeliveredMessage;
 
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
             if (cnf != null && cnf.GetString(
@@ -62,20 +61,19 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            cnf = config.Configs["Startup"];
-            if (cnf != null)
-                m_Gridmode = cnf.GetBoolean("gridmode", false);
+            MainServer.Instance.AddXmlRPCHandler(
+                "grid_instant_message", processXMLRPCGridInstantMessage);
 
-            // m_Enabled = true;
+            m_Enabled = true;
+        }
+
+        public virtual void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
 
             lock (m_Scenes)
             {
-                if (m_Scenes.Count == 0)
-                {
-                    MainServer.Instance.AddXmlRPCHandler(
-                        "grid_instant_message", processXMLRPCGridInstantMessage);
-                }
-
                 m_log.Debug("[MESSAGE TRANSFER]: Message transfer module active");
                 scene.RegisterModuleInterface<IMessageTransferModule>(this);
                 m_Scenes.Add(scene);
@@ -84,6 +82,21 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public virtual void PostInitialise()
         {
+        }
+
+        public virtual void RegionLoaded(Scene scene)
+        {
+        }
+
+        public virtual void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            lock(m_Scenes)
+            {
+                m_Scenes.Remove(scene);
+            }
         }
 
         public virtual void Close()
@@ -95,9 +108,9 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             get { return "MessageTransferModule"; }
         }
 
-        public virtual bool IsSharedModule
+        public virtual Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
         public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)
@@ -148,15 +161,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-            if (m_Gridmode)
-            {
-                //m_log.DebugFormat("[INSTANT MESSAGE]: Delivering via grid");
-                // Still here, try send via Grid
-                SendGridInstantMessageViaXMLRPC(im, result);
-                return;
-            }
-
-            HandleUndeliveredMessage(im, result);
+            SendGridInstantMessageViaXMLRPC(im, result);
 
             return;
         }
