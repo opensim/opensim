@@ -26,17 +26,21 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;
+using log4net;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 {
     public class PresenceDetector 
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private IPresenceService m_PresenceService;
 
         public PresenceDetector(IPresenceService presenceservice)
@@ -62,6 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnMakeRootAgent(ScenePresence sp)
         {
+            m_log.DebugFormat("[PRESENCE DETECTOR]: Detected root presence {0} in {1}", sp.UUID, sp.Scene.RegionInfo.RegionName);
             m_PresenceService.ReportAgent(sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 

@@ -41,13 +41,14 @@ namespace OpenSim.Services.PresenceService
 {
     public class PresenceService : PresenceServiceBase, IPresenceService
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
         public PresenceService(IConfigSource config)
             : base(config)
         {
+            m_log.Debug("[PRESENCE SERVICE]: Starting presence service");
         }
 
         public bool LoginAgent(string userID, UUID sessionID,
@@ -93,8 +94,9 @@ namespace OpenSim.Services.PresenceService
 
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
+            m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
             return m_Database.ReportAgent(sessionID, regionID,
-                    position.ToString(), lookAt.ToString());
+                        position.ToString(), lookAt.ToString());
         }
 
         public PresenceInfo GetAgent(UUID sessionID)

@@ -44,7 +44,7 @@ namespace OpenSim.Services.PresenceService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = "Presence";
+            string realm = "presence";
 
             //
             // Try reading the [DatabaseService] section, if it exists
