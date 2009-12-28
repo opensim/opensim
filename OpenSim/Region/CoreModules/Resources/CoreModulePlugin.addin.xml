@@ -48,6 +48,8 @@
         <RegionModule id="RESTInterregionComms" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion.RESTInterregionComms" />
         <RegionModule id="LocalGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.LocalGridServicesConnector" />
         <RegionModule id="RemoteGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.RemoteGridServicesConnector" />
+        <RegionModule id="LocalPresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.LocalPresenceServicesConnector" />
+        <RegionModule id="RemotePresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.RemotePresenceServicesConnector" />
         <RegionModule id="HGGridConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.HGGridConnector" />
       <!-- Service connectors IN modules -->
         <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
