@@ -32,6 +32,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 using OpenMetaverse;
@@ -69,7 +70,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                 string name = moduleConfig.GetString("PresenceServices", "");
                 if (name == Name)
                 {
-                    //m_RemoteConnector = new PresenceServicesConnector(source);
+                    m_RemoteConnector = new PresenceServicesConnector(source);
 
                     m_Enabled = true;
 
