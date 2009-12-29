@@ -48,7 +48,7 @@ namespace OpenSim.Services.Interfaces
         public UUID UserID;
         public UUID ScopeID;
 
-        public Dictionary<string, string> ServiceURLs;
+        public Dictionary<string, object> ServiceURLs;
 
         public DateTime Created;
 
@@ -67,7 +67,7 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Created"))
                 DateTime.TryParse(kvp["Created"].ToString(), out Created);
             if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null && (kvp["ServiceURLs"] is Dictionary<string, string>))
-                ServiceURLs = (Dictionary<string, string>)kvp["ServiceURLs"];
+                ServiceURLs = (Dictionary<string, object>)kvp["ServiceURLs"];
         }
 
         public Dictionary<string, object> ToKeyValuePairs()

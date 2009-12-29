@@ -25,90 +25,90 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Servers.HttpServer;
+using log4net;
+using System.Reflection;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using OpenMetaverse;
+using OpenSim.Services.Connectors;
 
-namespace OpenSim.Services.Connectors
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
 {
-    public class UserServicesConnector : IUserAccountService
+    public class RemoteUserAccountServicesConnector : UserAccountServicesConnector,
+            ISharedRegionModule, IUserAccountService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-//        private string m_ServerURI = String.Empty;
+        private bool m_Enabled = false;
 
-        public UserServicesConnector()
+        public Type ReplaceableInterface 
         {
+            get { return null; }
         }
 
-        public UserServicesConnector(string serverURI)
+        public string Name
         {
-//            m_ServerURI = serverURI.TrimEnd('/');
+            get { return "RemoteUserAccountServicesConnector"; }
         }
 
-        public UserServicesConnector(IConfigSource source)
+        public override void Initialise(IConfigSource source)
         {
-            Initialise(source);
-        }
-
-        public virtual void Initialise(IConfigSource source)
-        {
-            IConfig assetConfig = source.Configs["UserService"];
-            if (assetConfig == null)
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                m_log.Error("[USER CONNECTOR]: UserService missing from OpanSim.ini");
-                throw new Exception("User connector init error");
+                string name = moduleConfig.GetString("UserServices", "");
+                if (name == Name)
+                {
+                    IConfig userConfig = source.Configs["UserService"];
+                    if (userConfig == null)
+                    {
+                        m_log.Error("[USER CONNECTOR]: UserService missing from OpanSim.ini");
+                        return;
+                    }
+
+                    m_Enabled = true;
+
+                    base.Initialise(source);
+
+                    m_log.Info("[USER CONNECTOR]: Remote users enabled");
+                }
             }
-
-            string serviceURI = assetConfig.GetString("UserServerURI",
-                    String.Empty);
-
-            if (serviceURI == String.Empty)
-            {
-                m_log.Error("[USER CONNECTOR]: No Server URI named in section UserService");
-                throw new Exception("User connector init error");
-            }
-            //m_ServerURI = serviceURI;
         }
 
-        public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
+        public void PostInitialise()
         {
-            return null;
+            if (!m_Enabled)
+                return;
         }
 
-        public UserAccount GetUserAccount(UUID scopeID, string email)
+        public void Close()
         {
-            return null;
-        }
-        
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
-        {
-            return null;
+            if (!m_Enabled)
+                return;
         }
 
-        public bool SetUserAccount(UserAccount data)
+        public void AddRegion(Scene scene)
         {
-            return false;
+            if (!m_Enabled)
+                return;
+
+            scene.RegisterModuleInterface<IUserAccountService>(this);
         }
 
-        public bool CreateUserAccount(UserAccount data)
+        public void RemoveRegion(Scene scene)
         {
-            return false;
+            if (!m_Enabled)
+                return;
         }
 
-        public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
+        public void RegionLoaded(Scene scene)
         {
-            return null;
+            if (!m_Enabled)
+                return;
         }
     }
 }

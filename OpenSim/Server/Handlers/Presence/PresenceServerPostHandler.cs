@@ -265,7 +265,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             doc.AppendChild(rootElement);
 
-            XmlElement result = doc.CreateElement("", "Result", "");
+            XmlElement result = doc.CreateElement("", "result", "");
             result.AppendChild(doc.CreateTextNode("Success"));
 
             rootElement.AppendChild(result);
@@ -287,7 +287,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             doc.AppendChild(rootElement);
 
-            XmlElement result = doc.CreateElement("", "Result", "");
+            XmlElement result = doc.CreateElement("", "result", "");
             result.AppendChild(doc.CreateTextNode("Failure"));
 
             rootElement.AppendChild(result);

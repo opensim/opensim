@@ -109,9 +109,9 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData.ContainsKey("Result"))
+                    if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["Result"].ToString().ToLower() == "success")
+                        if (replyData["result"].ToString().ToLower() == "success")
                             return true;
                         else
                             return false;
@@ -153,9 +153,9 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData.ContainsKey("Result"))
+                    if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["Result"].ToString().ToLower() == "success")
+                        if (replyData["result"].ToString().ToLower() == "success")
                             return true;
                         else
                             return false;
@@ -196,9 +196,9 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData.ContainsKey("Result"))
+                    if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["Result"].ToString().ToLower() == "success")
+                        if (replyData["result"].ToString().ToLower() == "success")
                             return true;
                         else
                             return false;
@@ -242,9 +242,9 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData.ContainsKey("Result"))
+                    if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["Result"].ToString().ToLower() == "success")
+                        if (replyData["result"].ToString().ToLower() == "success")
                             return true;
                         else
                             return false;
@@ -296,11 +296,8 @@ namespace OpenSim.Services.Connectors
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
             PresenceInfo pinfo = null;
 
-            if ((replyData != null) && (replyData["result"] != null))
+            if ((replyData != null) && replyData.ContainsKey("result") && (replyData["result"] != null))
             {
-                if (replyData["result"].ToString() == "null")
-                    return null;
-
                 if (replyData["result"] is Dictionary<string, object>)
                 {
                     pinfo = new PresenceInfo((Dictionary<string, object>)replyData["result"]);
@@ -345,7 +342,8 @@ namespace OpenSim.Services.Connectors
 
             if (replyData != null)
             {
-                if (replyData.ContainsKey("result") && replyData.ContainsKey("result").ToString() == "null")
+                if (replyData.ContainsKey("result") && 
+                    (replyData["result"].ToString() == "null" || replyData["result"].ToString() == "Failure"))
                 {
                     return new PresenceInfo[0];
                 }
@@ -395,9 +393,9 @@ namespace OpenSim.Services.Connectors
                 {
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
-                    if (replyData.ContainsKey("Result"))
+                    if (replyData.ContainsKey("result"))
                     {
-                        if (replyData["Result"].ToString().ToLower() == "success")
+                        if (replyData["result"].ToString().ToLower() == "success")
                             return true;
                         else
                             return false;
