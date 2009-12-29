@@ -449,7 +449,7 @@ namespace OpenSim.Client.Sirikata.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void SendGenericMessage(string method, List<string> message)
+        public void SendGenericMessage(string method, List<Byte[]> message)
         {
             throw new System.NotImplementedException();
         }
