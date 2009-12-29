@@ -1,7 +1,7 @@
 ﻿BEGIN;
 
-CREATE TABLE `useraccount` (
-    `UserID` CHAR(36) NOT NULL,
+CREATE TABLE `UserAccounts` (
+    `PrincipalID` CHAR(36) NOT NULL,
     `ScopeID` CHAR(36) NOT NULL,
     `FirstName` VARCHAR(64) NOT NULL,
     `LastName` VARCHAR(64) NOT NULL,
