@@ -268,7 +268,7 @@ namespace OpenSim.Client.Linden
                         else
                         {
                             string reason;
-                            if (scene.NewUserConnection(agentData, out reason))
+                            if (scene.NewUserConnection(agentData, (uint)TeleportFlags.ViaLogin, out reason))
                             {
                                 success = true;
                             }
