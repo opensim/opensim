@@ -609,7 +609,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                 agent.Appearance = new AvatarAppearance();
             }
             
-            return scene.NewUserConnection(agent, out reason);
+            return scene.NewUserConnection(agent, 0, out reason);
         }
 
         public void PrintDebugInformation()

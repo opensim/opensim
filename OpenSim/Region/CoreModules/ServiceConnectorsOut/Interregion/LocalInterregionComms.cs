@@ -144,7 +144,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
          * Agent-related communications
          */
 
-        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
         {
 
             foreach (Scene s in m_sceneList)
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 if (s.RegionInfo.RegionHandle == regionHandle)
                 {
 //                    m_log.DebugFormat("[LOCAL COMMS]: Found region {0} to send SendCreateChildAgent", regionHandle);
-                    return s.NewUserConnection(aCircuit, out reason);
+                    return s.NewUserConnection(aCircuit, teleportFlags, out reason);
                 }
             }
 
