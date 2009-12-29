@@ -48,15 +48,6 @@ namespace OpenSim.Services.Interfaces
         public UUID UserID;
         public UUID ScopeID;
 
-        // These are here because they
-        // concern the account rather than
-        // the profile. They just happen to
-        // be used in the Linden profile as well
-        //
-        public int GodLevel;
-        public int UserFlags;
-        public string AccountType;
-
         public DateTime Created;
 
         public UserAccount(Dictionary<string, object> kvp)
@@ -71,12 +62,6 @@ namespace OpenSim.Services.Interfaces
                 UUID.TryParse(kvp["UserID"].ToString(), out UserID);
             if (kvp.ContainsKey("ScopeID"))
                 UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
-            if (kvp.ContainsKey("GodLevel"))
-                Int32.TryParse(kvp["GodLevel"].ToString(), out GodLevel);
-            if (kvp.ContainsKey("UserFlags"))
-                Int32.TryParse(kvp["UserFlags"].ToString(), out UserFlags);
-            if (kvp.ContainsKey("AccountType"))
-                AccountType = kvp["AccountType"].ToString();
             if (kvp.ContainsKey("Created"))
                 DateTime.TryParse(kvp["Created"].ToString(), out Created);
 
@@ -90,9 +75,6 @@ namespace OpenSim.Services.Interfaces
             result["Email"] = Email;
             result["UserID"] = UserID.ToString();
             result["ScopeID"] = ScopeID.ToString();
-            result["GodLevel"] = GodLevel.ToString();
-            result["UserFlags"] = UserFlags.ToString();
-            result["AccountType"] = AccountType.ToString();
             result["Created"] = Created.ToString();
 
             return result;
