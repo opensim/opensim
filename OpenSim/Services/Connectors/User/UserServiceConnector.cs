@@ -96,12 +96,12 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
-        public bool SetUserAccount(UserAccount data, UUID principalID, string token)
+        public bool SetUserAccount(UserAccount data)
         {
             return false;
         }
 
-        public bool CreateUserAccount(UserAccount data, UUID principalID, string token)
+        public bool CreateUserAccount(UserAccount data)
         {
             return false;
         }

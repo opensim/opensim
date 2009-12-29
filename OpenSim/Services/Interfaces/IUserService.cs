@@ -97,9 +97,9 @@ namespace OpenSim.Services.Interfaces
 
         // Update all updatable fields
         //
-        bool SetUserAccount(UserAccount data, UUID PrincipalID, string token);
+        bool SetUserAccount(UserAccount data);
         
         // Creates a user data record
-        bool CreateUserAccount(UserAccount data, UUID PrincipalID, string token);
+        bool CreateUserAccount(UserAccount data);
     }
 }
