@@ -57,6 +57,8 @@ namespace OpenSim.Services.Interfaces
         public int UserFlags;
         public string AccountType;
 
+        public DateTime Created;
+
         public UserAccount(Dictionary<string, object> kvp)
         {
             if (kvp.ContainsKey("FirstName"))
@@ -75,6 +77,8 @@ namespace OpenSim.Services.Interfaces
                 Int32.TryParse(kvp["UserFlags"].ToString(), out UserFlags);
             if (kvp.ContainsKey("AccountType"))
                 AccountType = kvp["AccountType"].ToString();
+            if (kvp.ContainsKey("Created"))
+                DateTime.TryParse(kvp["Created"].ToString(), out Created);
 
         }
 
@@ -89,6 +93,7 @@ namespace OpenSim.Services.Interfaces
             result["GodLevel"] = GodLevel.ToString();
             result["UserFlags"] = UserFlags.ToString();
             result["AccountType"] = AccountType.ToString();
+            result["Created"] = Created.ToString();
 
             return result;
         }
