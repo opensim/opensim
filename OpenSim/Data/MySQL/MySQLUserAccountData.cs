@@ -40,10 +40,10 @@ namespace OpenSim.Data.MySQL
         public MySqlUserAccountData(string connectionString, string realm)
                 : base(connectionString, realm, "UserAccount")
         {
-            public bool Store(UserAccountData data, UUID principalID, string token)
-            {
-                Store(data);
-            }
+        }
+        public bool Store(UserAccountData data, UUID principalID, string token)
+        {
+            return Store(data);
         }
     }
 }

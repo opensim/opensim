@@ -86,14 +86,14 @@ namespace OpenSim.Services.Connectors
             return null;
         }
 
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
+        public UserAccount GetUserAccount(UUID scopeID, string email)
         {
             return null;
         }
-
-        public bool SetHomePosition(UserAccount data, UUID regionID, UUID regionSecret)
+        
+        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            return false;
+            return null;
         }
 
         public bool SetUserAccount(UserAccount data, UUID principalID, string token)
@@ -106,7 +106,7 @@ namespace OpenSim.Services.Connectors
             return false;
         }
 
-        public List<UserAccount> GetUserAccount(UUID scopeID, string query)
+        public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
             return null;
         }

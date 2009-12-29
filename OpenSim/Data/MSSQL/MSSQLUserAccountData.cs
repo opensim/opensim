@@ -168,6 +168,11 @@ namespace OpenSim.Data.MSSQL
             return true;
         }
 
+        public bool Store(UserAccountData data, UUID principalID, string token)
+        {
+            return false;
+        }
+
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             string sql = string.Format("update {0} set {1} = @{1} where UUID = @UUID", m_Realm, item);
