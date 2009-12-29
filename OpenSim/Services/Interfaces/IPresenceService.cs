@@ -65,6 +65,12 @@ namespace OpenSim.Services.Interfaces
                 Boolean.TryParse(kvp["online"].ToString(), out Online);
             if (kvp.ContainsKey("position"))
                 Vector3.TryParse(kvp["position"].ToString(), out Position);
+            if (kvp.ContainsKey("HomeRegionID"))
+                UUID.TryParse(kvp["HomeRegionID"].ToString(), out HomeRegionID);
+            if (kvp.ContainsKey("HomePosition"))
+                Vector3.TryParse(kvp["HomePosition"].ToString(), out HomePosition);
+            if (kvp.ContainsKey("HomeLookAt"))
+                Vector3.TryParse(kvp["HomeLookAt"].ToString(), out HomeLookAt);
 
         }
 
@@ -78,6 +84,9 @@ namespace OpenSim.Services.Interfaces
             result["logout"] = Logout.ToString();
             result["position"] = Position.ToString();
             result["lookAt"] = LookAt.ToString();
+            result["HomeRegionID"] = HomeRegionID.ToString();
+            result["HomePosition"] = HomePosition.ToString();
+            result["HomeLookAt"] = HomeLookAt.ToString();
 
             return result;
         }

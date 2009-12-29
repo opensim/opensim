@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 
@@ -36,36 +37,16 @@ namespace OpenSim.Services.Interfaces
         {
         }
 
-        public UserAccount(UUID userID, UUID homeRegionID, float homePositionX,
-                float homePositionY, float homePositionZ, float homeLookAtX,
-                float homeLookAtY, float homeLookAtZ)
+        public UserAccount(UUID userID)
         {
             UserID = userID;
-            HomeRegionID = homeRegionID;
-            HomePositionX = homePositionX;
-            HomePositionY = homePositionY;
-            HomePositionZ = homePositionZ;
-            HomeLookAtX = homeLookAtX;
-            HomeLookAtY = homeLookAtY;
-            HomeLookAtZ = homeLookAtZ;
         }
 
         public string FirstName;
         public string LastName;
+        public string Email;
         public UUID UserID;
         public UUID ScopeID;
-
-        // For informational purposes only!
-        //
-        public string HomeRegionName;
-
-        public UUID HomeRegionID;
-        public float HomePositionX;
-        public float HomePositionY;
-        public float HomePositionZ;
-        public float HomeLookAtX;
-        public float HomeLookAtY;
-        public float HomeLookAtZ;
 
         // These are here because they
         // concern the account rather than
@@ -76,6 +57,41 @@ namespace OpenSim.Services.Interfaces
         public int UserFlags;
         public string AccountType;
 
+        public UserAccount(Dictionary<string, object> kvp)
+        {
+            if (kvp.ContainsKey("FirstName"))
+                FirstName = kvp["FirstName"].ToString();
+            if (kvp.ContainsKey("LastName"))
+                LastName = kvp["LastName"].ToString();
+            if (kvp.ContainsKey("Email"))
+                Email = kvp["Email"].ToString();
+            if (kvp.ContainsKey("UserID"))
+                UUID.TryParse(kvp["UserID"].ToString(), out UserID);
+            if (kvp.ContainsKey("ScopeID"))
+                UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
+            if (kvp.ContainsKey("GodLevel"))
+                Int32.TryParse(kvp["GodLevel"].ToString(), out GodLevel);
+            if (kvp.ContainsKey("UserFlags"))
+                Int32.TryParse(kvp["UserFlags"].ToString(), out UserFlags);
+            if (kvp.ContainsKey("AccountType"))
+                AccountType = kvp["AccountType"].ToString();
+
+        }
+
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            result["FirstName"] = FirstName;
+            result["LastName"] = LastName;
+            result["Email"] = Email;
+            result["UserID"] = UserID.ToString();
+            result["ScopeID"] = ScopeID.ToString();
+            result["GodLevel"] = GodLevel.ToString();
+            result["UserFlags"] = UserFlags.ToString();
+            result["AccountType"] = AccountType.ToString();
+
+            return result;
+        }
     };
 
     public interface IUserAccountService
@@ -86,12 +102,6 @@ namespace OpenSim.Services.Interfaces
         // criterion and the scope ID passed
         //
         List<UserAccount> GetUserAccount(UUID scopeID, string query);
-
-
-        // This will set only the home region portion of the data!
-        // Can't be used to set god level, flags, type or change the name!
-        //
-        bool SetHomePosition(UserAccount data, UUID RegionID, UUID RegionSecret);
 
         // Update all updatable fields
         //

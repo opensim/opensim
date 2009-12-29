@@ -40,7 +40,7 @@ namespace OpenSim.Data
     }
 
     /// <summary>
-    /// An interface for connecting to the authentication datastore
+    /// An interface for connecting to the user accounts datastore
     /// </summary>
     public interface IUserAccountData
     {
