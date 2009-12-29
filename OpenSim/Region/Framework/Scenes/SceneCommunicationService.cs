@@ -286,7 +286,7 @@ namespace OpenSim.Region.Framework.Scenes
             string reason = String.Empty;
 
            
-            bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, out reason);
+            bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, 0, out reason);
 
             if (regionAccepted && newAgent)
             {
@@ -835,7 +835,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // Let's create an agent there if one doesn't exist yet. 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
-                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, out reason))
+                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, teleportFlags, out reason))
                         {
                             avatar.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
                                                                                       reason));

@@ -203,7 +203,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         string reason = String.Empty;
 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
-                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, out reason))
+                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, teleportFlags, out reason))
                         {
                             avatar.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
                                                                                       reason));

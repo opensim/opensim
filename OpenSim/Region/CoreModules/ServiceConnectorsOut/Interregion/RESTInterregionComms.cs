@@ -157,10 +157,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
          * Agent-related communications
          */
 
-        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason)
+        public bool SendCreateChildAgent(ulong regionHandle, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
         {
             // Try local first
-            if (m_localBackend.SendCreateChildAgent(regionHandle, aCircuit, out reason))
+            if (m_localBackend.SendCreateChildAgent(regionHandle, aCircuit, teleportFlags, out reason))
                 return true;
 
             // else do the remote thing
@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 {
                     m_regionClient.SendUserInformation(regInfo, aCircuit);
 
-                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit, "None", out reason);
+                    return m_regionClient.DoCreateChildAgentCall(regInfo, aCircuit, "None", teleportFlags, out reason);
                 }
                 //else
                 //    m_log.Warn("[REST COMMS]: Region not found " + regionHandle);
@@ -436,10 +436,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
             OSDMap resp = new OSDMap(2);
             string reason = String.Empty;
-
+            uint teleportFlags = 0;
+            if (args.ContainsKey("teleport_flags"))
+            {
+                teleportFlags = args["teleport_flags"].AsUInteger();
+            }
+            
             // This is the meaning of POST agent
             m_regionClient.AdjustUserInformation(aCircuit);
-            bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit, out reason);
+            bool result = m_localBackend.SendCreateChildAgent(regionhandle, aCircuit, teleportFlags, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);

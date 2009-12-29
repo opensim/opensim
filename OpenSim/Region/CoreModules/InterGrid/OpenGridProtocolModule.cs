@@ -557,7 +557,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             // Call 'new user' event handler
             string reason;
-            if (!homeScene.NewUserConnection(agentData, out reason))
+            if (!homeScene.NewUserConnection(agentData, (uint)TeleportFlags.ViaLogin, out reason))
             {
                 responseMap["connect"] = OSD.FromBoolean(false);
                 responseMap["message"] = OSD.FromString(String.Format("Connection refused: {0}", reason));
