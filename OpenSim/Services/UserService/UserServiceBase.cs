@@ -40,20 +40,29 @@ namespace OpenSim.Services.UserAccountService
 
         public UserAccountServiceBase(IConfigSource config) : base(config)
         {
+            string dllName = String.Empty;
+            string connString = String.Empty;
+            string realm = "useraccounts";
+
+            IConfig dbConfig = config.Configs["DatabaseService"];
+            if (dbConfig != null)
+            {
+                dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                connString = dbConfig.GetString("ConnectionString", String.Empty);
+            }
+
             IConfig userConfig = config.Configs["UserAccountService"];
             if (userConfig == null)
                 throw new Exception("No UserAccountService configuration");
 
-            string dllName = userConfig.GetString("StorageProvider",
-                    String.Empty);
+            dllName = userConfig.GetString("StorageProvider", dllName);
 
             if (dllName == String.Empty)
                 throw new Exception("No StorageProvider configured");
 
-            string connString = userConfig.GetString("ConnectionString",
-                    String.Empty);
+            connString = userConfig.GetString("ConnectionString", connString);
 
-            string realm = userConfig.GetString("Realm", "users");
+            realm = userConfig.GetString("Realm", realm);
 
             m_Database = LoadPlugin<IUserAccountData>(dllName, new Object[] {connString, realm});
 

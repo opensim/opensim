@@ -30,8 +30,6 @@
         <RegionModule id="CenomeMemoryAssetCache" type="OpenSim.Region.CoreModules.Asset.CenomeMemoryAssetCache"/>
         <RegionModule id="LibraryModule" type="OpenSim.Region.CoreModules.Framework.Library.LibraryModule"/>
       <!-- Service connectors OUT modules -->
-        <RegionModule id="LocalUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.LocalUserServicesConnector" />
-        <RegionModule id="RemoteUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.RemoteUserServicesConnector" />
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
         <RegionModule id="LocalAuthorizationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization.LocalAuthorizationServicesConnector" />
@@ -51,8 +49,8 @@
         <RegionModule id="HGGridConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.HGGridConnector" />
         <RegionModule id="LocalPresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.LocalPresenceServicesConnector" />
         <RegionModule id="RemotePresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.RemotePresenceServicesConnector" />
-        <RegionModule id="LocalUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.LocalUserAccountServicesConnector" />
-        <RegionModule id="RemoteUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.User.RemoteUserAccountServicesConnector" />
+        <RegionModule id="LocalUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.LocalUserAccountServicesConnector" />
+        <RegionModule id="RemoteUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.RemoteUserAccountServicesConnector" />
       <!-- Service connectors IN modules -->
         <RegionModule id="AssetServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset.AssetServiceInConnectorModule" />
         <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />

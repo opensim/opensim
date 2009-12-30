@@ -37,7 +37,7 @@ using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.User
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
     public class LocalUserAccountServicesConnector : ISharedRegionModule, IUserAccountService
     {
