@@ -44,12 +44,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        #region ISharedRegionModule
-
         private bool m_Enabled = false;
 
         private PresenceDetector m_PresenceDetector;
         private IPresenceService m_PresenceService;
+
+        public LocalPresenceServicesConnector()
+        {
+        }
+
+        public LocalPresenceServicesConnector(IConfigSource source)
+        {
+            Initialise(source);
+        }
+
+        #region ISharedRegionModule
 
         public Type ReplaceableInterface
         {

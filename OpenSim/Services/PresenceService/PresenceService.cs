@@ -64,6 +64,7 @@ namespace OpenSim.Services.PresenceService
             data.RegionID = UUID.Zero;
             data.SessionID = sessionID;
             data.Data["SecureSessionID"] = secureSessionID.ToString();
+            data.Data["Online"] = "true";
             data.Data["Login"] = Util.UnixTimeSinceEpoch().ToString();
             if (d.Length > 0)
             {
@@ -88,7 +89,6 @@ namespace OpenSim.Services.PresenceService
             if (d.Length > 1)
             {
                 m_Database.Delete("SessionID", sessionID.ToString());
-                return true;
             }
 
             data.Data["Online"] = "false";
@@ -110,6 +110,12 @@ namespace OpenSim.Services.PresenceService
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
+            PresenceData pdata = m_Database.Get(sessionID);
+            if (pdata == null)
+                return false;
+            if (pdata.Data["Online"] == "false")
+                return false;
+
             return m_Database.ReportAgent(sessionID, regionID,
                         position.ToString(), lookAt.ToString());
         }
@@ -124,14 +130,22 @@ namespace OpenSim.Services.PresenceService
 
             ret.UserID = data.UserID;
             ret.RegionID = data.RegionID;
-            ret.Online = bool.Parse(data.Data["Online"]);
-            ret.Login = Util.ToDateTime(Convert.ToInt32(data.Data["Login"]));
-            ret.Logout = Util.ToDateTime(Convert.ToInt32(data.Data["Logout"]));
-            ret.Position = Vector3.Parse(data.Data["Position"]);
-            ret.LookAt = Vector3.Parse(data.Data["LookAt"]);
-            ret.HomeRegionID = new UUID(data.Data["HomeRegionID"]);
-            ret.HomePosition = Vector3.Parse(data.Data["HomePosition"]);
-            ret.HomeLookAt = Vector3.Parse(data.Data["HomeLookAt"]);
+            if (data.Data.ContainsKey("Online"))
+                ret.Online = bool.Parse(data.Data["Online"]);
+            if (data.Data.ContainsKey("Login"))
+                ret.Login = Util.ToDateTime(Convert.ToInt32(data.Data["Login"]));
+            if (data.Data.ContainsKey("Logout"))
+                ret.Logout = Util.ToDateTime(Convert.ToInt32(data.Data["Logout"]));
+            if (data.Data.ContainsKey("Position"))
+                ret.Position = Vector3.Parse(data.Data["Position"]);
+            if (data.Data.ContainsKey("LookAt"))
+                ret.LookAt = Vector3.Parse(data.Data["LookAt"]);
+            if (data.Data.ContainsKey("HomeRegionID"))
+                ret.HomeRegionID = new UUID(data.Data["HomeRegionID"]);
+            if (data.Data.ContainsKey("HomePosition"))
+                ret.HomePosition = Vector3.Parse(data.Data["HomePosition"]);
+            if (data.Data.ContainsKey("HomeLookAt"))
+                ret.HomeLookAt = Vector3.Parse(data.Data["HomeLookAt"]);
 
             return ret;
         }

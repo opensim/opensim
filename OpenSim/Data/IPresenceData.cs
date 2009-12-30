@@ -42,7 +42,7 @@ namespace OpenSim.Data
     }
 
     /// <summary>
-    /// An interface for connecting to the authentication datastore
+    /// An interface for connecting to the presence datastore
     /// </summary>
     public interface IPresenceData 
     {
