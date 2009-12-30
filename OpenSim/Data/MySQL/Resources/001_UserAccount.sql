@@ -7,7 +7,7 @@ CREATE TABLE `UserAccounts` (
     `LastName` VARCHAR(64) NOT NULL,
     `Email` VARCHAR(64),
     `ServiceURLs` TEXT,
-    `Created` DATETIME
+    `Created` INT(11)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 COMMIT;
