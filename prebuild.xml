@@ -1038,7 +1038,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Services.UserService" path="OpenSim/Services/UserService" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.UserAccountService" path="OpenSim/Services/UserAccountService" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
