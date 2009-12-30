@@ -129,6 +129,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3? m_forceToApply;
         private uint m_requestedSitTargetID;
         private UUID m_requestedSitTargetUUID;
+        public bool SitGround = false;
 
         private SendCourseLocationsMethod m_sendCourseLocationsMethod;
 
@@ -1299,8 +1300,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             if ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/ScenePresence.cs
                 m_updateCount = 0;  // Kill animation update burst so that the SIT_G.. will stick.
                 Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+=======
+                // TODO: This doesn't prevent the user from walking yet.
+                // Setting parent ID would fix this, if we knew what value
+                // to use.  Or we could add a m_isSitting variable.
+                //Animator.TrySetMovementAnimation("SIT_GROUND_CONSTRAINED");
+                SitGround = true;
+                
+>>>>>>> master:OpenSim/Region/Framework/Scenes/ScenePresence.cs
             }
 
             // In the future, these values might need to go global.
@@ -1540,7 +1550,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+<<<<<<< HEAD:OpenSim/Region/Framework/Scenes/ScenePresence.cs
             if (update_movementflag)
+=======
+            if (update_movementflag && ((flags & AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) == 0) && (m_parentID == 0) && !SitGround)
+>>>>>>> master:OpenSim/Region/Framework/Scenes/ScenePresence.cs
                 Animator.UpdateMovementAnimations();
 
             m_scene.EventManager.TriggerOnClientMovement(this);
@@ -1651,8 +1665,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void StandUp()
         {
+            if (SitGround)
+                SitGround = false;
+
             if (m_parentID != 0)
             {
+                m_log.Debug("StandupCode Executed");
                 SceneObjectPart part = m_scene.GetSceneObjectPart(m_parentID);
                 if (part != null)
                 {
