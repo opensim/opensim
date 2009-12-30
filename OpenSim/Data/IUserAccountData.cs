@@ -46,6 +46,7 @@ namespace OpenSim.Data
     /// </summary>
     public interface IUserAccountData
     {
+        UserAccountData[] Get(string[] fields, string[] values);
         bool Store(UserAccountData data, UUID principalID, string token);
     }
 }

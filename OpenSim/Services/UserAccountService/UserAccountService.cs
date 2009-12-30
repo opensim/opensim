@@ -44,6 +44,21 @@ namespace OpenSim.Services.UserAccountService
         public UserAccount GetUserAccount(UUID scopeID, string firstName,
                 string lastName)
         {
+            UserAccountData[] d = m_Database.Get(
+                    new string[] {"ScopeID", "FirstName", "LastName"},
+                    new string[] {scopeID.ToString(), firstName, lastName});
+
+            if (d.Length < 1)
+                return null;
+
+            UserAccount u = new UserAccount();
+            u.FirstName = d[0].FirstName;
+            u.LastName = d[0].LastName;
+            u.PrincipalID = d[0].PrincipalID;
+            u.ScopeID = d[0].ScopeID;
+            u.Email = d[0].Data["Email"].ToString();
+            u.Created = Convert.ToInt32(d[0].Data["Created"].ToString());
+
             return null;
         }
 

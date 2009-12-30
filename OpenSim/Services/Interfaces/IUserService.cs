@@ -37,20 +37,20 @@ namespace OpenSim.Services.Interfaces
         {
         }
 
-        public UserAccount(UUID userID)
+        public UserAccount(UUID principalID)
         {
-            UserID = userID;
+            PrincipalID = principalID;
         }
 
         public string FirstName;
         public string LastName;
         public string Email;
-        public UUID UserID;
+        public UUID PrincipalID;
         public UUID ScopeID;
 
         public Dictionary<string, object> ServiceURLs;
 
-        public DateTime Created;
+        public int Created;
 
         public UserAccount(Dictionary<string, object> kvp)
         {
@@ -60,12 +60,12 @@ namespace OpenSim.Services.Interfaces
                 LastName = kvp["LastName"].ToString();
             if (kvp.ContainsKey("Email"))
                 Email = kvp["Email"].ToString();
-            if (kvp.ContainsKey("UserID"))
-                UUID.TryParse(kvp["UserID"].ToString(), out UserID);
+            if (kvp.ContainsKey("PrincipalID"))
+                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
             if (kvp.ContainsKey("ScopeID"))
                 UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
             if (kvp.ContainsKey("Created"))
-                DateTime.TryParse(kvp["Created"].ToString(), out Created);
+                Convert.ToInt32(kvp["Created"].ToString());
             if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null && (kvp["ServiceURLs"] is Dictionary<string, string>))
                 ServiceURLs = (Dictionary<string, object>)kvp["ServiceURLs"];
         }
@@ -76,7 +76,7 @@ namespace OpenSim.Services.Interfaces
             result["FirstName"] = FirstName;
             result["LastName"] = LastName;
             result["Email"] = Email;
-            result["UserID"] = UserID.ToString();
+            result["PrincipalID"] = PrincipalID.ToString();
             result["ScopeID"] = ScopeID.ToString();
             result["Created"] = Created.ToString();
             result["ServiceURLs"] = ServiceURLs;

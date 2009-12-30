@@ -41,6 +41,7 @@ namespace OpenSim.Data.MySQL
                 : base(connectionString, realm, "UserAccount")
         {
         }
+
         public bool Store(UserAccountData data, UUID principalID, string token)
         {
             return Store(data);

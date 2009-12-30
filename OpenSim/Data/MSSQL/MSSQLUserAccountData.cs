@@ -189,5 +189,10 @@ namespace OpenSim.Data.MSSQL
             }
             return false;
         }
+
+        public UserAccountData[] Get(string[] keys, string[] vals)
+        {
+            return null;
+        }
     }
 }
