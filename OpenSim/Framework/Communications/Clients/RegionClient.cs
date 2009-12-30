@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Communications.Clients
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public bool DoCreateChildAgentCall(GridRegion region, AgentCircuitData aCircuit, string authKey, out string reason)
+        public bool DoCreateChildAgentCall(GridRegion region, AgentCircuitData aCircuit, string authKey, uint teleportFlags, out string reason)
         {
             reason = String.Empty;
 
@@ -84,6 +84,7 @@ namespace OpenSim.Framework.Communications.Clients
             // Add the regionhandle of the destination region
             ulong regionHandle = GetRegionHandle(region.RegionHandle);
             args["destination_handle"] = OSD.FromString(regionHandle.ToString());
+            args["teleport_flags"] = OSD.FromString(teleportFlags.ToString());
 
             string strBuffer = "";
             byte[] buffer = new byte[1];

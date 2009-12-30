@@ -199,7 +199,7 @@ namespace OpenSim.Client.Linden
             Scene scene;
             if (TryGetRegion(regionHandle, out scene))
             {
-                return scene.NewUserConnection(agent, out reason);
+                return scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
             }
             reason = "Region not found.";
             return false;

@@ -3316,12 +3316,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// Use NewUserConnection() directly if possible so the return type can refuse connections.
         /// At the moment nothing actually seems to use this event,
         /// as everything is switching to calling the NewUserConnection method directly.
+        /// 
+        /// Now obsoleting this because it doesn't handle teleportFlags propertly
+        /// 
         /// </summary>
         /// <param name="agent"></param>
+        [Obsolete("Please call NewUserConnection directly.")]
         public void HandleNewUserConnection(AgentCircuitData agent)
         {
             string reason;
-            NewUserConnection(agent, out reason);
+            NewUserConnection(agent, 0, out reason);
         }
 
         /// <summary>
@@ -3334,8 +3338,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <returns>True if the region accepts this agent.  False if it does not.  False will 
         /// also return a reason.</returns>
-        public bool NewUserConnection(AgentCircuitData agent, out string reason)
+        public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
         {
+            //Teleport flags:
+            //
+            // TeleportFlags.ViaGodlikeLure - Border Crossing
+            // TeleportFlags.ViaLogin - Login
+            // TeleportFlags.TeleportFlags.ViaLure - Teleport request sent by another user
+            // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
+
+
             if (loginsdisabled)
             {
                 reason = "Logins Disabled";
@@ -3343,9 +3355,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
             // Don't disable this log message - it's too helpful
             m_log.InfoFormat(
-                "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5})",
+                "[CONNECTION BEGIN]: Region {0} told of incoming {1} agent {2} {3} {4} (circuit code {5}, teleportflags {6})",
                 RegionInfo.RegionName, (agent.child ? "child" : "root"), agent.firstname, agent.lastname,
-                agent.AgentID, agent.circuitcode);
+                agent.AgentID, agent.circuitcode, teleportFlags);
 
             reason = String.Empty;
             if (!AuthenticateUser(agent, out reason))

@@ -146,7 +146,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             const float PREJUMP_DELAY = 0.25f;
 
             #region Inputs
-
+            if (m_scenePresence.SitGround)
+            {
+                return "SIT_GROUND_CONSTRAINED";
+            }
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
             PhysicsActor actor = m_scenePresence.PhysicsActor;
 
@@ -156,7 +159,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             Vector3 left = Vector3.Transform(Vector3.UnitY, rotMatrix);
 
             // Check control flags
-            bool heldForward = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_AT_POS;
+            bool heldForward = 
+                (((controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) || ((controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS));
             bool heldBack = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG;
             bool heldLeft = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS;
             bool heldRight = (controlFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) == AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG;

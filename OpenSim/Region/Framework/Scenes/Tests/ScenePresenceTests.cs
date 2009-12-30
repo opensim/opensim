@@ -117,7 +117,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             agent.child = true;
 
             string reason;
-            scene.NewUserConnection(agent, out reason);
+            scene.NewUserConnection(agent, (uint)TeleportFlags.ViaLogin, out reason);
             testclient = new TestClient(agent, scene);
             scene.AddNewClient(testclient);
 
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             if (acd1 == null)
                 fixNullPresence();
 
-            scene.NewUserConnection(acd1, out reason);
+            scene.NewUserConnection(acd1, 0, out reason);
             if (testclient == null)
                 testclient = new TestClient(acd1, scene);
             scene.AddNewClient(testclient);
@@ -242,7 +242,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             // Adding child agent to region 1001
             string reason;
-            scene2.NewUserConnection(acd1, out reason);
+            scene2.NewUserConnection(acd1,0, out reason);
             scene2.AddNewClient(testclient);
 
             ScenePresence presence = scene.GetScenePresence(agent1);
