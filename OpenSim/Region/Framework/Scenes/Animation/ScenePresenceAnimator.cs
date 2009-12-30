@@ -151,10 +151,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             const float PREJUMP_DELAY = 0.25f;
 
             #region Inputs
-            if (m_scenePresence.SitGround)
-            {
-                return "SIT_GROUND_CONSTRAINED";
-            }
+
             AgentManager.ControlFlags controlFlags = (AgentManager.ControlFlags)m_scenePresence.AgentControlFlags;
             PhysicsActor actor = m_scenePresence.PhysicsActor;
 
