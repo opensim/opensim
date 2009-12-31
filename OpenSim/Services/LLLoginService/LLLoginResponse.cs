@@ -92,7 +92,7 @@ namespace OpenSim.Services.LLLoginService
             return loginError;
         }
 
-        public OSD ToOSDMap()
+        public override OSD ToOSDMap()
         {
             OSDMap map = new OSDMap();
 
@@ -327,7 +327,7 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        public OSD ToLLSDResponse()
+        public override OSD ToOSDMap()
         {
             try
             {
