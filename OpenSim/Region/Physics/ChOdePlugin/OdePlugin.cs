@@ -229,7 +229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int bodyFramesAutoDisable = 20;
 
-        
+        protected DateTime m_lastframe = DateTime.UtcNow;
 
         private float[] _watermap;
         private bool m_filterCollisions = true;
@@ -2639,13 +2639,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (framecount >= int.MaxValue)
                 framecount = 0;
-
             //if (m_worldOffset != Vector3.Zero)
             //    return 0;
 
             framecount++;
-
-            float fps = 0;
+            
+            DateTime now = DateTime.UtcNow;
+			TimeSpan SinceLastFrame = now - m_lastframe;
+			m_lastframe = now;
+			float realtime = (float)SinceLastFrame.TotalSeconds;
+// Console.WriteLine("ts={0}    rt={1}", 	timeStep, 	realtime);	
+			timeStep = realtime;
+			
+  //          float fps = 1.0f / realtime;
+            float fps = 0.0f; 		// number of ODE steps in this Simulate step
             //m_log.Info(timeStep.ToString());
             step_time += timeStep;
             
@@ -2691,11 +2698,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Figure out the Frames Per Second we're going at.
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
 
-                fps = (step_time / ODE_STEPSIZE) * 1000;
+ //               fps = (step_time / ODE_STEPSIZE) * 1000;
                 // HACK: Using a time dilation of 1.0 to debug rubberbanding issues
                 //m_timeDilation = Math.Min((step_time / ODE_STEPSIZE) / (0.09375f / ODE_STEPSIZE), 1.0f);
 
-                step_time = 0.09375f;
+ //               step_time = 0.09375f;
 
                 while (step_time > 0.0f)
                 {
@@ -2716,7 +2723,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         foreach (OdeCharacter character in _taintedActors)
                                         {
 
-                                            character.ProcessTaints(timeStep);
+                                            character.ProcessTaints(ODE_STEPSIZE);
 
                                             processedtaints = true;
                                             //character.m_collisionscore = 0;
@@ -2725,7 +2732,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         if (processedtaints)
                                             _taintedActors.Clear();
                                     }
-                                }
+                                } // end lock _taintedActors
 
                                 // Modify other objects in the scene.
                                 processedtaints = false;
@@ -2742,7 +2749,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         else
                                         {
                                             //Console.WriteLine("Simulate calls ProcessTaints");                                        
-                                            prim.ProcessTaints(timeStep);
+                                            prim.ProcessTaints(ODE_STEPSIZE);
                                         }
                                         processedtaints = true;
                                         prim.m_collisionscore = 0;
@@ -2767,7 +2774,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                             foreach (PhysicsJoint joint in pendingJoints)
                                             {
                                                 //DoJointErrorMessage(joint, "taint: time to create joint with parms: " + joint.RawParams);
-                                                string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
+                                                string[] jointParams = joint.RawParams.Split(" ".ToCharArray(), 
+                                                						System.StringSplitOptions.RemoveEmptyEntries);
                                                 List<IntPtr> jointBodies = new List<IntPtr>();
                                                 bool allJointBodiesAreReady = true;
                                                 foreach (string jointParam in jointParams)
@@ -2934,13 +2942,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                 //DoJointErrorMessage(successfullyProcessedJoint, "done");
                                             }
                                         }
-                                    }
+                                    } // end SupportsNINJAJoints 
 
                                     if (processedtaints)
 //Console.WriteLine("Simulate calls Clear of _taintedPrim list");                                      
-                                        _taintedPrimH.Clear();
+                                        _taintedPrimH.Clear();				// ??? if this only ???
                                         _taintedPrimL.Clear();
-                                }
+                                } // end lock _taintedPrimLock
 
                                 // Move characters
                                 lock (_characters)
@@ -2949,7 +2957,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     foreach (OdeCharacter actor in _characters)
                                     {
                                         if (actor != null)
-                                            actor.Move(timeStep, defects);
+                                            actor.Move(ODE_STEPSIZE, defects);
                                     }
                                     if (0 != defects.Count)
                                     {
@@ -2958,7 +2966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                             RemoveCharacter(defect);
                                         }
                                     }
-                                }
+                                } // end lock _characters
 
                                 // Move other active objects
                                 lock (_activeprims)
@@ -2966,9 +2974,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     foreach (OdePrim prim in _activeprims)
                                     {
                                         prim.m_collisionscore = 0;
-                                        prim.Move(timeStep);
+                                        prim.Move(ODE_STEPSIZE);
                                     }
-                                }
+                                } // end lock _activeprims
 
                                 //if ((framecount % m_randomizeWater) == 0)
                                    // randomizeWater(waterlevel);
@@ -2976,7 +2984,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //int RayCastTimeMS = m_rayCastManager.ProcessQueuedRequests();
                                 m_rayCastManager.ProcessQueuedRequests();
 
-                                collision_optimized(timeStep);
+                                collision_optimized(ODE_STEPSIZE);
 
                                 lock (_collisionEventPrim)
                                 {
@@ -2998,7 +3006,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                 break;
                                         }
                                     }
-                                }
+                                } // end lock _collisionEventPrim
 
                                 //if (m_global_contactcount > 5)
                                 //{
@@ -3009,8 +3017,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 
                                 d.WorldQuickStep(world, ODE_STEPSIZE);
                                 d.JointGroupEmpty(contactgroup);
+                                fps++;
                                 //ode.dunlock(world);
-                            }
+                            } // end try
                             catch (Exception e)
                             {
                                 m_log.ErrorFormat("[PHYSICS]: {0}, {1}, {2}", e.Message, e.TargetSite, e);
@@ -3025,7 +3034,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //fps = 0;
                         //}
                     //}
-                }
+                }  // end while (step_time > 0.0f)
 
                 lock (_characters)
                 {
@@ -3090,7 +3099,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
                         }
                     }
-                }
+                } // end lock _activeprims
 
                 //DumpJointInfo();
 
@@ -3111,10 +3120,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
                 }
-            }
-
-            return fps;
-        }
+            } // end lock OdeLock
+            
+            return fps * 1000.0f;		//NB This is a FRAME COUNT, not a time! AND is divide by 1000 in SimStatusReporter!
+        } // end Simulate
 
         public override void GetResults()
         {

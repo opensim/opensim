@@ -83,6 +83,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private IntPtr m_jointGroup = IntPtr.Zero;
 //        private IntPtr m_aMotor = IntPtr.Zero;
  
+		// Correction factors, to match Sl
+		private static float m_linearVelocityFactor = 0.9f;
+		private static float m_linearAttackFactor = 0.4f;
+		private static float m_linearDecayFactor = 0.5f;
+		private static float m_linearFrictionFactor = 1.2f;
+
 
         // Vehicle properties
         private Vehicle m_type = Vehicle.TYPE_NONE;						// If a 'VEHICLE', and what kind
@@ -98,7 +104,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         // Linear properties
         private Vector3 m_linearMotorDirection = Vector3.Zero;			// velocity requested by LSL, decayed by time
-        private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;	// velocity requested by LSL
+        private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;	// velocity requested by LSL, for max limiting
         private Vector3 m_dir = Vector3.Zero;							// velocity applied to body
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private float m_linearMotorDecayTimescale = 0;
@@ -267,8 +273,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.LINEAR_MOTOR_DIRECTION:
-                    m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);
-                    m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);
+                	pValue *= m_linearVelocityFactor;
+                    m_linearMotorDirection = new Vector3(pValue.X, pValue.Y, pValue.Z);			// velocity requested by LSL, decayed by time
+                    m_linearMotorDirectionLASTSET = new Vector3(pValue.X, pValue.Y, pValue.Z);	// velocity requested by LSL, for max limiting
                     break;
                 case Vehicle.LINEAR_MOTOR_OFFSET:
                     // m_linearMotorOffset = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -453,6 +460,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             MoveAngular(pTimestep);
         }// end Step
 
+		internal void Halt()
+		{	// Kill all motions, when non-physical
+			m_linearMotorDirection = Vector3.Zero;
+			m_linearMotorDirectionLASTSET = Vector3.Zero;
+			m_dir = Vector3.Zero;						
+			m_lastLinearVelocityVector = Vector3.Zero;
+			m_angularMotorDirection = Vector3.Zero;		
+			m_angularMotorVelocity = Vector3.Zero;		
+			m_lastAngularVelocity = Vector3.Zero;		
+		}
+
         private void MoveLinear(float pTimestep, OdeScene _pParentScene)
         {
             if (!m_linearMotorDirection.ApproxEquals(Vector3.Zero, 0.01f))		// requested m_linearMotorDirection is significant
@@ -460,9 +478,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             	 if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
 
                 // add drive to body
-                Vector3 addAmount = m_linearMotorDirection/(m_linearMotorTimescale/pTimestep);
-                m_lastLinearVelocityVector += (addAmount*10);					// lastLinearVelocityVector is the current body velocity vector?
-        
+                float linfactor = m_linearMotorTimescale/pTimestep;
+                // Linear accel
+                Vector3 addAmount1 = (m_linearMotorDirection/linfactor) * 0.8f; 
+                // Differential accel
+                Vector3 addAmount2 = ((m_linearMotorDirection - m_lastLinearVelocityVector)/linfactor) * 1.6f;
+                // SL correction
+                Vector3 addAmount = (addAmount1 + addAmount2) * m_linearAttackFactor;
+                m_lastLinearVelocityVector += addAmount;					// lastLinearVelocityVector is the current body velocity vector
+//if(frcount == 0) Console.WriteLine("AL {0}  +  AD {1}    AS{2}    V {3}", addAmount1, addAmount2, addAmount, m_lastLinearVelocityVector);   
                 // This will work temporarily, but we really need to compare speed on an axis
                 // KF: Limit body velocity to applied velocity?
                 if (Math.Abs(m_lastLinearVelocityVector.X) > Math.Abs(m_linearMotorDirectionLASTSET.X))
@@ -475,7 +499,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // decay applied velocity
                 Vector3 decayfraction = ((Vector3.One/(m_linearMotorDecayTimescale/pTimestep)));
                 //Console.WriteLine("decay: " + decayfraction);
-                m_linearMotorDirection -= m_linearMotorDirection * decayfraction * 0.5f;
+                m_linearMotorDirection -= m_linearMotorDirection * decayfraction * m_linearDecayFactor;
                 //Console.WriteLine("actual: " + m_linearMotorDirection);
             }
             else
@@ -560,7 +584,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 			// apply friction
             Vector3 decayamount = Vector3.One / (m_linearFrictionTimescale / pTimestep);
-            m_lastLinearVelocityVector -= m_lastLinearVelocityVector * decayamount;
+            m_lastLinearVelocityVector -= m_lastLinearVelocityVector * decayamount  * m_linearFrictionFactor;
         } // end MoveLinear()
         
         private void MoveAngular(float pTimestep)

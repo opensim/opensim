@@ -2296,11 +2296,15 @@ Console.WriteLine(" JointCreateFixed");
         public override bool IsPhysical
         {
             get { return m_isphysical; }
-            set { 
+            set 
+            { 
                   m_isphysical = value;
-                  if (!m_isphysical) // Zero the remembered last velocity
-                      m_lastVelocity = Vector3.Zero;
-                }
+                  if (!m_isphysical)
+                  {		// Zero the remembered last velocity
+                   		m_lastVelocity = Vector3.Zero;
+                   	    if (m_vehicle.Type != Vehicle.TYPE_NONE) m_vehicle.Halt();
+                  }
+            }
         }
 
         public void setPrimForRemoval()
