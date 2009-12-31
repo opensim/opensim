@@ -37,6 +37,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Services;
+using LoginResponse = OpenSim.Framework.Communications.Services.LoginResponse;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Framework.Servers;
