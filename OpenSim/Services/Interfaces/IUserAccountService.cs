@@ -95,11 +95,9 @@ namespace OpenSim.Services.Interfaces
         //
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
 
-        // Update all updatable fields
+        // Store the data given, wich replaces the sotred data, therefore
+        // must be complete.
         //
-        bool SetUserAccount(UserAccount data);
-        
-        // Creates a user data record
-        bool CreateUserAccount(UserAccount data);
+        bool StoreUserAccount(UserAccount data);
     }
 }

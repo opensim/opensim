@@ -186,26 +186,13 @@ namespace OpenSim.Services.Connectors
             return accounts;
         }
 
-        public bool SetUserAccount(UserAccount data)
+        public bool StoreUserAccount(UserAccount data)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
             sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
             sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
             sendData["METHOD"] = "setaccount";
-
-            sendData["account"] = data.ToKeyValuePairs();
-
-            return SendAndGetBoolReply(sendData);
-        }
-
-        public bool CreateUserAccount(UserAccount data)
-        {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "createaccount";
 
             sendData["account"] = data.ToKeyValuePairs();
 

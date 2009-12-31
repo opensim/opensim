@@ -159,15 +159,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         // Update all updatable fields
         //
-        public bool SetUserAccount(UserAccount data)
+        public bool StoreUserAccount(UserAccount data)
         {
-            return m_UserService.SetUserAccount(data);
-        }
-
-        // Creates a user data record
-        public bool CreateUserAccount(UserAccount data)
-        {
-            return m_UserService.CreateUserAccount(data);
+            return m_UserService.StoreUserAccount(data);
         }
 
         #endregion
