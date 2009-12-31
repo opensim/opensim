@@ -3414,6 +3414,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             CapsModule.AddCapsHandler(agent.AgentID);
 
+            if ((teleportFlags & ((uint)TeleportFlags.ViaLandmark | (uint)TeleportFlags.ViaLocation | (uint)TeleportFlags.ViaLandmark | (uint)TeleportFlags.Default)) != 0)
+                System.Threading.Thread.Sleep(2000);
+
             if (!agent.child)
             {
                 if (TestBorderCross(agent.startpos,Cardinals.E))
