@@ -6363,6 +6363,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
+            if (buttons.Length < 1)
+            {
+                LSLError("No less than 1 button can be shown");
+                return;
+            }
             if (buttons.Length > 12)
             {
                 LSLError("No more than 12 buttons can be shown");
