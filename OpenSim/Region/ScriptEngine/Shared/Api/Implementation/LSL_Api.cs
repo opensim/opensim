@@ -2752,7 +2752,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionFilter(string name, string id, int accept)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionFilter");
+            m_host.CollisionFilter.Clear();
+            if(id != null)
+            {
+                m_host.CollisionFilter.Add(accept,id);
+            }
+            else
+            {
+                m_host.CollisionFilter.Add(accept,name);
+            }
         }
 
         public void llTakeControls(int controls, int accept, int pass_on)
@@ -4232,7 +4240,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPassCollisions(int pass)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPassCollisions");
+            if(pass == 0)
+            {
+                m_host.ParentGroup.PassCollision = false;
+            }
+            else
+            {
+                m_host.ParentGroup.PassCollision = true;
+            }
         }
 
         public LSL_String llGetScriptName()
