@@ -62,40 +62,123 @@ namespace OpenSim.Services.UserAccountService
             if (d.Length < 1)
                 return null;
 
-            UserAccount u = new UserAccount();
-            u.FirstName = d[0].FirstName;
-            u.LastName = d[0].LastName;
-            u.PrincipalID = d[0].PrincipalID;
-            u.ScopeID = d[0].ScopeID;
-            u.Email = d[0].Data["Email"].ToString();
-            u.Created = Convert.ToInt32(d[0].Data["Created"].ToString());
+            return MakeUserAccount(d[0]);
+        }
 
-            return null;
+        private UserAccount MakeUserAccount(UserAccountData d)
+        {
+            UserAccount u = new UserAccount();
+            u.FirstName = d.FirstName;
+            u.LastName = d.LastName;
+            u.PrincipalID = d.PrincipalID;
+            u.ScopeID = d.ScopeID;
+            u.Email = d.Data["Email"].ToString();
+            u.Created = Convert.ToInt32(d.Data["Created"].ToString());
+
+            string[] URLs = d.Data["ServiceURLs"].ToString().Split(new char[] {' '});
+            u.ServiceURLs = new Dictionary<string, object>();
+
+            foreach(string url in URLs)
+            {
+                string[] parts = url.Split(new char[] {'='});
+
+                if (parts.Length != 2)
+                    continue;
+
+                string name = System.Web.HttpUtility.UrlDecode(parts[0]);
+                string val = System.Web.HttpUtility.UrlDecode(parts[1]);
+
+                u.ServiceURLs[name] = val;
+            }
+
+            return u;
         }
 
         public UserAccount GetUserAccount(UUID scopeID, string email)
         {
-            return null;
+            UserAccountData[] d;
+
+            if (scopeID != UUID.Zero)
+            {
+                d = m_Database.Get(
+                        new string[] {"ScopeID", "Email"},
+                        new string[] {scopeID.ToString(), email});
+            }
+            else
+            {
+                d = m_Database.Get(
+                        new string[] {"Email"},
+                        new string[] {email});
+            }
+
+            if (d.Length < 1)
+                return null;
+
+            return MakeUserAccount(d[0]);
         }
         
-        public UserAccount GetUserAccount(UUID scopeID, UUID userID)
+        public UserAccount GetUserAccount(UUID scopeID, UUID principalID)
         {
-            return null;
+            UserAccountData[] d;
+
+            if (scopeID != UUID.Zero)
+            {
+                d = m_Database.Get(
+                        new string[] {"ScopeID", "PrincipalID"},
+                        new string[] {scopeID.ToString(), principalID.ToString()});
+            }
+            else
+            {
+                d = m_Database.Get(
+                        new string[] {"PrincipalID"},
+                        new string[] {principalID.ToString()});
+            }
+
+            if (d.Length < 1)
+                return null;
+
+            return MakeUserAccount(d[0]);
         }
 
-        public bool SetUserAccount(UserAccount data)
+        public bool StoreUserAccount(UserAccount data)
         {
-            return false;
-        }
+            UserAccountData d = new UserAccountData();
 
-        public bool CreateUserAccount(UserAccount data)
-        {
-            return false;
+            d.FirstName = data.FirstName;
+            d.LastName = data.LastName;
+            d.PrincipalID = data.PrincipalID;
+            d.ScopeID = data.ScopeID;
+            d.Data = new Dictionary<string,string>();
+            d.Data["Email"] = data.Email;
+            d.Data["Created"] = data.Created.ToString();
+
+            List<string> parts = new List<string>();
+
+            foreach (KeyValuePair<string,object> kvp in data.ServiceURLs)
+            {
+                string key = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                string val = System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
+                parts.Add(key + "=" + val);
+            }
+
+            d.Data["ServiceURLs"] = string.Join(" ", parts.ToArray());
+
+            return m_Database.Store(d);
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
-            return null;
+            UserAccountData[] d = m_Database.GetUsers(scopeID, query);
+
+            if (d == null)
+                return new List<UserAccount>();
+
+            List<UserAccount> ret = new List<UserAccount>();
+
+            foreach (UserAccountData data in d)
+                ret.Add(MakeUserAccount(data));
+
+            return ret;
         }
     }
 }

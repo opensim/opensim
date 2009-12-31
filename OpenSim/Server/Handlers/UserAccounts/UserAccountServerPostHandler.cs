@@ -85,10 +85,8 @@ namespace OpenSim.Server.Handlers.UserAccounts
                         return GetAccount(request);
                     case "getaccounts":
                         return GetAccounts(request);
-                    case "createaccount":
-                        return CreateAccount(request);
                     case "setaccount":
-                        return SetAccount(request);
+                        return StoreAccount(request);
                 }
                 m_log.DebugFormat("[PRESENCE HANDLER]: unknown method request: {0}", method);
             }
@@ -174,24 +172,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             return encoding.GetBytes(xmlString);
         }
 
-        byte[] CreateAccount(Dictionary<string, object> request)
-        {
-            if (!request.ContainsKey("account"))
-                return FailureResult();
-            if (request["account"] == null)
-                return FailureResult();
-            if (!(request["account"] is Dictionary<string, object>))
-                return FailureResult();
-
-            UserAccount account = new UserAccount((Dictionary<string, object>) request["account"]);
-
-            if (m_UserAccountService.CreateUserAccount(account))
-                return SuccessResult();
-
-            return FailureResult();
-        }
-
-        byte[] SetAccount(Dictionary<string, object> request)
+        byte[] StoreAccount(Dictionary<string, object> request)
         {
             if (!request.ContainsKey("account"))
                 return FailureResult();
@@ -202,7 +183,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
             UserAccount account = new UserAccount((Dictionary<string, object>)request["account"]);
 
-            if (m_UserAccountService.SetUserAccount(account))
+            if (m_UserAccountService.StoreUserAccount(account))
                 return SuccessResult();
 
             return FailureResult();

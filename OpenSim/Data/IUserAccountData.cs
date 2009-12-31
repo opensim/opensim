@@ -38,7 +38,7 @@ namespace OpenSim.Data
         public UUID ScopeID;
         public string FirstName;
         public string LastName;
-        public Dictionary<string, object> Data;
+        public Dictionary<string, string> Data;
     }
 
     /// <summary>
@@ -47,6 +47,7 @@ namespace OpenSim.Data
     public interface IUserAccountData
     {
         UserAccountData[] Get(string[] fields, string[] values);
-        bool Store(UserAccountData data, UUID principalID, string token);
+        bool Store(UserAccountData data);
+        UserAccountData[] GetUsers(UUID scopeID, string query);
     }
 }

@@ -65,7 +65,7 @@ namespace OpenSim.Data.MSSQL
         public UserAccountData Get(UUID principalID, UUID scopeID)
         {
             UserAccountData ret = new UserAccountData();
-            ret.Data = new Dictionary<string, object>();
+            ret.Data = new Dictionary<string, string>();
 
             string sql = string.Format("select * from {0} where UUID = @principalID", m_Realm);
             if (scopeID != UUID.Zero)
@@ -191,6 +191,11 @@ namespace OpenSim.Data.MSSQL
         }
 
         public UserAccountData[] Get(string[] keys, string[] vals)
+        {
+            return null;
+        }
+
+        public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
             return null;
         }
