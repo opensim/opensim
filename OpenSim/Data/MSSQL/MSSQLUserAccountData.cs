@@ -194,5 +194,10 @@ namespace OpenSim.Data.MSSQL
         {
             return null;
         }
+
+        public UserAccountData[] GetUsers(UUID scopeID, string query)
+        {
+            return null;
+        }
     }
 }

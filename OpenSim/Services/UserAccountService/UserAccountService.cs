@@ -168,7 +168,17 @@ namespace OpenSim.Services.UserAccountService
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
-            return null;
+            UserAccountData[] d = m_Database.GetUsers(scopeID, query);
+
+            if (d == null)
+                return new List<UserAccount>();
+
+            List<UserAccount> ret = new List<UserAccount>();
+
+            foreach (UserAccountData data in d)
+                ret.Add(MakeUserAccount(data));
+
+            return ret;
         }
     }
 }
