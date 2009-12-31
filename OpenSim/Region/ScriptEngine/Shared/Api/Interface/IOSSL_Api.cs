@@ -165,5 +165,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 		LSL_List osGetRegionStats();
 
         int osGetSimulatorMemory();
+        void osKickAvatar(string FirstName,string SurName,string alert);
+        void osSetSpeed(string UUID, float SpeedModifier);
+        void osCauseHealing(string avatar, double healing);
+        void osCauseDamage(string avatar, double damage);
     }
 }

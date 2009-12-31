@@ -647,5 +647,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetSimulatorMemory();
         }
+        public void osKickAvatar(string FirstName,string SurName,string alert)
+        {
+            m_OSSL_Functions.osKickAvatar( FirstName, SurName, alert);
+        }
+        public void osSetSpeed(string UUID, float SpeedModifier)
+        {
+            m_OSSL_Functions.osSetSpeed(UUID, SpeedModifier);
+        }
+        public void osCauseDamage(string avatar, double damage)
+        {
+            m_OSSL_Functions.osCauseDamage(avatar, damage);
+        }
+        public void osCauseHealing(string avatar, double healing)
+        {
+            m_OSSL_Functions.osCauseHealing(avatar, healing);
+        }
     }
 }

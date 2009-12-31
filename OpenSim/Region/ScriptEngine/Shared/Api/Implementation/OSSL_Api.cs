@@ -1987,5 +1987,82 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return (int)pws;
         }
+        public void osSetSpeed(string UUID, float SpeedModifier)
+		{
+        	CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
+            m_host.AddScriptLPS(1);
+			ScenePresence avatar = World.GetScenePresence(new UUID(UUID));
+			avatar.SpeedModifier = SpeedModifier;
+		}
+        public void osKickAvatar(string FirstName,string SurName,string alert)
+		{
+        	CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
+			if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+            {
+				foreach (ScenePresence presence in World.GetAvatars())
+				{
+					if ((presence.Firstname == FirstName) &&
+					    presence.Lastname == SurName)
+					{
+						// kick client...
+						if (alert != null)
+							presence.ControllingClient.Kick(alert);
+
+						// ...and close on our side
+						presence.Scene.IncomingCloseAgent(presence.UUID);
+					}
+				}
+			}
+		}
+        public void osCauseDamage(string avatar, double damage)
+        {
+        	CheckThreatLevel(ThreatLevel.High, "osCauseDamage");
+        	m_host.AddScriptLPS(1);
+
+        	UUID avatarId = new UUID(avatar);
+        	Vector3 pos = m_host.GetWorldPosition();
+
+        	ScenePresence presence = World.GetScenePresence(avatarId); 
+        	if (presence != null)
+        	{
+        		LandData land = World.GetLandData((float)pos.X, (float)pos.Y);
+        		if ((land.Flags & (uint)ParcelFlags.AllowDamage) == (uint)ParcelFlags.AllowDamage)
+        		{
+        			float health = presence.Health;
+        			health -= (float)damage;
+        			presence.setHealthWithUpdate(health);
+        			if (health <= 0)
+        			{
+        				float healthliveagain = 100;
+        				presence.ControllingClient.SendAgentAlertMessage("You died!", true);
+        				presence.setHealthWithUpdate(healthliveagain);
+        				presence.Scene.TeleportClientHome(presence.UUID, presence.ControllingClient);
+        			}
+        		}
+        	}
+        }
+        public void osCauseHealing(string avatar, double healing)
+        {
+        	CheckThreatLevel(ThreatLevel.High, "osCauseHealing");
+        	m_host.AddScriptLPS(1);
+
+        	UUID avatarId = new UUID(avatar);
+        	ScenePresence presence = World.GetScenePresence(avatarId);
+        	Vector3 pos = m_host.GetWorldPosition();
+        	bool result = World.ScriptDanger(m_host.LocalId, new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z));
+        	if (result)
+        	{
+        		if (presence != null)
+        		{
+        			float health = presence.Health;
+        			health += (float)healing;
+        			if (health >= 100)
+        			{
+        				health = 100;
+        			}
+        			presence.setHealthWithUpdate(health);
+        		}
+        	}
+        }
     }
 }
