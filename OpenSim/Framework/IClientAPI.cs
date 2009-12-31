@@ -455,44 +455,44 @@ namespace OpenSim.Framework
     
     public delegate void MuteListEntryUpdate(IClientAPI client, UUID MuteID, string Name, int Flags,UUID AgentID);
     
-	public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name, UUID AgentID);
-	
-	public delegate void AvatarInterestReply(IClientAPI client,UUID target, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
-	
-	public delegate void FindAgentUpdate(IClientAPI client, UUID hunter, UUID target);
-	
-	public delegate void TrackAgentUpdate(IClientAPI client, UUID hunter, UUID target);
-	
-	public delegate void FreezeUserUpdate(IClientAPI client, UUID parcelowner,uint flags, UUID target);
-	
-	public delegate void EjectUserUpdate(IClientAPI client, UUID parcelowner,uint flags, UUID target);
-	
-	public delegate void NewUserReport(IClientAPI client, string regionName,UUID abuserID, byte catagory, byte checkflags, string details, UUID objectID, Vector3 postion, byte reportType ,UUID screenshotID, string summery, UUID reporter);
-	
-	public delegate void GodUpdateRegionInfoUpdate(IClientAPI client, float BillableFactor, ulong EstateID, ulong RegionFlags, byte[] SimName,int RedirectX, int RedirectY);
-	
-	public delegate void GodlikeMessage(IClientAPI client, UUID requester, byte[] Method, byte[] Parameter);
-	
-	public delegate void SaveStateHandler(IClientAPI client,UUID agentID);
-	
-	public delegate void GroupAccountSummaryRequest(IClientAPI client,UUID agentID, UUID groupID);
-	
-	public delegate void GroupAccountDetailsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
-	
-	public delegate void GroupAccountTransactionsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
-	
-	public delegate void ParcelBuyPass(IClientAPI client, UUID agentID, int ParcelLocalID);
-	
-	public delegate void ParcelGodMark(IClientAPI client, UUID agentID, int ParcelLocalID);
-	
-	public delegate void GroupActiveProposalsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
-	
-	public delegate void GroupVoteHistoryRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
-	
-	
-	public delegate void SimWideDeletesDelegate(IClientAPI client,UUID agentID, int flags, UUID targetID);
-	
-	public delegate void SendPostcard(IClientAPI client);
+    public delegate void MuteListEntryRemove(IClientAPI client, UUID MuteID, string Name, UUID AgentID);
+    
+    public delegate void AvatarInterestReply(IClientAPI client,UUID target, uint wantmask, string wanttext, uint skillsmask, string skillstext, string languages);
+    
+    public delegate void FindAgentUpdate(IClientAPI client, UUID hunter, UUID target);
+    
+    public delegate void TrackAgentUpdate(IClientAPI client, UUID hunter, UUID target);
+    
+    public delegate void FreezeUserUpdate(IClientAPI client, UUID parcelowner,uint flags, UUID target);
+    
+    public delegate void EjectUserUpdate(IClientAPI client, UUID parcelowner,uint flags, UUID target);
+    
+    public delegate void NewUserReport(IClientAPI client, string regionName,UUID abuserID, byte catagory, byte checkflags, string details, UUID objectID, Vector3 postion, byte reportType ,UUID screenshotID, string summery, UUID reporter);
+    
+    public delegate void GodUpdateRegionInfoUpdate(IClientAPI client, float BillableFactor, ulong EstateID, ulong RegionFlags, byte[] SimName,int RedirectX, int RedirectY);
+    
+    public delegate void GodlikeMessage(IClientAPI client, UUID requester, byte[] Method, byte[] Parameter);
+    
+    public delegate void SaveStateHandler(IClientAPI client,UUID agentID);
+    
+    public delegate void GroupAccountSummaryRequest(IClientAPI client,UUID agentID, UUID groupID);
+    
+    public delegate void GroupAccountDetailsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
+    
+    public delegate void GroupAccountTransactionsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
+    
+    public delegate void ParcelBuyPass(IClientAPI client, UUID agentID, int ParcelLocalID);
+    
+    public delegate void ParcelGodMark(IClientAPI client, UUID agentID, int ParcelLocalID);
+    
+    public delegate void GroupActiveProposalsRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
+    
+    public delegate void GroupVoteHistoryRequest(IClientAPI client,UUID agentID, UUID groupID, UUID transactionID, UUID sessionID);
+    
+    
+    public delegate void SimWideDeletesDelegate(IClientAPI client,UUID agentID, int flags, UUID targetID);
+    
+    public delegate void SendPostcard(IClientAPI client);
 
     #endregion
 
@@ -1070,24 +1070,24 @@ namespace OpenSim.Framework
         event PlacesQuery OnPlacesQuery;
         
         event FindAgentUpdate OnFindAgentEvent;
-		event TrackAgentUpdate OnTrackAgentEvent;
-		event NewUserReport OnUserReportEvent;
-		event SaveStateHandler OnSaveStateEvent;
-		event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
-		event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
-		event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest; 	
-		event FreezeUserUpdate OnParcelFreezeUserEvent;
-		event EjectUserUpdate OnParcelEjectUserEvent;
-		event ParcelBuyPass OnParcelBuyPass;
-		event ParcelGodMark OnParcelGodMark;
-		event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
-		event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
-		event SimWideDeletesDelegate OnSimWideDeletes;
-		event SendPostcard OnSendPostcard;
-		event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
-		event MuteListEntryRemove OnRemoveMuteListEntryEvent;
-		event GodlikeMessage onGodlikeMessageEvent;
-		event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
+        event TrackAgentUpdate OnTrackAgentEvent;
+        event NewUserReport OnUserReportEvent;
+        event SaveStateHandler OnSaveStateEvent;
+        event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
+        event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
+        event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;     
+        event FreezeUserUpdate OnParcelFreezeUserEvent;
+        event EjectUserUpdate OnParcelEjectUserEvent;
+        event ParcelBuyPass OnParcelBuyPass;
+        event ParcelGodMark OnParcelGodMark;
+        event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
+        event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
+        event SimWideDeletesDelegate OnSimWideDeletes;
+        event SendPostcard OnSendPostcard;
+        event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
+        event MuteListEntryRemove OnRemoveMuteListEntryEvent;
+        event GodlikeMessage onGodlikeMessageEvent;
+        event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
@@ -1455,12 +1455,12 @@ namespace OpenSim.Framework
         void SendRebakeAvatarTextures(UUID textureID);
 
         void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages);
-    	
+        
         void SendGroupAccountingDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID, int amt);
         
-		void SendGroupAccountingSummary(IClientAPI sender,UUID groupID, uint moneyAmt, int totalTier, int usedTier);
-		
-		void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt);
-		
+        void SendGroupAccountingSummary(IClientAPI sender,UUID groupID, uint moneyAmt, int totalTier, int usedTier);
+        
+        void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt);
+        
     }
 }
