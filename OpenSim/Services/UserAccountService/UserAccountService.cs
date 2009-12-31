@@ -142,7 +142,28 @@ namespace OpenSim.Services.UserAccountService
 
         public bool StoreUserAccount(UserAccount data)
         {
-            return false;
+            UserAccountData d = new UserAccountData();
+
+            d.FirstName = data.FirstName;
+            d.LastName = data.LastName;
+            d.PrincipalID = data.PrincipalID;
+            d.ScopeID = data.ScopeID;
+            d.Data = new Dictionary<string,string>();
+            d.Data["Email"] = data.Email;
+            d.Data["Created"] = data.Created.ToString();
+
+            List<string> parts = new List<string>();
+
+            foreach (KeyValuePair<string,object> kvp in data.ServiceURLs)
+            {
+                string key = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                string val = System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
+                parts.Add(key + "=" + val);
+            }
+
+            d.Data["ServiceURLs"] = string.Join(" ", parts.ToArray());
+
+            return m_Database.Store(d);
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)

@@ -42,7 +42,7 @@ namespace OpenSim.Data.MySQL
         {
         }
 
-        public bool Store(UserAccountData data, UUID principalID, string token)
+        public bool Store(UserAccountData data)
         {
             return Store(data);
         }
