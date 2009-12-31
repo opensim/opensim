@@ -29,11 +29,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using OpenMetaverse.StructuredData;
+
 namespace OpenSim.Services.Interfaces
 {
     public abstract class LoginResponse
     {
         public abstract Hashtable ToHashtable();
+        public abstract OSD ToOSDMap();
     }
 
     public abstract class FailedLoginResponse : LoginResponse

@@ -23,12 +23,12 @@ namespace OpenSim.Services.LLLoginService
         private IInventoryService m_InventoryService;
         private IGridService m_GridService;
         private IPresenceService m_PresenceService;
+        private ISimulationService m_LocalSimulationService;
 
         private string m_DefaultRegionName;
-        private string m_LocalSimulationDll;
         private string m_RemoteSimulationDll;
 
-        public LLLoginService(IConfigSource config)
+        public LLLoginService(IConfigSource config, ISimulationService simService)
         {
             IConfig serverConfig = config.Configs["LoginService"];
             if (serverConfig == null)
@@ -41,7 +41,6 @@ namespace OpenSim.Services.LLLoginService
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
 
             m_DefaultRegionName = serverConfig.GetString("DefaultRegion", String.Empty);
-            m_LocalSimulationDll = serverConfig.GetString("LocalSimulationService", String.Empty);
             m_RemoteSimulationDll = serverConfig.GetString("RemoteSimulationService", String.Empty);
 
             // These 3 are required; the other 2 aren't
@@ -57,11 +56,18 @@ namespace OpenSim.Services.LLLoginService
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
             if (presenceService != string.Empty)
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+            m_LocalSimulationService = simService;
 
+        }
+
+        public LLLoginService(IConfigSource config) : this(config, null)
+        {
         }
 
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation)
         {
+            bool success = false;
+
             // Get the account and check that it exists
             UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
             if (account == null)
@@ -82,31 +88,46 @@ namespace OpenSim.Services.LLLoginService
             UUID session = UUID.Random();
             if (m_PresenceService != null)
             {
-                bool success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
+                success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
                 if (!success)
                     return LLFailedLoginResponse.GridProblem;
             }
 
-            // lots of things missing... need to do the simulation service
+            // Find the destination region/grid
             string where = string.Empty;
             Vector3 position = Vector3.Zero;
             Vector3 lookAt = Vector3.Zero;
             GridRegion destination = FindDestination(account, session, startLocation, out where, out position, out lookAt);
             if (destination == null)
+            {
+                m_PresenceService.LogoutAgent(session);
                 return LLFailedLoginResponse.GridProblem;
+            }
 
-            ISimulationService sim = null;
+            // Instantiate/get the simulation interface and launch an agent at the destination
+            ISimulationService simConnector = null;
+            success = false;
+            string reason = string.Empty;
             Object[] args = new Object[] { destination };
             // HG standalones have both a localSimulatonDll and a remoteSimulationDll
             // non-HG standalones have just a localSimulationDll
             // independent login servers have just a remoteSimulationDll
-            if (!startLocation.Contains("@") && (m_LocalSimulationDll != string.Empty))
-                sim = ServerUtils.LoadPlugin<ISimulationService>(m_LocalSimulationDll, args);
-            else
-                sim = ServerUtils.LoadPlugin<ISimulationService>(m_RemoteSimulationDll, args);
+            if (!startLocation.Contains("@") && (m_LocalSimulationService != null))
+                simConnector = m_LocalSimulationService;
+            else if (m_RemoteSimulationDll != string.Empty)
+                simConnector = ServerUtils.LoadPlugin<ISimulationService>(m_RemoteSimulationDll, args);
+            if (simConnector != null)
+                success = LaunchAgent(simConnector, destination, account, session, out reason);
+            if (!success)
+            {
+                m_PresenceService.LogoutAgent(session);
+                return LLFailedLoginResponse.GridProblem;
+            }
 
-
-            return null;
+            // Finally, fill out the response and return it
+            LLLoginResponse response = new LLLoginResponse();
+            //....
+            return response;
         }
 
         private GridRegion FindDestination(UserAccount account, UUID sessionID, string startLocation, out string where, out Vector3 position, out Vector3 lookAt)
@@ -226,6 +247,27 @@ namespace OpenSim.Services.LLLoginService
                 //response.StartLocation = "url";
 
             }
+
+        }
+
+        private bool LaunchAgent(ISimulationService simConnector, GridRegion region, UserAccount account, UUID session, out string reason)
+        {
+            reason = string.Empty;
+            AgentCircuitData aCircuit = new AgentCircuitData();
+            aCircuit.AgentID = account.PrincipalID;
+            //aCircuit.Appearance = optional
+            //aCircuit.BaseFolder = irrelevant
+            //aCircuit.CapsPath = required
+            aCircuit.child = false;
+            //aCircuit.circuitcode = required
+            aCircuit.firstname = account.FirstName;
+            //aCircuit.InventoryFolder = irrelevant
+            aCircuit.lastname = account.LastName;
+            //aCircuit.SecureSessionID = required
+            aCircuit.SessionID = session;
+            //aCircuit.startpos = required
+
+            return simConnector.CreateAgent(region.RegionHandle, aCircuit, 0, out reason);
 
         }
     }
