@@ -2752,7 +2752,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionFilter(string name, string id, int accept)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llCollisionFilter");
+            m_host.CollisionFilter.Clear();
+            if(id != null)
+            {
+                m_host.CollisionFilter.Add(accept,id);
+            }
+            else
+            {
+                m_host.CollisionFilter.Add(accept,name);
+            }
         }
 
         public void llTakeControls(int controls, int accept, int pass_on)
@@ -8204,11 +8212,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return -1;
         }
-
+        
         public void llSetInventoryPermMask(string item, int mask, int value)
         {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llSetInventoryPermMask");
+        	m_host.AddScriptLPS(1);
+        	if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
+        	{
+        		if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+        		{
+        			lock (m_host.TaskInventory)
+        			{
+        				foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+        				{
+        					if (inv.Value.Name == item)
+        					{
+        						switch (mask)
+        						{
+        							case 0:
+        								inv.Value.BasePermissions = (uint)value;
+        								break;
+        							case 1:
+        								inv.Value.CurrentPermissions = (uint)value;
+        								break;
+        							case 2:
+        								inv.Value.GroupPermissions = (uint)value;
+        								break;
+        							case 3:
+        								inv.Value.EveryonePermissions = (uint)value;
+        								break;
+        							case 4:
+        								inv.Value.NextPermissions = (uint)value;
+        								break;
+        						}
+        					}
+        				}
+        			}
+        		}
+        	}
         }
 
         public LSL_String llGetInventoryCreator(string item)
