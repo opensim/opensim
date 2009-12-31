@@ -4889,5 +4889,15 @@ namespace OpenSim.Region.Framework.Scenes
             if (Util.EnvironmentTickCountSubtract(m_lastUpdate) > 2000)
                 StartTimer();
         }
+
+        public override ISceneObject DeserializeObject(string representation)
+        {
+            return SceneObjectSerializer.FromXml2Format(representation);
+        }
+
+        public override bool AllowScriptCrossings
+        {
+            get { return m_allowScriptCrossings; }
+        }
     }
 }

@@ -47,13 +47,6 @@ namespace OpenSim.Server.Handlers.Simulation
             if (serverConfig == null)
                 throw new Exception("No section 'SimulationService' in config file");
 
-            bool authentication = serverConfig.GetBoolean("RequireAuthentication", false);
-
-            if (authentication)
-                m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();
-
-            bool foreignGuests = serverConfig.GetBoolean("AllowForeignGuests", false);
-
             //string simService = serverConfig.GetString("LocalServiceModule",
             //        String.Empty);
 
@@ -69,12 +62,14 @@ namespace OpenSim.Server.Handlers.Simulation
 
 
             //System.Console.WriteLine("XXXXXXXXXXXXXXXXXXX m_AssetSetvice == null? " + ((m_AssetService == null) ? "yes" : "no"));
-            server.AddStreamHandler(new AgentGetHandler(m_SimulationService, m_AuthenticationService));
-            server.AddStreamHandler(new AgentPostHandler(m_SimulationService, m_AuthenticationService, foreignGuests));
-            server.AddStreamHandler(new AgentPutHandler(m_SimulationService, m_AuthenticationService));
-            server.AddStreamHandler(new AgentDeleteHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentGetHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentPostHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentPutHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentDeleteHandler(m_SimulationService, m_AuthenticationService));
+            server.AddHTTPHandler("/agent/", new AgentHandler(m_SimulationService).Handler);
+            server.AddHTTPHandler("/object/", new ObjectHandler(m_SimulationService).Handler);
+
             //server.AddStreamHandler(new ObjectPostHandler(m_SimulationService, authentication));
-            //server.AddStreamHandler(new NeighborPostHandler(m_SimulationService, authentication));
         }
     }
 }

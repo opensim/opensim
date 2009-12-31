@@ -33,9 +33,11 @@ namespace OpenSim.Services.Interfaces
 {
     public interface ISimulationService
     {
+        IScene GetScene(ulong regionHandle);
+
         #region Agents
 
-        bool CreateAgent(ulong regionHandle, AgentCircuitData aCircuit, out string reason);
+        bool CreateAgent(ulong regionHandle, AgentCircuitData aCircuit, uint flags, out string reason);
 
         /// <summary>
         /// Full child agent update.
@@ -97,12 +99,6 @@ namespace OpenSim.Services.Interfaces
         bool CreateObject(ulong regionHandle, UUID userID, UUID itemID);
 
         #endregion Objects
-
-        #region Regions
-
-        bool HelloNeighbour(ulong regionHandle, RegionInfo thisRegion);
-
-        #endregion Regions
 
     }
 }

@@ -510,5 +510,16 @@ namespace OpenSim.Region.Framework.Scenes
 
             MainConsole.Instance.Commands.AddCommand(modulename, shared, command, shorthelp, longhelp, callback);
         }
+
+        public virtual ISceneObject DeserializeObject(string representation)
+        {
+            return null;
+        }
+
+        public virtual bool AllowScriptCrossings
+        {
+            get { return false; }
+        }
+
     }
 }
