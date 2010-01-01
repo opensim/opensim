@@ -47,6 +47,7 @@ namespace OpenSim.Server.Handlers.Login
         public LLLoginServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
         {
+            m_log.Debug("[LLLOGIN IN CONNECTOR]: Starting...");
             string loginService = ReadLocalServiceFromConfig(config);
 
             ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
@@ -85,7 +86,7 @@ namespace OpenSim.Server.Handlers.Login
         private void InitializeHandlers(IHttpServer server)
         {
             LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService);
-            server.AddXmlRPCHandler("Login_to_simulator", loginHandlers.HandleXMLRPCLogin, false);
+            server.AddXmlRPCHandler("login_to_simulator", loginHandlers.HandleXMLRPCLogin, false);
             server.SetDefaultLLSDHandler(loginHandlers.HandleLLSDLogin);
         }
 

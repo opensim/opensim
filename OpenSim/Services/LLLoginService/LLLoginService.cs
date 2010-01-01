@@ -64,6 +64,8 @@ namespace OpenSim.Services.LLLoginService
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
             m_LocalSimulationService = simService;
 
+            m_log.DebugFormat("[LLOGIN SERVICE]: Starting...");
+
         }
 
         public LLLoginService(IConfigSource config) : this(config, null)
