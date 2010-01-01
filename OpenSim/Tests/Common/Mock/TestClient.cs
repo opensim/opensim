@@ -287,6 +287,26 @@ namespace OpenSim.Tests.Common.Mock
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
 
         public event PlacesQuery OnPlacesQuery;
+        
+        public event FindAgentUpdate OnFindAgentEvent;
+		public event TrackAgentUpdate OnTrackAgentEvent;
+		public event NewUserReport OnUserReportEvent;
+		public event SaveStateHandler OnSaveStateEvent;
+		public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
+		public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
+		public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest; 	
+		public event FreezeUserUpdate OnParcelFreezeUserEvent;
+		public event EjectUserUpdate OnParcelEjectUserEvent;
+		public event ParcelBuyPass OnParcelBuyPass;
+		public event ParcelGodMark OnParcelGodMark;
+		public event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
+		public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
+		public event SimWideDeletesDelegate OnSimWideDeletes;
+		public event SendPostcard OnSendPostcard;
+		public event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
+		public event MuteListEntryRemove OnRemoveMuteListEntryEvent;
+		public event GodlikeMessage onGodlikeMessageEvent;
+		public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
 
 #pragma warning restore 67
 
@@ -1161,6 +1181,18 @@ namespace OpenSim.Tests.Common.Mock
         }
         
         public void SendAvatarInterestsReply(UUID avatarID, uint wantMask, string wantText, uint skillsMask, string skillsText, string languages)
+        {
+        }
+        
+        public void SendGroupAccountingDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID, int amt)
+        {
+        }
+        
+        public void SendGroupAccountingSummary(IClientAPI sender,UUID groupID, uint moneyAmt, int totalTier, int usedTier)
+        {
+        }
+        
+        public void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt)
         {
         }
     }
