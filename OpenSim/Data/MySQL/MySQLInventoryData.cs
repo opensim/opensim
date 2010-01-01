@@ -264,7 +264,7 @@ namespace OpenSim.Data.MySQL
             {
                 database.Reconnect();
                 m_log.Error(e.ToString());
-                return null;
+                throw;
             }
         }
 
