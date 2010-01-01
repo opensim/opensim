@@ -68,12 +68,22 @@ namespace OpenSim.Server.Handlers.Login
                     requestData.ContainsKey("last") && requestData["last"] != null &&
                     requestData.ContainsKey("passwd") && requestData["passwd"] != null)
                 {
+                    string first = requestData["first"].ToString();
+                    string last = requestData["last"].ToString();
+                    string passwd = requestData["passwd"].ToString();
                     string startLocation = string.Empty;
                     if (requestData.ContainsKey("start"))
                         startLocation = requestData["start"].ToString();
 
+                    string clientVersion = "Unknown";
+                    if (requestData.Contains("version"))
+                        clientVersion = requestData["version"].ToString();
+                    // We should do something interesting with the client version...
+
+                    m_log.InfoFormat("[LOGIN]: XMLRPC Login Requested for {0} {1}, starting in {2}, using {3}", first, last, startLocation, clientVersion);
+
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(requestData["first"].ToString(), requestData["last"].ToString(), requestData["passwd"].ToString(), startLocation);
+                    reply = m_LocalService.Login(first, last, passwd, startLocation, remoteClient);
 
                     XmlRpcResponse response = new XmlRpcResponse();
                     response.Value = reply.ToHashtable();
@@ -102,7 +112,7 @@ namespace OpenSim.Server.Handlers.Login
                     m_log.Info("[LOGIN]: LLSD Login Requested for: '" + map["first"].AsString() + "' '" + map["last"].AsString() + "' / " + startLocation);
 
                     LoginResponse reply = null;
-                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation);
+                    reply = m_LocalService.Login(map["first"].AsString(), map["last"].AsString(), map["passwd"].AsString(), startLocation, remoteClient);
                     return reply.ToOSDMap();
 
                 }

@@ -28,11 +28,19 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
+
 using OpenSim.Framework;
+using OpenSim.Framework.Capabilities;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 using log4net;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OSDArray = OpenMetaverse.StructuredData.OSDArray;
+using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Services.LLLoginService
 {
@@ -200,6 +208,132 @@ namespace OpenSim.Services.LLLoginService
             activeGestures = new ArrayList();
 
             SetDefaultValues();
+        }
+
+        public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, PresenceInfo pinfo,
+            GridRegion destination, List<InventoryFolderBase> invSkel, 
+            string where, string startlocation, Vector3 position, Vector3 lookAt, string message,
+            GridRegion home, IPEndPoint clientIP)
+            : this()
+        {
+            FillOutInventoryData(invSkel);
+
+            CircuitCode = (int)aCircuit.circuitcode;
+            Lastname = account.LastName;
+            Firstname = account.FirstName;
+            AgentID = account.PrincipalID;
+            SessionID = aCircuit.SessionID;
+            SecureSessionID = aCircuit.SecureSessionID;
+            Message = message;
+            // While we don't have friends...
+            //BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
+            BuddList = new LLLoginResponse.BuddyList();
+            StartLocation = where;
+
+            FillOutHomeData(pinfo, home);
+            LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
+
+            FillOutRegionData(destination);
+
+            FillOutSeedCap(aCircuit, destination, clientIP);
+            
+        }
+
+        private void FillOutInventoryData(List<InventoryFolderBase> invSkel)
+        {
+            InventoryData inventData = null;
+
+            try
+            {
+                inventData = GetInventorySkeleton(invSkel);
+            }
+            catch (Exception e)
+            {
+                m_log.WarnFormat(
+                    "[LLLOGIN SERVICE]: Error processing inventory skeleton of agent {0} - {1}",
+                    agentID, e);
+
+                // ignore and continue
+            }
+
+            if (inventData != null)
+            {
+                ArrayList AgentInventoryArray = inventData.InventoryArray;
+
+                Hashtable InventoryRootHash = new Hashtable();
+                InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
+                InventoryRoot = new ArrayList();
+                InventoryRoot.Add(InventoryRootHash);
+                InventorySkeleton = AgentInventoryArray;
+            }
+
+            // Inventory Library Section
+            Hashtable InventoryLibRootHash = new Hashtable();
+            InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+            InventoryLibRoot = new ArrayList();
+            InventoryLibRoot.Add(InventoryLibRootHash);
+
+            InventoryLibraryOwner = GetLibraryOwner();
+            InventoryLibrary = GetInventoryLibrary();
+        }
+
+        private void FillOutHomeData(PresenceInfo pinfo, GridRegion home)
+        {
+            int x = 1000 * (int)Constants.RegionSize, y = 1000 * (int)Constants.RegionSize;
+            if (home != null)
+            {
+                x = home.RegionLocX;
+                y = home.RegionLocY;
+            }
+
+            Home = string.Format(
+                        "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
+                        home.RegionLocX,
+                        home.RegionLocY,
+                        pinfo.HomePosition.X, pinfo.HomePosition.Y, pinfo.HomePosition.Z,
+                        pinfo.HomeLookAt.X, pinfo.HomeLookAt.Y, pinfo.HomeLookAt.Z);
+
+        }
+
+        private void FillOutRegionData(GridRegion destination)
+        {
+            IPEndPoint endPoint = destination.ExternalEndPoint;
+            SimAddress = endPoint.Address.ToString();
+            SimPort = (uint)endPoint.Port;
+            RegionX = (uint)destination.RegionLocX;
+            RegionY = (uint)destination.RegionLocY;
+        }
+
+        private void FillOutSeedCap(AgentCircuitData aCircuit, GridRegion destination, IPEndPoint ipepClient)
+        {
+            string capsSeedPath = String.Empty;
+
+            // Don't use the following!  It Fails for logging into any region not on the same port as the http server!
+            // Kept here so it doesn't happen again!
+            // response.SeedCapability = regionInfo.ServerURI + capsSeedPath;
+
+            #region IP Translation for NAT
+            if (ipepClient != null)
+            {
+                capsSeedPath
+                    = "http://"
+                      + NetworkUtil.GetHostFor(ipepClient.Address, destination.ExternalHostName)
+                      + ":"
+                      + destination.HttpPort
+                      + CapsUtil.GetCapsSeedPath(aCircuit.CapsPath);
+            }
+            else
+            {
+                capsSeedPath
+                    = "http://"
+                      + destination.ExternalHostName
+                      + ":"
+                      + destination.HttpPort
+                      + CapsUtil.GetCapsSeedPath(aCircuit.CapsPath);
+            }
+            #endregion
+
+            SeedCapability = capsSeedPath;
         }
 
         private void SetDefaultValues()
@@ -463,6 +597,97 @@ namespace OpenSim.Services.LLLoginService
             hash["category_id"] = ID;
             classifiedCategories.Add(hash);
             // this.classifiedCategoriesHash.Clear();
+        }
+
+
+        private static LLLoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        {
+            LLLoginResponse.BuddyList buddylistreturn = new LLLoginResponse.BuddyList();
+            foreach (FriendListItem fl in LFL)
+            {
+                LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(fl.Friend);
+                buddyitem.BuddyID = fl.Friend;
+                buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
+                buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
+                buddylistreturn.AddNewBuddy(buddyitem);
+            }
+            return buddylistreturn;
+        }
+
+        private InventoryData GetInventorySkeleton(List<InventoryFolderBase> folders)
+        {            
+            UUID rootID = UUID.Zero;
+            ArrayList AgentInventoryArray = new ArrayList();
+            Hashtable TempHash;
+            foreach (InventoryFolderBase InvFolder in folders)
+            {
+                if (InvFolder.ParentID == UUID.Zero)
+                {
+                    rootID = InvFolder.ID;
+                }
+                TempHash = new Hashtable();
+                TempHash["name"] = InvFolder.Name;
+                TempHash["parent_id"] = InvFolder.ParentID.ToString();
+                TempHash["version"] = (Int32)InvFolder.Version;
+                TempHash["type_default"] = (Int32)InvFolder.Type;
+                TempHash["folder_id"] = InvFolder.ID.ToString();
+                AgentInventoryArray.Add(TempHash);
+            }
+
+            return new InventoryData(AgentInventoryArray, rootID);
+
+        }
+
+        /// <summary>
+        /// Converts the inventory library skeleton into the form required by the rpc request.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ArrayList GetInventoryLibrary()
+        {
+            // While we don't have library...
+            //Dictionary<UUID, InventoryFolderImpl> rootFolders
+            //    = m_libraryRootFolder.RequestSelfAndDescendentFolders();
+            Dictionary<UUID, InventoryFolderImpl> rootFolders = new Dictionary<UUID,InventoryFolderImpl>();
+            ArrayList folderHashes = new ArrayList();
+
+            foreach (InventoryFolderBase folder in rootFolders.Values)
+            {
+                Hashtable TempHash = new Hashtable();
+                TempHash["name"] = folder.Name;
+                TempHash["parent_id"] = folder.ParentID.ToString();
+                TempHash["version"] = (Int32)folder.Version;
+                TempHash["type_default"] = (Int32)folder.Type;
+                TempHash["folder_id"] = folder.ID.ToString();
+                folderHashes.Add(TempHash);
+            }
+
+            return folderHashes;
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <returns></returns>
+        protected virtual ArrayList GetLibraryOwner()
+        {
+            //for now create random inventory library owner
+            Hashtable TempHash = new Hashtable();
+            TempHash["agent_id"] = "11111111-1111-0000-0000-000100bba000";
+            ArrayList inventoryLibOwner = new ArrayList();
+            inventoryLibOwner.Add(TempHash);
+            return inventoryLibOwner;
+        }
+
+        public class InventoryData
+        {
+            public ArrayList InventoryArray = null;
+            public UUID RootFolderID = UUID.Zero;
+
+            public InventoryData(ArrayList invList, UUID rootID)
+            {
+                InventoryArray = invList;
+                RootFolderID = rootID;
+            }
         }
 
         #region Properties
