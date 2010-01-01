@@ -66,7 +66,7 @@ namespace OpenSim.Services.AuthenticationService
                 return String.Empty;
             }
 
-            string hashed = Util.Md5Hash(Util.Md5Hash(password) + ":" +
+            string hashed = Util.Md5Hash(password + ":" +
                     data.Data["passwordSalt"].ToString());
 
             if (data.Data["passwordHash"].ToString() == hashed)
