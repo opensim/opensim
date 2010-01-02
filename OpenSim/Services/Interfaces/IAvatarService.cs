@@ -73,7 +73,7 @@ namespace OpenSim.Services.Interfaces
     /// Each region/client that uses avatars will have a data structure
     /// of this type representing the avatars.
     /// </summary>
-    public interface IAvatarData
+    public class AvatarData
     {
         // This pretty much determines which name/value pairs will be
         // present below. The name/value pair describe a part of
@@ -88,13 +88,15 @@ namespace OpenSim.Services.Interfaces
         // portable, but allows legacy appearance to continue to
         // function. Closed, LL-based  grids will never need URLs here.
 
-        int AvatarType { get; set; }
-        Dictionary<string,string> Data { get; set; }
+        public int AvatarType;
+        public Dictionary<string,string> Data;
 
         /// <summary>
-        /// This MUST at least define a pair "AvatarType" -> "dll:class"
         /// </summary>
         /// <returns></returns>
-        Dictionary<string, object> ToKeyValuePairs();
+        public Dictionary<string, object> ToKeyValuePairs()
+        {
+            return null;
+        }
     }
 }
