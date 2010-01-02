@@ -34,10 +34,10 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 {
-    public class RemoteUserAccountServicesConnector : UserAccountServicesConnector,
-            ISharedRegionModule, IUserAccountService
+    public class RemoteAvatarServicesConnector : AvatarServicesConnector,
+            ISharedRegionModule, IAvatarService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public string Name
         {
-            get { return "RemoteUserAccountServicesConnector"; }
+            get { return "RemoteAvatarServicesConnector"; }
         }
 
         public override void Initialise(IConfigSource source)
@@ -60,13 +60,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("UserAccountServices", "");
+                string name = moduleConfig.GetString("AvatarServices", "");
                 if (name == Name)
                 {
-                    IConfig userConfig = source.Configs["UserAccountService"];
+                    IConfig userConfig = source.Configs["AvatarService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: UserAccountService missing from OpanSim.ini");
+                        m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpanSim.ini");
                         return;
                     }
 
@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
                     base.Initialise(source);
 
-                    m_log.Info("[USER CONNECTOR]: Remote users enabled");
+                    m_log.Info("[AVATAR CONNECTOR]: Remote avatars enabled");
                 }
             }
         }
@@ -96,7 +96,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserAccountService>(this);
+            scene.RegisterModuleInterface<IAvatarService>(this);
         }
 
         public void RemoveRegion(Scene scene)

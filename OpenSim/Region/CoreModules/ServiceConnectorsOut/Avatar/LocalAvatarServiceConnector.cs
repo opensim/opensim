@@ -26,24 +26,30 @@
  */
 
 using System;
-using Nini.Config;
-using log4net;
+using System.Collections.Generic;
 using System.Reflection;
+using log4net;
+using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Connectors;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
+using OpenMetaverse;
+
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 {
-    public class RemoteUserAccountServicesConnector : UserAccountServicesConnector,
-            ISharedRegionModule, IUserAccountService
+    public class LocalAvatarServicesConnector : ISharedRegionModule, IAvatarService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private IAvatarService m_AvatarService;
+
         private bool m_Enabled = false;
+
+        #region ISharedRegionModule
 
         public Type ReplaceableInterface 
         {
@@ -52,29 +58,45 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public string Name
         {
-            get { return "RemoteUserAccountServicesConnector"; }
+            get { return "LocalAvatarServicesConnector"; }
         }
 
-        public override void Initialise(IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("UserAccountServices", "");
+                string name = moduleConfig.GetString("AvatarServices", "");
                 if (name == Name)
                 {
-                    IConfig userConfig = source.Configs["UserAccountService"];
+                    IConfig userConfig = source.Configs["AvatarService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: UserAccountService missing from OpanSim.ini");
+                        m_log.Error("[USER CONNECTOR]: AvatarService missing from OpenSim.ini");
                         return;
                     }
 
+                    string serviceDll = userConfig.GetString("LocalServiceModule",
+                            String.Empty);
+
+                    if (serviceDll == String.Empty)
+                    {
+                        m_log.Error("[USER CONNECTOR]: No LocalServiceModule named in section AvatarService");
+                        return;
+                    }
+
+                    Object[] args = new Object[] { source };
+                    m_AvatarService =
+                            ServerUtils.LoadPlugin<IAvatarService>(serviceDll,
+                            args);
+
+                    if (m_AvatarService == null)
+                    {
+                        m_log.Error("[USER CONNECTOR]: Can't load user account service");
+                        return;
+                    }
                     m_Enabled = true;
-
-                    base.Initialise(source);
-
-                    m_log.Info("[USER CONNECTOR]: Remote users enabled");
+                    m_log.Info("[USER CONNECTOR]: Local avatar connector enabled");
                 }
             }
         }
@@ -96,7 +118,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserAccountService>(this);
+            scene.RegisterModuleInterface<IAvatarService>(m_AvatarService);
         }
 
         public void RemoveRegion(Scene scene)
@@ -110,5 +132,37 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (!m_Enabled)
                 return;
         }
+
+        #endregion
+
+        #region IAvatarService
+
+        public AvatarData GetAvatar(UUID userID)
+        {
+            return m_AvatarService.GetAvatar(userID);
+        }
+
+        public bool SetAvatar(UUID userID, AvatarData avatar)
+        {
+            return m_AvatarService.SetAvatar(userID, avatar);
+        }
+
+        public bool ResetAvatar(UUID userID)
+        {
+            return m_AvatarService.ResetAvatar(userID);
+        }
+
+        public bool SetItems(UUID userID, string[] names, string[] values)
+        {
+            return m_AvatarService.SetItems(userID, names, values);
+        }
+
+        public bool RemoveItems(UUID userID, string[] names)
+        {
+            return m_AvatarService.RemoveItems(userID, names);
+        }
+        
+        #endregion
+
     }
 }
