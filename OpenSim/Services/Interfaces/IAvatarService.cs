@@ -65,8 +65,8 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <param name="attach"></param>
         /// <returns></returns>
-        bool SetAttachments(UUID userID, AttachmentData[] attachs);
-        bool Detach(UUID userID, UUID id);
+        bool SetItems(UUID userID, string[] names, string[] values);
+        bool RemoveItems(UUID userID, string[] names);
     }
 
     /// <summary>
@@ -75,12 +75,6 @@ namespace OpenSim.Services.Interfaces
     /// </summary>
     public interface IAvatarData
     {
-        AttachmentData[] GetAttachments(int[] attachPoints);
-        int GetAttachmentPoint(UUID id);
-
-        bool SetAttachments(AttachmentData[] attachs);
-        bool Detach(UUID id);
-
         // This pretty much determines which name/value pairs will be
         // present below. The name/value pair describe a part of
         // the avatar. For SL avatars, these would be "shape", "texture1",
