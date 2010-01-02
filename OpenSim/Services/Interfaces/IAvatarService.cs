@@ -65,9 +65,8 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <param name="attach"></param>
         /// <returns></returns>
-        bool SetAttachment(UUID userID, AttachmentData attach);
-        bool SetAttachments(UUID userID, List<AttachmentData> attachs);
-        bool Dettach(UUID userID, UUID id);
+        bool SetAttachments(UUID userID, AttachmentData[] attachs);
+        bool Detach(UUID userID, UUID id);
     }
 
     /// <summary>
@@ -83,12 +82,10 @@ namespace OpenSim.Services.Interfaces
         // be processed by a module instead of being processed in 
         // the Scenes core code.
 
-        AttachmentData GetAttachment(int attachPoint);
-        List<AttachmentData> GetAttachments();
+        AttachmentData[] GetAttachments(int[] attachPoints);
         int GetAttachmentPoint(UUID id);
 
-        bool SetAttachment(AttachmentData attach);
-        bool SetAttachments(List<AttachmentData> attachs);
-        bool Dettach(UUID id);
+        bool SetAttachments(AttachmentData[] attachs);
+        bool Detach(UUID id);
     }
 }
