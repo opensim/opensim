@@ -128,6 +128,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_InitialValues = GetVars();
         }
 
+        public virtual void StateChange(string newState)
+        {
+        }
+
         public void Close()
         {
 //            m_sponser.Close();
