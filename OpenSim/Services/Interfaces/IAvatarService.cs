@@ -41,7 +41,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        IAvatarData GetAvatar(UUID userID);
+        AvatarData GetAvatar(UUID userID);
 
         /// <summary>
         /// Called by everyone who can change the avatar data (so, regions)
@@ -49,7 +49,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <param name="avatar"></param>
         /// <returns></returns>
-        bool SetAvatar(UUID userID, IAvatarData avatar);
+        bool SetAvatar(UUID userID, AvatarData avatar);
 
         /// <summary>
         /// Not sure if it's needed
@@ -90,6 +90,11 @@ namespace OpenSim.Services.Interfaces
 
         public int AvatarType;
         public Dictionary<string,string> Data;
+
+        public AvatarData(Dictionary<string, object> kvp)
+        {
+            // TODO
+        }
 
         /// <summary>
         /// </summary>
