@@ -59,7 +59,7 @@ namespace OpenSim.Services.Interfaces
         bool ResetAvatar(UUID userID);
 
         /// <summary>
-        /// These 3 methods raison d'etre: 
+        /// These methods raison d'etre: 
         /// No need to send the entire avatar data (SetAvatar) for changing attachments
         /// </summary>
         /// <param name="userID"></param>
@@ -96,5 +96,11 @@ namespace OpenSim.Services.Interfaces
 
         int AvatarType { get; set; }
         Dictionary<string,string> Data { get; set; }
+
+        /// <summary>
+        /// This MUST at least define a pair "AvatarType" -> "dll:class"
+        /// </summary>
+        /// <returns></returns>
+        Dictionary<string, object> ToKeyValuePairs();
     }
 }
