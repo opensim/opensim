@@ -95,6 +95,23 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 
         protected Scene m_scene;
 
+        private InventoryFolderImpl m_libraryRootFolder;
+        protected InventoryFolderImpl LibraryRootFolder
+        {
+            get
+            {
+                if (m_libraryRootFolder != null)
+                    return m_libraryRootFolder;
+
+                ILibraryService lib = m_scene.RequestModuleInterface<ILibraryService>();
+                if (lib != null)
+                {
+                    m_libraryRootFolder = lib.LibraryRootFolder;
+                }
+                return m_libraryRootFolder;
+            }
+        }
+
         #region Constants
         // These are here for testing.  They will be taken out
 
@@ -1005,9 +1022,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 IInventoryService invService = m_scene.InventoryService;
                 InventoryItemBase assetRequestItem = new InventoryItemBase(notecard, user);
                 assetRequestItem = invService.GetItem(assetRequestItem);
-                if (assetRequestItem == null) // Library item
+                if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
-                    assetRequestItem = scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+                    assetRequestItem = LibraryRootFolder.FindItem(notecard);
 
                     if (assetRequestItem != null) // Implicitly readable
                         return true;
@@ -1425,9 +1442,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 IInventoryService invService = m_scene.InventoryService;
                 InventoryItemBase assetRequestItem = new InventoryItemBase(script, user);
                 assetRequestItem = invService.GetItem(assetRequestItem);
-                if (assetRequestItem == null) // Library item
+                if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
-                    assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(script);
+                    assetRequestItem = LibraryRootFolder.FindItem(script);
 
                     if (assetRequestItem != null) // Implicitly readable
                         return true;
@@ -1520,9 +1537,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 IInventoryService invService = m_scene.InventoryService;
                 InventoryItemBase assetRequestItem = new InventoryItemBase(notecard, user);
                 assetRequestItem = invService.GetItem(assetRequestItem);
-                if (assetRequestItem == null) // Library item
+                if (assetRequestItem == null && LibraryRootFolder != null) // Library item
                 {
-                    assetRequestItem = m_scene.CommsManager.UserProfileCacheService.LibraryRoot.FindItem(notecard);
+                    assetRequestItem = LibraryRootFolder.FindItem(notecard);
 
                     if (assetRequestItem != null) // Implicitly readable
                         return true;

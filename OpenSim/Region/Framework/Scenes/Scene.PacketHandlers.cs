@@ -424,7 +424,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="ownerID"></param>
         public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
         {
-            if (ownerID == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null && ownerID == LibraryService.LibraryRootFolder.Owner)
             {
                 //m_log.Debug("request info for library item");
                 return;
@@ -458,13 +458,14 @@ namespace OpenSim.Region.Framework.Scenes
             // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
             // can be handled transparently).
             InventoryFolderImpl fold = null;
-            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
-            {
-                remoteClient.SendInventoryFolderDetails(
-                    fold.Owner, folderID, fold.RequestListOfItems(),
-                    fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
-                return;
-            }
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
+                {
+                    remoteClient.SendInventoryFolderDetails(
+                        fold.Owner, folderID, fold.RequestListOfItems(),
+                        fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
+                    return;
+                }
 
             // We're going to send the reply async, because there may be
             // an enormous quantity of packets -- basically the entire inventory!
@@ -512,15 +513,16 @@ namespace OpenSim.Region.Framework.Scenes
             // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
             // can be handled transparently).
             InventoryFolderImpl fold;
-            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
-            {
-                version = 0;
-                InventoryCollection ret = new InventoryCollection();
-                ret.Folders = new List<InventoryFolderBase>();
-                ret.Items = fold.RequestListOfItems();
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
+                {
+                    version = 0;
+                    InventoryCollection ret = new InventoryCollection();
+                    ret.Folders = new List<InventoryFolderBase>();
+                    ret.Items = fold.RequestListOfItems();
 
-                return ret;
-            }
+                    return ret;
+                }
 
             InventoryCollection contents = new InventoryCollection();
 

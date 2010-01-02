@@ -26,13 +26,14 @@ namespace OpenSim.Services.LLLoginService
         private IGridService m_GridService;
         private IPresenceService m_PresenceService;
         private ISimulationService m_LocalSimulationService;
+        private ILibraryService m_LibraryService;
 
         private string m_DefaultRegionName;
         private string m_RemoteSimulationDll;
         private string m_WelcomeMessage;
         private bool m_RequireInventory;
 
-        public LLLoginService(IConfigSource config, ISimulationService simService)
+        public LLLoginService(IConfigSource config, ISimulationService simService, ILibraryService libraryService)
         {
             IConfig serverConfig = config.Configs["LoginService"];
             if (serverConfig == null)
@@ -43,13 +44,14 @@ namespace OpenSim.Services.LLLoginService
             string invService = serverConfig.GetString("InventoryService", String.Empty);
             string gridService = serverConfig.GetString("GridService", String.Empty);
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
+            string libService = serverConfig.GetString("LibraryService", String.Empty);
 
             m_DefaultRegionName = serverConfig.GetString("DefaultRegion", String.Empty);
             m_RemoteSimulationDll = serverConfig.GetString("RemoteSimulationService", String.Empty);
             m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_RequireInventory = serverConfig.GetBoolean("RequireInventory", true);
 
-            // These 3 are required; the other 2 aren't
+            // These 3 are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty ||
                 invService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
@@ -62,13 +64,27 @@ namespace OpenSim.Services.LLLoginService
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
             if (presenceService != string.Empty)
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+
+            //
+            // deal with the services given as argument
+            //
             m_LocalSimulationService = simService;
+            if (libraryService != null)
+            {
+                m_log.DebugFormat("[LLOGIN SERVICE]: Using LibraryService given as argument");
+                m_LibraryService = libraryService;
+            }
+            else if (libService != string.Empty)
+            {
+                m_log.DebugFormat("[LLOGIN SERVICE]: Using instantiated LibraryService");
+                m_LibraryService = ServerUtils.LoadPlugin<ILibraryService>(libService, args);
+            }
 
             m_log.DebugFormat("[LLOGIN SERVICE]: Starting...");
 
         }
 
-        public LLLoginService(IConfigSource config) : this(config, null)
+        public LLLoginService(IConfigSource config) : this(config, null, null)
         {
         }
 
@@ -171,7 +187,7 @@ namespace OpenSim.Services.LLLoginService
                 // TODO: Get Friends list... 
 
                 // Finally, fill out the response and return it
-                LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel,
+                LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel, m_LibraryService,
                     where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
 
                 return response;

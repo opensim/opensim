@@ -240,6 +240,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected ILibraryService m_LibraryService;
+
+        public ILibraryService LibraryService
+        {
+            get
+            {
+                if (m_LibraryService == null)
+                    m_LibraryService = RequestModuleInterface<ILibraryService>();
+
+                return m_LibraryService;
+            }
+        }
+
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;

@@ -6962,7 +6962,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         assetRequestItem = invService.GetItem(assetRequestItem);
                         if (assetRequestItem == null)
                         {
-                            assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.LibraryRoot.FindItem(itemID);
+                            ILibraryService lib = m_scene.RequestModuleInterface<ILibraryService>();
+                            if (lib != null)
+                                assetRequestItem = lib.LibraryRootFolder.FindItem(itemID);
                             if (assetRequestItem == null)
                                 return true;
                         }
