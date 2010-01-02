@@ -75,17 +75,26 @@ namespace OpenSim.Services.Interfaces
     /// </summary>
     public interface IAvatarData
     {
-        // Not sure what to do with the non-attachment data
-        // That data is highly dependent on the implementation of avatars
-        // and I doubt it can be abstracted into this interface.
-        // Maybe it will never be here. Maybe that data needs to
-        // be processed by a module instead of being processed in 
-        // the Scenes core code.
-
         AttachmentData[] GetAttachments(int[] attachPoints);
         int GetAttachmentPoint(UUID id);
 
         bool SetAttachments(AttachmentData[] attachs);
         bool Detach(UUID id);
+
+        // This pretty much determines which name/value pairs will be
+        // present below. The name/value pair describe a part of
+        // the avatar. For SL avatars, these would be "shape", "texture1",
+        // etc. For other avatars, they might be "mesh", "skin", etc.
+        // The value portion is a URL that is expected to resolve to an
+        // asset of the type required by the handler for that field.
+        // It is required that regions can access these URLs. Allowing
+        // direct access by a viewer is not required, and, if provided,
+        // may be read-only. A "naked" UUID can be used to refer to an
+        // asset int he current region's asset service, which is not
+        // portable, but allows legacy appearance to continue to
+        // function. Closed, LL-based  grids will never need URLs here.
+
+        int AvatarType { get; set; }
+        Dictionary<string,string> Data { get; set; }
     }
 }
