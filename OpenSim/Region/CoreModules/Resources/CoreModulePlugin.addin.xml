@@ -32,6 +32,8 @@
       <!-- Service connectors OUT modules -->
         <RegionModule id="LocalAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.LocalAssetServicesConnector" />
         <RegionModule id="RemoteAssetServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.RemoteAssetServicesConnector" />
+        <RegionModule id="LocalAuthenticationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication.LocalAuthenticationServicesConnector" />
+        <RegionModule id="RemoteAuthenticationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication.RemoteAuthenticationServicesConnector" />
         <RegionModule id="LocalAuthorizationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization.LocalAuthorizationServicesConnector" />
         <RegionModule id="RemoteAuthorizationServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization.RemoteAuthorizationServicesConnector" />
         <RegionModule id="HGAssetBroker" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset.HGAssetBroker" />

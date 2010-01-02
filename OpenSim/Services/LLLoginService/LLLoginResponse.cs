@@ -51,6 +51,7 @@ namespace OpenSim.Services.LLLoginService
         string m_login;
 
         public static LLFailedLoginResponse UserProblem;
+        public static LLFailedLoginResponse AuthorizationProblem;
         public static LLFailedLoginResponse GridProblem;
         public static LLFailedLoginResponse InventoryProblem;
         public static LLFailedLoginResponse DeadRegionProblem;
@@ -63,8 +64,11 @@ namespace OpenSim.Services.LLLoginService
             UserProblem = new LLFailedLoginResponse("key", 
                 "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
                 "false");
+            AuthorizationProblem = new LLFailedLoginResponse("key",
+                "Error connecting to grid. Unable to authorize your session into the region.",
+                "false");
             GridProblem = new LLFailedLoginResponse("key",
-                "Error connecting to grid. Could not percieve credentials from login XML.",
+                "Error connecting to the desired location. Try connecting to another region.",
                 "false");
             InventoryProblem = new LLFailedLoginResponse("key",
                 "The inventory service is not responding.  Please notify your login region operator.",
@@ -288,8 +292,8 @@ namespace OpenSim.Services.LLLoginService
 
             Home = string.Format(
                         "{{'region_handle':[r{0},r{1}], 'position':[r{2},r{3},r{4}], 'look_at':[r{5},r{6},r{7}]}}",
-                        home.RegionLocX,
-                        home.RegionLocY,
+                        x,
+                        y,
                         pinfo.HomePosition.X, pinfo.HomePosition.Y, pinfo.HomePosition.Z,
                         pinfo.HomeLookAt.X, pinfo.HomeLookAt.Y, pinfo.HomeLookAt.Z);
 
@@ -441,8 +445,8 @@ namespace OpenSim.Services.LLLoginService
                 responseData["home"] = home;
                 responseData["look_at"] = lookAt;
                 responseData["message"] = welcomeMessage;
-                responseData["region_x"] = (Int32)(RegionX * Constants.RegionSize);
-                responseData["region_y"] = (Int32)(RegionY * Constants.RegionSize);
+                responseData["region_x"] = (Int32)(RegionX);
+                responseData["region_y"] = (Int32)(RegionY);
 
                 if (m_buddyList != null)
                 {
@@ -537,8 +541,8 @@ namespace OpenSim.Services.LLLoginService
                 map["home"] = OSD.FromString(home);
                 map["look_at"] = OSD.FromString(lookAt);
                 map["message"] = OSD.FromString(welcomeMessage);
-                map["region_x"] = OSD.FromInteger(RegionX * Constants.RegionSize);
-                map["region_y"] = OSD.FromInteger(RegionY * Constants.RegionSize);
+                map["region_x"] = OSD.FromInteger(RegionX);
+                map["region_y"] = OSD.FromInteger(RegionY);
 
                 if (m_buddyList != null)
                 {

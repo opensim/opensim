@@ -3483,10 +3483,18 @@ namespace OpenSim.Region.Framework.Scenes
         {
             reason = String.Empty;
 
-            bool result = CommsManager.UserService.VerifySession(agent.AgentID, agent.SessionID);
-            m_log.Debug("[CONNECTION BEGIN]: User authentication returned " + result);
+            IAuthenticationService auth = RequestModuleInterface<IAuthenticationService>();
+            if (auth == null)
+            {
+                reason = String.Format("Failed to authenticate user {0} {1} in region {2}. Authentication service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                return false;
+            }
+
+            bool result = auth.Verify(agent.AgentID, agent.SecureSessionID.ToString(), 30);
+
+            m_log.Debug("[CONNECTION BEGIN]: Session authentication returned " + result);
             if (!result)
-                reason = String.Format("Failed to authenticate user {0} {1}, access denied.", agent.firstname, agent.lastname);
+                reason = String.Format("Failed to authenticate user {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
 
             return result;
         }

@@ -81,12 +81,12 @@ namespace OpenSim.Data.MySQL
 
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, Position=?Position, LookAt=?LookAt', Online='true' where `SessionID`=?SessionID", m_Realm);
+            cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, Position=?Position, LookAt=?LookAt, Online='true' where `SessionID`=?SessionID", m_Realm);
 
             cmd.Parameters.AddWithValue("?SessionID", sessionID.ToString());
             cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
-            cmd.Parameters.AddWithValue("?Position", position);
-            cmd.Parameters.AddWithValue("?LookAt", lookAt);
+            cmd.Parameters.AddWithValue("?Position", position.ToString());
+            cmd.Parameters.AddWithValue("?LookAt", lookAt.ToString());
 
             if (ExecuteNonQuery(cmd) == 0)
                 return false;

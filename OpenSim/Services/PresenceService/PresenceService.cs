@@ -63,14 +63,21 @@ namespace OpenSim.Services.PresenceService
             data.UserID = userID;
             data.RegionID = UUID.Zero;
             data.SessionID = sessionID;
+            data.Data = new Dictionary<string, string>();
             data.Data["SecureSessionID"] = secureSessionID.ToString();
             data.Data["Online"] = "true";
             data.Data["Login"] = Util.UnixTimeSinceEpoch().ToString();
-            if (d.Length > 0)
+            if (d != null && d.Length > 0)
             {
                 data.Data["HomeRegionID"] = d[0].Data["HomeRegionID"];
                 data.Data["HomePosition"] = d[0].Data["HomePosition"];
                 data.Data["HomeLookAt"] = d[0].Data["HomeLookAt"];
+            }
+            else
+            {
+                data.Data["HomeRegionID"] = UUID.Zero.ToString();
+                data.Data["HomePosition"] = new Vector3(128, 128, 0).ToString();
+                data.Data["HomeLookAt"] = new Vector3(0, 1, 0).ToString();
             }
             
             m_Database.Store(data);
@@ -86,9 +93,10 @@ namespace OpenSim.Services.PresenceService
 
             PresenceData[] d = m_Database.Get("UserID", data.UserID);
 
+            m_log.WarnFormat("[PRESENCE SERVICE]: LogoutAgent {0} with {1} sessions currently present", data.UserID, d.Length);
             if (d.Length > 1)
             {
-                m_Database.Delete("SessionID", sessionID.ToString());
+                m_Database.Delete("UserID", data.UserID);
             }
 
             data.Data["Online"] = "false";
@@ -110,14 +118,28 @@ namespace OpenSim.Services.PresenceService
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
             m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
-            PresenceData pdata = m_Database.Get(sessionID);
-            if (pdata == null)
-                return false;
-            if (pdata.Data["Online"] == "false")
-                return false;
+            try
+            {
+                PresenceData pdata = m_Database.Get(sessionID);
+                if (pdata == null)
+                    return false;
+                if (pdata.Data == null)
+                    return false;
 
-            return m_Database.ReportAgent(sessionID, regionID,
-                        position.ToString(), lookAt.ToString());
+                if (!pdata.Data.ContainsKey("Online") || (pdata.Data.ContainsKey("Online") && pdata.Data["Online"] == "false"))
+                {
+                    m_log.WarnFormat("[PRESENCE SERVICE]: Someone tried to report presence of an agent who's not online");
+                    return false;
+                }
+
+                return m_Database.ReportAgent(sessionID, regionID,
+                            position.ToString(), lookAt.ToString());
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent threw exception {0}", e.StackTrace);
+                return false;
+            }
         }
 
         public PresenceInfo GetAgent(UUID sessionID)

@@ -47,9 +47,9 @@ namespace OpenSim.Services.AuthenticationService
     public class PasswordAuthenticationService :
             AuthenticationServiceBase, IAuthenticationService
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log =
+        //        LogManager.GetLogger(
+        //        MethodBase.GetCurrentMethod().DeclaringType);
  
         public PasswordAuthenticationService(IConfigSource config) :
                 base(config)
@@ -68,6 +68,8 @@ namespace OpenSim.Services.AuthenticationService
 
             string hashed = Util.Md5Hash(password + ":" +
                     data.Data["passwordSalt"].ToString());
+
+            //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
 
             if (data.Data["passwordHash"].ToString() == hashed)
             {

@@ -75,104 +75,120 @@ namespace OpenSim.Services.LLLoginService
         public LoginResponse Login(string firstName, string lastName, string passwd, string startLocation, IPEndPoint clientIP)
         {
             bool success = false;
-
-            // Get the account and check that it exists
-            UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
-            if (account == null)
-            {
-                m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: user not found");
-                return LLFailedLoginResponse.UserProblem;
-            }
-
-            // Authenticate this user
-            string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
-            UUID secureSession = UUID.Zero;
-            if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
-            {
-                m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: authentication failed");
-                return LLFailedLoginResponse.UserProblem;
-            }
-
-            // Get the user's inventory
-            List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
-            if (m_RequireInventory && ((inventorySkel == null) || (inventorySkel != null && inventorySkel.Count == 0)))
-            {
-                m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: unable to retrieve user inventory");
-                return LLFailedLoginResponse.InventoryProblem;
-            }
-
-            // Login the presence
-            // We may want to check for user already logged in, to
-            // stay compatible with what people expect...
             UUID session = UUID.Random();
-            PresenceInfo presence = null;
-            GridRegion home = null;
-            if (m_PresenceService != null)
+
+            try
             {
-                success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
-                if (!success)
+                // Get the account and check that it exists
+                UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
+                if (account == null)
                 {
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: could not login presence");
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: user not found");
+                    return LLFailedLoginResponse.UserProblem;
+                }
+
+                // Authenticate this user
+                if (!passwd.StartsWith("$1$"))
+                    passwd = "$1$" + Util.Md5Hash(passwd);
+                passwd = passwd.Remove(0, 3); //remove $1$
+                string token = m_AuthenticationService.Authenticate(account.PrincipalID, passwd, 30);
+                UUID secureSession = UUID.Zero;
+                if ((token == string.Empty) || (token != string.Empty && !UUID.TryParse(token, out secureSession)))
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: authentication failed");
+                    return LLFailedLoginResponse.UserProblem;
+                }
+
+                // Get the user's inventory
+                List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
+                if (m_RequireInventory && ((inventorySkel == null) || (inventorySkel != null && inventorySkel.Count == 0)))
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: unable to retrieve user inventory");
+                    return LLFailedLoginResponse.InventoryProblem;
+                }
+
+                // Login the presence
+                // We may want to check for user already logged in, to
+                // stay compatible with what people expect...
+                PresenceInfo presence = null;
+                GridRegion home = null;
+                if (m_PresenceService != null)
+                {
+                    success = m_PresenceService.LoginAgent(account.PrincipalID.ToString(), session, secureSession);
+                    if (!success)
+                    {
+                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: could not login presence");
+                        return LLFailedLoginResponse.GridProblem;
+                    }
+
+                    // Get the updated presence info
+                    presence = m_PresenceService.GetAgent(session);
+
+                    // Get the home region
+                    if ((presence.HomeRegionID != UUID.Zero) && m_GridService != null)
+                    {
+                        home = m_GridService.GetRegionByUUID(account.ScopeID, presence.HomeRegionID);
+                    }
+                }
+
+                // Find the destination region/grid
+                string where = string.Empty;
+                Vector3 position = Vector3.Zero;
+                Vector3 lookAt = Vector3.Zero;
+                GridRegion destination = FindDestination(account, presence, session, startLocation, out where, out position, out lookAt);
+                if (destination == null)
+                {
+                    m_PresenceService.LogoutAgent(session);
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: destination not found");
                     return LLFailedLoginResponse.GridProblem;
                 }
-                // Get the updated presence info
-                presence = m_PresenceService.GetAgent(session);
 
-                // Get the home region
-                if ((presence.HomeRegionID != UUID.Zero) && m_GridService != null)
+                // Instantiate/get the simulation interface and launch an agent at the destination
+                ISimulationService simConnector = null;
+                string reason = string.Empty;
+                uint circuitCode = 0;
+                AgentCircuitData aCircuit = null;
+                Object[] args = new Object[] { destination };
+                // HG standalones have both a localSimulatonDll and a remoteSimulationDll
+                // non-HG standalones have just a localSimulationDll
+                // independent login servers have just a remoteSimulationDll
+                if (!startLocation.Contains("@") && (m_LocalSimulationService != null))
+                    simConnector = m_LocalSimulationService;
+                else if (m_RemoteSimulationDll != string.Empty)
+                    simConnector = ServerUtils.LoadPlugin<ISimulationService>(m_RemoteSimulationDll, args);
+                if (simConnector != null)
                 {
-                    home = m_GridService.GetRegionByUUID(account.ScopeID, presence.HomeRegionID);
+                    circuitCode = (uint)Util.RandomClass.Next(); ;
+                    aCircuit = LaunchAgent(simConnector, destination, account, session, secureSession, circuitCode, position, out reason);
                 }
-            }
+                if (aCircuit == null)
+                {
+                    m_PresenceService.LogoutAgent(session);
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
+                    return LLFailedLoginResponse.AuthorizationProblem;
+                }
 
-            // Find the destination region/grid
-            string where = string.Empty;
-            Vector3 position = Vector3.Zero;
-            Vector3 lookAt = Vector3.Zero;
-            GridRegion destination = FindDestination(account, presence, session, startLocation, out where, out position, out lookAt);
-            if (destination == null)
+                // TODO: Get Friends list... 
+
+                // Finally, fill out the response and return it
+                LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel,
+                    where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
+
+                return response;
+            }
+            catch (Exception e)
             {
-                m_PresenceService.LogoutAgent(session);
-                m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: destination not found");
-                return LLFailedLoginResponse.GridProblem;
+                m_log.WarnFormat("[LLOGIN SERVICE]: Exception processing login for {0} {1}: {2}", firstName, lastName, e.StackTrace);
+                if (m_PresenceService != null)
+                    m_PresenceService.LogoutAgent(session);
+                return LLFailedLoginResponse.InternalError;
             }
-
-            // Instantiate/get the simulation interface and launch an agent at the destination
-            ISimulationService simConnector = null;
-            string reason = string.Empty;
-            uint circuitCode = 0;
-            AgentCircuitData aCircuit = null;
-            Object[] args = new Object[] { destination };
-            // HG standalones have both a localSimulatonDll and a remoteSimulationDll
-            // non-HG standalones have just a localSimulationDll
-            // independent login servers have just a remoteSimulationDll
-            if (!startLocation.Contains("@") && (m_LocalSimulationService != null))
-                simConnector = m_LocalSimulationService;
-            else if (m_RemoteSimulationDll != string.Empty)
-                simConnector = ServerUtils.LoadPlugin<ISimulationService>(m_RemoteSimulationDll, args);
-            if (simConnector != null)
-            {
-                circuitCode = (uint)Util.RandomClass.Next(); ;
-                aCircuit = LaunchAgent(simConnector, destination, account, session, secureSession, circuitCode, position, out reason);
-            }
-            if (aCircuit == null)
-            {
-                m_PresenceService.LogoutAgent(session);
-                m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
-                return LLFailedLoginResponse.GridProblem;
-            }
-
-            // TODO: Get Friends list... 
-
-            // Finally, fill out the response and return it
-            LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel, 
-                where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
-
-            return response;
         }
 
         private GridRegion FindDestination(UserAccount account, PresenceInfo pinfo, UUID sessionID, string startLocation, out string where, out Vector3 position, out Vector3 lookAt)
         {
+            m_log.DebugFormat("[LLOGIN SERVICE]: FindDestination for start location {0}", startLocation);
+
             where = "home";
             position = new Vector3(128, 128, 0);
             lookAt = new Vector3(0, 1, 0);
@@ -188,7 +204,16 @@ namespace OpenSim.Services.LLLoginService
                 GridRegion region = null;
 
                 if (pinfo.HomeRegionID.Equals(UUID.Zero))
-                    region = m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
+                {
+                    if (m_DefaultRegionName != string.Empty)
+                    {
+                        region = m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
+                        where = "safe";
+                    }
+                    else
+                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have a default location." +
+                                         "Please specify DefaultLocation in [LoginService]", account.FirstName, account.LastName);
+                }
                 else
                     region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID);
 
@@ -207,7 +232,10 @@ namespace OpenSim.Services.LLLoginService
                 GridRegion region = null;
 
                 if (pinfo.RegionID.Equals(UUID.Zero))
+                {
                     region = m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
+                    where = "safe";
+                }
                 else
                 {
                     region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.RegionID);
@@ -240,6 +268,9 @@ namespace OpenSim.Services.LLLoginService
                     {
                         if (!regionName.Contains("@"))
                         {
+                            if (m_GridService == null)
+                                return null;
+
                             List<GridRegion> regions = m_GridService.GetRegionsByName(account.ScopeID, regionName, 1);
                             if ((regions == null) || (regions != null && regions.Count == 0))
                             {
