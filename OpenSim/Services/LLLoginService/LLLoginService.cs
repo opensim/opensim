@@ -212,7 +212,7 @@ namespace OpenSim.Services.LLLoginService
                     }
                     else
                         m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have a default location." +
-                                         "Please specify DefaultLocation in [LoginService]", account.FirstName, account.LastName);
+                                         "Please specify DefaultRegion in [LoginService]", account.FirstName, account.LastName);
                 }
                 else
                     region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID);
