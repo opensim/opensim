@@ -35,6 +35,7 @@ using System.Text;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -72,9 +73,9 @@ namespace OpenSim.Server.Handlers.Simulation
 
 
             UUID agentID;
+            UUID regionID;
             string action;
-            ulong regionHandle;
-            if (!Utils.GetParams((string)request["uri"], out agentID, out regionHandle, out action))
+            if (!Utils.GetParams((string)request["uri"], out agentID, out regionID, out action))
             {
                 m_log.InfoFormat("[AGENT HANDLER]: Invalid parameters for agent message {0}", request["uri"]);
                 responsedata["int_response_code"] = 404;
@@ -97,12 +98,12 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else if (method.Equals("GET"))
             {
-                DoAgentGet(request, responsedata, agentID, regionHandle);
+                DoAgentGet(request, responsedata, agentID, regionID);
                 return responsedata;
             }
             else if (method.Equals("DELETE"))
             {
-                DoAgentDelete(request, responsedata, agentID, action, regionHandle);
+                DoAgentDelete(request, responsedata, agentID, action, regionID);
                 return responsedata;
             }
             else
@@ -126,10 +127,27 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
-            // retrieve the regionhandle
-            ulong regionhandle = 0;
-            if (args["destination_handle"] != null)
-                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
+            // retrieve the input arguments
+            int x = 0, y = 0;
+            UUID uuid = UUID.Zero;
+            string regionname = string.Empty;
+            uint teleportFlags = 0;
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out x);
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out y);
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                regionname = args["destination_name"].ToString();
+            if (args.ContainsKey("teleport_flags") && args["teleport_flags"] != null)
+                teleportFlags = args["teleport_flags"].AsUInteger();
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = uuid;
+            destination.RegionLocX = x;
+            destination.RegionLocY = y;
+            destination.RegionName = regionname;
 
             AgentCircuitData aCircuit = new AgentCircuitData();
             try
@@ -146,15 +164,10 @@ namespace OpenSim.Server.Handlers.Simulation
 
             OSDMap resp = new OSDMap(2);
             string reason = String.Empty;
-            uint teleportFlags = 0;
-            if (args.ContainsKey("teleport_flags"))
-            {
-                teleportFlags = args["teleport_flags"].AsUInteger();
-            }
 
             // This is the meaning of POST agent
             //m_regionClient.AdjustUserInformation(aCircuit);
-            bool result = m_SimulationService.CreateAgent(regionhandle, aCircuit, teleportFlags, out reason);
+            bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
@@ -174,10 +187,24 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
-            // retrieve the regionhandle
-            ulong regionhandle = 0;
-            if (args["destination_handle"] != null)
-                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
+            // retrieve the input arguments
+            int x = 0, y = 0;
+            UUID uuid = UUID.Zero;
+            string regionname = string.Empty;
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out x);
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out y);
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                regionname = args["destination_name"].ToString();
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = uuid;
+            destination.RegionLocX = x;
+            destination.RegionLocY = y;
+            destination.RegionName = regionname;
 
             string messageType;
             if (args["message_type"] != null)
@@ -206,7 +233,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
-                result = m_SimulationService.UpdateAgent(regionhandle, agent);
+                result = m_SimulationService.UpdateAgent(destination, agent);
 
             }
             else if ("AgentPosition".Equals(messageType))
@@ -223,7 +250,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
-                result = m_SimulationService.UpdateAgent(regionhandle, agent);
+                result = m_SimulationService.UpdateAgent(destination, agent);
 
             }
 
@@ -232,10 +259,13 @@ namespace OpenSim.Server.Handlers.Simulation
             //responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp); ??? instead
         }
 
-        protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, ulong regionHandle)
+        protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
         {
+            GridRegion destination = new GridRegion();
+            destination.RegionID = regionID;
+
             IAgentData agent = null;
-            bool result = m_SimulationService.RetrieveAgent(regionHandle, id, out agent);
+            bool result = m_SimulationService.RetrieveAgent(destination, id, out agent);
             OSDMap map = null;
             if (result)
             {
@@ -271,14 +301,17 @@ namespace OpenSim.Server.Handlers.Simulation
             }
         }
 
-        protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, ulong regionHandle)
+        protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
         {
             //m_log.Debug(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
 
+            GridRegion destination = new GridRegion();
+            destination.RegionID = regionID;
+
             if (action.Equals("release"))
-                m_SimulationService.ReleaseAgent(regionHandle, id, "");
+                m_SimulationService.ReleaseAgent(destination, id, "");
             else
-                m_SimulationService.CloseAgent(regionHandle, id);
+                m_SimulationService.CloseAgent(destination, id);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
@@ -287,165 +320,4 @@ namespace OpenSim.Server.Handlers.Simulation
         }
     }
 
-    public class AgentGetHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public AgentGetHandler(ISimulationService service, IAuthenticationService authentication) :
-                base("GET", "/agent")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
-        }
-    }
-
-    public class AgentPostHandler : BaseStreamHandler
-    {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private ISimulationService m_SimulationService;
-        private IAuthenticationService m_AuthenticationService;
-        // TODO: unused: private bool m_AllowForeignGuests;
-
-        public AgentPostHandler(ISimulationService service, IAuthenticationService authentication, bool foreignGuests) :
-            base("POST", "/agent")
-        {
-            m_SimulationService = service;
-            m_AuthenticationService = authentication;
-            // TODO: unused: m_AllowForeignGuests = foreignGuests;
-        }
-
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            byte[] result = new byte[0];
-
-            UUID agentID;
-            string action;
-            ulong regionHandle;
-            if (!RestHandlerUtils.GetParams(path, out agentID, out regionHandle, out action))
-            {
-                m_log.InfoFormat("[AgentPostHandler]: Invalid parameters for agent message {0}", path);
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Invalid parameters for agent message " + path;
-
-                return result;
-            }
-
-            if (m_AuthenticationService != null)
-            {
-                // Authentication
-                string authority = string.Empty;
-                string authToken = string.Empty;
-                if (!RestHandlerUtils.GetAuthentication(httpRequest, out authority, out authToken))
-                {
-                    m_log.InfoFormat("[AgentPostHandler]: Authentication failed for agent message {0}", path);
-                    httpResponse.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    return result;
-                }
-                // TODO: Rethink this
-                //if (!m_AuthenticationService.VerifyKey(agentID, authToken))
-                //{
-                //    m_log.InfoFormat("[AgentPostHandler]: Authentication failed for agent message {0}", path);
-                //    httpResponse.StatusCode = (int)HttpStatusCode.Forbidden;
-                //    return result;
-                //}
-                m_log.DebugFormat("[AgentPostHandler]: Authentication succeeded for {0}", agentID);
-            }
-
-            OSDMap args = Util.GetOSDMap(request, (int)httpRequest.ContentLength);
-            if (args == null)
-            {
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Unable to retrieve data";
-                m_log.DebugFormat("[AgentPostHandler]: Unable to retrieve data for post {0}", path);
-                return result;
-            }
-
-            // retrieve the regionhandle
-            ulong regionhandle = 0;
-            if (args["destination_handle"] != null)
-                UInt64.TryParse(args["destination_handle"].AsString(), out regionhandle);
-
-            AgentCircuitData aCircuit = new AgentCircuitData();
-            try
-            {
-                aCircuit.UnpackAgentCircuitData(args);
-            }
-            catch (Exception ex)
-            {
-                m_log.InfoFormat("[AgentPostHandler]: exception on unpacking CreateAgent message {0}", ex.Message);
-                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpResponse.StatusDescription = "Problems with data deserialization";
-                return result;
-            }
-
-            string reason = string.Empty;
-
-            // We need to clean up a few things in the user service before I can do this
-            //if (m_AllowForeignGuests)
-            //    m_regionClient.AdjustUserInformation(aCircuit);
-
-            // Finally!
-            bool success = m_SimulationService.CreateAgent(regionhandle, aCircuit, /*!!!*/0, out reason);
-
-            OSDMap resp = new OSDMap(1);
-
-            resp["success"] = OSD.FromBoolean(success);
-
-            httpResponse.StatusCode = (int)HttpStatusCode.OK;
-
-            return Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp));
-        }
-    }
-
-    public class AgentPutHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public AgentPutHandler(ISimulationService service, IAuthenticationService authentication) :
-            base("PUT", "/agent")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
-        }
-    }
-
-    public class AgentDeleteHandler : BaseStreamHandler
-    {
-        // TODO: unused: private ISimulationService m_SimulationService;
-        // TODO: unused: private IAuthenticationService m_AuthenticationService;
-
-        public AgentDeleteHandler(ISimulationService service, IAuthenticationService authentication) :
-            base("DELETE", "/agent")
-        {
-            // TODO: unused: m_SimulationService = service;
-            // TODO: unused: m_AuthenticationService = authentication;
-        }
-
-        public override byte[] Handle(string path, Stream request,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            // Not implemented yet
-            httpResponse.StatusCode = (int)HttpStatusCode.NotImplemented;
-            return new byte[] { };
-        }
-    }
 }

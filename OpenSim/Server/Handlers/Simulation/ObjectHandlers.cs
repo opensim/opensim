@@ -35,6 +35,7 @@ using System.Text;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
 using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
@@ -70,9 +71,9 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["content_type"] = "text/html";
 
             UUID objectID;
+            UUID regionID;
             string action;
-            ulong regionHandle;
-            if (!Utils.GetParams((string)request["uri"], out objectID, out regionHandle, out action))
+            if (!Utils.GetParams((string)request["uri"], out objectID, out regionID, out action))
             {
                 m_log.InfoFormat("[REST COMMS]: Invalid parameters for object message {0}", request["uri"]);
                 responsedata["int_response_code"] = 404;
@@ -85,12 +86,12 @@ namespace OpenSim.Server.Handlers.Simulation
             string method = (string)request["http-method"];
             if (method.Equals("POST"))
             {
-                DoObjectPost(request, responsedata, regionHandle);
+                DoObjectPost(request, responsedata, regionID);
                 return responsedata;
             }
             else if (method.Equals("PUT"))
             {
-                DoObjectPut(request, responsedata, regionHandle);
+                DoObjectPut(request, responsedata, regionID);
                 return responsedata;
             }
             //else if (method.Equals("DELETE"))
@@ -109,7 +110,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         }
 
-        protected virtual void DoObjectPost(Hashtable request, Hashtable responsedata, ulong regionhandle)
+        protected virtual void DoObjectPost(Hashtable request, Hashtable responsedata, UUID regionID)
         {
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
@@ -118,14 +119,32 @@ namespace OpenSim.Server.Handlers.Simulation
                 responsedata["str_response_string"] = "false";
                 return;
             }
+            // retrieve the input arguments
+            int x = 0, y = 0;
+            UUID uuid = UUID.Zero;
+            string regionname = string.Empty;
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out x);
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out y);
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                regionname = args["destination_name"].ToString();
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = uuid;
+            destination.RegionLocX = x;
+            destination.RegionLocY = y;
+            destination.RegionName = regionname;
 
             string sogXmlStr = "", extraStr = "", stateXmlStr = "";
-            if (args["sog"] != null)
+            if (args.ContainsKey("sog") && args["sog"] != null)
                 sogXmlStr = args["sog"].AsString();
-            if (args["extra"] != null)
+            if (args.ContainsKey("extra") && args["extra"] != null)
                 extraStr = args["extra"].AsString();
 
-            IScene s = m_SimulationService.GetScene(regionhandle);
+            IScene s = m_SimulationService.GetScene(destination.RegionHandle);
             ISceneObject sog = null;
             try
             {
@@ -158,13 +177,13 @@ namespace OpenSim.Server.Handlers.Simulation
                 }
             }
             // This is the meaning of POST object
-            bool result = m_SimulationService.CreateObject(regionhandle, sog, false);
+            bool result = m_SimulationService.CreateObject(destination, sog, false);
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = result.ToString();
         }
 
-        protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, ulong regionhandle)
+        protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, UUID regionID)
         {
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
@@ -174,14 +193,33 @@ namespace OpenSim.Server.Handlers.Simulation
                 return;
             }
 
+            // retrieve the input arguments
+            int x = 0, y = 0;
+            UUID uuid = UUID.Zero;
+            string regionname = string.Empty;
+            if (args.ContainsKey("destination_x") && args["destination_x"] != null)
+                Int32.TryParse(args["destination_x"].AsString(), out x);
+            if (args.ContainsKey("destination_y") && args["destination_y"] != null)
+                Int32.TryParse(args["destination_y"].AsString(), out y);
+            if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
+                UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
+            if (args.ContainsKey("destination_name") && args["destination_name"] != null)
+                regionname = args["destination_name"].ToString();
+
+            GridRegion destination = new GridRegion();
+            destination.RegionID = uuid;
+            destination.RegionLocX = x;
+            destination.RegionLocY = y;
+            destination.RegionName = regionname;
+
             UUID userID = UUID.Zero, itemID = UUID.Zero;
-            if (args["userid"] != null)
+            if (args.ContainsKey("userid") && args["userid"] != null)
                 userID = args["userid"].AsUUID();
-            if (args["itemid"] != null)
+            if (args.ContainsKey("itemid") && args["itemid"] != null)
                 itemID = args["itemid"].AsUUID();
 
             // This is the meaning of PUT object
-            bool result = m_SimulationService.CreateObject(regionhandle, userID, itemID);
+            bool result = m_SimulationService.CreateObject(destination, userID, itemID);
 
             responsedata["int_response_code"] = 200;
             responsedata["str_response_string"] = result.ToString();

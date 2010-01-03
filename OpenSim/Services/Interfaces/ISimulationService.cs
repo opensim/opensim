@@ -29,6 +29,8 @@ using System;
 using OpenSim.Framework;
 using OpenMetaverse;
 
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 namespace OpenSim.Services.Interfaces
 {
     public interface ISimulationService
@@ -37,7 +39,7 @@ namespace OpenSim.Services.Interfaces
 
         #region Agents
 
-        bool CreateAgent(ulong regionHandle, AgentCircuitData aCircuit, uint flags, out string reason);
+        bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason);
 
         /// <summary>
         /// Full child agent update.
@@ -45,7 +47,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        bool UpdateAgent(ulong regionHandle, AgentData data);
+        bool UpdateAgent(GridRegion destination, AgentData data);
 
         /// <summary>
         /// Short child agent update, mostly for position.
@@ -53,9 +55,9 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        bool UpdateAgent(ulong regionHandle, AgentPosition data);
+        bool UpdateAgent(GridRegion destination, AgentPosition data);
 
-        bool RetrieveAgent(ulong regionHandle, UUID id, out IAgentData agent);
+        bool RetrieveAgent(GridRegion destination, UUID id, out IAgentData agent);
 
         /// <summary>
         /// Message from receiving region to departing region, telling it got contacted by the client.
@@ -65,7 +67,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="id"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
-        bool ReleaseAgent(ulong regionHandle, UUID id, string uri);
+        bool ReleaseAgent(GridRegion destination, UUID id, string uri);
 
         /// <summary>
         /// Close agent.
@@ -73,7 +75,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionHandle"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        bool CloseAgent(ulong regionHandle, UUID id);
+        bool CloseAgent(GridRegion destination, UUID id);
 
         #endregion Agents
 
@@ -86,7 +88,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="sog"></param>
         /// <param name="isLocalCall"></param>
         /// <returns></returns>
-        bool CreateObject(ulong regionHandle, ISceneObject sog, bool isLocalCall);
+        bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall);
 
         /// <summary>
         /// Create an object from the user's inventory in the destination region. 
@@ -96,7 +98,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="userID"></param>
         /// <param name="itemID"></param>
         /// <returns></returns>
-        bool CreateObject(ulong regionHandle, UUID userID, UUID itemID);
+        bool CreateObject(GridRegion destination, UUID userID, UUID itemID);
 
         #endregion Objects
 

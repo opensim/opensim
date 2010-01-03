@@ -43,9 +43,9 @@ namespace OpenSim.Server.Handlers.Simulation
         public SimulationServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
         {
-            IConfig serverConfig = config.Configs["SimulationService"];
-            if (serverConfig == null)
-                throw new Exception("No section 'SimulationService' in config file");
+            //IConfig serverConfig = config.Configs["SimulationService"];
+            //if (serverConfig == null)
+            //    throw new Exception("No section 'SimulationService' in config file");
 
             //string simService = serverConfig.GetString("LocalServiceModule",
             //        String.Empty);

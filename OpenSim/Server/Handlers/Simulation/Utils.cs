@@ -46,11 +46,11 @@ namespace OpenSim.Server.Handlers.Simulation
         /// <param name="uri">Something like this: /agent/uuid/ or /agent/uuid/handle/release</param>
         /// <param name="uri">uuid on uuid field</param>
         /// <param name="action">optional action</param>
-        public static bool GetParams(string uri, out UUID uuid, out ulong regionHandle, out string action)
+        public static bool GetParams(string uri, out UUID uuid, out UUID regionID, out string action)
         {
             uuid = UUID.Zero;
+            regionID = UUID.Zero;
             action = "";
-            regionHandle = 0;
 
             uri = uri.Trim(new char[] { '/' });
             string[] parts = uri.Split('/');
@@ -64,7 +64,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     return false;
 
                 if (parts.Length >= 3)
-                    UInt64.TryParse(parts[2], out regionHandle);
+                    UUID.TryParse(parts[2], out regionID);
                 if (parts.Length >= 4)
                     action = parts[3];
 

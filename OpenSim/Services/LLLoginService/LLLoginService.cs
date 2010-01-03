@@ -370,7 +370,7 @@ namespace OpenSim.Services.LLLoginService
             aCircuit.SessionID = session;
             aCircuit.startpos = position;
 
-            if (simConnector.CreateAgent(region.RegionHandle, aCircuit, 0, out reason))
+            if (simConnector.CreateAgent(region, aCircuit, 0, out reason))
                 return aCircuit;
 
             return null;
