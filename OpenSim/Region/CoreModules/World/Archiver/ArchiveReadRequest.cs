@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             List<string> serialisedParcels = new List<string>();
             string filePath = "NONE";
 
-            TarArchiveReader archive = new TarArchiveReader(m_loadStream);          
+            TarArchiveReader archive = new TarArchiveReader(m_loadStream);
             byte[] data;
             TarArchiveReader.TarEntryType entryType;
             

@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
 
                             m_scene.ForEachClient(
                                 delegate(IClientAPI controller)
-                				{
+                                {
                                     if (controller.AgentId != godID)
                                         controller.Kick(reasonStr);
                                 }

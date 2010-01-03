@@ -243,7 +243,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PIDHoverType PIDHoverType { set;}
         public abstract float PIDHoverTau { set;}
 
-		// For RotLookAt        
+        // For RotLookAt
         public abstract Quaternion APIDTarget { set;}
         public abstract bool APIDActive { set;}
         public abstract float APIDStrength { set;}

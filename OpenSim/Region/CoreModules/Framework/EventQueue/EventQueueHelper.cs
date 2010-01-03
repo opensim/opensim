@@ -484,11 +484,11 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
                 QueryDataMap.Add("GlobalZ", OSD.FromInteger((int)groupDataBlock.GlobalZ));
                 QueryDataMap.Add("Name", OSD.FromBinary(groupDataBlock.Name));
                 QueryDataMap.Add("OwnerID", OSD.FromUUID(groupDataBlock.OwnerID));
-				QueryDataMap.Add("SimName", OSD.FromBinary(groupDataBlock.SimName));
-				QueryDataMap.Add("SnapShotID", OSD.FromUUID(groupDataBlock.SnapshotID));
-				QueryDataMap.Add("ProductSku", OSD.FromInteger(0));
-				QueryDataMap.Add("Price", OSD.FromInteger(groupDataBlock.Price));
-				
+                QueryDataMap.Add("SimName", OSD.FromBinary(groupDataBlock.SimName));
+                QueryDataMap.Add("SnapShotID", OSD.FromUUID(groupDataBlock.SnapshotID));
+                QueryDataMap.Add("ProductSku", OSD.FromInteger(0));
+                QueryDataMap.Add("Price", OSD.FromInteger(groupDataBlock.Price));
+                
                 QueryData.Add(QueryDataMap);
             }
             body.Add("QueryData", QueryData);

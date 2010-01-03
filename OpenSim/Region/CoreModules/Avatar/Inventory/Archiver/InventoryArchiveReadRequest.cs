@@ -359,12 +359,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
             if (UUID.Zero != ospResolvedId)
-            {                
+            {
                 item.CreatorIdAsUuid = ospResolvedId;
 
                 // XXX: For now, don't preserve the OSPA in the creator id (which actually gets persisted to the
                 // database).  Instead, replace with the UUID that we found.
-                item.CreatorId = ospResolvedId.ToString();                
+                item.CreatorId = ospResolvedId.ToString();
             }
             else
             {

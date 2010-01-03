@@ -1119,23 +1119,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         }
         public void FindAgent(IClientAPI remoteClient, UUID hunter, UUID target)
         {
-        	List<FriendListItem> friendList = GetUserFriends(hunter);
-        	foreach (FriendListItem item in friendList)
-        	{
-        		if(item.onlinestatus == true)
-        		{
-        			if(item.Friend == target && (item.FriendPerms & (uint)FriendRights.CanSeeOnMap) != 0)
-        			{
-        				ScenePresence SPTarget = ((Scene)remoteClient.Scene).GetScenePresence(target);
-        				string regionname =  SPTarget.Scene.RegionInfo.RegionName;
-        				remoteClient.SendScriptTeleportRequest("FindAgent", regionname,new Vector3(SPTarget.AbsolutePosition),new Vector3(SPTarget.Lookat));
-        			}
-        		}
-        		else
-        		{
-        			remoteClient.SendAgentAlertMessage("The agent you are looking for is not online.", false);
-        		}
-        	}
+            List<FriendListItem> friendList = GetUserFriends(hunter);
+            foreach (FriendListItem item in friendList)
+            {
+                if (item.onlinestatus == true)
+                {
+                    if (item.Friend == target && (item.FriendPerms & (uint)FriendRights.CanSeeOnMap) != 0)
+                    {
+                        ScenePresence SPTarget = ((Scene)remoteClient.Scene).GetScenePresence(target);
+                        string regionname =  SPTarget.Scene.RegionInfo.RegionName;
+                        remoteClient.SendScriptTeleportRequest("FindAgent", regionname,new Vector3(SPTarget.AbsolutePosition),new Vector3(SPTarget.Lookat));
+                    }
+                }
+                else
+                {
+                    remoteClient.SendAgentAlertMessage("The agent you are looking for is not online.", false);
+                }
+            }
         }
 
         public List<FriendListItem> GetUserFriends(UUID agentID)

@@ -627,7 +627,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     return null;
                 }
             }
-        }      
+        }
 
         #endregion
 
