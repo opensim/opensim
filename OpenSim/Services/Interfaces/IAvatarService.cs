@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using OpenSim.Framework;
@@ -93,7 +94,16 @@ namespace OpenSim.Services.Interfaces
 
         public AvatarData(Dictionary<string, object> kvp)
         {
-            // TODO
+            Data = new Dictionary<string, string>();
+
+            if (kvp.ContainsKey("AvatarType"))
+                Int32.TryParse(kvp["AvatarType"].ToString(), out AvatarType);
+
+            foreach (KeyValuePair<string, object> _kvp in kvp)
+            {
+                if (_kvp.Value != null)
+                    Data[_kvp.Key] = _kvp.Value.ToString();
+            }
         }
 
         /// <summary>
@@ -101,7 +111,90 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         public Dictionary<string, object> ToKeyValuePairs()
         {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            result["AvatarType"] = AvatarType.ToString();
+            foreach (KeyValuePair<string, string> _kvp in Data)
+            {
+                if (_kvp.Value != null)
+                    result[_kvp.Key] = _kvp.Value;
+            }
             return null;
+        }
+
+        public AvatarData(AvatarAppearance appearance)
+        {
+            AvatarType = 1; // SL avatars
+            Data = new Dictionary<string, string>();
+
+            // Wearables
+            Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
+            Data["BodyItem"] = appearance.BodyItem.ToString();
+            Data["EyesItem"] = appearance.EyesItem.ToString();
+            Data["GlovesItem"] = appearance.GlovesItem.ToString();
+            Data["HairItem"] = appearance.HairItem.ToString();
+            //Data["HipOffset"] = appearance.HipOffset.ToString();
+            Data["JacketItem"] = appearance.JacketItem.ToString();
+            Data["Owner"] = appearance.Owner.ToString();
+            Data["PantsItem"] = appearance.PantsItem.ToString();
+            Data["Serial"] = appearance.Serial.ToString();
+            Data["ShirtItem"] = appearance.ShirtItem.ToString();
+            Data["ShoesItem"] = appearance.ShoesItem.ToString();
+            Data["SkinItem"] = appearance.SkinItem.ToString();
+            Data["SkirtItem"] = appearance.SkirtItem.ToString();
+            Data["SocksItem"] = appearance.SocksItem.ToString();
+            Data["UnderPantsItem"] = appearance.UnderPantsItem.ToString();
+            Data["UnderShirtItem"] = appearance.UnderShirtItem.ToString();
+
+            // Attachments
+            Hashtable attachs = appearance.GetAttachments();
+            foreach (KeyValuePair<int, Hashtable> kvp in attachs)
+            {
+                Data["_ap_" + kvp.Key] = kvp.Value["item"].ToString();
+            }
+        }
+
+        public AvatarAppearance ToAvatarAppearance()
+        {
+            AvatarAppearance appearance = new AvatarAppearance();
+            // Wearables
+            appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
+            appearance.BodyItem = UUID.Parse(Data["BodyItem"]);
+            appearance.EyesItem = UUID.Parse(Data["EyesItem"]);
+            appearance.GlovesItem = UUID.Parse(Data["GlovesItem"]);
+            appearance.HairItem = UUID.Parse(Data["HairItem"]);
+            //appearance.HipOffset = float.Parse(Data["HipOffset"]);
+            appearance.JacketItem = UUID.Parse(Data["JacketItem"]);
+            appearance.Owner = UUID.Parse(Data["Owner"]);
+            appearance.PantsItem = UUID.Parse(Data["PantsItem"]);
+            appearance.Serial = Int32.Parse(Data["Serial"]);
+            appearance.ShirtItem = UUID.Parse(Data["ShirtItem"]);
+            appearance.ShoesItem = UUID.Parse(Data["ShoesItem"]);
+            appearance.SkinItem = UUID.Parse(Data["SkinItem"]);
+            appearance.SkirtItem = UUID.Parse(Data["SkirtItem"]);
+            appearance.SocksItem = UUID.Parse(Data["SocksItem"]);
+            appearance.UnderPantsItem = UUID.Parse(Data["UnderPantsItem"]);
+            appearance.UnderShirtItem = UUID.Parse(Data["UnderShirtItem"]);
+
+            // Attachments
+            Dictionary<string, string> attchs = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> _kvp in Data)
+                if (_kvp.Key.StartsWith("_ap_"))
+                    attchs[_kvp.Key] = _kvp.Value;
+            Hashtable aaAttachs = new Hashtable();
+            foreach (KeyValuePair<string, string> _kvp in attchs)
+            {
+                string pointStr = _kvp.Key.Substring(4);
+                int point = 0;
+                if (!Int32.TryParse(pointStr, out point))
+                    continue;
+                Hashtable tmp = new Hashtable();
+                tmp["item"] = _kvp.Value;
+                tmp["asset"] = UUID.Zero.ToString();
+                aaAttachs[point] = tmp;
+            }
+
+            return appearance;
         }
     }
 }

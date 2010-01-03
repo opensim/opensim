@@ -27,6 +27,7 @@ namespace OpenSim.Services.LLLoginService
         private IPresenceService m_PresenceService;
         private ISimulationService m_LocalSimulationService;
         private ILibraryService m_LibraryService;
+        private IAvatarService m_AvatarService;
 
         private string m_DefaultRegionName;
         private string m_RemoteSimulationDll;
@@ -45,15 +46,15 @@ namespace OpenSim.Services.LLLoginService
             string gridService = serverConfig.GetString("GridService", String.Empty);
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
             string libService = serverConfig.GetString("LibraryService", String.Empty);
+            string avatarService = serverConfig.GetString("AvatarService", String.Empty);
 
             m_DefaultRegionName = serverConfig.GetString("DefaultRegion", String.Empty);
             m_RemoteSimulationDll = serverConfig.GetString("RemoteSimulationService", String.Empty);
             m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_RequireInventory = serverConfig.GetBoolean("RequireInventory", true);
 
-            // These 3 are required; the others aren't
-            if (accountService == string.Empty || authService == string.Empty ||
-                invService == string.Empty)
+            // These are required; the others aren't
+            if (accountService == string.Empty || authService == string.Empty)
                 throw new Exception("LoginService is missing service specifications");
 
             Object[] args = new Object[] { config };
@@ -64,7 +65,8 @@ namespace OpenSim.Services.LLLoginService
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
             if (presenceService != string.Empty)
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
-
+            if (avatarService != string.Empty)
+                m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarService, args);
             //
             // deal with the services given as argument
             //
@@ -116,6 +118,11 @@ namespace OpenSim.Services.LLLoginService
                 }
 
                 // Get the user's inventory
+                if (m_RequireInventory && m_InventoryService == null)
+                {
+                    m_log.WarnFormat("[LLOGIN SERVICE]: Login failed, reason: inventory service not set up");
+                    return LLFailedLoginResponse.InventoryProblem;
+                }
                 List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
                 if (m_RequireInventory && ((inventorySkel == null) || (inventorySkel != null && inventorySkel.Count == 0)))
                 {
@@ -159,6 +166,13 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.GridProblem;
                 }
 
+                // Get the avatar
+                AvatarData avatar = null;
+                if (m_AvatarService != null)
+                {
+                    avatar = m_AvatarService.GetAvatar(account.PrincipalID);
+                }
+
                 // Instantiate/get the simulation interface and launch an agent at the destination
                 ISimulationService simConnector = null;
                 string reason = string.Empty;
@@ -175,7 +189,7 @@ namespace OpenSim.Services.LLLoginService
                 if (simConnector != null)
                 {
                     circuitCode = (uint)Util.RandomClass.Next(); ;
-                    aCircuit = LaunchAgent(simConnector, destination, account, session, secureSession, circuitCode, position, out reason);
+                    aCircuit = LaunchAgent(simConnector, destination, account, avatar, session, secureSession, circuitCode, position, out reason);
                 }
                 if (aCircuit == null)
                 {
@@ -337,16 +351,17 @@ namespace OpenSim.Services.LLLoginService
         }
 
         private AgentCircuitData LaunchAgent(ISimulationService simConnector, GridRegion region, UserAccount account, 
-            UUID session, UUID secureSession, uint circuit, Vector3 position, out string reason)
+            AvatarData avatar, UUID session, UUID secureSession, uint circuit, Vector3 position, out string reason)
         {
             reason = string.Empty;
             AgentCircuitData aCircuit = new AgentCircuitData();
 
             aCircuit.AgentID = account.PrincipalID;
-            //aCircuit.Appearance = optional
+            if (avatar != null)
+                aCircuit.Appearance = avatar.ToAvatarAppearance();
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
-            aCircuit.child = false;
+            aCircuit.child = false; // the first login agent is root
             aCircuit.circuitcode = circuit;
             aCircuit.firstname = account.FirstName;
             //aCircuit.InventoryFolder = irrelevant
