@@ -91,6 +91,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
             if (!m_Enabled)
                 return;
 
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
             if (!m_Registered)
             {
                 m_Registered = true;
@@ -101,14 +112,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:SimulationServiceInConnector", args);
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
         }
 
         #endregion

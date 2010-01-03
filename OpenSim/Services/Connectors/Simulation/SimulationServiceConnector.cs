@@ -39,6 +39,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using log4net;
+using Nini.Config;
 
 namespace OpenSim.Services.Connectors.Simulation
 {
@@ -52,7 +53,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
         }
 
-        public SimulationServiceConnector(GridRegion region)
+        public SimulationServiceConnector(IConfigSource config)
         {
             //m_Region = region;
         }
@@ -67,6 +68,13 @@ namespace OpenSim.Services.Connectors.Simulation
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
             reason = String.Empty;
+
+            if (destination == null)
+            {
+                reason = "Destination is null";
+                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Given destination is null");
+                return false;
+            }
 
             // Eventually, we want to use a caps url instead of the agentID
             string uri = string.Empty;
@@ -128,7 +136,8 @@ namespace OpenSim.Services.Connectors.Simulation
                 AgentCreateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = AgentCreateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Posted CreateChildAgent request to remote sim {0}", uri);
+                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Posted CreateAgent request to remote sim {0}, region {1}, x={2} y={3}", 
+                    uri, destination.RegionName, destination.RegionLocX, destination.RegionLocY);
             }
             //catch (WebException ex)
             catch

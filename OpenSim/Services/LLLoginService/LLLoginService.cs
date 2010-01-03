@@ -26,11 +26,11 @@ namespace OpenSim.Services.LLLoginService
         private IGridService m_GridService;
         private IPresenceService m_PresenceService;
         private ISimulationService m_LocalSimulationService;
+        private ISimulationService m_RemoteSimulationService;
         private ILibraryService m_LibraryService;
         private IAvatarService m_AvatarService;
 
         private string m_DefaultRegionName;
-        private string m_RemoteSimulationDll;
         private string m_WelcomeMessage;
         private bool m_RequireInventory;
 
@@ -47,9 +47,9 @@ namespace OpenSim.Services.LLLoginService
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
             string libService = serverConfig.GetString("LibraryService", String.Empty);
             string avatarService = serverConfig.GetString("AvatarService", String.Empty);
+            string simulationService = serverConfig.GetString("SimulationService", String.Empty);
 
             m_DefaultRegionName = serverConfig.GetString("DefaultRegion", String.Empty);
-            m_RemoteSimulationDll = serverConfig.GetString("RemoteSimulationService", String.Empty);
             m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_RequireInventory = serverConfig.GetBoolean("RequireInventory", true);
 
@@ -67,6 +67,8 @@ namespace OpenSim.Services.LLLoginService
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
             if (avatarService != string.Empty)
                 m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarService, args);
+            if (simulationService != string.Empty)
+                m_RemoteSimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
             //
             // deal with the services given as argument
             //
@@ -184,8 +186,8 @@ namespace OpenSim.Services.LLLoginService
                 // independent login servers have just a remoteSimulationDll
                 if (!startLocation.Contains("@") && (m_LocalSimulationService != null))
                     simConnector = m_LocalSimulationService;
-                else if (m_RemoteSimulationDll != string.Empty)
-                    simConnector = ServerUtils.LoadPlugin<ISimulationService>(m_RemoteSimulationDll, args);
+                else if (m_RemoteSimulationService != null)
+                    simConnector = m_RemoteSimulationService;
                 if (simConnector != null)
                 {
                     circuitCode = (uint)Util.RandomClass.Next(); ;
@@ -362,6 +364,7 @@ namespace OpenSim.Services.LLLoginService
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             aCircuit.child = false; // the first login agent is root
+            aCircuit.ChildrenCapSeeds = new Dictionary<ulong, string>();
             aCircuit.circuitcode = circuit;
             aCircuit.firstname = account.FirstName;
             //aCircuit.InventoryFolder = irrelevant

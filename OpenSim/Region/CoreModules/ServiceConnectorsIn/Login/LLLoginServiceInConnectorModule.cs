@@ -109,6 +109,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Login
 
         public void RegionLoaded(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+            
             if (!m_Registered)
             {
                 m_Registered = true;

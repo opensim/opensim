@@ -103,6 +103,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void AddRegion(Scene scene)
         {
+            if (!m_enabled)
+                return;
+
+            if (!initialized)
+            {
+                InitOnce(scene);
+                initialized = true;
+            }
+            InitEach(scene);
         }
 
         public void RemoveRegion(Scene scene)
@@ -116,15 +125,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         public void RegionLoaded(Scene scene)
         {
-            if (m_enabled)
-            {
-                if (!initialized)
-                {
-                    InitOnce(scene);
-                    initialized = true;
-                }
-                InitEach(scene);
-            }
+            if (!m_enabled)
+                return;
+
+            m_hyperlinkService = m_aScene.RequestModuleInterface<IHyperlinkService>();
+
         }
 
         public Type ReplaceableInterface
@@ -148,7 +153,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             m_localBackend = new LocalSimulationConnectorModule();
             m_commsManager = scene.CommsManager;
             m_aScene = scene;
-            m_hyperlinkService = m_aScene.RequestModuleInterface<IHyperlinkService>();
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);
         }

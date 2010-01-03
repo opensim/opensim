@@ -21,6 +21,24 @@
     ;
     GridServerURI = "http://mygridserver.com:8003"
 
+[PresenceService]
+    ;
+    ; change this to your grid-wide presence server
+    ;
+    PresenceServerURI = "http://mygridserver.com:8003"
+
+[UserAccountService]
+    ;
+    ; change this to your grid-wide user accounts server
+    ;
+    UserAccountServerURI = "http://mygridserver.com:8003"
+
+[AuthenticationService]
+    ;
+    ; change this to your grid-wide authentication server
+    ;
+    AuthenticationServerURI = "http://mygridserver.com:8003"
+
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
     ;; Copy the config .example file into your own .ini file and change configs there

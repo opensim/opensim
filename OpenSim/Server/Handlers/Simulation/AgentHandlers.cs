@@ -134,8 +134,12 @@ namespace OpenSim.Server.Handlers.Simulation
             uint teleportFlags = 0;
             if (args.ContainsKey("destination_x") && args["destination_x"] != null)
                 Int32.TryParse(args["destination_x"].AsString(), out x);
+            else
+                m_log.WarnFormat("  -- request didn't have destination_x");
             if (args.ContainsKey("destination_y") && args["destination_y"] != null)
                 Int32.TryParse(args["destination_y"].AsString(), out y);
+            else
+                m_log.WarnFormat("  -- request didn't have destination_y");
             if (args.ContainsKey("destination_uuid") && args["destination_uuid"] != null)
                 UUID.TryParse(args["destination_uuid"].AsString(), out uuid);
             if (args.ContainsKey("destination_name") && args["destination_name"] != null)
