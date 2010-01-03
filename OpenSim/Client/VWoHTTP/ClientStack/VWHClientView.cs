@@ -406,24 +406,24 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event AvatarInterestUpdate OnAvatarInterestUpdate = delegate { };
         public event PlacesQuery OnPlacesQuery = delegate { };
         public event FindAgentUpdate OnFindAgentEvent = delegate { };
-		public event TrackAgentUpdate OnTrackAgentEvent = delegate { };
-		public event NewUserReport OnUserReportEvent = delegate { };
-		public event SaveStateHandler OnSaveStateEvent = delegate { };
-		public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest = delegate { };
-		public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest = delegate { };
-		public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest = delegate { }; 	
-		public event FreezeUserUpdate OnParcelFreezeUserEvent = delegate { };
-		public event EjectUserUpdate OnParcelEjectUserEvent = delegate { };
-		public event ParcelBuyPass OnParcelBuyPass = delegate { };
-		public event ParcelGodMark OnParcelGodMark = delegate { };
-		public event GroupActiveProposalsRequest OnGroupActiveProposalsRequest = delegate { };
-		public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest = delegate { };
-		public event SimWideDeletesDelegate OnSimWideDeletes = delegate { };
-		public event SendPostcard OnSendPostcard = delegate { };
-		public event MuteListEntryUpdate OnUpdateMuteListEntryEvent = delegate { };
-		public event MuteListEntryRemove OnRemoveMuteListEntryEvent = delegate { };
-		public event GodlikeMessage onGodlikeMessageEvent = delegate { };
-		public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent = delegate { };
+        public event TrackAgentUpdate OnTrackAgentEvent = delegate { };
+        public event NewUserReport OnUserReportEvent = delegate { };
+        public event SaveStateHandler OnSaveStateEvent = delegate { };
+        public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest = delegate { };
+        public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest = delegate { };
+        public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest = delegate { };
+        public event FreezeUserUpdate OnParcelFreezeUserEvent = delegate { };
+        public event EjectUserUpdate OnParcelEjectUserEvent = delegate { };
+        public event ParcelBuyPass OnParcelBuyPass = delegate { };
+        public event ParcelGodMark OnParcelGodMark = delegate { };
+        public event GroupActiveProposalsRequest OnGroupActiveProposalsRequest = delegate { };
+        public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest = delegate { };
+        public event SimWideDeletesDelegate OnSimWideDeletes = delegate { };
+        public event SendPostcard OnSendPostcard = delegate { };
+        public event MuteListEntryUpdate OnUpdateMuteListEntryEvent = delegate { };
+        public event MuteListEntryRemove OnRemoveMuteListEntryEvent = delegate { };
+        public event GodlikeMessage onGodlikeMessageEvent = delegate { };
+        public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent = delegate { };
 
 
 

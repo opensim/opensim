@@ -1075,7 +1075,7 @@ namespace OpenSim.Framework
         event SaveStateHandler OnSaveStateEvent;
         event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
         event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
-        event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;     
+        event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;
         event FreezeUserUpdate OnParcelFreezeUserEvent;
         event EjectUserUpdate OnParcelEjectUserEvent;
         event ParcelBuyPass OnParcelBuyPass;

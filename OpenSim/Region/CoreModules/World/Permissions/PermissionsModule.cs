@@ -800,7 +800,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         }
     
         protected bool GenericParcelOwnerPermission(UUID user, ILandObject parcel, ulong groupPowers)
-        {          
+        {
             if (parcel.LandData.OwnerID == user)
             {
                 // Returning immediately so that group deeded objects on group deeded land don't trigger a NRE on

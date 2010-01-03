@@ -632,11 +632,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             return m_OSSL_Functions.osGetRegionMapTexture(regionName);
         }
-		
-		public LSL_List osGetRegionStats()
-		{
-			return m_OSSL_Functions.osGetRegionStats();
-		}
+        
+        public LSL_List osGetRegionStats()
+        {
+            return m_OSSL_Functions.osGetRegionStats();
+        }
 
         /// <summary>
         /// Returns the amount of memory in use by the Simulator Daemon.
@@ -649,7 +649,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         }
         public void osKickAvatar(string FirstName,string SurName,string alert)
         {
-            m_OSSL_Functions.osKickAvatar( FirstName, SurName, alert);
+            m_OSSL_Functions.osKickAvatar(FirstName, SurName, alert);
         }
         public void osSetSpeed(string UUID, float SpeedModifier)
         {

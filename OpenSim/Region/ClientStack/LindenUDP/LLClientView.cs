@@ -304,7 +304,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event SaveStateHandler OnSaveStateEvent;
         public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
         public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
-        public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;     
+        public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;
         public event FreezeUserUpdate OnParcelFreezeUserEvent;
         public event EjectUserUpdate OnParcelEjectUserEvent;
         public event ParcelBuyPass OnParcelBuyPass;
@@ -828,7 +828,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         public void SendGroupActiveProposals(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, Dictionary<int, string> VoteID, Dictionary<int, string> VoteInitiator, Dictionary<int, string> Majority, Dictionary<int, string> Quorum, Dictionary<int, string> TerseDateID, Dictionary<int, string> StartDateTime, Dictionary<int, string> EndDateTime, Dictionary<int, string> ProposalText)
         {
-            foreach(KeyValuePair<int, string> Blank in VoteID)
+            foreach (KeyValuePair<int, string> Blank in VoteID)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
@@ -851,7 +851,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 GAPIRP.ProposalData[0] = ProposalData;
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
             }
-            if(VoteID.Count == 0)
+            if (VoteID.Count == 0)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
@@ -878,7 +878,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         public void SendGroupVoteHistory(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, Dictionary<int, string> VoteID, Dictionary<int, string> VoteInitiator, Dictionary<int, string> Majority, Dictionary<int, string> Quorum, Dictionary<int, string> TerseDateID, Dictionary<int, string> StartDateTime, Dictionary<int, string> EndDateTime, Dictionary<int, string> VoteType, Dictionary<int, string> VoteResult, Dictionary<int, string> ProposalText)
         {
-            foreach(KeyValuePair<int, string> Blank in VoteID)
+            foreach (KeyValuePair<int, string> Blank in VoteID)
             {
             GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
             
@@ -904,7 +904,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GVHIRP.VoteItem[0] = VoteItem;
             OutPacket(GVHIRP, ThrottleOutPacketType.Task);
             }
-            if(VoteID.Count == 0)
+            if (VoteID.Count == 0)
             {
                 GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
                 
@@ -5898,7 +5898,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (avSetStartLocationRequestPacket.AgentData.AgentID == AgentId && avSetStartLocationRequestPacket.AgentData.SessionID == SessionId)
             {
-                // Linden Client limitation..     
+                // Linden Client limitation..
                 if (avSetStartLocationRequestPacket.StartLocationData.LocationPos.X == 255.5f
                     || avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y == 255.5f)
                 {

@@ -93,7 +93,7 @@ namespace OpenSim.Client.Sirikata
 
         public void PostInitialise()
         {
-            if(!m_enabled)
+            if (!m_enabled)
                 return;
 
             m_listener = new TcpListener(IPAddress.Any, 5943);
@@ -102,7 +102,7 @@ namespace OpenSim.Client.Sirikata
 
         private void ListenLoop()
         {
-            while(m_running)
+            while (m_running)
             {
                 m_listener.BeginAcceptTcpClient(AcceptSocket, m_listener);
             }

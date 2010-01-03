@@ -2813,7 +2813,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             m_host.CollisionFilter.Clear();
-            if(id != null)
+            if (id != null)
             {
                 m_host.CollisionFilter.Add(accept,id);
             }
@@ -3918,6 +3918,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                       Util.Clip((float)color.z, 0.0f, 1.0f));
             m_host.SetText(text, av3, Util.Clip((float)alpha, 0.0f, 1.0f));
             m_host.ParentGroup.HasGroupChanged = true;
+            m_host.ParentGroup.ScheduleGroupForFullUpdate();
         }
 
         public LSL_Float llWater(LSL_Vector offset)
@@ -4341,7 +4342,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPassCollisions(int pass)
         {
             m_host.AddScriptLPS(1);
-            if(pass == 0)
+            if (pass == 0)
             {
                 m_host.ParentGroup.PassCollision = false;
             }
@@ -7556,7 +7557,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // makes it more difficult to determine a child prim's actual inworld position).
                         if (part.ParentID != 0)
                             v = ((v - llGetRootPosition()) * llGetRootRotation()) + llGetRootPosition();
-                        res.Add( v );
+                        res.Add(v);
                         break;
 
                     case (int)ScriptBaseClass.PRIM_SIZE:

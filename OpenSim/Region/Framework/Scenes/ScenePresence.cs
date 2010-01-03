@@ -1985,7 +1985,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (collisionPoint.ApproxEquals(m_requestedSitOffset + part.AbsolutePosition, 0.2f))
                     {
                         SitRaycastFindEdge(collisionPoint, normal);
-                        m_log.DebugFormat("[SIT]: Raycast Avatar Position succeeded at point: {0}, normal:{1}", collisionPoint, normal );
+                        m_log.DebugFormat("[SIT]: Raycast Avatar Position succeeded at point: {0}, normal:{1}", collisionPoint, normal);
                     }
                     else
                     {
