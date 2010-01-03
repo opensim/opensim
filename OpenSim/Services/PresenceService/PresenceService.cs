@@ -82,6 +82,8 @@ namespace OpenSim.Services.PresenceService
             
             m_Database.Store(data);
 
+            m_log.DebugFormat("[PRESENCE SERVICE]: LoginAgent {0} with session {1} and ssession {2}",
+                userID, sessionID, secureSessionID);
             return true;
         }
 
@@ -93,7 +95,7 @@ namespace OpenSim.Services.PresenceService
 
             PresenceData[] d = m_Database.Get("UserID", data.UserID);
 
-            m_log.WarnFormat("[PRESENCE SERVICE]: LogoutAgent {0} with {1} sessions currently present", data.UserID, d.Length);
+            m_log.DebugFormat("[PRESENCE SERVICE]: LogoutAgent {0} with {1} sessions currently present", data.UserID, d.Length);
             if (d.Length > 1)
             {
                 m_Database.Delete("UserID", data.UserID);
@@ -117,7 +119,7 @@ namespace OpenSim.Services.PresenceService
 
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
+            //m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
             try
             {
                 PresenceData pdata = m_Database.Get(sessionID);

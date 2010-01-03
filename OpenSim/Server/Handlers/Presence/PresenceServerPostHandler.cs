@@ -312,7 +312,7 @@ namespace OpenSim.Server.Handlers.Presence
             Vector3 position = new Vector3(128, 128, 70);
             Vector3 look = Vector3.Zero;
 
-            if (!request.ContainsKey("SessionID") || !request.ContainsKey("RegionID"))
+            if (!request.ContainsKey("UserID") || !request.ContainsKey("RegionID"))
                 return FailureResult();
 
             string user = request["UserID"].ToString();

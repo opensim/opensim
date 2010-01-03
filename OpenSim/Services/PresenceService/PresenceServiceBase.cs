@@ -77,7 +77,7 @@ namespace OpenSim.Services.PresenceService
 
             m_Database = LoadPlugin<IPresenceData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+                throw new Exception("Could not find a storage interface in the given module " + dllName);
 
         }
     }
