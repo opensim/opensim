@@ -2910,13 +2910,6 @@ namespace OpenSim.Region.Framework.Scenes
             SetText(text);
         }
 
-        public void StopLookAt()
-        {
-            m_parentGroup.stopLookAt();
-
-            m_parentGroup.ScheduleGroupForTerseUpdate();        
-        }        
-        
         public void StopMoveToTarget()
         {
             m_parentGroup.stopMoveToTarget();
