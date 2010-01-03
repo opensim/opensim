@@ -66,8 +66,22 @@ namespace OpenSim.Services.Interfaces
                 UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
             if (kvp.ContainsKey("Created"))
                 Convert.ToInt32(kvp["Created"].ToString());
-            if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null && (kvp["ServiceURLs"] is Dictionary<string, string>))
-                ServiceURLs = (Dictionary<string, object>)kvp["ServiceURLs"];
+            if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null)
+            {
+                ServiceURLs = new Dictionary<string, object>();
+                string str = kvp["ServiceURLs"].ToString();
+                if (str != string.Empty)
+                {
+                    string[] parts = str.Split(new char[] { '#' });
+                    Dictionary<string, object> dic = new Dictionary<string, object>();
+                    foreach (string s in parts)
+                    {
+                        string[] parts2 = s.Split(new char[] { '=' });
+                        if (parts2.Length == 2)
+                            ServiceURLs[parts2[0]] = parts2[1];
+                    }
+                }
+            }
         }
 
         public Dictionary<string, object> ToKeyValuePairs()
@@ -79,10 +93,16 @@ namespace OpenSim.Services.Interfaces
             result["PrincipalID"] = PrincipalID.ToString();
             result["ScopeID"] = ScopeID.ToString();
             result["Created"] = Created.ToString();
-            result["ServiceURLs"] = ServiceURLs;
+            string str = string.Empty;
+            foreach (KeyValuePair<string, object> kvp in ServiceURLs)
+            {
+                str += kvp.Key + "=" + kvp.Value + "#";
+            }
+            result["ServiceURLs"] = str;
 
             return result;
         }
+
     };
 
     public interface IUserAccountService
