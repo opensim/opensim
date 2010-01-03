@@ -174,14 +174,14 @@ namespace OpenSim.Server.Handlers.UserAccounts
 
         byte[] StoreAccount(Dictionary<string, object> request)
         {
-            if (!request.ContainsKey("account"))
-                return FailureResult();
-            if (request["account"] == null)
-                return FailureResult();
-            if (!(request["account"] is Dictionary<string, object>))
-                return FailureResult();
+            //if (!request.ContainsKey("account"))
+            //    return FailureResult();
+            //if (request["account"] == null)
+            //    return FailureResult();
+            //if (!(request["account"] is Dictionary<string, object>))
+            //    return FailureResult();
 
-            UserAccount account = new UserAccount((Dictionary<string, object>)request["account"]);
+            UserAccount account = new UserAccount(request);
 
             if (m_UserAccountService.StoreUserAccount(account))
                 return SuccessResult();
