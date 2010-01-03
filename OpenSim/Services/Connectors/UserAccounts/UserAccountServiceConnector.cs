@@ -194,7 +194,10 @@ namespace OpenSim.Services.Connectors
             sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
             sendData["METHOD"] = "setaccount";
 
-            sendData["account"] = data.ToKeyValuePairs();
+            Dictionary<string, object> structData = data.ToKeyValuePairs();
+
+            foreach (KeyValuePair<string,object> kvp in structData)
+                sendData[kvp.Key] = kvp.Value.ToString();
 
             return SendAndGetBoolReply(sendData);
         }
