@@ -140,7 +140,12 @@ namespace OpenSim.Services.Connectors
             sendData["METHOD"] = "setavatar";
 
             sendData["UserID"] = userID.ToString();
-            sendData["Avatar"] = avatar.ToKeyValuePairs();
+
+            Dictionary<string, object> structData = avatar.ToKeyValuePairs();
+
+            foreach (KeyValuePair<string, object> kvp in structData)
+                sendData[kvp.Key] = kvp.Value.ToString();
+
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             // m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);

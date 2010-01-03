@@ -138,12 +138,9 @@ namespace OpenSim.Server.Handlers.Avatar
             if (!UUID.TryParse(request["UserID"].ToString(), out user))
                 return FailureResult();
 
-            if (request.ContainsKey("Avatar") && request["Avatar"] is Dictionary<string, object>)
-            {
-                AvatarData avatar = new AvatarData((Dictionary<string, object>)request["Avatar"]);
-                if (m_AvatarService.SetAvatar(user, avatar))
-                    return SuccessResult();
-            }
+            AvatarData avatar = new AvatarData(request);
+            if (m_AvatarService.SetAvatar(user, avatar))
+                return SuccessResult();
 
             return FailureResult();
         }
