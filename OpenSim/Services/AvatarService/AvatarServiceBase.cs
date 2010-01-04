@@ -33,18 +33,18 @@ using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
-namespace OpenSim.Services.PresenceService
+namespace OpenSim.Services.AvatarService
 {
-    public class PresenceServiceBase : ServiceBase
+    public class AvatarServiceBase : ServiceBase
     {
-        protected IPresenceData m_Database = null;
+        protected IAvatarData m_Database = null;
 
-        public PresenceServiceBase(IConfigSource config)
+        public AvatarServiceBase(IConfigSource config)
             : base(config)
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = "Presence";
+            string realm = "Avatars";
 
             //
             // Try reading the [DatabaseService] section, if it exists
@@ -59,9 +59,9 @@ namespace OpenSim.Services.PresenceService
             }
 
             //
-            // [PresenceService] section overrides [DatabaseService], if it exists
+            // [AvatarService] section overrides [DatabaseService], if it exists
             //
-            IConfig presenceConfig = config.Configs["PresenceService"];
+            IConfig presenceConfig = config.Configs["AvatarService"];
             if (presenceConfig != null)
             {
                 dllName = presenceConfig.GetString("StorageProvider", dllName);
@@ -75,7 +75,7 @@ namespace OpenSim.Services.PresenceService
             if (dllName.Equals(String.Empty))
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IPresenceData>(dllName, new Object[] { connString, realm });
+            m_Database = LoadPlugin<IAvatarData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module " + dllName);
 

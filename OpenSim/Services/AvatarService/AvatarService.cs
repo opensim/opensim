@@ -26,59 +26,54 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using Nini.Config;
+using log4net;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.Base;
+using OpenMetaverse;
 
-namespace OpenSim.Services.PresenceService
+namespace OpenSim.Services.AvatarService
 {
-    public class PresenceServiceBase : ServiceBase
+    public class AvatarService : AvatarServiceBase, IAvatarService
     {
-        protected IPresenceData m_Database = null;
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PresenceServiceBase(IConfigSource config)
+        public AvatarService(IConfigSource config)
             : base(config)
         {
-            string dllName = String.Empty;
-            string connString = String.Empty;
-            string realm = "Presence";
+            m_log.Debug("[AVATAR SERVICE]: Starting avatar service");
+        }
 
-            //
-            // Try reading the [DatabaseService] section, if it exists
-            //
-            IConfig dbConfig = config.Configs["DatabaseService"];
-            if (dbConfig != null)
-            {
-                if (dllName == String.Empty)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                if (connString == String.Empty)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
-            }
+        public AvatarData GetAvatar(UUID userID)
+        {
+            return null;
+        }
 
-            //
-            // [PresenceService] section overrides [DatabaseService], if it exists
-            //
-            IConfig presenceConfig = config.Configs["PresenceService"];
-            if (presenceConfig != null)
-            {
-                dllName = presenceConfig.GetString("StorageProvider", dllName);
-                connString = presenceConfig.GetString("ConnectionString", connString);
-                realm = presenceConfig.GetString("Realm", realm);
-            }
-            
-            //
-            // We tried, but this doesn't exist. We can't proceed.
-            //
-            if (dllName.Equals(String.Empty))
-                throw new Exception("No StorageProvider configured");
+        public bool SetAvatar(UUID userID, AvatarData avatar)
+        {
+            return false;
+        }
 
-            m_Database = LoadPlugin<IPresenceData>(dllName, new Object[] { connString, realm });
-            if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module " + dllName);
+        public bool ResetAvatar(UUID userID)
+        {
+            return false;
+        }
 
+        public bool SetItems(UUID userID, string[] names, string[] values)
+        {
+            return false;
+        }
+
+        public bool RemoveItems(UUID userID, string[] names)
+        {
+            return false;
         }
     }
 }
