@@ -577,6 +577,7 @@ namespace OpenSim.Data.Tests
                 .IgnoreProperty(x=>x.RegionUUID)
                 .IgnoreProperty(x=>x.Scene)
                 .IgnoreProperty(x=>x.Children)
+                .IgnoreProperty(x=>x.PassCollision)
                 .IgnoreProperty(x=>x.RootPart));
         }
         

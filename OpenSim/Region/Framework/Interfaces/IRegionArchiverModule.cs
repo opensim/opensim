@@ -34,7 +34,7 @@ namespace OpenSim.Region.Framework.Interfaces
     /// Interface to region archive functionality
     /// </summary>
     public interface IRegionArchiverModule
-    {        
+    {
         void HandleLoadOarConsoleCommand(string module, string[] cmdparams);
         void HandleSaveOarConsoleCommand(string module, string[] cmdparams);
             

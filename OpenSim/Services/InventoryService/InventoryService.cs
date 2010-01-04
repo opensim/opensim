@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -102,7 +103,17 @@ namespace OpenSim.Services.InventoryService
         // See IInventoryServices
         public bool CreateUserInventory(UUID user)
         {
-            InventoryFolderBase existingRootFolder = GetRootFolder(user);
+            InventoryFolderBase existingRootFolder;
+            try
+            {
+                existingRootFolder = GetRootFolder(user);
+            }
+            catch (Exception e)
+            {
+                // Munch the exception, it has already been reported
+                //
+                return false;
+            }
 
             if (null != existingRootFolder)
             {

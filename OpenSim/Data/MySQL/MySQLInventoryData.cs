@@ -91,7 +91,7 @@ namespace OpenSim.Data.MySQL
                 rollbackStore = GridDataMySqlFile.ParseFileReadValue("rollback") == "true";
                 opengridmode = GridDataMySqlFile.ParseFileReadValue("opengridmode") == "true";
 
-                if(rollbackStore)
+                if (rollbackStore)
                     m_log.Warn("[MysqlInventory] Enabling rollback mode in: " + rollbackDir);
 
                 database =
@@ -264,7 +264,7 @@ namespace OpenSim.Data.MySQL
             {
                 database.Reconnect();
                 m_log.Error(e.ToString());
-                return null;
+                throw;
             }
         }
 
@@ -552,7 +552,7 @@ namespace OpenSim.Data.MySQL
 
         private void StoreRollbackItem(UUID ItemID)
         {
-            if(rollbackStore == true)
+            if (rollbackStore == true)
             {
                 string todaysPath = RollbackGetTodaysPath();
 
@@ -1008,7 +1008,7 @@ namespace OpenSim.Data.MySQL
                     StoreRollbackFolder(f.ID);
                     deleteOneFolder(f.ID);
 
-                    if(rollbackStore)
+                    if (rollbackStore)
                     {
                         foreach (InventoryItemBase itemBase in getInventoryInFolder(f.ID))
                         {

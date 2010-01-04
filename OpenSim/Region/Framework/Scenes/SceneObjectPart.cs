@@ -1893,11 +1893,11 @@ namespace OpenSim.Region.Framework.Scenes
                         string data = "";
                         if (obj != null)
                         {
-                            if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                            if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -1919,7 +1919,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -1944,11 +1944,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -1970,7 +1970,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -1998,7 +1998,7 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         if (m_parentGroup.Scene == null)
                             return;
-                        if(m_parentGroup.PassCollision == true)
+                        if (m_parentGroup.PassCollision == true)
                         {
                             //TODO: Add pass to root prim!
                         }
@@ -2029,11 +2029,11 @@ namespace OpenSim.Region.Framework.Scenes
                         string data = "";
                         if (obj != null)
                         {
-                            if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                            if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2055,7 +2055,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2080,11 +2080,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2106,7 +2106,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2160,11 +2160,11 @@ namespace OpenSim.Region.Framework.Scenes
                         string data = "";
                         if (obj != null)
                         {
-                            if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                            if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2186,7 +2186,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if(found)
+                                if (found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2211,11 +2211,11 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if(m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2237,7 +2237,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if(found)
+                                        if (found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2881,8 +2881,8 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_parentGroup.stopLookAt();
 
-            m_parentGroup.ScheduleGroupForTerseUpdate();        
-        }        
+            m_parentGroup.ScheduleGroupForTerseUpdate();
+        }
         
         /// <summary>
         /// Set the text displayed for this part.

@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// The file used to load and save an opensimulator archive if no filename has been specified
         /// </value>
-        protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";        
+        protected const string DEFAULT_OAR_BACKUP_FILENAME = "region.oar";
 
         public string Name 
         { 
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 DearchiveRegion(DEFAULT_OAR_BACKUP_FILENAME, mergeOar, Guid.Empty);
             }
-        }        
+        }
 
         /// <summary>
         /// Save a region to a file, including all the assets needed to restore it.
