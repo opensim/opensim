@@ -53,45 +53,86 @@ namespace OpenSim.Services.AvatarService
 
         public AvatarData GetAvatar(UUID principalID)
         {
-            
             AvatarBaseData[] av = m_Database.Get("PrincipalID", principalID.ToString());
             if (av.Length == 0)
                 return null;
 
             AvatarData ret = new AvatarData();
-            ret.AvatarType = Convert.ToInt32(av[0].Data["AvatarType"]);
+            ret.Data = new Dictionary<string,string>();
 
-            av[0].Data.Remove("AvatarType");
-
-            ret.Data = av[0].Data;
+            foreach (AvatarBaseData b in av)
+            {
+                if (b.Data["Name"] == "AvatarType")
+                    ret.AvatarType = Convert.ToInt32(b.Data["Value"]);
+                else
+                    ret.Data[b.Data["Name"]] = b.Data["Value"];
+            }
 
             return ret;
         }
 
         public bool SetAvatar(UUID principalID, AvatarData avatar)
         {
+            m_Database.Delete("PrincipalID", principalID.ToString());
+
             AvatarBaseData av = new AvatarBaseData();
+            av.Data = new Dictionary<string,string>();
 
             av.PrincipalID = principalID;
-            av.Data = avatar.Data;
-            av.Data["AvatarType"] = avatar.AvatarType.ToString();
+            av.Data["Name"] = "AvatarType";
+            av.Data["Value"] = avatar.AvatarType.ToString();
 
-            return m_Database.Store(av);
+            if (!m_Database.Store(av))
+                return false;
+
+            foreach (KeyValuePair<string,string> kvp in avatar.Data)
+            {
+                av.Data["Name"] = kvp.Key;
+                av.Data["Value"] = kvp.Value;
+                
+                if (!m_Database.Store(av))
+                {
+                    m_Database.Delete("PrincipalID", principalID.ToString());
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool ResetAvatar(UUID principalID)
         {
-            return false;
+            return m_Database.Delete("PrincipalID", principalID.ToString());
         }
 
         public bool SetItems(UUID principalID, string[] names, string[] values)
         {
-            return false;
+            AvatarBaseData av = new AvatarBaseData();
+            av.Data = new Dictionary<string,string>();
+            av.PrincipalID = principalID;
+
+            if (names.Length != values.Length)
+                return false;
+
+            for (int i = 0 ; i < names.Length ; i++)
+            {
+                av.Data["Name"] = names[i];
+                av.Data["Value"] = values[i];
+
+                if (!m_Database.Store(av))
+                    return false;
+            }
+
+            return true;
         }
 
         public bool RemoveItems(UUID principalID, string[] names)
         {
-            return false;
+            foreach (string name in names)
+            {
+                m_Database.Delete(principalID, name);
+            }
+            return true;
         }
     }
 }

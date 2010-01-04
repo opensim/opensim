@@ -43,5 +43,7 @@ namespace OpenSim.Data
     {
         AvatarBaseData[] Get(string field, string val);
         bool Store(AvatarBaseData data);
+        bool Delete(UUID principalID, string name);
+        bool Delete(string field, string val);
     }
 }

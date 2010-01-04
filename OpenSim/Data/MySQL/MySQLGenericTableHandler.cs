@@ -95,12 +95,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public T[] Get(string field, string key)
+        public virtual T[] Get(string field, string key)
         {
             return Get(new string[] { field }, new string[] { key });
         }
 
-        public T[] Get(string[] fields, string[] keys)
+        public virtual T[] Get(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return new T[0];
@@ -184,7 +184,7 @@ namespace OpenSim.Data.MySQL
             return result.ToArray();
         }
 
-        public T[] Get(string where)
+        public virtual T[] Get(string where)
         {
             MySqlCommand cmd = new MySqlCommand();
 
@@ -196,7 +196,7 @@ namespace OpenSim.Data.MySQL
             return DoQuery(cmd);
         }
 
-        public bool Store(T row)
+        public virtual bool Store(T row)
         {
             MySqlCommand cmd = new MySqlCommand();
 
@@ -234,7 +234,7 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
-        public bool Delete(string field, string val)
+        public virtual bool Delete(string field, string val)
         {
             MySqlCommand cmd = new MySqlCommand();
 
