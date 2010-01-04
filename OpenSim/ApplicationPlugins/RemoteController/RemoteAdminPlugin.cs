@@ -420,8 +420,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (Uri.TryCreate(file, UriKind.RelativeOrAbsolute, out result))
                     {
                         // the url is valid
-                        string fileType = file.Substring(file.LastIndexOf('/') + 1);                       
-                        terrainModule.LoadFromStream(fileType, result);                        
+                        string fileType = file.Substring(file.LastIndexOf('/') + 1);
+                        terrainModule.LoadFromStream(fileType, result);
                     }
                 }
                 else

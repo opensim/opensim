@@ -105,7 +105,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject obj = new LandObject(UUID.Zero, false, m_scene);
             obj.LandData.Name = "NO LAND";
             return obj;
-        }      
+        }
 
         public List<ILandObject> AllParcels()
         {

@@ -60,7 +60,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
-        List<ILandObject> ParcelsNearPoint(Vector3 position);        
+        List<ILandObject> ParcelsNearPoint(Vector3 position);
 
         /// <summary>
         /// Get the parcel given the land's local id.

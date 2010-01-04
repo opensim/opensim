@@ -659,7 +659,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             Dictionary<KeyValuePair<int, int>, KeyValuePair<int, int>> linemap;
 
-            lock(m_ScriptErrors)
+            lock (m_ScriptErrors)
             {
                 try
                 {

@@ -741,7 +741,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             xmlRpcResponse = new XmlRpcResponse();
 
                             // Code probably set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
-                            xmlRpcResponse.SetFault(-32603, errorMessage);                            
+                            xmlRpcResponse.SetFault(-32603, errorMessage);
                         }
 
                         // if the method wasn't found, we can't determine KeepAlive state anyway, so lets do it only here

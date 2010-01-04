@@ -454,6 +454,48 @@ namespace OpenSim.Region.CoreModules.Framework.EventQueue
 
             return groupUpdate;
         }
+        
+        public static OSD PlacesQuery(PlacesReplyPacket PlacesReply)
+        {
+            OSDMap placesReply = new OSDMap();
+            placesReply.Add("message", OSD.FromString("PlacesReplyMessage"));
+
+            OSDMap body = new OSDMap();
+            OSDArray agentData = new OSDArray();
+            OSDMap agentDataMap = new OSDMap();
+            agentDataMap.Add("AgentID", OSD.FromUUID(PlacesReply.AgentData.AgentID));
+            agentDataMap.Add("QueryID", OSD.FromUUID(PlacesReply.AgentData.QueryID));
+            agentDataMap.Add("TransactionID", OSD.FromUUID(PlacesReply.TransactionData.TransactionID));
+            agentData.Add(agentDataMap);
+            body.Add("AgentData", agentData);
+
+            OSDArray QueryData = new OSDArray();
+
+            foreach (PlacesReplyPacket.QueryDataBlock groupDataBlock in PlacesReply.QueryData)
+            {
+                OSDMap QueryDataMap = new OSDMap();
+                QueryDataMap.Add("ActualArea", OSD.FromInteger(groupDataBlock.ActualArea));
+                QueryDataMap.Add("BillableArea", OSD.FromInteger(groupDataBlock.BillableArea));
+                QueryDataMap.Add("Description", OSD.FromBinary(groupDataBlock.Desc));
+                QueryDataMap.Add("Dwell", OSD.FromInteger((int)groupDataBlock.Dwell));
+                QueryDataMap.Add("Flags", OSD.FromString(Convert.ToString(groupDataBlock.Flags)));
+                QueryDataMap.Add("GlobalX", OSD.FromInteger((int)groupDataBlock.GlobalX));
+                QueryDataMap.Add("GlobalY", OSD.FromInteger((int)groupDataBlock.GlobalY));
+                QueryDataMap.Add("GlobalZ", OSD.FromInteger((int)groupDataBlock.GlobalZ));
+                QueryDataMap.Add("Name", OSD.FromBinary(groupDataBlock.Name));
+                QueryDataMap.Add("OwnerID", OSD.FromUUID(groupDataBlock.OwnerID));
+                QueryDataMap.Add("SimName", OSD.FromBinary(groupDataBlock.SimName));
+                QueryDataMap.Add("SnapShotID", OSD.FromUUID(groupDataBlock.SnapshotID));
+                QueryDataMap.Add("ProductSku", OSD.FromInteger(0));
+                QueryDataMap.Add("Price", OSD.FromInteger(groupDataBlock.Price));
+                
+                QueryData.Add(QueryDataMap);
+            }
+            body.Add("QueryData", QueryData);
+            placesReply.Add("QueryData[]", body);
+
+            return placesReply;
+        }
 
     }
 }

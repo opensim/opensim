@@ -622,22 +622,22 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         
         public override Quaternion APIDTarget 
         { 
-        	set { return; }
+            set { return; }
         }
         
         public override bool APIDActive
         { 
-        	set { return; }
+            set { return; }
         }
         
         public override float APIDStrength
         { 
-        	set { return; }
+            set { return; }
         }
         
         public override float APIDDamping
         { 
-        	set { return; }
+            set { return; }
         }
 
         /// <summary>

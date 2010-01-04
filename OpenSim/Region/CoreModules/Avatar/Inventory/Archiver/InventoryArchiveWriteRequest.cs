@@ -117,12 +117,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         protected void ReceivedAllAssets(ICollection<UUID> assetsFoundUuids, ICollection<UUID> assetsNotFoundUuids)
-        {               
+        {
             Exception reportedException = null;
             bool succeeded = true;
             
             try
-            {            
+            {
                 // We're almost done.  Just need to write out the control file now
                 m_archiveWriter.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, Create0p1ControlFile());
                 m_log.InfoFormat("[ARCHIVER]: Added control file to archive.");
@@ -269,7 +269,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 m_module.TriggerInventoryArchiveSaved(
                     m_id, false, m_userInfo, m_invPath, m_saveStream,
                     new Exception(errorMessage));
-                return;                
+                return;
             }
             
             m_archiveWriter = new TarArchiveWriter(m_saveStream);
