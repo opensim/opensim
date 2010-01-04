@@ -183,7 +183,10 @@ namespace OpenSim.Services.InventoryService
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
 
             foreach (XInventoryFolder x in allFolders)
+            {
+                m_log.DebugFormat("[INVENTORY]: Adding folder {0} to skeleton", x.folderName);
                 folders.Add(ConvertToOpenSim(x));
+            }
 
             return folders;
         }
@@ -214,35 +217,48 @@ namespace OpenSim.Services.InventoryService
 
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
         {
+            // This method doesn't receive a valud principal id from the
+            // connector. So we disregard the principal and look
+            // by ID.
+            //
+            m_log.DebugFormat("[INVENTORY]: Fetch contents for folder {0}", folderID.ToString());
             InventoryCollection inventory = new InventoryCollection();
             inventory.UserID = principalID;
             inventory.Folders = new List<InventoryFolderBase>();
             inventory.Items = new List<InventoryItemBase>();
 
             XInventoryFolder[] folders = m_Database.GetFolders(
-                    new string[] { "agentID", "parentFolderID"},
-                    new string[] { principalID.ToString(), UUID.Zero.ToString() });
+                    new string[] { "parentFolderID"},
+                    new string[] { folderID.ToString() });
 
             foreach (XInventoryFolder x in folders)
+            {
+                m_log.DebugFormat("[INVENTORY]: Adding folder {0} to response", x.folderName);
                 inventory.Folders.Add(ConvertToOpenSim(x));
+            }
 
             XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "avatarID", "parentFolderID"},
-                    new string[] { principalID.ToString(), UUID.Zero.ToString() });
+                    new string[] { "parentFolderID"},
+                    new string[] { folderID.ToString() });
 
             foreach (XInventoryItem i in items)
+            {
+                m_log.DebugFormat("[INVENTORY]: Adding item {0} to response", i.inventoryName);
                 inventory.Items.Add(ConvertToOpenSim(i));
+            }
 
             return inventory;
         }
         
         public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
+            // Since we probably don't get a valid principal here, either ...
+            //
             List<InventoryItemBase> invItems = new List<InventoryItemBase>();
 
             XInventoryItem[] items = m_Database.GetItems(
-                    new string[] { "avatarID", "parentFolderID"},
-                    new string[] { principalID.ToString(), UUID.Zero.ToString() });
+                    new string[] { "parentFolderID"},
+                    new string[] { UUID.Zero.ToString() });
 
             foreach (XInventoryItem i in items)
                 invItems.Add(ConvertToOpenSim(i));
@@ -279,6 +295,8 @@ namespace OpenSim.Services.InventoryService
         //
         public bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
+            // Ignore principal ID, it's bogus at connector level
+            //
             foreach (UUID id in folderIDs)
             {
                 InventoryFolderBase f = new InventoryFolderBase();
@@ -297,7 +315,10 @@ namespace OpenSim.Services.InventoryService
                     new string[] { folder.ID.ToString() });
 
             foreach (XInventoryFolder x in subFolders)
+            {
                 PurgeFolder(ConvertToOpenSim(x));
+                m_Database.DeleteFolders("folderID", x.folderID.ToString());
+            }
 
             m_Database.DeleteItems("parentFolderID", folder.ID.ToString());
 
@@ -316,10 +337,11 @@ namespace OpenSim.Services.InventoryService
 
         public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
         {
+            // Principal is b0rked. *sigh*
+            //
             foreach (InventoryItemBase i in items)
             {
-                m_Database.MoveItem(principalID.ToString(), i.ID.ToString(),
-                        i.Folder.ToString());
+                m_Database.MoveItem(i.ID.ToString(), i.Folder.ToString());
             }
 
             return true;
@@ -327,6 +349,8 @@ namespace OpenSim.Services.InventoryService
 
         public bool DeleteItems(UUID principalID, List<UUID> itemIDs)
         {
+            // Just use the ID... *facepalms*
+            //
             foreach (UUID id in itemIDs)
                 m_Database.DeleteItems("inventoryID", id.ToString());
 
@@ -357,14 +381,24 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(folders[0]);
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public List<InventoryItemBase> GetActiveGestures(UUID principalID)
         {
-            return null;
+            XInventoryItem[] items = m_Database.GetActiveGestures(principalID);
+
+            if (items.Length == 0)
+                return null;
+
+            List<InventoryItemBase> ret = new List<InventoryItemBase>();
+            
+            foreach (XInventoryItem x in items)
+                ret.Add(ConvertToOpenSim(x));
+
+            return ret;
         }
 
-        public int GetAssetPermissions(UUID userID, UUID assetID)
+        public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
-            return 0;
+            return m_Database.GetAssetPermissions(principalID, assetID);
         }
 
         // CM never needed those. Left unimplemented.

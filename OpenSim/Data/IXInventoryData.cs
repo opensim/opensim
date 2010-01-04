@@ -77,6 +77,8 @@ namespace OpenSim.Data
         bool DeleteFolders(string field, string val);
         bool DeleteItems(string field, string val);
 
-        bool MoveItem(string principalID, string id, string newParent);
+        bool MoveItem(string id, string newParent);
+        XInventoryItem[] GetActiveGestures(UUID principalID);
+        int GetAssetPermissions(UUID principalID, UUID assetID);
     }
 }

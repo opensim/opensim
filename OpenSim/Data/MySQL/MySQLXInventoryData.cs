@@ -85,9 +85,19 @@ namespace OpenSim.Data.MySQL
             return m_Items.Delete(field, val);
         }
 
-        public bool MoveItem(string principalID, string id, string newParent)
+        public bool MoveItem(string id, string newParent)
         {
-            return m_Items.MoveItem(principalID, id, newParent);
+            return m_Items.MoveItem(id, newParent);
+        }
+
+        public XInventoryItem[] GetActiveGestures(UUID principalID)
+        {
+            return m_Items.GetActiveGestures(principalID);
+        }
+
+        public int GetAssetPermissions(UUID principalID, UUID assetID)
+        {
+            return m_Items.GetAssetPermissions(principalID, assetID);
         }
     }
 
@@ -98,16 +108,49 @@ namespace OpenSim.Data.MySQL
         {
         }
 
-        public bool MoveItem(string principalID, string id, string newParent)
+        public bool MoveItem(string id, string newParent)
         {
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = String.Format("update {0} set parentFolderID = ?ParentFolderID where agentID = ?AgentID and folderID = ?FolderID");
+            cmd.CommandText = String.Format("update {0} set parentFolderID = ?ParentFolderID where inventoryID = ?InventoryID", m_Realm);
             cmd.Parameters.AddWithValue("?ParentFolderID", newParent);
-            cmd.Parameters.AddWithValue("?FolderID", id);
-            cmd.Parameters.AddWithValue("?AgentID", principalID);
+            cmd.Parameters.AddWithValue("?InventoryID", id);
 
             return ExecuteNonQuery(cmd) == 0 ? false : true;
+        }
+
+        public XInventoryItem[] GetActiveGestures(UUID principalID)
+        {
+            MySqlCommand cmd  = new MySqlCommand();
+            cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags = 1", m_Realm);
+
+            cmd.Parameters.AddWithValue("?uuid", principalID.ToString());
+            cmd.Parameters.AddWithValue("?type", (int)AssetType.Gesture);
+
+            return DoQuery(cmd);
+        }
+
+        public int GetAssetPermissions(UUID principalID, UUID assetID)
+        {
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("select bit_or(inventoryCurrentPermissions) as inventoryCurrentPermissions from inventoryitems where avatarID = ?PrincipalID and assetID = ?AssetID group by assetID", m_Realm);
+            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?AssetID", assetID.ToString());
+
+            IDataReader reader = ExecuteReader(cmd);
+
+            int perms = 0;
+
+            if (reader.Read())
+            {
+                perms = Convert.ToInt32(reader["inventoryCurrentPermissions"]);
+            }
+
+            reader.Close();
+            CloseReaderCommand(cmd);
+
+            return perms;
         }
     }
 }
