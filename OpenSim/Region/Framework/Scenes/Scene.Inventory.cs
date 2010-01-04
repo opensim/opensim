@@ -2056,6 +2056,13 @@ namespace OpenSim.Region.Framework.Scenes
                         group.Children.Count, remoteClient.AgentId, pos)
                         && !attachment)
                     {
+                        // The client operates in no fail mode. It will
+                        // have already removed the item from the folder
+                        // if it's no copy.
+                        // Put it back if it's not an attachment
+                        //
+                        if (((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0) && (!attachment))
+                            remoteClient.SendBulkUpdateInventory(item);
                         return null;
                     }
 

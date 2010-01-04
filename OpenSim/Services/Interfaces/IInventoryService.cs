@@ -59,6 +59,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
+        [Obsolete]
         InventoryCollection GetUserInventory(UUID userID);
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace OpenSim.Services.Interfaces
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="callback"></param>
+        [Obsolete]
         void GetUserInventory(UUID userID, InventoryReceiptCallback callback);
 
         /// <summary>
