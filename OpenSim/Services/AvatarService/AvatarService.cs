@@ -51,27 +51,45 @@ namespace OpenSim.Services.AvatarService
             m_log.Debug("[AVATAR SERVICE]: Starting avatar service");
         }
 
-        public AvatarData GetAvatar(UUID userID)
+        public AvatarData GetAvatar(UUID principalID)
         {
-            return null;
+            
+            AvatarBaseData[] av = m_Database.Get("PrincipalID", principalID.ToString());
+            if (av.Length == 0)
+                return null;
+
+            AvatarData ret = new AvatarData();
+            ret.AvatarType = Convert.ToInt32(av[0].Data["AvatarType"]);
+
+            av[0].Data.Remove("AvatarType");
+
+            ret.Data = av[0].Data;
+
+            return ret;
         }
 
-        public bool SetAvatar(UUID userID, AvatarData avatar)
+        public bool SetAvatar(UUID principalID, AvatarData avatar)
+        {
+            AvatarBaseData av = new AvatarBaseData();
+
+            av.PrincipalID = principalID;
+            av.Data = avatar.Data;
+            av.Data["AvatarType"] = avatar.AvatarType.ToString();
+
+            return m_Database.Store(av);
+        }
+
+        public bool ResetAvatar(UUID principalID)
         {
             return false;
         }
 
-        public bool ResetAvatar(UUID userID)
+        public bool SetItems(UUID principalID, string[] names, string[] values)
         {
             return false;
         }
 
-        public bool SetItems(UUID userID, string[] names, string[] values)
-        {
-            return false;
-        }
-
-        public bool RemoveItems(UUID userID, string[] names)
+        public bool RemoveItems(UUID principalID, string[] names)
         {
             return false;
         }

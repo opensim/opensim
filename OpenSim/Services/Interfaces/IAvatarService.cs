@@ -92,6 +92,10 @@ namespace OpenSim.Services.Interfaces
         public int AvatarType;
         public Dictionary<string,string> Data;
 
+        public AvatarData()
+        {
+        }
+
         public AvatarData(Dictionary<string, object> kvp)
         {
             Data = new Dictionary<string, string>();

@@ -35,7 +35,7 @@ namespace OpenSim.Data
     // This MUST be a ref type!
     public class AvatarBaseData
     {
-        public string PrincipalID;
+        public UUID PrincipalID;
         public Dictionary<string, string> Data;
     }
 
