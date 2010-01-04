@@ -153,6 +153,11 @@ namespace OpenSim.Data.MySQL
                         UUID.TryParse(reader[name].ToString(), out uuid);
                         m_Fields[name].SetValue(row, uuid);
                     }
+                    else if (m_Fields[name].GetValue(row) is int)
+                    {
+                        int v = Convert.ToInt32(reader[name]);
+                        m_Fields[name].SetValue(row, v);
+                    }
                     else
                     {
                         m_Fields[name].SetValue(row, reader[name]);
