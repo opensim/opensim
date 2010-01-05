@@ -108,14 +108,14 @@ namespace OpenSim.Server.Handlers.Presence
                     out info.RegionID))
                 return FailureResult();
 
-            foreach (KeyValuePair<string, string> kvp in request)
+            foreach (KeyValuePair<string, object> kvp in request)
             {
                 if (kvp.Key == "METHOD" ||
                         kvp.Key == "PrincipalID" ||
                         kvp.Key == "RegionID")
                     continue;
 
-                info.Data[kvp.Key] = kvp.Value;
+                info.Data[kvp.Key] = kvp.Value.ToString();
             }
 
             if (m_PresenceService.Report(info))

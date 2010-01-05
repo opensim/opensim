@@ -96,19 +96,55 @@ namespace OpenSim.Services.Connectors
             return bool.Parse(ret["RESULT"].ToString());
         }
 
-        public List<InventoryFolderBase> GetInventorySkeleton(UUID userId)
+        public List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETINVENTORYSKELETON",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+
+            foreach (Object o in ret.Values)
+                folders.Add(BuildFolder((Dictionary<string,object>)o));
+
+            return folders;
         }
 
         public InventoryFolderBase GetRootFolder(UUID principalID)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETROOTFOLDER",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            return BuildFolder(ret);
         }
 
         public InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETFOLDERFORTYPE",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() },
+                        { "TYPE", ((int)type).ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            return BuildFolder(ret);
         }
 
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
@@ -205,8 +241,28 @@ namespace OpenSim.Services.Connectors
 
         public bool AddItem(InventoryItemBase item)
         {
-            Dictionary<string,object> ret = MakeRequest("CREATEUSERINVENTORY",
+            Dictionary<string,object> ret = MakeRequest("ADDITEM",
                     new Dictionary<string,object> {
+                        { "AssetID", item.AssetID.ToString() },
+                        { "AssetType", item.AssetType.ToString() },
+                        { "Name", item.Name.ToString() },
+                        { "Owner", item.Owner.ToString() },
+                        { "ID", item.ID.ToString() },
+                        { "InvType", item.InvType.ToString() },
+                        { "Folder", item.Folder.ToString() },
+                        { "CreatorId", item.CreatorId.ToString() },
+                        { "Description", item.Description.ToString() },
+                        { "NextPermissions", item.NextPermissions.ToString() },
+                        { "CurrentPermissions", item.CurrentPermissions.ToString() },
+                        { "BasePermissions", item.BasePermissions.ToString() },
+                        { "EveryOnePermissions", item.EveryOnePermissions.ToString() },
+                        { "GroupPermissions", item.GroupPermissions.ToString() },
+                        { "GroupID", item.GroupID.ToString() },
+                        { "GroupOwned", item.GroupOwned.ToString() },
+                        { "SalePrice", item.SalePrice.ToString() },
+                        { "SaleType", item.SaleType.ToString() },
+                        { "Flags", item.Flags.ToString() },
+                        { "CreationDate", item.CreationDate.ToString() }
                     });
 
             if (ret == null)
@@ -217,8 +273,28 @@ namespace OpenSim.Services.Connectors
 
         public bool UpdateItem(InventoryItemBase item)
         {
-            Dictionary<string,object> ret = MakeRequest("CREATEUSERINVENTORY",
+            Dictionary<string,object> ret = MakeRequest("UPDATEITEM",
                     new Dictionary<string,object> {
+                        { "AssetID", item.AssetID.ToString() },
+                        { "AssetType", item.AssetType.ToString() },
+                        { "Name", item.Name.ToString() },
+                        { "Owner", item.Owner.ToString() },
+                        { "ID", item.ID.ToString() },
+                        { "InvType", item.InvType.ToString() },
+                        { "Folder", item.Folder.ToString() },
+                        { "CreatorId", item.CreatorId.ToString() },
+                        { "Description", item.Description.ToString() },
+                        { "NextPermissions", item.NextPermissions.ToString() },
+                        { "CurrentPermissions", item.CurrentPermissions.ToString() },
+                        { "BasePermissions", item.BasePermissions.ToString() },
+                        { "EveryOnePermissions", item.EveryOnePermissions.ToString() },
+                        { "GroupPermissions", item.GroupPermissions.ToString() },
+                        { "GroupID", item.GroupID.ToString() },
+                        { "GroupOwned", item.GroupOwned.ToString() },
+                        { "SalePrice", item.SalePrice.ToString() },
+                        { "SaleType", item.SaleType.ToString() },
+                        { "Flags", item.Flags.ToString() },
+                        { "CreationDate", item.CreationDate.ToString() }
                     });
 
             if (ret == null)
@@ -227,9 +303,28 @@ namespace OpenSim.Services.Connectors
             return bool.Parse(ret["RESULT"].ToString());
         }
 
-        public bool MoveItems(UUID ownerID, List<InventoryItemBase> items)
+        public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
         {
-            return false;
+            List<string> idlist = new List<string>();
+            List<string> destlist = new List<string>();
+
+            foreach (InventoryItemBase item in items)
+            {
+                idlist.Add(item.ID.ToString());
+                destlist.Add(item.Folder.ToString());
+            }
+
+            Dictionary<string,object> ret = MakeRequest("MOVEITEMS",
+                    new Dictionary<string,object> {
+                        { "PrincipalID", principalID.ToString() },
+                        { "IDLIST", idlist },
+                        { "DESTLIST", destlist }
+                    });
+
+            if (ret == null)
+                return false;
+
+            return bool.Parse(ret["RESULT"].ToString());
         }
 
         public bool DeleteItems(UUID principalID, List<UUID> itemIDs)
@@ -253,17 +348,52 @@ namespace OpenSim.Services.Connectors
 
         public InventoryItemBase GetItem(InventoryItemBase item)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETITEM",
+                    new Dictionary<string,object> {
+                        { "ID", item.ID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            return BuildItem(ret);
         }
 
         public InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETFOLDER",
+                    new Dictionary<string,object> {
+                        { "ID", folder.ID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            return BuildFolder(ret);
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID userId)
+        public List<InventoryItemBase> GetActiveGestures(UUID principalID)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETACTIVEGESTURES",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+
+            foreach (Object o in ret.Values)
+                items.Add(BuildItem((Dictionary<string,object>)o));
+
+            return items;
         }
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
@@ -275,7 +405,7 @@ namespace OpenSim.Services.Connectors
                     });
 
             if (ret == null)
-                return false;
+                return 0;
 
             return int.Parse(ret["RESULT"].ToString());
         }
@@ -312,6 +442,48 @@ namespace OpenSim.Services.Connectors
                     reply);
 
             return replyData;
+        }
+
+        InventoryFolderBase BuildFolder(Dictionary<string,object> data)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase();
+
+            folder.ParentID =  new UUID(data["ParentID"].ToString());
+            folder.Type = short.Parse(data["Type"].ToString());
+            folder.Version = ushort.Parse(data["Version"].ToString());
+            folder.Name = data["Name"].ToString();
+            folder.Owner =  new UUID(data["Owner"].ToString());
+            folder.ID = new UUID(data["ID"].ToString());
+            
+            return folder;
+        }
+
+        InventoryItemBase BuildItem(Dictionary<string,object> data)
+        {
+            InventoryItemBase item = new InventoryItemBase();
+
+            item.AssetID = new UUID(data["AssetID"].ToString());
+            item.AssetType = int.Parse(data["AssetType"].ToString());
+            item.Name = data["Name"].ToString();
+            item.Owner = new UUID(data["Owner"].ToString());
+            item.ID = new UUID(data["ID"].ToString());
+            item.InvType = int.Parse(data["InvType"].ToString());
+            item.Folder = new UUID(data["Folder"].ToString());
+            item.CreatorId = data["CreatorId"].ToString();
+            item.Description = data["Description"].ToString();
+            item.NextPermissions = uint.Parse(data["NextPermissions"].ToString());
+            item.CurrentPermissions = uint.Parse(data["CurrentPermissions"].ToString());
+            item.BasePermissions = uint.Parse(data["BasePermissions"].ToString());
+            item.EveryOnePermissions = uint.Parse(data["EveryOnePermissions"].ToString());
+            item.GroupPermissions = uint.Parse(data["GroupPermissions"].ToString());
+            item.GroupID = new UUID(data["GroupID"].ToString());
+            item.GroupOwned = bool.Parse(data["GroupOwned"].ToString());
+            item.SalePrice = int.Parse(data["SalePrice"].ToString());
+            item.SaleType = byte.Parse(data["SaleType"].ToString());
+            item.Flags = uint.Parse(data["Flags"].ToString());
+            item.CreationDate = int.Parse(data["CreationDate"].ToString());
+
+            return item;
         }
     }
 }
