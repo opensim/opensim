@@ -149,12 +149,58 @@ namespace OpenSim.Services.Connectors
 
         public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() },
+                        { "FOLDER", folderID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            
+            InventoryCollection inventory = new InventoryCollection();
+            inventory.Folders = new List<InventoryFolderBase>();
+            inventory.Items = new List<InventoryItemBase>();
+            inventory.UserID = principalID;
+            
+            Dictionary<string,object> folders =
+                    (Dictionary<string,object>)ret["FOLDERS"];
+            Dictionary<string,object> items =
+                    (Dictionary<string,object>)ret["ITEMS"];
+
+            foreach (Object o in folders.Values)
+                inventory.Folders.Add(BuildFolder((Dictionary<string,object>)o));
+            foreach (Object o in items.Values)
+                inventory.Items.Add(BuildItem((Dictionary<string,object>)o));
+
+            return inventory;
         }
 
         public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
-            return null;
+            Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
+                    new Dictionary<string,object> {
+                        { "PRINCIPAL", principalID.ToString() },
+                        { "FOLDER", folderID.ToString() }
+                    });
+
+            if (ret == null)
+                return null;
+
+            if (ret.Count == 0)
+                return null;
+
+            
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
+            
+            foreach (Object o in ret.Values)
+                items.Add(BuildItem((Dictionary<string,object>)o));
+
+            return items;
         }
 
         public bool AddFolder(InventoryFolderBase folder)

@@ -92,7 +92,7 @@ namespace OpenSim.Server.Handlers.Asset
             sr.Close();
             body = body.Trim();
 
-            //m_log.DebugFormat("[XXX]: query String: {0}", body);
+            m_log.DebugFormat("[XXX]: query String: {0}", body);
 
             try
             {
@@ -107,8 +107,44 @@ namespace OpenSim.Server.Handlers.Asset
 
                 switch (method)
                 {
-                    case "TEST":
-                        return HandleTest(request);
+                    case "CREATEUSERINVENTORY":
+                        return HandleCreateUserInventory(request);
+                    case "GETINVENTORYSKELETON":
+                        return HandleGetInventorySkeleton(request);
+                    case "GETROOTFOLDER":
+                        return HandleGetRootFolder(request);
+                    case "GETFOLDERFORTYPE":
+                        return HandleGetFolderForType(request);
+                    case "GETFOLDERCONTENT":
+                        return HandleGetFolderContent(request);
+                    case "GETFOLDERITEMS":
+                        return HandleGetFolderItems(request);
+                    case "ADDFOLDER":
+                        return HandleAddFolder(request);
+                    case "UPDATEFOLDER":
+                        return HandleUpdateFolder(request);
+                    case "MOVEFOLDER":
+                        return HandleMoveFolder(request);
+                    case "DELETEFOLDERS":
+                        return HandleDeleteFolders(request);
+                    case "PURGEFOLDER":
+                        return HandlePurgeFolder(request);
+                    case "ADDITEM":
+                        return HandleAddItem(request);
+                    case "UPDATEITEM":
+                        return HandleUpdateItem(request);
+                    case "MOVEITEMS":
+                        return HandleMoveItems(request);
+                    case "DELETEITEMS":
+                        return HandleDeleteItems(request);
+                    case "GETITEM":
+                        return HandleGetItem(request);
+                    case "GETFOLDER":
+                        return HandleGetFolder(request);
+                    case "GETACTIVEGESTURES":
+                        return HandleGetActiveGestures(request);
+                    case "GETASSETPERMISSIONS":
+                        return HandleGetAssetPermissions(request);
                 }
                 m_log.DebugFormat("[XINVENTORY HANDLER]: unknown method request: {0}", method);
             }
@@ -153,15 +189,194 @@ namespace OpenSim.Server.Handlers.Asset
             return ms.ToArray();
         }
         
-        byte[] HandleTest(Dictionary<string,object> request)
+        byte[] HandleCreateUserInventory(Dictionary<string,object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
         }
 
+        byte[] HandleGetInventorySkeleton(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetRootFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetFolderForType(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetFolderContent(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetFolderItems(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleAddFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleUpdateFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleMoveFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleDeleteFolders(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandlePurgeFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleAddItem(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleUpdateItem(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleMoveItems(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleDeleteItems(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetItem(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetFolder(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetActiveGestures(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
+        byte[] HandleGetAssetPermissions(Dictionary<string,object> request)
+        {
+            Dictionary<string,object> result = new Dictionary<string,object>();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
     }
 }
