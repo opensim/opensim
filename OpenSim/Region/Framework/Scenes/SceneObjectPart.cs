@@ -140,6 +140,15 @@ namespace OpenSim.Region.Framework.Scenes
 
         [XmlIgnore]
         public UUID FromItemID;
+
+        [XmlIgnore]
+        public int STATUS_ROTATE_X;
+
+        [XmlIgnore]
+        public int STATUS_ROTATE_Y;
+
+        [XmlIgnore]
+        public int STATUS_ROTATE_Z;
         
         [XmlIgnore]
         private Dictionary<int, string> m_CollisionFilter = new Dictionary<int, string>();
@@ -1673,6 +1682,19 @@ namespace OpenSim.Region.Framework.Scenes
             return m_parentGroup.RootPart.DIE_AT_EDGE;
         }
 
+        public int GetAxisRotation(int axis)
+        {
+            //Cannot use ScriptBaseClass constants as no referance to it currently.
+            if (axis == 2)//STATUS_ROTATE_X
+                return STATUS_ROTATE_X;
+            if (axis == 4)//STATUS_ROTATE_Y
+                return STATUS_ROTATE_Y;
+            if (axis == 8)//STATUS_ROTATE_Z
+                return STATUS_ROTATE_Z;
+
+            return 0;
+        }
+
         public double GetDistanceTo(Vector3 a, Vector3 b)
         {
             float dx = a.X - b.X;
@@ -1944,7 +1966,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
@@ -1970,7 +1992,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if (found)
+                                        if (!found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2080,7 +2102,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
@@ -2106,7 +2128,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if (found)
+                                        if (!found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2211,7 +2233,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                                 if (av.LocalId == localId)
                                 {
-                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(obj.Name))
+                                    if (m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.UUID.ToString()) || m_parentGroup.RootPart.CollisionFilter.ContainsValue(av.Name))
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar
@@ -2237,7 +2259,7 @@ namespace OpenSim.Region.Framework.Scenes
                                     {
                                         bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                         //If it is 1, it is to accept ONLY collisions from this avatar, so this other avatar will not work
-                                        if (found)
+                                        if (!found)
                                         {
                                             DetectedObject detobj = new DetectedObject();
                                             detobj.keyUUID = av.UUID;
@@ -2737,6 +2759,13 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_parentGroup.SetAxisRotation(axis, rotate);
             }
+            //Cannot use ScriptBaseClass constants as no referance to it currently.
+            if (axis == 2)//STATUS_ROTATE_X
+                STATUS_ROTATE_X = rotate;
+            if (axis == 4)//STATUS_ROTATE_Y
+                STATUS_ROTATE_Y = rotate;
+            if (axis == 8)//STATUS_ROTATE_Z
+                STATUS_ROTATE_Z = rotate;
         }
 
         public void SetBuoyancy(float fvalue)
