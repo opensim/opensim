@@ -253,6 +253,49 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected ISimulationService m_simulationService;
+        public ISimulationService SimulationService
+        {
+            get
+            {
+                if (m_simulationService == null)
+                    m_simulationService = RequestModuleInterface<ISimulationService>();
+                return m_simulationService;
+            }
+        }
+
+        protected IAuthenticationService m_AuthenticationService;
+        public IAuthenticationService AuthenticationService
+        {
+            get
+            {
+                if (m_AuthenticationService == null)
+                    m_AuthenticationService = RequestModuleInterface<IAuthenticationService>();
+                return m_AuthenticationService;
+            }
+        }
+
+        protected IPresenceService m_PresenceService;
+        public IPresenceService PresenceService
+        {
+            get
+            {
+                if (m_PresenceService == null)
+                    m_PresenceService = RequestModuleInterface<IPresenceService>();
+                return m_PresenceService;
+            }
+        }
+        protected IUserAccountService m_UserAccountService;
+        public IUserAccountService UserAccountService
+        {
+            get
+            {
+                if (m_UserAccountService == null)
+                    m_UserAccountService = RequestModuleInterface<IUserAccountService>();
+                return m_UserAccountService;
+            }
+        }
+
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
@@ -262,8 +305,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
-        protected IInterregionCommsOut m_interregionCommsOut;
-        protected IInterregionCommsIn m_interregionCommsIn;
         protected IDialogModule m_dialogModule;
         protected ITeleportModule m_teleportModule;
 
@@ -1136,8 +1177,6 @@ namespace OpenSim.Region.Framework.Scenes
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
-            m_interregionCommsOut = RequestModuleInterface<IInterregionCommsOut>();
-            m_interregionCommsIn = RequestModuleInterface<IInterregionCommsIn>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<ITeleportModule>();
@@ -2155,7 +2194,10 @@ namespace OpenSim.Region.Framework.Scenes
             grp.OffsetForNewRegion(pos);
 
             // If we fail to cross the border, then reset the position of the scene object on that border.
-            if (!CrossPrimGroupIntoNewRegion(newRegionHandle, grp, silent))
+            uint x = 0, y = 0;
+            Utils.LongToUInts(newRegionHandle, out x, out y);
+            GridRegion destination = GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
             {
                 grp.OffsetForNewRegion(oldGroupPosition);
                 grp.ScheduleGroupForFullUpdate();
@@ -2351,7 +2393,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// true if the crossing itself was successful, false on failure
         /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
         /// </returns>
-        public bool CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp, bool silent)
+        public bool CrossPrimGroupIntoNewRegion(GridRegion destination, SceneObjectGroup grp, bool silent)
         {
             //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
 
@@ -2359,7 +2401,7 @@ namespace OpenSim.Region.Framework.Scenes
             grp.RootPart.UpdateFlag = 0;
             //int primcrossingXMLmethod = 0;
 
-            if (newRegionHandle != 0)
+            if (destination != null)
             {
                 //string objectState = grp.GetStateSnapshot();
 
@@ -2372,9 +2414,11 @@ namespace OpenSim.Region.Framework.Scenes
                 //            newRegionHandle, grp.UUID, objectState, 100);
                 //}
 
-                // And the new channel...
-                if (m_interregionCommsOut != null)
-                    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp, true);
+                //// And the new channel...
+                //if (m_interregionCommsOut != null)
+                //    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp, true);
+                if (m_simulationService != null)
+                    successYN = m_simulationService.CreateObject(destination, grp, true);
 
                 if (successYN)
                 {
@@ -2405,7 +2449,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                m_log.Error("[INTERREGION]: region handle was unexpectedly 0 in Scene.CrossPrimGroupIntoNewRegion()");
+                m_log.Error("[INTERREGION]: destination was unexpectedly null in Scene.CrossPrimGroupIntoNewRegion()");
             }
 
             return successYN;
@@ -2598,10 +2642,9 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Debug(logMsg);
                 */
 
-                CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+                //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
-
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.
                 // All other AddNewClient calls find aCircuit.child to be true
@@ -2614,6 +2657,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_LastLogin = Util.EnvironmentTickCount();
             EventManager.TriggerOnNewClient(client);
+
         }
 
         
@@ -3289,14 +3333,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.KiPrimitive += SendKillObject;
             m_sceneGridService.OnGetLandData += GetLandData;
 
-            if (m_interregionCommsIn != null)
-            {
-                m_log.Debug("[SCENE]: Registering with InterregionCommsIn");
-                m_interregionCommsIn.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
-            }
-            else
-                m_log.Debug("[SCENE]: Unable to register with InterregionCommsIn");
-
         }
 
         /// <summary>
@@ -3313,9 +3349,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGridService.OnAvatarCrossingIntoRegion -= AgentCrossing;
             m_sceneGridService.OnCloseAgentConnection -= IncomingCloseAgent;
             m_sceneGridService.OnGetLandData -= GetLandData;
-
-            if (m_interregionCommsIn != null)
-                m_interregionCommsIn.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
 
             // this does nothing; should be removed
             m_sceneGridService.Close();
@@ -3758,9 +3791,10 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGridService.ReleaseAgent(id);
         }
 
-        public void SendReleaseAgent(ulong regionHandle, UUID id, string uri)
+        public void SendReleaseAgent(UUID origin, UUID id, string uri)
         {
-            m_interregionCommsOut.SendReleaseAgent(regionHandle, id, uri);
+            //m_interregionCommsOut.SendReleaseAgent(regionHandle, id, uri);
+            m_simulationService.ReleaseAgent(origin, id, uri);
         }
 
         /// <summary>

@@ -246,6 +246,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         // For teleports and crossings callbacks
         string m_callbackURI;
+        UUID m_originRegionID;
+
         ulong m_rootRegionHandle;
 
         /// <value>
@@ -890,7 +892,9 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.Animator.SendAnimPackToClient(ControllingClient);
             }
 
+            m_log.Warn("BEFORE ON MAKE ROOT");
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
+            m_log.Warn("AFTER ON MAKE ROOT");
         }
 
         /// <summary>
@@ -1094,7 +1098,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Releasing agent in URI {0}", m_callbackURI);
-                Scene.SendReleaseAgent(m_rootRegionHandle, UUID, m_callbackURI);
+                Scene.SendReleaseAgent(m_originRegionID, UUID, m_callbackURI);
                 m_callbackURI = null;
             }
 
@@ -1102,7 +1106,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
-
         }
 
         /// <summary>
@@ -2482,7 +2485,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             SendInitialFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();
-         }
+        }
 
         /// <summary>
         /// Tell the client for this scene presence what items it should be wearing now
@@ -2937,7 +2940,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void CopyTo(AgentData cAgent)
         {
             cAgent.AgentID = UUID;
-            cAgent.RegionHandle = m_rootRegionHandle;
+            cAgent.RegionID = Scene.RegionInfo.RegionID;
 
             cAgent.Position = AbsolutePosition;
             cAgent.Velocity = m_velocity;
@@ -3036,7 +3039,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CopyFrom(AgentData cAgent)
         {
-            m_rootRegionHandle = cAgent.RegionHandle;
+            m_originRegionID = cAgent.RegionID;
 
             m_callbackURI = cAgent.CallbackURI;
 
@@ -3406,7 +3409,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool CrossAttachmentsIntoNewRegion(ulong regionHandle, bool silent)
+        public bool CrossAttachmentsIntoNewRegion(GridRegion destination, bool silent)
         {
             lock (m_attachments)
             {
@@ -3427,8 +3430,8 @@ namespace OpenSim.Region.Framework.Scenes
                         gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
                         gobj.RootPart.IsAttachment = false;
                         //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                        m_log.DebugFormat("[ATTACHMENT]: Sending attachment {0} to region {1}", gobj.UUID, regionHandle);
-                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj, silent);
+                        m_log.DebugFormat("[ATTACHMENT]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
+                        m_scene.CrossPrimGroupIntoNewRegion(destination, gobj, silent);
                     }
                 }
                 m_attachments.Clear();

@@ -110,7 +110,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
         public void RequestAvatarProperty(IClientAPI remoteClient, UUID avatarID)
         {
             // FIXME: finish adding fields such as url, masking, etc.
-            UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
+            UserProfileData profile = null; // m_scene.CommsManager.UserService.GetUserProfile(avatarID);
             if (null != profile)
             {
                 Byte[] charterMember;
@@ -143,26 +143,27 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
 
         public void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData newProfile)
         {
-            UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.ID);
+            return;
+            //UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.ID);
 
-            // if it's the profile of the user requesting the update, then we change only a few things.
-            if (remoteClient.AgentId.CompareTo(Profile.ID) == 0)
-            {
-                Profile.Image = newProfile.Image;
-                Profile.FirstLifeImage = newProfile.FirstLifeImage;
-                Profile.AboutText = newProfile.AboutText;
-                Profile.FirstLifeAboutText = newProfile.FirstLifeAboutText;
-                Profile.ProfileUrl = newProfile.ProfileUrl;
-            }
-            else
-            {
-                return;
-            }
-            
-            if (m_scene.CommsManager.UserService.UpdateUserProfile(Profile))
-            {
-                RequestAvatarProperty(remoteClient, newProfile.ID);
-            }
+            //// if it's the profile of the user requesting the update, then we change only a few things.
+            //if (remoteClient.AgentId.CompareTo(Profile.ID) == 0)
+            //{
+            //    Profile.Image = newProfile.Image;
+            //    Profile.FirstLifeImage = newProfile.FirstLifeImage;
+            //    Profile.AboutText = newProfile.AboutText;
+            //    Profile.FirstLifeAboutText = newProfile.FirstLifeAboutText;
+            //    Profile.ProfileUrl = newProfile.ProfileUrl;
+            //}
+            //else
+            //{
+            //    return;
+            //}
+
+            //if (m_scene.CommsManager.UserService.UpdateUserProfile(Profile))
+            //{
+            //    RequestAvatarProperty(remoteClient, newProfile.ID);
+            //}
         }
     }
 }

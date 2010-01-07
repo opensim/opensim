@@ -274,7 +274,7 @@ namespace OpenSim.Framework
             get { return m_id; }
             set { m_id = value; }
         }
-        public ulong RegionHandle;
+        public UUID RegionID;
         public uint CircuitCode;
         public UUID SessionID;
 
@@ -321,7 +321,7 @@ namespace OpenSim.Framework
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
 
-            args["region_handle"] = OSD.FromString(RegionHandle.ToString());
+            args["region_id"] = OSD.FromString(RegionID.ToString());
             args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
             args["agent_uuid"] = OSD.FromUUID(AgentID);
             args["session_uuid"] = OSD.FromUUID(SessionID);
@@ -414,8 +414,8 @@ namespace OpenSim.Framework
         /// <param name="hash"></param>
         public virtual void Unpack(OSDMap args)
         {
-            if (args.ContainsKey("region_handle"))
-                UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
+            if (args.ContainsKey("region_id"))
+                UUID.TryParse(args["region_id"].AsString(), out RegionID);
 
             if (args["circuit_code"] != null)
                 UInt32.TryParse((string)args["circuit_code"].AsString(), out CircuitCode);
@@ -572,7 +572,7 @@ namespace OpenSim.Framework
         {
             System.Console.WriteLine("------------ AgentData ------------");
             System.Console.WriteLine("UUID: " + AgentID);
-            System.Console.WriteLine("Region: " + RegionHandle);
+            System.Console.WriteLine("Region: " + RegionID);
             System.Console.WriteLine("Position: " + Position);
         }
     }

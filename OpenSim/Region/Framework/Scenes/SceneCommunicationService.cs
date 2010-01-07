@@ -57,7 +57,6 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected CommunicationsManager m_commsProvider;
-        protected IInterregionCommsOut m_interregionCommsOut;
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;
 
@@ -135,7 +134,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_scene = s;
             m_regionInfo = s.RegionInfo;
-            m_interregionCommsOut = m_scene.RequestModuleInterface<IInterregionCommsOut>();
         }
 
         /// <summary>
@@ -255,6 +253,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             InformClientOfNeighbourDelegate icon = (InformClientOfNeighbourDelegate) iar.AsyncState;
             icon.EndInvoke(iar);
+            m_log.WarnFormat(" --> InformClientOfNeighbourCompleted");
         }
 
         /// <summary>
@@ -285,8 +284,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             string reason = String.Empty;
 
-           
-            bool regionAccepted = m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, 0, out reason);
+
+            bool regionAccepted = m_scene.SimulationService.CreateAgent(reg, a, 0, out reason); // m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, 0, out reason);
 
             if (regionAccepted && newAgent)
             {
@@ -460,6 +459,7 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             foreach (GridRegion neighbour in neighbours)
             {
+                m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
                 // Don't do it if there's already an agent in that region
                 if (newRegions.Contains(neighbour.RegionHandle))
                     newAgent = true;
@@ -600,7 +600,10 @@ namespace OpenSim.Region.Framework.Scenes
             try
             {
                 //m_commsProvider.InterRegion.ChildAgentUpdate(regionHandle, cAgentData);
-                m_interregionCommsOut.SendChildAgentUpdate(regionHandle, cAgentData);
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion destination = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+                m_scene.SimulationService.UpdateAgent(destination, cAgentData);
             }
             catch
             {
@@ -660,7 +663,10 @@ namespace OpenSim.Region.Framework.Scenes
             // let's do our best, but there's not much we can do if the neighbour doesn't accept.
 
             //m_commsProvider.InterRegion.TellRegionToCloseChildConnection(regionHandle, agentID);
-            m_interregionCommsOut.SendCloseAgent(regionHandle, agentID);
+            uint x = 0, y = 0;
+            Utils.LongToUInts(regionHandle, out x, out y);
+            GridRegion destination = m_scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            m_scene.SimulationService.CloseAgent(destination, agentID);
         }
 
         private void SendCloseChildAgentCompleted(IAsyncResult iar)
@@ -810,7 +816,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                         // Let's create an agent there if one doesn't exist yet. 
                         //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
-                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, teleportFlags, out reason))
+                        if (!m_scene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason))
                         {
                             avatar.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
                                                                                       reason));
@@ -896,9 +902,9 @@ namespace OpenSim.Region.Framework.Scenes
                         avatar.CopyTo(agent);
                         agent.Position = position;
                         agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort + 
-                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
+                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionID.ToString() + "/release/";
 
-                        m_interregionCommsOut.SendChildAgentUpdate(reg.RegionHandle, agent);
+                        m_scene.SimulationService.UpdateAgent(reg, agent);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
@@ -929,7 +935,7 @@ namespace OpenSim.Region.Framework.Scenes
                             avatar.Scene.InformClientOfNeighbours(avatar);
 
                             // Finally, kill the agent we just created at the destination.
-                            m_interregionCommsOut.SendCloseAgent(reg.RegionHandle, avatar.UUID);
+                            m_scene.SimulationService.CloseAgent(reg, avatar.UUID);
 
                             return;
                         }
@@ -943,7 +949,7 @@ namespace OpenSim.Region.Framework.Scenes
                         avatar.MakeChildAgent();
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
+                        avatar.CrossAttachmentsIntoNewRegion(reg, true);
 
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
@@ -1338,9 +1344,9 @@ namespace OpenSim.Region.Framework.Scenes
                 if (isFlying)
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
                 cAgent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort +
-                    "/agent/" + agent.UUID.ToString() + "/" + agent.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
+                    "/agent/" + agent.UUID.ToString() + "/" + agent.Scene.RegionInfo.RegionID.ToString() + "/release/";
 
-                m_interregionCommsOut.SendChildAgentUpdate(neighbourHandle, cAgent);
+                m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent);
 
                 // Next, let's close the child agent connections that are too far away.
                 agent.CloseChildAgents(neighbourx, neighboury);
@@ -1391,7 +1397,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // now we have a child agent in this region. Request all interesting data about other (root) agents
                 agent.SendInitialFullUpdateToAllClients();
 
-                agent.CrossAttachmentsIntoNewRegion(neighbourHandle, true);
+                agent.CrossAttachmentsIntoNewRegion(neighbourRegion, true);
 
                 //                    m_scene.SendKillObject(m_localId);
 

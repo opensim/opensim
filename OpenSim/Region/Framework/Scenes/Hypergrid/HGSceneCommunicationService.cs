@@ -202,8 +202,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
                         string reason = String.Empty;
 
-                        //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
-                        if (!m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, agentCircuit, teleportFlags, out reason))
+                        if (!m_scene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason))
                         {
                             avatar.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
                                                                                       reason));
@@ -282,9 +281,9 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         avatar.CopyTo(agent);
                         agent.Position = position;
                         agent.CallbackURI = "http://" + m_regionInfo.ExternalHostName + ":" + m_regionInfo.HttpPort +
-                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionHandle.ToString() + "/release/";
+                            "/agent/" + avatar.UUID.ToString() + "/" + avatar.Scene.RegionInfo.RegionID.ToString() + "/release/";
 
-                        m_interregionCommsOut.SendChildAgentUpdate(reg.RegionHandle, agent);
+                        m_scene.SimulationService.UpdateAgent(reg, agent);
 
                         m_log.DebugFormat(
                             "[CAPS]: Sending new CAPS seed url {0} to client {1}", agentCircuit.CapsPath, avatar.UUID);
@@ -322,8 +321,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                             avatar.Scene.InformClientOfNeighbours(avatar);
 
                             // Finally, kill the agent we just created at the destination.
-                            m_interregionCommsOut.SendCloseAgent(reg.RegionHandle, avatar.UUID);
-
+                            m_scene.SimulationService.CloseAgent(reg, avatar.UUID);
                             return;
                         }
 
@@ -336,7 +334,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         avatar.MakeChildAgent();
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                        avatar.CrossAttachmentsIntoNewRegion(reg.RegionHandle, true);
+                        avatar.CrossAttachmentsIntoNewRegion(reg, true);
 
                         
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone

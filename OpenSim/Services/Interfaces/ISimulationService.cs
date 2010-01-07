@@ -67,7 +67,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="id"></param>
         /// <param name="uri"></param>
         /// <returns></returns>
-        bool ReleaseAgent(GridRegion destination, UUID id, string uri);
+        bool ReleaseAgent(UUID originRegion, UUID id, string uri);
 
         /// <summary>
         /// Close agent.

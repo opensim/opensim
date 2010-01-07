@@ -172,12 +172,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             {
                 if (s.RegionInfo.RegionHandle == destination.RegionHandle)
                 {
-//                    m_log.DebugFormat("[LOCAL COMMS]: Found region {0} to send SendCreateChildAgent", regionHandle);
+                    m_log.DebugFormat("[LOCAL COMMS]: Found region {0} to send SendCreateChildAgent", destination.RegionName);
                     return s.NewUserConnection(aCircuit, teleportFlags, out reason);
                 }
             }
 
-//            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", regionHandle);
+            m_log.DebugFormat("[LOCAL COMMS]: Did not find region {0} for SendCreateChildAgent", destination.RegionName);
             reason = "Did not find region " + destination.RegionName;
             return false;
         }
@@ -241,14 +241,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return false;
         }
 
-        public bool ReleaseAgent(GridRegion destination, UUID id, string uri)
+        public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
-            if (destination == null)
-                return false;
-
             foreach (Scene s in m_sceneList)
             {
-                if (s.RegionInfo.RegionHandle == destination.RegionHandle)
+                if (s.RegionInfo.RegionID == origin)
                 {
                     //m_log.Debug("[LOCAL COMMS]: Found region to SendReleaseAgent");
                     return s.IncomingReleaseAgent(id);
@@ -330,6 +327,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         {
             foreach (Scene s in m_sceneList)
                 if (s.RegionInfo.RegionHandle == regionhandle)
+                    return true;
+            return false;
+        }
+
+        public bool IsLocalRegion(UUID id)
+        {
+            foreach (Scene s in m_sceneList)
+                if (s.RegionInfo.RegionID == id)
                     return true;
             return false;
         }

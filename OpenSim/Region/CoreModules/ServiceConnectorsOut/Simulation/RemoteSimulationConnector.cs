@@ -245,18 +245,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
         }
 
-        public bool ReleaseAgent(GridRegion destination, UUID id, string uri)
+        public bool ReleaseAgent(UUID origin, UUID id, string uri)
         {
-            if (destination == null)
-                return false;
-
             // Try local first
-            if (m_localBackend.ReleaseAgent(destination, id, uri))
+            if (m_localBackend.ReleaseAgent(origin, id, uri))
                 return true;
 
             // else do the remote thing
-            if (!m_localBackend.IsLocalRegion(destination.RegionHandle))
-                return m_remoteConnector.ReleaseAgent(destination, id, uri);
+            if (!m_localBackend.IsLocalRegion(origin))
+                return m_remoteConnector.ReleaseAgent(origin, id, uri);
 
             return false;
         }

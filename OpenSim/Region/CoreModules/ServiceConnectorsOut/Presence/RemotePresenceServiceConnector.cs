@@ -59,7 +59,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public string Name
         {
-            get { return "RemotePresenceServiceConnector"; }
+            get { return "RemotePresenceServicesConnector"; }
         }
 
         public void Initialise(IConfigSource source)

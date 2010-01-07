@@ -335,7 +335,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             try
             {
-                if (m_aScene.CommsManager.UserService.AuthenticateUserByPassword(userInfo.UserProfile.ID, pass))
+                if (m_aScene.AuthenticationService.Authenticate(userInfo.UserProfile.ID, pass, 1) != string.Empty)
                 {
                     return userInfo;
                 }

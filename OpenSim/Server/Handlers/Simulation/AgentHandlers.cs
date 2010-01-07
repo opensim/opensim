@@ -313,7 +313,7 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionID = regionID;
 
             if (action.Equals("release"))
-                m_SimulationService.ReleaseAgent(destination, id, "");
+                m_SimulationService.ReleaseAgent(regionID, id, "");
             else
                 m_SimulationService.CloseAgent(destination, id);
 
