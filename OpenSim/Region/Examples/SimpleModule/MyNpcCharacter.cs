@@ -274,25 +274,25 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event PlacesQuery OnPlacesQuery;
         
-        public event FindAgentUpdate OnFindAgentEvent;
-        public event TrackAgentUpdate OnTrackAgentEvent;
-        public event NewUserReport OnUserReportEvent;
-        public event SaveStateHandler OnSaveStateEvent;
+        public event FindAgentUpdate OnFindAgent;
+        public event TrackAgentUpdate OnTrackAgent;
+        public event NewUserReport OnUserReport;
+        public event SaveStateHandler OnSaveState;
         public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
         public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
         public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;
-        public event FreezeUserUpdate OnParcelFreezeUserEvent;
-        public event EjectUserUpdate OnParcelEjectUserEvent;
+        public event FreezeUserUpdate OnParcelFreezeUser;
+        public event EjectUserUpdate OnParcelEjectUser;
         public event ParcelBuyPass OnParcelBuyPass;
         public event ParcelGodMark OnParcelGodMark;
         public event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
-        public event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
-        public event MuteListEntryRemove OnRemoveMuteListEntryEvent;
-        public event GodlikeMessage onGodlikeMessageEvent;
-        public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
+        public event MuteListEntryUpdate OnUpdateMuteListEntry;
+        public event MuteListEntryRemove OnRemoveMuteListEntry;
+        public event GodlikeMessage onGodlikeMessage;
+        public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
 
 #pragma warning restore 67
 
