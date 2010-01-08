@@ -825,39 +825,49 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
-        
-        public void SendGroupActiveProposals(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, string[] VoteID, string[] VoteInitiator, string[] Majority, string[] Quorum, string[] TerseDateID, string[] StartDateTime, string[] EndDateTime, string[] ProposalText)
+        public struct GroupActiveProposals
+        {
+            public string VoteID;
+            public string VoteInitiator;
+            public string Majority;
+            public string Quorum;
+            public string TerseDateID;
+            public string StartDateTime;
+            public string EndDateTime;
+            public string ProposalText;
+        }
+        public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
             int i = 0;
-            foreach (string voteID in VoteID)
+            foreach (GroupActiveProposals Proposal in Proposals)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
-                GAPIRP.AgentData.AgentID = agentID;
+                GAPIRP.AgentData.AgentID = AgentId;
                 GAPIRP.AgentData.GroupID = groupID;
                 GAPIRP.TransactionData.TransactionID = transactionID;
                 GAPIRP.TransactionData.TotalNumItems = ((uint)i+1);
                 GroupActiveProposalItemReplyPacket.ProposalDataBlock ProposalData = new GroupActiveProposalItemReplyPacket.ProposalDataBlock();
                 GAPIRP.ProposalData = new GroupActiveProposalItemReplyPacket.ProposalDataBlock[1];
                 ProposalData.VoteCast = Utils.StringToBytes("false");
-                ProposalData.VoteID = new UUID(VoteID[i]);
-                ProposalData.VoteInitiator = new UUID(VoteInitiator[i]);
-                ProposalData.Majority = (float)Convert.ToInt32(Majority[i]);
-                ProposalData.Quorum = Convert.ToInt32(Quorum[i]);
-                ProposalData.TerseDateID = Utils.StringToBytes(TerseDateID[i]);
-                ProposalData.StartDateTime = Utils.StringToBytes(StartDateTime[i]);
-                ProposalData.EndDateTime = Utils.StringToBytes(EndDateTime[i]);
-                ProposalData.ProposalText = Utils.StringToBytes(ProposalText[i]);
+                ProposalData.VoteID = new UUID(Proposal.VoteID);
+                ProposalData.VoteInitiator = new UUID(Proposal.VoteInitiator);
+                ProposalData.Majority = (float)Convert.ToInt32(Proposal.Majority);
+                ProposalData.Quorum = Convert.ToInt32(Proposal.Quorum);
+                ProposalData.TerseDateID = Utils.StringToBytes(Proposal.TerseDateID);
+                ProposalData.StartDateTime = Utils.StringToBytes(Proposal.StartDateTime);
+                ProposalData.EndDateTime = Utils.StringToBytes(Proposal.EndDateTime);
+                ProposalData.ProposalText = Utils.StringToBytes(Proposal.ProposalText);
                 ProposalData.AlreadyVoted = false;
                 GAPIRP.ProposalData[i] = ProposalData;
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
                 i++;
             }
-            if (VoteID.Length == 0)
+            if (Proposals.Length == 0)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
-                GAPIRP.AgentData.AgentID = agentID;
+                GAPIRP.AgentData.AgentID = AgentId;
                 GAPIRP.AgentData.GroupID = groupID;
                 GAPIRP.TransactionData.TransactionID = transactionID;
                 GAPIRP.TransactionData.TotalNumItems = 1;
@@ -877,28 +887,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
             }
         }
-        
-        public void SendGroupVoteHistory(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, string[] VoteID, string[] VoteInitiator, string[] Majority, string[] Quorum, string[] TerseDateID, string[] StartDateTime, string[] EndDateTime, string[] VoteType, string[] VoteResult, string[] ProposalText)
+        public struct GroupVoteHistory
+        {
+            public string VoteID;
+            public string VoteInitiator;
+            public string Majority;
+            public string Quorum;
+            public string TerseDateID;
+            public string StartDateTime;
+            public string EndDateTime;
+            public string VoteType;
+            public string VoteResult;
+            public string ProposalText;
+        }
+        public void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes)
         {
             int i = 0;
-            foreach (string voteID in VoteID)
+            foreach (GroupVoteHistory Vote in Votes)
             {
                 GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
-            
-                GVHIRP.AgentData.AgentID = agentID;
+
+                GVHIRP.AgentData.AgentID = AgentId;
                 GVHIRP.AgentData.GroupID = groupID;
                 GVHIRP.TransactionData.TransactionID = transactionID;
                 GVHIRP.TransactionData.TotalNumItems = ((uint)i+1);
-                GVHIRP.HistoryItemData.VoteID = new UUID(VoteID[i]);
-                GVHIRP.HistoryItemData.VoteInitiator = new UUID(VoteInitiator[i]);
-                GVHIRP.HistoryItemData.Majority = (float)Convert.ToInt32(Majority[i]);
-                GVHIRP.HistoryItemData.Quorum = Convert.ToInt32(Quorum[i]);
-                GVHIRP.HistoryItemData.TerseDateID = Utils.StringToBytes(TerseDateID[i]);
-                GVHIRP.HistoryItemData.StartDateTime = Utils.StringToBytes(StartDateTime[i]);
-                GVHIRP.HistoryItemData.EndDateTime = Utils.StringToBytes(EndDateTime[i]);
-                GVHIRP.HistoryItemData.VoteType = Utils.StringToBytes(VoteType[i]);
-                GVHIRP.HistoryItemData.VoteResult = Utils.StringToBytes(VoteResult[i]);
-                GVHIRP.HistoryItemData.ProposalText = Utils.StringToBytes(ProposalText[i]);
+                GVHIRP.HistoryItemData.VoteID = new UUID(Vote.VoteID);
+                GVHIRP.HistoryItemData.VoteInitiator = new UUID(Vote.VoteInitiator);
+                GVHIRP.HistoryItemData.Majority = (float)Convert.ToInt32(Vote.Majority);
+                GVHIRP.HistoryItemData.Quorum = Convert.ToInt32(Vote.Quorum);
+                GVHIRP.HistoryItemData.TerseDateID = Utils.StringToBytes(Vote.TerseDateID);
+                GVHIRP.HistoryItemData.StartDateTime = Utils.StringToBytes(Vote.StartDateTime);
+                GVHIRP.HistoryItemData.EndDateTime = Utils.StringToBytes(Vote.EndDateTime);
+                GVHIRP.HistoryItemData.VoteType = Utils.StringToBytes(Vote.VoteType);
+                GVHIRP.HistoryItemData.VoteResult = Utils.StringToBytes(Vote.VoteResult);
+                GVHIRP.HistoryItemData.ProposalText = Utils.StringToBytes(Vote.ProposalText);
                 GroupVoteHistoryItemReplyPacket.VoteItemBlock VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock();
                 GVHIRP.VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock[1];
                 VoteItem.CandidateID = UUID.Zero;
@@ -908,11 +930,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(GVHIRP, ThrottleOutPacketType.Task);
                 i++;
             }
-            if (VoteID.Length == 0)
+            if (Votes.Length == 0)
             {
                 GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
                 
-                GVHIRP.AgentData.AgentID = agentID;
+                GVHIRP.AgentData.AgentID = AgentId;
                 GVHIRP.AgentData.GroupID = groupID;
                 GVHIRP.TransactionData.TransactionID = transactionID;
                 GVHIRP.TransactionData.TotalNumItems = 0;
