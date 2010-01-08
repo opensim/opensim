@@ -722,6 +722,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             //A and B should both be normalized
             m_host.AddScriptLPS(1);
+            /*  This method is more accurate than the SL one, and thus causes problems
+                for scripts that deal with the SL inaccuracy around 180-degrees -.- .._.
+                
             double dotProduct = LSL_Vector.Dot(a, b);
             LSL_Vector crossProduct = LSL_Vector.Cross(a, b);
             double magProduct = LSL_Vector.Mag(a) * LSL_Vector.Mag(b);
@@ -738,8 +741,57 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
 
             return new LSL_Rotation((float)x, (float)y, (float)z, (float)w);
-        }
+            */
+            
+            // This method mimics the 180 errors found in SL
+            // See www.euclideanspace.com... angleBetween
+			LSL_Vector vec_a = a;
+			LSL_Vector vec_b = b;
+			
+			// Eliminate zero length
+			LSL_Float vec_a_mag = LSL_Vector.Mag(vec_a);
+			LSL_Float vec_b_mag = LSL_Vector.Mag(vec_b);
+			if (vec_a_mag < 0.00001 ||
+			    vec_b_mag < 0.00001)
+			{
+   				return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+			
+			// Normalize
+			vec_a = llVecNorm(vec_a);
+			vec_b = llVecNorm(vec_b);
 
+			// Calculate axis and rotation angle
+			LSL_Vector axis = vec_a % vec_b;
+			LSL_Float cos_theta  = vec_a * vec_b;
+ 	
+			// Check if parallel
+			if (cos_theta > 0.99999)
+			{
+				return new LSL_Rotation(0.0f, 0.0f, 0.0f, 1.0f);
+			}
+			
+			// Check if anti-parallel
+			else if (cos_theta < -0.99999)
+			{
+				LSL_Vector orthog_axis = new LSL_Vector(1.0, 0.0, 0.0) - (vec_a.x / (vec_a * vec_a) * vec_a);
+				if (LSL_Vector.Mag(orthog_axis)  < 0.000001)  orthog_axis = new LSL_Vector(0.0, 0.0, 1.0);
+ 	            return new LSL_Rotation((float)orthog_axis.x, (float)orthog_axis.y, (float)orthog_axis.z, 0.0);
+			}
+			else // other rotation
+			{
+				LSL_Float theta = (LSL_Float)Math.Acos(cos_theta) * 0.5f;
+				axis = llVecNorm(axis);
+	            double x, y, z, s, t;
+	            s = Math.Cos(theta);
+	            t = Math.Sin(theta);
+	            x = axis.x * t;
+	            y = axis.y * t;
+	            z = axis.z * t;
+	            return new LSL_Rotation(x,y,z,s);
+	        }
+        }
+				
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
