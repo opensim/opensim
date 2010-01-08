@@ -552,8 +552,9 @@ namespace OpenSim.Framework.Console
         }
     }
 
-    // A console that processes commands internally
-    //
+    /// <summary>
+    /// A console that processes commands internally
+    /// </summary>
     public class CommandConsole : ConsoleBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -574,6 +575,9 @@ namespace OpenSim.Framework.Console
                 Output(s);
         }
 
+        /// <summary>
+        /// Display a command prompt on the console and wait for user input
+        /// </summary>
         public void Prompt()
         {
             string line = ReadLine(m_defaultPrompt + "# ", true, true);
