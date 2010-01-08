@@ -1180,6 +1180,14 @@ namespace OpenSim.Client.Sirikata.ClientStack
         {
         }
 
+        public void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes)
+        {
+        }
+
+        public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
+        {
+        }
+
         #endregion
     }
 }
