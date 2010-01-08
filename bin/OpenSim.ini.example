@@ -473,6 +473,7 @@
     ; OfflineMessageURL = http://yourserver/Offline.php
     ; MuteListModule = MuteListModule
     ; MuteListURL = http://yourserver/Mute.php
+    ; ForwardOfflineGroupMessages = true
 
 
 [ODEPhysicsSettings]
