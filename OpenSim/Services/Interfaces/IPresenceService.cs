@@ -90,6 +90,26 @@ namespace OpenSim.Services.Interfaces
 
             return result;
         }
+
+        public static PresenceInfo[] GetOnlinePresences(PresenceInfo[] pinfos)
+        {
+            if (pinfos == null)
+                return null;
+
+            List<PresenceInfo> lst = new List<PresenceInfo>(pinfos);
+            lst = lst.FindAll(delegate(PresenceInfo each) { return each.Online; });
+
+            return lst.ToArray();
+        }
+
+        public static PresenceInfo GetOnlinePresence(PresenceInfo[] pinfos)
+        {
+            pinfos = GetOnlinePresences(pinfos);
+            if (pinfos != null && pinfos.Length >= 1)
+                return pinfos[0];
+
+            return null;
+        }
     }
 
     public interface IPresenceService

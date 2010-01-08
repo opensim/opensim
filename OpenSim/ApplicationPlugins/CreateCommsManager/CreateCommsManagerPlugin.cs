@@ -85,10 +85,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
             MainServer.Instance = m_httpServer;
 
             InitialiseCommsManager(openSim);
-            if (m_commsManager != null)
-            {
-                m_openSim.ApplicationRegistry.RegisterInterface<IUserService>(m_commsManager.UserService);
-            }
         }
 
         public void PostInitialise()
@@ -107,10 +103,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         private void RegionCreated(IScene scene)
         {
-            if (m_commsManager != null)
-            {
-                scene.RegisterModuleInterface<IUserService>(m_commsManager.UserService);
-            }
         }
 
         protected void InitialiseCommsManager(OpenSimBase openSim)

@@ -42,6 +42,17 @@ namespace OpenSim.Services.Interfaces
             PrincipalID = principalID;
         }
 
+        public UserAccount(UUID scopeID, string firstName, string lastName, string email)
+        {
+            PrincipalID = UUID.Random();
+            ScopeID = scopeID;
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            ServiceURLs = new Dictionary<string, object>();
+            // Created = ???
+        }
+
         public string FirstName;
         public string LastName;
         public string Email;

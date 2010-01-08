@@ -534,26 +534,28 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.WantDoMask = 0;
             userProfile.WebLoginKey = UUID.Random();
 
-            // Do caps registration
-            // get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
-            if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
-            {
-                homeScene.CommsManager.UserAdminService.AddUser(
-                    agentData.firstname, agentData.lastname, CreateRandomStr(7), "", 
-                    homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
+            // !!! REFACTORING PROBLEM. This needs to be changed for 0.7
+            //
+            //// Do caps registration
+            //// get seed capagentData.firstname = FirstName;agentData.lastname = LastName;
+            //if (homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID) == null && !GridMode)
+            //{
+            //    homeScene.CommsManager.UserAdminService.AddUser(
+            //        agentData.firstname, agentData.lastname, CreateRandomStr(7), "", 
+            //        homeScene.RegionInfo.RegionLocX, homeScene.RegionInfo.RegionLocY, agentData.AgentID);
                 
-                UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
-                if (userProfile2 != null)
-                {
-                    userProfile = userProfile2;
-                    userProfile.AboutText = "OGP USER";
-                    userProfile.FirstLifeAboutText = "OGP USER";
-                    homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
-                }
-            }
+            //    UserProfileData userProfile2 = homeScene.CommsManager.UserService.GetUserProfile(agentData.AgentID);
+            //    if (userProfile2 != null)
+            //    {
+            //        userProfile = userProfile2;
+            //        userProfile.AboutText = "OGP USER";
+            //        userProfile.FirstLifeAboutText = "OGP USER";
+            //        homeScene.CommsManager.UserService.UpdateUserProfile(userProfile);
+            //    }
+            //}
             
-            // Stick our data in the cache so the region will know something about us
-            homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile);
+            //// Stick our data in the cache so the region will know something about us
+            //homeScene.CommsManager.UserProfileCacheService.PreloadUserCache(userProfile);
 
             // Call 'new user' event handler
             string reason;

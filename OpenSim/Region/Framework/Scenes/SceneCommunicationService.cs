@@ -1455,11 +1455,6 @@ namespace OpenSim.Region.Framework.Scenes
              m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
         }
 
-        public void ClearUserAgent(UUID avatarID)
-        {
-            m_commsProvider.UserService.ClearUserAgent(avatarID);
-        }
-
         public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
         {
             m_commsProvider.AddNewUserFriend(friendlistowner, friend, perms);

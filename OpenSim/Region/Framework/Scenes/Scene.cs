@@ -296,6 +296,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        protected OpenSim.Services.Interfaces.IAvatarService m_AvatarService;
+        public OpenSim.Services.Interfaces.IAvatarService AvatarService
+        {
+            get
+            {
+                if (m_AvatarService == null)
+                    m_AvatarService = RequestModuleInterface<OpenSim.Services.Interfaces.IAvatarService>();
+                return m_AvatarService;
+            }
+        }
+        
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
@@ -2975,21 +2986,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client">The IClientAPI for the client</param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
-            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(agentId);
-            if (UserProfile != null)
+            OpenSim.Services.Interfaces.PresenceInfo pinfo = PresenceService.GetAgent(client.SessionId);
+
+            if (pinfo != null)
             {
-                GridRegion regionInfo = GridService.GetRegionByUUID(UUID.Zero, UserProfile.HomeRegionID);
-                if (regionInfo == null)
-                {
-                    uint x = 0, y = 0;
-                    Utils.LongToUInts(UserProfile.HomeRegion, out x, out y);
-                    regionInfo = GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-                    if (regionInfo != null) // home region can be away temporarily, too
-                    {
-                        UserProfile.HomeRegionID = regionInfo.RegionID;
-                        CommsManager.UserService.UpdateUserProfile(UserProfile);
-                    }
-                }
+                GridRegion regionInfo = GridService.GetRegionByUUID(UUID.Zero, pinfo.HomeRegionID);
                 if (regionInfo == null)
                 {
                     // can't find the Home region: Tell viewer and abort
@@ -2997,7 +2998,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
                 }
                 RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, UserProfile.HomeLocation, UserProfile.HomeLookAt,
+                    client, regionInfo.RegionHandle, pinfo.HomePosition, pinfo.HomeLookAt,
                     (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
             }
         }
@@ -3089,7 +3090,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Sets the Home Point.   The GridService uses this to know where to put a user when they log-in
+        /// Sets the Home Point.   The LoginService uses this to know where to put a user when they log-in
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="regionHandle"></param>
@@ -3098,27 +3099,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="flags"></param>
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, Vector3 position, Vector3 lookAt, uint flags)
         {
-            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);
-            if (UserProfile != null)
-            {
-                // I know I'm ignoring the regionHandle provided by the teleport location request.
-                // reusing the TeleportLocationRequest delegate, so regionHandle isn't valid
-                UserProfile.HomeRegionID = RegionInfo.RegionID;
-                // TODO: The next line can be removed, as soon as only homeRegionID based UserServers are around.
-                // TODO: The HomeRegion property can be removed then, too
-                UserProfile.HomeRegion = RegionInfo.RegionHandle;
-
-                UserProfile.HomeLocation = position;
-                UserProfile.HomeLookAt = lookAt;
-                CommsManager.UserService.UpdateUserProfile(UserProfile);
-
+            if (PresenceService.SetHomeLocation(remoteClient.AgentId.ToString(), RegionInfo.RegionID, position, lookAt))
                 // FUBAR ALERT: this needs to be "Home position set." so the viewer saves a home-screenshot.
                 m_dialogModule.SendAlertToUser(remoteClient, "Home position set.");
-            }
             else
-            {
                 m_dialogModule.SendAlertToUser(remoteClient, "Set Home request Failed.");
-            }
         }
 
         /// <summary>
@@ -3252,12 +3237,6 @@ namespace OpenSim.Region.Framework.Scenes
                 catch (Exception e)
                 {
                     m_log.Error("[SCENE] Scene.cs:RemoveClient exception: " + e.ToString());
-                }
-
-                // Remove client agent from profile, so new logins will work
-                if (!childagentYN)
-                {
-                    m_sceneGridService.ClearUserAgent(agentID);
                 }
 
                 m_authenticateHandler.RemoveCircuit(avatar.ControllingClient.CircuitCode);

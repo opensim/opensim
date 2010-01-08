@@ -103,11 +103,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             get { return main.SceneManager.CurrentOrFirstScene.InventoryService; }
         }
 
-        internal static IUserService UserServices
+        internal static IUserAccountService UserServices
         {
-            get { return Comms.UserService; }
+            get { return main.SceneManager.CurrentOrFirstScene.UserAccountService; }
         }
- 
+
+        internal static IAuthenticationService AuthServices
+        {
+            get { return main.SceneManager.CurrentOrFirstScene.AuthenticationService; }
+        }
+        
         internal static IAvatarService AvatarServices
         {
             get { return Comms.AvatarService; }

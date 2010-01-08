@@ -52,8 +52,9 @@ using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared.Api.Interfaces;
 using OpenSim.Services.Interfaces;
-
+using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 using AssetLandmark = OpenSim.Framework.AssetLandmark;
 
@@ -3842,13 +3843,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             UUID uuid = (UUID)id;
 
-            UserProfileData userProfile =
-                    World.CommsManager.UserService.GetUserProfile(uuid);
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, uuid);
 
-            UserAgentData userAgent =
-                    World.CommsManager.UserService.GetAgentByUUID(uuid);
+            PresenceInfo[] pinfos = World.PresenceService.GetAgents(new string[] { uuid.ToString() });
+            PresenceInfo pinfo = PresenceInfo.GetOnlinePresence(pinfos);
 
-            if (userProfile == null || userAgent == null)
+            if (pinfo == null)
                 return UUID.Zero.ToString();
 
             string reply = String.Empty;
@@ -3857,17 +3857,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
             case 1: // DATA_ONLINE (0|1)
                 // TODO: implement fetching of this information
-                if (userProfile.CurrentAgent!=null && userProfile.CurrentAgent.AgentOnline)
+                if (pinfo != null)
                     reply = "1";
-                else
+                else 
                     reply = "0";
                 break;
             case 2: // DATA_NAME (First Last)
-                reply = userProfile.FirstName + " " + userProfile.SurName;
+                reply = account.FirstName + " " + account.LastName;
                 break;
             case 3: // DATA_BORN (YYYY-MM-DD)
                 DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-                born = born.AddSeconds(userProfile.Created);
+                born = born.AddSeconds(account.Created);
                 reply = born.ToString("yyyy-MM-dd");
                 break;
             case 4: // DATA_RATING (0,0,0,0,0,0)

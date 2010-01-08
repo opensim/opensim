@@ -161,7 +161,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 m_UserProfileService = m_Scene.CommsManager.UserProfileCacheService;
                 // ugh!
                 m_UserProfileService.SetInventoryService(this);
-                scene.CommsManager.UserService.SetInventoryService(this);
 
                 m_Initialized = true;
             }

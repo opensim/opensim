@@ -194,8 +194,6 @@ namespace OpenSim.Tests.Common.Setup
             m_inventoryService.PostInitialise();
             m_assetService.PostInitialise();
 
-            testScene.CommsManager.UserService.SetInventoryService(testScene.InventoryService);
-
             testScene.SetModuleInterfaces();
 
             testScene.LandChannel = new TestLandChannel(testScene);

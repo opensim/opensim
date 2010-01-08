@@ -41,6 +41,7 @@ using OpenSim.Client.MXP.ClientStack;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Communications;
+using OpenSim.Services.Interfaces;
 using System.Security.Cryptography;
 
 namespace OpenSim.Client.MXP.PacketHandler
@@ -295,13 +296,11 @@ namespace OpenSim.Client.MXP.PacketHandler
                                 regionExists = false;
                             }
 
-                            UserProfileData user = null;
                             UUID userId = UUID.Zero;
-                            string firstName = null;
-                            string lastName = null;
+                            UserAccount account = null;
                             bool authorized = regionExists ? AuthoriseUser(joinRequestMessage.ParticipantName,
                                                             joinRequestMessage.ParticipantPassphrase,
-                                                            new UUID(joinRequestMessage.BubbleId), out userId, out firstName, out lastName, out user)
+                                                            new UUID(joinRequestMessage.BubbleId), out account)
                                                             : false;
 
                             if (authorized)
@@ -316,10 +315,11 @@ namespace OpenSim.Client.MXP.PacketHandler
                                    session.RemoteEndPoint.Port + ")");
 
                                 m_log.Debug("[MXP ClientStack]: Attaching UserAgent to UserProfile...");
-                                AttachUserAgentToUserProfile(session, mxpSessionID, sceneId, user);
+                                UUID secureSession = UUID.Zero;
+                                AttachUserAgentToUserProfile(account, session, mxpSessionID, sceneId, out secureSession);
                                 m_log.Debug("[MXP ClientStack]: Attached UserAgent to UserProfile.");
                                 m_log.Debug("[MXP ClientStack]: Preparing Scene to Connection...");
-                                if (!PrepareSceneForConnection(mxpSessionID, sceneId, user, out reason))
+                                if (!PrepareSceneForConnection(mxpSessionID, secureSession, sceneId, account, out reason))
                                 {
                                     m_log.DebugFormat("[MXP ClientStack]: Scene refused connection: {0}", reason);
                                     DeclineConnection(session, joinRequestMessage);
@@ -332,7 +332,7 @@ namespace OpenSim.Client.MXP.PacketHandler
                                 m_log.Info("[MXP ClientStack]: Accepted connection.");
 
                                 m_log.Debug("[MXP ClientStack]: Creating ClientView....");
-                                MXPClientView client = new MXPClientView(session, mxpSessionID, userId, scene, firstName, lastName);
+                                MXPClientView client = new MXPClientView(session, mxpSessionID, userId, scene, account.FirstName, account.LastName);
                                 m_clients.Add(client);
                                 m_log.Debug("[MXP ClientStack]: Created ClientView.");
 
@@ -489,12 +489,12 @@ namespace OpenSim.Client.MXP.PacketHandler
             session.SetStateDisconnected();
         }
 
-        public bool AuthoriseUser(string participantName, string password, UUID sceneId, out UUID userId, out string firstName, out string lastName, out UserProfileData userProfile)
+        public bool AuthoriseUser(string participantName, string password, UUID sceneId, out UserAccount account)
         {
-            userId = UUID.Zero;
-            firstName = "";
-            lastName = "";
-            userProfile = null;
+            UUID userId = UUID.Zero;
+            string firstName = "";
+            string lastName = "";
+            account = null;
 
             string[] nameParts = participantName.Split(' ');
             if (nameParts.Length != 2)
@@ -505,103 +505,38 @@ namespace OpenSim.Client.MXP.PacketHandler
             firstName = nameParts[0];
             lastName = nameParts[1];
 
-            userProfile = m_scenes[sceneId].CommsManager.UserService.GetUserProfile(firstName, lastName);
+            account = m_scenes[sceneId].UserAccountService.GetUserAccount(m_scenes[sceneId].RegionInfo.ScopeID, firstName, lastName);
+            if (account != null)
+                return (m_scenes[sceneId].AuthenticationService.Authenticate(account.PrincipalID, password, 1) != string.Empty);
 
-            if (userProfile == null && !m_accountsAuthenticate)
-            {
-                userId = ((UserManagerBase)m_scenes[sceneId].CommsManager.UserService).AddUser(firstName, lastName, "test", "", 1000, 1000);
-            }
-            else
-            {
-                if (userProfile == null)
-                {
-                    m_log.Error("[MXP ClientStack]: Login failed as user was not found: " + participantName);
-                    return false;
-                }
-                userId = userProfile.ID;
-            }
-
-            if (m_accountsAuthenticate)
-            {
-                if (!password.StartsWith("$1$"))
-                {
-                    password = "$1$" + Util.Md5Hash(password);
-                }
-                password = password.Remove(0, 3); //remove $1$
-                string s = Util.Md5Hash(password + ":" + userProfile.PasswordSalt);
-                return (userProfile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                                   || userProfile.PasswordHash.Equals(password, StringComparison.InvariantCulture));
-                }
-            else
-            {
-                return true;
-            }
+            return false;
         }
 
-        private void AttachUserAgentToUserProfile(Session session, UUID sessionId, UUID sceneId, UserProfileData userProfile)
+        private void AttachUserAgentToUserProfile(UserAccount account, Session session, UUID sessionId, UUID sceneId, out UUID secureSessionId)
         {
-            //Scene scene = m_scenes[sceneId];
-            CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
-            IUserService userService = (IUserService)commsManager.UserService;
-
-            UserAgentData agent = new UserAgentData();
-
-            // User connection
-            agent.AgentOnline = true;
-            agent.AgentIP = session.RemoteEndPoint.Address.ToString();
-            agent.AgentPort = (uint)session.RemoteEndPoint.Port;
-
-            agent.SecureSessionID = UUID.Random();
-            agent.SessionID = sessionId;
-
-            // Profile UUID
-            agent.ProfileID = userProfile.ID;
-
-            // Current location/position/alignment
-            if (userProfile.CurrentAgent != null)
-            {
-                agent.Region = userProfile.CurrentAgent.Region;
-                agent.Handle = userProfile.CurrentAgent.Handle;
-                agent.Position = userProfile.CurrentAgent.Position;
-                agent.LookAt = userProfile.CurrentAgent.LookAt;
-            }
-            else
-            {
-                agent.Region = userProfile.HomeRegionID;
-                agent.Handle = userProfile.HomeRegion;
-                agent.Position = userProfile.HomeLocation;
-                agent.LookAt = userProfile.HomeLookAt;
-            }
-
-            // What time did the user login?
-            agent.LoginTime = Util.UnixTimeSinceEpoch();
-            agent.LogoutTime = 0;
-
-            userProfile.CurrentAgent = agent;
-
-
-            userService.UpdateUserProfile(userProfile);
-            //userService.CommitAgent(ref userProfile);
+            secureSessionId = UUID.Random();
+            Scene scene = m_scenes[sceneId];
+            scene.PresenceService.LoginAgent(account.PrincipalID.ToString(), sessionId, secureSessionId);
         }
 
-        private bool PrepareSceneForConnection(UUID sessionId, UUID sceneId, UserProfileData userProfile, out string reason)
+        private bool PrepareSceneForConnection(UUID sessionId, UUID secureSessionId, UUID sceneId, UserAccount account, out string reason)
         {
             Scene scene = m_scenes[sceneId];
-            CommunicationsManager commsManager = m_scenes[sceneId].CommsManager;
-            UserManagerBase userService = (UserManagerBase)commsManager.UserService;
 
             AgentCircuitData agent = new AgentCircuitData();
-            agent.AgentID = userProfile.ID;
-            agent.firstname = userProfile.FirstName;
-            agent.lastname = userProfile.SurName;
+            agent.AgentID = account.PrincipalID;
+            agent.firstname = account.FirstName;
+            agent.lastname = account.LastName;
             agent.SessionID = sessionId;
-            agent.SecureSessionID = userProfile.CurrentAgent.SecureSessionID;
+            agent.SecureSessionID = secureSessionId;
             agent.circuitcode = sessionId.CRC();
             agent.BaseFolder = UUID.Zero;
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(0, 0, 0); // TODO Fill in region start position
             agent.CapsPath = "http://localhost/";
-            agent.Appearance = userService.GetUserAppearance(userProfile.ID);
+            AvatarData avatar = scene.AvatarService.GetAvatar(account.PrincipalID);
+            if (avatar != null)
+                agent.Appearance = avatar.ToAvatarAppearance();  //userService.GetUserAppearance(userProfile.ID);
 
             if (agent.Appearance == null)
             {
