@@ -1941,7 +1941,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2077,7 +2077,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2208,7 +2208,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
