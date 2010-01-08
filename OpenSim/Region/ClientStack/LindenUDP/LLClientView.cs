@@ -825,17 +825,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
-        public struct GroupActiveProposals
-        {
-            public string VoteID;
-            public string VoteInitiator;
-            public string Majority;
-            public string Quorum;
-            public string TerseDateID;
-            public string StartDateTime;
-            public string EndDateTime;
-            public string ProposalText;
-        }
+
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
             int i = 0;
@@ -887,19 +877,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
             }
         }
-        public struct GroupVoteHistory
-        {
-            public string VoteID;
-            public string VoteInitiator;
-            public string Majority;
-            public string Quorum;
-            public string TerseDateID;
-            public string StartDateTime;
-            public string EndDateTime;
-            public string VoteType;
-            public string VoteResult;
-            public string ProposalText;
-        }
+
         public void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes)
         {
             int i = 0;

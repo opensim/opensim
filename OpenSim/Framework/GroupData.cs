@@ -135,4 +135,30 @@ namespace OpenSim.Framework
         public bool HasAttachment;
         public byte AssetType;
     }
+
+    public struct GroupVoteHistory
+    {
+        public string VoteID;
+        public string VoteInitiator;
+        public string Majority;
+        public string Quorum;
+        public string TerseDateID;
+        public string StartDateTime;
+        public string EndDateTime;
+        public string VoteType;
+        public string VoteResult;
+        public string ProposalText;
+    }
+
+    public struct GroupActiveProposals
+    {
+        public string VoteID;
+        public string VoteInitiator;
+        public string Majority;
+        public string Quorum;
+        public string TerseDateID;
+        public string StartDateTime;
+        public string EndDateTime;
+        public string ProposalText;
+    }
 }
