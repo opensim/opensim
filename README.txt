@@ -13,10 +13,14 @@ If it breaks, you get to keep *both* pieces.
 == Installation on Windows ==
 
 Prereqs:
-
+ * runprebuild.bat
  * Load OpenSim.sln into Visual Studio .NET and build the solution.
  * chdir bin
+ * edit OpenSim.ini and appropriate files in bin/config-include
  * OpenSim.exe
+ 
+ Helpful resources:
+* http://opensimulator.org/wiki/Build_Instructions
 
 See configuring OpenSim
 
@@ -31,11 +35,16 @@ From the distribution type:
  * ./runprebuild.sh
  * nant
  * cd bin
+ * edit OpenSim.ini and appropriate files in bin/config-include
  * mono ./OpenSim.exe
 
 See configuring OpenSim
 
 == Configuring OpenSim ==
+ Helpful resources:
+* http://opensimulator.org/wiki/Configuration
+* http://opensimulator.org/wiki/Configuring_Regions
+* http://opensimulator.org/wiki/Mysql-config
 
 When OpenSim starts for the first time, you will be prompted with a
 series of questions that look something like:
