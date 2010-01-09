@@ -60,5 +60,16 @@ namespace OpenSim.Data
 
         bool Delete(UUID regionID);
 
+        List<RegionData> GetDefaultRegions(UUID scopeID);
+        List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y);
+    }
+
+    [Flags]
+    public enum RegionFlags : int
+    {
+        DefaultRegion = 1, // Used for new Rez. Random if multiple defined
+        FallbackRegion = 2, // Regions we redirect to when the destination is down
+        RegionOnline = 4, // Set when a region comes online, unset when it unregisters and DeleteOnUnregister is false
+        NoDirectLogin = 8 // Region unavailable for direct logins (by name)
     }
 }

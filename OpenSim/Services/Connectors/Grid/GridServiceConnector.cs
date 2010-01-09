@@ -450,5 +450,19 @@ namespace OpenSim.Services.Connectors
 
         #endregion
 
+        public List<GridRegion> GetDefaultRegions(UUID scopeID)
+        {
+            return null;
+        }
+
+        public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            return null;
+        }
+
+        public int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            return 0;
+        }
     }
 }

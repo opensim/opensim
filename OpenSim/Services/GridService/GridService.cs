@@ -46,10 +46,18 @@ namespace OpenSim.Services.GridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_DeleteOnUnregister = true;
+
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
+
+            IConfig gridConfig = config.Configs["GridService"];
+            if (gridConfig != null)
+            {
+                m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
+            }
         }
 
         #region IGridService
@@ -85,6 +93,15 @@ namespace OpenSim.Services.GridService
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
+            
+            if (region != null)
+            {
+                rdata.Data["flags"] = region.Data["flags"]; // Preserve fields
+            }
+            int flags = Convert.ToInt32(rdata.Data["flags"]);
+            flags |= (int)OpenSim.Data.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = flags.ToString();
+
             try
             {
                 m_Database.Store(rdata);
@@ -103,6 +120,28 @@ namespace OpenSim.Services.GridService
         public bool DeregisterRegion(UUID regionID)
         {
             m_log.DebugFormat("[GRID SERVICE]: Region {0} deregistered", regionID);
+            if (!m_DeleteOnUnregister)
+            {
+                RegionData region = m_Database.Get(regionID, UUID.Zero);
+                if (region == null)
+                    return false;
+
+                int flags = Convert.ToInt32(region.Data["flags"]);
+                flags &= ~(int)OpenSim.Data.RegionFlags.RegionOnline;
+                region.Data["flags"] = flags.ToString();
+                try
+                {
+                    m_Database.Store(region);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+                }
+
+                return true;
+
+            }
+
             return m_Database.Delete(regionID);
         }
 
@@ -218,5 +257,35 @@ namespace OpenSim.Services.GridService
 
         #endregion 
 
+        public List<GridRegion> GetDefaultRegions(UUID scopeID)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetDefaultRegions(scopeID);
+
+            foreach (RegionData r in regions)
+                ret.Add(RegionData2RegionInfo(r));
+
+            return ret;
+        }
+
+        public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetFallbackRegions(scopeID, x, y);
+
+            foreach (RegionData r in regions)
+                ret.Add(RegionData2RegionInfo(r));
+
+            return ret;
+        }
+
+        public int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            RegionData region = m_Database.Get(regionID, scopeID);
+
+            return Convert.ToInt32(region.Data["flags"]);
+        }
     }
 }

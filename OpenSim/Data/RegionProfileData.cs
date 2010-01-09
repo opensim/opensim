@@ -136,7 +136,6 @@ namespace OpenSim.Data
         /// </summary>
         public uint maturity;
 
-
         //Data Wrappers
         public string RegionName
         {

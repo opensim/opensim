@@ -90,6 +90,10 @@ namespace OpenSim.Services.Interfaces
 
         List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
+        List<GridRegion> GetDefaultRegions(UUID scopeID);
+        List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
+
+        int GetRegionFlags(UUID scopeID, UUID regionID);
     }
 
     public class GridRegion
