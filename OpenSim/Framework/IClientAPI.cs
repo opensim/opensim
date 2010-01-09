@@ -467,7 +467,7 @@ namespace OpenSim.Framework
     
     public delegate void EjectUserUpdate(IClientAPI client, UUID parcelowner,uint flags, UUID target);
     
-    public delegate void NewUserReport(IClientAPI client, string regionName,UUID abuserID, byte catagory, byte checkflags, string details, UUID objectID, Vector3 postion, byte reportType ,UUID screenshotID, string summery, UUID reporter);
+    public delegate void NewUserReport(IClientAPI client, string regionName,UUID abuserID, byte catagory, byte checkflags, string details, UUID objectID, Vector3 postion, byte reportType ,UUID screenshotID, string Summary, UUID reporter);
     
     public delegate void GodUpdateRegionInfoUpdate(IClientAPI client, float BillableFactor, ulong EstateID, ulong RegionFlags, byte[] SimName,int RedirectX, int RedirectY);
     
@@ -1069,25 +1069,25 @@ namespace OpenSim.Framework
 
         event PlacesQuery OnPlacesQuery;
         
-        event FindAgentUpdate OnFindAgentEvent;
-        event TrackAgentUpdate OnTrackAgentEvent;
-        event NewUserReport OnUserReportEvent;
-        event SaveStateHandler OnSaveStateEvent;
+        event FindAgentUpdate OnFindAgent;
+        event TrackAgentUpdate OnTrackAgent;
+        event NewUserReport OnUserReport;
+        event SaveStateHandler OnSaveState;
         event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
         event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
         event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;
-        event FreezeUserUpdate OnParcelFreezeUserEvent;
-        event EjectUserUpdate OnParcelEjectUserEvent;
+        event FreezeUserUpdate OnParcelFreezeUser;
+        event EjectUserUpdate OnParcelEjectUser;
         event ParcelBuyPass OnParcelBuyPass;
         event ParcelGodMark OnParcelGodMark;
         event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
         event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         event SimWideDeletesDelegate OnSimWideDeletes;
         event SendPostcard OnSendPostcard;
-        event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
-        event MuteListEntryRemove OnRemoveMuteListEntryEvent;
-        event GodlikeMessage onGodlikeMessageEvent;
-        event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
+        event MuteListEntryUpdate OnUpdateMuteListEntry;
+        event MuteListEntryRemove OnRemoveMuteListEntry;
+        event GodlikeMessage onGodlikeMessage;
+        event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
         
         /// <summary>
         /// Set the debug level at which packet output should be printed to console.
@@ -1446,7 +1446,12 @@ namespace OpenSim.Framework
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
         
         void SendUseCachedMuteList();
+
         void SendMuteListUpdate(string filename);
+
+        void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals);
+
+        void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes);
 
         void KillEndDone();
 

@@ -160,9 +160,9 @@ namespace OpenSim.Server.Base
             }
         }
 
-        public static Dictionary<string, string> ParseQueryString(string query)
+        public static Dictionary<string, object> ParseQueryString(string query)
         {
-            Dictionary<string, string> result = new Dictionary<string, string>();
+            Dictionary<string, object> result = new Dictionary<string, object>();
             string[] terms = query.Split(new char[] {'&'});
 
             if (terms.Length == 0)
@@ -180,33 +180,76 @@ namespace OpenSim.Server.Base
                 if (elems.Length > 1)
                     value = System.Web.HttpUtility.UrlDecode(elems[1]);
 
-                result[name] = value;
+                if (name.EndsWith("[]"))
+                {
+                    if (result.ContainsKey(name))
+                    {
+                        if (!(result[name] is List<string>))
+                            continue;
+
+                        List<string> l = (List<string>)result[name];
+
+                        l.Add(value);
+                    }
+                    else
+                    {
+                        List<string> newList = new List<string>();
+
+                        newList.Add(value);
+
+                        result[name] = newList;
+                    }
+                }
+                else
+                {
+                    if (!result.ContainsKey(name))
+                        result[name] = value;
+                }
             }
 
             return result;
         }
 
-        public static string BuildQueryString(Dictionary<string, string> data)
+        public static string BuildQueryString(Dictionary<string, object> data)
         {
             string qstring = String.Empty;
 
-            foreach (KeyValuePair<string, string> kvp in data)
+            string part;
+
+            foreach (KeyValuePair<string, object> kvp in data)
             {
-                string part;
-                if (kvp.Value != String.Empty)
+                if (kvp.Value is List<string>)
                 {
-                    part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
-                            "=" + System.Web.HttpUtility.UrlEncode(kvp.Value);
+                    List<string> l = (List<String>)kvp.Value;
+
+                    foreach (string s in l)
+                    {
+                        part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
+                                "[]=" + System.Web.HttpUtility.UrlEncode(s);
+
+                        if (qstring != String.Empty)
+                            qstring += "&";
+
+                        qstring += part;
+                    }
                 }
                 else
                 {
-                    part = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                    if (kvp.Value.ToString() != String.Empty)
+                    {
+                        part = System.Web.HttpUtility.UrlEncode(kvp.Key) +
+                                "=" + System.Web.HttpUtility.UrlEncode(kvp.Value.ToString());
+                    }
+                    else
+                    {
+                        part = System.Web.HttpUtility.UrlEncode(kvp.Key);
+                    }
+
+                    if (qstring != String.Empty)
+                        qstring += "&";
+
+                    qstring += part;
                 }
-
-                if (qstring != String.Empty)
-                    qstring += "&";
-
-                qstring += part;
             }
 
             return qstring;

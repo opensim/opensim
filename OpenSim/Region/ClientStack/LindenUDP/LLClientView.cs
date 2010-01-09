@@ -298,25 +298,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event AvatarInterestUpdate OnAvatarInterestUpdate;
         public event PlacesQuery OnPlacesQuery;
         public event AgentFOV OnAgentFOV;
-        public event FindAgentUpdate OnFindAgentEvent;
-        public event TrackAgentUpdate OnTrackAgentEvent;
-        public event NewUserReport OnUserReportEvent;
-        public event SaveStateHandler OnSaveStateEvent;
+        public event FindAgentUpdate OnFindAgent;
+        public event TrackAgentUpdate OnTrackAgent;
+        public event NewUserReport OnUserReport;
+        public event SaveStateHandler OnSaveState;
         public event GroupAccountSummaryRequest OnGroupAccountSummaryRequest;
         public event GroupAccountDetailsRequest OnGroupAccountDetailsRequest;
         public event GroupAccountTransactionsRequest OnGroupAccountTransactionsRequest;
-        public event FreezeUserUpdate OnParcelFreezeUserEvent;
-        public event EjectUserUpdate OnParcelEjectUserEvent;
+        public event FreezeUserUpdate OnParcelFreezeUser;
+        public event EjectUserUpdate OnParcelEjectUser;
         public event ParcelBuyPass OnParcelBuyPass;
         public event ParcelGodMark OnParcelGodMark;
         public event GroupActiveProposalsRequest OnGroupActiveProposalsRequest;
         public event GroupVoteHistoryRequest OnGroupVoteHistoryRequest;
         public event SimWideDeletesDelegate OnSimWideDeletes;
         public event SendPostcard OnSendPostcard;
-        public event MuteListEntryUpdate OnUpdateMuteListEntryEvent;
-        public event MuteListEntryRemove OnRemoveMuteListEntryEvent;
-        public event GodlikeMessage onGodlikeMessageEvent;
-        public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdateEvent;
+        public event MuteListEntryUpdate OnUpdateMuteListEntry;
+        public event MuteListEntryRemove OnRemoveMuteListEntry;
+        public event GodlikeMessage onGodlikeMessage;
+        public event GodUpdateRegionInfoUpdate OnGodUpdateRegionInfoUpdate;
         
 
         #endregion Events
@@ -825,37 +825,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             OutPacket(gmp, ThrottleOutPacketType.Task);
         }
-        
-        public void SendGroupActiveProposals(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, Dictionary<int, string> VoteID, Dictionary<int, string> VoteInitiator, Dictionary<int, string> Majority, Dictionary<int, string> Quorum, Dictionary<int, string> TerseDateID, Dictionary<int, string> StartDateTime, Dictionary<int, string> EndDateTime, Dictionary<int, string> ProposalText)
+
+        public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
-            foreach (KeyValuePair<int, string> Blank in VoteID)
+            int i = 0;
+            foreach (GroupActiveProposals Proposal in Proposals)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
-                GAPIRP.AgentData.AgentID = agentID;
+                GAPIRP.AgentData.AgentID = AgentId;
                 GAPIRP.AgentData.GroupID = groupID;
                 GAPIRP.TransactionData.TransactionID = transactionID;
-                GAPIRP.TransactionData.TotalNumItems = 1;
+                GAPIRP.TransactionData.TotalNumItems = ((uint)i+1);
                 GroupActiveProposalItemReplyPacket.ProposalDataBlock ProposalData = new GroupActiveProposalItemReplyPacket.ProposalDataBlock();
                 GAPIRP.ProposalData = new GroupActiveProposalItemReplyPacket.ProposalDataBlock[1];
                 ProposalData.VoteCast = Utils.StringToBytes("false");
-                ProposalData.VoteID = new UUID(VoteID[Blank.Key]);
-                ProposalData.VoteInitiator = new UUID(VoteInitiator[Blank.Key]);
-                ProposalData.Majority = (float)Convert.ToInt32(Majority[Blank.Key]);
-                ProposalData.Quorum = Convert.ToInt32(Quorum[Blank.Key]);
-                ProposalData.TerseDateID = Utils.StringToBytes(TerseDateID[Blank.Key]);
-                ProposalData.StartDateTime = Utils.StringToBytes(StartDateTime[Blank.Key]);
-                ProposalData.EndDateTime = Utils.StringToBytes(EndDateTime[Blank.Key]);
-                ProposalData.ProposalText = Utils.StringToBytes(ProposalText[Blank.Key]);
+                ProposalData.VoteID = new UUID(Proposal.VoteID);
+                ProposalData.VoteInitiator = new UUID(Proposal.VoteInitiator);
+                ProposalData.Majority = (float)Convert.ToInt32(Proposal.Majority);
+                ProposalData.Quorum = Convert.ToInt32(Proposal.Quorum);
+                ProposalData.TerseDateID = Utils.StringToBytes(Proposal.TerseDateID);
+                ProposalData.StartDateTime = Utils.StringToBytes(Proposal.StartDateTime);
+                ProposalData.EndDateTime = Utils.StringToBytes(Proposal.EndDateTime);
+                ProposalData.ProposalText = Utils.StringToBytes(Proposal.ProposalText);
                 ProposalData.AlreadyVoted = false;
-                GAPIRP.ProposalData[0] = ProposalData;
+                GAPIRP.ProposalData[i] = ProposalData;
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
+                i++;
             }
-            if (VoteID.Count == 0)
+            if (Proposals.Length == 0)
             {
                 GroupActiveProposalItemReplyPacket GAPIRP = new GroupActiveProposalItemReplyPacket();
                 
-                GAPIRP.AgentData.AgentID = agentID;
+                GAPIRP.AgentData.AgentID = AgentId;
                 GAPIRP.AgentData.GroupID = groupID;
                 GAPIRP.TransactionData.TransactionID = transactionID;
                 GAPIRP.TransactionData.TotalNumItems = 1;
@@ -875,40 +877,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 OutPacket(GAPIRP, ThrottleOutPacketType.Task);
             }
         }
-        
-        public void SendGroupVoteHistory(IClientAPI sender,UUID agentID, UUID sessionID, UUID groupID, UUID transactionID, Dictionary<int, string> VoteID, Dictionary<int, string> VoteInitiator, Dictionary<int, string> Majority, Dictionary<int, string> Quorum, Dictionary<int, string> TerseDateID, Dictionary<int, string> StartDateTime, Dictionary<int, string> EndDateTime, Dictionary<int, string> VoteType, Dictionary<int, string> VoteResult, Dictionary<int, string> ProposalText)
+
+        public void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes)
         {
-            foreach (KeyValuePair<int, string> Blank in VoteID)
+            int i = 0;
+            foreach (GroupVoteHistory Vote in Votes)
             {
-            GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
-            
-            GVHIRP.AgentData.AgentID = agentID;
-            GVHIRP.AgentData.GroupID = groupID;
-            GVHIRP.TransactionData.TransactionID = transactionID;
-            GVHIRP.TransactionData.TotalNumItems = 1;
-            GVHIRP.HistoryItemData.VoteID = new UUID(VoteID[Blank.Key]);
-            GVHIRP.HistoryItemData.VoteInitiator = new UUID(VoteInitiator[Blank.Key]);
-            GVHIRP.HistoryItemData.Majority = (float)Convert.ToInt32(Majority[Blank.Key]);
-            GVHIRP.HistoryItemData.Quorum = Convert.ToInt32(Quorum[Blank.Key]);
-            GVHIRP.HistoryItemData.TerseDateID = Utils.StringToBytes(TerseDateID[Blank.Key]);
-            GVHIRP.HistoryItemData.StartDateTime = Utils.StringToBytes(StartDateTime[Blank.Key]);
-            GVHIRP.HistoryItemData.EndDateTime = Utils.StringToBytes(EndDateTime[Blank.Key]);
-            GVHIRP.HistoryItemData.VoteType = Utils.StringToBytes(VoteType[Blank.Key]);
-            GVHIRP.HistoryItemData.VoteResult = Utils.StringToBytes(VoteResult[Blank.Key]);
-            GVHIRP.HistoryItemData.ProposalText = Utils.StringToBytes(ProposalText[Blank.Key]);
-            GroupVoteHistoryItemReplyPacket.VoteItemBlock VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock();
-            GVHIRP.VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock[1];
-            VoteItem.CandidateID = UUID.Zero;
-            VoteItem.NumVotes = 0; //TODO: FIX THIS!!!
-            VoteItem.VoteCast = Utils.StringToBytes("Yes");
-            GVHIRP.VoteItem[0] = VoteItem;
-            OutPacket(GVHIRP, ThrottleOutPacketType.Task);
+                GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
+
+                GVHIRP.AgentData.AgentID = AgentId;
+                GVHIRP.AgentData.GroupID = groupID;
+                GVHIRP.TransactionData.TransactionID = transactionID;
+                GVHIRP.TransactionData.TotalNumItems = ((uint)i+1);
+                GVHIRP.HistoryItemData.VoteID = new UUID(Vote.VoteID);
+                GVHIRP.HistoryItemData.VoteInitiator = new UUID(Vote.VoteInitiator);
+                GVHIRP.HistoryItemData.Majority = (float)Convert.ToInt32(Vote.Majority);
+                GVHIRP.HistoryItemData.Quorum = Convert.ToInt32(Vote.Quorum);
+                GVHIRP.HistoryItemData.TerseDateID = Utils.StringToBytes(Vote.TerseDateID);
+                GVHIRP.HistoryItemData.StartDateTime = Utils.StringToBytes(Vote.StartDateTime);
+                GVHIRP.HistoryItemData.EndDateTime = Utils.StringToBytes(Vote.EndDateTime);
+                GVHIRP.HistoryItemData.VoteType = Utils.StringToBytes(Vote.VoteType);
+                GVHIRP.HistoryItemData.VoteResult = Utils.StringToBytes(Vote.VoteResult);
+                GVHIRP.HistoryItemData.ProposalText = Utils.StringToBytes(Vote.ProposalText);
+                GroupVoteHistoryItemReplyPacket.VoteItemBlock VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock();
+                GVHIRP.VoteItem = new GroupVoteHistoryItemReplyPacket.VoteItemBlock[1];
+                VoteItem.CandidateID = UUID.Zero;
+                VoteItem.NumVotes = 0; //TODO: FIX THIS!!!
+                VoteItem.VoteCast = Utils.StringToBytes("Yes");
+                GVHIRP.VoteItem[i] = VoteItem;
+                OutPacket(GVHIRP, ThrottleOutPacketType.Task);
+                i++;
             }
-            if (VoteID.Count == 0)
+            if (Votes.Length == 0)
             {
                 GroupVoteHistoryItemReplyPacket GVHIRP = new GroupVoteHistoryItemReplyPacket();
                 
-                GVHIRP.AgentData.AgentID = agentID;
+                GVHIRP.AgentData.AgentID = AgentId;
                 GVHIRP.AgentData.GroupID = groupID;
                 GVHIRP.TransactionData.TransactionID = transactionID;
                 GVHIRP.TransactionData.TotalNumItems = 0;
@@ -4876,7 +4880,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             FreezeUserPacket FreezeUser = (FreezeUserPacket)Packet;
             
-            FreezeUserUpdate FreezeUserHandler = OnParcelFreezeUserEvent;
+            FreezeUserUpdate FreezeUserHandler = OnParcelFreezeUser;
             if (FreezeUserHandler != null)
             {
                 FreezeUserHandler(this,
@@ -4893,7 +4897,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EjectUserPacket EjectUser =
                 (EjectUserPacket)Packet;
             
-            EjectUserUpdate EjectUserHandler = OnParcelEjectUserEvent;
+            EjectUserUpdate EjectUserHandler = OnParcelEjectUser;
             if (EjectUserHandler != null)
             {
                 EjectUserHandler(this,
@@ -5292,7 +5296,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             FindAgentPacket FindAgent =
                 (FindAgentPacket)Packet;
             
-            FindAgentUpdate FindAgentHandler = OnFindAgentEvent;
+            FindAgentUpdate FindAgentHandler = OnFindAgent;
             if (FindAgentHandler != null)
             {
                 FindAgentHandler(this,FindAgent.AgentBlock.Hunter,FindAgent.AgentBlock.Prey);
@@ -5306,7 +5310,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             TrackAgentPacket TrackAgent =
                 (TrackAgentPacket)Packet;
             
-            TrackAgentUpdate TrackAgentHandler = OnTrackAgentEvent;
+            TrackAgentUpdate TrackAgentHandler = OnTrackAgent;
             if (TrackAgentHandler != null)
             {
                 TrackAgentHandler(this,
@@ -8592,7 +8596,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GodUpdateRegionInfoPacket GodUpdateRegionInfo =
                 (GodUpdateRegionInfoPacket)Packet;
 
-            GodUpdateRegionInfoUpdate handlerGodUpdateRegionInfo = OnGodUpdateRegionInfoUpdateEvent;
+            GodUpdateRegionInfoUpdate handlerGodUpdateRegionInfo = OnGodUpdateRegionInfoUpdate;
             if (handlerGodUpdateRegionInfo != null)
             {
                 handlerGodUpdateRegionInfo(this,
@@ -8625,7 +8629,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             GodlikeMessagePacket GodlikeMessage =
                 (GodlikeMessagePacket)Packet;
 
-            GodlikeMessage handlerGodlikeMessage = onGodlikeMessageEvent;
+            GodlikeMessage handlerGodlikeMessage = onGodlikeMessage;
             if (handlerGodlikeMessage != null)
             {
                 handlerGodlikeMessage(this,
@@ -8641,7 +8645,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             StateSavePacket SaveStateMessage =
                 (StateSavePacket)Packet;
-            SaveStateHandler handlerSaveStatePacket = OnSaveStateEvent;
+            SaveStateHandler handlerSaveStatePacket = OnSaveState;
             if (handlerSaveStatePacket != null)
             {
                 handlerSaveStatePacket(this,SaveStateMessage.AgentData.AgentID);
@@ -9005,7 +9009,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             UpdateMuteListEntryPacket UpdateMuteListEntry =
                 (UpdateMuteListEntryPacket)Packet;
-            MuteListEntryUpdate handlerUpdateMuteListEntry = OnUpdateMuteListEntryEvent;
+            MuteListEntryUpdate handlerUpdateMuteListEntry = OnUpdateMuteListEntry;
             if (handlerUpdateMuteListEntry != null)
             {
                 handlerUpdateMuteListEntry(this, UpdateMuteListEntry.MuteData.MuteID,
@@ -9021,7 +9025,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             RemoveMuteListEntryPacket RemoveMuteListEntry =
                 (RemoveMuteListEntryPacket)Packet;
-            MuteListEntryRemove handlerRemoveMuteListEntry = OnRemoveMuteListEntryEvent;
+            MuteListEntryRemove handlerRemoveMuteListEntry = OnRemoveMuteListEntry;
             if (handlerRemoveMuteListEntry != null)
             {
                 handlerRemoveMuteListEntry(this,
@@ -9038,7 +9042,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             UserReportPacket UserReport =
                 (UserReportPacket)Packet;
 
-            NewUserReport handlerUserReport = OnUserReportEvent;
+            NewUserReport handlerUserReport = OnUserReport;
             if (handlerUserReport != null)
             {
                 handlerUserReport(this,

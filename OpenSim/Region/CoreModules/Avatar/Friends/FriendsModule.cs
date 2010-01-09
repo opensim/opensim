@@ -397,8 +397,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnLogout += OnLogout;
             
             client.OnGrantUserRights += GrantUserFriendRights;
-            client.OnTrackAgentEvent += FindAgent;
-            client.OnFindAgentEvent += FindAgent;
+            client.OnTrackAgent += FindAgent;
+            client.OnFindAgent += FindAgent;
 
         }
 
