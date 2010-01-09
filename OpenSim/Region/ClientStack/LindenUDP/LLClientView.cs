@@ -3935,7 +3935,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(Data.Length.ToString()); j++;
+            returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
+
+            j = 2; // Agents
+            if ((code & 2) != 0)
+                j = 3; // Groups
+            if ((code & 8) != 0)
+                j = 5; // Managers
+
+            returnblock[j].Parameter = Utils.StringToBytes(Data.Length.ToString());
+            j = 6;
+
             for (int i = 0; i < Data.Length; i++)
             {
                 returnblock[j].Parameter = Data[i].GetBytes(); j++;
