@@ -3895,7 +3895,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        public void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID)
+        public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
+
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.AgentData.TransactionID = UUID.Random();
@@ -3904,26 +3905,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.MethodData.Invoice = invoice;
             packet.MethodData.Method = Utils.StringToBytes("setaccess");
 
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + EstateManagers.Length];
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + Data.Length];
 
-            for (int i = 0; i < (6 + EstateManagers.Length); i++)
+            for (int i = 0; i < (6 + Data.Length); i++)
             {
                 returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
             }
             int j = 0;
 
             returnblock[j].Parameter = Utils.StringToBytes(estateID.ToString()); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(((int)Constants.EstateAccessCodex.EstateManagers).ToString()); j++;
+            returnblock[j].Parameter = Utils.StringToBytes(code.ToString()); j++;
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
             returnblock[j].Parameter = Utils.StringToBytes("0"); j++;
-            returnblock[j].Parameter = Utils.StringToBytes(EstateManagers.Length.ToString()); j++;
-            for (int i = 0; i < EstateManagers.Length; i++)
+            returnblock[j].Parameter = Utils.StringToBytes(Data.Length.ToString()); j++;
+            for (int i = 0; i < Data.Length; i++)
             {
-                returnblock[j].Parameter = EstateManagers[i].GetBytes(); j++;
+                returnblock[j].Parameter = Data[i].GetBytes(); j++;
             }
             packet.ParamList = returnblock;
-            packet.Header.Reliable = false;
+            packet.Header.Reliable = true;
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 

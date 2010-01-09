@@ -1271,7 +1271,7 @@ namespace OpenSim.Framework
         void SendHealth(float health);
 
 
-        void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID);
+        void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID);
 
         void SendBannedUserList(UUID invoice, EstateBan[] banlist, uint estateID);
 

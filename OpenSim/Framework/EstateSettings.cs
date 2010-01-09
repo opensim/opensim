@@ -300,6 +300,34 @@ namespace OpenSim.Framework
                 OnSave(this);
         }
 
+        public void AddEstateUser(UUID avatarID)
+        {
+            if (avatarID == UUID.Zero)
+                return;
+            if (!l_EstateAccess.Contains(avatarID))
+                l_EstateAccess.Add(avatarID);
+        }
+
+        public void RemoveEstateUser(UUID avatarID)
+        {
+            if (l_EstateAccess.Contains(avatarID))
+                l_EstateAccess.Remove(avatarID);
+        }
+
+        public void AddEstateGroup(UUID avatarID)
+        {
+            if (avatarID == UUID.Zero)
+                return;
+            if (!l_EstateGroups.Contains(avatarID))
+                l_EstateGroups.Add(avatarID);
+        }
+
+        public void RemoveEstateGroup(UUID avatarID)
+        {
+            if (l_EstateGroups.Contains(avatarID))
+                l_EstateGroups.Remove(avatarID);
+        }
+
         public void AddEstateManager(UUID avatarID)
         {
             if (avatarID == UUID.Zero)

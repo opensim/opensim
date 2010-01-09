@@ -879,7 +879,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID)
+        public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
         {
         }
 
