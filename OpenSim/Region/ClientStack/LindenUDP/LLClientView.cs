@@ -4792,6 +4792,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         (x.CameraLeftAxis != lastarg.CameraLeftAxis) ||
                         (x.CameraUpAxis != lastarg.CameraUpAxis) ||
                         (x.ControlFlags != lastarg.ControlFlags) ||
+                        (x.ControlFlags != 0) ||
                         (x.Far != lastarg.Far) ||
                         (x.Flags != lastarg.Flags) ||
                         (x.State != lastarg.State) ||
