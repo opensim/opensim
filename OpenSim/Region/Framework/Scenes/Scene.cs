@@ -3557,8 +3557,35 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            IGroupsModule groupsModule =
+                    RequestModuleInterface<IGroupsModule>();
+
+            List<UUID> agentGroups = new List<UUID>();
+
+            if (groupsModule != null)
+            {
+                GroupMembershipData[] GroupMembership =
+                        groupsModule.GetMembershipData(agent.AgentID);
+
+                for (int i = 0; i < GroupMembership.Length; i++)
+                    agentGroups.Add(GroupMembership[i].GroupID);
+            }
+
+            bool groupAccess = false;
+            UUID[] estateGroups = m_regInfo.EstateSettings.EstateGroups;
+
+            foreach (UUID group in estateGroups)
+            {
+                if (agentGroups.Contains(group))
+                {
+                    groupAccess = true;
+                    break;
+                }
+            }
+
             if (!m_regInfo.EstateSettings.PublicAccess &&
-                !m_regInfo.EstateSettings.HasAccess(agent.AgentID))
+                !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
+                !groupAccess)
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                  agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
