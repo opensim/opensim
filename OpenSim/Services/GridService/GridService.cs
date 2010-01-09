@@ -58,6 +58,13 @@ namespace OpenSim.Services.GridService
             {
                 m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
             }
+            
+            MainConsole.Instance.Commands.AddCommand("grid", true,
+                    "show region",
+                    "show region <Region name>",
+                    "Show details on a region",
+                    "Display all details about a registered grid region",
+                    HandleShowRegion);
         }
 
         #region IGridService
@@ -93,6 +100,7 @@ namespace OpenSim.Services.GridService
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
+            rdata.Data["flags"] = "0";
             
             if (region != null)
             {
@@ -286,6 +294,17 @@ namespace OpenSim.Services.GridService
             RegionData region = m_Database.Get(regionID, scopeID);
 
             return Convert.ToInt32(region.Data["flags"]);
+        }
+
+        private void HandleShowRegion(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.Output("Syntax: show region <region name>");
+                return;
+            }
+
+
         }
     }
 }
