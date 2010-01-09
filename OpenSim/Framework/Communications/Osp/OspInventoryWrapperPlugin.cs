@@ -28,6 +28,7 @@
 using System.Collections.Generic;
 using OpenSim.Data;
 using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Osp
 {
@@ -37,12 +38,13 @@ namespace OpenSim.Framework.Communications.Osp
     public class OspInventoryWrapperPlugin : IInventoryDataPlugin
     {
         protected IInventoryDataPlugin m_wrappedPlugin;
-        protected CommunicationsManager m_commsManager;
+        //protected CommunicationsManager m_commsManager;
+        protected IUserAccountService m_userAccountService;
 
-        public OspInventoryWrapperPlugin(IInventoryDataPlugin wrappedPlugin, CommunicationsManager commsManager)
+        public OspInventoryWrapperPlugin(IInventoryDataPlugin wrappedPlugin, IUserAccountService userService)
         {
             m_wrappedPlugin = wrappedPlugin;
-            m_commsManager = commsManager;
+            m_userAccountService = userService;
         }
             
         public string Name { get { return "OspInventoryWrapperPlugin"; } }
@@ -81,7 +83,7 @@ namespace OpenSim.Framework.Communications.Osp
 
         protected InventoryItemBase PostProcessItem(InventoryItemBase item)
         {
-            item.CreatorIdAsUuid = OspResolver.ResolveOspa(item.CreatorId, m_commsManager);
+            item.CreatorIdAsUuid = OspResolver.ResolveOspa(item.CreatorId, m_userAccountService);
             return item;
         }
         

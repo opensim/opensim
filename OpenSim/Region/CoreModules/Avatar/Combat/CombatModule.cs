@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                         }
                         else
                         {
-                            string killer = DeadAvatar.Scene.CommsManager.UUIDNameRequestString(part.OwnerID);
+                            string killer = DeadAvatar.Scene.GetUserName(part.OwnerID);
                             DeadAvatar.ControllingClient.SendAgentAlertMessage("You impaled yourself on " + part.Name + " owned by " + killer +"!", true);
                         }
                         //DeadAvatar.Scene. part.ObjectOwner

@@ -649,16 +649,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 lsri.TaskID = sog.UUID;
                                 lsri.TaskLocalID = sog.LocalId;
                                 lsri.TaskName = sog.GetPartName(obj);
-                                if (m_scene.CommsManager.UUIDNameCachedTest(sog.OwnerID))
-                                {
-                                    lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
-                                }
-                                else
-                                {
-                                    lsri.OwnerName = "waiting";
-                                    lock (uuidNameLookupList)
-                                        uuidNameLookupList.Add(sog.OwnerID);
-                                }
+                                lsri.OwnerName = "waiting";
+                                lock (uuidNameLookupList)
+                                    uuidNameLookupList.Add(sog.OwnerID);
 
                                 if (filter.Length != 0)
                                 {
@@ -709,7 +702,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             for (int i = 0; i < uuidarr.Length; i++)
             {
                 // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
-                m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                m_scene.GetUserName(uuidarr[i]);
                 // we drop it.  It gets cached though...  so we're ready for the next request.
             }
         }

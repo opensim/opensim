@@ -33,6 +33,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -415,7 +416,24 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             );
         }
-        
+
+        public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
+        {
+            if (uuid == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
+            {
+                remote_client.SendNameReply(uuid, "Mr", "OpenSim");
+            }
+            else
+            {
+                string[] names = GetUserNames(uuid);
+                if (names.Length == 2)
+                {
+                    remote_client.SendNameReply(uuid, names[0], names[1]);
+                }
+
+            }
+        }
+
         /// <summary>
         /// Handle a fetch inventory request from the client
         /// </summary>

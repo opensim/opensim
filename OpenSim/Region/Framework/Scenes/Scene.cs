@@ -841,6 +841,36 @@ namespace OpenSim.Region.Framework.Scenes
             return m_simulatorVersion;
         }
 
+        public string[] GetUserNames(UUID uuid)
+        {
+            string[] returnstring = new string[0];
+
+            UserAccount account = UserAccountService.GetUserAccount(RegionInfo.ScopeID, uuid);
+
+            if (account != null)
+            {
+                returnstring = new string[2];
+                returnstring[0] = account.FirstName;
+                returnstring[1] = account.LastName;
+            }
+
+            return returnstring;
+        }
+
+        public string GetUserName(UUID uuid)
+        {
+            string[] names = GetUserNames(uuid);
+            if (names.Length == 2)
+            {
+                string firstname = names[0];
+                string lastname = names[1];
+
+                return firstname + " " + lastname;
+
+            }
+            return "(hippos)";
+        }
+
         /// <summary>
         /// Another region is up. 
         ///
@@ -2804,7 +2834,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void SubscribeToClientGridEvents(IClientAPI client)
         {
-            client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;
+            client.OnNameFromUUIDRequest += HandleUUIDNameRequest;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest += SetHomeRezPoint;
@@ -2959,7 +2989,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientGridEvents(IClientAPI client)
         {
-            client.OnNameFromUUIDRequest -= CommsManager.HandleUUIDNameRequest;
+            client.OnNameFromUUIDRequest -= HandleUUIDNameRequest;
             client.OnMoneyTransferRequest -= ProcessMoneyTransferRequest;
             client.OnAvatarPickerRequest -= ProcessAvatarPickerRequest;
             client.OnSetStartLocationRequest -= SetHomeRezPoint;

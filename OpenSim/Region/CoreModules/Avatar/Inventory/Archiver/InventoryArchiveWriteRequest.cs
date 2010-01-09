@@ -148,7 +148,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
             InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
-            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.CommsManager);
+            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.UserAccountService);
 
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
             m_archiveWriter.WriteFile(filename, serialization);

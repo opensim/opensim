@@ -135,69 +135,6 @@ namespace OpenSim.Framework.Communications
             return;
         }
 
-        public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
-        {
-            if (uuid == m_userProfileCacheService.LibraryRoot.Owner)
-            {
-                remote_client.SendNameReply(uuid, "Mr", "OpenSim");
-            }
-            else
-            {
-                string[] names = doUUIDNameRequest(uuid);
-                if (names.Length == 2)
-                {
-                    remote_client.SendNameReply(uuid, names[0], names[1]);
-                }
-
-            }
-        }
-
-        private string[] doUUIDNameRequest(UUID uuid)
-        {
-            lock (m_nameRequestCache)
-            {
-                if (m_nameRequestCache.ContainsKey(uuid))
-                    return m_nameRequestCache[uuid];
-            }
-
-            string[] returnstring = new string[0];
-            CachedUserInfo uinfo = UserProfileCacheService.GetUserDetails(uuid);
-
-            if ((uinfo != null) && (uinfo.UserProfile != null))
-            {
-                returnstring = new string[2];
-                returnstring[0] = uinfo.UserProfile.FirstName;
-                returnstring[1] = uinfo.UserProfile.SurName;
-                lock (m_nameRequestCache)
-                {
-                    if (!m_nameRequestCache.ContainsKey(uuid))
-                        m_nameRequestCache.Add(uuid, returnstring);
-                }
-            }
-            
-            return returnstring;
-        }
-
-        public bool UUIDNameCachedTest(UUID uuid)
-        {
-            lock (m_nameRequestCache)
-                return m_nameRequestCache.ContainsKey(uuid);
-        }
-
-        public string UUIDNameRequestString(UUID uuid)
-        {
-            string[] names = doUUIDNameRequest(uuid);
-            if (names.Length == 2)
-            {
-                string firstname = names[0];
-                string lastname = names[1];
-
-                return firstname + " " + lastname;
-
-            }
-            return "(hippos)";
-        }
-
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);

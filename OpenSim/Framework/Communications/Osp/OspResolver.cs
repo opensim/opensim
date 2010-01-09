@@ -31,6 +31,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Osp
 {
@@ -55,11 +56,11 @@ namespace OpenSim.Framework.Communications.Osp
         /// <param name="userId"></param>
         /// <param name="commsManager"></param>
         /// <returns>The OSPA.  Null if a user with the given UUID could not be found.</returns>
-        public static string MakeOspa(UUID userId, CommunicationsManager commsManager)
+        public static string MakeOspa(UUID userId, IUserAccountService userService)
         {
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(userId);
-            if (userInfo != null)
-                return MakeOspa(userInfo.UserProfile.FirstName, userInfo.UserProfile.SurName);
+            UserAccount account = userService.GetUserAccount(UUID.Zero, userId);
+            if (account != null)
+                return MakeOspa(account.FirstName, account.LastName);
 
             return null;
         }
@@ -88,7 +89,7 @@ namespace OpenSim.Framework.Communications.Osp
         /// A suitable UUID for use in Second Life client communication.  If the string was not a valid ospa, then UUID.Zero
         /// is returned.
         /// </returns>
-        public static UUID ResolveOspa(string ospa, CommunicationsManager commsManager)
+        public static UUID ResolveOspa(string ospa, IUserAccountService userService)
         {
             if (!ospa.StartsWith(OSPA_PREFIX))
                 return UUID.Zero;
@@ -112,7 +113,7 @@ namespace OpenSim.Framework.Communications.Osp
                 string value = tuple.Substring(tupleSeparatorIndex + 1).Trim();
                 
                 if (OSPA_NAME_KEY == key)
-                    return ResolveOspaName(value, commsManager);
+                    return ResolveOspaName(value, userService);
             }
             
             return UUID.Zero;
@@ -137,7 +138,7 @@ namespace OpenSim.Framework.Communications.Osp
         /// <returns>
         /// An OpenSim internal identifier for the name given.  Returns null if the name was not valid
         /// </returns>
-        protected static UUID ResolveOspaName(string name, CommunicationsManager commsManager)
+        protected static UUID ResolveOspaName(string name, IUserAccountService userService)
         {
             int nameSeparatorIndex = name.IndexOf(OSPA_NAME_VALUE_SEPARATOR);
             
@@ -150,9 +151,9 @@ namespace OpenSim.Framework.Communications.Osp
             string firstName = name.Remove(nameSeparatorIndex).TrimEnd();
             string lastName = name.Substring(nameSeparatorIndex + 1).TrimStart();
             
-            CachedUserInfo userInfo = commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
-            if (userInfo != null)
-                return userInfo.UserProfile.ID;
+            UserAccount account = userService.GetUserAccount(UUID.Zero, firstName, lastName);
+            if (account != null)
+                return account.PrincipalID;
 
             // XXX: Disable temporary user profile creation for now as implementation is incomplete - justincc
             /*
