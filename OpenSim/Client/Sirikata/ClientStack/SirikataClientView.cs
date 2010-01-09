@@ -760,7 +760,7 @@ namespace OpenSim.Client.Sirikata.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID)
+        public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
         {
             throw new System.NotImplementedException();
         }
