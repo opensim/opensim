@@ -278,7 +278,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 {
                     m_scene.RegionInfo.EstateSettings.AddEstateGroup(user);
                     m_scene.RegionInfo.EstateSettings.Save();
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateAccess, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateGroups, m_scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
@@ -292,7 +292,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     m_scene.RegionInfo.EstateSettings.RemoveEstateGroup(user);
                     m_scene.RegionInfo.EstateSettings.Save();
 
-                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateAccess, m_scene.RegionInfo.EstateSettings.EstateID);
+                    remote_client.SendEstateList(invoice, (int)Constants.EstateAccessCodex.AllowedGroups, m_scene.RegionInfo.EstateSettings.EstateGroups, m_scene.RegionInfo.EstateSettings.EstateID);
                 }
                 else
                 {
