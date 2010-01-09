@@ -126,11 +126,16 @@
     ;storage_plugin = "OpenSim.Data.Null.dll"
 
     ; --- To use sqlite as region storage:
+    ; NOTE: SQLite and OpenSim are not functioning properly with Mono 2.4.3 or greater.
+    ; If you are using Mono you probably should be using MySQL
     storage_plugin = "OpenSim.Data.SQLite.dll"
     storage_connection_string="URI=file:OpenSim.db,version=3";
 
-    ; --- To use MySQL storage, supply your own connectionstring (this is only an example):
+    ; --- To use MySQL storage, supply your own connection string (this is only an example):
     ;     note that the supplied account needs create privilegies if you want it to auto-create needed tables.
+    ;
+    ; -->>> There are multiple connection strings defined in several places in this file. Check it carefully!
+    ;
     ; storage_plugin="OpenSim.Data.MySQL.dll"
     ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
     ; If you want to use a different database/server for estate data, then
