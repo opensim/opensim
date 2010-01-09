@@ -53,7 +53,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             userServices.AddPlugin(new HGUserDataPlugin(this, userServices));
             
             m_userService = userServices;
-            m_messageService = userServices;
             m_avatarService = userServices;
         }
     }

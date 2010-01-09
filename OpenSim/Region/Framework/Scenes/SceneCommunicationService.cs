@@ -1455,25 +1455,6 @@ namespace OpenSim.Region.Framework.Scenes
              m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
         }
 
-        public void AddNewUserFriend(UUID friendlistowner, UUID friend, uint perms)
-        {
-            m_commsProvider.AddNewUserFriend(friendlistowner, friend, perms);
-        }
-
-        public void UpdateUserFriendPerms(UUID friendlistowner, UUID friend, uint perms)
-        {
-            m_commsProvider.UpdateUserFriendPerms(friendlistowner, friend, perms);
-        }
-
-        public void RemoveUserFriend(UUID friendlistowner, UUID friend)
-        {
-            m_commsProvider.RemoveUserFriend(friendlistowner, friend);
-        }
-
-        public List<FriendListItem> GetUserFriendList(UUID friendlistowner)
-        {
-            return m_commsProvider.GetUserFriendList(friendlistowner);
-        }
 
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {

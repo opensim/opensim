@@ -46,7 +46,6 @@ namespace OpenSim.Region.Communications.OGS1
             userServices.AddPlugin(new OGS1UserDataPlugin(this));
             
             m_userService = userServices;
-            m_messageService = userServices;
             m_avatarService = (IAvatarService)m_userService;
         }
 

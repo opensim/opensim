@@ -60,9 +60,7 @@ namespace OpenSim.Region.Communications.Hypergrid
             
             m_userService = hgUserService;
             m_userAdminService = hgUserService;
-            m_avatarService = hgUserService;
-            m_messageService = hgUserService;
-            
+            m_avatarService = hgUserService;            
         }
     }
 }

@@ -591,24 +591,30 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                         if (masterFirst != String.Empty && masterLast != String.Empty) // User requests a master avatar
                         {
                             // no client supplied UUID: look it up...
-                            CachedUserInfo userInfo
-                                = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(
-                                    masterFirst, masterLast);
-
-                            if (null == userInfo)
+                            UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                            UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, masterFirst, masterLast);
+                            if (null == account)
                             {
                                 m_log.InfoFormat("master avatar does not exist, creating it");
                                 // ...or create new user
-                                userID = m_app.CommunicationsManager.UserAdminService.AddUser(
-                                    masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
 
-                                if (userID == UUID.Zero)
+                                account = new UserAccount(scopeID, masterFirst, masterLast, "");
+                                bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
+                                if (success)
+                                {
+                                    GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID,
+                                        (int)(region.RegionLocX * Constants.RegionSize), (int)(region.RegionLocY * Constants.RegionSize));
+
+                                    m_app.SceneManager.CurrentOrFirstScene.PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                                }
+                                else
                                     throw new Exception(String.Format("failed to create new user {0} {1}",
                                                                       masterFirst, masterLast));
+                                
                             }
                             else
                             {
-                                userID = userInfo.UserProfile.ID;
+                                userID = account.PrincipalID;
                             }
                         }
                     }
@@ -2591,10 +2597,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 foreach (UUID user in acl)
                 {
-                    CachedUserInfo udata = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(user);
-                   if (udata != null)
+                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                    UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, user);
+                    if (account != null)
                     {
-                        users[user.ToString()] = udata.UserProfile.Name;
+                        users[user.ToString()] = account.FirstName + " " + account.LastName;
                     }
                 }
 

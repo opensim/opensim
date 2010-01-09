@@ -3979,35 +3979,6 @@ namespace OpenSim.Region.Framework.Scenes
             objectCapacity = objects;
         }
 
-        public List<FriendListItem> GetFriendList(string id)
-        {
-            UUID avatarID;
-            if (!UUID.TryParse(id, out avatarID))
-                return new List<FriendListItem>();
-
-            return CommsManager.GetUserFriendList(avatarID);
-        }
-
-        public Dictionary<UUID, FriendRegionInfo> GetFriendRegionInfos(List<UUID> uuids)
-        {
-            return CommsManager.GetFriendRegionInfos(uuids);
-        }
-
-        public virtual void StoreAddFriendship(UUID ownerID, UUID friendID, uint perms)
-        {
-            m_sceneGridService.AddNewUserFriend(ownerID, friendID, perms);
-        }
-
-        public virtual void StoreUpdateFriendship(UUID ownerID, UUID friendID, uint perms)
-        {
-            m_sceneGridService.UpdateUserFriendPerms(ownerID, friendID, perms);
-        }
-
-        public virtual void StoreRemoveFriendship(UUID ownerID, UUID ExfriendID)
-        {
-            m_sceneGridService.RemoveUserFriend(ownerID, ExfriendID);
-        }
-
         #endregion
 
         public void HandleObjectPermissionsUpdate(IClientAPI controller, UUID agentID, UUID sessionID, byte field, uint localId, uint mask, byte set)
