@@ -849,10 +849,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public string resolveName(UUID objecUUID)
         {
             // try avatar username surname
-            CachedUserInfo profile = World.CommsManager.UserProfileCacheService.GetUserDetails(objecUUID);
-            if (profile != null && profile.UserProfile != null)
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, objecUUID);
+            if (account != null)
             {
-                string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
+                string avatarname = account.Name;
                 return avatarname;
             }
             // try an scene object

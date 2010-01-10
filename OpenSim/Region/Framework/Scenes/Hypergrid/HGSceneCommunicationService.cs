@@ -141,13 +141,9 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                     bool isHyperLink = (HyperlinkService.GetHyperlinkRegion(reg.RegionHandle) != null);
                     bool isHomeUser = true;
                     ulong realHandle = regionHandle;
-                    CachedUserInfo uinfo = m_commsProvider.UserProfileCacheService.GetUserDetails(avatar.UUID);
-                    if (uinfo != null)
-                    {
-                        isHomeUser = HyperlinkService.IsLocalUser(uinfo.UserProfile.ID);
-                        realHandle = m_hg.FindRegionHandle(regionHandle);
-                        m_log.Debug("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
-                    }
+                    isHomeUser = HyperlinkService.IsLocalUser(avatar.UUID);
+                    realHandle = m_hg.FindRegionHandle(regionHandle);
+                    m_log.Debug("XXX ---- home user? " + isHomeUser + " --- hyperlink? " + isHyperLink + " --- real handle: " + realHandle.ToString());
                     ///
                     /// Hypergrid mod stop
                     /// 
@@ -352,7 +348,8 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         // so the userinfo in UserProfileCache is not reliable any more, delete it
                         if (avatar.Scene.NeedSceneCacheClear(avatar.UUID) || isHyperLink)
                         {
-                            m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
+                            // REFACTORING PROBLEM!!!!
+                            //m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
                             m_log.DebugFormat(
                                 "[HGSceneCommService]: User {0} is going to another region, profile cache removed",
                                 avatar.UUID);

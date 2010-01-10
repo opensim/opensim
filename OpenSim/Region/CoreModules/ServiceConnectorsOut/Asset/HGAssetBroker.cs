@@ -366,18 +366,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
         public string GetUserAssetServer(UUID userID)
         {
-            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if ((uinfo != null) && (uinfo.UserProfile != null))
-            {
-                if ((uinfo.UserProfile.UserAssetURI == string.Empty) || (uinfo.UserProfile.UserAssetURI == ""))
-                    return m_LocalAssetServiceURI;
-                return uinfo.UserProfile.UserAssetURI.Trim('/');
-            }
-            else
-            {
-                // we don't know anyting about this user
-                return string.Empty;
-            }
+            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, userID);
+
+            if (account != null && account.ServiceURLs.ContainsKey("AssetServerURI") && account.ServiceURLs["AssetServerURI"] != null)
+                return account.ServiceURLs["AssetServerURI"].ToString();
+
+            return string.Empty;
         }
 
         public string GetSimAssetServer()

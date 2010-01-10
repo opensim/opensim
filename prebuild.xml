@@ -193,6 +193,7 @@
       <Reference name="OpenMetaverse.dll" />
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -2306,6 +2307,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />

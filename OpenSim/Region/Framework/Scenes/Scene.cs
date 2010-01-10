@@ -3207,10 +3207,9 @@ namespace OpenSim.Region.Framework.Scenes
                     m_sceneGraph.removeUserCount(!childagentYN);
                     CapsModule.RemoveCapsHandler(agentID);
 
-                    if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
-                    {
-                        CommsManager.UserProfileCacheService.RemoveUser(agentID);
-                    }
+                    // REFACTORING PROBLEM -- well not really a problem, but just to point out that whatever
+                    // this method is doing is HORRIBLE!!!
+                    avatar.Scene.NeedSceneCacheClear(avatar.UUID);
 
                     if (!avatar.IsChildAgent)
                     {
@@ -3511,18 +3510,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
-
-            // rewrite session_id
-            CachedUserInfo userinfo = CommsManager.UserProfileCacheService.GetUserDetails(agent.AgentID);
-            if (userinfo != null)
-            {
-                userinfo.SessionID = agent.SessionID;
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[CONNECTION BEGIN]: We couldn't find a User Info record for {0}.  This is usually an indication that the UUID we're looking up is invalid", agent.AgentID);
-            }
 
             return true;
         }

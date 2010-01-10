@@ -38,6 +38,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using OpenSim.Server.Base;
 using OpenSim.Services.Connectors.Grid;
 using OpenSim.Framework.Console;
@@ -603,93 +604,105 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public bool SendUserInformation(GridRegion regInfo, AgentCircuitData agentData)
         {
-            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
+            // REFACTORING PROBLEM. This needs to change. Some of this info should go with the agent circuit data.
 
-            if (uinfo == null)
-                return false;
+            //UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, agentData.AgentID);
+            //if (account == null)
+            //    return false;
 
-            if ((IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null)) ||
-                (!IsLocalUser(uinfo) && !IsGoingHome(uinfo, regInfo)))
-            {
-                m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
-
-                // Set the position of the region on the remote grid
-//                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
-                uint x = 0, y = 0;
-                Utils.LongToUInts(regInfo.RegionHandle, out x, out y);
-                GridRegion clonedRegion = new GridRegion(regInfo);
-                clonedRegion.RegionLocX = (int)x;
-                clonedRegion.RegionLocY = (int)y;
-
-                // Get the user's home region information and adapt the region handle
-                GridRegion home = GetRegionByUUID(m_aScene.RegionInfo.ScopeID, uinfo.UserProfile.HomeRegionID);
-                if (m_HyperlinkHandles.ContainsKey(uinfo.UserProfile.HomeRegionID))
-                {
-                    ulong realHandle = m_HyperlinkHandles[uinfo.UserProfile.HomeRegionID];
-                    Utils.LongToUInts(realHandle, out x, out y);
-                    m_log.DebugFormat("[HGrid]: Foreign user is going elsewhere. Adjusting home handle from {0}-{1} to {2}-{3}", home.RegionLocX, home.RegionLocY, x, y);
-                    home.RegionLocX = (int)x;
-                    home.RegionLocY = (int)y;
-                }
-
-                // Get the user's service URLs
-                string serverURI = "";
-                if (uinfo.UserProfile is ForeignUserProfileData)
-                    serverURI = Util.ServerURI(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
-                string userServer = (serverURI == "") || (serverURI == null) ? LocalUserServerURI : serverURI;
-
-                string assetServer = Util.ServerURI(uinfo.UserProfile.UserAssetURI);
-                if ((assetServer == null) || (assetServer == ""))
-                    assetServer = LocalAssetServerURI;
-
-                string inventoryServer = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
-                if ((inventoryServer == null) || (inventoryServer == ""))
-                    inventoryServer = LocalInventoryServerURI;
-
-                if (!m_HypergridServiceConnector.InformRegionOfUser(clonedRegion, agentData, home, userServer, assetServer, inventoryServer))
-                {
-                    m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
-                    return false;
-                }
-            }
-            //if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
+            //if ((IsLocalUser(account) && (GetHyperlinkRegion(regInfo.RegionHandle) != null)) ||
+            //    (!IsLocalUser(account) && !IsGoingHome(uinfo, regInfo)))
             //{
-            //    m_log.Info("[HGrid]: User seems to be going to foreign region.");
-            //    if (!InformRegionOfUser(regInfo, agentData))
+            //    m_log.Info("[HGrid]: Local user is going to foreign region or foreign user is going elsewhere");
+
+            //    PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(agentData.SessionID);
+            //    if (pinfo != null)
             //    {
-            //        m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+            //        // Set the position of the region on the remote grid
+            //        //                ulong realHandle = FindRegionHandle(regInfo.RegionHandle);
+            //        uint x = 0, y = 0;
+            //        Utils.LongToUInts(regInfo.RegionHandle, out x, out y);
+            //        GridRegion clonedRegion = new GridRegion(regInfo);
+            //        clonedRegion.RegionLocX = (int)x;
+            //        clonedRegion.RegionLocY = (int)y;
+
+            //        // Get the user's home region information and adapt the region handle
+            //        GridRegion home = GetRegionByUUID(m_aScene.RegionInfo.ScopeID, pinfo.HomeRegionID);
+            //        if (m_HyperlinkHandles.ContainsKey(pinfo.HomeRegionID))
+            //        {
+            //            ulong realHandle = m_HyperlinkHandles[pinfo.HomeRegionID];
+            //            Utils.LongToUInts(realHandle, out x, out y);
+            //            m_log.DebugFormat("[HGrid]: Foreign user is going elsewhere. Adjusting home handle from {0}-{1} to {2}-{3}", home.RegionLocX, home.RegionLocY, x, y);
+            //            home.RegionLocX = (int)x;
+            //            home.RegionLocY = (int)y;
+            //        }
+
+            //        // Get the user's service URLs
+            //        string serverURI = "";
+            //        if (uinfo.UserProfile is ForeignUserProfileData)
+            //            serverURI = Util.ServerURI(((ForeignUserProfileData)uinfo.UserProfile).UserServerURI);
+            //        string userServer = (serverURI == "") || (serverURI == null) ? LocalUserServerURI : serverURI;
+
+            //        string assetServer = Util.ServerURI(uinfo.UserProfile.UserAssetURI);
+            //        if ((assetServer == null) || (assetServer == ""))
+            //            assetServer = LocalAssetServerURI;
+
+            //        string inventoryServer = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            //        if ((inventoryServer == null) || (inventoryServer == ""))
+            //            inventoryServer = LocalInventoryServerURI;
+
+            //        if (!m_HypergridServiceConnector.InformRegionOfUser(clonedRegion, agentData, home, userServer, assetServer, inventoryServer))
+            //        {
+            //            m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+            //            return false;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        m_log.Warn("[HGrid]: Unable to find local presence of transferring user.");
             //        return false;
             //    }
             //}
-            //else
-            //    m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
+            ////if ((uinfo == null) || !IsGoingHome(uinfo, regInfo))
+            ////{
+            ////    m_log.Info("[HGrid]: User seems to be going to foreign region.");
+            ////    if (!InformRegionOfUser(regInfo, agentData))
+            ////    {
+            ////        m_log.Warn("[HGrid]: Could not inform remote region of transferring user.");
+            ////        return false;
+            ////    }
+            ////}
+            ////else
+            ////    m_log.Info("[HGrid]: User seems to be going home " + uinfo.UserProfile.FirstName + " " + uinfo.UserProfile.SurName);
 
-            // May need to change agent's name
-            if (IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null))
-            {
-                agentData.firstname = agentData.firstname + "." + agentData.lastname;
-                agentData.lastname = "@" + LocalUserServerURI.Replace("http://", ""); ; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
-            }
+            //// May need to change agent's name
+            //if (IsLocalUser(uinfo) && (GetHyperlinkRegion(regInfo.RegionHandle) != null))
+            //{
+            //    agentData.firstname = agentData.firstname + "." + agentData.lastname;
+            //    agentData.lastname = "@" + LocalUserServerURI.Replace("http://", ""); ; //HGNetworkServersInfo.Singleton.LocalUserServerURI;
+            //}
 
             return true;
         }
 
         public void AdjustUserInformation(AgentCircuitData agentData)
         {
-            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
-            if ((uinfo != null) && (uinfo.UserProfile != null) &&
-                (IsLocalUser(uinfo) || !(uinfo.UserProfile is ForeignUserProfileData)))
-            {
-                //m_log.Debug("---------------> Local User!");
-                string[] parts = agentData.firstname.Split(new char[] { '.' });
-                if (parts.Length == 2)
-                {
-                    agentData.firstname = parts[0];
-                    agentData.lastname = parts[1];
-                }
-            }
-            //else
-            //    m_log.Debug("---------------> Foreign User!");
+            // REFACTORING PROBLEM!!! This needs to change
+
+            //CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(agentData.AgentID);
+            //if ((uinfo != null) && (uinfo.UserProfile != null) &&
+            //    (IsLocalUser(uinfo) || !(uinfo.UserProfile is ForeignUserProfileData)))
+            //{
+            //    //m_log.Debug("---------------> Local User!");
+            //    string[] parts = agentData.firstname.Split(new char[] { '.' });
+            //    if (parts.Length == 2)
+            //    {
+            //        agentData.firstname = parts[0];
+            //        agentData.lastname = parts[1];
+            //    }
+            //}
+            ////else
+            ////    m_log.Debug("---------------> Foreign User!");
         }
 
         // Check if a local user exists with the same UUID as the incoming foreign user
@@ -699,16 +712,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (!m_aScene.SceneGridService.RegionLoginsEnabled)
                 return false;
 
-            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null) 
+            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, userID);
+            if (account != null) 
             {
-                // uh-oh we have a potential intruder
-                if (uinfo.SessionID != sessionID)
-                    // can't have a foreigner with a local UUID
-                    return false;
-                else
+                if (m_aScene.AuthenticationService.Verify(userID, sessionID.ToString(), 30))
+                {
                     // oh, so it's you! welcome back
                     comingHome = true;
+                }
+                else
+                    // can't have a foreigner with a local UUID
+                    return false;
             }
 
             // OK, user can come in
@@ -717,7 +731,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public void AcceptUser(ForeignUserProfileData user, GridRegion home)
         {
-            m_aScene.CommsManager.UserProfileCacheService.PreloadUserCache(user);
+            // REFACTORING PROBLEM. uh-oh, commenting this breaks HG completely
+            // Needs to be rewritten
+            //m_aScene.CommsManager.UserProfileCacheService.PreloadUserCache(user);
+            
             ulong realHandle = home.RegionHandle;
             // Change the local coordinates
             // X=0 on the map
@@ -733,8 +750,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public bool IsLocalUser(UUID userID)
         {
-            CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
-            return IsLocalUser(uinfo);
+            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, userID);
+            return IsLocalUser(account);
         }
 
         #endregion
@@ -767,13 +784,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return (uinfo.UserProfile.HomeRegionID == rinfo.RegionID);
         }
 
-        protected bool IsLocalUser(CachedUserInfo uinfo)
+        protected bool IsLocalUser(UserAccount account)
         {
-            if (uinfo == null)
-                return false;
+            if (account != null &&
+                account.ServiceURLs.ContainsKey("HomeURI") &&
+                account.ServiceURLs["HomeURI"] != null)
 
-            return !(uinfo.UserProfile is ForeignUserProfileData);
+                return (account.ServiceURLs["HomeURI"].ToString() == LocalUserServerURI);
 
+            return false;
         }
 
 

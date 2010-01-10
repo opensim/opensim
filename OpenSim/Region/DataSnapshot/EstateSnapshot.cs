@@ -32,6 +32,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {
@@ -59,17 +60,15 @@ namespace OpenSim.Region.DataSnapshot.Providers
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
                 ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
-            CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(ownerid);
-
+            UserAccount userInfo = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerid);
             //TODO: Change to query userserver about the master avatar UUID ?
             String firstname;
             String lastname;
 
             if (userInfo != null)
             {
-                UserProfileData userProfile = userInfo.UserProfile;
-                firstname = userProfile.FirstName;
-                lastname = userProfile.SurName;
+                firstname = userInfo.FirstName;
+                lastname = userInfo.LastName;
 
                 //TODO: Fix the marshalling system to have less copypasta gruntwork
                 XmlNode user = factory.CreateNode(XmlNodeType.Element, "user", "");

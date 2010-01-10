@@ -29,6 +29,7 @@ using System.IO;
 using System.Xml;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Serialization.External
 {
@@ -40,7 +41,7 @@ namespace OpenSim.Framework.Serialization.External
         public const int MAJOR_VERSION = 0;
         public const int MINOR_VERSION = 1;
         
-        public static string Serialize(UserProfileData profile)
+        public static string Serialize(UserAccount profile)
         {
             StringWriter sw = new StringWriter();
             XmlTextWriter xtw = new XmlTextWriter(sw);
@@ -51,9 +52,9 @@ namespace OpenSim.Framework.Serialization.External
             xtw.WriteAttributeString("major_version", MAJOR_VERSION.ToString());
             xtw.WriteAttributeString("minor_version", MINOR_VERSION.ToString());
                        
-            xtw.WriteElementString("name", profile.Name);
-            xtw.WriteElementString("id", profile.ID.ToString());
-            xtw.WriteElementString("about", profile.AboutText);
+            xtw.WriteElementString("name", profile.FirstName + " " + profile.LastName);
+            xtw.WriteElementString("id", profile.PrincipalID.ToString());
+            xtw.WriteElementString("about", "");
   
             // Not sure if we're storing this yet, need to take a look
 //            xtw.WriteElementString("Url", profile.Url);

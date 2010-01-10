@@ -113,7 +113,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Trigger the inventory archive saved event.
         /// </summary>
         protected internal void TriggerInventoryArchiveSaved(
-            Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
+            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
             Exception reportedException)
         {
             InventoryArchiveSaved handlerInventoryArchiveSaved = OnInventoryArchiveSaved;
@@ -125,11 +125,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
+                UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
 
                 if (userInfo != null)
                 {
-                    if (CheckPresence(userInfo.UserProfile.ID))
+                    if (CheckPresence(userInfo.PrincipalID))
                     {
                         new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream).Execute();
                         return true;
@@ -137,8 +137,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     else
                     {
                         m_log.ErrorFormat(
-                            "[INVENTORY ARCHIVER]: User {0} {1} not logged in to this region simulator",
-                            userInfo.UserProfile.Name, userInfo.UserProfile.ID);
+                            "[INVENTORY ARCHIVER]: User {0} {1} {2} not logged in to this region simulator",
+                            userInfo.FirstName, userInfo.LastName, userInfo.PrincipalID);
                     }
                 }
             }
@@ -150,11 +150,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
+                UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
                 
                 if (userInfo != null)
                 {
-                    if (CheckPresence(userInfo.UserProfile.ID))
+                    if (CheckPresence(userInfo.PrincipalID))
                     {
                         new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath).Execute();
                         return true;
@@ -162,8 +162,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     else
                     {
                         m_log.ErrorFormat(
-                            "[INVENTORY ARCHIVER]: User {0} {1} not logged in to this region simulator",
-                            userInfo.UserProfile.Name, userInfo.UserProfile.ID);
+                            "[INVENTORY ARCHIVER]: User {0} {1} {2} not logged in to this region simulator",
+                            userInfo.FirstName, userInfo.LastName, userInfo.PrincipalID);
                     }
                 }
             }
@@ -175,11 +175,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
+                UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
                         
                 if (userInfo != null)
                 {
-                    if (CheckPresence(userInfo.UserProfile.ID))
+                    if (CheckPresence(userInfo.PrincipalID))
                     {
                         InventoryArchiveReadRequest request = 
                             new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);
@@ -190,8 +190,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     else
                     {
                         m_log.ErrorFormat(
-                            "[INVENTORY ARCHIVER]: User {0} {1} not logged in to this region simulator",
-                            userInfo.UserProfile.Name, userInfo.UserProfile.ID);
+                            "[INVENTORY ARCHIVER]: User {0} {1} {2} not logged in to this region simulator",
+                            userInfo.FirstName, userInfo.LastName, userInfo.PrincipalID);
                     }
                 }
             }
@@ -203,11 +203,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             if (m_scenes.Count > 0)
             {
-                CachedUserInfo userInfo = GetUserInfo(firstName, lastName, pass);
+                UserAccount userInfo = GetUserInfo(firstName, lastName, pass);
                 
                 if (userInfo != null)
                 {
-                    if (CheckPresence(userInfo.UserProfile.ID))
+                    if (CheckPresence(userInfo.PrincipalID))
                     {
                         InventoryArchiveReadRequest request = 
                             new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);
@@ -218,8 +218,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                     else
                     {
                         m_log.ErrorFormat(
-                            "[INVENTORY ARCHIVER]: User {0} {1} not logged in to this region simulator",
-                            userInfo.UserProfile.Name, userInfo.UserProfile.ID);
+                            "[INVENTORY ARCHIVER]: User {0} {1} {2} not logged in to this region simulator",
+                            userInfo.FirstName, userInfo.LastName, userInfo.PrincipalID);
                     }
                 }
             }
@@ -291,7 +291,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
         
         private void SaveInvConsoleCommandCompleted(
-            Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, 
+            Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, 
             Exception reportedException)
         {
             lock (m_pendingConsoleSaves)
@@ -304,13 +304,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             
             if (succeeded)
             {
-                m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0}", userInfo.UserProfile.Name);
+                m_log.InfoFormat("[INVENTORY ARCHIVER]: Saved archive for {0} {1}", userInfo.FirstName, userInfo.LastName);
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[INVENTORY ARCHIVER]: Archive save for {0} failed - {1}", 
-                    userInfo.UserProfile.Name, reportedException.Message);
+                    "[INVENTORY ARCHIVER]: Archive save for {0} {1} failed - {2}", 
+                    userInfo.FirstName, userInfo.LastName, reportedException.Message);
             }
         }
         
@@ -321,11 +321,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <param name="lastName"></param>
         /// <param name="pass">User password</param>
         /// <returns></returns>
-        protected CachedUserInfo GetUserInfo(string firstName, string lastName, string pass)
+        protected UserAccount GetUserInfo(string firstName, string lastName, string pass)
         {
-            CachedUserInfo userInfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(firstName, lastName);
-            //m_aScene.CommsManager.UserService.GetUserProfile(firstName, lastName);
-            if (null == userInfo)
+            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, firstName, lastName);
+            if (null == account)
             {
                 m_log.ErrorFormat(
                     "[INVENTORY ARCHIVER]: Failed to find user info for {0} {1}", 
@@ -335,9 +334,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             try
             {
-                if (m_aScene.AuthenticationService.Authenticate(userInfo.UserProfile.ID, pass, 1) != string.Empty)
+                if (m_aScene.AuthenticationService.Authenticate(account.PrincipalID, pass, 1) != string.Empty)
                 {
-                    return userInfo;
+                    return account;
                 }
                 else
                 {
@@ -358,14 +357,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// Notify the client of loaded nodes if they are logged in
         /// </summary>
         /// <param name="loadedNodes">Can be empty.  In which case, nothing happens</param>
-        private void UpdateClientWithLoadedNodes(CachedUserInfo userInfo, List<InventoryNodeBase> loadedNodes)
+        private void UpdateClientWithLoadedNodes(UserAccount userInfo, List<InventoryNodeBase> loadedNodes)
         {
             if (loadedNodes.Count == 0)
                 return;
                    
             foreach (Scene scene in m_scenes.Values)
             {
-                ScenePresence user = scene.GetScenePresence(userInfo.UserProfile.ID);
+                ScenePresence user = scene.GetScenePresence(userInfo.PrincipalID);
                 
                 if (user != null && !user.IsChildAgent)
                 {

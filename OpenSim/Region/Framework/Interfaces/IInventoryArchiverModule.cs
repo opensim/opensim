@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Framework.Interfaces
     /// <param name="savePath">The stream to which the archive was saved</param>
     /// <param name="reportedException">Contains the exception generated if the save did not succeed</param>
     public delegate void InventoryArchiveSaved(
-        Guid id, bool succeeded, CachedUserInfo userInfo, string invPath, Stream saveStream, Exception reportedException);
+        Guid id, bool succeeded, UserAccount userInfo, string invPath, Stream saveStream, Exception reportedException);
     
     public interface IInventoryArchiverModule
     {

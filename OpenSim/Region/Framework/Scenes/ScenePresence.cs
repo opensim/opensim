@@ -39,6 +39,7 @@ using OpenSim.Region.Framework.Scenes.Animation;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -2870,11 +2871,14 @@ namespace OpenSim.Region.Framework.Scenes
                 // For now, assign god level 200 to anyone
                 // who is granted god powers, but has no god level set.
                 //
-                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-                if (profile.UserProfile.GodLevel > 0)
-                    m_godlevel = profile.UserProfile.GodLevel;
-                else
-                    m_godlevel = 200;
+                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, agentID);
+                if (account != null)
+                {
+                    if (account.UserLevel > 0)
+                        m_godlevel = account.UserLevel;
+                    else
+                        m_godlevel = 200;
+                }
             }
             else
             {

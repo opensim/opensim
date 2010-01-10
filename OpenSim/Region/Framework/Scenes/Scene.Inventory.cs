@@ -744,13 +744,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (transactionID == UUID.Zero)
             {
-                CachedUserInfo userInfo
-                    = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-
-                if (userInfo != null)
+                ScenePresence presence;
+                if (TryGetAvatar(remoteClient.AgentId, out presence))
                 {
-                    ScenePresence presence;
-                    TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
 
                     if (invType == (sbyte)InventoryType.Landmark && presence != null)
@@ -772,7 +768,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     m_log.ErrorFormat(
-                        "userInfo for agent uuid {0} unexpectedly null in CreateNewInventoryItem",
+                        "ScenePresence for agent uuid {0} unexpectedly not found in CreateNewInventoryItem",
                         remoteClient.AgentId);
                 }
             }

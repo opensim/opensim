@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool m_Enabled = false;
         private bool m_Initialized = false;
         private Scene m_Scene;
-        private UserProfileCacheService m_UserProfileService; // This should change to IUserProfileService
+        private IUserAccountService m_UserAccountService; // This should change to IUserProfileService
 
         private IInventoryService m_GridService;
         private ISessionAuthInventoryService m_HGService;
@@ -157,10 +157,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (!m_Initialized)
             {
                 m_Scene = scene;
-                // HACK for now. Ugh!
-                m_UserProfileService = m_Scene.CommsManager.UserProfileCacheService;
-                // ugh!
-                m_UserProfileService.SetInventoryService(this);
+                m_UserAccountService = m_Scene.UserAccountService;
 
                 m_Initialized = true;
             }
@@ -514,58 +511,66 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
-            if (uinfo != null)
-                return uinfo.SessionID;
+            ScenePresence sp = null;
+            if (m_Scene.TryGetAvatar(userID, out sp))
+            {
+                return sp.ControllingClient.SessionId;
+            }
 
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user profile for {0} not found", userID);
+            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: scene presence for {0} not found", userID);
             return UUID.Zero;
         }
 
         private bool IsLocalGridUser(UUID userID)
         {
-            if (m_UserProfileService == null)
-            {
-                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile service. Returning false.");
-                return false;
-            }
+            return true;
 
-            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
-            if (uinfo == null)
-            {
-                m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no profile for user {0}. Returning true.", userID);
-                return true;
-            }
+            // REFACTORING PROBLEM. This needs to be rewritten
 
-            if ((uinfo.UserProfile.UserInventoryURI == null) || (uinfo.UserProfile.UserInventoryURI == ""))
-                // this happens in standalone profiles, apparently
-                return true;
+            //if (m_UserAccountService == null)
+            //{
+            //    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no user account service. Returning false.");
+            //    return false;
+            //}
+
+            //UserAccount uinfo = m_UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+            //if (uinfo == null)
+            //{
+            //    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no account for user {0}. Returning false.", userID);
+            //    return false;
+            //}
+
+            //if ((uinfo.UserProfile.UserInventoryURI == null) || (uinfo.UserProfile.UserInventoryURI == ""))
+            //    // this happens in standalone profiles, apparently
+            //    return true;
             
-            string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            //string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
 
-            string uri = LocalGridInventory.TrimEnd('/');
+            //string uri = LocalGridInventory.TrimEnd('/');
 
-            if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
-            {
-                return true;
-            }
-            m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user {0} is foreign({1} - {2})", userID, userInventoryServerURI, uri);
-            return false;
+            //if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
+            //{
+            //    return true;
+            //}
+            //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user {0} is foreign({1} - {2})", userID, userInventoryServerURI, uri);
+            //return false;
         }
 
         private string GetUserInventoryURI(UUID userID)
         {
             string invURI = LocalGridInventory;
+            // REFACTORING PROBLEM!!! This needs to be rewritten
 
-            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
-            if ((uinfo == null) || (uinfo.UserProfile == null))
-                return invURI;
+            //CachedUserInfo uinfo = m_UserAccountService.GetUserDetails(userID);
+            //if ((uinfo == null) || (uinfo.UserProfile == null))
+            //    return invURI;
 
-            string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
+            //string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
 
-            if ((userInventoryServerURI != null) &&
-                (userInventoryServerURI != ""))
-                invURI = userInventoryServerURI;
+            //if ((userInventoryServerURI != null) &&
+            //    (userInventoryServerURI != ""))
+            //    invURI = userInventoryServerURI;
+
             return invURI;
         }
 

@@ -491,10 +491,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             
             if (m_allowGridGods)
             {
-                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(user);
-                if (profile != null && profile.UserProfile != null)
+                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
+                if (account != null)
                 {
-                    if (profile.UserProfile.GodLevel >= 200)
+                    if (account.UserLevel >= 200)
                         return true;
                 }
             }

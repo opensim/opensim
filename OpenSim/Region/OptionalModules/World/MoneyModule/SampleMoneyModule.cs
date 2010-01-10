@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.World.MoneyModule
 {
@@ -398,10 +399,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
             // try avatar username surname
             Scene scene = GetRandomScene();
-            CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-            if (profile != null && profile.UserProfile != null)
+            UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, agentID);
+            if (account != null)
             {
-                string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
+                string avatarname = account.FirstName + " " + account.LastName;
                 return avatarname;
             }
             else

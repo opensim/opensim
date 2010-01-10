@@ -33,6 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes.Hypergrid
 {
@@ -82,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void UploadInventoryItem(UUID avatarID, UUID assetID, string name, int userlevel)
         {
-            CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(avatarID);
+            UserAccount userInfo = UserAccountService.GetUserAccount(RegionInfo.ScopeID, avatarID);
             if (userInfo != null)
             {
                 m_assMapper.Post(assetID, avatarID);

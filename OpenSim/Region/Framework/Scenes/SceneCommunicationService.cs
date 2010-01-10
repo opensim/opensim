@@ -967,9 +967,10 @@ namespace OpenSim.Region.Framework.Scenes
                         // if (teleport success) // seems to be always success here
                         // the user may change their profile information in other region,
                         // so the userinfo in UserProfileCache is not reliable any more, delete it
+
+                        // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
                         if (avatar.Scene.NeedSceneCacheClear(avatar.UUID))
                         {
-                            m_commsProvider.UserProfileCacheService.RemoveUser(avatar.UUID);
                             m_log.DebugFormat(
                                 "[SCENE COMMUNICATION SERVICE]: User {0} is going to another region, profile cache removed",
                                 avatar.UUID);
@@ -1404,11 +1405,11 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.Scene.NotifyMyCoarseLocationChange();
                 // the user may change their profile information in other region,
                 // so the userinfo in UserProfileCache is not reliable any more, delete it
+                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
                 if (agent.Scene.NeedSceneCacheClear(agent.UUID))
                 {
-                    agent.Scene.CommsManager.UserProfileCacheService.RemoveUser(agent.UUID);
                     m_log.DebugFormat(
-                        "[SCENE COMM]: User {0} is going to another region, profile cache removed", agent.UUID);
+                        "[SCENE COMM]: User {0} is going to another region", agent.UUID);
                 }
             }
 

@@ -46,21 +46,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public bool TryGetAvatarAppearance(UUID avatarId, out AvatarAppearance appearance)
         {
-            CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
+            AvatarData avatar = m_scene.AvatarService.GetAvatar(avatarId);
             //if ((profile != null) && (profile.RootFolder != null))
-            if (profile != null)
+            if (avatar != null)
             {
-                appearance = m_scene.CommsManager.AvatarService.GetUserAppearance(avatarId);
-                if (appearance != null)
-                {
-                    //SetAppearanceAssets(profile, ref appearance);
-                    //m_log.DebugFormat("[APPEARANCE]: Found : {0}", appearance.ToString());
-                    return true;
-                }
+                appearance = avatar.ToAvatarAppearance();
+                return true;
             }
 
-            appearance = CreateDefault(avatarId);
             m_log.ErrorFormat("[APPEARANCE]: Appearance not found for {0}, creating default", avatarId);
+            appearance = CreateDefault(avatarId);
             return false;
         }
 

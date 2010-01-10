@@ -1691,15 +1691,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Low, "osAvatarName2Key");
 
-            CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
-
-            if (null == userInfo)
+            UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, firstname, lastname);
+            if (null == account)
             {
                 return UUID.Zero.ToString();
             }
             else
             {
-                return userInfo.UserProfile.ID.ToString();
+                return account.PrincipalID.ToString();
             }
         }
 
@@ -1710,15 +1709,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (UUID.TryParse(id, out key))
             {
-                CachedUserInfo userInfo = World.CommsManager.UserProfileCacheService.GetUserDetails(key);
-
-                if (null == userInfo)
+                UserAccount account = World.UserAccountService.GetUserAccount(World.RegionInfo.ScopeID, key);
+                if (null == account)
                 {
                     return "";
                 }
                 else
                 {
-                    return userInfo.UserProfile.Name;
+                    return account.Name;
                 }
             }
             else

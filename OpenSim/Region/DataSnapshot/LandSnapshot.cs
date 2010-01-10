@@ -37,6 +37,7 @@ using OpenSim.Region.CoreModules.World.Land;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.DataSnapshot.Providers
 {
@@ -258,8 +259,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             try
                             {
                                 XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
-                                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(userOwnerUUID);
-                                username.InnerText = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
+                                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, userOwnerUUID);
+                                username.InnerText = account.FirstName + " " + account.LastName;
                                 userblock.AppendChild(username);
                             }
                             catch (Exception)

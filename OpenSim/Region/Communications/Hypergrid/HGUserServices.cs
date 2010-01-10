@@ -319,18 +319,19 @@ namespace OpenSim.Region.Communications.Hypergrid
             return m_commsManager.NetworkServersInfo.UserURL;
         }
 
+        [Obsolete]
         public bool IsForeignUser(UUID userID, out string userServerURL)
         {
             userServerURL = m_commsManager.NetworkServersInfo.UserURL;
-            CachedUserInfo uinfo = m_commsManager.UserProfileCacheService.GetUserDetails(userID);
-            if (uinfo != null)
-            {
-                if (!HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile))
-                {
-                    userServerURL = ((ForeignUserProfileData)(uinfo.UserProfile)).UserServerURI;
-                    return true;
-                }
-            }
+            //CachedUserInfo uinfo = m_commsManager.UserProfileCacheService.GetUserDetails(userID);
+            //if (uinfo != null)
+            //{
+            //    if (!HGNetworkServersInfo.Singleton.IsLocalUser(uinfo.UserProfile))
+            //    {
+            //        userServerURL = ((ForeignUserProfileData)(uinfo.UserProfile)).UserServerURI;
+            //        return true;
+            //    }
+            //}
             return false;
         }
     }

@@ -58,10 +58,18 @@ namespace OpenSim.Services.Interfaces
         public string Email;
         public UUID PrincipalID;
         public UUID ScopeID;
+        public int UserLevel;
+        public int UserFlags;
+        public string UserTitle;
 
         public Dictionary<string, object> ServiceURLs;
 
         public int Created;
+
+        public string Name
+        {
+            get { return FirstName + " " + LastName; }
+        }
 
         public UserAccount(Dictionary<string, object> kvp)
         {
@@ -75,6 +83,13 @@ namespace OpenSim.Services.Interfaces
                 UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
             if (kvp.ContainsKey("ScopeID"))
                 UUID.TryParse(kvp["ScopeID"].ToString(), out ScopeID);
+            if (kvp.ContainsKey("UserLevel"))
+                Convert.ToInt32(kvp["UserLevel"].ToString());
+            if (kvp.ContainsKey("UserFlags"))
+                Convert.ToInt32(kvp["UserFlags"].ToString());
+            if (kvp.ContainsKey("UserTitle"))
+                Email = kvp["UserTitle"].ToString();
+
             if (kvp.ContainsKey("Created"))
                 Convert.ToInt32(kvp["Created"].ToString());
             if (kvp.ContainsKey("ServiceURLs") && kvp["ServiceURLs"] != null)
@@ -104,6 +119,10 @@ namespace OpenSim.Services.Interfaces
             result["PrincipalID"] = PrincipalID.ToString();
             result["ScopeID"] = ScopeID.ToString();
             result["Created"] = Created.ToString();
+            result["UserLavel"] = UserLevel.ToString();
+            result["UserFlags"] = UserFlags.ToString();
+            result["UserTitle"] = UserTitle;
+
             string str = string.Empty;
             foreach (KeyValuePair<string, object> kvp in ServiceURLs)
             {
