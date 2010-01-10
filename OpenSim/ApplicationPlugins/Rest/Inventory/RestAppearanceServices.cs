@@ -32,6 +32,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -295,15 +296,15 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoGet(AppearanceRequestData rdata)
         {
+            AvatarData adata = Rest.AvatarServices.GetAvatar(rdata.userProfile.ID);
 
-            rdata.userAppearance = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
-
-            if (rdata.userAppearance == null)
+            if (adata == null)
             {
                 rdata.Fail(Rest.HttpStatusCodeNoContent,
                     String.Format("appearance data not found for user {0} {1}", 
                       rdata.userProfile.FirstName, rdata.userProfile.SurName));
             }
+            rdata.userAppearance = adata.ToAvatarAppearance();
 
             rdata.initXmlWriter();
 
@@ -342,18 +343,20 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             //  increasingly doubtful that it is appropriate for REST. If I attempt to
             //  add a new record, and it already exists, then it seems to me that the
             //  attempt should fail, rather than update the existing record.
-
+            AvatarData adata = null;
             if (GetUserAppearance(rdata))
             {
                 modified = rdata.userAppearance != null;
                 created  = !modified;
-                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+                adata = new AvatarData(rdata.userAppearance);
+                Rest.AvatarServices.SetAvatar(rdata.userProfile.ID, adata);
             //    Rest.UserServices.UpdateUserProfile(rdata.userProfile);
             }
             else
             {
                 created  = true;
-                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+                adata = new AvatarData(rdata.userAppearance);
+                Rest.AvatarServices.SetAvatar(rdata.userProfile.ID, adata);
              //   Rest.UserServices.UpdateUserProfile(rdata.userProfile);
             }
 
@@ -439,21 +442,22 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void DoDelete(AppearanceRequestData rdata)
         {
+            AvatarData adata = Rest.AvatarServices.GetAvatar(rdata.userProfile.ID);
 
-            AvatarAppearance old = Rest.AvatarServices.GetUserAppearance(rdata.userProfile.ID);
-
-            if (old != null)
+            if (adata != null)
             {
+                AvatarAppearance old = adata.ToAvatarAppearance();
                 rdata.userAppearance = new AvatarAppearance();
-
                 rdata.userAppearance.Owner = old.Owner;
+                adata = new AvatarData(rdata.userAppearance);
                 
-                Rest.AvatarServices.UpdateUserAppearance(rdata.userProfile.ID, rdata.userAppearance);
+                Rest.AvatarServices.SetAvatar(rdata.userProfile.ID, adata);
 
                 rdata.Complete();
             }
             else
             {
+
                 rdata.Complete(Rest.HttpStatusCodeNoContent);
             }
 

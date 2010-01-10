@@ -127,9 +127,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             return false;
         }
 
-        public bool LogoutAgent(UUID sessionID)
+        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookat)
         {
-            return m_RemoteConnector.LogoutAgent(sessionID);
+            return m_RemoteConnector.LogoutAgent(sessionID, position, lookat);
         }
 
 

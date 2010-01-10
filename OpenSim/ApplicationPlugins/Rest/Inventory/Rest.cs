@@ -36,7 +36,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Services.Interfaces;
 using IUserService = OpenSim.Framework.Communications.IUserService;
-using IAvatarService = OpenSim.Framework.Communications.IAvatarService;
+using IAvatarService = OpenSim.Services.Interfaces.IAvatarService;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -93,11 +93,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// initializes.
         /// </summary>
 
-        internal static CommunicationsManager Comms
-        {
-            get { return main.CommunicationsManager; }
-        }
-
         internal static IInventoryService InventoryServices
         {
             get { return main.SceneManager.CurrentOrFirstScene.InventoryService; }
@@ -115,7 +110,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         
         internal static IAvatarService AvatarServices
         {
-            get { return Comms.AvatarService; }
+            get { return main.SceneManager.CurrentOrFirstScene.AvatarService; }
         }
 
         internal static IAssetService AssetServices

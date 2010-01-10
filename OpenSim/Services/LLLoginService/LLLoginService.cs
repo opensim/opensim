@@ -163,7 +163,7 @@ namespace OpenSim.Services.LLLoginService
                 GridRegion destination = FindDestination(account, presence, session, startLocation, out where, out position, out lookAt);
                 if (destination == null)
                 {
-                    m_PresenceService.LogoutAgent(session);
+                    m_PresenceService.LogoutAgent(session, presence.Position, presence.LookAt);
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: destination not found");
                     return LLFailedLoginResponse.GridProblem;
                 }
@@ -195,7 +195,7 @@ namespace OpenSim.Services.LLLoginService
                 }
                 if (aCircuit == null)
                 {
-                    m_PresenceService.LogoutAgent(session);
+                    m_PresenceService.LogoutAgent(session, presence.Position, presence.LookAt);
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
                     return LLFailedLoginResponse.AuthorizationProblem;
                 }
@@ -212,7 +212,7 @@ namespace OpenSim.Services.LLLoginService
             {
                 m_log.WarnFormat("[LLOGIN SERVICE]: Exception processing login for {0} {1}: {2}", firstName, lastName, e.StackTrace);
                 if (m_PresenceService != null)
-                    m_PresenceService.LogoutAgent(session);
+                    m_PresenceService.LogoutAgent(session, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                 return LLFailedLoginResponse.InternalError;
             }
         }

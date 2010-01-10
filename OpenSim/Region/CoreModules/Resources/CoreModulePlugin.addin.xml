@@ -46,8 +46,6 @@
         <RegionModule id="RemoteNeighbourServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Neighbour.RemoteNeighbourServicesConnector" />
         <RegionModule id="LocalLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.LocalLandServicesConnector" />
         <RegionModule id="RemoteLandServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Land.RemoteLandServicesConnector" />
-        <RegionModule id="LocalInterregionComms" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion.LocalInterregionComms" />
-        <RegionModule id="RESTInterregionComms" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion.RESTInterregionComms" />
         <RegionModule id="LocalGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.LocalGridServicesConnector" />
         <RegionModule id="RemoteGridServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.RemoteGridServicesConnector" />
         <RegionModule id="HGGridConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.HGGridConnector" />

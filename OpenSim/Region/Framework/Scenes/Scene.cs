@@ -3213,7 +3213,6 @@ namespace OpenSim.Region.Framework.Scenes
 
                     if (!avatar.IsChildAgent)
                     {
-                        m_sceneGridService.LogOffUser(agentID, RegionInfo.RegionID, RegionInfo.RegionHandle, avatar.AbsolutePosition, avatar.Lookat);
                         //List<ulong> childknownRegions = new List<ulong>();
                         //List<ulong> ckn = avatar.KnownChildRegionHandles;
                         //for (int i = 0; i < ckn.Count; i++)

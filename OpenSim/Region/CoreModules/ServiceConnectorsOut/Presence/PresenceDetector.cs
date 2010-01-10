@@ -42,6 +42,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IPresenceService m_PresenceService;
+        private Scene m_aScene;
 
         public PresenceDetector(IPresenceService presenceservice)
         {
@@ -54,6 +55,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             scene.EventManager.OnNewClient += OnNewClient;
 
             m_PresenceService.LogoutRegionAgents(scene.RegionInfo.RegionID);
+
+            if (m_aScene == null)
+                m_aScene = scene;
         }
 
         public void RemoveRegion(Scene scene)
@@ -62,6 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
             scene.EventManager.OnNewClient -= OnNewClient;
 
             m_PresenceService.LogoutRegionAgents(scene.RegionInfo.RegionID);
+
         }
 
         public void OnMakeRootAgent(ScenePresence sp)
@@ -78,7 +83,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         public void OnLogout(IClientAPI client)
         {
             client.OnLogout -= OnLogout;
-            m_PresenceService.LogoutAgent(client.SessionId);
+            
+            ScenePresence sp = null;
+            Vector3 position = new Vector3(128, 128, 0);
+            Vector3 lookat = new Vector3(0, 1, 0);
+
+            if (m_aScene.TryGetAvatar(client.AgentId, out sp))
+            {
+                position = sp.AbsolutePosition;
+                lookat = sp.Lookat;
+            }
+            m_PresenceService.LogoutAgent(client.SessionId, position, lookat);
+
         }
     }
 }

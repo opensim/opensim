@@ -115,7 +115,7 @@ namespace OpenSim.Services.Interfaces
     public interface IPresenceService
     {
         bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID);
-        bool LogoutAgent(UUID sessionID);
+        bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookAt);
         bool LogoutRegionAgents(UUID regionID);
 
         bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt);

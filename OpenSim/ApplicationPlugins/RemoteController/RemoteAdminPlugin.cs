@@ -1430,8 +1430,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void establishAppearance(UUID dest, UUID srca)
         {
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", dest, srca);
-
-            AvatarAppearance ava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(srca);
+            AvatarAppearance ava = null;
+            AvatarData avatar = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(srca);
+            if (avatar != null)
+                ava = avatar.ToAvatarAppearance();
 
             // If the model has no associated appearance we're done.
 
@@ -1524,7 +1526,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception("Unable to load both inventories");
                 }
 
-                m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(dest, ava);
+                AvatarData adata = new AvatarData(ava);
+                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(dest, adata);
             }
             catch (Exception e)
             {
@@ -1671,10 +1674,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             iserv.GetUserInventory(ID, uic.callback);
 
                             // While the inventory is being fetched, setup for appearance processing
-                            if ((mava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(ID)) == null)
-                            {
+                            AvatarData adata = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(ID);
+                            if (adata != null)
+                                mava = adata.ToAvatarAppearance();
+                            else
                                 mava = new AvatarAppearance();
-                            }
 
                             {
                                 AvatarWearable[] wearables = mava.Wearables;
@@ -1809,7 +1813,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                     m_log.DebugFormat("[RADMIN] Outfit {0} load completed", oname);
                                 } // foreach outfit
                                 m_log.DebugFormat("[RADMIN] Inventory update complete for {0}", name);
-                                m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(ID, mava);
+                                AvatarData adata2 = new AvatarData(mava);
+                                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(ID, adata2);
                             }
                             catch (Exception e)
                             {

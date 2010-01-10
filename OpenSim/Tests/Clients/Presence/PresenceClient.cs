@@ -103,7 +103,7 @@ namespace OpenSim.Tests.Clients.PresenceClient
                     pinfo.UserID, pinfo.Online, pinfo.RegionID, pinfo.HomeRegionID);
 
             System.Console.WriteLine("\n");
-            success = m_Connector.LogoutAgent(session1);
+            success = m_Connector.LogoutAgent(session1, Vector3.Zero, Vector3.UnitY);
             if (success)
                 m_log.InfoFormat("[PRESENCE CLIENT]: Successfully logged out user {0}", user1);
             else

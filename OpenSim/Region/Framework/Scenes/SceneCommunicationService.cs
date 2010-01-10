@@ -1444,19 +1444,6 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
-
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
-        {
-            m_commsProvider.LogOffUser(userid, regionid, regionhandle, position, lookat);
-        }
-
-        // deprecated as of 2008-08-27
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
-        {
-             m_commsProvider.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
-        }
-
-
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
         {
             return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);

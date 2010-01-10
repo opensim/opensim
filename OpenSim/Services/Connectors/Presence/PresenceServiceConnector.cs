@@ -132,7 +132,7 @@ namespace OpenSim.Services.Connectors
 
         }
 
-        public bool LogoutAgent(UUID sessionID)
+        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookat)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["SCOPEID"] = scopeID.ToString();
@@ -141,6 +141,8 @@ namespace OpenSim.Services.Connectors
             sendData["METHOD"] = "logout";
 
             sendData["SessionID"] = sessionID.ToString();
+            sendData["Position"] = position.ToString();
+            sendData["LookAt"] = lookat.ToString();
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             // m_log.DebugFormat("[PRESENCE CONNECTOR]: queryString = {0}", reqString);

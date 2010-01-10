@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
             result = m_LocalConnector.GetAgent(session1);
             Assert.That(result.RegionID, Is.EqualTo(region2), "Agent is not in the right region (region2)");
 
-            r = m_LocalConnector.LogoutAgent(session1);
+            r = m_LocalConnector.LogoutAgent(session1, Vector3.Zero, Vector3.UnitY);
             Assert.IsTrue(r, "LogoutAgent returned false");
             result = m_LocalConnector.GetAgent(session1);
             Assert.IsNotNull(result, "Agent session disappeared from storage after logout");

@@ -87,7 +87,7 @@ namespace OpenSim.Services.PresenceService
             return true;
         }
 
-        public bool LogoutAgent(UUID sessionID)
+        public bool LogoutAgent(UUID sessionID, Vector3 position, Vector3 lookat)
         {
             PresenceData data = m_Database.Get(sessionID);
             if (data == null)
@@ -103,6 +103,8 @@ namespace OpenSim.Services.PresenceService
 
             data.Data["Online"] = "false";
             data.Data["Logout"] = Util.UnixTimeSinceEpoch().ToString();
+            data.Data["Position"] = position.ToString();
+            data.Data["LookAt"] = lookat.ToString();
 
             m_Database.Store(data);
 

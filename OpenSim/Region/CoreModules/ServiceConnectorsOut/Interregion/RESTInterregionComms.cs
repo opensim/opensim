@@ -781,13 +781,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
                 ipaddr = Util.GetHostFromDNS(parts[0]);
             if (parts.Length == 2)
                 UInt32.TryParse(parts[1], out port);
+            return true;
 
-            // local authority (standalone), local call
-            if (m_thisIP.Equals(ipaddr) && (m_aScene.RegionInfo.HttpPort == port))
-                return ((IAuthentication)m_aScene.CommsManager.UserAdminService).VerifyKey(userID, key);
-            // remote call
-            else
-                return AuthClient.VerifyKey("http://" + authority, userID, key);
+            //// local authority (standalone), local call
+            //if (m_thisIP.Equals(ipaddr) && (m_aScene.RegionInfo.HttpPort == port))
+            //    return ((IAuthentication)m_aScene.CommsManager.UserAdminService).VerifyKey(userID, key);
+            //// remote call
+            //else
+            //    return AuthClient.VerifyKey("http://" + authority, userID, key);
         }
 
 
