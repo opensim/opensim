@@ -47,6 +47,7 @@
         <RegionModule id="LandServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Land.LandServiceInConnectorModule" />
         <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour.NeighbourServiceInConnectorModule" />    \
         <RegionModule id="HypergridServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid.HypergridServiceInConnectorModule" />    \
+        <RegionModule id="AccessModule" type="OpenSim.Region.CoreModules.World.AccessModule" />    \
 
     </Extension>
 

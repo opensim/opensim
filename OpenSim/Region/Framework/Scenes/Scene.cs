@@ -144,7 +144,7 @@ namespace OpenSim.Region.Framework.Scenes
         public CommunicationsManager CommsManager;
 
         protected SceneCommunicationService m_sceneGridService;
-        public bool loginsdisabled = true;
+        public bool LoginsDisabled = true;
 
         public new float TimeDilation
         {
@@ -1275,15 +1275,19 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
 
-                    if (loginsdisabled && m_frame > 20)
+                    if (LoginsDisabled && m_frame > 20)
                     {
                         // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                         // this is a rare case where we know we have just went through a long cycle of heap
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
 
-                        m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                        loginsdisabled = false;
+                        IConfig startupConfig = m_config.Configs["Startup"];
+                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+                        {
+                            m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+                            LoginsDisabled = false;
+                        }
                     }
                 }
                 catch (NotImplementedException)
@@ -3348,7 +3352,7 @@ namespace OpenSim.Region.Framework.Scenes
             // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
 
 
-            if (loginsdisabled)
+            if (LoginsDisabled)
             {
                 reason = "Logins Disabled";
                 return false;

@@ -268,6 +268,9 @@
     ; Enable JSON simulator data by setting a URI name (case sensitive)
     ; Stats_URI = "jsonSimStats"
 
+    ; Make OpenSim start all regions woth logins disabled. They will need
+    ; to be enabled from the console if this is set
+    ; StartDisabled = false
 
 [SMTP]
     enabled=false
