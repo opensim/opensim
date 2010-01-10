@@ -153,6 +153,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
             return m_AuthenticationService.Release(principalID, token);
         }
 
+        public bool SetPassword(UUID principalID, string passwd)
+        {
+            return m_AuthenticationService.SetPassword(principalID, passwd);
+        }
+
         #endregion
 
     }
