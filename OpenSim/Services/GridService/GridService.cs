@@ -47,11 +47,15 @@ namespace OpenSim.Services.GridService
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_DeleteOnUnregister = true;
+        private static GridService m_RootInstance = null;
 
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
+
+            if (m_RootInstance == null)
+                m_RootInstance = this;
 
             IConfig gridConfig = config.Configs["GridService"];
             if (gridConfig != null)
@@ -298,13 +302,84 @@ namespace OpenSim.Services.GridService
 
         private void HandleShowRegion(string module, string[] cmd)
         {
+            if (m_RootInstance != this)
+                return;
+
             if (cmd.Length != 3)
             {
                 MainConsole.Instance.Output("Syntax: show region <region name>");
                 return;
             }
+            List<RegionData> regions = m_Database.Get(cmd[2], UUID.Zero);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("Region not found");
+                return;
+            }
 
+            MainConsole.Instance.Output("Region Name          Region UUID");
+            MainConsole.Instance.Output("Location             URI");
+            MainConsole.Instance.Output("Owner ID                                Flags");
+            MainConsole.Instance.Output("-------------------------------------------------------------------------------");
+            foreach (RegionData r in regions)
+            {
+                OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+                MainConsole.Instance.Output(String.Format("{0,-20} {1}\n{2,-20} {3}\n{4,-39} {5}\n\n",
+                        r.RegionName, r.RegionID,
+                        String.Format("{0},{1}", r.posX, r.posY), "http://" + r.Data["serverIP"].ToString() + ":" + r.Data["serverPort"].ToString(),
+                        r.Data["owner_uuid"].ToString(), flags.ToString()));
+            }
+            return;
+        }
 
+        private int ParseFlags(int prev, string flags)
+        {
+            OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)prev;
+
+            string[] parts = flags.Split(new char[] {',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string p in parts)
+            {
+                int val;
+
+                try
+                {
+                    if (p.StartsWith("+"))
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
+                        f |= (OpenSim.Data.RegionFlags)val;
+                    }
+                    else if (p.StartsWith("-"))
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
+                        f &= ~(OpenSim.Data.RegionFlags)val;
+                    }
+                    else
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p);
+                        f |= (OpenSim.Data.RegionFlags)val;
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+            }
+
+            return (int)f;
+        }
+
+        private void HandleSetFlags(string module, string[] cmd)
+        {
+            if (m_RootInstance != this)
+                return;
+
+            if (cmd.Length < 4)
+            {
+                MainConsole.Instance.Output("Syntax: set region flags <region name> <flags>");
+                return;
+            }
+
+            MainConsole.Instance.Output(ParseFlags(0, cmd[3]).ToString());
         }
     }
 }
