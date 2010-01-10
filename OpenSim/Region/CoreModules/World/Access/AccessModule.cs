@@ -32,6 +32,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Framework.Console;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -45,8 +46,30 @@ namespace OpenSim.Region.CoreModules.World
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
                 
+        private List<Scene> m_SceneList = new List<Scene>();
+
         public void Initialise(IConfigSource config)
         {
+            MainConsole.Instance.Commands.AddCommand("access", true,
+                    "login enable",
+                    "login enable",
+                    "Enable simulator logins",
+                    String.Empty,
+                    HandleLoginCommand);
+
+            MainConsole.Instance.Commands.AddCommand("access", true,
+                    "login disable",
+                    "login disable",
+                    "Disable simulator logins",
+                    String.Empty,
+                    HandleLoginCommand);
+
+            MainConsole.Instance.Commands.AddCommand("access", true,
+                    "login status",
+                    "login status",
+                    "Show login status",
+                    String.Empty,
+                    HandleLoginCommand);
         }
 
         public void PostInitialise()
@@ -69,14 +92,67 @@ namespace OpenSim.Region.CoreModules.World
 
         public void AddRegion(Scene scene)
         {
+            if (!m_SceneList.Contains(scene))
+                m_SceneList.Add(scene);
         }
 
         public void RemoveRegion(Scene scene)
         {
+            m_SceneList.Remove(scene);
         }
 
         public void RegionLoaded(Scene scene)
         {
+        }
+
+        public void HandleLoginCommand(string module, string[] cmd)
+        {
+            if ((Scene)MainConsole.Instance.ConsoleScene == null)
+            {
+                foreach (Scene s in m_SceneList)
+                {
+                    if(!ProcessCommand(s, cmd))
+                        break;
+                }
+            }
+            else
+            {
+                ProcessCommand((Scene)MainConsole.Instance.ConsoleScene, cmd);
+            }
+        }
+
+        bool ProcessCommand(Scene scene, string[] cmd)
+        {
+            if (cmd.Length < 2)
+            {
+                MainConsole.Instance.Output("Syntax: login enable|disable|status");
+                return false;
+            }
+
+            switch (cmd[1])
+            {
+            case "enable":
+                if (scene.LoginsDisabled)
+                    MainConsole.Instance.Output(String.Format("Enabling logins for region {0}", scene.RegionInfo.RegionName));
+                scene.LoginsDisabled = false;
+                break;
+            case "disable":
+                if (!scene.LoginsDisabled)
+                    MainConsole.Instance.Output(String.Format("Disabling logins for region {0}", scene.RegionInfo.RegionName));
+                scene.LoginsDisabled = true;
+                break;
+            case "status":
+                if (scene.LoginsDisabled)
+                    MainConsole.Instance.Output(String.Format("Login in {0} are disabled", scene.RegionInfo.RegionName));
+                else
+                    MainConsole.Instance.Output(String.Format("Login in {0} are enabled", scene.RegionInfo.RegionName));
+                break;
+            default:
+                MainConsole.Instance.Output("Syntax: login enable|disable|status");
+                return false;
+            }
+
+            return true;
         }
     }
 }
