@@ -287,18 +287,6 @@ namespace OpenSim
                                           "create region",
                                           "Create a new region", HandleCreateRegion);
 
-            m_console.Commands.AddCommand("region", false, "login enable",
-                                          "login enable",
-                                          "Enable logins to the simulator", HandleLoginEnable);
-
-            m_console.Commands.AddCommand("region", false, "login disable",
-                                          "login disable",
-                                          "Disable logins to the simulator", HandleLoginDisable);
-
-            m_console.Commands.AddCommand("region", false, "login status",
-                                          "login status",
-                                          "Display status of logins", HandleLoginStatus);
-
             m_console.Commands.AddCommand("region", false, "restart",
                                           "restart",
                                           "Restart all sims in this instance", RunCommand);
@@ -557,42 +545,6 @@ namespace OpenSim
                 return;
             }
         }
-
-        /// <summary>
-        /// Enable logins
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginEnable(string module, string[] cmd)
-        {
-            ProcessLogin(true);
-        }
-
-
-        /// <summary>
-        /// Disable logins
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginDisable(string module, string[] cmd)
-        {
-            ProcessLogin(false);
-        }
-
-        /// <summary>
-        /// Log login status to the console
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginStatus(string module, string[] cmd)
-        {
-            if (m_sceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled == false)
-
-                m_log.Info("[ Login ]  Login are disabled ");
-            else
-                m_log.Info("[ Login ]  Login are enabled");
-        }
-
 
         /// <summary>
         /// Change and load configuration file data.

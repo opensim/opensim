@@ -56,21 +56,6 @@ namespace OpenSim.Client.Linden
         protected bool authenticate;
         protected string welcomeMessage;
 
-        public bool RegionLoginsEnabled
-        {
-            get
-            {
-                if (m_firstScene != null)
-                {
-                    return m_firstScene.SceneGridService.RegionLoginsEnabled;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
         protected LLStandaloneLoginService m_loginService;
 
         #region IRegionModule Members
