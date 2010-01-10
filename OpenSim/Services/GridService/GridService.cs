@@ -299,7 +299,10 @@ namespace OpenSim.Services.GridService
             List<RegionData> regions = m_Database.GetDefaultRegions(scopeID);
 
             foreach (RegionData r in regions)
-                ret.Add(RegionData2RegionInfo(r));
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
 
             return ret;
         }
@@ -311,7 +314,10 @@ namespace OpenSim.Services.GridService
             List<RegionData> regions = m_Database.GetFallbackRegions(scopeID, x, y);
 
             foreach (RegionData r in regions)
-                ret.Add(RegionData2RegionInfo(r));
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
 
             return ret;
         }
