@@ -139,6 +139,7 @@ namespace OpenSim.Services.GridService
 
             try
             {
+                rdata.Data["last_seen"] = Util.UnixTimeSinceEpoch();
                 m_Database.Store(rdata);
             }
             catch (Exception e)
@@ -164,6 +165,7 @@ namespace OpenSim.Services.GridService
                 int flags = Convert.ToInt32(region.Data["flags"]);
                 flags &= ~(int)OpenSim.Data.RegionFlags.RegionOnline;
                 region.Data["flags"] = flags.ToString();
+                region.Data["last_seen"] = Util.UnixTimeSinceEpoch();
                 try
                 {
                     m_Database.Store(region);
