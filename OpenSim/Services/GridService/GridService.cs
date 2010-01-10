@@ -48,33 +48,45 @@ namespace OpenSim.Services.GridService
 
         private bool m_DeleteOnUnregister = true;
         private static GridService m_RootInstance = null;
+        protected IConfigSource m_config;
 
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
 
-            if (m_RootInstance == null)
-                m_RootInstance = this;
-
+            m_config = config;
             IConfig gridConfig = config.Configs["GridService"];
             if (gridConfig != null)
             {
                 m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
             }
             
-            MainConsole.Instance.Commands.AddCommand("grid", true,
-                    "show region",
-                    "show region <Region name>",
-                    "Show details on a region",
-                    "Display all details about a registered grid region",
-                    HandleShowRegion);
+            if (m_RootInstance == null)
+            {
+                m_RootInstance = this;
+
+                MainConsole.Instance.Commands.AddCommand("grid", true,
+                        "show region",
+                        "show region <Region name>",
+                        "Show details on a region",
+                        String.Empty,
+                        HandleShowRegion);
+
+                MainConsole.Instance.Commands.AddCommand("grid", true,
+                        "set region flags",
+                        "set region flags <Region name> <flags>",
+                        "Set database flags for region",
+                        String.Empty,
+                        HandleSetFlags);
+            }
         }
 
         #region IGridService
 
         public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
+            IConfig gridConfig = m_config.Configs["GridService"];
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
@@ -104,12 +116,23 @@ namespace OpenSim.Services.GridService
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
-            rdata.Data["flags"] = "0";
             
             if (region != null)
             {
                 rdata.Data["flags"] = region.Data["flags"]; // Preserve fields
             }
+            else
+            {
+                rdata.Data["flags"] = "0";
+                if (gridConfig != null)
+                {
+                    int newFlags = 0;
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionName, String.Empty));
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
+                    rdata.Data["flags"] = newFlags.ToString();
+                }
+            }
+
             int flags = Convert.ToInt32(rdata.Data["flags"]);
             flags |= (int)OpenSim.Data.RegionFlags.RegionOnline;
             rdata.Data["flags"] = flags.ToString();
@@ -302,9 +325,6 @@ namespace OpenSim.Services.GridService
 
         private void HandleShowRegion(string module, string[] cmd)
         {
-            if (m_RootInstance != this)
-                return;
-
             if (cmd.Length != 3)
             {
                 MainConsole.Instance.Output("Syntax: show region <region name>");
@@ -362,6 +382,7 @@ namespace OpenSim.Services.GridService
                 }
                 catch (Exception e)
                 {
+                    MainConsole.Instance.Output("Error in flag specification: " + p);
                 }
             }
 
@@ -370,16 +391,29 @@ namespace OpenSim.Services.GridService
 
         private void HandleSetFlags(string module, string[] cmd)
         {
-            if (m_RootInstance != this)
-                return;
-
-            if (cmd.Length < 4)
+            if (cmd.Length < 5)
             {
                 MainConsole.Instance.Output("Syntax: set region flags <region name> <flags>");
                 return;
             }
 
-            MainConsole.Instance.Output(ParseFlags(0, cmd[3]).ToString());
+            List<RegionData> regions = m_Database.Get(cmd[3], UUID.Zero);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("Region not found");
+                return;
+            }
+
+            foreach (RegionData r in regions)
+            {
+                int flags = Convert.ToInt32(r.Data["flags"]);
+                flags = ParseFlags(flags, cmd[4]);
+                r.Data["flags"] = flags.ToString();
+                OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)flags;
+
+                MainConsole.Instance.Output(String.Format("Set region {0} to {1}", r.RegionName, f));
+                m_Database.Store(r);
+            }
         }
     }
 }
