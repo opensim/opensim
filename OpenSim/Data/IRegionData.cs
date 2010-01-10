@@ -70,6 +70,7 @@ namespace OpenSim.Data
         DefaultRegion = 1, // Used for new Rez. Random if multiple defined
         FallbackRegion = 2, // Regions we redirect to when the destination is down
         RegionOnline = 4, // Set when a region comes online, unset when it unregisters and DeleteOnUnregister is false
-        NoDirectLogin = 8 // Region unavailable for direct logins (by name)
+        NoDirectLogin = 8, // Region unavailable for direct logins (by name)
+        Persistent = 16 // Don't remove on unregister
     }
 }
