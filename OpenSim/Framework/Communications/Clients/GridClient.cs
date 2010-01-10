@@ -68,10 +68,7 @@ namespace OpenSim.Framework.Communications.Clients
             GridParams["region_secret"] = regionInfo.regionSecret;
             GridParams["major_interface_version"] = VersionInfo.MajorInterfaceVersion.ToString();
 
-            if (regionInfo.MasterAvatarAssignedUUID != UUID.Zero)
-                GridParams["master_avatar_uuid"] = regionInfo.MasterAvatarAssignedUUID.ToString();
-            else
-                GridParams["master_avatar_uuid"] = regionInfo.EstateSettings.EstateOwner.ToString();
+            GridParams["master_avatar_uuid"] = regionInfo.EstateSettings.EstateOwner.ToString();
 
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();

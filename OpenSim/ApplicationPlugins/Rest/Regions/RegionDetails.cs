@@ -56,20 +56,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_id = regInfo.RegionID.ToString();
             region_x = regInfo.RegionLocX;
             region_y = regInfo.RegionLocY;
-            if (regInfo.EstateSettings.EstateOwner != UUID.Zero)
-                region_owner_id = regInfo.EstateSettings.EstateOwner.ToString();
-            else
-                region_owner_id = regInfo.MasterAvatarAssignedUUID.ToString();
+            region_owner_id = regInfo.EstateSettings.EstateOwner.ToString();
             region_http_port = regInfo.HttpPort;
             region_server_uri = regInfo.ServerURI;
             region_external_hostname = regInfo.ExternalHostName;
 
             Uri uri = new Uri(region_server_uri);
             region_port = (uint)uri.Port;
-
-            if (!String.IsNullOrEmpty(regInfo.MasterAvatarFirstName))
-                region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName,
-                                             regInfo.MasterAvatarLastName);
         }
 
         public string this[string idx]

@@ -101,12 +101,6 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     userlevel = 1;
                 }
-                // TODO: remove this cruft once MasterAvatar is fully deprecated
-                //
-                if (m_regInfo.MasterAvatarAssignedUUID == AgentID)
-                {
-                    userlevel = 2;
-                }
                 EventManager.TriggerOnNewInventoryItemUploadComplete(AgentID, item.AssetID, item.Name, userlevel);
             }
             else

@@ -4030,10 +4030,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
             edata.CovenantID = covenant;
             edata.CovenantTimestamp = 0;
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                edata.EstateOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            else
-                edata.EstateOwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            edata.EstateOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             edata.EstateName = Utils.StringToBytes(m_scene.RegionInfo.EstateSettings.EstateName);
             einfopack.Data = edata;
             OutPacket(einfopack, ThrottleOutPacketType.Task);
@@ -4054,8 +4051,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             //Sending Estate Settings
             returnblock[0].Parameter = Utils.StringToBytes(estateName);
-            // TODO: remove this cruft once MasterAvatar is fully deprecated
-            //
             returnblock[1].Parameter = Utils.StringToBytes(estateOwner.ToString());
             returnblock[2].Parameter = Utils.StringToBytes(estateID.ToString());
 

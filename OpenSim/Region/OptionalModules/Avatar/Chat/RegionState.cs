@@ -57,8 +57,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal string Host                 = String.Empty;
         internal string LocX                 = String.Empty;
         internal string LocY                 = String.Empty;
-        internal string MA1                  = String.Empty;
-        internal string MA2                  = String.Empty;
         internal string IDK                  = String.Empty;
 
         // System values - used only be the IRC classes themselves
@@ -85,8 +83,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             Host   = scene.RegionInfo.ExternalHostName;
             LocX   = Convert.ToString(scene.RegionInfo.RegionLocX);
             LocY   = Convert.ToString(scene.RegionInfo.RegionLocY);
-            MA1    = scene.RegionInfo.MasterAvatarFirstName;
-            MA2    = scene.RegionInfo.MasterAvatarLastName;
             IDK    = Convert.ToString(_idk_++);
 
             // OpenChannel conditionally establishes a connection to the
