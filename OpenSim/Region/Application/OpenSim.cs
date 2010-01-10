@@ -347,13 +347,6 @@ namespace OpenSim
                                           "kill uuid <UUID>",
                                           "Kill an object by UUID", KillUUID);
 
-            if (ConfigurationSettings.Standalone)
-            {
-
-                m_console.Commands.AddCommand("region", false, "reset user password",
-                                              "reset user password [<first> [<last> [<password>]]]",
-                                              "Reset a user password", HandleResetUserPassword);
-            }
 
             m_console.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
                                           "Set local coordinate to map HG regions to", RunCommand);
@@ -809,21 +802,6 @@ namespace OpenSim
             m_console.ConsoleScene = m_sceneManager.CurrentScene;
         }
 
-        /// <summary>
-        /// Execute switch for some of the reset commands
-        /// </summary>
-        /// <param name="args"></param>
-        protected void HandleResetUserPassword(string module, string[] cmd)
-        {
-            if (ConfigurationSettings.Standalone)
-            {
-                ResetUserPassword(cmd);
-            }
-            else
-            {
-                m_log.Info("Reset user password is not available in grid mode, use the user-server.");
-            }
-        }
 
         /// <summary>
         /// Turn on some debugging values for OpenSim.
@@ -1054,31 +1032,6 @@ namespace OpenSim
                                             });
 
             return report;
-        }
-
-        /// <summary>
-        /// Reset a user password.
-        /// </summary>
-        /// <param name="cmdparams"></param>
-        private void ResetUserPassword(string[] cmdparams)
-        {
-            string firstName;
-            string lastName;
-            string newPassword;
-
-            if (cmdparams.Length < 4)
-                firstName = MainConsole.Instance.CmdPrompt("First name");
-            else firstName = cmdparams[3];
-
-            if (cmdparams.Length < 5)
-                lastName = MainConsole.Instance.CmdPrompt("Last name");
-            else lastName = cmdparams[4];
-
-            if (cmdparams.Length < 6)
-                newPassword = MainConsole.Instance.PasswdPrompt("New password");
-            else newPassword = cmdparams[5];
-
-            m_commsManager.UserAdminService.ResetUserPassword(firstName, lastName, newPassword);
         }
 
         /// <summary>
