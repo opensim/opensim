@@ -32,7 +32,6 @@ namespace OpenSim.Framework
 {
     public interface ILoginServiceToRegionsConnector
     {
-        bool RegionLoginsEnabled { get; }
         void LogOffUserFromGrid(ulong regionHandle, UUID AvatarID, UUID RegionSecret, string message);
         bool NewUserConnection(ulong regionHandle, AgentCircuitData agent, out string reason);
         RegionInfo RequestClosestRegion(string region);

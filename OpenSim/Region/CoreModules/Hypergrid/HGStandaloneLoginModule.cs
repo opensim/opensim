@@ -55,21 +55,6 @@ namespace OpenSim.Region.CoreModules.Hypergrid
 
         protected bool m_enabled = false; // Module is only enabled if running in standalone mode
 
-        public bool RegionLoginsEnabled
-        {
-            get
-            {
-                if (m_firstScene != null)
-                {
-                    return m_firstScene.SceneGridService.RegionLoginsEnabled;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-       
         protected HGLoginAuthService m_loginService;
 
         #region IRegionModule Members

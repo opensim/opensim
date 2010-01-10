@@ -696,8 +696,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public bool CheckUserAtEntry(UUID userID, UUID sessionID, out bool comingHome)
         {
             comingHome = false;
-            if (!m_aScene.SceneGridService.RegionLoginsEnabled)
-                return false;
 
             CachedUserInfo uinfo = m_aScene.CommsManager.UserProfileCacheService.GetUserDetails(userID);
             if (uinfo != null) 
