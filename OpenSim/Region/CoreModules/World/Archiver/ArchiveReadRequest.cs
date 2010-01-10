@@ -182,10 +182,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
             // otherwise, use the master avatar uuid instead
-            UUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             // Reload serialized parcels
             m_log.InfoFormat("[ARCHIVER]: Loading {0} parcels.  Please wait.", serialisedParcels.Count);
@@ -194,7 +190,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
                 if (!ResolveUserUuid(parcel.OwnerID))
-                    parcel.OwnerID = masterAvatarId;
+                    parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 landData.Add(parcel);
             }
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
@@ -233,13 +229,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!ResolveUserUuid(part.CreatorID))
-                        part.CreatorID = masterAvatarId;
+                        part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     if (!ResolveUserUuid(part.OwnerID))
-                        part.OwnerID = masterAvatarId;
+                        part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     if (!ResolveUserUuid(part.LastOwnerID))
-                        part.LastOwnerID = masterAvatarId;
+                        part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     // And zap any troublesome sit target information
                     part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
@@ -255,11 +251,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         {
                             if (!ResolveUserUuid(kvp.Value.OwnerID))
                             {
-                                kvp.Value.OwnerID = masterAvatarId;
+                                kvp.Value.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
                             if (!ResolveUserUuid(kvp.Value.CreatorID))
                             {
-                                kvp.Value.CreatorID = masterAvatarId;
+                                kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                             }
                         }
                     }

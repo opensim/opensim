@@ -54,10 +54,6 @@ namespace OpenSim.Framework
         private RegionSettings m_regionSettings;
         // private IConfigSource m_configSource = null;
 
-        public UUID MasterAvatarAssignedUUID = UUID.Zero;
-        public string MasterAvatarFirstName = String.Empty;
-        public string MasterAvatarLastName = String.Empty;
-        public string MasterAvatarSandboxPassword = String.Empty;
         public UUID originRegionID = UUID.Zero;
         public string proxyUrl = "";
         public int ProxyOffset = 0;
@@ -488,40 +484,6 @@ namespace OpenSim.Framework
                 m_externalHostName = externalName;
 
 
-            // Master avatar cruft
-            //
-            string masterAvatarUUID;
-            if (!creatingNew)
-            {
-                masterAvatarUUID = config.GetString("MasterAvatarUUID", UUID.Zero.ToString());
-                MasterAvatarFirstName = config.GetString("MasterAvatarFirstName", String.Empty);
-                MasterAvatarLastName = config.GetString("MasterAvatarLastName", String.Empty);
-                MasterAvatarSandboxPassword = config.GetString("MasterAvatarSandboxPassword", String.Empty);
-            }
-            else
-            {
-                masterAvatarUUID = MainConsole.Instance.CmdPrompt("Master Avatar UUID", UUID.Zero.ToString());
-                if (masterAvatarUUID != UUID.Zero.ToString())
-                {
-                    config.Set("MasterAvatarUUID", masterAvatarUUID);
-                }
-                else
-                {
-                    MasterAvatarFirstName = MainConsole.Instance.CmdPrompt("Master Avatar first name (enter for no master avatar)", String.Empty);
-                    if (MasterAvatarFirstName != String.Empty)
-                    {
-                        MasterAvatarLastName = MainConsole.Instance.CmdPrompt("Master Avatar last name", String.Empty);
-                        MasterAvatarSandboxPassword = MainConsole.Instance.CmdPrompt("Master Avatar sandbox password", String.Empty);
-                        
-                        config.Set("MasterAvatarFirstName", MasterAvatarFirstName);
-                        config.Set("MasterAvatarLastName", MasterAvatarLastName);
-                        config.Set("MasterAvatarSandboxPassword", MasterAvatarSandboxPassword);
-                    }
-                }
-            }
-
-            MasterAvatarAssignedUUID = new UUID(masterAvatarUUID);
-
             m_regionType = config.GetString("RegionType", String.Empty);
 
             // Prim stuff
@@ -563,20 +525,6 @@ namespace OpenSim.Framework
             config.Set("AllowAlternatePorts", m_allow_alternate_ports.ToString());
 
             config.Set("ExternalHostName", m_externalHostName);
-
-            if (MasterAvatarAssignedUUID != UUID.Zero)
-            {
-                config.Set("MasterAvatarUUID", MasterAvatarAssignedUUID.ToString());
-            }
-            else if (MasterAvatarFirstName != String.Empty && MasterAvatarLastName != String.Empty)
-            {
-                config.Set("MasterAvatarFirstName", MasterAvatarFirstName);
-                config.Set("MasterAvatarLastName", MasterAvatarLastName);
-            }
-            if (MasterAvatarSandboxPassword != String.Empty)
-            {
-                config.Set("MasterAvatarSandboxPassword", MasterAvatarSandboxPassword);
-            }
 
             if (m_nonphysPrimMax != 0)
                 config.Set("NonphysicalPrimMax", m_nonphysPrimMax);
@@ -651,17 +599,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", m_externalHostName, true);
-            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Master Avatar UUID", MasterAvatarAssignedUUID.ToString(), true);
-            configMember.addConfigurationOption("master_avatar_first",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "First Name of Master Avatar", MasterAvatarFirstName, true);
-            configMember.addConfigurationOption("master_avatar_last",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Name of Master Avatar", MasterAvatarLastName, true);
-            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "(Sandbox Mode Only)Password for Master Avatar account",
-                                                MasterAvatarSandboxPassword, true);
             configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                                 "Last Map UUID", lastMapUUID.ToString(), true);
             configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
@@ -711,22 +648,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("external_host_name",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "External Host Name", "127.0.0.1", false);
-            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
-                                                "Master Avatar UUID", UUID.Zero.ToString(), true);
-            configMember.addConfigurationOption("master_avatar_first",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "First Name of Master Avatar", "Test", false,
-                                                (ConfigurationOption.ConfigurationOptionShouldBeAsked)
-                                                shouldMasterAvatarDetailsBeAsked);
-            configMember.addConfigurationOption("master_avatar_last",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
-                                                "Last Name of Master Avatar", "User", false,
-                                                (ConfigurationOption.ConfigurationOptionShouldBeAsked)
-                                                shouldMasterAvatarDetailsBeAsked);
-            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "(Sandbox Mode Only)Password for Master Avatar account", "test", false,
-                                                (ConfigurationOption.ConfigurationOptionShouldBeAsked)
-                                                shouldMasterAvatarDetailsBeAsked);
             configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_UUID,
                                     "Last Map UUID", lastMapUUID.ToString(), true);
 
@@ -750,11 +671,6 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("region_type", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Region Type", String.Empty, true);
-        }
-
-        public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
-        {
-            return MasterAvatarAssignedUUID == UUID.Zero;
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -796,18 +712,6 @@ namespace OpenSim.Framework
                     {
                         m_externalHostName = Util.GetLocalHost().ToString();
                     }
-                    break;
-                case "master_avatar_uuid":
-                    MasterAvatarAssignedUUID = (UUID) configuration_result;
-                    break;
-                case "master_avatar_first":
-                    MasterAvatarFirstName = (string) configuration_result;
-                    break;
-                case "master_avatar_last":
-                    MasterAvatarLastName = (string) configuration_result;
-                    break;
-                case "master_avatar_pass":
-                    MasterAvatarSandboxPassword = (string)configuration_result;
                     break;
                 case "lastmap_uuid":
                     lastMapUUID = (UUID)configuration_result;

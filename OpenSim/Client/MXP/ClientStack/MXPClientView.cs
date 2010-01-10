@@ -427,7 +427,7 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.ObjectIndex = (uint)(m_scene.RegionInfo.RegionSettings.RegionUUID.GetHashCode() + ((long)int.MaxValue) / 2);
             pe.ObjectFragment.ParentObjectId = UUID.Zero.Guid;
             pe.ObjectFragment.ObjectName = "Terrain of " + m_scene.RegionInfo.RegionName;
-            pe.ObjectFragment.OwnerId = m_scene.RegionInfo.MasterAvatarAssignedUUID.Guid;
+            pe.ObjectFragment.OwnerId = m_scene.RegionInfo.EstateSettings.EstateOwner;
             pe.ObjectFragment.TypeId = Guid.Empty;
             pe.ObjectFragment.TypeName = "Terrain";
             pe.ObjectFragment.Acceleration = new MsdVector3f();

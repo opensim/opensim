@@ -584,45 +584,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         // ok, client wants us to use an explicit UUID
                         // regardless of what the avatar name provided
-                        userID = new UUID((string) requestData["region_master_uuid"]);
+                        userID = new UUID((string) requestData["estate_owner_uuid"]);
                     }
-                    else
-                    {
-                        if (masterFirst != String.Empty && masterLast != String.Empty) // User requests a master avatar
-                        {
-                            // no client supplied UUID: look it up...
-                            UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
-                            UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, masterFirst, masterLast);
-                            if (null == account)
-                            {
-                                m_log.InfoFormat("master avatar does not exist, creating it");
-                                // ...or create new user
-
-                                account = new UserAccount(scopeID, masterFirst, masterLast, "");
-                                bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
-                                if (success)
-                                {
-                                    GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID,
-                                        (int)(region.RegionLocX * Constants.RegionSize), (int)(region.RegionLocY * Constants.RegionSize));
-
-                                    m_app.SceneManager.CurrentOrFirstScene.PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
-                                }
-                                else
-                                    throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                      masterFirst, masterLast));
-                                
-                            }
-                            else
-                            {
-                                userID = account.PrincipalID;
-                            }
-                        }
-                    }
-
-                    region.MasterAvatarFirstName = masterFirst;
-                    region.MasterAvatarLastName = masterLast;
-                    region.MasterAvatarSandboxPassword = masterPassword;
-                    region.MasterAvatarAssignedUUID = userID;
 
                     bool persist = Convert.ToBoolean((string) requestData["persist"]);
                     if (persist)
@@ -667,6 +630,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // If an access specification was provided, use it.
                     // Otherwise accept the default.
                     newscene.RegionInfo.EstateSettings.PublicAccess = getBoolean(requestData, "public", m_publicAccess);
+                    newscene.RegionInfo.EstateSettings.EstateOwner = userID;
                     if (persist)
                         newscene.RegionInfo.EstateSettings.Save();
 

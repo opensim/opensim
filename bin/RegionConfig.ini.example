@@ -20,17 +20,6 @@ AllowAlternatePorts = False
 ExternalHostName = "SYSTEMIP"
 
 ; *
-; * Master avatar stuff. Set either a UUID (from OSGrid or your server)
-; * OR a first and last name. Password is only needed for sandbox mode
-; * The default assigns no master avatar
-; *
-
-MasterAvatarUUID = "00000000-0000-0000-0000-000000000000"
-; MasterAvatarFirstName = ""
-; MasterAvatarLastName = ""
-; MasterAvatarSandboxPassword = ""
-
-; *
 ; * Prim data
 ; * This allows limiting the sizes of prims and the region prim count
 ; *

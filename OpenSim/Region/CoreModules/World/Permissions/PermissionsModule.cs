@@ -477,12 +477,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             if (user == UUID.Zero) return false;
         
-            if (m_scene.RegionInfo.MasterAvatarAssignedUUID != UUID.Zero)
-            {
-                if (m_RegionOwnerIsGod && (m_scene.RegionInfo.MasterAvatarAssignedUUID == user))
-                    return true;
-            }
-            
             if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
             {
                 if (m_scene.RegionInfo.EstateSettings.EstateOwner == user)
