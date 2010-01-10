@@ -56,7 +56,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             //Now in DataSnapshotProvider module form!
             XmlNode estatedata = factory.CreateNode(XmlNodeType.Element, "estate", "");
 
-            ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
+            UUID ownerid = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             UserAccount userInfo = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerid);
             //TODO: Change to query userserver about the master avatar UUID ?
