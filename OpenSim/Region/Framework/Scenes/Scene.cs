@@ -1275,7 +1275,7 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
 
-                    if (LoginsDisabled && m_frame > 20)
+                    if (LoginsDisabled && m_frame == 20)
                     {
                         // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                         // this is a rare case where we know we have just went through a long cycle of heap
