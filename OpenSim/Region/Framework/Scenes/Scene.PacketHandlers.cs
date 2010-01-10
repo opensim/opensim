@@ -419,7 +419,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
         {
-            if (uuid == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
+            if (LibraryService != null && (LibraryService.LibraryRootFolder.Owner == uuid))
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
             }
