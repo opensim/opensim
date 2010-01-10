@@ -119,6 +119,9 @@ namespace OpenSim.Services.GridService
             
             if (region != null)
             {
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                    return false;
+
                 rdata.Data["flags"] = region.Data["flags"]; // Preserve fields
             }
             else
