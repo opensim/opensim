@@ -26,25 +26,58 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Data;
-using OpenSim.Framework.Console;
 using OpenSim.Services.Interfaces;
-using System.Collections.Generic;
+using OpenSim.Framework.Console;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 using OpenMetaverse;
+using log4net;
 
 namespace OpenSim.Services.UserAccountService
 {
     public class UserAccountService : UserAccountServiceBase, IUserAccountService
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static UserAccountService m_RootInstance;
+
+        protected IGridService m_GridService;
+        protected IAuthenticationService m_AuthenticationService;
+        protected IPresenceService m_PresenceService;
+
         public UserAccountService(IConfigSource config)
             : base(config)
         {
-            MainConsole.Instance.Commands.AddCommand("UserService", false,
-                    "create user",
-                    "create user [<first> [<last> [<pass> [<x> <y> [<email>]]]]]",
-                    "Create a new user", HandleCreateUser);
+            IConfig userConfig = config.Configs["UserAccountService"];
+            if (userConfig == null)
+                throw new Exception("No UserAccountService configuration");
+
+            // In case there are several instances of this class in the same process,
+            // the console commands are only registered for the root instance
+            if (m_RootInstance == null)
+            {
+                m_RootInstance = this;
+                string gridServiceDll = userConfig.GetString("GridService", string.Empty);
+                if (gridServiceDll != string.Empty)
+                    m_GridService = LoadPlugin<IGridService>(gridServiceDll, new Object[] { config });
+
+                string authServiceDll = userConfig.GetString("AuthenticationService", string.Empty);
+                if (authServiceDll != string.Empty)
+                    m_AuthenticationService = LoadPlugin<IAuthenticationService>(authServiceDll, new Object[] { config });
+
+                string presenceServiceDll = userConfig.GetString("PresenceService", string.Empty);
+                if (presenceServiceDll != string.Empty)
+                    m_PresenceService = LoadPlugin<IPresenceService>(presenceServiceDll, new Object[] { config });
+
+                MainConsole.Instance.Commands.AddCommand("UserService", false,
+                        "create user",
+                        "create user [<first> [<last> [<pass> [<email>]]]]",
+                        "Create a new user", HandleCreateUser);
+            }
+
         }
 
         #region IUserAccountService
@@ -202,52 +235,64 @@ namespace OpenSim.Services.UserAccountService
             string lastName;
             string password;
             string email;
-            uint regX = 1000;
-            uint regY = 1000;
 
-            //    IConfig standalone;
-            //    if ((standalone = m_config.Source.Configs["StandAlone"]) != null)
-            //    {
-            //        regX = (uint)standalone.GetInt("default_location_x", (int)regX);
-            //        regY = (uint)standalone.GetInt("default_location_y", (int)regY);
-            //    }
+            if (cmdparams.Length < 3)
+                firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+            else firstName = cmdparams[2];
 
+            if (cmdparams.Length < 4)
+                lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+            else lastName = cmdparams[3];
 
-            //    if (cmdparams.Length < 3)
-            //        firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
-            //    else firstName = cmdparams[2];
+            if (cmdparams.Length < 5)
+                password = MainConsole.Instance.PasswdPrompt("Password");
+            else password = cmdparams[4];
 
-            //    if (cmdparams.Length < 4)
-            //        lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
-            //    else lastName = cmdparams[3];
+            if (cmdparams.Length < 6)
+                email = MainConsole.Instance.CmdPrompt("Email", "");
+            else email = cmdparams[5];
 
-            //    if (cmdparams.Length < 5)
-            //        password = MainConsole.Instance.PasswdPrompt("Password");
-            //    else password = cmdparams[4];
+            UserAccount account = GetUserAccount(UUID.Zero, firstName, lastName);
+            if (null == account)
+            {
+                account = new UserAccount(UUID.Zero, firstName, lastName, email);
+                if (StoreUserAccount(account))
+                {
+                    bool success = false;
+                    if (m_AuthenticationService != null)
+                        success = m_AuthenticationService.SetPassword(account.PrincipalID, password);
+                    if (!success)
+                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
+                           firstName, lastName);
 
-            //    if (cmdparams.Length < 6)
-            //        regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
-            //    else regX = Convert.ToUInt32(cmdparams[5]);
+                    GridRegion home = null;
+                    if (m_GridService != null)
+                    {
+                        List<GridRegion> defaultRegions = m_GridService.GetDefaultRegions(UUID.Zero);
+                        if (defaultRegions != null && defaultRegions.Count >= 1)
+                            home = defaultRegions[0];
 
-            //    if (cmdparams.Length < 7)
-            //        regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
-            //    else regY = Convert.ToUInt32(cmdparams[6]);
+                        if (m_PresenceService != null && home != null)
+                            m_PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                        else
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
+                               firstName, lastName);
 
-            //    if (cmdparams.Length < 8)
-            //        email = MainConsole.Instance.CmdPrompt("Email", "");
-            //    else email = cmdparams[7];
+                    }
+                    else
+                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
+                           firstName, lastName);
 
-            //    if (null == m_commsManager.UserProfileCacheService.GetUserDetails(firstName, lastName))
-            //    {
-            //        m_commsManager.UserAdminService.AddUser(firstName, lastName, password, email, regX, regY);
-            //    }
-            //    else
-            //    {
-            //        m_log.ErrorFormat("[CONSOLE]: A user with the name {0} {1} already exists!", firstName, lastName);
-            //    }
-            //}
+                    m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
+                }
+            }
+            else
+            {
+                m_log.ErrorFormat("[USER ACCOUNT SERVICE]: A user with the name {0} {1} already exists!", firstName, lastName);
+            }
 
         }
         #endregion
+
     }
 }

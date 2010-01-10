@@ -32,6 +32,7 @@ using Nini.Config;
 using System.Reflection;
 using OpenSim.Services.Base;
 using OpenSim.Data;
+using OpenSim.Framework;
 
 namespace OpenSim.Services.AuthenticationService
 {
@@ -43,9 +44,9 @@ namespace OpenSim.Services.AuthenticationService
     //
     public class AuthenticationServiceBase : ServiceBase
     {
-//        private static readonly ILog m_log =
-//                LogManager.GetLogger(
-//                MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
  
         protected IAuthenticationData m_Database;
 
@@ -100,6 +101,27 @@ namespace OpenSim.Services.AuthenticationService
             return m_Database.CheckToken(principalID, token, 0);
         }
 
+        public virtual bool SetPassword(UUID principalID, string password)
+        {
+            string passwordSalt = Util.Md5Hash(UUID.Random().ToString());
+            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + passwordSalt);
+
+            AuthenticationData auth = new AuthenticationData();
+            auth.PrincipalID = principalID;
+            auth.Data = new System.Collections.Generic.Dictionary<string, object>();
+            auth.Data["passwordHash"] = md5PasswdHash;
+            auth.Data["passwordSalt"] = passwordSalt;
+            auth.Data["webLoginKey"] = UUID.Zero.ToString();
+            if (!m_Database.Store(auth))
+            {
+                m_log.DebugFormat("[AUTHENTICATION DB]: Failed to store authentication data");
+                return false;
+            }
+
+            m_log.InfoFormat("[AUTHENTICATION DB]: Set password for principalID {0}", principalID);
+            return true;
+        }
+        
         protected string GetToken(UUID principalID, int lifetime)
         {
             UUID token = UUID.Random();
@@ -109,5 +131,6 @@ namespace OpenSim.Services.AuthenticationService
 
             return String.Empty;
         }
+
     }
 }

@@ -146,5 +146,11 @@ namespace OpenSim.Services.Connectors
 
             return true;
         }
+
+        public bool SetPassword(UUID principalID, string passwd)
+        {
+            // nope, we don't do this
+            return false;
+        }
     }
 }
