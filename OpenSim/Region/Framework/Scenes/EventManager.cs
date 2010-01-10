@@ -189,6 +189,10 @@ namespace OpenSim.Region.Framework.Scenes
         public event ScriptColliding OnScriptColliding;
         public event ScriptColliding OnScriptCollidingEnd;
 
+        public event ScriptColliding OnScriptLandColliderStart;
+        public event ScriptColliding OnScriptLandColliding;
+        public event ScriptColliding OnScriptLandColliderEnd;
+
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
 
@@ -445,6 +449,9 @@ namespace OpenSim.Region.Framework.Scenes
         private ScriptColliding handlerCollidingStart = null;
         private ScriptColliding handlerColliding = null;
         private ScriptColliding handlerCollidingEnd = null;
+        private ScriptColliding handlerLandCollidingStart = null;
+        private ScriptColliding handlerLandColliding = null;
+        private ScriptColliding handlerLandCollidingEnd = null;
         private GetScriptRunning handlerGetScriptRunning = null;
 
         private SunLindenHour handlerCurrentTimeAsLindenSunHour = null;
@@ -1056,6 +1063,27 @@ namespace OpenSim.Region.Framework.Scenes
             handlerCollidingEnd = OnScriptCollidingEnd;
             if (handlerCollidingEnd != null)
                 handlerCollidingEnd(localId, colliders);
+        }
+
+        public void TriggerScriptLandCollidingStart(uint localId, ColliderArgs colliders)
+        {
+            handlerLandCollidingStart = OnScriptLandColliderStart;
+            if (handlerLandCollidingStart != null)
+                handlerLandCollidingStart(localId, colliders);
+        }
+
+        public void TriggerScriptLandColliding(uint localId, ColliderArgs colliders)
+        {
+            handlerLandColliding = OnScriptLandColliding;
+            if (handlerLandColliding != null)
+                handlerLandColliding(localId, colliders);
+        }
+
+        public void TriggerScriptLandCollidingEnd(uint localId, ColliderArgs colliders)
+        {
+            handlerLandCollidingEnd = OnScriptLandColliderEnd;
+            if (handlerLandCollidingEnd != null)
+                handlerLandCollidingEnd(localId, colliders);
         }
 
         public void TriggerSetRootAgentScene(UUID agentID, Scene scene)

@@ -63,6 +63,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
             myScriptEngine.World.EventManager.OnScriptColliding += collision;
             myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
+            myScriptEngine.World.EventManager.OnScriptLandColliderStart += land_collision_start;
+            myScriptEngine.World.EventManager.OnScriptLandColliding += land_collision;
+            myScriptEngine.World.EventManager.OnScriptLandColliderEnd += land_collision_end;
             IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
@@ -285,29 +288,63 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         det.ToArray()));
         }
 
-        public void land_collision_start(uint localID, UUID itemID)
-        {
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "land_collision_start",
-                    new object[0],
-                    new DetectParams[0]));
+        public void land_collision_start(uint localID, ColliderArgs col)
+         {
+            List<DetectParams> det = new List<DetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                DetectParams d = new DetectParams();
+                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
+                    detobj.posVector.Y,
+                    detobj.posVector.Z);
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "land_collision_start",
+                        new Object[] { new LSL_Types.Vector3(d.Position) },
+                        det.ToArray()));
+            }
+
         }
 
-        public void land_collision(uint localID, UUID itemID)
+        public void land_collision(uint localID, ColliderArgs col)
         {
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "land_collision",
-                    new object[0],
-                    new DetectParams[0]));
+            List<DetectParams> det = new List<DetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                DetectParams d = new DetectParams();
+                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
+                    detobj.posVector.Y,
+                    detobj.posVector.Z);
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "land_collision",
+                        new Object[] { new LSL_Types.Vector3(d.Position) },
+                        det.ToArray()));
+            }
         }
 
-        public void land_collision_end(uint localID, UUID itemID)
+        public void land_collision_end(uint localID, ColliderArgs col)
         {
-            myScriptEngine.PostObjectEvent(localID, new EventParams(
-                    "land_collision_end",
-                    new object[0],
-                    new DetectParams[0]));
-        }
+            List<DetectParams> det = new List<DetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                DetectParams d = new DetectParams();
+                d.Position = new LSL_Types.Vector3(detobj.posVector.X,
+                    detobj.posVector.Y,
+                    detobj.posVector.Z);
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+                myScriptEngine.PostObjectEvent(localID, new EventParams(
+                        "land_collision_end",
+                        new Object[] { new LSL_Types.Vector3(d.Position) },
+                        det.ToArray()));
+            }
+         }
 
         // timer: not handled here
         // listen: not handled here
