@@ -104,35 +104,12 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             LibraryRootFolder libraryRootFolder = new LibraryRootFolder(m_openSim.ConfigurationSettings.LibrariesXMLFile);
 
-            bool hgrid = m_openSim.ConfigSource.Source.Configs["Startup"].GetBoolean("hypergrid", false);
-
-            if (hgrid)
-            {
-                InitialiseHGServices(openSim, libraryRootFolder);
-            }
-            else
-            {
-                InitialiseStandardServices(libraryRootFolder);
-            }
+            InitialiseStandardServices(libraryRootFolder);
 
             openSim.CommunicationsManager = m_commsManager;
         }
 
-        protected void InitialiseHGServices(OpenSimBase openSim, LibraryRootFolder libraryRootFolder)
-        {
-            // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
-            if (m_openSim.ConfigurationSettings.Standalone)
-            {
-                InitialiseHGStandaloneServices(libraryRootFolder);
-            }
-            else
-            {
-                // We are in grid mode
-                InitialiseHGGridServices(libraryRootFolder);
-            }
-        }
-
-        protected void InitialiseStandardServices(LibraryRootFolder libraryRootFolder)
+       protected void InitialiseStandardServices(LibraryRootFolder libraryRootFolder)
         {
             // Standalone mode is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_openSim.ConfigurationSettings.Standalone)
@@ -157,21 +134,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         }
 
         protected virtual void InitialiseGridServices(LibraryRootFolder libraryRootFolder)
-        {
-
-            m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
-            m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));
-            if (m_openSim.userStatsURI != String.Empty)
-                m_httpServer.AddStreamHandler(new OpenSim.UXSimStatusHandler(m_openSim));
-        }
-
-        protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
-        {
-           
-            CreateGridInfoService();
-        }
-
-        protected virtual void InitialiseHGGridServices(LibraryRootFolder libraryRootFolder)
         {
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
