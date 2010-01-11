@@ -46,10 +46,18 @@ namespace OpenSim.Services.GridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected bool m_AllowDuplicateNames = false;
+
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
+
+            IConfig gridConfig = config.Configs["GridService"];
+            if (gridConfig != null)
+            {
+                m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
+            }
         }
 
         #region IGridService
@@ -79,6 +87,23 @@ namespace OpenSim.Services.GridService
                 catch (Exception e)
                 {
                     m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+                }
+            }
+
+            if (!m_AllowDuplicateNames)
+            {
+                List<RegionData> dupe = m_Database.Get(regionInfos.RegionName, scopeID);
+                if (dupe != null && dupe.Count > 0)
+                {
+                    foreach (RegionData d in dupe)
+                    {
+                        if (d.RegionID != regionInfos.RegionID)
+                        {
+                            m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register duplicate name with ID {1}.", 
+                                regionInfos.RegionName, regionInfos.RegionID);
+                            return false;
+                        }
+                    }
                 }
             }
 
