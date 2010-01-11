@@ -4080,6 +4080,23 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public int registerRotTargetWaypoint(Quaternion target, float tolerance)
+        {
+            if (m_parentGroup != null)
+            {
+                return m_parentGroup.registerRotTargetWaypoint(target, tolerance);
+            }
+            return 0;
+        }
+
+        public void unregisterRotTargetWaypoint(int handle)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.unregisterRotTargetWaypoint(handle);
+            }
+        }
+
         public void SetCameraAtOffset(Vector3 v)
         {
             m_cameraAtOffset = v;
