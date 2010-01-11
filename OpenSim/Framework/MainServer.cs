@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public class MainServer
     {
-        private static BaseHttpServer instance;
+        private static BaseHttpServer instance = null;
         private static Dictionary<uint, BaseHttpServer> m_Servers =
                 new Dictionary<uint, BaseHttpServer>();
 
@@ -46,7 +46,7 @@ namespace OpenSim.Framework
         {
             if (port == 0)
                 return Instance;
-            if (port == Instance.Port)
+            if (instance != null && port == Instance.Port)
                 return Instance;
 
             if (m_Servers.ContainsKey(port))
