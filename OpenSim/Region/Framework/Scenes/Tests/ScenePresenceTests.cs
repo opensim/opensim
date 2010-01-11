@@ -40,8 +40,8 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion;
 using OpenSim.Region.CoreModules.World.Serialiser;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -71,7 +71,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             scene2 = SceneSetupHelpers.SetupScene("Neighbour x+1", UUID.Random(), 1001, 1000, cm);
             scene3 = SceneSetupHelpers.SetupScene("Neighbour x-1", UUID.Random(), 999, 1000, cm);
 
-            ISharedRegionModule interregionComms = new RESTInterregionComms();
+            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
             interregionComms.Initialise(new IniConfigSource());
             interregionComms.PostInitialise();
             SceneSetupHelpers.SetupSceneModules(scene, new IniConfigSource(), interregionComms);

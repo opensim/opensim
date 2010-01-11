@@ -34,7 +34,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
 using OpenSim.Tests.Common.Setup;
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             TestCommunicationsManager cm = new TestCommunicationsManager();
 
             // shared module
-            ISharedRegionModule interregionComms = new RESTInterregionComms();
+            ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
 
 
             Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm, "grid");

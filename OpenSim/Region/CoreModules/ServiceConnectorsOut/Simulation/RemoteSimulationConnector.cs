@@ -37,7 +37,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Clients;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Scenes.Hypergrid;
@@ -305,53 +304,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         }
 
         #endregion /* IInterregionComms */
-
-
-        protected class RegionToRegionClient : RegionClient
-        {
-            Scene m_aScene = null;
-            IHyperlinkService m_hyperlinkService;
-
-            public RegionToRegionClient(Scene s, IHyperlinkService hyperService)
-            {
-                m_aScene = s;
-                m_hyperlinkService = hyperService;
-            }
-
-            public override ulong GetRegionHandle(ulong handle)
-            {
-                if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                {
-                    if (m_hyperlinkService != null)
-                        return m_hyperlinkService.FindRegionHandle(handle);
-                }
-
-                return handle;
-            }
-
-            public override bool IsHyperlink(ulong handle)
-            {
-                if (m_aScene.SceneGridService is HGSceneCommunicationService)
-                {
-                    if ((m_hyperlinkService != null) && (m_hyperlinkService.GetHyperlinkRegion(handle) != null))
-                        return true;
-                }
-                return false;
-            }
-
-            public override void SendUserInformation(GridRegion regInfo, AgentCircuitData aCircuit)
-            {
-                if (m_hyperlinkService != null)
-                    m_hyperlinkService.SendUserInformation(regInfo, aCircuit);
-
-            }
-
-            public override void AdjustUserInformation(AgentCircuitData aCircuit)
-            {
-                if (m_hyperlinkService != null)
-                    m_hyperlinkService.AdjustUserInformation(aCircuit);
-            }
-        }
 
     }
 }
