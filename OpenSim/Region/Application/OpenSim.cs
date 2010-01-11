@@ -67,6 +67,7 @@ namespace OpenSim
             base.ReadExtraConfigSettings();
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
+            IConfig networkConfig = m_config.Source.Configs["Network"];
 
             int stpMaxThreads = 15;
 
@@ -80,7 +81,8 @@ namespace OpenSim
                 else
                     m_consoleType= startupConfig.GetString("console", String.Empty);
 
-                m_consolePort = (uint)startupConfig.GetInt("console_port", 0);
+                if (networkConfig != null)
+                    m_consolePort = (uint)networkConfig.GetInt("console_port", 0);
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
                 if (m_logFileAppender != null)
                 {
