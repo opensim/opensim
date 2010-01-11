@@ -135,10 +135,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         protected virtual void InitialiseGridServices(LibraryRootFolder libraryRootFolder)
         {
 
-            m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
-            m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));
-            if (m_openSim.userStatsURI != String.Empty)
-                m_httpServer.AddStreamHandler(new OpenSim.UXSimStatusHandler(m_openSim));
         }
 
         private void CreateGridInfoService()

@@ -148,6 +148,11 @@ namespace OpenSim
 
             RegisterConsoleCommands();
 
+            MainServer.Instance.AddStreamHandler(new OpenSim.SimStatusHandler());
+            MainServer.Instance.AddStreamHandler(new OpenSim.XSimStatusHandler(this));
+            if (userStatsURI != String.Empty)
+                MainServer.Instance.AddStreamHandler(new OpenSim.UXSimStatusHandler(this));
+
             base.StartupSpecific();
 
             if (m_console is RemoteConsole)
