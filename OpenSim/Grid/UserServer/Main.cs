@@ -66,8 +66,6 @@ namespace OpenSim.Grid.UserServer
         public UserLoginService m_loginService;
         public MessageServersConnector m_messagesService;
 
-        protected GridInfoServiceModule m_gridInfoService;
-
         protected UserServerCommandModule m_consoleCommandModule;
         protected UserServerEventDispatchModule m_eventDispatcher;
 
@@ -213,9 +211,6 @@ namespace OpenSim.Grid.UserServer
 
             m_messagesService = new MessageServersConnector();
             m_messagesService.Initialise(this);
-
-            m_gridInfoService = new GridInfoServiceModule();
-            m_gridInfoService.Initialise(this);
         }
 
         protected virtual void StartOtherComponents(IInterServiceInventoryServices inventoryService)
@@ -252,7 +247,6 @@ namespace OpenSim.Grid.UserServer
             m_userDataBaseService.PostInitialise();
             m_messagesService.PostInitialise();
             m_eventDispatcher.PostInitialise(); //it will register event handlers in here
-            m_gridInfoService.PostInitialise();
             m_userManager.PostInitialise();
             m_avatarAppearanceModule.PostInitialise();
             m_friendsModule.PostInitialise();
@@ -266,7 +260,6 @@ namespace OpenSim.Grid.UserServer
             m_friendsModule.RegisterHandlers(m_httpServer);
             m_avatarAppearanceModule.RegisterHandlers(m_httpServer);
             m_messagesService.RegisterHandlers(m_httpServer);
-            m_gridInfoService.RegisterHandlers(m_httpServer);
         }
 
         public override void ShutdownSpecific()

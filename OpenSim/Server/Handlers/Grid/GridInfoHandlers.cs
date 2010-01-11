@@ -34,11 +34,12 @@ using System.Text;
 using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 
-namespace OpenSim.Framework.Communications.Services
+namespace OpenSim.Server.Handlers.Grid
 {
-    public class GridInfoService
+    public class GridInfoHandlers
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,26 +56,9 @@ namespace OpenSim.Framework.Communications.Services
         /// anything else requires a general redesign of the config
         /// system.
         /// </remarks>
-        public GridInfoService(IConfigSource configSource)
+        public GridInfoHandlers(IConfigSource configSource)
         {
             loadGridInfo(configSource);
-        }
-
-        /// <summary>
-        /// Default constructor, uses OpenSim.ini.
-        /// </summary>
-        public GridInfoService()
-        {
-            try
-            {
-                IConfigSource configSource = new IniConfigSource(Path.Combine(Util.configDir(), "OpenSim.ini"));
-                loadGridInfo(configSource);
-            }
-            catch (FileNotFoundException)
-            {
-                _log.Warn(
-                    "[GRID INFO SERVICE]: No OpenSim.ini file found --- GridInfoServices WILL NOT BE AVAILABLE to your users");
-            }
         }
 
         private void loadGridInfo(IConfigSource configSource)
@@ -83,16 +67,10 @@ namespace OpenSim.Framework.Communications.Services
             try
             {
                 IConfig startupCfg = configSource.Configs["Startup"];
-                IConfig gridCfg = configSource.Configs["GridInfo"];
+                IConfig gridCfg = configSource.Configs["GridInfoService"];
                 IConfig netCfg = configSource.Configs["Network"];
 
                 bool grid = startupCfg.GetBoolean("gridmode", false);
-
-                if (grid)
-                    _info["mode"] = "grid";
-                else
-                    _info["mode"] = "standalone";
-
 
                 if (null != gridCfg)
                 {

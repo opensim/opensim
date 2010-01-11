@@ -85,8 +85,6 @@ namespace OpenSim
 
         protected ConfigurationLoader m_configLoader;
 
-        protected GridInfoService m_gridInfoService;
-
         public ConsoleCommand CreateAccount = null;
 
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();

@@ -10,7 +10,7 @@
 ; *
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,,OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,,OpenSim.Server.Handlers.dll:GridInfoServerInConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,,OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance

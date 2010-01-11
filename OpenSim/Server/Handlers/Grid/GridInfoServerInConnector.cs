@@ -27,53 +27,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using log4net;
-using log4net.Config;
 using OpenMetaverse;
+using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Services;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Grid.Communications.OGS1;
-using OpenSim.Grid.Framework;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Grid.UserServer.Modules
+namespace OpenSim.Server.Handlers.Grid
 {
-    public class GridInfoServiceModule
+    public class GridInfoServerInConnector : ServiceConnector
     {
-        protected IGridServiceCore m_core;
-        protected GridInfoService m_gridInfoService;
-        protected BaseHttpServer m_httpServer;
+        private string m_ConfigName = "GridInfoService";
 
-        public GridInfoServiceModule()
+        public GridInfoServerInConnector(IConfigSource config, IHttpServer server, string configName) :
+            base(config, server, configName)
         {
+            GridInfoHandlers handlers = new GridInfoHandlers(config);
+
+            server.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
+                                                               handlers.RestGetGridInfoMethod));
+            server.AddXmlRPCHandler("get_grid_info", handlers.XmlRpcGridInfoMethod);
         }
 
-        public void Initialise(IGridServiceCore core)
-        {
-            m_core = core;
-            m_gridInfoService = new GridInfoService();
-        }
-
-        public void PostInitialise()
-        {
-
-        }
-
-        public void RegisterHandlers(BaseHttpServer httpServer)
-        {
-            m_httpServer = httpServer;
-            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/get_grid_info",
-                                                               m_gridInfoService.RestGetGridInfoMethod));
-            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-        }
-
-        public void Close()
-        {
-        }
     }
 }

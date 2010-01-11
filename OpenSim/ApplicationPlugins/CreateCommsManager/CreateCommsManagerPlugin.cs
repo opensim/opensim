@@ -68,7 +68,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         protected BaseHttpServer m_httpServer;
 
         protected CommunicationsManager m_commsManager;
-        protected GridInfoService m_gridInfoService;
 
         protected IRegionCreator m_regionCreator;
 
@@ -201,11 +200,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         private void CreateGridInfoService()
         {
-            // provide grid info
-            m_gridInfoService = new GridInfoService(m_openSim.ConfigSource.Source);
-            m_httpServer.AddXmlRPCHandler("get_grid_info", m_gridInfoService.XmlRpcGridInfoMethod);
-            m_httpServer.AddStreamHandler(
-                 new RestStreamHandler("GET", "/get_grid_info", m_gridInfoService.RestGetGridInfoMethod));
         }
     }
 }
