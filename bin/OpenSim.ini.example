@@ -987,6 +987,11 @@
     ; Compile debug info (line numbers) into the script assemblies
     CompileWithDebugInformation = true
 
+    ; Allow the user of mod* functions.  This allows a script to pass messages
+    ; to a region module via the modSendCommand() function
+    ; Default is false
+    AllowMODFunctions = false
+
     ; Allow the use of os* functions (some are dangerous)
     AllowOSFunctions = false
 
