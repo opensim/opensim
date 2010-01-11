@@ -67,7 +67,7 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 ; *
 [AuthenticationService]
     ; for the server connector
-    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     ; for the service
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
@@ -90,7 +90,9 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     ; Realm = "useraccounts"
 
 [PresenceService]
+    ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
+    ; for the service
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
@@ -99,7 +101,9 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     DefaultLibrary = "./inventory/Libraries.xml"
 
 [LoginService]
+    ; for the server connector
     LocalServiceModule = "OpenSim.Services.LLLoginService.dll:LLLoginService"
+    ; for the service
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"

@@ -49,7 +49,7 @@ namespace OpenSim.Server.Handlers.Authentication
             if (serverConfig == null)
                 throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
 
-            string authenticationService = serverConfig.GetString("AuthenticationServiceModule",
+            string authenticationService = serverConfig.GetString("LocalServiceModule",
                     String.Empty);
 
             if (authenticationService == String.Empty)
