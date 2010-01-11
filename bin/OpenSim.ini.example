@@ -326,6 +326,7 @@
     ConsoleUser = "Test"
     ConsolePass = "secret"
     http_listener_port = 9000
+    console_port = 0
     default_location_x = 1000
     default_location_y = 1000
 

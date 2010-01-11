@@ -53,6 +53,7 @@ namespace OpenSim
         protected string m_shutdownCommandsFile;
         protected bool m_gui = false;
         protected string m_consoleType = "local";
+        protected uint m_consolePort = 0;
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -79,6 +80,7 @@ namespace OpenSim
                 else
                     m_consoleType= startupConfig.GetString("console", String.Empty);
 
+                m_consolePort = (uint)startupConfig.GetInt("console_port", 0);
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
                 if (m_logFileAppender != null)
                 {
@@ -151,7 +153,16 @@ namespace OpenSim
             base.StartupSpecific();
 
             if (m_console is RemoteConsole)
-                ((RemoteConsole)m_console).SetServer(m_httpServer);
+            {
+                if (m_consolePort == 0)
+                {
+                    ((RemoteConsole)m_console).SetServer(m_httpServer);
+                }
+                else
+                {
+                    ((RemoteConsole)m_console).SetServer(MainServer.GetHttpServer(m_consolePort));
+                }
+            }
 
             //Run Startup Commands
             if (String.IsNullOrEmpty(m_startupCommandsFile))
