@@ -1693,49 +1693,6 @@
       </Files>
     </Project>
 
-  <Project frameworkVersion="v3_5" name="OpenSim.ApplicationPlugins.CreateCommsManager" path="OpenSim/ApplicationPlugins/CreateCommsManager" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="Mono.Addins.dll" />
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll" />
-      <Reference name="OpenMetaverse.StructuredData.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="OpenSim"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Web"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="OpenSim.Region.Communications.OGS1"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Region.Communications.Hypergrid"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.ApplicationPlugins.RemoteController" path="OpenSim/ApplicationPlugins/RemoteController" type="Library">
       <Configuration name="Debug">
         <Options>
