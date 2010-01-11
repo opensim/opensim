@@ -10,6 +10,7 @@ using OpenMetaverse;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
+using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
@@ -19,6 +20,7 @@ namespace OpenSim.Services.LLLoginService
     public class LLLoginService : ILoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool Initialized = false;
 
         private IUserAccountService m_UserAccountService;
         private IAuthenticationService m_AuthenticationService;
@@ -33,6 +35,7 @@ namespace OpenSim.Services.LLLoginService
         private string m_DefaultRegionName;
         private string m_WelcomeMessage;
         private bool m_RequireInventory;
+        private int m_MinLoginLevel;
 
         public LLLoginService(IConfigSource config, ISimulationService simService, ILibraryService libraryService)
         {
@@ -84,6 +87,12 @@ namespace OpenSim.Services.LLLoginService
                 m_LibraryService = ServerUtils.LoadPlugin<ILibraryService>(libService, args);
             }
 
+            if (!Initialized)
+            {
+                Initialized = true;
+                RegisterCommands();
+            }
+
             m_log.DebugFormat("[LLOGIN SERVICE]: Starting...");
 
         }
@@ -105,6 +114,12 @@ namespace OpenSim.Services.LLLoginService
                 {
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: user not found");
                     return LLFailedLoginResponse.UserProblem;
+                }
+
+                if (account.UserLevel < m_MinLoginLevel)
+                {
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: login is blocked for user level {0}", account.UserLevel);
+                    return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
                 // Authenticate this user
@@ -379,5 +394,50 @@ namespace OpenSim.Services.LLLoginService
             return null;
 
         }
+
+        #region Console Commands
+        private void RegisterCommands()
+        {
+            //MainConsole.Instance.Commands.AddCommand
+            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login level",
+                    "login level <level>",
+                    "Set the minimum user level to log in", HandleLoginCommand);
+
+            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login reset",
+                    "login reset",
+                    "Reset the login level to allow all users",
+                    HandleLoginCommand);
+
+            MainConsole.Instance.Commands.AddCommand("loginservice", false, "login text",
+                    "login text <text>",
+                    "Set the text users will see on login", HandleLoginCommand);
+
+        }
+
+        private void HandleLoginCommand(string module, string[] cmd)
+        {
+            string subcommand = cmd[1];
+
+            switch (subcommand)
+            {
+                case "level":
+                    // Set the minimum level to allow login 
+                    // Useful to allow grid update without worrying about users.
+                    // or fixing critical issues
+                    //
+                    if (cmd.Length > 2)
+                        Int32.TryParse(cmd[2], out m_MinLoginLevel);
+                    break;
+                case "reset":
+                    m_MinLoginLevel = 0;
+                    break;
+                case "text":
+                    if (cmd.Length > 2)
+                        m_WelcomeMessage = cmd[2];
+                    break;
+            }
+        }
     }
+
+    #endregion
 }
