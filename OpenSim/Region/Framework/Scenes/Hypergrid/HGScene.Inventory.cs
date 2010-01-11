@@ -64,11 +64,11 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
         #region Constructors
 
         public HGScene(RegionInfo regInfo, AgentCircuitManager authen,
-                       CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+                       SceneCommunicationService sceneGridService,
                        StorageManager storeManager,
                        ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
                        bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, commsMan, sceneGridService, storeManager, moduleLoader,
+            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
             m_log.Info("[HGScene]: Starting HGScene.");

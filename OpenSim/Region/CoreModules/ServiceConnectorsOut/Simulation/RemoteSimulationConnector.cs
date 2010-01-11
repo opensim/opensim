@@ -58,8 +58,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         protected LocalSimulationConnectorModule m_localBackend;
         protected SimulationServiceConnector m_remoteConnector;
 
-        protected CommunicationsManager m_commsManager;
-
         protected IHyperlinkService m_hyperlinkService;
 
         protected bool m_safemode;
@@ -150,7 +148,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         protected virtual void InitOnce(Scene scene)
         {
             m_localBackend = new LocalSimulationConnectorModule();
-            m_commsManager = scene.CommsManager;
             m_aScene = scene;
             //m_regionClient = new RegionToRegionClient(m_aScene, m_hyperlinkService);
             m_thisIP = Util.GetHostFromDNS(scene.RegionInfo.ExternalHostName);

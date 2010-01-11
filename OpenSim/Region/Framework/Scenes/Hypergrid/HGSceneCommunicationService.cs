@@ -58,7 +58,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             }
         }
 
-        public HGSceneCommunicationService(CommunicationsManager commsMan) : base(commsMan)
+        public HGSceneCommunicationService() : base()
         {
         }
 

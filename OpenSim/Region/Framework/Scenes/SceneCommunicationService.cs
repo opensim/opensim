@@ -56,7 +56,6 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected CommunicationsManager m_commsProvider;
         protected RegionInfo m_regionInfo;
         protected Scene m_scene;
 
@@ -124,9 +123,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public KiPrimitiveDelegate KiPrimitive;
 
-        public SceneCommunicationService(CommunicationsManager commsMan)
+        public SceneCommunicationService()
         {
-            m_commsProvider = commsMan;
             m_agentsInTransit = new List<UUID>();
         }
 

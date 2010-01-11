@@ -607,13 +607,13 @@ namespace OpenSim
         {
             bool hgrid = ConfigSource.Source.Configs["Startup"].GetBoolean("hypergrid", false);
             if (hgrid)
-                return HGCommands.CreateScene(regionInfo, circuitManager, m_commsManager, 
+                return HGCommands.CreateScene(regionInfo, circuitManager,  
                 storageManager, m_moduleLoader, m_configSettings, m_config, m_version);
 
-            SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
+            SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(
-                regionInfo, circuitManager, m_commsManager, sceneGridService,
+                regionInfo, circuitManager, sceneGridService,
                 storageManager, m_moduleLoader, false, m_configSettings.PhysicalPrim,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }

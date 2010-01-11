@@ -56,13 +56,6 @@ namespace OpenSim.Region.ClientStack
 
         protected uint m_httpServerPort;
         
-        public CommunicationsManager CommunicationsManager 
-        {
-            get { return m_commsManager; }
-            set { m_commsManager = value; }
-        }
-        protected CommunicationsManager m_commsManager;
-
         protected StorageManager m_storageManager;
         
         protected ClientStackManager m_clientStackManager;

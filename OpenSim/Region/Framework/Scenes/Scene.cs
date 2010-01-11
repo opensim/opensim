@@ -140,7 +140,6 @@ namespace OpenSim.Region.Framework.Scenes
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
-        public CommunicationsManager CommsManager;
 
         protected SceneCommunicationService m_sceneGridService;
         public bool loginsdisabled = true;
@@ -547,7 +546,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructors
 
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
-                     CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
+                     SceneCommunicationService sceneGridService,
                      StorageManager storeManager,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
                      bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
@@ -583,7 +582,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_lastAllocatedLocalId = (uint)(random.NextDouble() * (double)(uint.MaxValue/2))+(uint)(uint.MaxValue/4);
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;
-            CommsManager = commsMan;
             m_sceneGridService = sceneGridService;
             m_storageManager = storeManager;
             m_regInfo = regInfo;

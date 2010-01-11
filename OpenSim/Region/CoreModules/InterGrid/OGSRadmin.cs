@@ -46,7 +46,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly List<Scene> m_scenes = new List<Scene>();
-        private CommunicationsManager m_com;
         private IConfigSource m_settings;
 
         #region Implementation of IRegionModuleBase
@@ -88,7 +87,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
             if (m_settings.Configs["Startup"].GetBoolean("gridmode", false))
             {
-                m_com = m_scenes[0].CommsManager;
                 MainServer.Instance.AddXmlRPCHandler("grid_message", GridWideMessage);
             }
         }

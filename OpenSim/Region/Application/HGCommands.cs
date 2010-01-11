@@ -44,14 +44,14 @@ namespace OpenSim
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, CommunicationsManager m_commsManager,
+        public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, 
             StorageManager storageManager, ModuleLoader m_moduleLoader, ConfigSettings m_configSettings, OpenSimConfigSource m_config, string m_version)
         {
-            HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager);
+            HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService();
 
             return
                 new HGScene(
-                    regionInfo, circuitManager, m_commsManager, sceneGridService, storageManager,
+                    regionInfo, circuitManager, sceneGridService, storageManager,
                     m_moduleLoader, false, m_configSettings.PhysicalPrim,
                     m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }

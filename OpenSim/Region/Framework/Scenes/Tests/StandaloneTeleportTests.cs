@@ -113,17 +113,16 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             UUID sceneAId = UUID.Parse("00000000-0000-0000-0000-000000000100");
             UUID sceneBId = UUID.Parse("00000000-0000-0000-0000-000000000200");
-            TestCommunicationsManager cm = new TestCommunicationsManager();
 
             // shared module
             ISharedRegionModule interregionComms = new LocalSimulationConnectorModule();
 
 
-            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010, cm, "grid");
+            Scene sceneB = SceneSetupHelpers.SetupScene("sceneB", sceneBId, 1010, 1010,  "grid");
             SceneSetupHelpers.SetupSceneModules(sceneB, new IniConfigSource(), interregionComms);
             sceneB.RegisterRegionWithGrid();
 
-            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, cm, "grid");
+            Scene sceneA = SceneSetupHelpers.SetupScene("sceneA", sceneAId, 1000, 1000, "grid");
             SceneSetupHelpers.SetupSceneModules(sceneA, new IniConfigSource(), interregionComms);
             sceneA.RegisterRegionWithGrid();
 
