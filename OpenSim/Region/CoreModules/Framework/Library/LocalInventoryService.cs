@@ -29,7 +29,7 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;

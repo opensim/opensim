@@ -31,7 +31,7 @@ using System.Net;
 using System.Reflection;
 using System.Xml;
 
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

@@ -36,7 +36,7 @@ using OpenMetaverse;
 using Nini.Config;
 using OpenSim;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Console;
 using OpenSim.Region.CoreModules.Avatar.NPC;
 using OpenSim.Region.Framework.Interfaces;

@@ -31,7 +31,7 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;

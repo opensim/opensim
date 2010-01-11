@@ -30,7 +30,6 @@ using System.Text;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Framework.Communications.Osp

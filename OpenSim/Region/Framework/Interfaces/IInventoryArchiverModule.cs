@@ -27,7 +27,6 @@
 
 using System;
 using System.IO;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Interfaces

@@ -27,7 +27,7 @@
 
 using OpenMetaverse;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 
 namespace OpenSim.Tests.Common.Setup
 {

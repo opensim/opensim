@@ -32,7 +32,6 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
