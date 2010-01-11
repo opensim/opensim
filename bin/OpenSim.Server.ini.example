@@ -22,6 +22,7 @@ port = 8003
 ; * Leave commented to diable logins to the console
 ;ConsoleUser = Test
 ;ConsolePass = secret
+;ConsolePort = 0
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)

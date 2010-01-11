@@ -49,6 +49,7 @@ namespace OpenSim.Server.Base
         protected uint m_Port = 0;
         protected Dictionary<uint, BaseHttpServer> m_Servers =
             new Dictionary<uint, BaseHttpServer>();
+        protected uint m_consolePort = 0;
 
         public IHttpServer HttpServer
         {
@@ -98,6 +99,7 @@ namespace OpenSim.Server.Base
                 Thread.CurrentThread.Abort();
             }
 
+            m_consolePort = (uint)networkConfig.GetInt("ConsolePort", 0);
             m_Port = port;
 
             m_HttpServer = new BaseHttpServer(port);
@@ -111,7 +113,10 @@ namespace OpenSim.Server.Base
 
             if (MainConsole.Instance is RemoteConsole)
             {
-                ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
+                if (m_consolePort == 0)
+                    ((RemoteConsole)MainConsole.Instance).SetServer(m_HttpServer);
+                else
+                    ((RemoteConsole)MainConsole.Instance).SetServer(GetHttpServer(m_consolePort));
             }
         }
     }
