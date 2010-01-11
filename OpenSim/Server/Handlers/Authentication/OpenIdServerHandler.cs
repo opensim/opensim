@@ -36,8 +36,12 @@ using DotNetOpenId.Provider;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
+using OpenSim.Services.Interfaces;
+using Nini.Config;
+using OpenMetaverse;
 
-namespace OpenSim.Grid.UserServer.Modules
+namespace OpenSim.Server.Handlers.Authentication
 {
     /// <summary>
     /// Temporary, in-memory store for OpenID associations
@@ -194,15 +198,17 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
         string m_contentType;
         string m_httpMethod;
         string m_path;
-        UserLoginService m_loginService;
+        IAuthenticationService m_authenticationService;
+        IUserAccountService m_userAccountService;
         ProviderMemoryStore m_openidStore = new ProviderMemoryStore();
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public OpenIdStreamHandler(string httpMethod, string path, UserLoginService loginService)
+        public OpenIdStreamHandler(string httpMethod, string path, IUserAccountService userService, IAuthenticationService authService)
         {
-            m_loginService = loginService;
+            m_authenticationService = authService;
+            m_userAccountService = userService;
             m_httpMethod = httpMethod;
             m_path = path;
 
@@ -235,13 +241,14 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                         IAuthenticationRequest authRequest = (IAuthenticationRequest)provider.Request;
                         string[] passwordValues = postQuery.GetValues("pass");
 
-                        UserProfileData profile;
-                        if (TryGetProfile(new Uri(authRequest.ClaimedIdentifier.ToString()), out profile))
+                        UserAccount account;
+                        if (TryGetAccount(new Uri(authRequest.ClaimedIdentifier.ToString()), out account))
                         {
                             // Check for form POST data
                             if (passwordValues != null && passwordValues.Length == 1)
                             {
-                                if (profile != null && m_loginService.AuthenticateUser(profile, passwordValues[0]))
+                                if (account != null && 
+                                    (m_authenticationService.Authenticate(account.PrincipalID, passwordValues[0], 30) != string.Empty))
                                     authRequest.IsAuthenticated = true;
                                 else
                                     authRequest.IsAuthenticated = false;
@@ -250,7 +257,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                             {
                                 // Authentication was requested, send the client a login form
                                 using (StreamWriter writer = new StreamWriter(response))
-                                    writer.Write(String.Format(LOGIN_PAGE, profile.FirstName, profile.SurName));
+                                    writer.Write(String.Format(LOGIN_PAGE, account.FirstName, account.LastName));
                                 return;
                             }
                         }
@@ -283,14 +290,14 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                 else
                 {
                     // Try and lookup this avatar
-                    UserProfileData profile;
-                    if (TryGetProfile(httpRequest.Url, out profile))
+                    UserAccount account;
+                    if (TryGetAccount(httpRequest.Url, out account))
                     {
                         using (StreamWriter writer = new StreamWriter(response))
                         {
                             // TODO: Print out a full profile page for this avatar
                             writer.Write(String.Format(OPENID_PAGE, httpRequest.Url.Scheme,
-                                httpRequest.Url.Authority, profile.FirstName, profile.SurName));
+                                httpRequest.Url.Authority, account.FirstName, account.LastName));
                         }
                     }
                     else
@@ -316,7 +323,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
         /// <param name="requestUrl">URL to parse for an avatar name</param>
         /// <param name="profile">Profile data for the avatar</param>
         /// <returns>True if the parse and lookup were successful, otherwise false</returns>
-        bool TryGetProfile(Uri requestUrl, out UserProfileData profile)
+        bool TryGetAccount(Uri requestUrl, out UserAccount account)
         {
             if (requestUrl.Segments.Length == 3 && requestUrl.Segments[1] == "users/")
             {
@@ -326,12 +333,12 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
                 if (name.Length == 2)
                 {
-                    profile = m_loginService.GetTheUser(name[0], name[1]);
-                    return (profile != null);
+                    account = m_userAccountService.GetUserAccount(UUID.Zero, name[0], name[1]);
+                    return (account != null);
                 }
             }
 
-            profile = null;
+            account = null;
             return false;
         }
     }

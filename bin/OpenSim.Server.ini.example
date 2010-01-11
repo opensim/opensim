@@ -10,7 +10,7 @@
 ; *
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,,OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,,OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance
@@ -66,17 +66,25 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 ; * as an authentication source.
 ; *
 [AuthenticationService]
+    ; for the server connector
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    ; for the service
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
+[OpenIdService]
+    ; for the server connector
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
 ; * It defaults to "users", which uses the legacy tables
 ; *
 [UserAccountService]
-    AuthenticationServiceModule = "OpenSim.Services.UserService.dll:UserAccountService"
+    ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    ; for the service
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     ; Realm = "useraccounts"
