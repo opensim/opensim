@@ -763,26 +763,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return (userData.UserServerURI == LocalUserServerURI);
         }
 
-        // Is the user going back to the home region or the home grid?
-        protected bool IsGoingHome(CachedUserInfo uinfo, GridRegion rinfo)
-        {
-            if (uinfo == null)
-                return false;
+        // REFACTORING PROBLEM
+        //// Is the user going back to the home region or the home grid?
+        //protected bool IsGoingHome(CachedUserInfo uinfo, GridRegion rinfo)
+        //{
+        //    if (uinfo == null)
+        //        return false;
 
-            if (uinfo.UserProfile == null)
-                return false;
+        //    if (uinfo.UserProfile == null)
+        //        return false;
 
-            if (!(uinfo.UserProfile is ForeignUserProfileData))
-                // it's a home user, can't be outside to return home
-                return false;
+        //    if (!(uinfo.UserProfile is ForeignUserProfileData))
+        //        // it's a home user, can't be outside to return home
+        //        return false;
 
-            // OK, it's a foreign user with a ForeignUserProfileData
-            // and is going back to exactly the home region.
-            // We can't check if it's going back to a non-home region
-            // of the home grid. That will be dealt with in the
-            // receiving end
-            return (uinfo.UserProfile.HomeRegionID == rinfo.RegionID);
-        }
+        //    // OK, it's a foreign user with a ForeignUserProfileData
+        //    // and is going back to exactly the home region.
+        //    // We can't check if it's going back to a non-home region
+        //    // of the home grid. That will be dealt with in the
+        //    // receiving end
+        //    return (uinfo.UserProfile.HomeRegionID == rinfo.RegionID);
+        //}
 
         protected bool IsLocalUser(UserAccount account)
         {

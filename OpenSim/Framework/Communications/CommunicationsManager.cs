@@ -53,12 +53,6 @@ namespace OpenSim.Framework.Communications
         }
         protected IUserService m_userService;
 
-        public UserProfileCacheService UserProfileCacheService
-        {
-            get { return m_userProfileCacheService; }
-        }
-        protected UserProfileCacheService m_userProfileCacheService;
-
         public IAvatarService AvatarService
         {
             get { return m_avatarService; }
@@ -94,38 +88,7 @@ namespace OpenSim.Framework.Communications
                                      LibraryRootFolder libraryRootFolder)
         {
             m_networkServersInfo = serversInfo;
-            m_userProfileCacheService = new UserProfileCacheService(this, libraryRootFolder);
         }
-
-
-
-        /// <summary>
-        /// Logs off a user and does the appropriate communications
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <param name="regionid"></param>
-        /// <param name="regionhandle"></param>
-        /// <param name="position"></param>
-        /// <param name="lookat"></param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, Vector3 position, Vector3 lookat)
-        {
-            m_userService.LogOffUser(userid, regionid, regionhandle, position, lookat);
-        }
-
-        /// <summary>
-        /// Logs off a user and does the appropriate communications (deprecated as of 2008-08-27)
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <param name="regionid"></param>
-        /// <param name="regionhandle"></param>
-        /// <param name="posx"></param>
-        /// <param name="posy"></param>
-        /// <param name="posz"></param>
-        public void LogOffUser(UUID userid, UUID regionid, ulong regionhandle, float posx, float posy, float posz)
-        {
-            m_userService.LogOffUser(userid, regionid, regionhandle, posx, posy, posz);
-        }
-
 
         #region Packet Handlers
 

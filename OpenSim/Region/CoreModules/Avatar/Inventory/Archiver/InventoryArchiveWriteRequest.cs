@@ -325,7 +325,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     m_archiveWriter.WriteFile(
                         ArchiveConstants.USERS_PATH + creator.FirstName + " " + creator.LastName + ".xml",
-                        UserProfileSerializer.Serialize(creator));
+                        UserProfileSerializer.Serialize(creator.PrincipalID, creator.FirstName, creator.LastName));
                 }
                 else
                 {

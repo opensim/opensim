@@ -1546,7 +1546,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     uint   regX     = 1000;
                     uint   regY     = 1000;
                     string passwd   = UUID.Random().ToString(); // No requirement to sign-in.
-                    CachedUserInfo UI;
                     UUID ID = UUID.Zero;
                     AvatarAppearance mava;
                     XmlNodeList avatars;

@@ -193,7 +193,6 @@
       <Reference name="OpenMetaverse.dll" />
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">

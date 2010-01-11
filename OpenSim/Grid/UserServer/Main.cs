@@ -64,7 +64,6 @@ namespace OpenSim.Grid.UserServer
         protected UserServerFriendsModule m_friendsModule;
 
         public UserLoginService m_loginService;
-        public UserLoginAuthService m_loginAuthService;
         public MessageServersConnector m_messagesService;
 
         protected GridInfoServiceModule m_gridInfoService;
@@ -245,9 +244,6 @@ namespace OpenSim.Grid.UserServer
             m_loginService = new UserLoginService(
                 m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
             
-            if (Cfg.EnableHGLogin)
-                m_loginAuthService = new UserLoginAuthService(m_userDataBaseService, inventoryService, new LibraryRootFolder(Cfg.LibraryXmlfile), 
-                    Cfg, Cfg.DefaultStartupMsg, new RegionProfileServiceProxy());
         }
 
         protected virtual void PostInitialiseModules()
@@ -265,9 +261,6 @@ namespace OpenSim.Grid.UserServer
         protected virtual void RegisterHttpHandlers()
         {
             m_loginService.RegisterHandlers(m_httpServer, Cfg.EnableLLSDLogin, true);
-
-            if (m_loginAuthService != null)
-                m_loginAuthService.RegisterHandlers(m_httpServer);
 
             m_userManager.RegisterHandlers(m_httpServer);
             m_friendsModule.RegisterHandlers(m_httpServer);
