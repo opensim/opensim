@@ -35,7 +35,6 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Services.Interfaces;
-using IUserService = OpenSim.Framework.Communications.IUserService;
 using IAvatarService = OpenSim.Services.Interfaces.IAvatarService;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory

@@ -58,11 +58,6 @@ namespace OpenSim.Tests.Common.Mock
             : base(serversInfo, null)
         {
 
-            LocalUserServices lus = new LocalUserServices(991, 992, this);
-            lus.AddPlugin(new TemporaryUserProfilePlugin());
-            m_userDataPlugin = new TestUserDataPlugin();
-            lus.AddPlugin(m_userDataPlugin);
-
         }
     }
 }
