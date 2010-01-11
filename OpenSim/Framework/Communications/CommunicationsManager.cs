@@ -44,12 +44,6 @@ namespace OpenSim.Framework.Communications
     public class CommunicationsManager
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public NetworkServersInfo NetworkServersInfo
-        {
-            get { return m_networkServersInfo; }
-        }
-        protected NetworkServersInfo m_networkServersInfo;
              
         /// <summary>
         /// Constructor
@@ -58,7 +52,6 @@ namespace OpenSim.Framework.Communications
         public CommunicationsManager(NetworkServersInfo serversInfo,
                                      LibraryRootFolder libraryRootFolder)
         {
-            m_networkServersInfo = serversInfo;
         }
 
     }

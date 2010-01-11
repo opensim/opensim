@@ -28,7 +28,6 @@
 using OpenMetaverse;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Communications.Local;
 
 namespace OpenSim.Tests.Common.Setup
 {

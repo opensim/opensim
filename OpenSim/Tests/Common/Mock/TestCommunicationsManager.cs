@@ -30,7 +30,6 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Communications.Local;
 using OpenSim.Data;
 
 namespace OpenSim.Tests.Common.Mock

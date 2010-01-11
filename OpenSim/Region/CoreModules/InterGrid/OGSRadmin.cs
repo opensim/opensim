@@ -119,14 +119,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             Hashtable requestData = (Hashtable)req.Params[0];
 
-            if ((!requestData.Contains("password") || (string)requestData["password"] != m_com.NetworkServersInfo.GridRecvKey))
-            {
-                responseData["accepted"] = false;
-                responseData["success"] = false;
-                responseData["error"] = "Invalid Key";
-                response.Value = responseData;
-                return response;
-            }
+            // REFACTORING PROBLEM. This authorization needs to be replaced with some other
+            //if ((!requestData.Contains("password") || (string)requestData["password"] != m_com.NetworkServersInfo.GridRecvKey))
+            //{
+            //    responseData["accepted"] = false;
+            //    responseData["success"] = false;
+            //    responseData["error"] = "Invalid Key";
+            //    response.Value = responseData;
+            //    return response;
+            //}
 
             string message = (string)requestData["message"];
             string user = (string)requestData["user"];

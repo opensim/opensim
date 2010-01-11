@@ -61,9 +61,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             get
             {
-                if (m_LocalGridInventoryURI == null || m_LocalGridInventoryURI == "")
-                    m_LocalGridInventoryURI = m_Scene.CommsManager.NetworkServersInfo.InventoryURL;
-                return m_LocalGridInventoryURI;
+                return string.Empty;
+                // REFACTORING PROBLEM
+                //if (m_LocalGridInventoryURI == null || m_LocalGridInventoryURI == "")
+                //    m_LocalGridInventoryURI = m_Scene.CommsManager.NetworkServersInfo.InventoryURL;
+                //return m_LocalGridInventoryURI;
             }
         }
 

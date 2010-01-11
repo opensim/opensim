@@ -36,9 +36,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Communications.Hypergrid;
-using OpenSim.Region.Communications.Local;
-using OpenSim.Region.Communications.OGS1;
 
 namespace OpenSim.ApplicationPlugins.CreateCommsManager
 {
@@ -155,18 +152,12 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         /// <param name="libraryRootFolder"></param>
         protected virtual void InitialiseStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
-            m_commsManager
-                = new CommunicationsLocal(
-                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo,
-                    libraryRootFolder);
 
             CreateGridInfoService();
         }
 
         protected virtual void InitialiseGridServices(LibraryRootFolder libraryRootFolder)
         {
-            m_commsManager
-                = new CommunicationsOGS1(m_openSim.NetServersInfo, libraryRootFolder);
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
             m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));
@@ -176,20 +167,12 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
 
         protected virtual void InitialiseHGStandaloneServices(LibraryRootFolder libraryRootFolder)
         {
-            m_commsManager 
-                = new HGCommunicationsStandalone(
-                    m_openSim.ConfigurationSettings, m_openSim.NetServersInfo, m_httpServer, 
-                    libraryRootFolder, false);
-            
+           
             CreateGridInfoService();
         }
 
         protected virtual void InitialiseHGGridServices(LibraryRootFolder libraryRootFolder)
         {
-            m_commsManager 
-                = new HGCommunicationsGridMode(
-                    m_openSim.NetServersInfo,
-                    m_openSim.SceneManager, libraryRootFolder);
 
             m_httpServer.AddStreamHandler(new OpenSim.SimStatusHandler());
             m_httpServer.AddStreamHandler(new OpenSim.XSimStatusHandler(m_openSim));

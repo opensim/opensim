@@ -155,12 +155,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
-            // Yikes!! Remove this as soon as user services get refactored
-            LocalAssetServerURI = scene.CommsManager.NetworkServersInfo.AssetURL;
-            LocalInventoryServerURI = scene.CommsManager.NetworkServersInfo.InventoryURL;
-            LocalUserServerURI = scene.CommsManager.NetworkServersInfo.UserURL;
-            HGNetworkServersInfo.Init(LocalAssetServerURI, LocalInventoryServerURI, LocalUserServerURI);
-
         }
 
         public void RemoveRegion(Scene scene)
@@ -760,7 +754,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         protected bool IsComingHome(ForeignUserProfileData userData)
         {
-            return (userData.UserServerURI == LocalUserServerURI);
+            return false;
+            // REFACTORING PROBLEM
+            //return (userData.UserServerURI == LocalUserServerURI);
         }
 
         // REFACTORING PROBLEM
@@ -787,13 +783,16 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         protected bool IsLocalUser(UserAccount account)
         {
-            if (account != null &&
-                account.ServiceURLs.ContainsKey("HomeURI") &&
-                account.ServiceURLs["HomeURI"] != null)
+            return true;
 
-                return (account.ServiceURLs["HomeURI"].ToString() == LocalUserServerURI);
+            // REFACTORING PROBLEM
+            //if (account != null &&
+            //    account.ServiceURLs.ContainsKey("HomeURI") &&
+            //    account.ServiceURLs["HomeURI"] != null)
 
-            return false;
+            //    return (account.ServiceURLs["HomeURI"].ToString() == LocalUserServerURI);
+
+            //return false;
         }
 
 

@@ -528,9 +528,9 @@ namespace OpenSim.Region.CoreModules.InterGrid
             userProfile.PasswordHash = "$1$";
             userProfile.PasswordSalt = "";
             userProfile.SurName = agentData.lastname;
-            userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
+            //userProfile.UserAssetURI = homeScene.CommsManager.NetworkServersInfo.AssetURL;
             userProfile.UserFlags = 0;
-            userProfile.UserInventoryURI = homeScene.CommsManager.NetworkServersInfo.InventoryURL;
+            //userProfile.UserInventoryURI = homeScene.CommsManager.NetworkServersInfo.InventoryURL;
             userProfile.WantDoMask = 0;
             userProfile.WebLoginKey = UUID.Random();
 

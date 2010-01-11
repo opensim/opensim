@@ -1159,12 +1159,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         m_log.WarnFormat("[GROUPS]: Could not find a user profile for {0} / {1}", client.Name, client.AgentId);
 
                         // Default to local user service and hope for the best?
-                        info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+                        // REFACTORING PROBLEM
+                        //info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
 
                     }
                     else
                     {
-                        string domain = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+                        string domain = string.Empty; //m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
                         if (account.ServiceURLs["HomeURI"] != null)
                             domain = account.ServiceURLs["HomeURI"].ToString();
                         // They're a local user, use this:
