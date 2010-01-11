@@ -101,14 +101,6 @@ namespace OpenSim.Grid.UserServer.Modules
                 m_httpServer.SetDefaultLLSDHandler(LLSDLoginMethod);
             }
 
-            if (registerOpenIDHandlers)
-            {
-                // Handler for OpenID avatar identity pages
-                m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/users/", this));
-                // Handlers for the OpenID endpoint server
-                m_httpServer.AddStreamHandler(new OpenIdStreamHandler("POST", "/openid/server/", this));
-                m_httpServer.AddStreamHandler(new OpenIdStreamHandler("GET", "/openid/server/", this));
-            }
         }
 
         public void setloginlevel(int level)
