@@ -197,6 +197,7 @@ namespace OpenSim
             LoadPlugins();
             foreach (IApplicationPlugin plugin in m_plugins)
             {
+                m_log.Debug("XXX PostInitialise " + plugin.Name);
                 plugin.PostInitialise();
             }
 
