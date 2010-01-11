@@ -2215,14 +2215,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRotTarget");
-            return 0;
+            return m_host.registerRotTargetWaypoint(new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), (float)error);
         }
 
         public void llRotTargetRemove(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRotTargetRemove");
+            m_host.unregisterRotTargetWaypoint(number);
         }
 
         public void llMoveToTarget(LSL_Vector target, double tau)

@@ -183,6 +183,14 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
+        public delegate void ScriptAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion atrot);
+
+        public event ScriptAtRotTargetEvent OnScriptAtRotTargetEvent;
+
+        public delegate void ScriptNotAtRotTargetEvent(uint localID);
+
+        public event ScriptNotAtRotTargetEvent OnScriptNotAtRotTargetEvent;
+
         public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
 
         public event ScriptColliding OnScriptColliderStart;
@@ -388,6 +396,8 @@ namespace OpenSim.Region.Framework.Scenes
         private ScriptChangedEvent handlerScriptChangedEvent = null; //OnScriptChangedEvent;
         private ScriptAtTargetEvent handlerScriptAtTargetEvent = null;
         private ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = null;
+        private ScriptAtRotTargetEvent handlerScriptAtRotTargetEvent = null;
+        private ScriptNotAtRotTargetEvent handlerScriptNotAtRotTargetEvent = null;
         private ClientMovement handlerClientMovement = null; //OnClientMovement;
         private OnPermissionErrorDelegate handlerPermissionError = null; //OnPermissionError;
         private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
@@ -872,6 +882,24 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerScriptNotAtTargetEvent != null)
             {
                 handlerScriptNotAtTargetEvent(localID);
+            }
+        }
+
+        public void TriggerAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion currentrot)
+        {
+            handlerScriptAtRotTargetEvent = OnScriptAtRotTargetEvent;
+            if (handlerScriptAtRotTargetEvent != null)
+            {
+                handlerScriptAtRotTargetEvent(localID, handle, targetrot, currentrot);
+            }
+        }
+
+        public void TriggerNotAtRotTargetEvent(uint localID)
+        {
+            handlerScriptNotAtRotTargetEvent = OnScriptNotAtRotTargetEvent;
+            if (handlerScriptNotAtRotTargetEvent != null)
+            {
+                handlerScriptNotAtRotTargetEvent(localID);
             }
         }
 

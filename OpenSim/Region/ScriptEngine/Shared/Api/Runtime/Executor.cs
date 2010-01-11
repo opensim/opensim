@@ -63,6 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             land_collision_end = 4096,
             land_collision_start = 8192,
             at_target = 16384,
+            at_rot_target = 16777216,
             listen = 32768,
             money = 65536,
             moving_end = 131072,
@@ -205,7 +206,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             }
 
             m_eventFlagsMap.Add("attach", scriptEvents.attach);
-            // m_eventFlagsMap.Add("at_rot_target",(long)scriptEvents.at_rot_target);
+            m_eventFlagsMap.Add("at_rot_target", scriptEvents.at_rot_target);
             m_eventFlagsMap.Add("at_target", scriptEvents.at_target);
             // m_eventFlagsMap.Add("changed",(long)scriptEvents.changed);
             m_eventFlagsMap.Add("collision", scriptEvents.collision);

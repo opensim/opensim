@@ -57,6 +57,7 @@ namespace OpenSim.Region.Framework.Scenes
         land_collision_end = 4096,
         land_collision_start = 8192,
         at_target = 16384,
+        at_rot_target = 16777216,
         listen = 32768,
         money = 65536,
         moving_end = 131072,
@@ -77,6 +78,13 @@ namespace OpenSim.Region.Framework.Scenes
     struct scriptPosTarget
     {
         public Vector3 targetPos;
+        public float tolerance;
+        public uint handle;
+    }
+
+    struct scriptRotTarget
+    {
+        public Quaternion targetRot;
         public float tolerance;
         public uint handle;
     }
@@ -232,9 +240,13 @@ namespace OpenSim.Region.Framework.Scenes
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
         private Dictionary<uint, scriptPosTarget> m_targets = new Dictionary<uint, scriptPosTarget>();
+        private Dictionary<uint, scriptRotTarget> m_rotTargets = new Dictionary<uint, scriptRotTarget>();
 
         private bool m_scriptListens_atTarget = false;
         private bool m_scriptListens_notAtTarget = false;
+
+        private bool m_scriptListens_atRotTarget = false;
+        private bool m_scriptListens_notAtRotTarget = false;
 
         internal Dictionary<UUID, string> m_savedScriptState = null;
 
@@ -1365,6 +1377,15 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 lock (m_targets)
                     m_targets.Clear();
+                m_scene.RemoveGroupTarget(this);
+            }
+            m_scriptListens_atRotTarget = ((aggregateScriptEvents & scriptEvents.at_rot_target) != 0);
+            m_scriptListens_notAtRotTarget = ((aggregateScriptEvents & scriptEvents.not_at_rot_target) != 0);
+
+            if (!m_scriptListens_atRotTarget && !m_scriptListens_notAtRotTarget)
+            {
+                lock (m_rotTargets)
+                    m_rotTargets.Clear();
                 m_scene.RemoveGroupTarget(this);
             }
 
@@ -3314,6 +3335,30 @@ namespace OpenSim.Region.Framework.Scenes
 
             }
         }
+        public int registerRotTargetWaypoint(Quaternion target, float tolerance)
+        {
+            scriptRotTarget waypoint = new scriptRotTarget();
+            waypoint.targetRot = target;
+            waypoint.tolerance = tolerance;
+            uint handle = m_scene.AllocateLocalId();
+            waypoint.handle = handle;
+            lock (m_rotTargets)
+            {
+                m_rotTargets.Add(handle, waypoint);
+            }
+            m_scene.AddGroupTarget(this);
+            return (int)handle;
+        }
+
+        public void unregisterRotTargetWaypoint(int handle)
+        {
+            lock (m_targets)
+            {
+                m_rotTargets.Remove((uint)handle);
+                if (m_targets.Count == 0)
+                    m_scene.RemoveGroupTarget(this);
+            }
+        }
 
         public int registerTargetWaypoint(Vector3 target, float tolerance)
         {
@@ -3418,6 +3463,85 @@ namespace OpenSim.Region.Framework.Scenes
                         for (int ctr = 0; ctr < localids.Length; ctr++)
                         {
                             m_scene.EventManager.TriggerNotAtTargetEvent(localids[ctr]);
+                        }
+                    }
+                }
+            }
+            if (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget)
+            {
+                if (m_rotTargets.Count > 0)
+                {
+                    bool at_Rottarget = false;
+                    Dictionary<uint, scriptRotTarget> atRotTargets = new Dictionary<uint, scriptRotTarget>();
+                    lock (m_rotTargets)
+                    {
+                        foreach (uint idx in m_rotTargets.Keys)
+                        {
+                            scriptRotTarget target = m_rotTargets[idx];
+                            double angle = Math.Acos(target.targetRot.X * m_rootPart.RotationOffset.X + target.targetRot.Y * m_rootPart.RotationOffset.Y + target.targetRot.Z * m_rootPart.RotationOffset.Z + target.targetRot.W * m_rootPart.RotationOffset.W) * 2;
+                            if (angle < 0) angle = -angle;
+                            if (angle > Math.PI) angle = (Math.PI * 2 - angle);
+                            if (angle <= target.tolerance)
+                            {
+                                // trigger at_rot_target
+                                if (m_scriptListens_atRotTarget)
+                                {
+                                    at_Rottarget = true;
+                                    scriptRotTarget att = new scriptRotTarget();
+                                    att.targetRot = target.targetRot;
+                                    att.tolerance = target.tolerance;
+                                    att.handle = target.handle;
+                                    atRotTargets.Add(idx, att);
+                                }
+                            }
+                        }
+                    }
+
+                    if (atRotTargets.Count > 0)
+                    {
+                        uint[] localids = new uint[0];
+                        lock (m_parts)
+                        {
+                            localids = new uint[m_parts.Count];
+                            int cntr = 0;
+                            foreach (SceneObjectPart part in m_parts.Values)
+                            {
+                                localids[cntr] = part.LocalId;
+                                cntr++;
+                            }
+                        }
+
+                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        {
+                            foreach (uint target in atRotTargets.Keys)
+                            {
+                                scriptRotTarget att = atRotTargets[target];
+                                m_scene.EventManager.TriggerAtRotTargetEvent(
+                                    localids[ctr], att.handle, att.targetRot, m_rootPart.RotationOffset);
+                            }
+                        }
+
+                        return;
+                    }
+
+                    if (m_scriptListens_notAtRotTarget && !at_Rottarget)
+                    {
+                        //trigger not_at_target
+                        uint[] localids = new uint[0];
+                        lock (m_parts)
+                        {
+                            localids = new uint[m_parts.Count];
+                            int cntr = 0;
+                            foreach (SceneObjectPart part in m_parts.Values)
+                            {
+                                localids[cntr] = part.LocalId;
+                                cntr++;
+                            }
+                        }
+
+                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        {
+                            m_scene.EventManager.TriggerNotAtRotTargetEvent(localids[ctr]);
                         }
                     }
                 }
