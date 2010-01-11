@@ -111,6 +111,8 @@ namespace OpenSim.Region.ClientStack
             m_log.Info("[REGION]: Starting HTTP server");
             m_httpServer.Start();
 
+            MainServer.Instance = m_httpServer;
+
             base.StartupSpecific();
         }
 

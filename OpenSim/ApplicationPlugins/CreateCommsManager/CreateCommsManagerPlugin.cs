@@ -77,7 +77,6 @@ namespace OpenSim.ApplicationPlugins.CreateCommsManager
         {
             m_openSim = openSim;
             m_httpServer = openSim.HttpServer;
-            MainServer.Instance = m_httpServer;
 
             InitialiseCommsManager(openSim);
         }
