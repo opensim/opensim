@@ -332,14 +332,16 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //EventManager.TriggerAvatarPickerRequest();
 
-            List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
-            AvatarResponses = m_sceneGridService.GenerateAgentPickerRequestResponse(RequestID, query);
+            List<UserAccount> accounts = UserAccountService.GetUserAccounts(RegionInfo.ScopeID, query);
+
+            if (accounts == null)
+                return;
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet
 
             AvatarPickerReplyPacket.DataBlock[] searchData =
-                new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
+                new AvatarPickerReplyPacket.DataBlock[accounts.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
 
             agentData.AgentID = avatarID;
@@ -348,16 +350,16 @@ namespace OpenSim.Region.Framework.Scenes
             //byte[] bytes = new byte[AvatarResponses.Count*32];
 
             int i = 0;
-            foreach (AvatarPickerAvatar item in AvatarResponses)
+            foreach (UserAccount item in accounts)
             {
-                UUID translatedIDtem = item.AvatarID;
+                UUID translatedIDtem = item.PrincipalID;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Utils.StringToBytes((string) item.firstName);
-                searchData[i].LastName = Utils.StringToBytes((string) item.lastName);
+                searchData[i].FirstName = Utils.StringToBytes((string) item.FirstName);
+                searchData[i].LastName = Utils.StringToBytes((string) item.LastName);
                 i++;
             }
-            if (AvatarResponses.Count == 0)
+            if (accounts.Count == 0)
             {
                 searchData = new AvatarPickerReplyPacket.DataBlock[0];
             }

@@ -1443,12 +1443,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //m_log.DebugFormat("[SCENE COMM]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
-
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
-        {
-            return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);
-        }
-        
+       
         public List<GridRegion> RequestNamedRegions(string name, int maxNumber)
         {
             return m_scene.GridService.GetRegionsByName(UUID.Zero, name, maxNumber);

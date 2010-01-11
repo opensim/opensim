@@ -2573,7 +2573,8 @@ namespace OpenSim.Region.Framework.Scenes
             m_appearance.SetAppearance(textureEntry, visualParams);
             if (m_appearance.AvatarHeight > 0)
                 SetHeight(m_appearance.AvatarHeight);
-            m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+            AvatarData adata = new AvatarData(m_appearance);
+            m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
 
             SendAppearanceToAllOtherAgents();
             if (!m_startAnimationSet)
@@ -2593,7 +2594,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_appearance.SetWearable(wearableId, wearable);
-            m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+            AvatarData adata = new AvatarData(m_appearance);
+            m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
             m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 

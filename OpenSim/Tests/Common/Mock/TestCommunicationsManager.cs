@@ -62,8 +62,6 @@ namespace OpenSim.Tests.Common.Mock
             lus.AddPlugin(new TemporaryUserProfilePlugin());
             m_userDataPlugin = new TestUserDataPlugin();
             lus.AddPlugin(m_userDataPlugin);
-            m_userService = lus;
-            m_userAdminService = lus;
 
         }
     }

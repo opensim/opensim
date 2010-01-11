@@ -154,9 +154,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
             IClientAPI clientView = (IClientAPI)sender;
-            ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
+            ScenePresence sp = m_scene.GetScenePresence(clientView.AgentId);
             
-            if (avatar == null) 
+            if (sp == null) 
             {
                 m_log.Error("[APPEARANCE]: Avatar is child agent, ignoring AvatarIsWearing event");
                 return;
@@ -166,7 +166,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
             {
                 m_log.Warn("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
-                avatAppearance = avatar.Appearance;
+                avatAppearance = sp.Appearance;
             }
             
             //m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
@@ -179,10 +179,11 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 }
             }
             
-            SetAppearanceAssets(avatar.UUID, ref avatAppearance);
+            SetAppearanceAssets(sp.UUID, ref avatAppearance);
+            AvatarData adata = new AvatarData(avatAppearance);
+            m_scene.AvatarService.SetAvatar(clientView.AgentId, adata);
 
-            m_scene.CommsManager.AvatarService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
-            avatar.Appearance = avatAppearance;
+            sp.Appearance = avatAppearance;
         }
 
         public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
@@ -193,7 +194,9 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public void UpdateDatabase(UUID user, AvatarAppearance appearance)
         {
-            m_scene.CommsManager.AvatarService.UpdateUserAppearance(user, appearance);
+            AvatarData adata = new AvatarData(appearance);
+            m_scene.AvatarService.SetAvatar(user, adata);
+
         }
 
         private static byte[] GetDefaultVisualParams()

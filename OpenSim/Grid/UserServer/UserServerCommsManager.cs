@@ -34,7 +34,6 @@ namespace OpenSim.Grid.UserServer
         public UserServerCommsManager(IInterServiceInventoryServices interServiceInventoryService)
             : base(null, null)
         {
-            m_interServiceInventoryService = interServiceInventoryService;
         }
     }
 }

@@ -58,9 +58,6 @@ namespace OpenSim.Region.Communications.Hypergrid
             hgUserService.AddPlugin(new TemporaryUserProfilePlugin());
             hgUserService.AddPlugin(new HGUserDataPlugin(this, hgUserService));
             
-            m_userService = hgUserService;
-            m_userAdminService = hgUserService;
-            m_avatarService = hgUserService;            
         }
     }
 }

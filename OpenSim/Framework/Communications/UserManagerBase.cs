@@ -686,25 +686,6 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                //
-                // WARNING: This is a horrible hack
-                // The purpose here is to avoid touching the user server at this point.
-                // There are dragons there that I can't deal with right now.
-                // diva 06/09/09
-                //
-                if (m_InventoryService != null)
-                {
-                    // local service (standalone)
-                    m_log.Debug("[USERSTORAGE]: using IInventoryService to create user's inventory");
-                    m_InventoryService.CreateUserInventory(userProf.ID);
-                }
-                else if (m_commsManager.InterServiceInventoryService != null)
-                {
-                    // used by the user server
-                    m_log.Debug("[USERSTORAGE]: using m_commsManager.InterServiceInventoryService to create user's inventory");
-                    m_commsManager.InterServiceInventoryService.CreateNewUserInventory(userProf.ID);
-                }
-
                 return userProf.ID;
             }
         }

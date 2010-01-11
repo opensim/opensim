@@ -48,9 +48,6 @@ namespace OpenSim.Region.Communications.Local
                     serversInfo.DefaultHomeLocX, serversInfo.DefaultHomeLocY, this);
             lus.AddPlugin(new TemporaryUserProfilePlugin());
             lus.AddPlugin(configSettings.StandaloneUserPlugin, configSettings.StandaloneUserSource);
-            m_userService = lus;
-            m_userAdminService = lus;
-            m_avatarService = lus;
 
             //LocalLoginService loginService = CreateLoginService(libraryRootFolder, inventoryService, userService, backendService);
         }

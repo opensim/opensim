@@ -45,8 +45,6 @@ namespace OpenSim.Region.Communications.OGS1
             userServices.AddPlugin(new TemporaryUserProfilePlugin());
             userServices.AddPlugin(new OGS1UserDataPlugin(this));
             
-            m_userService = userServices;
-            m_avatarService = (IAvatarService)m_userService;
         }
 
     }

@@ -45,41 +45,12 @@ namespace OpenSim.Framework.Communications
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<UUID, string[]> m_nameRequestCache = new Dictionary<UUID, string[]>();
-
-        public IUserService UserService
-        {
-            get { return m_userService; }
-        }
-        protected IUserService m_userService;
-
-        public IAvatarService AvatarService
-        {
-            get { return m_avatarService; }
-        }
-        protected IAvatarService m_avatarService;
-
-        public IInterServiceInventoryServices InterServiceInventoryService
-        {
-            get { return m_interServiceInventoryService; }
-        }
-        protected IInterServiceInventoryServices m_interServiceInventoryService;
-
         public NetworkServersInfo NetworkServersInfo
         {
             get { return m_networkServersInfo; }
         }
         protected NetworkServersInfo m_networkServersInfo;
              
-        /// <summary>
-        /// Interface to user service for administrating users.
-        /// </summary>
-        public IUserAdminService UserAdminService
-        {
-            get { return m_userAdminService; }
-        }
-        protected IUserAdminService m_userAdminService;
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -90,20 +61,5 @@ namespace OpenSim.Framework.Communications
             m_networkServersInfo = serversInfo;
         }
 
-        #region Packet Handlers
-
-        public void UpdateAvatarPropertiesRequest(IClientAPI remote_client, UserProfileData UserProfile)
-        {
-            m_userService.UpdateUserProfile(UserProfile);
-            return;
-        }
-
-        public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(UUID queryID, string query)
-        {
-            List<AvatarPickerAvatar> pickerlist = m_userService.GenerateAgentPickerRequestResponse(queryID, query);
-            return pickerlist;
-        }
-
-        #endregion
     }
 }
