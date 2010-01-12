@@ -1397,7 +1397,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             AvatarAppearance ava = null;
             AvatarData avatar = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(srca);
             if (avatar != null)
-                ava = avatar.ToAvatarAppearance();
+                ava = avatar.ToAvatarAppearance(srca);
 
             // If the model has no associated appearance we're done.
 
@@ -1639,7 +1639,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             // While the inventory is being fetched, setup for appearance processing
                             AvatarData adata = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(ID);
                             if (adata != null)
-                                mava = adata.ToAvatarAppearance();
+                                mava = adata.ToAvatarAppearance(ID);
                             else
                                 mava = new AvatarAppearance();
 

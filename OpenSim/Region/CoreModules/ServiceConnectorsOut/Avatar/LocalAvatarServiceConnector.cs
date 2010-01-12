@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
                     IConfig userConfig = source.Configs["AvatarService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: AvatarService missing from OpenSim.ini");
+                        m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
                         return;
                     }
 
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 
                     if (serviceDll == String.Empty)
                     {
-                        m_log.Error("[USER CONNECTOR]: No LocalServiceModule named in section AvatarService");
+                        m_log.Error("[AVATAR CONNECTOR]: No LocalServiceModule named in section AvatarService");
                         return;
                     }
 
@@ -92,11 +92,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
 
                     if (m_AvatarService == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: Can't load user account service");
+                        m_log.Error("[AVATAR CONNECTOR]: Can't load user account service");
                         return;
                     }
                     m_Enabled = true;
-                    m_log.Info("[USER CONNECTOR]: Local avatar connector enabled");
+                    m_log.Info("[AVATAR CONNECTOR]: Local avatar connector enabled");
                 }
             }
         }
@@ -118,7 +118,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IAvatarService>(m_AvatarService);
+            scene.RegisterModuleInterface<IAvatarService>(this);
         }
 
         public void RemoveRegion(Scene scene)

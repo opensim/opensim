@@ -250,7 +250,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             InformClientOfNeighbourDelegate icon = (InformClientOfNeighbourDelegate) iar.AsyncState;
             icon.EndInvoke(iar);
-            m_log.WarnFormat(" --> InformClientOfNeighbourCompleted");
+            //m_log.WarnFormat(" --> InformClientOfNeighbourCompleted");
         }
 
         /// <summary>
@@ -456,7 +456,7 @@ namespace OpenSim.Region.Framework.Scenes
             int count = 0;
             foreach (GridRegion neighbour in neighbours)
             {
-                m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
+                //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
                 // Don't do it if there's already an agent in that region
                 if (newRegions.Contains(neighbour.RegionHandle))
                     newAgent = true;

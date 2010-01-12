@@ -300,7 +300,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 if (m_AvatarService == null)
-                    m_AvatarService = RequestModuleInterface<OpenSim.Services.Interfaces.IAvatarService>();
+                    m_AvatarService = RequestModuleInterface<IAvatarService>();
                 return m_AvatarService;
             }
         }

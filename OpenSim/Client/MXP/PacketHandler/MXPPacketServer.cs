@@ -536,7 +536,7 @@ namespace OpenSim.Client.MXP.PacketHandler
             agent.CapsPath = "http://localhost/";
             AvatarData avatar = scene.AvatarService.GetAvatar(account.PrincipalID);
             if (avatar != null)
-                agent.Appearance = avatar.ToAvatarAppearance();  //userService.GetUserAppearance(userProfile.ID);
+                agent.Appearance = avatar.ToAvatarAppearance(account.PrincipalID);  //userService.GetUserAppearance(userProfile.ID);
 
             if (agent.Appearance == null)
             {

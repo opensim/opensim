@@ -73,6 +73,12 @@ namespace OpenSim.Services.AvatarService
 
         public bool SetAvatar(UUID principalID, AvatarData avatar)
         {
+            int count = 0;
+            foreach (KeyValuePair<string, string> kvp in avatar.Data)
+                if (kvp.Key.StartsWith("_"))
+                    count++;
+
+            m_log.DebugFormat("[AVATAR SERVICE]: SetAvatar for {0}, attachs={1}", principalID, count);
             m_Database.Delete("PrincipalID", principalID.ToString());
 
             AvatarBaseData av = new AvatarBaseData();

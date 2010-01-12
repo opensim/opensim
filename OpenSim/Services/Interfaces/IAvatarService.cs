@@ -131,17 +131,15 @@ namespace OpenSim.Services.Interfaces
             AvatarType = 1; // SL avatars
             Data = new Dictionary<string, string>();
 
+            Data["Serial"] = appearance.Serial.ToString();
             // Wearables
             Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
             Data["BodyItem"] = appearance.BodyItem.ToString();
             Data["EyesItem"] = appearance.EyesItem.ToString();
             Data["GlovesItem"] = appearance.GlovesItem.ToString();
             Data["HairItem"] = appearance.HairItem.ToString();
-            //Data["HipOffset"] = appearance.HipOffset.ToString();
             Data["JacketItem"] = appearance.JacketItem.ToString();
-            Data["Owner"] = appearance.Owner.ToString();
             Data["PantsItem"] = appearance.PantsItem.ToString();
-            Data["Serial"] = appearance.Serial.ToString();
             Data["ShirtItem"] = appearance.ShirtItem.ToString();
             Data["ShoesItem"] = appearance.ShoesItem.ToString();
             Data["SkinItem"] = appearance.SkinItem.ToString();
@@ -150,53 +148,92 @@ namespace OpenSim.Services.Interfaces
             Data["UnderPantsItem"] = appearance.UnderPantsItem.ToString();
             Data["UnderShirtItem"] = appearance.UnderShirtItem.ToString();
 
+            Data["BodyAsset"] = appearance.BodyAsset.ToString();
+            Data["EyesAsset"] = appearance.EyesAsset.ToString();
+            Data["GlovesAsset"] = appearance.GlovesAsset.ToString();
+            Data["HairAsset"] = appearance.HairAsset.ToString();
+            Data["JacketAsset"] = appearance.JacketAsset.ToString();
+            Data["PantsAsset"] = appearance.PantsAsset.ToString();
+            Data["ShirtAsset"] = appearance.ShirtAsset.ToString();
+            Data["ShoesAsset"] = appearance.ShoesAsset.ToString();
+            Data["SkinAsset"] = appearance.SkinAsset.ToString();
+            Data["SkirtAsset"] = appearance.SkirtAsset.ToString();
+            Data["SocksAsset"] = appearance.SocksAsset.ToString();
+            Data["UnderPantsAsset"] = appearance.UnderPantsAsset.ToString();
+            Data["UnderShirtAsset"] = appearance.UnderShirtAsset.ToString();
+
             // Attachments
             Hashtable attachs = appearance.GetAttachments();
-            foreach (KeyValuePair<int, Hashtable> kvp in attachs)
-            {
-                Data["_ap_" + kvp.Key] = kvp.Value["item"].ToString();
-            }
+            if (attachs != null)
+                foreach (DictionaryEntry dentry in attachs)
+                {
+                    if (dentry.Value != null)
+                    {
+                        Hashtable tab = (Hashtable)dentry.Value;
+                        if (tab.ContainsKey("item") && tab["item"] != null)
+                            Data["_ap_" + dentry.Key] = tab["item"].ToString();
+                    }
+                }
         }
 
-        public AvatarAppearance ToAvatarAppearance()
+        public AvatarAppearance ToAvatarAppearance(UUID owner)
         {
-            AvatarAppearance appearance = new AvatarAppearance();
-            // Wearables
-            appearance.AvatarHeight = float.Parse(Data["AvatarHeight"]);
-            appearance.BodyItem = UUID.Parse(Data["BodyItem"]);
-            appearance.EyesItem = UUID.Parse(Data["EyesItem"]);
-            appearance.GlovesItem = UUID.Parse(Data["GlovesItem"]);
-            appearance.HairItem = UUID.Parse(Data["HairItem"]);
-            //appearance.HipOffset = float.Parse(Data["HipOffset"]);
-            appearance.JacketItem = UUID.Parse(Data["JacketItem"]);
-            appearance.Owner = UUID.Parse(Data["Owner"]);
-            appearance.PantsItem = UUID.Parse(Data["PantsItem"]);
-            appearance.Serial = Int32.Parse(Data["Serial"]);
-            appearance.ShirtItem = UUID.Parse(Data["ShirtItem"]);
-            appearance.ShoesItem = UUID.Parse(Data["ShoesItem"]);
-            appearance.SkinItem = UUID.Parse(Data["SkinItem"]);
-            appearance.SkirtItem = UUID.Parse(Data["SkirtItem"]);
-            appearance.SocksItem = UUID.Parse(Data["SocksItem"]);
-            appearance.UnderPantsItem = UUID.Parse(Data["UnderPantsItem"]);
-            appearance.UnderShirtItem = UUID.Parse(Data["UnderShirtItem"]);
-
-            // Attachments
-            Dictionary<string, string> attchs = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> _kvp in Data)
-                if (_kvp.Key.StartsWith("_ap_"))
-                    attchs[_kvp.Key] = _kvp.Value;
-            Hashtable aaAttachs = new Hashtable();
-            foreach (KeyValuePair<string, string> _kvp in attchs)
+            AvatarAppearance appearance = new AvatarAppearance(owner);
+            try
             {
-                string pointStr = _kvp.Key.Substring(4);
-                int point = 0;
-                if (!Int32.TryParse(pointStr, out point))
-                    continue;
-                Hashtable tmp = new Hashtable();
-                tmp["item"] = _kvp.Value;
-                tmp["asset"] = UUID.Zero.ToString();
-                aaAttachs[point] = tmp;
+                appearance.Serial = Int32.Parse(Data["Serial"]);
+
+                // Wearables
+                appearance.BodyItem = UUID.Parse(Data["BodyItem"]);
+                appearance.EyesItem = UUID.Parse(Data["EyesItem"]);
+                appearance.GlovesItem = UUID.Parse(Data["GlovesItem"]);
+                appearance.HairItem = UUID.Parse(Data["HairItem"]);
+                appearance.JacketItem = UUID.Parse(Data["JacketItem"]);
+                appearance.PantsItem = UUID.Parse(Data["PantsItem"]);
+                appearance.ShirtItem = UUID.Parse(Data["ShirtItem"]);
+                appearance.ShoesItem = UUID.Parse(Data["ShoesItem"]);
+                appearance.SkinItem = UUID.Parse(Data["SkinItem"]);
+                appearance.SkirtItem = UUID.Parse(Data["SkirtItem"]);
+                appearance.SocksItem = UUID.Parse(Data["SocksItem"]);
+                appearance.UnderPantsItem = UUID.Parse(Data["UnderPantsItem"]);
+                appearance.UnderShirtItem = UUID.Parse(Data["UnderShirtItem"]);
+
+                appearance.BodyAsset = UUID.Parse(Data["BodyAsset"]);
+                appearance.EyesAsset = UUID.Parse(Data["EyesAsset"]);
+                appearance.GlovesAsset = UUID.Parse(Data["GlovesAsset"]);
+                appearance.HairAsset = UUID.Parse(Data["HairAsset"]);
+                appearance.JacketAsset = UUID.Parse(Data["JacketAsset"]);
+                appearance.PantsAsset = UUID.Parse(Data["PantsAsset"]);
+                appearance.ShirtAsset = UUID.Parse(Data["ShirtAsset"]);
+                appearance.ShoesAsset = UUID.Parse(Data["ShoesAsset"]);
+                appearance.SkinAsset = UUID.Parse(Data["SkinAsset"]);
+                appearance.SkirtAsset = UUID.Parse(Data["SkirtAsset"]);
+                appearance.SocksAsset = UUID.Parse(Data["SocksAsset"]);
+                appearance.UnderPantsAsset = UUID.Parse(Data["UnderPantsAsset"]);
+                appearance.UnderShirtAsset = UUID.Parse(Data["UnderShirtAsset"]);
+
+                // Attachments
+                Dictionary<string, string> attchs = new Dictionary<string, string>();
+                foreach (KeyValuePair<string, string> _kvp in Data)
+                    if (_kvp.Key.StartsWith("_ap_"))
+                        attchs[_kvp.Key] = _kvp.Value;
+                Hashtable aaAttachs = new Hashtable();
+                foreach (KeyValuePair<string, string> _kvp in attchs)
+                {
+                    string pointStr = _kvp.Key.Substring(4);
+                    int point = 0;
+                    if (!Int32.TryParse(pointStr, out point))
+                        continue;
+                    Hashtable tmp = new Hashtable();
+                    UUID uuid = UUID.Zero;
+                    UUID.TryParse(_kvp.Value, out uuid);
+                    tmp["item"] = uuid;
+                    tmp["asset"] = UUID.Zero.ToString();
+                    aaAttachs[point] = tmp;
+                }
+                appearance.SetAttachments(aaAttachs);
             }
+            catch { }
 
             return appearance;
         }

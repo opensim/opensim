@@ -67,7 +67,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             AvatarData adata = scene.AvatarService.GetAvatar(target);
             if (adata != null)
             {
-                AvatarAppearance x = adata.ToAvatarAppearance();
+                AvatarAppearance x = adata.ToAvatarAppearance(target);
 
                 m_appearanceCache.Add(target, x);
 

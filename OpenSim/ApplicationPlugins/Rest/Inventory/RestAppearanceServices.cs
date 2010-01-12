@@ -304,7 +304,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     String.Format("appearance data not found for user {0} {1}", 
                       rdata.userProfile.FirstName, rdata.userProfile.SurName));
             }
-            rdata.userAppearance = adata.ToAvatarAppearance();
+            rdata.userAppearance = adata.ToAvatarAppearance(rdata.userProfile.ID);
 
             rdata.initXmlWriter();
 
@@ -446,7 +446,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             if (adata != null)
             {
-                AvatarAppearance old = adata.ToAvatarAppearance();
+                AvatarAppearance old = adata.ToAvatarAppearance(rdata.userProfile.ID);
                 rdata.userAppearance = new AvatarAppearance();
                 rdata.userAppearance.Owner = old.Owner;
                 adata = new AvatarData(rdata.userAppearance);

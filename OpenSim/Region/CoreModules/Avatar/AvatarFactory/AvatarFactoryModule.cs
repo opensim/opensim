@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             //if ((profile != null) && (profile.RootFolder != null))
             if (avatar != null)
             {
-                appearance = avatar.ToAvatarAppearance();
+                appearance = avatar.ToAvatarAppearance(avatarId);
                 return true;
             }
 
@@ -153,6 +153,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         /// <param name="e"></param>
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
+            m_log.DebugFormat("[APPEARANCE]: AvatarIsWearing");
+
             IClientAPI clientView = (IClientAPI)sender;
             ScenePresence sp = m_scene.GetScenePresence(clientView.AgentId);
             
@@ -162,12 +164,12 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 return;
             }
 
-            AvatarAppearance avatAppearance = null;
-            if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
-            {
-                m_log.Warn("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
-                avatAppearance = sp.Appearance;
-            }
+            AvatarAppearance avatAppearance = sp.Appearance;
+            //if (!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) 
+            //{
+            //    m_log.Warn("[APPEARANCE]: We didn't seem to find the appearance, falling back to ScenePresence");
+            //    avatAppearance = sp.Appearance;
+            //}
             
             //m_log.DebugFormat("[APPEARANCE]: Received wearables for {0}", clientView.Name);
             
@@ -194,6 +196,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 
         public void UpdateDatabase(UUID user, AvatarAppearance appearance)
         {
+            m_log.DebugFormat("[APPEARANCE]: UpdateDatabase");
             AvatarData adata = new AvatarData(appearance);
             m_scene.AvatarService.SetAvatar(user, adata);
 
