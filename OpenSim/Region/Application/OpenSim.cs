@@ -53,6 +53,7 @@ namespace OpenSim
         protected string m_shutdownCommandsFile;
         protected bool m_gui = false;
         protected string m_consoleType = "local";
+        protected uint m_consolePort = 0;
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
@@ -66,6 +67,7 @@ namespace OpenSim
             base.ReadExtraConfigSettings();
 
             IConfig startupConfig = m_config.Source.Configs["Startup"];
+            IConfig networkConfig = m_config.Source.Configs["Network"];
 
             int stpMaxThreads = 15;
 
@@ -79,6 +81,8 @@ namespace OpenSim
                 else
                     m_consoleType= startupConfig.GetString("console", String.Empty);
 
+                if (networkConfig != null)
+                    m_consolePort = (uint)networkConfig.GetInt("console_port", 0);
                 m_timedScript = startupConfig.GetString("timer_Script", "disabled");
                 if (m_logFileAppender != null)
                 {
@@ -151,7 +155,16 @@ namespace OpenSim
             base.StartupSpecific();
 
             if (m_console is RemoteConsole)
-                ((RemoteConsole)m_console).SetServer(m_httpServer);
+            {
+                if (m_consolePort == 0)
+                {
+                    ((RemoteConsole)m_console).SetServer(m_httpServer);
+                }
+                else
+                {
+                    ((RemoteConsole)m_console).SetServer(MainServer.GetHttpServer(m_consolePort));
+                }
+            }
 
             //Run Startup Commands
             if (String.IsNullOrEmpty(m_startupCommandsFile))
@@ -286,18 +299,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "create region",
                                           "create region",
                                           "Create a new region", HandleCreateRegion);
-
-            m_console.Commands.AddCommand("region", false, "login enable",
-                                          "login enable",
-                                          "Enable logins to the simulator", HandleLoginEnable);
-
-            m_console.Commands.AddCommand("region", false, "login disable",
-                                          "login disable",
-                                          "Disable logins to the simulator", HandleLoginDisable);
-
-            m_console.Commands.AddCommand("region", false, "login status",
-                                          "login status",
-                                          "Display status of logins", HandleLoginStatus);
 
             m_console.Commands.AddCommand("region", false, "restart",
                                           "restart",
@@ -557,42 +558,6 @@ namespace OpenSim
                 return;
             }
         }
-
-        /// <summary>
-        /// Enable logins
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginEnable(string module, string[] cmd)
-        {
-            ProcessLogin(true);
-        }
-
-
-        /// <summary>
-        /// Disable logins
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginDisable(string module, string[] cmd)
-        {
-            ProcessLogin(false);
-        }
-
-        /// <summary>
-        /// Log login status to the console
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="cmd"></param>
-        private void HandleLoginStatus(string module, string[] cmd)
-        {
-            if (m_sceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled == false)
-
-                m_log.Info("[ Login ]  Login are disabled ");
-            else
-                m_log.Info("[ Login ]  Login are enabled");
-        }
-
 
         /// <summary>
         /// Change and load configuration file data.

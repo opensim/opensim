@@ -203,12 +203,6 @@ namespace OpenSim
                 plugin.PostInitialise();
             }
 
-            // Only enable logins to the regions once we have completely finished starting up (apart from scripts)
-            if ((SceneManager.CurrentOrFirstScene != null) && (SceneManager.CurrentOrFirstScene.SceneGridService != null))
-            {
-                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
-            }
-
             AddPluginCommands();
         }
 
@@ -276,31 +270,6 @@ namespace OpenSim
 
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
             m_sceneManager.OnRestartSim += handleRestartRegion;
-        }
-
-        /// <summary>
-        /// Initialises the asset cache. This supports legacy configuration values
-        /// to ensure consistent operation, but values outside of that namespace
-        /// are handled by the more generic resolution mechanism provided by 
-        /// the ResolveAssetServer virtual method. If extended resolution fails, 
-        /// then the normal default action is taken.
-        /// Creation of the AssetCache is handled by ResolveAssetCache. This
-        /// function accepts a reference to the instantiated AssetServer and
-        /// returns an IAssetCache implementation, if possible. This is a virtual
-        /// method.
-        /// </summary>
-        public void ProcessLogin(bool LoginEnabled)
-        {
-            if (LoginEnabled)
-            {
-                m_log.Info("[LOGIN]: Login is now enabled.");
-                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = true;
-            }
-            else
-            {
-                m_log.Info("[LOGIN]: Login is now disabled.");
-                SceneManager.CurrentOrFirstScene.SceneGridService.RegionLoginsEnabled = false;
-            }
         }
 
         /// <summary>

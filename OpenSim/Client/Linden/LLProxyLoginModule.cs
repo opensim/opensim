@@ -60,21 +60,6 @@ namespace OpenSim.Client.Linden
             m_port = port;
         }
 
-        protected bool RegionLoginsEnabled
-        {
-            get
-            {
-                if (m_firstScene != null)
-                {
-                    return m_firstScene.SceneGridService.RegionLoginsEnabled;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
         protected List<Scene> m_scenes = new List<Scene>();
         protected Scene m_firstScene;
 
@@ -239,67 +224,53 @@ namespace OpenSim.Client.Linden
                     agentData.child = false;
                 }
 
-                if (!RegionLoginsEnabled)
-                {
-                    m_log.InfoFormat(
-                        "[CLIENT]: Denying access for user {0} {1} because region login is currently disabled",
-                        agentData.firstname, agentData.lastname);
+                bool success = false;
+                string denyMess = "";
 
+                Scene scene;
+                if (TryGetRegion(regionHandle, out scene))
+                {
+                    if (scene.RegionInfo.EstateSettings.IsBanned(agentData.AgentID))
+                    {
+                        denyMess = "User is banned from this region";
+                        m_log.InfoFormat(
+                            "[CLIENT]: Denying access for user {0} {1} because user is banned",
+                            agentData.firstname, agentData.lastname);
+                    }
+                    else
+                    {
+                        string reason;
+                        if (scene.NewUserConnection(agentData, (uint)TeleportFlags.ViaLogin, out reason))
+                        {
+                            success = true;
+                        }
+                        else
+                        {
+                            denyMess = String.Format("Login refused by region: {0}", reason);
+                            m_log.InfoFormat(
+                                "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
+                                agentData.firstname, agentData.lastname);
+                        }
+                    }
+
+                }
+                else
+                {
+                    denyMess = "Region not found";
+                }
+
+                if (success)
+                {
                     Hashtable respdata = new Hashtable();
-                    respdata["success"] = "FALSE";
-                    respdata["reason"] = "region login currently disabled";
+                    respdata["success"] = "TRUE";
                     resp.Value = respdata;
                 }
                 else
                 {
-                    bool success = false;
-                    string denyMess = "";
-
-                    Scene scene;
-                    if (TryGetRegion(regionHandle, out scene))
-                    {
-                        if (scene.RegionInfo.EstateSettings.IsBanned(agentData.AgentID))
-                        {
-                            denyMess = "User is banned from this region";
-                            m_log.InfoFormat(
-                                "[CLIENT]: Denying access for user {0} {1} because user is banned",
-                                agentData.firstname, agentData.lastname);
-                        }
-                        else
-                        {
-                            string reason;
-                            if (scene.NewUserConnection(agentData, (uint)TeleportFlags.ViaLogin, out reason))
-                            {
-                                success = true;
-                            }
-                            else
-                            {
-                                denyMess = String.Format("Login refused by region: {0}", reason);
-                                m_log.InfoFormat(
-                                    "[CLIENT]: Denying access for user {0} {1} because user connection was refused by the region",
-                                    agentData.firstname, agentData.lastname);
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        denyMess = "Region not found";
-                    }
-
-                    if (success)
-                    {
-                        Hashtable respdata = new Hashtable();
-                        respdata["success"] = "TRUE";
-                        resp.Value = respdata;
-                    }
-                    else
-                    {
-                        Hashtable respdata = new Hashtable();
-                        respdata["success"] = "FALSE";
-                        respdata["reason"] = denyMess;
-                        resp.Value = respdata;
-                    }
+                    Hashtable respdata = new Hashtable();
+                    respdata["success"] = "FALSE";
+                    respdata["reason"] = denyMess;
+                    resp.Value = respdata;
                 }
             }
             catch (Exception e)

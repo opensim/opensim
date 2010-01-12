@@ -1853,16 +1853,12 @@ namespace OpenSim.Region.Framework.Scenes
             // and build up list of colliders this time
             foreach (uint localid in collissionswith.Keys)
             {
-                if (localid != 0)
+                thisHitColliders.Add(localid);
+                if (!m_lastColliders.Contains(localid))
                 {
-                    thisHitColliders.Add(localid);
-                    if (!m_lastColliders.Contains(localid))
-                    {
-                        startedColliders.Add(localid);
-                    }
-
-                    //m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
+                    startedColliders.Add(localid);
                 }
+                //m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
             }
 
             // calculate things that ended colliding
@@ -1904,6 +1900,8 @@ namespace OpenSim.Region.Framework.Scenes
                     List<DetectedObject> colliding = new List<DetectedObject>();
                     foreach (uint localId in startedColliders)
                     {
+                        if (localId == 0)
+                            return;
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
@@ -1941,7 +1939,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2039,7 +2037,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (localId == 0)
-                            continue;
+                            return;
 
                         if (m_parentGroup == null)
                             return;
@@ -2077,7 +2075,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2171,7 +2169,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (uint localId in endedColliders)
                     {
                         if (localId == 0)
-                            continue;
+                            return;
 
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
@@ -2208,7 +2206,7 @@ namespace OpenSim.Region.Framework.Scenes
                             {
                                 bool found = m_parentGroup.RootPart.CollisionFilter.TryGetValue(1,out data);
                                 //If it is 1, it is to accept ONLY collisions from this object, so this other object will not work
-                                if (found)
+                                if (!found)
                                 {
                                     DetectedObject detobj = new DetectedObject();
                                     detobj.keyUUID = obj.UUID;
@@ -2290,6 +2288,120 @@ namespace OpenSim.Region.Framework.Scenes
                             return;
                         
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingEnd(LocalId, EndCollidingMessage);
+                    }
+                }
+            }
+            if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.land_collision_start) != 0)
+            {
+                if (startedColliders.Count > 0)
+                {
+                    ColliderArgs LandStartCollidingMessage = new ColliderArgs();
+                    List<DetectedObject> colliding = new List<DetectedObject>();
+                    foreach (uint localId in startedColliders)
+                    {
+                        if (localId == 0)
+                        {
+                            //Hope that all is left is ground!
+                            DetectedObject detobj = new DetectedObject();
+                            detobj.keyUUID = UUID.Zero;
+                            detobj.nameStr = "";
+                            detobj.ownerUUID = UUID.Zero;
+                            detobj.posVector = m_parentGroup.RootPart.AbsolutePosition;
+                            detobj.rotQuat = Quaternion.Identity;
+                            detobj.velVector = Vector3.Zero;
+                            detobj.colliderType = 0;
+                            detobj.groupUUID = UUID.Zero;
+                            colliding.Add(detobj);
+                        }
+                    }
+
+                    if (colliding.Count > 0)
+                    {
+                        LandStartCollidingMessage.Colliders = colliding;
+                        // always running this check because if the user deletes the object it would return a null reference.
+                        if (m_parentGroup == null)
+                            return;
+
+                        if (m_parentGroup.Scene == null)
+                            return;
+
+                        m_parentGroup.Scene.EventManager.TriggerScriptLandCollidingStart(LocalId, LandStartCollidingMessage);
+                    }
+                }
+            }
+            if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.land_collision) != 0)
+            {
+                if (m_lastColliders.Count > 0)
+                {
+                    ColliderArgs LandCollidingMessage = new ColliderArgs();
+                    List<DetectedObject> colliding = new List<DetectedObject>();
+                    foreach (uint localId in startedColliders)
+                    {
+                        if (localId == 0)
+                        {
+                            //Hope that all is left is ground!
+                            DetectedObject detobj = new DetectedObject();
+                            detobj.keyUUID = UUID.Zero;
+                            detobj.nameStr = "";
+                            detobj.ownerUUID = UUID.Zero;
+                            detobj.posVector = m_parentGroup.RootPart.AbsolutePosition;
+                            detobj.rotQuat = Quaternion.Identity;
+                            detobj.velVector = Vector3.Zero;
+                            detobj.colliderType = 0;
+                            detobj.groupUUID = UUID.Zero;
+                            colliding.Add(detobj);
+                        }
+                    }
+
+                    if (colliding.Count > 0)
+                    {
+                        LandCollidingMessage.Colliders = colliding;
+                        // always running this check because if the user deletes the object it would return a null reference.
+                        if (m_parentGroup == null)
+                            return;
+
+                        if (m_parentGroup.Scene == null)
+                            return;
+
+                        m_parentGroup.Scene.EventManager.TriggerScriptLandColliding(LocalId, LandCollidingMessage);
+                    }
+                }
+            }
+            if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.land_collision_end) != 0)
+            {
+                if (endedColliders.Count > 0)
+                {
+                    ColliderArgs LandEndCollidingMessage = new ColliderArgs();
+                    List<DetectedObject> colliding = new List<DetectedObject>();
+                    foreach (uint localId in startedColliders)
+                    {
+                        if (localId == 0)
+                        {
+                            //Hope that all is left is ground!
+                            DetectedObject detobj = new DetectedObject();
+                            detobj.keyUUID = UUID.Zero;
+                            detobj.nameStr = "";
+                            detobj.ownerUUID = UUID.Zero;
+                            detobj.posVector = m_parentGroup.RootPart.AbsolutePosition;
+                            detobj.rotQuat = Quaternion.Identity;
+                            detobj.velVector = Vector3.Zero;
+                            detobj.colliderType = 0;
+                            detobj.groupUUID = UUID.Zero;
+                            colliding.Add(detobj);
+                        }
+                    }
+
+                    if (colliding.Count > 0)
+                    {
+                        LandEndCollidingMessage.Colliders = colliding;
+                        // always running this check because if the user deletes the object it would return a null reference.
+                        if (m_parentGroup == null)
+                            return;
+
+                        if (m_parentGroup.Scene == null)
+                            return;
+
+                        m_parentGroup.Scene.EventManager.TriggerScriptLandCollidingEnd(LocalId, LandEndCollidingMessage);
                     }
                 }
             }
@@ -3698,6 +3810,9 @@ namespace OpenSim.Region.Framework.Scenes
                             ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
                             ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                            ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
                             (CollisionSound != UUID.Zero)
                             )
                         {
@@ -3902,6 +4017,9 @@ namespace OpenSim.Region.Framework.Scenes
                 ((AggregateScriptEvents & scriptEvents.collision) != 0) ||
                 ((AggregateScriptEvents & scriptEvents.collision_end) != 0) ||
                 ((AggregateScriptEvents & scriptEvents.collision_start) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.land_collision_start) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.land_collision) != 0) ||
+                ((AggregateScriptEvents & scriptEvents.land_collision_end) != 0) ||
                 (CollisionSound != UUID.Zero)
                 )
             {
@@ -3959,6 +4077,23 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_parentGroup != null)
             {
                 m_parentGroup.unregisterTargetWaypoint(handle);
+            }
+        }
+
+        public int registerRotTargetWaypoint(Quaternion target, float tolerance)
+        {
+            if (m_parentGroup != null)
+            {
+                return m_parentGroup.registerRotTargetWaypoint(target, tolerance);
+            }
+            return 0;
+        }
+
+        public void unregisterRotTargetWaypoint(int handle)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.unregisterRotTargetWaypoint(handle);
             }
         }
 

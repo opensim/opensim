@@ -760,7 +760,7 @@ namespace OpenSim.Client.Sirikata.ClientStack
             throw new System.NotImplementedException();
         }
 
-        public void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID)
+        public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
         {
             throw new System.NotImplementedException();
         }
@@ -1177,6 +1177,14 @@ namespace OpenSim.Client.Sirikata.ClientStack
         }
         
         public void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt)
+        {
+        }
+
+        public void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes)
+        {
+        }
+
+        public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
         }
 

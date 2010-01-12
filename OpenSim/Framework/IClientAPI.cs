@@ -1271,7 +1271,7 @@ namespace OpenSim.Framework
         void SendHealth(float health);
 
 
-        void SendEstateManagersList(UUID invoice, UUID[] EstateManagers, uint estateID);
+        void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID);
 
         void SendBannedUserList(UUID invoice, EstateBan[] banlist, uint estateID);
 
@@ -1446,7 +1446,12 @@ namespace OpenSim.Framework
         void SendUserInfoReply(bool imViaEmail, bool visible, string email);
         
         void SendUseCachedMuteList();
+
         void SendMuteListUpdate(string filename);
+
+        void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals);
+
+        void SendGroupVoteHistory(UUID groupID, UUID transactionID, GroupVoteHistory[] Votes);
 
         void KillEndDone();
 

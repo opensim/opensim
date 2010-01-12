@@ -388,12 +388,6 @@ namespace OpenSim.Framework.Communications.Tests
                 }
             }
 
-            #region ILoginRegionsConnector Members
-            public bool RegionLoginsEnabled
-            {
-                get { return true; }
-            }
-
             public void LogOffUserFromGrid(ulong regionHandle, OpenMetaverse.UUID AvatarID, OpenMetaverse.UUID RegionSecret, string message)
             {
             }
@@ -454,8 +448,6 @@ namespace OpenSim.Framework.Communications.Tests
 
                 return null;
             }
-
-            #endregion
         }
     }
 }

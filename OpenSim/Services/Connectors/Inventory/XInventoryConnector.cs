@@ -490,7 +490,7 @@ namespace OpenSim.Services.Connectors
             return replyData;
         }
 
-        InventoryFolderBase BuildFolder(Dictionary<string,object> data)
+        private InventoryFolderBase BuildFolder(Dictionary<string,object> data)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
 
@@ -504,7 +504,7 @@ namespace OpenSim.Services.Connectors
             return folder;
         }
 
-        InventoryItemBase BuildItem(Dictionary<string,object> data)
+        private InventoryItemBase BuildItem(Dictionary<string,object> data)
         {
             InventoryItemBase item = new InventoryItemBase();
 

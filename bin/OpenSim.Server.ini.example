@@ -22,6 +22,7 @@ port = 8003
 ; * Leave commented to diable logins to the console
 ;ConsoleUser = Test
 ;ConsolePass = secret
+;ConsolePort = 0
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
@@ -79,3 +80,4 @@ LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=grid;"
 Realm = "regions"
+; AllowDuplicateNames = "True"

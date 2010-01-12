@@ -202,20 +202,15 @@ namespace OpenSim.Client.Linden
                 agent.Appearance = new AvatarAppearance(agent.AgentID);
             }
 
-            if (m_regionsConnector.RegionLoginsEnabled)
+            string reason;
+            bool success = m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
+            if (!success)
             {
-                string reason;
-                bool success = m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
-                if (!success)
-                {
-                    response.ErrorReason = "key";
-                    response.ErrorMessage = reason;
-                }
-                return success;
-                // return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
+                response.ErrorReason = "key";
+                response.ErrorMessage = reason;
             }
-
-            return false;
+            return success;
+            // return m_regionsConnector.NewUserConnection(regionInfo.RegionHandle, agent, out reason);
         }
 
         public override void LogOffUser(UserProfileData theUser, string message)

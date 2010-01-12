@@ -38,6 +38,7 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using log4net;
+using OpenMetaverse;
 
 namespace OpenSim.Server.Handlers.Asset
 {
@@ -193,6 +194,14 @@ namespace OpenSim.Server.Handlers.Asset
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
 
+            if (!request.ContainsKey("PRINCIPAL"))
+                return FailureResult();
+
+            if(m_InventoryService.CreateUserInventory(new UUID(request["PRINCIPAL"].ToString())))
+                result["RESULT"] = "True";
+            else
+                result["RESULT"] = "False";
+
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
@@ -202,6 +211,15 @@ namespace OpenSim.Server.Handlers.Asset
         byte[] HandleGetInventorySkeleton(Dictionary<string,object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
+
+            if (!request.ContainsKey("PRINCIPAL"))
+                return FailureResult();
+
+
+            List<InventoryFolderBase> folders = m_InventoryService.GetInventorySkeleton(new UUID(request["PRINCIPAL"].ToString()));
+
+            foreach (InventoryFolderBase f in folders)
+                result[f.ID.ToString()] = EncodeFolder(f);
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
@@ -377,6 +395,62 @@ namespace OpenSim.Server.Handlers.Asset
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
+        }
+
+        private Dictionary<string, object> EncodeFolder(InventoryFolderBase f)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            ret["ParentID"] = f.ParentID.ToString();
+            ret["Type"] = f.Type.ToString();
+            ret["Version"] = f.Version.ToString();
+            ret["Name"] = f.Name;
+            ret["Owner"] = f.Owner.ToString();
+            ret["ID"] = f.ID.ToString();
+
+            return ret;
+        }
+
+        private InventoryFolderBase BuildFolder(Dictionary<string,object> data)
+        {
+            InventoryFolderBase folder = new InventoryFolderBase();
+
+            folder.ParentID =  new UUID(data["ParentID"].ToString());
+            folder.Type = short.Parse(data["Type"].ToString());
+            folder.Version = ushort.Parse(data["Version"].ToString());
+            folder.Name = data["Name"].ToString();
+            folder.Owner =  new UUID(data["Owner"].ToString());
+            folder.ID = new UUID(data["ID"].ToString());
+
+            return folder;
+        }
+
+        private InventoryItemBase BuildItem(Dictionary<string,object> data)
+        {
+            InventoryItemBase item = new InventoryItemBase();
+
+            item.AssetID = new UUID(data["AssetID"].ToString());
+            item.AssetType = int.Parse(data["AssetType"].ToString());
+            item.Name = data["Name"].ToString();
+            item.Owner = new UUID(data["Owner"].ToString());
+            item.ID = new UUID(data["ID"].ToString());
+            item.InvType = int.Parse(data["InvType"].ToString());
+            item.Folder = new UUID(data["Folder"].ToString());
+            item.CreatorId = data["CreatorId"].ToString();
+            item.Description = data["Description"].ToString();
+            item.NextPermissions = uint.Parse(data["NextPermissions"].ToString());
+            item.CurrentPermissions = uint.Parse(data["CurrentPermissions"].ToString());
+            item.BasePermissions = uint.Parse(data["BasePermissions"].ToString());
+            item.EveryOnePermissions = uint.Parse(data["EveryOnePermissions"].ToString());
+            item.GroupPermissions = uint.Parse(data["GroupPermissions"].ToString());
+            item.GroupID = new UUID(data["GroupID"].ToString());
+            item.GroupOwned = bool.Parse(data["GroupOwned"].ToString());
+            item.SalePrice = int.Parse(data["SalePrice"].ToString());
+            item.SaleType = byte.Parse(data["SaleType"].ToString());
+            item.Flags = uint.Parse(data["Flags"].ToString());
+            item.CreationDate = int.Parse(data["CreationDate"].ToString());
+
+            return item;
         }
     }
 }
