@@ -75,7 +75,7 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 [OpenIdService]
     ; for the server connector
     AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
 	
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
@@ -96,6 +96,13 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
+[AvatarService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.AvatarService.dll:AvatarService"
+    ; for the service
+    StorageProvider = "OpenSim.Data.MySQL.dll"
+    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
+
 [LibraryService]
     LibraryName = "OpenSim Library"
     DefaultLibrary = "./inventory/Libraries.xml"
@@ -107,6 +114,7 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
     InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
+    AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"

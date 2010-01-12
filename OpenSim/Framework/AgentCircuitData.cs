@@ -155,6 +155,31 @@ namespace OpenSim.Framework
             args["secure_session_id"] = OSD.FromUUID(SecureSessionID);
             args["session_id"] = OSD.FromUUID(SessionID);
             args["start_pos"] = OSD.FromString(startpos.ToString());
+            args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
+
+            // We might not pass this in all cases...
+            if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
+            {
+                OSDArray wears = new OSDArray(Appearance.Wearables.Length);
+                foreach (AvatarWearable awear in Appearance.Wearables)
+                {
+                    wears.Add(OSD.FromUUID(awear.ItemID));
+                    wears.Add(OSD.FromUUID(awear.AssetID));
+                }
+                args["wearables"] = wears;
+            }
+
+           Dictionary<int, UUID[]> attachments = Appearance.GetAttachmentDictionary();
+           if ((attachments != null) && (attachments.Count > 0))
+            {
+                OSDArray attachs = new OSDArray(attachments.Count);
+                foreach (KeyValuePair<int, UUID[]> kvp in attachments)
+                {
+                    AttachmentData adata = new AttachmentData(kvp.Key, kvp.Value[0], kvp.Value[1]);
+                    attachs.Add(adata.PackUpdateMessage());
+                }
+                args["attachments"] = attachs;
+            }
 
             return args;
         }
@@ -209,8 +234,35 @@ namespace OpenSim.Framework
             if (args["session_id"] != null)
                 SessionID = args["session_id"].AsUUID();
             if (args["start_pos"] != null)
-                Vector3.TryParse(args["start_pos"].AsString(), out startpos); 
+                Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 
+            Appearance = new AvatarAppearance(AgentID);
+            if (args["appearance_serial"] != null)
+                Appearance.Serial = args["appearance_serial"].AsInteger();
+            if ((args["wearables"] != null) && (args["wearables"]).Type == OSDType.Array)
+            {
+                OSDArray wears = (OSDArray)(args["wearables"]);
+                for (int i = 0; i < wears.Count / 2; i++) 
+                {
+                    Appearance.Wearables[i].ItemID = wears[i*2].AsUUID();
+                    Appearance.Wearables[i].AssetID = wears[(i*2)+1].AsUUID();
+                }
+           }
+
+            if ((args["attachments"] != null) && (args["attachments"]).Type == OSDType.Array)
+            {
+                OSDArray attachs = (OSDArray)(args["attachments"]);
+                AttachmentData[] attachments = new AttachmentData[attachs.Count];
+                int i = 0;
+                foreach (OSD o in attachs)
+                {
+                    if (o.Type == OSDType.Map)
+                    {
+                        attachments[i++] = new AttachmentData((OSDMap)o);
+                    }
+                }
+                Appearance.SetAttachments(attachments);
+            }
 
         }
     }

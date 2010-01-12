@@ -123,7 +123,7 @@ namespace OpenSim.Services.Interfaces
                 if (_kvp.Value != null)
                     result[_kvp.Key] = _kvp.Value;
             }
-            return null;
+            return result;
         }
 
         public AvatarData(AvatarAppearance appearance)

@@ -337,15 +337,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            ScenePresence sp = null;
-            if (m_Scene.TryGetAvatar(userID, out sp))
-            {
-                return sp.ControllingClient.SessionId;
-            }
-
-            m_log.DebugFormat("[INVENTORY CONNECTOR]: scene presence for {0} not found", userID);
             return UUID.Zero;
-
         }
 
     }

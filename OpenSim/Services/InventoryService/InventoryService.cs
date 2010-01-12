@@ -298,6 +298,7 @@ namespace OpenSim.Services.InventoryService
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
                             folders[(AssetType)folder.Type] = folder;
                     }
+                    m_log.DebugFormat("[INVENTORY SERVICE]: Got {0} system folders for {1}", folders.Count, userID);
                     return folders;
                 }
             }

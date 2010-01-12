@@ -566,6 +566,16 @@ namespace OpenSim.Framework
 
         private Dictionary<int, UUID[]> m_attachments = new Dictionary<int, UUID[]>();
 
+        public void SetAttachments(AttachmentData[] data)
+        {
+            foreach (AttachmentData a in data)
+            {
+                m_attachments[a.AttachPoint] = new UUID[2];
+                m_attachments[a.AttachPoint][0] = a.ItemID;
+                m_attachments[a.AttachPoint][1] = a.AssetID;
+            }
+        }
+
         public void SetAttachments(Hashtable data)
         {
             m_attachments.Clear();
@@ -593,6 +603,11 @@ namespace OpenSim.Framework
 
                 m_attachments[attachpoint] = attachment;
             }
+        }
+
+        public Dictionary<int, UUID[]> GetAttachmentDictionary()
+        {
+            return m_attachments;
         }
 
         public Hashtable GetAttachments()

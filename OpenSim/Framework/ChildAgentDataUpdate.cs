@@ -334,6 +334,7 @@ namespace OpenSim.Framework
             args["left_axis"] = OSD.FromString(LeftAxis.ToString());
             args["up_axis"] = OSD.FromString(UpAxis.ToString());
 
+            
             args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
             args["far"] = OSD.FromReal(Far);
             args["aspect"] = OSD.FromReal(Aspect);
@@ -353,7 +354,7 @@ namespace OpenSim.Framework
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
-
+          
             if ((Groups != null) && (Groups.Length > 0))
             {
                 OSDArray groups = new OSDArray(Groups.Length);
@@ -378,6 +379,7 @@ namespace OpenSim.Framework
             //    args["agent_textures"] = textures;
             //}
 
+           
             if ((AgentTextures != null) && (AgentTextures.Length > 0))
                 args["texture_entry"] = OSD.FromBinary(AgentTextures);
 
@@ -393,6 +395,7 @@ namespace OpenSim.Framework
                 args["wearables"] = wears;
             }
 
+            
             if ((Attachments != null) && (Attachments.Length > 0))
             {
                 OSDArray attachs = new OSDArray(Attachments.Length);
@@ -401,8 +404,10 @@ namespace OpenSim.Framework
                 args["attachments"] = attachs;
             }
 
+
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
+
 
             return args;
         }

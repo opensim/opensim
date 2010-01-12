@@ -210,12 +210,12 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool UpdateAgent(GridRegion destination, AgentData data)
         {
-            return UpdateAgent(destination, data);
+            return UpdateAgent(destination, (IAgentData)data);
         }
 
         public bool UpdateAgent(GridRegion destination, AgentPosition data)
         {
-            return UpdateAgent(destination, data);
+            return UpdateAgent(destination, (IAgentData)data);
         }
 
         private bool UpdateAgent(GridRegion destination, IAgentData cAgentData)
@@ -231,7 +231,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent update. Reason: " + e.Message);
                 return false;
             }
-            //Console.WriteLine("   >>> DoChildAgentUpdateCall <<< " + uri);
+            Console.WriteLine("   >>> DoAgentUpdateCall <<< " + uri);
 
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
@@ -276,12 +276,12 @@ namespace OpenSim.Services.Connectors.Simulation
                 ChildUpdateRequest.ContentLength = buffer.Length;   //Count bytes to send
                 os = ChildUpdateRequest.GetRequestStream();
                 os.Write(buffer, 0, strBuffer.Length);         //Send it
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Posted ChildAgentUpdate request to remote sim {0}", uri);
+                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Posted AgentUpdate request to remote sim {0}", uri);
             }
-            //catch (WebException ex)
-            catch
+            catch (WebException ex)
+            //catch
             {
-                //m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on ChildAgentUpdate {0}", ex.Message);
+                m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: Bad send on AgentUpdate {0}", ex.Message);
 
                 return false;
             }

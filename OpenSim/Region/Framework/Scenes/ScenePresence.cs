@@ -2575,9 +2575,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (m_appearance.AvatarHeight > 0)
                 SetHeight(m_appearance.AvatarHeight);
 
-            AvatarData adata = new AvatarData(m_appearance);
-
-            m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
+            // This is not needed, because only the transient data changed
+            //AvatarData adata = new AvatarData(m_appearance);
+            //m_scene.AvatarService.SetAvatar(m_controllingClient.AgentId, adata);
 
             SendAppearanceToAllOtherAgents();
             if (!m_startAnimationSet)
