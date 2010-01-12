@@ -423,6 +423,7 @@ namespace OpenSim.Region.Framework.Scenes
                     agent.InventoryFolder = UUID.Zero;
                     agent.startpos = new Vector3(128, 128, 70);
                     agent.child = true;
+                    agent.Appearance = avatar.Appearance;
 
                     if (newRegions.Contains(neighbour.RegionHandle))
                     {
@@ -515,6 +516,9 @@ namespace OpenSim.Region.Framework.Scenes
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
+            if (avatar.Appearance == null)
+                m_log.Debug("XXX Appearance is null!!!!");
+            agent.Appearance = avatar.Appearance;
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
             d.BeginInvoke(avatar, agent, region, region.ExternalEndPoint, true,

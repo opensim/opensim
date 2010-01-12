@@ -2683,6 +2683,8 @@ namespace OpenSim.Region.Framework.Scenes
                 //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
 
                 ScenePresence sp = CreateAndAddScenePresence(client);
+                sp.Appearance = aCircuit.Appearance;
+
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.
                 // All other AddNewClient calls find aCircuit.child to be true
