@@ -482,6 +482,8 @@
     ; OfflineMessageURL = http://yourserver/Offline.php
     ; MuteListModule = MuteListModule
     ; MuteListURL = http://yourserver/Mute.php
+
+    ; Control whether group messages are forwarded to offline users.  Default is true.
     ; ForwardOfflineGroupMessages = true
 
 
