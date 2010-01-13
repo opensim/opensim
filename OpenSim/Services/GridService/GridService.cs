@@ -127,10 +127,11 @@ namespace OpenSim.Services.GridService
             else
             {
                 rdata.Data["flags"] = "0";
-                if (gridConfig != null)
+                if ((gridConfig != null) && rdata.RegionName != string.Empty)
                 {
                     int newFlags = 0;
-                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionName, String.Empty));
+                    string regionName = rdata.RegionName.Trim().Replace(' ', '_');
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + regionName, String.Empty));
                     newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
                     rdata.Data["flags"] = newFlags.ToString();
                 }
