@@ -62,7 +62,7 @@ namespace OpenSim.Services.GridService
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
@@ -71,7 +71,7 @@ namespace OpenSim.Services.GridService
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
-                return false;
+                return "Region overlaps another region";
             }
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
@@ -101,7 +101,7 @@ namespace OpenSim.Services.GridService
                         {
                             m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register duplicate name with ID {1}.", 
                                 regionInfos.RegionName, regionInfos.RegionID);
-                            return false;
+                            return "Duplicate region name";
                         }
                     }
                 }
@@ -122,7 +122,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
                 regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
 
-            return true;
+            return String.Empty;
         }
 
         public bool DeregisterRegion(UUID regionID)

@@ -200,7 +200,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             // Region doesn't exist here. Trying to link remote region
             if (regionInfo.RegionID.Equals(UUID.Zero))
@@ -215,12 +215,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
                     // Try get the map image
                     m_HypergridServiceConnector.GetMapImage(regionInfo);
-                    return true;
+                    return String.Empty;
                 }
                 else
                 {
                     m_log.Info("[HGrid]: No such region " + regionInfo.ExternalHostName + ":" + regionInfo.HttpPort + "(" + regionInfo.InternalEndPoint.Port + ")");
-                    return false;
+                    return "No such region";
                 }
                 // Note that these remote regions aren't registered in localBackend, so return null, no local listeners
             }
@@ -469,7 +469,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             }
 
             // Finally, link it
-                if (!RegisterRegion(UUID.Zero, regInfo))
+                if (RegisterRegion(UUID.Zero, regInfo) != String.Empty)
                 {
                     m_log.Warn("[HGrid]: Unable to link region");
                     return false;
