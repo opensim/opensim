@@ -122,28 +122,36 @@ namespace OpenSim.Services.UserAccountService
             u.LastName = d.LastName;
             u.PrincipalID = d.PrincipalID;
             u.ScopeID = d.ScopeID;
-            u.Email = d.Data["Email"].ToString();
+            if (d.Data.ContainsKey("Email") && d.Data["Email"] != null)
+                u.Email = d.Data["Email"].ToString();
+            else
+                u.Email = string.Empty;
             u.Created = Convert.ToInt32(d.Data["Created"].ToString());
-            if (d.Data["UserTitle"] != null)
+            if (d.Data.ContainsKey("UserTitle") && d.Data["UserTitle"] != null)
                 u.UserTitle = d.Data["UserTitle"].ToString();
             else
                 u.UserTitle = string.Empty;
 
-            string[] URLs = d.Data["ServiceURLs"].ToString().Split(new char[] { ' ' });
-            u.ServiceURLs = new Dictionary<string, object>();
-
-            foreach (string url in URLs)
+            if (d.Data.ContainsKey("ServiceURLs") && d.Data["ServiceURLs"] != null)
             {
-                string[] parts = url.Split(new char[] { '=' });
+                string[] URLs = d.Data["ServiceURLs"].ToString().Split(new char[] { ' ' });
+                u.ServiceURLs = new Dictionary<string, object>();
 
-                if (parts.Length != 2)
-                    continue;
+                foreach (string url in URLs)
+                {
+                    string[] parts = url.Split(new char[] { '=' });
 
-                string name = System.Web.HttpUtility.UrlDecode(parts[0]);
-                string val = System.Web.HttpUtility.UrlDecode(parts[1]);
+                    if (parts.Length != 2)
+                        continue;
 
-                u.ServiceURLs[name] = val;
+                    string name = System.Web.HttpUtility.UrlDecode(parts[0]);
+                    string val = System.Web.HttpUtility.UrlDecode(parts[1]);
+
+                    u.ServiceURLs[name] = val;
+                }
             }
+            else
+                u.ServiceURLs = new Dictionary<string, object>();
 
             return u;
         }

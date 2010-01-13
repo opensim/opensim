@@ -42,7 +42,7 @@ namespace OpenSim.Services.UserAccountService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = "useraccounts";
+            string realm = "UserAccounts";
 
             IConfig dbConfig = config.Configs["DatabaseService"];
             if (dbConfig != null)
