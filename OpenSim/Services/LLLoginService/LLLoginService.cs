@@ -376,6 +376,9 @@ namespace OpenSim.Services.LLLoginService
             aCircuit.AgentID = account.PrincipalID;
             if (avatar != null)
                 aCircuit.Appearance = avatar.ToAvatarAppearance(account.PrincipalID);
+            else
+                aCircuit.Appearance = new AvatarAppearance(account.PrincipalID);
+
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             aCircuit.child = false; // the first login agent is root
