@@ -2553,6 +2553,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 return false;
             }
+
+            sceneObject.SetScene(this);
+
             // Force allocation of new LocalId
             //
             foreach (SceneObjectPart p in sceneObject.Children.Values)

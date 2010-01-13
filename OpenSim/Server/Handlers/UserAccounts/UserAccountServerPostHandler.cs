@@ -68,7 +68,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             //httpRequest.Headers["authorization"] ...
 
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
-
+            string method = string.Empty;
             try
             {
                 Dictionary<string, object> request =
@@ -77,7 +77,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 if (!request.ContainsKey("METHOD"))
                     return FailureResult();
 
-                string method = request["METHOD"].ToString();
+                method = request["METHOD"].ToString();
 
                 switch (method)
                 {
@@ -88,11 +88,11 @@ namespace OpenSim.Server.Handlers.UserAccounts
                     case "setaccount":
                         return StoreAccount(request);
                 }
-                m_log.DebugFormat("[PRESENCE HANDLER]: unknown method request: {0}", method);
+                m_log.DebugFormat("[USER SERVICE HANDLER]: unknown method request: {0}", method);
             }
             catch (Exception e)
             {
-                m_log.Debug("[PRESENCE HANDLER]: Exception {0}" + e);
+                m_log.DebugFormat("[USER SERVICE HANDLER]: Exception in method {0}: {1}", method, e);
             }
 
             return FailureResult();
@@ -134,7 +134,9 @@ namespace OpenSim.Server.Handlers.UserAccounts
             if (account == null)
                 result["result"] = "null";
             else
+            {
                 result["result"] = account.ToKeyValuePairs();
+            }
 
             return ResultToBytes(result);
         }
@@ -247,7 +249,6 @@ namespace OpenSim.Server.Handlers.UserAccounts
         private byte[] ResultToBytes(Dictionary<string, object> result)
         {
             string xmlString = ServerUtils.BuildXmlResponse(result);
-            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
         }

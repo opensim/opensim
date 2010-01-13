@@ -65,7 +65,7 @@ namespace OpenSim.Server.Handlers.Presence
             body = body.Trim();
 
             //m_log.DebugFormat("[XXX]: query String: {0}", body);
-
+            string method = string.Empty;
             try
             {
                 Dictionary<string, object> request =
@@ -74,7 +74,7 @@ namespace OpenSim.Server.Handlers.Presence
                 if (!request.ContainsKey("METHOD"))
                     return FailureResult();
 
-                string method = request["METHOD"].ToString();
+                method = request["METHOD"].ToString();
 
                 switch (method)
                 {
@@ -97,7 +97,7 @@ namespace OpenSim.Server.Handlers.Presence
             }
             catch (Exception e)
             {
-                m_log.Debug("[PRESENCE HANDLER]: Exception {0}" + e);
+                m_log.DebugFormat("[PRESENCE HANDLER]: Exception in method {0}: {1}", method, e);
             }
 
             return FailureResult();
@@ -188,9 +188,11 @@ namespace OpenSim.Server.Handlers.Presence
 
             if (request.ContainsKey("lookAt"))
                 Vector3.TryParse(request["lookAt"].ToString(), out look);
-            
+
             if (m_PresenceService.ReportAgent(session, region, position, look))
+            {
                 return SuccessResult();
+            }
 
             return FailureResult();
         }

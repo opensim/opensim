@@ -119,6 +119,10 @@ namespace OpenSim.Services.UserAccountService
             u.ScopeID = d.ScopeID;
             u.Email = d.Data["Email"].ToString();
             u.Created = Convert.ToInt32(d.Data["Created"].ToString());
+            if (d.Data["UserTitle"] != null)
+                u.UserTitle = d.Data["UserTitle"].ToString();
+            else
+                u.UserTitle = string.Empty;
 
             string[] URLs = d.Data["ServiceURLs"].ToString().Split(new char[] { ' ' });
             u.ServiceURLs = new Dictionary<string, object>();

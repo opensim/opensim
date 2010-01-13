@@ -61,11 +61,11 @@ namespace OpenSim.Server.Handlers.Simulation
         {
             //m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
 
-            m_log.Debug("---------------------------");
-            m_log.Debug(" >> uri=" + request["uri"]);
-            m_log.Debug(" >> content-type=" + request["content-type"]);
-            m_log.Debug(" >> http-method=" + request["http-method"]);
-            m_log.Debug("---------------------------\n");
+            //m_log.Debug("---------------------------");
+            //m_log.Debug(" >> uri=" + request["uri"]);
+            //m_log.Debug(" >> content-type=" + request["content-type"]);
+            //m_log.Debug(" >> http-method=" + request["http-method"]);
+            //m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -320,7 +320,7 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
 
-            m_log.Debug("[AGENT HANDLER]: Agent Deleted.");
+            m_log.Debug("[AGENT HANDLER]: Agent Released/Deleted.");
         }
     }
 

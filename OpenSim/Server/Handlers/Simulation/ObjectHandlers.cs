@@ -59,13 +59,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
         public Hashtable Handler(Hashtable request)
         {
-            m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
+            //m_log.Debug("[CONNECTION DEBUGGING]: ObjectHandler Called");
 
-            m_log.Debug("---------------------------");
-            m_log.Debug(" >> uri=" + request["uri"]);
-            m_log.Debug(" >> content-type=" + request["content-type"]);
-            m_log.Debug(" >> http-method=" + request["http-method"]);
-            m_log.Debug("---------------------------\n");
+            //m_log.Debug("---------------------------");
+            //m_log.Debug(" >> uri=" + request["uri"]);
+            //m_log.Debug(" >> content-type=" + request["content-type"]);
+            //m_log.Debug(" >> http-method=" + request["http-method"]);
+            //m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -75,7 +75,7 @@ namespace OpenSim.Server.Handlers.Simulation
             string action;
             if (!Utils.GetParams((string)request["uri"], out objectID, out regionID, out action))
             {
-                m_log.InfoFormat("[REST COMMS]: Invalid parameters for object message {0}", request["uri"]);
+                m_log.InfoFormat("[OBJECT HANDLER]: Invalid parameters for object message {0}", request["uri"]);
                 responsedata["int_response_code"] = 404;
                 responsedata["str_response_string"] = "false";
 
@@ -101,7 +101,7 @@ namespace OpenSim.Server.Handlers.Simulation
             //}
             else
             {
-                m_log.InfoFormat("[REST COMMS]: method {0} not supported in object message", method);
+                m_log.InfoFormat("[OBJECT HANDLER]: method {0} not supported in object message", method);
                 responsedata["int_response_code"] = HttpStatusCode.MethodNotAllowed;
                 responsedata["str_response_string"] = "Mthod not allowed";
 
@@ -148,13 +148,13 @@ namespace OpenSim.Server.Handlers.Simulation
             ISceneObject sog = null;
             try
             {
-                //sog = SceneObjectSerializer.FromXml2Format(sogXmlStr);
+                //m_log.DebugFormat("[OBJECT HANDLER]: received {0}", sogXmlStr);
                 sog = s.DeserializeObject(sogXmlStr);
                 sog.ExtraFromXmlString(extraStr);
             }
             catch (Exception ex)
             {
-                m_log.InfoFormat("[REST COMMS]: exception on deserializing scene object {0}", ex.Message);
+                m_log.InfoFormat("[OBJECT HANDLER]: exception on deserializing scene object {0}", ex.Message);
                 responsedata["int_response_code"] = HttpStatusCode.BadRequest;
                 responsedata["str_response_string"] = "Bad request";
                 return;
@@ -171,13 +171,22 @@ namespace OpenSim.Server.Handlers.Simulation
                     }
                     catch (Exception ex)
                     {
-                        m_log.InfoFormat("[REST COMMS]: exception on setting state for scene object {0}", ex.Message);
+                        m_log.InfoFormat("[OBJECT HANDLER]: exception on setting state for scene object {0}", ex.Message);
                         // ignore and continue
                     }
                 }
             }
-            // This is the meaning of POST object
-            bool result = m_SimulationService.CreateObject(destination, sog, false);
+
+            bool result = false;
+            try
+            {
+                // This is the meaning of POST object
+                result = m_SimulationService.CreateObject(destination, sog, false);
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[OBJECT HANDLER]: Exception in CreateObject: {0}", e.StackTrace);
+            }
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = result.ToString();

@@ -2358,7 +2358,7 @@ namespace OpenSim.Region.Framework.Scenes
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
 
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, /*item.AssetID*/ att.UUID);
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
             }
             return att.UUID;
         }
@@ -2403,7 +2403,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // XXYY!!
                 InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
                 item = InventoryService.GetItem(item);
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, /*item.AssetID*/ att.UUID);
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /* att.UUID */);
 
                 if (m_AvatarFactory != null)
                 {

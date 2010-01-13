@@ -98,11 +98,11 @@ namespace OpenSim.Services.Interfaces
                 string str = kvp["ServiceURLs"].ToString();
                 if (str != string.Empty)
                 {
-                    string[] parts = str.Split(new char[] { '#' });
+                    string[] parts = str.Split(new char[] { ';' });
                     Dictionary<string, object> dic = new Dictionary<string, object>();
                     foreach (string s in parts)
                     {
-                        string[] parts2 = s.Split(new char[] { '=' });
+                        string[] parts2 = s.Split(new char[] { '*' });
                         if (parts2.Length == 2)
                             ServiceURLs[parts2[0]] = parts2[1];
                     }
@@ -119,14 +119,14 @@ namespace OpenSim.Services.Interfaces
             result["PrincipalID"] = PrincipalID.ToString();
             result["ScopeID"] = ScopeID.ToString();
             result["Created"] = Created.ToString();
-            result["UserLavel"] = UserLevel.ToString();
+            result["UserLevel"] = UserLevel.ToString();
             result["UserFlags"] = UserFlags.ToString();
             result["UserTitle"] = UserTitle;
 
             string str = string.Empty;
             foreach (KeyValuePair<string, object> kvp in ServiceURLs)
             {
-                str += kvp.Key + "=" + kvp.Value + "#";
+                str += kvp.Key + "*" + (kvp.Value == null ? "" : kvp.Value) + ";";
             }
             result["ServiceURLs"] = str;
 

@@ -281,7 +281,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                 return false;
 
             // Try local first
-            if (m_localBackend.CreateObject(destination, sog, true))
+            if (m_localBackend.CreateObject(destination, sog, isLocalCall))
             {
                 //m_log.Debug("[REST COMMS]: LocalBackEnd SendCreateObject succeeded");
                 return true;

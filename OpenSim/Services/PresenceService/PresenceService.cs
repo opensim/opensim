@@ -121,7 +121,7 @@ namespace OpenSim.Services.PresenceService
 
         public bool ReportAgent(UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            //m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
+            m_log.DebugFormat("[PRESENCE SERVICE]: ReportAgent with session {0} in region {1}", sessionID, regionID);
             try
             {
                 PresenceData pdata = m_Database.Get(sessionID);

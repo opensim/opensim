@@ -414,7 +414,7 @@ namespace OpenSim.Region.Framework.Scenes
             /// Create the necessary child agents
             List<AgentCircuitData> cagents = new List<AgentCircuitData>();
             foreach (GridRegion neighbour in neighbours)
-                {
+            {
                 if (neighbour.RegionHandle != avatar.Scene.RegionInfo.RegionHandle)
                 {
 
@@ -446,7 +446,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (avatar.Scene.CapsModule != null)
             {
-                // These two are the same thing!
                 avatar.Scene.CapsModule.SetChildrenSeed(avatar.UUID, seeds);
             }
             avatar.KnownRegions = seeds;
@@ -516,8 +515,6 @@ namespace OpenSim.Region.Framework.Scenes
             agent.InventoryFolder = UUID.Zero;
             agent.startpos = new Vector3(128, 128, 70);
             agent.child = true;
-            if (avatar.Appearance == null)
-                m_log.Debug("XXX Appearance is null!!!!");
             agent.Appearance = avatar.Appearance;
 
             InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
@@ -1450,17 +1447,17 @@ namespace OpenSim.Region.Framework.Scenes
             return m_scene.GridService.GetRegionsByName(UUID.Zero, name, maxNumber);
         }
 
-        //private void Dump(string msg, List<ulong> handles)
-        //{
-        //    m_log.InfoFormat("-------------- HANDLE DUMP ({0}) ---------", msg);
-        //    foreach (ulong handle in handles)
-        //    {
-        //        uint x, y;
-        //        Utils.LongToUInts(handle, out x, out y);
-        //        x = x / Constants.RegionSize;
-        //        y = y / Constants.RegionSize;
-        //        m_log.InfoFormat("({0}, {1})", x, y);
-        //    }
-        //}
+        private void Dump(string msg, List<ulong> handles)
+        {
+            m_log.InfoFormat("-------------- HANDLE DUMP ({0}) ---------", msg);
+            foreach (ulong handle in handles)
+            {
+                uint x, y;
+                Utils.LongToUInts(handle, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                m_log.InfoFormat("({0}, {1})", x, y);
+            }
+        }
     }
 }

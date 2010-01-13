@@ -278,6 +278,9 @@ namespace OpenSim.Server.Base
         {
             foreach (KeyValuePair<string, object> kvp in data)
             {
+                if (kvp.Value == null)
+                    continue;
+
                 XmlElement elem = parent.OwnerDocument.CreateElement("",
                         kvp.Key, "");
 

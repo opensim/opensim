@@ -231,7 +231,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: Unable to resolve external endpoint on agent update. Reason: " + e.Message);
                 return false;
             }
-            Console.WriteLine("   >>> DoAgentUpdateCall <<< " + uri);
+            //Console.WriteLine("   >>> DoAgentUpdateCall <<< " + uri);
 
             HttpWebRequest ChildUpdateRequest = (HttpWebRequest)WebRequest.Create(uri);
             ChildUpdateRequest.Method = "PUT";
@@ -478,7 +478,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
             string uri
                 = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/object/" + sog.UUID + "/";
-            //m_log.Debug("   >>> DoCreateChildAgentCall <<< " + uri);
+            //m_log.Debug("   >>> DoCreateObjectCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);
             ObjectCreateRequest.Method = "POST";
