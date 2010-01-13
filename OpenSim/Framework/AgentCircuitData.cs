@@ -157,28 +157,34 @@ namespace OpenSim.Framework
             args["start_pos"] = OSD.FromString(startpos.ToString());
             args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
 
-            // We might not pass this in all cases...
-            if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
+            if (Appearance != null)
             {
-                OSDArray wears = new OSDArray(Appearance.Wearables.Length);
-                foreach (AvatarWearable awear in Appearance.Wearables)
+                //System.Console.WriteLine("XXX Before packing Wearables");
+                if ((Appearance.Wearables != null) && (Appearance.Wearables.Length > 0))
                 {
-                    wears.Add(OSD.FromUUID(awear.ItemID));
-                    wears.Add(OSD.FromUUID(awear.AssetID));
+                    OSDArray wears = new OSDArray(Appearance.Wearables.Length * 2);
+                    foreach (AvatarWearable awear in Appearance.Wearables)
+                    {
+                        wears.Add(OSD.FromUUID(awear.ItemID));
+                        wears.Add(OSD.FromUUID(awear.AssetID));
+                        //System.Console.WriteLine("XXX ItemID=" + awear.ItemID + " assetID=" + awear.AssetID);
+                    }
+                    args["wearables"] = wears;
                 }
-                args["wearables"] = wears;
-            }
 
-           Dictionary<int, UUID[]> attachments = Appearance.GetAttachmentDictionary();
-           if ((attachments != null) && (attachments.Count > 0))
-            {
-                OSDArray attachs = new OSDArray(attachments.Count);
-                foreach (KeyValuePair<int, UUID[]> kvp in attachments)
+                //System.Console.WriteLine("XXX Before packing Attachments");
+                Dictionary<int, UUID[]> attachments = Appearance.GetAttachmentDictionary();
+                if ((attachments != null) && (attachments.Count > 0))
                 {
-                    AttachmentData adata = new AttachmentData(kvp.Key, kvp.Value[0], kvp.Value[1]);
-                    attachs.Add(adata.PackUpdateMessage());
+                    OSDArray attachs = new OSDArray(attachments.Count);
+                    foreach (KeyValuePair<int, UUID[]> kvp in attachments)
+                    {
+                        AttachmentData adata = new AttachmentData(kvp.Key, kvp.Value[0], kvp.Value[1]);
+                        attachs.Add(adata.PackUpdateMessage());
+                        //System.Console.WriteLine("XXX att.pt=" + kvp.Key + "; itemID=" + kvp.Value[0] + "; assetID=" + kvp.Value[1]);
+                    }
+                    args["attachments"] = attachs;
                 }
-                args["attachments"] = attachs;
             }
 
             return args;

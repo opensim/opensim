@@ -189,6 +189,8 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         agentCircuit.InventoryFolder = UUID.Zero;
                         agentCircuit.startpos = position;
                         agentCircuit.child = true;
+                        agentCircuit.Appearance = avatar.Appearance;
+
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed

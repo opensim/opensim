@@ -803,6 +803,7 @@ namespace OpenSim.Region.Framework.Scenes
                         agentCircuit.InventoryFolder = UUID.Zero;
                         agentCircuit.startpos = position;
                         agentCircuit.child = true;
+                        agentCircuit.Appearance = avatar.Appearance;
                         
                         if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
