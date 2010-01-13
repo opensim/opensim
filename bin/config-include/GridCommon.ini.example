@@ -21,6 +21,12 @@
     ;
     GridServerURI = "http://mygridserver.com:8003"
 
+[AvatarService]
+    ;
+    ; change this to your grid-wide grid server
+    ;
+    AvatarServerURI = "http://mygridserver.com:8003"
+
 [PresenceService]
     ;
     ; change this to your grid-wide presence server
