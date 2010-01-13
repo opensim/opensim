@@ -148,7 +148,7 @@ namespace OpenSim.Services.Connectors
 
 
             string reqString = ServerUtils.BuildQueryString(sendData);
-            m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
+            //m_log.DebugFormat("[AVATAR CONNECTOR]: queryString = {0}", reqString);
             try
             {
                 string reply = SynchronousRestFormsRequester.MakeRequest("POST",
