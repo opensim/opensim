@@ -252,14 +252,15 @@ namespace OpenSim.Services.LLLoginService
 
                 if (pinfo.HomeRegionID.Equals(UUID.Zero))
                 {
-                    if (m_DefaultRegionName != string.Empty)
+                    List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
+                    if (defaults != null && defaults.Count > 0)
                     {
-                        region = m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
+                        region = defaults[0];
                         where = "safe";
                     }
                     else
-                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have a default location." +
-                                         "Please specify DefaultRegion in [LoginService]", account.FirstName, account.LastName);
+                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have default locations.", 
+                            account.FirstName, account.LastName);
                 }
                 else
                     region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID);
@@ -280,8 +281,12 @@ namespace OpenSim.Services.LLLoginService
 
                 if (pinfo.RegionID.Equals(UUID.Zero))
                 {
-                    region = m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
-                    where = "safe";
+                    List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
+                    if (defaults != null && defaults.Count > 0)
+                    {
+                        region = defaults[0];
+                        where = "safe";
+                    }
                 }
                 else
                 {
@@ -321,8 +326,18 @@ namespace OpenSim.Services.LLLoginService
                             List<GridRegion> regions = m_GridService.GetRegionsByName(account.ScopeID, regionName, 1);
                             if ((regions == null) || (regions != null && regions.Count == 0))
                             {
-                                m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, can't locate region {1}", startLocation, regionName);
-                                return null;
+                                m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, can't locate region {1}. Trying defaults.", startLocation, regionName);
+                                regions = m_GridService.GetDefaultRegions(UUID.Zero);
+                                if (regions != null && regions.Count > 0)
+                                {
+                                    where = "safe"; 
+                                    return regions[0];
+                                }
+                                else
+                                {
+                                    m_log.InfoFormat("[LLLOGIN SERVICE]: Got Custom Login URI {0}, Grid does not provide default regions.", startLocation);
+                                    return null;
+                                }
                             }
                             return regions[0];
                         }
@@ -355,8 +370,14 @@ namespace OpenSim.Services.LLLoginService
                         if (m_PresenceService == null || m_GridService == null)
                             return null;
 
-                        return m_GridService.GetRegionByName(account.ScopeID, m_DefaultRegionName);
-
+                        List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
+                        if (defaults != null && defaults.Count > 0)
+                        {
+                            where = "safe"; 
+                            return defaults[0];
+                        }
+                        else
+                            return null;
                     }
                 }
                 //response.LookAt = "[r0,r1,r0]";

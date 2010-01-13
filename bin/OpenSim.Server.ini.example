@@ -55,6 +55,11 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     Realm = "regions"
+    ;; Next, we can specify properties of regions, including default and fallback regions
+    ;; The syntax is: Region_<RegioName> = "<flags>"
+    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
+    ;; For example:
+    Region_WelcomeArea = "DefaultRegion, FallbackRegion"
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]

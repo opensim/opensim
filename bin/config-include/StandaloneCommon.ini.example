@@ -39,6 +39,11 @@
     ;;--- For MySql region storage (alternative)
  	;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 	;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
+    ;; Next, we can specify properties of regions, including default and fallback regions
+    ;; The syntax is: Region_<RegioName> = "<flags>"
+    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
+    ;; For example:
+    Region_WelcomeArea = "DefaultRegion, FallbackRegion"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
