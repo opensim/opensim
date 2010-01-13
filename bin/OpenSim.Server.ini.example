@@ -88,6 +88,12 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     ; Realm = "useraccounts"
+    ;; These are for creating new accounts by the service
+    AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridService = "OpenSim.Services.GridService.dll:GridService"
+    InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
+
 
 [PresenceService]
     ; for the server connector

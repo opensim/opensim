@@ -47,6 +47,7 @@ namespace OpenSim.Services.UserAccountService
         protected IGridService m_GridService;
         protected IAuthenticationService m_AuthenticationService;
         protected IPresenceService m_PresenceService;
+        protected IInventoryService m_InventoryService;
 
         public UserAccountService(IConfigSource config)
             : base(config)
@@ -71,6 +72,10 @@ namespace OpenSim.Services.UserAccountService
                 string presenceServiceDll = userConfig.GetString("PresenceService", string.Empty);
                 if (presenceServiceDll != string.Empty)
                     m_PresenceService = LoadPlugin<IPresenceService>(presenceServiceDll, new Object[] { config });
+
+                string invServiceDll = userConfig.GetString("InventoryService", string.Empty);
+                if (invServiceDll != string.Empty)
+                    m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
 
                 MainConsole.Instance.Commands.AddCommand("UserService", false,
                         "create user",
@@ -290,6 +295,13 @@ namespace OpenSim.Services.UserAccountService
                     else
                         m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
                            firstName, lastName);
+
+                    if (m_InventoryService != null)
+                        success = m_InventoryService.CreateUserInventory(account.PrincipalID);
+                    if (!success)
+                        m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
+                           firstName, lastName);
+
 
                     m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", firstName, lastName);
                 }
