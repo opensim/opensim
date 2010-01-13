@@ -892,9 +892,7 @@ namespace OpenSim.Region.Framework.Scenes
                     presence.Animator.SendAnimPackToClient(ControllingClient);
             }
 
-            m_log.Warn("BEFORE ON MAKE ROOT");
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
-            m_log.Warn("AFTER ON MAKE ROOT");
         }
 
         /// <summary>
