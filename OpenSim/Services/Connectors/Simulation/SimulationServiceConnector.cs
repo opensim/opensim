@@ -426,7 +426,7 @@ namespace OpenSim.Services.Connectors.Simulation
             string uri = string.Empty;
             try
             {
-                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + id + "/" + destination.RegionHandle.ToString() + "/";
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + id + "/" + destination.RegionID.ToString() + "/";
             }
             catch (Exception e)
             {
