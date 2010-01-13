@@ -115,7 +115,7 @@ namespace OpenSim.Services.Connectors
                     }
                     else if (replyData.ContainsKey("Result")&& (replyData["Result"].ToString().ToLower() == "failure"))
                     {
-                        m_log.DebugFormat("[GRID CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
+                        m_log.DebugFormat("[GRID CONNECTOR]: Registration failed: {0}", replyData["Message"].ToString());
                         return replyData["Message"].ToString();
                     }
                     else if (!replyData.ContainsKey("Result"))
