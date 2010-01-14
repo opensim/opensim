@@ -46,6 +46,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IUserAccountService m_UserService;
+        private UserAccountCache m_Cache;
 
         private bool m_Enabled = false;
 
@@ -96,6 +97,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                         return;
                     }
                     m_Enabled = true;
+                    m_Cache = new UserAccountCache();
+
                     m_log.Info("[USER CONNECTOR]: Local user connector enabled");
                 }
             }
@@ -139,12 +142,28 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            return m_UserService.GetUserAccount(scopeID, userID);
+            UserAccount account = m_Cache.Get(userID);
+            if (account != null)
+                return account;
+
+            account = m_UserService.GetUserAccount(scopeID, userID);
+            if (account != null)
+                m_Cache.Cache(account);
+
+            return account;
         }
 
-        public UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName)
+        public UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
-            return m_UserService.GetUserAccount(scopeID, FirstName, LastName);
+            UserAccount account = m_Cache.Get(firstName + " " + lastName);
+            if (account != null)
+                return account;
+
+            account = m_UserService.GetUserAccount(scopeID, firstName, lastName);
+            if (account != null)
+                m_Cache.Cache(account);
+
+            return account;
         }
 
         public UserAccount GetUserAccount(UUID scopeID, string Email)

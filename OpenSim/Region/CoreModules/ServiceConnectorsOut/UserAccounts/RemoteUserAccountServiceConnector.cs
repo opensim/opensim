@@ -34,6 +34,8 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Connectors;
 
+using OpenMetaverse;
+
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
     public class RemoteUserAccountServicesConnector : UserAccountServicesConnector,
@@ -44,6 +46,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
+        private UserAccountCache m_Cache;
 
         public Type ReplaceableInterface 
         {
@@ -73,6 +76,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                     m_Enabled = true;
 
                     base.Initialise(source);
+                    m_Cache = new UserAccountCache();
 
                     m_log.Info("[USER CONNECTOR]: Remote users enabled");
                 }
@@ -110,5 +114,35 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
             if (!m_Enabled)
                 return;
         }
+
+        #region Overwritten methods from IUserAccountService
+
+        public override UserAccount GetUserAccount(UUID scopeID, UUID userID)
+        {
+            UserAccount account = m_Cache.Get(userID);
+            if (account != null)
+                return account;
+
+            account = base.GetUserAccount(scopeID, userID);
+            if (account != null)
+                m_Cache.Cache(account);
+
+            return account;
+        }
+
+        public override UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
+        {
+            UserAccount account = m_Cache.Get(firstName + " " + lastName);
+            if (account != null)
+                return account;
+
+            account = base.GetUserAccount(scopeID, firstName, lastName);
+            if (account != null)
+                m_Cache.Cache(account);
+
+            return account;
+        }
+
+        #endregion
     }
 }
