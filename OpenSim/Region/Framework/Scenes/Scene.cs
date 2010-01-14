@@ -3791,7 +3791,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SendReleaseAgent(UUID origin, UUID id, string uri)
         {
             //m_interregionCommsOut.SendReleaseAgent(regionHandle, id, uri);
-            m_simulationService.ReleaseAgent(origin, id, uri);
+            SimulationService.ReleaseAgent(origin, id, uri);
         }
 
         /// <summary>

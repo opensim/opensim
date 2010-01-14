@@ -251,7 +251,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                     return s.IncomingReleaseAgent(id);
                 }
             }
-            //m_log.Debug("[LOCAL COMMS]: region not found in SendReleaseAgent");
+            //m_log.Debug("[LOCAL COMMS]: region not found in SendReleaseAgent " + origin);
             return false;
         }
 
@@ -262,7 +262,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
 
             foreach (Scene s in m_sceneList)
             {
-                if (s.RegionInfo.RegionHandle == destination.RegionHandle)
+                if (s.RegionInfo.RegionID == destination.RegionID)
                 {
                     //m_log.Debug("[LOCAL COMMS]: Found region to SendCloseAgent");
                     return s.IncomingCloseAgent(id);

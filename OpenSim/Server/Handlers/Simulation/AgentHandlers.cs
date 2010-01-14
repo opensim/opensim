@@ -59,13 +59,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
         public Hashtable Handler(Hashtable request)
         {
-            //m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
+            m_log.Debug("[CONNECTION DEBUGGING]: AgentHandler Called");
 
-            //m_log.Debug("---------------------------");
-            //m_log.Debug(" >> uri=" + request["uri"]);
-            //m_log.Debug(" >> content-type=" + request["content-type"]);
-            //m_log.Debug(" >> http-method=" + request["http-method"]);
-            //m_log.Debug("---------------------------\n");
+            m_log.Debug("---------------------------");
+            m_log.Debug(" >> uri=" + request["uri"]);
+            m_log.Debug(" >> content-type=" + request["content-type"]);
+            m_log.Debug(" >> http-method=" + request["http-method"]);
+            m_log.Debug("---------------------------\n");
 
             Hashtable responsedata = new Hashtable();
             responsedata["content_type"] = "text/html";
@@ -307,7 +307,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
         {
-            //m_log.Debug(" >>> DoDelete action:" + action + "; regionHandle:" + regionHandle);
+            m_log.Debug(" >>> DoDelete action:" + action + "; RegionID:" + regionID);
 
             GridRegion destination = new GridRegion();
             destination.RegionID = regionID;

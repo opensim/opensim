@@ -283,7 +283,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
                         m_scene.SimulationService.UpdateAgent(reg, agent);
 
                         m_log.DebugFormat(
-                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", agentCircuit.CapsPath, avatar.UUID);
+                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
 
 
                         ///
