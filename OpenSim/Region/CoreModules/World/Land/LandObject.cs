@@ -267,11 +267,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsEitherBannedOrRestricted(UUID avatar)
         {
-            if (IsBannedFromLand(avatar))
-            {
-                return true;
-            }
-            else if (IsRestrictedFromLand(avatar))
+            if (IsRestrictedFromLand(avatar) || IsBannedFromLand(avatar))
             {
                 return true;
             }
@@ -280,7 +276,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsBannedFromLand(UUID avatar)
         {
-            if ((LandData.Flags & (uint) ParcelFlags.UseBanList) > 0)
+            ScenePresence SP = m_scene.GetScenePresence(avatar);
+            if ((LandData.Flags & (uint)ParcelFlags.UseBanList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
@@ -288,8 +285,22 @@ namespace OpenSim.Region.CoreModules.World.Land
                 entry.Time = new DateTime();
                 if (LandData.ParcelAccessList.Contains(entry))
                 {
-                    //They are banned, so lets send them a notice about this parcel
-                    return true;
+                    if ((LandData.Flags & (uint)ParcelFlags.UseAccessGroup) > 0)
+                    {
+                        if (LandData.GroupID == SP.ControllingClient.ActiveGroupId)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -297,7 +308,8 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public bool IsRestrictedFromLand(UUID avatar)
         {
-            if ((LandData.Flags & (uint) ParcelFlags.UseAccessList) > 0)
+            ScenePresence SP = m_scene.GetScenePresence(avatar);
+            if ((LandData.Flags & (uint)ParcelFlags.UseAccessList) > 0)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
                 entry.AgentID = avatar;
@@ -305,8 +317,22 @@ namespace OpenSim.Region.CoreModules.World.Land
                 entry.Time = new DateTime();
                 if (!LandData.ParcelAccessList.Contains(entry))
                 {
-                    //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
-                    return true;
+                    if ((LandData.Flags & (uint)ParcelFlags.UseAccessGroup) > 0)
+                    {
+                        if (LandData.GroupID == SP.ControllingClient.ActiveGroupId)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
