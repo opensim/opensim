@@ -46,15 +46,23 @@ namespace OpenSim.Services.GridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected bool m_AllowDuplicateNames = false;
+
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
+
+            IConfig gridConfig = config.Configs["GridService"];
+            if (gridConfig != null)
+            {
+                m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
+            }
         }
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
@@ -63,7 +71,7 @@ namespace OpenSim.Services.GridService
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
-                return false;
+                return "Region overlaps another region";
             }
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
@@ -82,6 +90,23 @@ namespace OpenSim.Services.GridService
                 }
             }
 
+            if (!m_AllowDuplicateNames)
+            {
+                List<RegionData> dupe = m_Database.Get(regionInfos.RegionName, scopeID);
+                if (dupe != null && dupe.Count > 0)
+                {
+                    foreach (RegionData d in dupe)
+                    {
+                        if (d.RegionID != regionInfos.RegionID)
+                        {
+                            m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register duplicate name with ID {1}.", 
+                                regionInfos.RegionName, regionInfos.RegionID);
+                            return "Duplicate region name";
+                        }
+                    }
+                }
+            }
+
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
@@ -97,7 +122,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
                 regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
 
-            return true;
+            return String.Empty;
         }
 
         public bool DeregisterRegion(UUID regionID)

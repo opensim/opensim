@@ -1589,9 +1589,9 @@ namespace OpenSim.Region.Framework.Scenes
             //m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
 
             GridRegion region = new GridRegion(RegionInfo);
-            bool success = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-            if (!success)
-                throw new Exception("Can't register with grid");
+            string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+            if (error != String.Empty)
+                throw new Exception(error);
 
             m_sceneGridService.SetScene(this);
             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);

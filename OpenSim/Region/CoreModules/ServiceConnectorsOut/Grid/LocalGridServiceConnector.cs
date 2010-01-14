@@ -169,7 +169,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             return m_GridService.RegisterRegion(scopeID, regionInfo);
         }

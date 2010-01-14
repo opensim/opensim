@@ -7456,23 +7456,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            ScenePresence[] presences = World.GetScenePresences();
-            if (presences.Length == 0)
-                return 0;
-
             int avatarCount = 0;
-            for (int i = 0; i < presences.Length; i++)
+            World.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                ScenePresence presence = presences[i];
-
-                if (!presence.IsChildAgent && presence.ParentID != 0)
-                {
-                    if (m_host.ParentGroup.HasChildPrim(presence.ParentID))
-                    {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                         avatarCount++;
-                    }
-                }
-            }
+            });
 
             return m_host.ParentGroup.PrimCount + avatarCount;
         }
