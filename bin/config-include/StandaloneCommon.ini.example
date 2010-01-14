@@ -43,7 +43,7 @@
     ;; The syntax is: Region_<RegioName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
     ;; For example:
-    Region_WelcomeArea = "DefaultRegion, FallbackRegion"
+    Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library

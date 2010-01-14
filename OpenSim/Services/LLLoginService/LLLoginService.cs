@@ -108,7 +108,9 @@ namespace OpenSim.Services.LLLoginService
 
             try
             {
+                //
                 // Get the account and check that it exists
+                //
                 UserAccount account = m_UserAccountService.GetUserAccount(UUID.Zero, firstName, lastName);
                 if (account == null)
                 {
@@ -122,7 +124,9 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
+                //
                 // Authenticate this user
+                //
                 if (!passwd.StartsWith("$1$"))
                     passwd = "$1$" + Util.Md5Hash(passwd);
                 passwd = passwd.Remove(0, 3); //remove $1$
@@ -134,7 +138,9 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.UserProblem;
                 }
 
+                //
                 // Get the user's inventory
+                //
                 if (m_RequireInventory && m_InventoryService == null)
                 {
                     m_log.WarnFormat("[LLOGIN SERVICE]: Login failed, reason: inventory service not set up");
@@ -147,9 +153,9 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.InventoryProblem;
                 }
 
+                //
                 // Login the presence
-                // We may want to check for user already logged in, to
-                // stay compatible with what people expect...
+                //
                 PresenceInfo presence = null;
                 GridRegion home = null;
                 if (m_PresenceService != null)
@@ -171,7 +177,9 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
 
+                //
                 // Find the destination region/grid
+                //
                 string where = string.Empty;
                 Vector3 position = Vector3.Zero;
                 Vector3 lookAt = Vector3.Zero;
@@ -183,14 +191,18 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.GridProblem;
                 }
 
+                //
                 // Get the avatar
+                //
                 AvatarData avatar = null;
                 if (m_AvatarService != null)
                 {
                     avatar = m_AvatarService.GetAvatar(account.PrincipalID);
                 }
 
+                //
                 // Instantiate/get the simulation interface and launch an agent at the destination
+                //
                 ISimulationService simConnector = null;
                 string reason = string.Empty;
                 uint circuitCode = 0;
@@ -210,14 +222,36 @@ namespace OpenSim.Services.LLLoginService
                 }
                 if (aCircuit == null)
                 {
-                    m_PresenceService.LogoutAgent(session, presence.Position, presence.LookAt);
-                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
-                    return LLFailedLoginResponse.AuthorizationProblem;
+                    // Try the fallback regions
+                    List<GridRegion> fallbacks = m_GridService.GetFallbackRegions(account.ScopeID, destination.RegionLocX, destination.RegionLocY);
+                    if (fallbacks != null)
+                    {
+                        foreach (GridRegion r in fallbacks)
+                        {
+                            aCircuit = LaunchAgent(simConnector, r, account, avatar, session, secureSession, circuitCode, position, out reason);
+                            if (aCircuit != null)
+                            {
+                                where = "safe";
+                                destination = r;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (aCircuit == null)
+                    {
+                        // we tried...
+                        m_PresenceService.LogoutAgent(session, presence.Position, presence.LookAt);
+                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: {0}", reason);
+                        return LLFailedLoginResponse.AuthorizationProblem;
+                    }
                 }
 
                 // TODO: Get Friends list... 
 
+                //
                 // Finally, fill out the response and return it
+                //
                 LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel, m_LibraryService,
                     where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
 
@@ -239,12 +273,13 @@ namespace OpenSim.Services.LLLoginService
             where = "home";
             position = new Vector3(128, 128, 0);
             lookAt = new Vector3(0, 1, 0);
+
+            if (m_GridService == null)
+                return null;
+
             if (startLocation.Equals("home"))
             {
                 // logging into home region
-                if (m_PresenceService == null || m_GridService == null)
-                    return null;
-
                 if (pinfo == null)
                     return null;
 
@@ -271,8 +306,6 @@ namespace OpenSim.Services.LLLoginService
             {
                 // logging into last visited region
                 where = "last";
-                if (m_PresenceService == null || m_GridService == null)
-                    return null;
 
                 if (pinfo == null)
                     return null;
@@ -320,8 +353,6 @@ namespace OpenSim.Services.LLLoginService
                     {
                         if (!regionName.Contains("@"))
                         {
-                            if (m_GridService == null)
-                                return null;
 
                             List<GridRegion> regions = m_GridService.GetRegionsByName(account.ScopeID, regionName, 1);
                             if ((regions == null) || (regions != null && regions.Count == 0))
@@ -363,13 +394,9 @@ namespace OpenSim.Services.LLLoginService
                             region.RegionName = regionName;
                             return region;
                         }
-
                     }
                     else
                     {
-                        if (m_PresenceService == null || m_GridService == null)
-                            return null;
-
                         List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
                         if (defaults != null && defaults.Count > 0)
                         {
