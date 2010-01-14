@@ -187,11 +187,11 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     m_AuthorizationService = RequestModuleInterface<IAuthorizationService>();
 
-                    if (m_AuthorizationService == null)
-                    {
-                        // don't throw an exception if no authorization service is set for the time being
-                         m_log.InfoFormat("[SCENE]: No Authorization service is configured");
-                    }
+                    //if (m_AuthorizationService == null)
+                    //{
+                    //    // don't throw an exception if no authorization service is set for the time being
+                    //     m_log.InfoFormat("[SCENE]: No Authorization service is configured");
+                    //}
                 }
 
                 return m_AuthorizationService;
