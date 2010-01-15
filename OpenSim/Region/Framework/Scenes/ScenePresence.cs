@@ -1072,6 +1072,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void CompleteMovement()
         {
+            //m_log.Debug("[SCENE PRESENCE]: CompleteMovement");
+
             Vector3 look = Velocity;
             if ((look.X == 0) && (look.Y == 0) && (look.Z == 0))
             {
@@ -1096,7 +1098,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((m_callbackURI != null) && !m_callbackURI.Equals(""))
             {
                 m_log.DebugFormat("[SCENE PRESENCE]: Releasing agent in URI {0}", m_callbackURI);
-                Scene.SendReleaseAgent(m_originRegionID, UUID, m_callbackURI);
+                Scene.SimulationService.ReleaseAgent(m_originRegionID, UUID, m_callbackURI);
                 m_callbackURI = null;
             }
 
@@ -1104,6 +1106,17 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
+
+            // Create child agents in neighbouring regions
+            if (!m_isChildAgent)
+            {
+                IAgentTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IAgentTransferModule>();
+                if (m_agentTransfer != null)
+                    m_agentTransfer.EnableChildAgents(this);
+                else
+                    m_log.DebugFormat("[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active");
+            }
+
         }
 
         /// <summary>
@@ -2156,6 +2169,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_isChildAgent)
             {
+                // WHAT???
                 m_log.Debug("[SCENEPRESENCE]: AddNewMovement() called on child agent, making root agent!");
 
                 // we have to reset the user's child agent connections.
@@ -2179,7 +2193,9 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 if (m_scene.SceneGridService != null)
                 {
-                    m_scene.SceneGridService.EnableNeighbourChildAgents(this, new List<RegionInfo>());
+                    IAgentTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IAgentTransferModule>();
+                    if (m_agentTransfer != null)
+                        m_agentTransfer.EnableChildAgents(this);
                 }
                 
                 return;
@@ -2475,11 +2491,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.SendAvatarData(new SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_grouptitle, m_uuid, LocalId,
                                                pos, m_appearance.Texture.GetBytes(), m_parentID, m_bodyRot));
-
-            if (!m_isChildAgent)
-            {
-                m_scene.InformClientOfNeighbours(this);
-            }
 
             SendInitialFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();

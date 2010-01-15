@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (info != null) regionInfos.Add(info);
             }
 
-            if ((regionInfos.Count == 0) && IsHypergridOn())
+            if ((regionInfos.Count == 0))
             {
                 // OK, we tried but there are no regions matching that name.
                 // Let's check quickly if this is a domain name, and if so link to it
@@ -156,11 +156,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             blocks.Add(data);
 
             remoteClient.SendMapBlock(blocks, 0);
-        }
-
-        private bool IsHypergridOn()
-        {
-            return (m_scene.SceneGridService is HGSceneCommunicationService);
         }
 
         private Scene GetClientScene(IClientAPI client)

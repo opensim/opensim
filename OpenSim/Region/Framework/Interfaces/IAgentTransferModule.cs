@@ -26,16 +26,25 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
 using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface ITeleportModule
+    public interface IAgentTransferModule
     {
-        void RequestTeleportToLocation(ScenePresence avatar, ulong regionHandle, Vector3 position,
+        void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags);
+
+        void Cross(ScenePresence agent, bool isFlying);
+
+        void AgentArrivedAtDestination(UUID agent);
+
+        void EnableChildAgents(ScenePresence agent);
+
+        void EnableChildAgent(ScenePresence agent, GridRegion region);
     }
 }

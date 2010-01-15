@@ -47,7 +47,7 @@ namespace OpenSim
         public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, 
             StorageManager storageManager, ModuleLoader m_moduleLoader, ConfigSettings m_configSettings, OpenSimConfigSource m_config, string m_version)
         {
-            HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService();
+            SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return
                 new HGScene(

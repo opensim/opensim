@@ -43,6 +43,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_sceneList = new List<Scene>();
 
+        private IAgentTransferModule m_AgentTransferModule;
+        protected IAgentTransferModule AgentTransferModule
+        {
+            get
+            {
+                if (m_AgentTransferModule == null)
+                    m_AgentTransferModule = m_sceneList[0].RequestModuleInterface<IAgentTransferModule>();
+                return m_AgentTransferModule;
+            }
+        }
+
         private bool m_ModuleEnabled = false;
 
         #region IRegionModule
@@ -247,8 +258,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             {
                 if (s.RegionInfo.RegionID == origin)
                 {
-                    //m_log.Debug("[LOCAL COMMS]: Found region to SendReleaseAgent");
-                    return s.IncomingReleaseAgent(id);
+                    m_log.Debug("[LOCAL COMMS]: Found region to SendReleaseAgent");
+                    AgentTransferModule.AgentArrivedAtDestination(id);
+                    return true;
+//                    return s.IncomingReleaseAgent(id);
                 }
             }
             //m_log.Debug("[LOCAL COMMS]: region not found in SendReleaseAgent " + origin);

@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         private static Random random = new Random();
 
-
+        // From the command line link-region
         public GridRegion TryLinkRegionToCoords(Scene m_scene, IClientAPI client, string mapName, int xloc, int yloc)
         {
             string host = "127.0.0.1";
@@ -441,6 +441,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return TryLinkRegionToCoords(m_scene, client, mapName, xloc, 0);
         }
 
+        // From the command line and the 2 above
         public bool TryCreateLink(Scene m_scene, IClientAPI client, int xloc, int yloc,
             string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo)
         {
@@ -572,6 +573,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return TryLinkRegion((Scene)client.Scene, client, regionDescriptor);
         }
 
+        // From the map and secondlife://blah
         public GridRegion GetHyperlinkRegion(ulong handle)
         {
             foreach (GridRegion r in m_HyperlinkRegions.Values)

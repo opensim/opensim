@@ -1,0 +1,1188 @@
+﻿/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSimulator Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
+using System.Threading;
+
+using OpenSim.Framework;
+using OpenSim.Framework.Capabilities;
+using OpenSim.Framework.Client;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
+
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
+using OpenMetaverse;
+using log4net;
+using Nini.Config;
+
+namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
+{
+    public class AgentTransferModule : ISharedRegionModule, IAgentTransferModule
+    {
+        #region ISharedRegionModule
+                private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private bool m_Enabled = false;
+        protected Scene m_aScene;
+        protected List<UUID> m_agentsInTransit;
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public string Name
+        {
+            get { return "AgentTransferModule"; }
+        }
+
+        public virtual void Initialise(IConfigSource source)
+        {
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
+            {
+                string name = moduleConfig.GetString("AgentTransferModule", "");
+                if (name == Name)
+                {
+                    m_agentsInTransit = new List<UUID>();
+                    m_Enabled = true;
+                    m_log.Info("[AGENT TRANSFER MODULE]: Enabled.");
+                }
+            }
+        }
+
+        public virtual void PostInitialise()
+        {
+        }
+
+        public virtual void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+            if (m_aScene == null)
+                m_aScene = scene;
+
+            scene.RegisterModuleInterface<IAgentTransferModule>(this);
+        }
+
+        public virtual void Close()
+        {
+            if (!m_Enabled)
+                return;
+        }
+
+
+        public virtual void RemoveRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+            if (scene == m_aScene)
+                m_aScene = null;
+        }
+
+        public virtual void RegionLoaded(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+        }
+
+
+        #endregion
+
+        #region Teleports
+
+        public void Teleport(ScenePresence sp, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags)
+        {
+            if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
+                return;
+
+            bool destRegionUp = true;
+
+            IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
+
+            // Reset animations; the viewer does that in teleports.
+            sp.Animator.ResetAnimations();
+
+            if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
+            {
+                m_log.DebugFormat(
+                    "[AGENT TRANSFER MODULE]: RequestTeleportToLocation {0} within {1}",
+                    position, sp.Scene.RegionInfo.RegionName);
+
+                // Teleport within the same region
+                if (IsOutsideRegion(sp.Scene, position) || position.Z < 0)
+                {
+                    Vector3 emergencyPos = new Vector3(128, 128, 128);
+
+                    m_log.WarnFormat(
+                        "[AGENT TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
+                        position, sp.Name, sp.UUID, emergencyPos);
+                    position = emergencyPos;
+                }
+
+                // TODO: Get proper AVG Height
+                float localAVHeight = 1.56f;
+                float posZLimit = 22;
+
+                // TODO: Check other Scene HeightField
+                if (position.X > 0 && position.X <= (int)Constants.RegionSize && position.Y > 0 && position.Y <= (int)Constants.RegionSize)
+                {
+                    posZLimit = (float)sp.Scene.Heightmap[(int)position.X, (int)position.Y];
+                }
+
+                float newPosZ = posZLimit + localAVHeight;
+                if (posZLimit >= (position.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+                {
+                    position.Z = newPosZ;
+                }
+
+                // Only send this if the event queue is null
+                if (eq == null)
+                    sp.ControllingClient.SendTeleportLocationStart();
+
+                sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
+                sp.Teleport(position);
+            }
+            else
+            {
+                uint x = 0, y = 0;
+                Utils.LongToUInts(regionHandle, out x, out y);
+                GridRegion reg = m_aScene.GridService.GetRegionByPosition(sp.Scene.RegionInfo.ScopeID, (int)x, (int)y);
+
+                if (reg != null)
+                {
+                    m_log.DebugFormat(
+                        "[AGENT TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
+                        position, reg.RegionName);
+
+                    uint newRegionX = (uint)(reg.RegionHandle >> 40);
+                    uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
+                    uint oldRegionX = (uint)(sp.Scene.RegionInfo.RegionHandle >> 40);
+                    uint oldRegionY = (((uint)(sp.Scene.RegionInfo.RegionHandle)) >> 8);
+
+                    ulong destinationHandle = GetRegionHandle(reg);
+
+                    if (eq == null)
+                        sp.ControllingClient.SendTeleportLocationStart();
+
+                    // Let's do DNS resolution only once in this process, please!
+                    // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
+                    // it's actually doing a lot of work.
+                    IPEndPoint endPoint = reg.ExternalEndPoint;
+                    if (endPoint.Address == null)
+                    {
+                        // Couldn't resolve the name. Can't TP, because the viewer wants IP addresses.
+                        destRegionUp = false;
+                    }
+
+                    if (destRegionUp)
+                    {
+                        // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
+                        // both regions
+                        if (sp.ParentID != (uint)0)
+                            sp.StandUp();
+
+                        if (!sp.ValidateAttachments())
+                        {
+                            sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
+                            return;
+                        }
+
+                        // the avatar.Close below will clear the child region list. We need this below for (possibly)
+                        // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
+                        //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
+                        // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
+                        // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
+                        // once we reach here...
+                        //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
+                        string capsPath = String.Empty;
+                        AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
+                        agentCircuit.BaseFolder = UUID.Zero;
+                        agentCircuit.InventoryFolder = UUID.Zero;
+                        agentCircuit.startpos = position;
+                        agentCircuit.child = true;
+                        agentCircuit.Appearance = sp.Appearance;
+
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            // brand new agent, let's create a new caps seed
+                            agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+                        }
+
+                        string reason = String.Empty;
+
+                        // Let's create an agent there if one doesn't exist yet. 
+                        //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
+                        if (!m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason))
+                        {
+                            sp.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
+                                                                                      reason));
+                            return;
+                        }
+
+                        // OK, it got this agent. Let's close some child agents
+                        sp.CloseChildAgents(newRegionX, newRegionY);
+
+                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        {
+                            #region IP Translation for NAT
+                            IClientIPEndpoint ipepClient;
+                            if (sp.ClientView.TryGet(out ipepClient))
+                            {
+                                capsPath
+                                    = "http://"
+                                      + NetworkUtil.GetHostFor(ipepClient.EndPoint, reg.ExternalHostName)
+                                      + ":"
+                                      + reg.HttpPort
+                                      + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                            }
+                            else
+                            {
+                                capsPath
+                                    = "http://"
+                                      + reg.ExternalHostName
+                                      + ":"
+                                      + reg.HttpPort
+                                      + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                            }
+                            #endregion
+
+                            if (eq != null)
+                            {
+                                #region IP Translation for NAT
+                                // Uses ipepClient above
+                                if (sp.ClientView.TryGet(out ipepClient))
+                                {
+                                    endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                                }
+                                #endregion
+
+                                eq.EnableSimulator(destinationHandle, endPoint, sp.UUID);
+
+                                // ES makes the client send a UseCircuitCode message to the destination, 
+                                // which triggers a bunch of things there.
+                                // So let's wait
+                                Thread.Sleep(2000);
+
+                                eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+
+                            }
+                            else
+                            {
+                                sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
+                            }
+                        }
+                        else
+                        {
+                            agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
+                            capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                                        + "/CAPS/" + agentCircuit.CapsPath + "0000/";
+                        }
+
+                        // Expect avatar crossing is a heavy-duty function at the destination.
+                        // That is where MakeRoot is called, which fetches appearance and inventory.
+                        // Plus triggers OnMakeRoot, which spawns a series of asynchronous updates.
+                        //m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                        //                                                      position, false);
+
+                        //{
+                        //    avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                        //    // We should close that agent we just created over at destination...
+                        //    List<ulong> lst = new List<ulong>();
+                        //    lst.Add(reg.RegionHandle);
+                        //    SendCloseChildAgentAsync(avatar.UUID, lst);
+                        //    return;
+                        //}
+
+                        SetInTransit(sp.UUID);
+
+                        // Let's send a full update of the agent. This is a synchronous call.
+                        AgentData agent = new AgentData();
+                        sp.CopyTo(agent);
+                        agent.Position = position;
+                        agent.CallbackURI = "http://" + sp.Scene.RegionInfo.ExternalHostName + ":" + sp.Scene.RegionInfo.HttpPort +
+                            "/agent/" + sp.UUID.ToString() + "/" + sp.Scene.RegionInfo.RegionID.ToString() + "/release/";
+
+                        m_aScene.SimulationService.UpdateAgent(reg, agent);
+
+                        m_log.DebugFormat(
+                            "[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1}", capsPath, sp.UUID);
+
+
+                        if (eq != null)
+                        {
+                            eq.TeleportFinishEvent(destinationHandle, 13, endPoint,
+                                                   0, teleportFlags, capsPath, sp.UUID);
+                        }
+                        else
+                        {
+                            sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                                        teleportFlags, capsPath);
+                        }
+
+                        // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+                        // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+                        // that the client contacted the destination before we send the attachments and close things here.
+                        if (!WaitForCallback(sp.UUID))
+                        {
+                            // Client never contacted destination. Let's restore everything back
+                            sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+                            ResetFromTransit(sp.UUID);
+
+                            // Yikes! We should just have a ref to scene here.
+                            //sp.Scene.InformClientOfNeighbours(sp);
+                            EnableChildAgents(sp);
+
+                            // Finally, kill the agent we just created at the destination.
+                            m_aScene.SimulationService.CloseAgent(reg, sp.UUID);
+
+                            return;
+                        }
+
+                        KillEntity(sp.Scene, sp.LocalId);
+
+                        sp.MakeChildAgent();
+
+                        // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
+                        sp.CrossAttachmentsIntoNewRegion(reg, true);
+
+                        // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+                        if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+                        {
+                            Thread.Sleep(5000);
+                            sp.Close();
+                            sp.Scene.IncomingCloseAgent(sp.UUID);
+                        }
+                        else
+                            // now we have a child agent in this region. 
+                            sp.Reset();
+
+
+                        // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+                        if (sp.Scene.NeedSceneCacheClear(sp.UUID))
+                        {
+                            m_log.DebugFormat(
+                                "[AGENT TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+                                sp.UUID);
+                        }
+                    }
+                    else
+                    {
+                        sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
+                    }
+                }
+                else
+                {
+                    // TP to a place that doesn't exist (anymore)
+                    // Inform the viewer about that
+                    sp.ControllingClient.SendTeleportFailed("The region you tried to teleport to doesn't exist anymore");
+
+                    // and set the map-tile to '(Offline)'
+                    uint regX, regY;
+                    Utils.LongToUInts(regionHandle, out regX, out regY);
+
+                    MapBlockData block = new MapBlockData();
+                    block.X = (ushort)(regX / Constants.RegionSize);
+                    block.Y = (ushort)(regY / Constants.RegionSize);
+                    block.Access = 254; // == not there
+
+                    List<MapBlockData> blocks = new List<MapBlockData>();
+                    blocks.Add(block);
+                    sp.ControllingClient.SendMapBlock(blocks, 0);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Enable Child Agent
+        /// <summary>
+        /// This informs a single neighboring region about agent "avatar".
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
+        public void EnableChildAgent(ScenePresence sp, GridRegion region)
+        {
+            AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = new Vector3(128, 128, 70);
+            agent.child = true;
+            agent.Appearance = sp.Appearance;
+
+            InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+            d.BeginInvoke(sp, agent, region, region.ExternalEndPoint, true,
+                          InformClientOfNeighbourCompleted,
+                          d);
+        }
+        #endregion
+
+        #region Crossings
+
+        public void Cross(ScenePresence agent, bool isFlying)
+        {
+            Scene scene = agent.Scene;
+            Vector3 pos = agent.AbsolutePosition;
+            Vector3 newpos = new Vector3(pos.X, pos.Y, pos.Z);
+            uint neighbourx = scene.RegionInfo.RegionLocX;
+            uint neighboury = scene.RegionInfo.RegionLocY;
+            const float boundaryDistance = 1.7f;
+            Vector3 northCross = new Vector3(0, boundaryDistance, 0);
+            Vector3 southCross = new Vector3(0, -1 * boundaryDistance, 0);
+            Vector3 eastCross = new Vector3(boundaryDistance, 0, 0);
+            Vector3 westCross = new Vector3(-1 * boundaryDistance, 0, 0);
+
+            // distance to edge that will trigger crossing
+
+
+            // distance into new region to place avatar
+            const float enterDistance = 0.5f;
+
+            if (scene.TestBorderCross(pos + westCross, Cardinals.W))
+            {
+                if (scene.TestBorderCross(pos + northCross, Cardinals.N))
+                {
+                    Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
+                    neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                }
+                else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
+                {
+                    Border b = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
+                    if (b.TriggerRegionX == 0 && b.TriggerRegionY == 0)
+                    {
+                        neighboury--;
+                        newpos.Y = Constants.RegionSize - enterDistance;
+                    }
+                    else
+                    {
+                        neighboury = b.TriggerRegionY;
+                        neighbourx = b.TriggerRegionX;
+
+                        Vector3 newposition = pos;
+                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
+                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                        agent.ControllingClient.SendAgentAlertMessage(
+                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
+                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                        return;
+                    }
+                }
+
+                Border ba = scene.GetCrossedBorder(pos + westCross, Cardinals.W);
+                if (ba.TriggerRegionX == 0 && ba.TriggerRegionY == 0)
+                {
+                    neighbourx--;
+                    newpos.X = Constants.RegionSize - enterDistance;
+                }
+                else
+                {
+                    neighboury = ba.TriggerRegionY;
+                    neighbourx = ba.TriggerRegionX;
+
+
+                    Vector3 newposition = pos;
+                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
+                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                    agent.ControllingClient.SendAgentAlertMessage(
+                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
+                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+
+
+                    return;
+                }
+
+            }
+            else if (scene.TestBorderCross(pos + eastCross, Cardinals.E))
+            {
+                Border b = scene.GetCrossedBorder(pos + eastCross, Cardinals.E);
+                neighbourx += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                newpos.X = enterDistance;
+
+                if (scene.TestBorderCross(pos + southCross, Cardinals.S))
+                {
+                    Border ba = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
+                    if (ba.TriggerRegionX == 0 && ba.TriggerRegionY == 0)
+                    {
+                        neighboury--;
+                        newpos.Y = Constants.RegionSize - enterDistance;
+                    }
+                    else
+                    {
+                        neighboury = ba.TriggerRegionY;
+                        neighbourx = ba.TriggerRegionX;
+                        Vector3 newposition = pos;
+                        newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
+                        newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                        agent.ControllingClient.SendAgentAlertMessage(
+                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
+                        InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                        return;
+                    }
+                }
+                else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
+                {
+                    Border c = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
+                    neighboury += (uint)(int)(c.BorderLine.Z / (int)Constants.RegionSize);
+                    newpos.Y = enterDistance;
+                }
+
+
+            }
+            else if (scene.TestBorderCross(pos + southCross, Cardinals.S))
+            {
+                Border b = scene.GetCrossedBorder(pos + southCross, Cardinals.S);
+                if (b.TriggerRegionX == 0 && b.TriggerRegionY == 0)
+                {
+                    neighboury--;
+                    newpos.Y = Constants.RegionSize - enterDistance;
+                }
+                else
+                {
+                    neighboury = b.TriggerRegionY;
+                    neighbourx = b.TriggerRegionX;
+                    Vector3 newposition = pos;
+                    newposition.X += (scene.RegionInfo.RegionLocX - neighbourx) * Constants.RegionSize;
+                    newposition.Y += (scene.RegionInfo.RegionLocY - neighboury) * Constants.RegionSize;
+                    agent.ControllingClient.SendAgentAlertMessage(
+                            String.Format("Moving you to region {0},{1}", neighbourx, neighboury), false);
+                    InformClientToInitateTeleportToLocation(agent, neighbourx, neighboury, newposition, scene);
+                    return;
+                }
+            }
+            else if (scene.TestBorderCross(pos + northCross, Cardinals.N))
+            {
+
+                Border b = scene.GetCrossedBorder(pos + northCross, Cardinals.N);
+                neighboury += (uint)(int)(b.BorderLine.Z / (int)Constants.RegionSize);
+                newpos.Y = enterDistance;
+            }
+
+            /*
+
+            if (pos.X < boundaryDistance) //West
+            {
+                neighbourx--;
+                newpos.X = Constants.RegionSize - enterDistance;
+            }
+            else if (pos.X > Constants.RegionSize - boundaryDistance) // East
+            {
+                neighbourx++;
+                newpos.X = enterDistance;
+            }
+
+            if (pos.Y < boundaryDistance) // South
+            {
+                neighboury--;
+                newpos.Y = Constants.RegionSize - enterDistance;
+            }
+            else if (pos.Y > Constants.RegionSize - boundaryDistance) // North
+            {
+                neighboury++;
+                newpos.Y = enterDistance;
+            }
+            */
+
+            CrossAgentToNewRegionDelegate d = CrossAgentToNewRegionAsync;
+            d.BeginInvoke(agent, newpos, neighbourx, neighboury, isFlying, CrossAgentToNewRegionCompleted, d);
+
+        }
+
+
+        public delegate void InformClientToInitateTeleportToLocationDelegate(ScenePresence agent, uint regionX, uint regionY,
+                                                            Vector3 position,
+                                                            Scene initiatingScene);
+
+        private void InformClientToInitateTeleportToLocation(ScenePresence agent, uint regionX, uint regionY, Vector3 position, Scene initiatingScene)
+        {
+
+            // This assumes that we know what our neighbors are.
+
+            InformClientToInitateTeleportToLocationDelegate d = InformClientToInitiateTeleportToLocationAsync;
+            d.BeginInvoke(agent, regionX, regionY, position, initiatingScene,
+                          InformClientToInitiateTeleportToLocationCompleted,
+                          d);
+        }
+
+        public void InformClientToInitiateTeleportToLocationAsync(ScenePresence agent, uint regionX, uint regionY, Vector3 position,
+            Scene initiatingScene)
+        {
+            Thread.Sleep(10000);
+            IMessageTransferModule im = initiatingScene.RequestModuleInterface<IMessageTransferModule>();
+            if (im != null)
+            {
+                UUID gotoLocation = Util.BuildFakeParcelID(
+                    Util.UIntsToLong(
+                                              (regionX *
+                                               (uint)Constants.RegionSize),
+                                              (regionY *
+                                               (uint)Constants.RegionSize)),
+                    (uint)(int)position.X,
+                    (uint)(int)position.Y,
+                    (uint)(int)position.Z);
+                GridInstantMessage m = new GridInstantMessage(initiatingScene, UUID.Zero,
+                "Region", agent.UUID,
+                (byte)InstantMessageDialog.GodLikeRequestTeleport, false,
+                "", gotoLocation, false, new Vector3(127, 0, 0),
+                new Byte[0]);
+                im.SendInstantMessage(m, delegate(bool success)
+                {
+                    m_log.DebugFormat("[AGENT TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);
+                });
+
+            }
+        }
+
+        private void InformClientToInitiateTeleportToLocationCompleted(IAsyncResult iar)
+        {
+            InformClientToInitateTeleportToLocationDelegate icon =
+                (InformClientToInitateTeleportToLocationDelegate)iar.AsyncState;
+            icon.EndInvoke(iar);
+        }
+
+        public delegate ScenePresence CrossAgentToNewRegionDelegate(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying);
+
+        /// <summary>
+        /// This Closes child agents on neighboring regions
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
+        protected ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying)
+        {
+            m_log.DebugFormat("[AGENT TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3}", agent.Firstname, agent.Lastname, neighbourx, neighboury);
+
+            Scene m_scene = agent.Scene;
+            ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
+
+            int x = (int)(neighbourx * Constants.RegionSize), y = (int)(neighboury * Constants.RegionSize);
+            GridRegion neighbourRegion = m_scene.GridService.GetRegionByPosition(m_scene.RegionInfo.ScopeID, (int)x, (int)y);
+
+            if (neighbourRegion != null && agent.ValidateAttachments())
+            {
+                pos = pos + (agent.Velocity);
+
+                SetInTransit(agent.UUID);
+                AgentData cAgent = new AgentData();
+                agent.CopyTo(cAgent);
+                cAgent.Position = pos;
+                if (isFlying)
+                    cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                cAgent.CallbackURI = "http://" + m_scene.RegionInfo.ExternalHostName + ":" + m_scene.RegionInfo.HttpPort +
+                    "/agent/" + agent.UUID.ToString() + "/" + m_scene.RegionInfo.RegionID.ToString() + "/release/";
+
+                m_scene.SimulationService.UpdateAgent(neighbourRegion, cAgent);
+
+                // Next, let's close the child agent connections that are too far away.
+                agent.CloseChildAgents(neighbourx, neighboury);
+
+                //AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
+                agent.ControllingClient.RequestClientInfo();
+
+                //m_log.Debug("BEFORE CROSS");
+                //Scene.DumpChildrenSeeds(UUID);
+                //DumpKnownRegions();
+                string agentcaps;
+                if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
+                {
+                    m_log.ErrorFormat("[AGENT TRANSFER MODULE]: No AGENT TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
+                                     neighbourRegion.RegionHandle);
+                    return agent;
+                }
+                // TODO Should construct this behind a method
+                string capsPath =
+                    "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
+                     + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
+
+                m_log.DebugFormat("[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1}", capsPath, agent.UUID);
+
+                IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    eq.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                   capsPath, agent.UUID, agent.ControllingClient.SessionId);
+                }
+                else
+                {
+                    agent.ControllingClient.CrossRegion(neighbourHandle, pos, agent.Velocity, neighbourRegion.ExternalEndPoint,
+                                                capsPath);
+                }
+
+                if (!WaitForCallback(agent.UUID))
+                {
+                    m_log.Debug("[AGENT TRANSFER MODULE]: Callback never came in crossing agent");
+                    ResetFromTransit(agent.UUID);
+
+                    // Yikes! We should just have a ref to scene here.
+                    //agent.Scene.InformClientOfNeighbours(agent);
+                    EnableChildAgents(agent);
+
+                    return agent;
+                }
+
+                agent.MakeChildAgent();
+                // now we have a child agent in this region. Request all interesting data about other (root) agents
+                agent.SendInitialFullUpdateToAllClients();
+
+                agent.CrossAttachmentsIntoNewRegion(neighbourRegion, true);
+
+                //                    m_scene.SendKillObject(m_localId);
+
+                agent.Scene.NotifyMyCoarseLocationChange();
+                // the user may change their profile information in other region,
+                // so the userinfo in UserProfileCache is not reliable any more, delete it
+                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+                if (agent.Scene.NeedSceneCacheClear(agent.UUID))
+                {
+                    m_log.DebugFormat(
+                        "[AGENT TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
+                }
+            }
+
+            //m_log.Debug("AFTER CROSS");
+            //Scene.DumpChildrenSeeds(UUID);
+            //DumpKnownRegions();
+            return agent;
+        }
+
+        private void CrossAgentToNewRegionCompleted(IAsyncResult iar)
+        {
+            CrossAgentToNewRegionDelegate icon = (CrossAgentToNewRegionDelegate)iar.AsyncState;
+            ScenePresence agent = icon.EndInvoke(iar);
+
+            // If the cross was successful, this agent is a child agent
+            if (agent.IsChildAgent)
+                agent.Reset();
+            else // Not successful
+                agent.RestoreInCurrentScene();
+
+            // In any case
+            agent.NotInTransit();
+
+            //m_log.DebugFormat("[AGENT TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+        }
+
+        #endregion
+
+
+        #region Enable Child Agents
+
+        private delegate void InformClientOfNeighbourDelegate(
+            ScenePresence avatar, AgentCircuitData a, GridRegion reg, IPEndPoint endPoint, bool newAgent);
+
+        /// <summary>
+        /// This informs all neighboring regions about agent "avatar".
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
+        public void EnableChildAgents(ScenePresence sp)
+        {
+            List<GridRegion> neighbours = new List<GridRegion>();
+            RegionInfo m_regionInfo = sp.Scene.RegionInfo;
+
+            if (m_regionInfo != null)
+            {
+                neighbours = RequestNeighbours(sp.Scene, m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            }
+            else
+            {
+                m_log.Debug("[AGENT TRANSFER MODULE]: m_regionInfo was null in EnableChildAgents, is this a NPC?");
+            }
+
+            /// We need to find the difference between the new regions where there are no child agents
+            /// and the regions where there are already child agents. We only send notification to the former.
+            List<ulong> neighbourHandles = NeighbourHandles(neighbours); // on this region
+            neighbourHandles.Add(sp.Scene.RegionInfo.RegionHandle);  // add this region too
+            List<ulong> previousRegionNeighbourHandles;
+
+            if (sp.Scene.CapsModule != null)
+            {
+                previousRegionNeighbourHandles =
+                    new List<ulong>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID).Keys);
+            }
+            else
+            {
+                previousRegionNeighbourHandles = new List<ulong>();
+            }
+
+            List<ulong> newRegions = NewNeighbours(neighbourHandles, previousRegionNeighbourHandles);
+            List<ulong> oldRegions = OldNeighbours(neighbourHandles, previousRegionNeighbourHandles);
+
+            //Dump("Current Neighbors", neighbourHandles);
+            //Dump("Previous Neighbours", previousRegionNeighbourHandles);
+            //Dump("New Neighbours", newRegions);
+            //Dump("Old Neighbours", oldRegions);
+
+            /// Update the scene presence's known regions here on this region
+            sp.DropOldNeighbours(oldRegions);
+
+            /// Collect as many seeds as possible
+            Dictionary<ulong, string> seeds;
+            if (sp.Scene.CapsModule != null)
+                seeds
+                    = new Dictionary<ulong, string>(sp.Scene.CapsModule.GetChildrenSeeds(sp.UUID));
+            else
+                seeds = new Dictionary<ulong, string>();
+
+            //m_log.Debug(" !!! No. of seeds: " + seeds.Count);
+            if (!seeds.ContainsKey(sp.Scene.RegionInfo.RegionHandle))
+                seeds.Add(sp.Scene.RegionInfo.RegionHandle, sp.ControllingClient.RequestClientInfo().CapsPath);
+
+            /// Create the necessary child agents
+            List<AgentCircuitData> cagents = new List<AgentCircuitData>();
+            foreach (GridRegion neighbour in neighbours)
+            {
+                if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                {
+
+                    AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
+                    agent.BaseFolder = UUID.Zero;
+                    agent.InventoryFolder = UUID.Zero;
+                    agent.startpos = new Vector3(128, 128, 70);
+                    agent.child = true;
+                    agent.Appearance = sp.Appearance;
+
+                    if (newRegions.Contains(neighbour.RegionHandle))
+                    {
+                        agent.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+                        sp.AddNeighbourRegion(neighbour.RegionHandle, agent.CapsPath);
+                        seeds.Add(neighbour.RegionHandle, agent.CapsPath);
+                    }
+                    else
+                        agent.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, neighbour.RegionHandle);
+
+                    cagents.Add(agent);
+                }
+            }
+
+            /// Update all child agent with everyone's seeds
+            foreach (AgentCircuitData a in cagents)
+            {
+                a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
+            }
+
+            if (sp.Scene.CapsModule != null)
+            {
+                sp.Scene.CapsModule.SetChildrenSeed(sp.UUID, seeds);
+            }
+            sp.KnownRegions = seeds;
+            //avatar.Scene.DumpChildrenSeeds(avatar.UUID);
+            //avatar.DumpKnownRegions();
+
+            bool newAgent = false;
+            int count = 0;
+            foreach (GridRegion neighbour in neighbours)
+            {
+                //m_log.WarnFormat("--> Going to send child agent to {0}", neighbour.RegionName);
+                // Don't do it if there's already an agent in that region
+                if (newRegions.Contains(neighbour.RegionHandle))
+                    newAgent = true;
+                else
+                    newAgent = false;
+
+                if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
+                {
+                    InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+                    try
+                    {
+                        d.BeginInvoke(sp, cagents[count], neighbour, neighbour.ExternalEndPoint, newAgent,
+                                      InformClientOfNeighbourCompleted,
+                                      d);
+                    }
+
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        m_log.ErrorFormat(
+                           "[AGENT TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbor list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                           neighbour.ExternalHostName,
+                           neighbour.RegionHandle,
+                           neighbour.RegionLocX,
+                           neighbour.RegionLocY);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[AGENT TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                            neighbour.ExternalHostName,
+                            neighbour.RegionHandle,
+                            neighbour.RegionLocX,
+                            neighbour.RegionLocY,
+                            e);
+
+                        // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
+                        // since I don't know what will happen if we just let the client continue
+
+                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
+                        // throw e;
+
+                    }
+                }
+                count++;
+            }
+        }
+
+        private void InformClientOfNeighbourCompleted(IAsyncResult iar)
+        {
+            InformClientOfNeighbourDelegate icon = (InformClientOfNeighbourDelegate)iar.AsyncState;
+            icon.EndInvoke(iar);
+            //m_log.WarnFormat(" --> InformClientOfNeighbourCompleted");
+        }
+
+        /// <summary>
+        /// Async component for informing client of which neighbours exist
+        /// </summary>
+        /// <remarks>
+        /// This needs to run asynchronously, as a network timeout may block the thread for a long while
+        /// </remarks>
+        /// <param name="remoteClient"></param>
+        /// <param name="a"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="endPoint"></param>
+        private void InformClientOfNeighbourAsync(ScenePresence sp, AgentCircuitData a, GridRegion reg,
+                                                  IPEndPoint endPoint, bool newAgent)
+        {
+            // Let's wait just a little to give time to originating regions to catch up with closing child agents
+            // after a cross here
+            Thread.Sleep(500);
+
+            Scene m_scene = sp.Scene;
+
+            uint x, y;
+            Utils.LongToUInts(reg.RegionHandle, out x, out y);
+            x = x / Constants.RegionSize;
+            y = y / Constants.RegionSize;
+            m_log.Info("[AGENT TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
+
+            string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                  + "/CAPS/" + a.CapsPath + "0000/";
+
+            string reason = String.Empty;
+
+
+            bool regionAccepted = m_scene.SimulationService.CreateAgent(reg, a, 0, out reason); // m_interregionCommsOut.SendCreateChildAgent(reg.RegionHandle, a, 0, out reason);
+
+            if (regionAccepted && newAgent)
+            {
+                IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
+                if (eq != null)
+                {
+                    #region IP Translation for NAT
+                    IClientIPEndpoint ipepClient;
+                    if (sp.ClientView.TryGet(out ipepClient))
+                    {
+                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                    }
+                    #endregion
+
+                    eq.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
+                    eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+                    m_log.DebugFormat("[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1} in region {2}",
+                                      capsPath, sp.UUID, sp.Scene.RegionInfo.RegionName);
+                }
+                else
+                {
+                    sp.ControllingClient.InformClientOfNeighbour(reg.RegionHandle, endPoint);
+                    // TODO: make Event Queue disablable!
+                }
+
+                m_log.Info("[AGENT TRANSFER MODULE]: Completed inform client about neighbour " + endPoint.ToString());
+
+            }
+
+        }
+
+        protected List<GridRegion> RequestNeighbours(Scene pScene, uint pRegionLocX, uint pRegionLocY)
+        {
+            RegionInfo m_regionInfo = pScene.RegionInfo;
+
+            Border[] northBorders = pScene.NorthBorders.ToArray();
+            Border[] southBorders = pScene.SouthBorders.ToArray();
+            Border[] eastBorders = pScene.EastBorders.ToArray();
+            Border[] westBorders = pScene.WestBorders.ToArray();
+
+            // Legacy one region.  Provided for simplicity while testing the all inclusive method in the else statement.
+            if (northBorders.Length <= 1 && southBorders.Length <= 1 && eastBorders.Length <= 1 && westBorders.Length <= 1)
+            {
+                return pScene.GridService.GetNeighbours(m_regionInfo.ScopeID, m_regionInfo.RegionID);
+            }
+            else
+            {
+                Vector2 extent = Vector2.Zero;
+                for (int i = 0; i < eastBorders.Length; i++)
+                {
+                    extent.X = (eastBorders[i].BorderLine.Z > extent.X) ? eastBorders[i].BorderLine.Z : extent.X;
+                }
+                for (int i = 0; i < northBorders.Length; i++)
+                {
+                    extent.Y = (northBorders[i].BorderLine.Z > extent.Y) ? northBorders[i].BorderLine.Z : extent.Y;
+                }
+
+                // Loss of fraction on purpose
+                extent.X = ((int)extent.X / (int)Constants.RegionSize) + 1;
+                extent.Y = ((int)extent.Y / (int)Constants.RegionSize) + 1;
+
+                int startX = (int)(pRegionLocX - 1) * (int)Constants.RegionSize;
+                int startY = (int)(pRegionLocY - 1) * (int)Constants.RegionSize;
+
+                int endX = ((int)pRegionLocX + (int)extent.X) * (int)Constants.RegionSize;
+                int endY = ((int)pRegionLocY + (int)extent.Y) * (int)Constants.RegionSize;
+
+                List<GridRegion> neighbours = pScene.GridService.GetRegionRange(m_regionInfo.ScopeID, startX, endX, startY, endY);
+                neighbours.RemoveAll(delegate(GridRegion r) { return r.RegionID == m_regionInfo.RegionID; });
+
+                return neighbours;
+            }
+        }
+
+        private List<ulong> NewNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        {
+            return currentNeighbours.FindAll(delegate(ulong handle) { return !previousNeighbours.Contains(handle); });
+        }
+
+        //        private List<ulong> CommonNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        //        {
+        //            return currentNeighbours.FindAll(delegate(ulong handle) { return previousNeighbours.Contains(handle); });
+        //        }
+
+        private List<ulong> OldNeighbours(List<ulong> currentNeighbours, List<ulong> previousNeighbours)
+        {
+            return previousNeighbours.FindAll(delegate(ulong handle) { return !currentNeighbours.Contains(handle); });
+        }
+
+        private List<ulong> NeighbourHandles(List<GridRegion> neighbours)
+        {
+            List<ulong> handles = new List<ulong>();
+            foreach (GridRegion reg in neighbours)
+            {
+                handles.Add(reg.RegionHandle);
+            }
+            return handles;
+        }
+
+        private void Dump(string msg, List<ulong> handles)
+        {
+            m_log.InfoFormat("-------------- HANDLE DUMP ({0}) ---------", msg);
+            foreach (ulong handle in handles)
+            {
+                uint x, y;
+                Utils.LongToUInts(handle, out x, out y);
+                x = x / Constants.RegionSize;
+                y = y / Constants.RegionSize;
+                m_log.InfoFormat("({0}, {1})", x, y);
+            }
+        }
+
+        #endregion
+
+
+        #region Agent Arrived
+        public void AgentArrivedAtDestination(UUID id)
+        {
+            //m_log.Debug(" >>> ReleaseAgent called <<< ");
+            ResetFromTransit(id);
+        }
+
+        #endregion
+
+
+        #region Misc
+        protected bool IsOutsideRegion(Scene s, Vector3 pos)
+        {
+
+            if (s.TestBorderCross(pos, Cardinals.N))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.S))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.E))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.W))
+                return true;
+
+            return false;
+        }
+
+        protected bool WaitForCallback(UUID id)
+        {
+            int count = 200;
+            while (m_agentsInTransit.Contains(id) && count-- > 0)
+            {
+                //m_log.Debug("  >>> Waiting... " + count);
+                Thread.Sleep(100);
+            }
+
+            if (count > 0)
+                return true;
+            else
+                return false;
+        }
+
+        protected void SetInTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (!m_agentsInTransit.Contains(id))
+                    m_agentsInTransit.Add(id);
+            }
+        }
+
+        protected bool ResetFromTransit(UUID id)
+        {
+            lock (m_agentsInTransit)
+            {
+                if (m_agentsInTransit.Contains(id))
+                {
+                    m_agentsInTransit.Remove(id);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        protected void KillEntity(Scene scene, uint localID)
+        {
+            scene.SendKillObject(localID);
+        }
+
+        protected virtual ulong GetRegionHandle(GridRegion region)
+        {
+            return region.RegionHandle;
+        }
+
+        protected virtual bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
+        {
+            return Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY);
+        }
+
+        #endregion
+
+    }
+}

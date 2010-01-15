@@ -315,7 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IDialogModule m_dialogModule;
-        protected ITeleportModule m_teleportModule;
+        protected IAgentTransferModule m_teleportModule;
 
         protected ICapabilitiesModule m_capsModule;
         public ICapabilitiesModule CapsModule
@@ -901,7 +901,7 @@ namespace OpenSim.Region.Framework.Scenes
                     regInfo.RegionName = otherRegion.RegionName;
                     regInfo.ScopeID = otherRegion.ScopeID;
                     regInfo.ExternalHostName = otherRegion.ExternalHostName;
-
+                    GridRegion r = new GridRegion(regInfo);
                     try
                     {
                         ForEachScenePresence(delegate(ScenePresence agent)
@@ -915,7 +915,8 @@ namespace OpenSim.Region.Framework.Scenes
                                                      List<ulong> old = new List<ulong>();
                                                      old.Add(otherRegion.RegionHandle);
                                                      agent.DropOldNeighbours(old);
-                                                     InformClientOfNeighbor(agent, regInfo);
+                                                     if (m_teleportModule != null)
+                                                         m_teleportModule.EnableChildAgent(agent, r);
                                                  }
                                              }
                             );
@@ -1063,6 +1064,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 foreach (RegionInfo region in m_regionRestartNotifyList)
                 {
+                    GridRegion r = new GridRegion(region);
                     try
                     {
                         ForEachScenePresence(delegate(ScenePresence agent)
@@ -1070,9 +1072,8 @@ namespace OpenSim.Region.Framework.Scenes
                                                  // If agent is a root agent.
                                                  if (!agent.IsChildAgent)
                                                  {
-                                                     //agent.ControllingClient.new
-                                                     //this.CommsManager.InterRegion.InformRegionOfChildAgent(otherRegion.RegionHandle, agent.ControllingClient.RequestClientInfo());
-                                                     InformClientOfNeighbor(agent, region);
+                                                     if (m_teleportModule != null)
+                                                         m_teleportModule.EnableChildAgent(agent, r);
                                                  }
                                              }
                             );
@@ -1217,7 +1218,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
-            m_teleportModule = RequestModuleInterface<ITeleportModule>();
+            m_teleportModule = RequestModuleInterface<IAgentTransferModule>();
         }
 
         #endregion
@@ -3783,17 +3784,6 @@ namespace OpenSim.Region.Framework.Scenes
             return false;
         }
 
-        public virtual bool IncomingReleaseAgent(UUID id)
-        {
-            return m_sceneGridService.ReleaseAgent(id);
-        }
-
-        public void SendReleaseAgent(UUID origin, UUID id, string uri)
-        {
-            //m_interregionCommsOut.SendReleaseAgent(regionHandle, id, uri);
-            SimulationService.ReleaseAgent(origin, id, uri);
-        }
-
         /// <summary>
         /// Tell a single agent to disconnect from the region.
         /// </summary>
@@ -3835,30 +3825,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             // Agent not here
             return false;
-        }
-
-        /// <summary>
-        /// Tell neighboring regions about this agent
-        /// When the regions respond with a true value,
-        /// tell the agents about the region.
-        ///
-        /// We have to tell the regions about the agents first otherwise it'll deny them access
-        ///
-        /// </summary>
-        /// <param name="presence"></param>
-        public void InformClientOfNeighbours(ScenePresence presence)
-        {
-            m_sceneGridService.EnableNeighbourChildAgents(presence, m_neighbours);
-        }
-
-        /// <summary>
-        /// Tell a neighboring region about this agent
-        /// </summary>
-        /// <param name="presence"></param>
-        /// <param name="region"></param>
-        public void InformClientOfNeighbor(ScenePresence presence, RegionInfo region)
-        {
-            m_sceneGridService.EnableNeighbourChildAgents(presence, m_neighbours);
         }
 
         /// <summary>
@@ -3936,16 +3902,12 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 if (m_teleportModule != null)
-                {
-                    m_teleportModule.RequestTeleportToLocation(sp, regionHandle,
-                                                               position, lookAt, teleportFlags);
-                }
+                    m_teleportModule.Teleport(sp, regionHandle, position, lookAt, teleportFlags);
                 else
                 {
-                    m_sceneGridService.RequestTeleportToLocation(sp, regionHandle,
-                                                                 position, lookAt, teleportFlags);
+                    m_log.DebugFormat("[SCENE]: Unable to perform teleports: no AgentTransferModule is active");
+                    sp.ControllingClient.SendTeleportFailed("Unable to perform teleports on this simulator.");
                 }
-               
             }
         }
 
@@ -3971,7 +3933,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void CrossAgentToNewRegion(ScenePresence agent, bool isFlying)
         {
-            m_sceneGridService.CrossAgentToNewRegion(this, agent, isFlying);
+            if (m_teleportModule != null)
+                m_teleportModule.Cross(agent, isFlying);
+            else
+            {
+                m_log.DebugFormat("[SCENE]: Unable to cross agent to neighbouring region, because there is no AgentTransferModule");
+            }
         }
 
         public void SendOutChildAgentUpdates(AgentPosition cadu, ScenePresence presence)

@@ -414,7 +414,7 @@ namespace OpenSim
 
             foreach (ScenePresence presence in agents)
             {
-                RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
+                RegionInfo regionInfo = presence.Scene.RegionInfo;
 
                 if (presence.Firstname.ToLower().Contains(cmdparams[2].ToLower()) &&
                     presence.Lastname.ToLower().Contains(cmdparams[3].ToLower()))
@@ -908,7 +908,7 @@ namespace OpenSim
 
                     foreach (ScenePresence presence in agents)
                     {
-                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
+                        RegionInfo regionInfo = presence.Scene.RegionInfo;
                         string regionName;
 
                         if (regionInfo == null)
