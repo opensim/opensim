@@ -99,6 +99,9 @@ namespace OpenSim.Services.GridService
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
+                    return false;
+
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
                     regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
@@ -119,10 +122,13 @@ namespace OpenSim.Services.GridService
             
             if (region != null)
             {
-                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                int oldFlags = Convert.ToInt32(region.Data["flags"]);
+                if ((oldFlags & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
                     return false;
 
-                rdata.Data["flags"] = region.Data["flags"]; // Preserve fields
+                oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
+
+                rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
             }
             else
             {
