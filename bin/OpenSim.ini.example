@@ -290,7 +290,18 @@
 
 
 [StandAlone]
+    ; If this is set to true then OpenSim only allows in users who already have accounts.
+    ; An account can be created using the "create user" console command.
+    ;
+    ; If this is set to false then an account is automatically created for a user who logs in
+    ; without one.  PLEASE NOTE THAT IN THIS MODE NO PASSWORD CHECKS ARE PERFORMED.
+    ; Therefore, any user can log into any account.  If accounts_authenticate is later switched to
+    ; true then the passwords will need to be reset (using the "reset user password" console command) since
+    ; automatically created accounts have their password set to the string "test".
+    ;
+    ; This setting applies to standalone mode only, not grid or other modes.  Default is true.
     accounts_authenticate = true
+
     welcome_message = "Welcome to OpenSimulator"
 
     ; Inventory database provider

@@ -59,6 +59,10 @@ Once you are presented with a prompt that looks like:
 
 You have successfully started OpenSim.
 
+Before you can log in you will need to create a user account.  You can do
+this by running the "create user" command on the OpenSim console.  This will
+ask you a series of questions such as first name, last name and password.
+
 Helpful resources:
  * http://opensimulator.org/wiki/Configuration
  * http://opensimulator.org/wiki/Configuring_Regions
@@ -68,7 +72,8 @@ Helpful resources:
 
 By default your sim will be running on http://127.0.0.1:9000.  To use
 your OpenSim add -loginuri http://127.0.0.1:9000 to your second life
-client (running on the same machine as your OpenSim).
+client (running on the same machine as your OpenSim).  To login, use the
+same avatar details that you gave to the "create user" console command.
 
 == Bug reports ==
 
