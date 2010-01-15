@@ -34,6 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
@@ -50,6 +51,8 @@ namespace OpenSim.Services.GridService
         private static GridService m_RootInstance = null;
         protected IConfigSource m_config;
 
+        protected IAuthenticationService m_AuthenticationService = null;
+
         public GridService(IConfigSource config)
             : base(config)
         {
@@ -60,6 +63,14 @@ namespace OpenSim.Services.GridService
             if (gridConfig != null)
             {
                 m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
+                
+                string authService = gridConfig.GetString("AuthenticationService", String.Empty);
+
+                if (authService != String.Empty)
+                {
+                    Object[] args = new Object[] { config };
+                    m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+                }
             }
             
             if (m_RootInstance == null)
@@ -90,6 +101,46 @@ namespace OpenSim.Services.GridService
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+            if (region != null)
+            {
+                // There is a preexisting record
+                //
+                // Get it's flags
+                //
+                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["Flags"]);
+
+                // Is this a reservation?
+                //
+                if ((rflags & OpenSim.Data.RegionFlags.Reservation) != 0)
+                {
+                    // Regions reserved for the null key cannot be taken.
+                    //
+                    if (region.Data["PrincipalID"] == UUID.Zero.ToString())
+                        return false;
+
+                    // Treat it as an auth request
+                    //
+                    // NOTE: Fudging the flags value here, so these flags
+                    //       should not be used elsewhere. Don't optimize
+                    //       this with the later retrieval of the same flags!
+                    //
+                    rflags |= OpenSim.Data.RegionFlags.Authenticate;
+                }
+
+                if ((rflags & OpenSim.Data.RegionFlags.Authenticate) != 0)
+                {
+                    // Can we authenticate at all?
+                    //
+                    if (m_AuthenticationService == null)
+                        return false;
+
+                    if (!m_AuthenticationService.Verify(new UUID(region.Data["PrincipalID"].ToString()), regionInfos.Token, 30))
+                        return false;
+
+                    return false;
+                }
+            }
+
             if ((region != null) && (region.RegionID != regionInfos.RegionID))
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
@@ -99,6 +150,9 @@ namespace OpenSim.Services.GridService
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
+                    return false;
+
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
                     regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
@@ -119,10 +173,13 @@ namespace OpenSim.Services.GridService
             
             if (region != null)
             {
-                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                int oldFlags = Convert.ToInt32(region.Data["flags"]);
+                if ((oldFlags & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
                     return false;
 
-                rdata.Data["flags"] = region.Data["flags"]; // Preserve fields
+                oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
+
+                rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
             }
             else
             {

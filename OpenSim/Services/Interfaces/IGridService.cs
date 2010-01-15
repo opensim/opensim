@@ -159,6 +159,7 @@ namespace OpenSim.Services.Interfaces
         public byte Access;
         public int  Maturity;
         public string RegionSecret;
+        public string Token;
 
         public GridRegion()
         {
@@ -306,6 +307,7 @@ namespace OpenSim.Services.Interfaces
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
             kvp["owner_uuid"] = EstateOwner.ToString();
+            kvp["token"] = Token.ToString();
             // Maturity doesn't seem to exist in the DB
             return kvp;
         }
@@ -362,6 +364,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("owner_uuid"))
                 EstateOwner = new UUID(kvp["owner_uuid"].ToString());
+
+            if (kvp.ContainsKey("token"))
+                Token = kvp["token"].ToString();
 
         }
     }

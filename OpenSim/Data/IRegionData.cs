@@ -72,6 +72,9 @@ namespace OpenSim.Data
         RegionOnline = 4, // Set when a region comes online, unset when it unregisters and DeleteOnUnregister is false
         NoDirectLogin = 8, // Region unavailable for direct logins (by name)
         Persistent = 16, // Don't remove on unregister
-        LockedOut = 32 // Don't allow registration
+        LockedOut = 32, // Don't allow registration
+        NoMove = 64, // Don't allow moving this region
+        Reservation = 128, // This is an inactive reservation
+        Authenticate = 256 // Require authentication
     }
 }
