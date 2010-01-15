@@ -90,6 +90,40 @@ namespace OpenSim.Services.GridService
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+            if (region != null)
+            {
+                // There is a preexisting record
+                //
+                // Get it's flags
+                //
+                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["Flags"]);
+
+                // Is this a reservation?
+                //
+                if ((rflags & OpenSim.Data.RegionFlags.Reservation) != 0)
+                {
+                    // Regions reserved for the null key cannot be taken.
+                    //
+                    if (region.Data["PrincipalID"] == UUID.Zero.ToString())
+                        return false;
+
+                    // Treat it as an auth request
+                    //
+                    // NOTE: Fudging the flags value here, so these flags
+                    //       should not be used elsewhere. Don't optimize
+                    //       this with the later retrieval of the same flags!
+                    //
+                    rflags |= OpenSim.Data.RegionFlags.Authenticate;
+                }
+
+                if ((rflags & OpenSim.Data.RegionFlags.Authenticate) != 0)
+                {
+                    // TODO: Authenticate the principal
+
+                    return false;
+                }
+            }
+
             if ((region != null) && (region.RegionID != regionInfos.RegionID))
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
