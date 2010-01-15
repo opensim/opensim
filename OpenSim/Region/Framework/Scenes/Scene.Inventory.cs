@@ -1803,8 +1803,13 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
-                    item.BasePermissions = objectGroup.GetEffectivePermissions();
-                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
+                    uint ownerPerms = objectGroup.GetEffectivePermissions();
+                    if ((objectGroup.RootPart.OwnerMask & (uint)PermissionMask.Modify) != 0)
+                        ownerPerms |= (uint)PermissionMask.Modify;
+
+                    item.BasePermissions = ownerPerms;
+                    item.CurrentPermissions = ownerPerms;
+
                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                     item.GroupPermissions = objectGroup.RootPart.GroupMask;
