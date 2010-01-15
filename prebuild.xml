@@ -1056,6 +1056,7 @@
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 

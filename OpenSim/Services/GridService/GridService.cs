@@ -34,6 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
@@ -50,6 +51,8 @@ namespace OpenSim.Services.GridService
         private static GridService m_RootInstance = null;
         protected IConfigSource m_config;
 
+        protected IAuthenticationService m_AuthenticationService = null;
+
         public GridService(IConfigSource config)
             : base(config)
         {
@@ -60,6 +63,14 @@ namespace OpenSim.Services.GridService
             if (gridConfig != null)
             {
                 m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
+                
+                string authService = gridConfig.GetString("AuthenticationService", String.Empty);
+
+                if (authService != String.Empty)
+                {
+                    Object[] args = new Object[] { config };
+                    m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+                }
             }
             
             if (m_RootInstance == null)
@@ -118,7 +129,13 @@ namespace OpenSim.Services.GridService
 
                 if ((rflags & OpenSim.Data.RegionFlags.Authenticate) != 0)
                 {
-                    // TODO: Authenticate the principal
+                    // Can we authenticate at all?
+                    //
+                    if (m_AuthenticationService == null)
+                        return false;
+
+                    if (!m_AuthenticationService.Verify(new UUID(region.Data["PrincipalID"].ToString()), regionInfos.Token, 30))
+                        return false;
 
                     return false;
                 }
