@@ -220,8 +220,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             
             // Fail if fundamental information is still missing
 
-            if (cs.Server == null || cs.IrcChannel == null || cs.BaseNickname == null || cs.User == null)
-                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}", cs.idn, rs.Region));
+            if (cs.Server == null)
+                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: server missing", cs.idn, rs.Region));
+            else if (cs.IrcChannel == null)
+                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: channel missing", cs.idn, rs.Region));
+            else if (cs.BaseNickname == null)
+                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: nick missing", cs.idn, rs.Region));
+            else if (cs.User == null)
+                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: user missing", cs.idn, rs.Region));
 
             m_log.InfoFormat("[IRC-Channel-{0}] Configuration for Region {1} is valid", cs.idn, rs.Region);
             m_log.InfoFormat("[IRC-Channel-{0}]    Server = {1}", cs.idn, cs.Server);

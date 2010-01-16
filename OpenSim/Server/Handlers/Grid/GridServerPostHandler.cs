@@ -162,14 +162,14 @@ namespace OpenSim.Server.Handlers.Grid
                 m_log.DebugFormat("[GRID HANDLER]: exception unpacking region data: {0}", e);
             }
 
-            bool result = false;
+            string result = "Error communicating with grid service";
             if (rinfo != null)
                 result = m_GridService.RegisterRegion(scopeID, rinfo);
 
-            if (result)
+            if (result == String.Empty)
                 return SuccessResult();
             else
-                return FailureResult();
+                return FailureResult(result);
         }
 
         byte[] Deregister(Dictionary<string, object> request)
@@ -509,6 +509,11 @@ namespace OpenSim.Server.Handlers.Grid
 
         private byte[] FailureResult()
         {
+            return FailureResult(String.Empty);
+        }
+
+        private byte[] FailureResult(string msg)
+        {
             XmlDocument doc = new XmlDocument();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
@@ -525,6 +530,11 @@ namespace OpenSim.Server.Handlers.Grid
             result.AppendChild(doc.CreateTextNode("Failure"));
 
             rootElement.AppendChild(result);
+
+            XmlElement message = doc.CreateElement("", "Message", "");
+            message.AppendChild(doc.CreateTextNode(msg));
+
+            rootElement.AppendChild(message);
 
             return DocToBytes(doc);
         }

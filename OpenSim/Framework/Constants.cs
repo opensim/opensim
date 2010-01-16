@@ -36,10 +36,10 @@ namespace OpenSim.Framework
 
         public enum EstateAccessCodex : uint
         {
-            AccessOptions = 17,
-            AllowedGroups = 18,
-            EstateBans = 20,
-            EstateManagers = 24
+            AccessOptions = 1,
+            AllowedGroups = 2,
+            EstateBans = 4,
+            EstateManagers = 8
         }
 
         [Flags]public enum TeleportFlags : uint

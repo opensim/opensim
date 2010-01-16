@@ -2110,14 +2110,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llRotTarget(LSL_Rotation rot, double error)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRotTarget");
-            return 0;
+            return m_host.registerRotTargetWaypoint(new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), (float)error);
         }
 
         public void llRotTargetRemove(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRotTargetRemove");
+            m_host.unregisterRotTargetWaypoint(number);
         }
 
         public void llMoveToTarget(LSL_Vector target, double tau)
@@ -7286,23 +7285,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetNumberOfPrims()
         {
             m_host.AddScriptLPS(1);
-            ScenePresence[] presences = World.GetScenePresences();
-            if (presences.Length == 0)
-                return 0;
-
             int avatarCount = 0;
-            for (int i = 0; i < presences.Length; i++)
+            World.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                ScenePresence presence = presences[i];
-
-                if (!presence.IsChildAgent && presence.ParentID != 0)
-                {
-                    if (m_host.ParentGroup.HasChildPrim(presence.ParentID))
-                    {
+                if (!presence.IsChildAgent && presence.ParentID != 0 && m_host.ParentGroup.HasChildPrim(presence.ParentID))
                         avatarCount++;
-                    }
-                }
-            }
+            });
 
             return m_host.ParentGroup.PrimCount + avatarCount;
         }

@@ -135,12 +135,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         #region IGridService
 
-        public override bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
+        public override string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
-            if (m_LocalGridService.RegisterRegion(scopeID, regionInfo))
+            string msg = m_LocalGridService.RegisterRegion(scopeID, regionInfo);
+
+            if (msg == String.Empty)
                 return base.RegisterRegion(scopeID, regionInfo);
 
-            return false;
+            return msg;
         }
 
         public override bool DeregisterRegion(UUID regionID)

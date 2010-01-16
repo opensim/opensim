@@ -48,6 +48,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private List<Scene> m_SceneList = new List<Scene>();
         private string m_RestURL = String.Empty;
         IMessageTransferModule m_TransferModule = null;
+        private bool m_ForwardOfflineGroupMessages = true;
 
         public void Initialise(IConfigSource config)
         {
@@ -71,6 +72,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 enabled = false;
                 return;
             }
+
+            m_ForwardOfflineGroupMessages = cnf.GetBoolean("ForwardOfflineGroupMessages", m_ForwardOfflineGroupMessages);
         }
 
         public void AddRegion(Scene scene)
@@ -192,7 +195,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void UndeliveredMessage(GridInstantMessage im)
         {
-            if (im.offline != 0)
+            if ((im.offline != 0)
+                && (!im.fromGroup || (im.fromGroup && m_ForwardOfflineGroupMessages)))
             {
                 bool success = SynchronousRestObjectPoster.BeginPostObject<GridInstantMessage, bool>(
                         "POST", m_RestURL+"/SaveMessage/", im);

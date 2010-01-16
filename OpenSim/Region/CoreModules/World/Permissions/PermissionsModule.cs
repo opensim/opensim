@@ -607,7 +607,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return objectOwnerMask;
 
             // Estate users should be able to edit anything in the sim
-            if (IsEstateManager(user) && m_RegionOwnerIsGod && !IsAdministrator(objectOwner))
+            if (IsEstateManager(user) && m_RegionOwnerIsGod && (!IsAdministrator(objectOwner)) || objectOwner == user)
                 return objectOwnerMask;
 
             // Admin should be able to edit anything in the sim (including admin objects)
@@ -898,6 +898,9 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+            if (IsEstateManager(user) && m_RegionOwnerIsGod)
+                return true;
 
             return IsAdministrator(user);
         }

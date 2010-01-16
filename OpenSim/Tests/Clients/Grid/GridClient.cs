@@ -63,27 +63,28 @@ namespace OpenSim.Tests.Clients.GridClient
             GridRegion r3 = CreateRegion("Test Region 3", 1005, 1000);
 
             Console.WriteLine("[GRID CLIENT]: *** Registering region 1"); 
-            bool success = m_Connector.RegisterRegion(UUID.Zero, r1);
-            if (success)
+            string msg = m_Connector.RegisterRegion(UUID.Zero, r1);
+            if (msg == String.Empty)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 1");
             else
                 Console.WriteLine("[GRID CLIENT]: region 1 failed to register");
 
             Console.WriteLine("[GRID CLIENT]: *** Registering region 2");
-            success = m_Connector.RegisterRegion(UUID.Zero, r2);
-            if (success)
+            msg = m_Connector.RegisterRegion(UUID.Zero, r2);
+            if (msg == String.Empty)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 2");
             else
                 Console.WriteLine("[GRID CLIENT]: region 2 failed to register");
 
             Console.WriteLine("[GRID CLIENT]: *** Registering region 3");
-            success = m_Connector.RegisterRegion(UUID.Zero, r3);
-            if (success)
+            msg = m_Connector.RegisterRegion(UUID.Zero, r3);
+            if (msg == String.Empty)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 3");
             else
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to register");
 
 
+            bool success;
             Console.WriteLine("[GRID CLIENT]: *** Deregistering region 3");
             success = m_Connector.DeregisterRegion(r3.RegionID);
             if (success)
@@ -91,8 +92,8 @@ namespace OpenSim.Tests.Clients.GridClient
             else
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to deregister");
             Console.WriteLine("[GRID CLIENT]: *** Registering region 3 again");
-            success = m_Connector.RegisterRegion(UUID.Zero, r3);
-            if (success)
+            msg = m_Connector.RegisterRegion(UUID.Zero, r3);
+            if (msg == String.Empty)
                 Console.WriteLine("[GRID CLIENT]: Successfully registered region 3");
             else
                 Console.WriteLine("[GRID CLIENT]: region 3 failed to register");

@@ -36,8 +36,9 @@ using log4net;
 
 namespace OpenSim.Framework.Console
 {
-    // A console that uses cursor control and color
-    //
+    /// <summary>
+    /// A console that uses cursor control and color
+    /// </summary>    
     public class LocalConsole : CommandConsole
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -85,30 +86,70 @@ namespace OpenSim.Framework.Console
             history.Add(text);
         }
 
+        /// <summary>
+        /// Set the cursor row.
+        /// </summary>
+        ///
+        /// <param name="top">
+        /// Row to set.  If this is below 0, then the row is set to 0.  If it is equal to the buffer height or greater
+        /// then it is set to one less than the height.
+        /// </param>
+        /// <returns>
+        /// The new cursor row.
+        /// </returns>
         private int SetCursorTop(int top)
         {
-            if (top >= 0 && top < System.Console.BufferHeight)
-            {
-                System.Console.CursorTop = top;
-                return top;
-            }
-            else
-            {
-                return System.Console.CursorTop;
-            }
+            // From at least mono 2.4.2.3, window resizing can give mono an invalid row and column values.  If we try
+            // to set a cursor row position with a currently invalid column, mono will throw an exception.  
+            // Therefore, we need to make sure that the column position is valid first.              
+            int left = System.Console.CursorLeft;
+
+            if (left < 0)
+                System.Console.CursorLeft = 0;
+            else if (left >= System.Console.BufferWidth)
+                System.Console.CursorLeft = System.Console.BufferWidth - 1;
+            
+            if (top < 0)
+                top = 0;
+            if (top >= System.Console.BufferHeight)
+                top = System.Console.BufferHeight - 1;
+
+            System.Console.CursorTop = top;
+
+            return top;
         }
 
+        /// <summary>
+        /// Set the cursor column.
+        /// </summary>
+        ///
+        /// <param name="left">
+        /// Column to set.  If this is below 0, then the column is set to 0.  If it is equal to the buffer width or greater
+        /// then it is set to one less than the width.
+        /// </param>
+        /// <returns>
+        /// The new cursor column.
+        /// </returns>        
         private int SetCursorLeft(int left)
         {
-            if (left >= 0 && left < System.Console.BufferWidth)
-            {
-                System.Console.CursorLeft = left;
-                return left;
-            }
-            else
-            {
-                return System.Console.CursorLeft;
-            }
+            // From at least mono 2.4.2.3, window resizing can give mono an invalid row and column values.  If we try
+            // to set a cursor column position with a currently invalid row, mono will throw an exception.  
+            // Therefore, we need to make sure that the row position is valid first.               
+            int top = System.Console.CursorTop;
+
+            if (top < 0)
+                System.Console.CursorTop = 0;
+            else if (top >= System.Console.BufferHeight)
+                System.Console.CursorTop = System.Console.BufferHeight - 1;
+            
+            if (left < 0)
+                left = 0;
+            if (left >= System.Console.BufferWidth)
+                left = System.Console.BufferWidth - 1;
+
+            System.Console.CursorLeft = left;
+
+            return left;
         }
 
         private void Show()
@@ -128,21 +169,21 @@ namespace OpenSim.Framework.Console
                 {
                     y--;
                     new_y--;
-                    System.Console.CursorLeft = 0;
-                    System.Console.CursorTop = System.Console.BufferHeight-1;
+                    SetCursorLeft(0);
+                    SetCursorTop(System.Console.BufferHeight - 1);
                     System.Console.WriteLine(" ");
                 }
 
-                y=SetCursorTop(y);
-                System.Console.CursorLeft = 0;
+                y = SetCursorTop(y);
+                SetCursorLeft(0);
 
                 if (echo)
                     System.Console.Write("{0}{1}", prompt, cmdline);
                 else
                     System.Console.Write("{0}", prompt);
 
-                SetCursorLeft(new_x);
                 SetCursorTop(new_y);
+                SetCursorLeft(new_x);                
             }
         }
 
@@ -162,8 +203,7 @@ namespace OpenSim.Framework.Console
                         System.Console.Write(" ");
 
                     y = SetCursorTop(y);
-                    System.Console.CursorLeft = 0;
-
+                    SetCursorLeft(0);
                 }
             }
             catch (Exception)
@@ -252,7 +292,7 @@ namespace OpenSim.Framework.Console
                 }
 
                 y = SetCursorTop(y);
-                System.Console.CursorLeft = 0;
+                SetCursorLeft(0);
 
                 int count = cmdline.Length + prompt.Length;
 
@@ -260,7 +300,7 @@ namespace OpenSim.Framework.Console
                     System.Console.Write(" ");
 
                 y = SetCursorTop(y);
-                System.Console.CursorLeft = 0;
+                SetCursorLeft(0);
 
                 WriteLocalText(text, level);
 
@@ -299,7 +339,7 @@ namespace OpenSim.Framework.Console
             echo = e;
             int historyLine = history.Count;
 
-            System.Console.CursorLeft = 0; // Needed for mono
+            SetCursorLeft(0); // Needed for mono
             System.Console.Write(" "); // Needed for mono
 
             lock (cmdline)
@@ -339,7 +379,7 @@ namespace OpenSim.Framework.Console
                         cmdline.Remove(cp-1, 1);
                         cp--;
 
-                        System.Console.CursorLeft = 0;
+                        SetCursorLeft(0);
                         y = SetCursorTop(y);
 
                         System.Console.Write("{0}{1} ", prompt, cmdline);
@@ -387,7 +427,7 @@ namespace OpenSim.Framework.Console
                             cp++;
                         break;
                     case ConsoleKey.Enter:
-                        System.Console.CursorLeft = 0;
+                        SetCursorLeft(0);
                         y = SetCursorTop(y);
 
                         System.Console.WriteLine("{0}{1}", prompt, cmdline);
