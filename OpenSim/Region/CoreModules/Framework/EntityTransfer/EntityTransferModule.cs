@@ -339,7 +339,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_aScene.SimulationService.UpdateAgent(reg, agent);
 
                         m_log.DebugFormat(
-                            "[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1}", capsPath, sp.UUID);
+                            "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
 
 
                         if (eq != null)
@@ -745,7 +745,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
                      + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
 
-                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1}", capsPath, agent.UUID);
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, agent.UUID);
 
                 IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     eq.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
                     eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1} in region {2}",
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1} in region {2}",
                                       capsPath, sp.UUID, sp.Scene.RegionInfo.RegionName);
                 }
                 else

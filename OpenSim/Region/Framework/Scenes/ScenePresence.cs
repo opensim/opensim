@@ -3431,36 +3431,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public bool CrossAttachmentsIntoNewRegion(GridRegion destination, bool silent)
-        {
-            lock (m_attachments)
-            {
-                // Validate
-                foreach (SceneObjectGroup gobj in m_attachments)
-                {
-                    if (gobj == null || gobj.IsDeleted)
-                        return false;
-                }
-
-                foreach (SceneObjectGroup gobj in m_attachments)
-                {
-                    // If the prim group is null then something must have happened to it!
-                    if (gobj != null && gobj.RootPart != null)
-                    {
-                        // Set the parent localID to 0 so it transfers over properly.
-                        gobj.RootPart.SetParentLocalId(0);
-                        gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
-                        gobj.RootPart.IsAttachment = false;
-                        //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                        m_log.DebugFormat("[ATTACHMENT]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
-                        m_scene.CrossPrimGroupIntoNewRegion(destination, gobj, silent);
-                    }
-                }
-                m_attachments.Clear();
-
-                return true;
-            }
-        }
 
         public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
         {
