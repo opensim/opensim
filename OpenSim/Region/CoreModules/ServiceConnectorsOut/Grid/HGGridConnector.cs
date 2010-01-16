@@ -568,6 +568,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return true;
         }
 
+        // From the map search
         public GridRegion TryLinkRegion(IClientAPI client, string regionDescriptor)
         {
             return TryLinkRegion((Scene)client.Scene, client, regionDescriptor);
