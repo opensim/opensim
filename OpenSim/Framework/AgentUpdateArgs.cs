@@ -78,5 +78,13 @@ namespace OpenSim.Framework
         /// </summary>
         public UUID SessionID;
         public byte State;
+
+        public Vector3 ClientAgentPosition;
+        public bool UseClientAgentPosition;
+
+        public AgentUpdateArgs()
+        {
+            UseClientAgentPosition = false;
+        }
     }
 }

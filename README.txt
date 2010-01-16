@@ -10,41 +10,38 @@ C#, and can run under Mono or the Microsoft .NET runtimes.
 This is considered an alpha release.  Some stuff works, a lot doesn't.
 If it breaks, you get to keep *both* pieces.
 
-== Installation on Windows ==
+== Compiling OpenSim ==
 
-Prereqs:
- * runprebuild.bat
- * Load OpenSim.sln into Visual Studio .NET and build the solution.
- * chdir bin
- * edit OpenSim.ini and appropriate files in bin/config-include
- * OpenSim.exe
- 
- Helpful resources:
-* http://opensimulator.org/wiki/Build_Instructions
+Please see BUILDING.txt if you downloaded a source distribution and 
+need to build OpenSim before running it.
 
-See configuring OpenSim
+== Running OpenSim on Windows ==
 
-== Installation on Linux ==
+We recommend that you run OpenSim from a command prompt on Windows in order
+to capture any errors, though you can also run it by double-clicking
+bin/OpenSim.exe
 
-Prereqs:
- * Mono >= 2.4.2
- * Nant >= 0.86 beta 1 (if building with the .NET framework on Windows), 0.85 (if building with the mono framework)
- * sqlite3 or mysql 5.x (you'll need a backend database)
+To run OpenSim from a command prompt
 
-From the distribution type:
- * ./runprebuild.sh
- * nant
+ * cd to the bin/ directory where you unpacked OpenSim
+ * run OpenSim.exe
+
+Now see the "Configuring OpenSim" section
+
+== Running OpenSim on Linux ==
+
+You will need Mono >= 2.4.2 to run OpenSim.  On some Linux distributions you
+may need to install additional packages.  See http://opensimulator.org/wiki/Dependencies
+for more information.
+
+To run OpenSim, from the unpacked distribution type:
+
  * cd bin
- * edit OpenSim.ini and appropriate files in bin/config-include
  * mono ./OpenSim.exe
 
-See configuring OpenSim
+Now see the "Configuring OpenSim" section
 
 == Configuring OpenSim ==
- Helpful resources:
-* http://opensimulator.org/wiki/Configuration
-* http://opensimulator.org/wiki/Configuring_Regions
-* http://opensimulator.org/wiki/Mysql-config
 
 When OpenSim starts for the first time, you will be prompted with a
 series of questions that look something like:
@@ -62,11 +59,21 @@ Once you are presented with a prompt that looks like:
 
 You have successfully started OpenSim.
 
+Before you can log in you will need to create a user account.  You can do
+this by running the "create user" command on the OpenSim console.  This will
+ask you a series of questions such as first name, last name and password.
+
+Helpful resources:
+ * http://opensimulator.org/wiki/Configuration
+ * http://opensimulator.org/wiki/Configuring_Regions
+ * http://opensimulator.org/wiki/Mysql-config
+
 == Connecting to your OpenSim ==
 
 By default your sim will be running on http://127.0.0.1:9000.  To use
 your OpenSim add -loginuri http://127.0.0.1:9000 to your second life
-client (running on the same machine as your OpenSim).
+client (running on the same machine as your OpenSim).  To login, use the
+same avatar details that you gave to the "create user" console command.
 
 == Bug reports ==
 
