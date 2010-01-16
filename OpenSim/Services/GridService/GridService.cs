@@ -52,6 +52,7 @@ namespace OpenSim.Services.GridService
         protected IConfigSource m_config;
 
         protected IAuthenticationService m_AuthenticationService = null;
+        protected bool m_AllowDuplicateNames = false;
 
         public GridService(IConfigSource config)
             : base(config)
@@ -71,6 +72,7 @@ namespace OpenSim.Services.GridService
                     Object[] args = new Object[] { config };
                     m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
                 }
+                m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
             }
             
             if (m_RootInstance == null)
@@ -95,7 +97,7 @@ namespace OpenSim.Services.GridService
 
         #region IGridService
 
-        public bool RegisterRegion(UUID scopeID, GridRegion regionInfos)
+        public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
             IConfig gridConfig = m_config.Configs["GridService"];
             // This needs better sanity testing. What if regionInfo is registering in
@@ -116,7 +118,7 @@ namespace OpenSim.Services.GridService
                     // Regions reserved for the null key cannot be taken.
                     //
                     if (region.Data["PrincipalID"] == UUID.Zero.ToString())
-                        return false;
+                        return "Region location us reserved";
 
                     // Treat it as an auth request
                     //
@@ -132,12 +134,10 @@ namespace OpenSim.Services.GridService
                     // Can we authenticate at all?
                     //
                     if (m_AuthenticationService == null)
-                        return false;
+                        return "No authentication possible";
 
                     if (!m_AuthenticationService.Verify(new UUID(region.Data["PrincipalID"].ToString()), regionInfos.Token, 30))
-                        return false;
-
-                    return false;
+                        return "Bad authentication";
                 }
             }
 
@@ -145,13 +145,13 @@ namespace OpenSim.Services.GridService
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
                     regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
-                return false;
+                return "Region overlaps another region";
             }
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
                 if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
-                    return false;
+                    return "Can't move this region";
 
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
@@ -167,6 +167,23 @@ namespace OpenSim.Services.GridService
                 }
             }
 
+            if (!m_AllowDuplicateNames)
+            {
+                List<RegionData> dupe = m_Database.Get(regionInfos.RegionName, scopeID);
+                if (dupe != null && dupe.Count > 0)
+                {
+                    foreach (RegionData d in dupe)
+                    {
+                        if (d.RegionID != regionInfos.RegionID)
+                        {
+                            m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register duplicate name with ID {1}.", 
+                                regionInfos.RegionName, regionInfos.RegionID);
+                            return "Duplicate region name";
+                        }
+                    }
+                }
+            }
+
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
@@ -175,7 +192,7 @@ namespace OpenSim.Services.GridService
             {
                 int oldFlags = Convert.ToInt32(region.Data["flags"]);
                 if ((oldFlags & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
-                    return false;
+                    return "Region locked out";
 
                 oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
 
@@ -211,7 +228,7 @@ namespace OpenSim.Services.GridService
             m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) registered successfully at {2}-{3}", 
                 regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
 
-            return true;
+            return String.Empty;
         }
 
         public bool DeregisterRegion(UUID regionID)

@@ -60,12 +60,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected RegionCommsListener regionCommsHost;
 
-        public bool RegionLoginsEnabled
-        {
-            get { return m_regionLoginsEnabled; }
-            set { m_regionLoginsEnabled = value; }
-        }
-        private bool m_regionLoginsEnabled = false;
+        protected List<UUID> m_agentsInTransit;
 
         /// <summary>
         /// An agent is crossing into this region

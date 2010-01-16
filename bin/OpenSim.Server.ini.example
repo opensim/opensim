@@ -23,6 +23,7 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 ; * Leave commented to diable logins to the console
 ;ConsoleUser = Test
 ;ConsolePass = secret
+;ConsolePort = 0
 
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
@@ -55,11 +56,12 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     Realm = "regions"
+    ; AllowDuplicateNames = "True"
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"
-    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut
+    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
     ;; For example: 
-    Region_Welcome_Area = "DefaultRegion, FallbackRegion"
+    ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
@@ -98,7 +100,6 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
-
 
 [PresenceService]
     ; for the server connector

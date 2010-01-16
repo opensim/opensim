@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected AgentCircuitManager m_authenticateHandler;
 
         protected SceneCommunicationService m_sceneGridService;
-        public bool loginsdisabled = true;
+        public bool LoginsDisabled = true;
 
         public new float TimeDilation
         {
@@ -1366,15 +1366,19 @@ namespace OpenSim.Region.Framework.Scenes
                         StatsReporter.addScriptLines(m_sceneGraph.GetScriptLPS());
                     }
 
-                    if (loginsdisabled && m_frame > 20)
+                    if (LoginsDisabled && m_frame == 20)
                     {
                         // In 99.9% of cases it is a bad idea to manually force garbage collection. However,
                         // this is a rare case where we know we have just went through a long cycle of heap
                         // allocations, and there is no more work to be done until someone logs in
                         GC.Collect();
 
-                        m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
-                        loginsdisabled = false;
+                        IConfig startupConfig = m_config.Configs["Startup"];
+                        if (startupConfig == null || !startupConfig.GetBoolean("StartDisabled", false))
+                        {
+                            m_log.DebugFormat("[REGION]: Enabling logins for {0}", RegionInfo.RegionName);
+                            LoginsDisabled = false;
+                        }
                     }
                 }
                 catch (NotImplementedException)
@@ -1649,9 +1653,9 @@ namespace OpenSim.Region.Framework.Scenes
             //m_sceneGridService.RegisterRegion(m_interregionCommsOut, RegionInfo);
 
             GridRegion region = new GridRegion(RegionInfo);
-            bool success = GridService.RegisterRegion(RegionInfo.ScopeID, region);
-            if (!success)
-                throw new Exception("Can't register with grid");
+            string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
+            if (error != String.Empty)
+                throw new Exception(error);
 
             m_sceneGridService.SetScene(this);
             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
@@ -3404,7 +3408,7 @@ namespace OpenSim.Region.Framework.Scenes
             // TeleportFlags.ViaLandmark | TeleportFlags.ViaLocation | TeleportFlags.ViaLandmark | TeleportFlags.Default - Regular Teleport
 
 
-            if (loginsdisabled)
+            if (LoginsDisabled)
             {
                 reason = "Logins Disabled";
                 return false;
@@ -3577,8 +3581,35 @@ namespace OpenSim.Region.Framework.Scenes
                 return false;
             }
 
+            IGroupsModule groupsModule =
+                    RequestModuleInterface<IGroupsModule>();
+
+            List<UUID> agentGroups = new List<UUID>();
+
+            if (groupsModule != null)
+            {
+                GroupMembershipData[] GroupMembership =
+                        groupsModule.GetMembershipData(agent.AgentID);
+
+                for (int i = 0; i < GroupMembership.Length; i++)
+                    agentGroups.Add(GroupMembership[i].GroupID);
+            }
+
+            bool groupAccess = false;
+            UUID[] estateGroups = m_regInfo.EstateSettings.EstateGroups;
+
+            foreach (UUID group in estateGroups)
+            {
+                if (agentGroups.Contains(group))
+                {
+                    groupAccess = true;
+                    break;
+                }
+            }
+
             if (!m_regInfo.EstateSettings.PublicAccess &&
-                !m_regInfo.EstateSettings.HasAccess(agent.AgentID))
+                !m_regInfo.EstateSettings.HasAccess(agent.AgentID) &&
+                !groupAccess)
             {
                 m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                  agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);

@@ -86,7 +86,7 @@ namespace OpenSim.Services.Connectors
 
         #region IGridService
 
-        public virtual bool RegisterRegion(UUID scopeID, GridRegion regionInfo)
+        public virtual string RegisterRegion(UUID scopeID, GridRegion regionInfo)
         {
             Dictionary<string, object> rinfo = regionInfo.ToKeyValuePairs();
             Dictionary<string, object> sendData = new Dictionary<string,object>();
@@ -110,11 +110,23 @@ namespace OpenSim.Services.Connectors
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
                     if (replyData.ContainsKey("Result")&& (replyData["Result"].ToString().ToLower() == "success"))
-                        return true;
+                    {
+                        return String.Empty;
+                    }
+                    else if (replyData.ContainsKey("Result")&& (replyData["Result"].ToString().ToLower() == "failure"))
+                    {
+                        m_log.DebugFormat("[GRID CONNECTOR]: Registration failed: {0}", replyData["Message"].ToString());
+                        return replyData["Message"].ToString();
+                    }
                     else if (!replyData.ContainsKey("Result"))
+                    {
                         m_log.DebugFormat("[GRID CONNECTOR]: reply data does not contain result field");
+                    }
                     else
+                    {
                         m_log.DebugFormat("[GRID CONNECTOR]: unexpected result {0}", replyData["Result"].ToString());
+                        return "Unexpected result "+replyData["Result"].ToString();
+                    }
                     
                 }
                 else
@@ -125,7 +137,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[GRID CONNECTOR]: Exception when contacting grid server: {0}", e.Message);
             }
 
-            return false;
+            return "Error communicating with grid service";
         }
 
         public virtual bool DeregisterRegion(UUID regionID)

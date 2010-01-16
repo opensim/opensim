@@ -126,11 +126,16 @@
     ;storage_plugin = "OpenSim.Data.Null.dll"
 
     ; --- To use sqlite as region storage:
+    ; NOTE: SQLite and OpenSim are not functioning properly with Mono 2.4.3 or greater.
+    ; If you are using Mono you probably should be using MySQL
     storage_plugin = "OpenSim.Data.SQLite.dll"
     storage_connection_string="URI=file:OpenSim.db,version=3";
 
-    ; --- To use MySQL storage, supply your own connectionstring (this is only an example):
+    ; --- To use MySQL storage, supply your own connection string (this is only an example):
     ;     note that the supplied account needs create privilegies if you want it to auto-create needed tables.
+    ;
+    ; -->>> There are multiple connection strings defined in several places in this file. Check it carefully!
+    ;
     ; storage_plugin="OpenSim.Data.MySQL.dll"
     ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
     ; If you want to use a different database/server for estate data, then
@@ -263,6 +268,9 @@
     ; Enable JSON simulator data by setting a URI name (case sensitive)
     ; Stats_URI = "jsonSimStats"
 
+    ; Make OpenSim start all regions woth logins disabled. They will need
+    ; to be enabled from the console if this is set
+    ; StartDisabled = false
 
 [SMTP]
     enabled=false
@@ -282,7 +290,18 @@
 
 
 [StandAlone]
+    ; If this is set to true then OpenSim only allows in users who already have accounts.
+    ; An account can be created using the "create user" console command.
+    ;
+    ; If this is set to false then an account is automatically created for a user who logs in
+    ; without one.  PLEASE NOTE THAT IN THIS MODE NO PASSWORD CHECKS ARE PERFORMED.
+    ; Therefore, any user can log into any account.  If accounts_authenticate is later switched to
+    ; true then the passwords will need to be reset (using the "reset user password" console command) since
+    ; automatically created accounts have their password set to the string "test".
+    ;
+    ; This setting applies to standalone mode only, not grid or other modes.  Default is true.
     accounts_authenticate = true
+
     welcome_message = "Welcome to OpenSimulator"
 
     ; Inventory database provider
@@ -318,6 +337,7 @@
     ConsoleUser = "Test"
     ConsolePass = "secret"
     http_listener_port = 9000
+    console_port = 0
     default_location_x = 1000
     default_location_y = 1000
 
@@ -473,6 +493,9 @@
     ; OfflineMessageURL = http://yourserver/Offline.php
     ; MuteListModule = MuteListModule
     ; MuteListURL = http://yourserver/Mute.php
+
+    ; Control whether group messages are forwarded to offline users.  Default is true.
+    ; ForwardOfflineGroupMessages = true
 
 
 [ODEPhysicsSettings]
@@ -976,6 +999,11 @@
 
     ; Compile debug info (line numbers) into the script assemblies
     CompileWithDebugInformation = true
+
+    ; Allow the user of mod* functions.  This allows a script to pass messages
+    ; to a region module via the modSendCommand() function
+    ; Default is false
+    AllowMODFunctions = false
 
     ; Allow the use of os* functions (some are dangerous)
     AllowOSFunctions = false

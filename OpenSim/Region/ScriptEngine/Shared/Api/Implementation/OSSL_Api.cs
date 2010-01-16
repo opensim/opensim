@@ -1981,6 +1981,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             return (int)pws;
         }
+        
         public void osSetSpeed(string UUID, float SpeedModifier)
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osSetSpeed");
@@ -1988,6 +1989,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScenePresence avatar = World.GetScenePresence(new UUID(UUID));
             avatar.SpeedModifier = SpeedModifier;
         }
+        
         public void osKickAvatar(string FirstName,string SurName,string alert)
         {
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
@@ -2008,6 +2010,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
+        
         public void osCauseDamage(string avatar, double damage)
         {
             CheckThreatLevel(ThreatLevel.High, "osCauseDamage");
@@ -2035,6 +2038,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
         }
+        
         public void osCauseHealing(string avatar, double healing)
         {
             CheckThreatLevel(ThreatLevel.High, "osCauseHealing");

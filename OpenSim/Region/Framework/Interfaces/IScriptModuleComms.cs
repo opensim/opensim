@@ -32,13 +32,29 @@ namespace OpenSim.Region.Framework.Interfaces
 {
     public delegate void ScriptCommand(UUID script, string id, string module, string command, string k);
 
+    /// <summary>
+    /// Interface for communication between OpenSim modules and in-world scripts
+    /// </summary>
+    ///
+    /// See OpenSim.Region.ScriptEngine.Shared.Api.MOD_Api.modSendCommand() for information on receiving messages
+    /// from scripts in OpenSim modules.
     public interface IScriptModuleComms
     {
+        /// <summary>
+        /// Modules can subscribe to this event to receive command invocations from in-world scripts
+        /// </summary>
         event ScriptCommand OnScriptCommand;
 
-        void DispatchReply(UUID script, int code, string text, string k);
+        /// <summary>
+        /// Send a link_message event to an in-world script
+        /// </summary>
+        /// <param name="scriptId"></param>
+        /// <param name="code"></param>
+        /// <param name="text"></param>
+        /// <param name="key"></param>
+        void DispatchReply(UUID scriptId, int code, string text, string key);
 
         // For use ONLY by the script API
-        void RaiseEvent(UUID script, string id, string module, string command, string k);
+        void RaiseEvent(UUID script, string id, string module, string command, string key);
     }
 }

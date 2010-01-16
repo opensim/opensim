@@ -42,7 +42,7 @@ namespace OpenSim.Services.Interfaces
         /// <param name="regionInfos"> </param>
         /// <returns></returns>
         /// <exception cref="System.Exception">Thrown if region registration failed</exception>
-        bool RegisterRegion(UUID scopeID, GridRegion regionInfos);
+        string RegisterRegion(UUID scopeID, GridRegion regionInfos);
 
         /// <summary>
         /// Deregister a region with the grid service.

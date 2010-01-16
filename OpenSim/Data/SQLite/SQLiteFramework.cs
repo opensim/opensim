@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,16 +26,58 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
 using OpenMetaverse;
+using OpenSim.Framework;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Framework
+namespace OpenSim.Data.SQLite
 {
-    public interface ILoginServiceToRegionsConnector
+    /// <summary>
+    /// A database interface class to a user profile storage system
+    /// </summary>
+    public class SQLiteFramework
     {
-        void LogOffUserFromGrid(ulong regionHandle, UUID AvatarID, UUID RegionSecret, string message);
-        bool NewUserConnection(ulong regionHandle, AgentCircuitData agent, out string reason);
-        RegionInfo RequestClosestRegion(string region);
-        RegionInfo RequestNeighbourInfo(UUID regionID);
-        RegionInfo RequestNeighbourInfo(ulong regionhandle);
+        protected SqliteConnection m_Connection;
+
+        protected SQLiteFramework(string connectionString)
+        {
+            m_Connection = new SqliteConnection(connectionString);
+            m_Connection.Open();
+        }
+
+        //////////////////////////////////////////////////////////////
+        //
+        // All non queries are funneled through one connection
+        // to increase performance a little
+        //
+        protected int ExecuteNonQuery(SqliteCommand cmd)
+        {
+            lock (m_Connection)
+            {
+                cmd.Connection = m_Connection;
+
+                return cmd.ExecuteNonQuery();
+            }
+        }
+        
+        protected IDataReader ExecuteReader(SqliteCommand cmd)
+        {
+            SqliteConnection newConnection =
+                    (SqliteConnection)((ICloneable)m_Connection).Clone();
+            newConnection.Open();
+
+            cmd.Connection = newConnection;
+            return cmd.ExecuteReader();
+        }
+
+        protected void CloseReaderCommand(SqliteCommand cmd)
+        {
+            cmd.Connection.Close();
+            cmd.Connection.Dispose();
+            cmd.Dispose();
+        }
     }
 }
