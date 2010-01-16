@@ -8,7 +8,7 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="AgentTransferModule" type="OpenSim.Region.CoreModules.Agent.AgentTransfer.AgentTransferModule" />
+        <RegionModule id="EntityTransferModule" type="OpenSim.Region.CoreModules.Framework.EntityTransfer.EntityTransferModule" />
         <RegionModule id="LandManagementModule" type="OpenSim.Region.CoreModules.World.Land.LandManagementModule" />
         <RegionModule id="ExportSerialisationModule" type="OpenSim.Region.CoreModules.World.Serialiser.SerialiserModule" />
         <RegionModule id="ArchiverModule" type="OpenSim.Region.CoreModules.World.Archiver.ArchiverModule" />

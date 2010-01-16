@@ -158,8 +158,8 @@ namespace OpenSim.Services.Interfaces
         public UUID TerrainImage = UUID.Zero;
         public byte Access;
         public int  Maturity;
-        public string RegionSecret;
-        public string Token;
+        public string RegionSecret = string.Empty;
+        public string Token = string.Empty;
 
         public GridRegion()
         {

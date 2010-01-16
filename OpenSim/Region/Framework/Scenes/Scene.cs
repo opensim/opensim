@@ -1655,7 +1655,9 @@ namespace OpenSim.Region.Framework.Scenes
             GridRegion region = new GridRegion(RegionInfo);
             string error = GridService.RegisterRegion(RegionInfo.ScopeID, region);
             if (error != String.Empty)
+            {
                 throw new Exception(error);
+            }
 
             m_sceneGridService.SetScene(this);
             m_sceneGridService.InformNeighborsThatRegionisUp(RequestModuleInterface<INeighbourService>(), RegionInfo);
@@ -2049,202 +2051,205 @@ namespace OpenSim.Region.Framework.Scenes
             if (grp.IsDeleted)
                 return;
 
-            if (grp.RootPart.DIE_AT_EDGE)
-            {
-                // We remove the object here
-                try
-                {
-                    DeleteSceneObject(grp, false);
-                }
-                catch (Exception)
-                {
-                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
-                }
-                return;
-            }
+            if (m_teleportModule != null)
+                m_teleportModule.Cross(grp, attemptedPosition, silent);
 
-            int thisx = (int)RegionInfo.RegionLocX;
-            int thisy = (int)RegionInfo.RegionLocY;
-            Vector3 EastCross = new Vector3(0.1f,0,0);
-            Vector3 WestCross = new Vector3(-0.1f, 0, 0);
-            Vector3 NorthCross = new Vector3(0, 0.1f, 0);
-            Vector3 SouthCross = new Vector3(0, -0.1f, 0);
+            //if (grp.RootPart.DIE_AT_EDGE)
+            //{
+            //    // We remove the object here
+            //    try
+            //    {
+            //        DeleteSceneObject(grp, false);
+            //    }
+            //    catch (Exception)
+            //    {
+            //        m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+            //    }
+            //    return;
+            //}
+
+            //int thisx = (int)RegionInfo.RegionLocX;
+            //int thisy = (int)RegionInfo.RegionLocY;
+            //Vector3 EastCross = new Vector3(0.1f,0,0);
+            //Vector3 WestCross = new Vector3(-0.1f, 0, 0);
+            //Vector3 NorthCross = new Vector3(0, 0.1f, 0);
+            //Vector3 SouthCross = new Vector3(0, -0.1f, 0);
 
             
-            // use this if no borders were crossed!
-            ulong newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx) * Constants.RegionSize),
-                                           (uint)((thisy) * Constants.RegionSize));
+            //// use this if no borders were crossed!
+            //ulong newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx) * Constants.RegionSize),
+            //                               (uint)((thisy) * Constants.RegionSize));
 
-            Vector3 pos = attemptedPosition;
+            //Vector3 pos = attemptedPosition;
 
-            int changeX = 1;
-            int changeY = 1;
+            //int changeX = 1;
+            //int changeY = 1;
 
-            if (TestBorderCross(attemptedPosition + WestCross, Cardinals.W))
-            {
-                if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
-                {
+            //if (TestBorderCross(attemptedPosition + WestCross, Cardinals.W))
+            //{
+            //    if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+            //    {
 
-                    Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+            //        Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
 
-                    if (crossedBorderx.BorderLine.Z > 0)
-                    {
-                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
-                        changeX = (int)(crossedBorderx.BorderLine.Z /(int) Constants.RegionSize);
-                    }
-                    else
-                        pos.X = ((pos.X + Constants.RegionSize));
+            //        if (crossedBorderx.BorderLine.Z > 0)
+            //        {
+            //            pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+            //            changeX = (int)(crossedBorderx.BorderLine.Z /(int) Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.X = ((pos.X + Constants.RegionSize));
 
-                    Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
-                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+            //        Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+            //        //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
 
-                    if (crossedBordery.BorderLine.Z > 0)
-                    {
-                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
-                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
-                    }
-                    else
-                        pos.Y = ((pos.Y + Constants.RegionSize));
+            //        if (crossedBordery.BorderLine.Z > 0)
+            //        {
+            //            pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+            //            changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.Y = ((pos.Y + Constants.RegionSize));
 
 
                     
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
-                                           (uint)((thisy - changeY) * Constants.RegionSize));
-                    // x - 1
-                    // y - 1
-                }
-                else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
-                {
-                    Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+            //                               (uint)((thisy - changeY) * Constants.RegionSize));
+            //        // x - 1
+            //        // y - 1
+            //    }
+            //    else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+            //    {
+            //        Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
 
-                    if (crossedBorderx.BorderLine.Z > 0)
-                    {
-                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
-                        changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
-                    }
-                    else
-                        pos.X = ((pos.X + Constants.RegionSize));
+            //        if (crossedBorderx.BorderLine.Z > 0)
+            //        {
+            //            pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+            //            changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.X = ((pos.X + Constants.RegionSize));
 
 
-                    Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
-                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+            //        Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+            //        //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
 
-                    if (crossedBordery.BorderLine.Z > 0)
-                    {
-                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
-                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
-                    }
-                    else
-                        pos.Y = ((pos.Y + Constants.RegionSize));
+            //        if (crossedBordery.BorderLine.Z > 0)
+            //        {
+            //            pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+            //            changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.Y = ((pos.Y + Constants.RegionSize));
 
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
-                                           (uint)((thisy + changeY) * Constants.RegionSize));
-                    // x - 1
-                    // y + 1
-                }
-                else
-                {
-                    Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+            //                               (uint)((thisy + changeY) * Constants.RegionSize));
+            //        // x - 1
+            //        // y + 1
+            //    }
+            //    else
+            //    {
+            //        Border crossedBorderx = GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
 
-                    if (crossedBorderx.BorderLine.Z > 0)
-                    {
-                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
-                        changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
-                    }
-                    else
-                        pos.X = ((pos.X + Constants.RegionSize));
+            //        if (crossedBorderx.BorderLine.Z > 0)
+            //        {
+            //            pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+            //            changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.X = ((pos.X + Constants.RegionSize));
                        
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
-                                           (uint) (thisy*Constants.RegionSize));
-                    // x - 1
-                }
-            }
-            else if (TestBorderCross(attemptedPosition + EastCross, Cardinals.E))
-            {
-                if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
-                {
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+            //                               (uint) (thisy*Constants.RegionSize));
+            //        // x - 1
+            //    }
+            //}
+            //else if (TestBorderCross(attemptedPosition + EastCross, Cardinals.E))
+            //{
+            //    if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+            //    {
                     
-                    pos.X = ((pos.X - Constants.RegionSize));
-                    Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
-                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+            //        pos.X = ((pos.X - Constants.RegionSize));
+            //        Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+            //        //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
 
-                    if (crossedBordery.BorderLine.Z > 0)
-                    {
-                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
-                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
-                    }
-                    else
-                        pos.Y = ((pos.Y + Constants.RegionSize));
+            //        if (crossedBordery.BorderLine.Z > 0)
+            //        {
+            //            pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+            //            changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+            //        }
+            //        else
+            //            pos.Y = ((pos.Y + Constants.RegionSize));
                     
                     
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
-                                           (uint)((thisy - changeY) * Constants.RegionSize));
-                    // x + 1
-                    // y - 1
-                }
-                else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
-                {
-                    pos.X = ((pos.X - Constants.RegionSize));
-                    pos.Y = ((pos.Y - Constants.RegionSize));
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
-                                           (uint)((thisy + changeY) * Constants.RegionSize));
-                    // x + 1
-                    // y + 1
-                }
-                else
-                {
-                    pos.X = ((pos.X - Constants.RegionSize));
-                    newRegionHandle
-                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
-                                           (uint) (thisy*Constants.RegionSize));
-                    // x + 1
-                }
-            } 
-            else if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
-            {
-                Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
-                //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+            //                               (uint)((thisy - changeY) * Constants.RegionSize));
+            //        // x + 1
+            //        // y - 1
+            //    }
+            //    else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+            //    {
+            //        pos.X = ((pos.X - Constants.RegionSize));
+            //        pos.Y = ((pos.Y - Constants.RegionSize));
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+            //                               (uint)((thisy + changeY) * Constants.RegionSize));
+            //        // x + 1
+            //        // y + 1
+            //    }
+            //    else
+            //    {
+            //        pos.X = ((pos.X - Constants.RegionSize));
+            //        newRegionHandle
+            //            = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+            //                               (uint) (thisy*Constants.RegionSize));
+            //        // x + 1
+            //    }
+            //} 
+            //else if (TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+            //{
+            //    Border crossedBordery = GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+            //    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
 
-                if (crossedBordery.BorderLine.Z > 0)
-                {
-                    pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
-                    changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
-                }
-                else
-                    pos.Y = ((pos.Y + Constants.RegionSize));
+            //    if (crossedBordery.BorderLine.Z > 0)
+            //    {
+            //        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+            //        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+            //    }
+            //    else
+            //        pos.Y = ((pos.Y + Constants.RegionSize));
 
-                newRegionHandle
-                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - changeY) * Constants.RegionSize));
-                // y - 1
-            }
-            else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
-            {
+            //    newRegionHandle
+            //        = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - changeY) * Constants.RegionSize));
+            //    // y - 1
+            //}
+            //else if (TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+            //{
                 
-                pos.Y = ((pos.Y - Constants.RegionSize));
-                newRegionHandle
-                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + changeY) * Constants.RegionSize));
-                // y + 1
-            }
+            //    pos.Y = ((pos.Y - Constants.RegionSize));
+            //    newRegionHandle
+            //        = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + changeY) * Constants.RegionSize));
+            //    // y + 1
+            //}
 
-            // Offset the positions for the new region across the border
-            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
-            grp.OffsetForNewRegion(pos);
+            //// Offset the positions for the new region across the border
+            //Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
+            //grp.OffsetForNewRegion(pos);
 
-            // If we fail to cross the border, then reset the position of the scene object on that border.
-            uint x = 0, y = 0;
-            Utils.LongToUInts(newRegionHandle, out x, out y);
-            GridRegion destination = GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
-            if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
-            {
-                grp.OffsetForNewRegion(oldGroupPosition);
-                grp.ScheduleGroupForFullUpdate();
-            }
+            //// If we fail to cross the border, then reset the position of the scene object on that border.
+            //uint x = 0, y = 0;
+            //Utils.LongToUInts(newRegionHandle, out x, out y);
+            //GridRegion destination = GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            //if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
+            //{
+            //    grp.OffsetForNewRegion(oldGroupPosition);
+            //    grp.ScheduleGroupForFullUpdate();
+            //}
         }
 
         public Border GetCrossedBorder(Vector3 position, Cardinals gridline)

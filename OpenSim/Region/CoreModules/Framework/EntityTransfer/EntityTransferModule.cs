@@ -46,14 +46,15 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
-    public class AgentTransferModule : ISharedRegionModule, IEntityTransferModule
+    public class EntityTransferModule : ISharedRegionModule, IEntityTransferModule
     {
-        #region ISharedRegionModule
-                private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_Enabled = false;
         protected Scene m_aScene;
         protected List<UUID> m_agentsInTransit;
+
+        #region ISharedRegionModule
 
         public Type ReplaceableInterface
         {
@@ -62,7 +63,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         public string Name
         {
-            get { return "AgentTransferModule"; }
+            get { return "BasicEntityTransferModule"; }
         }
 
         public virtual void Initialise(IConfigSource source)
@@ -70,12 +71,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("AgentTransferModule", "");
+                string name = moduleConfig.GetString("EntityTransferModule", "");
                 if (name == Name)
                 {
                     m_agentsInTransit = new List<UUID>();
                     m_Enabled = true;
-                    m_log.Info("[AGENT TRANSFER MODULE]: Enabled.");
+                    m_log.InfoFormat("[ENTITY TRANSFER MODULE]: {0} nabled.", Name);
                 }
             }
         }
@@ -120,7 +121,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #endregion
 
-        #region Teleports
+        #region Agent Teleports
 
         public void Teleport(ScenePresence sp, ulong regionHandle, Vector3 position, Vector3 lookAt, uint teleportFlags)
         {
@@ -137,7 +138,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (regionHandle == sp.Scene.RegionInfo.RegionHandle)
             {
                 m_log.DebugFormat(
-                    "[AGENT TRANSFER MODULE]: RequestTeleportToLocation {0} within {1}",
+                    "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation {0} within {1}",
                     position, sp.Scene.RegionInfo.RegionName);
 
                 // Teleport within the same region
@@ -146,7 +147,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     Vector3 emergencyPos = new Vector3(128, 128, 128);
 
                     m_log.WarnFormat(
-                        "[AGENT TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
+                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                         position, sp.Name, sp.UUID, emergencyPos);
                     position = emergencyPos;
                 }
@@ -183,7 +184,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (reg != null)
                 {
                     m_log.DebugFormat(
-                        "[AGENT TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
+                        "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
                         position, reg.RegionName);
 
                     uint newRegionX = (uint)(reg.RegionHandle >> 40);
@@ -338,7 +339,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         m_aScene.SimulationService.UpdateAgent(reg, agent);
 
                         m_log.DebugFormat(
-                            "[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1}", capsPath, sp.UUID);
+                            "[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1}", capsPath, sp.UUID);
 
 
                         if (eq != null)
@@ -377,7 +378,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         sp.MakeChildAgent();
 
                         // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                        sp.CrossAttachmentsIntoNewRegion(reg, true);
+                        CrossAttachmentsIntoNewRegion(reg, sp, true);
 
                         // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
@@ -396,7 +397,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         if (sp.Scene.NeedSceneCacheClear(sp.UUID))
                         {
                             m_log.DebugFormat(
-                                "[AGENT TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+                                "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
                                 sp.UUID);
                         }
                     }
@@ -470,28 +471,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #endregion
 
-        #region Enable Child Agent
-        /// <summary>
-        /// This informs a single neighboring region about agent "avatar".
-        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
-        /// </summary>
-        public void EnableChildAgent(ScenePresence sp, GridRegion region)
-        {
-            AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
-            agent.BaseFolder = UUID.Zero;
-            agent.InventoryFolder = UUID.Zero;
-            agent.startpos = new Vector3(128, 128, 70);
-            agent.child = true;
-            agent.Appearance = sp.Appearance;
-
-            InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-            d.BeginInvoke(sp, agent, region, region.ExternalEndPoint, true,
-                          InformClientOfNeighbourCompleted,
-                          d);
-        }
-        #endregion
-
-        #region Crossings
+        #region Agent Crossings
 
         public void Cross(ScenePresence agent, bool isFlying)
         {
@@ -700,7 +680,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 new Byte[0]);
                 im.SendInstantMessage(m, delegate(bool success)
                 {
-                    m_log.DebugFormat("[AGENT TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Client Initiating Teleport sending IM success = {0}", success);
                 });
 
             }
@@ -721,7 +701,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         /// </summary>
         protected ScenePresence CrossAgentToNewRegionAsync(ScenePresence agent, Vector3 pos, uint neighbourx, uint neighboury, bool isFlying)
         {
-            m_log.DebugFormat("[AGENT TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3}", agent.Firstname, agent.Lastname, neighbourx, neighboury);
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} to {2}-{3}", agent.Firstname, agent.Lastname, neighbourx, neighboury);
 
             Scene m_scene = agent.Scene;
             ulong neighbourHandle = Utils.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
@@ -756,7 +736,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string agentcaps;
                 if (!agent.KnownRegions.TryGetValue(neighbourRegion.RegionHandle, out agentcaps))
                 {
-                    m_log.ErrorFormat("[AGENT TRANSFER MODULE]: No AGENT TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
+                    m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: No ENTITY TRANSFER MODULE information for region handle {0}, exiting CrossToNewRegion.",
                                      neighbourRegion.RegionHandle);
                     return agent;
                 }
@@ -765,7 +745,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
                      + "/CAPS/" + agentcaps /*circuitdata.CapsPath*/ + "0000/";
 
-                m_log.DebugFormat("[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1}", capsPath, agent.UUID);
+                m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1}", capsPath, agent.UUID);
 
                 IEventQueue eq = agent.Scene.RequestModuleInterface<IEventQueue>();
                 if (eq != null)
@@ -781,7 +761,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                 if (!WaitForCallback(agent.UUID))
                 {
-                    m_log.Debug("[AGENT TRANSFER MODULE]: Callback never came in crossing agent");
+                    m_log.Debug("[ENTITY TRANSFER MODULE]: Callback never came in crossing agent");
                     ResetFromTransit(agent.UUID);
 
                     // Yikes! We should just have a ref to scene here.
@@ -795,7 +775,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // now we have a child agent in this region. Request all interesting data about other (root) agents
                 agent.SendInitialFullUpdateToAllClients();
 
-                agent.CrossAttachmentsIntoNewRegion(neighbourRegion, true);
+                CrossAttachmentsIntoNewRegion(neighbourRegion, agent, true);
 
                 //                    m_scene.SendKillObject(m_localId);
 
@@ -806,7 +786,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (agent.Scene.NeedSceneCacheClear(agent.UUID))
                 {
                     m_log.DebugFormat(
-                        "[AGENT TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
+                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region", agent.UUID);
                 }
             }
 
@@ -830,11 +810,31 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // In any case
             agent.NotInTransit();
 
-            //m_log.DebugFormat("[AGENT TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
+            //m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Crossing agent {0} {1} completed.", agent.Firstname, agent.Lastname);
         }
 
         #endregion
 
+        #region Enable Child Agent
+        /// <summary>
+        /// This informs a single neighboring region about agent "avatar".
+        /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
+        /// </summary>
+        public void EnableChildAgent(ScenePresence sp, GridRegion region)
+        {
+            AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
+            agent.BaseFolder = UUID.Zero;
+            agent.InventoryFolder = UUID.Zero;
+            agent.startpos = new Vector3(128, 128, 70);
+            agent.child = true;
+            agent.Appearance = sp.Appearance;
+
+            InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
+            d.BeginInvoke(sp, agent, region, region.ExternalEndPoint, true,
+                          InformClientOfNeighbourCompleted,
+                          d);
+        }
+        #endregion
 
         #region Enable Child Agents
 
@@ -856,7 +856,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
             else
             {
-                m_log.Debug("[AGENT TRANSFER MODULE]: m_regionInfo was null in EnableChildAgents, is this a NPC?");
+                m_log.Debug("[ENTITY TRANSFER MODULE]: m_regionInfo was null in EnableChildAgents, is this a NPC?");
             }
 
             /// We need to find the difference between the new regions where there are no child agents
@@ -963,7 +963,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     catch (ArgumentOutOfRangeException)
                     {
                         m_log.ErrorFormat(
-                           "[AGENT TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbor list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
+                           "[ENTITY TRANSFER MODULE]: Neighbour Regions response included the current region in the neighbor list.  The following region will not display to the client: {0} for region {1} ({2}, {3}).",
                            neighbour.ExternalHostName,
                            neighbour.RegionHandle,
                            neighbour.RegionLocX,
@@ -972,7 +972,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[AGENT TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                            "[ENTITY TRANSFER MODULE]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
                             neighbour.ExternalHostName,
                             neighbour.RegionHandle,
                             neighbour.RegionLocX,
@@ -1021,7 +1021,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Utils.LongToUInts(reg.RegionHandle, out x, out y);
             x = x / Constants.RegionSize;
             y = y / Constants.RegionSize;
-            m_log.Info("[AGENT TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
+            m_log.Info("[ENTITY TRANSFER MODULE]: Starting to inform client about neighbour " + x + ", " + y + "(" + endPoint.ToString() + ")");
 
             string capsPath = "http://" + reg.ExternalHostName + ":" + reg.HttpPort
                   + "/CAPS/" + a.CapsPath + "0000/";
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     eq.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
                     eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-                    m_log.DebugFormat("[AGENT TRANSFER MODULE]: Sending new AGENT TRANSFER MODULE seed url {0} to client {1} in region {2}",
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new ENTITY TRANSFER MODULE seed url {0} to client {1} in region {2}",
                                       capsPath, sp.UUID, sp.Scene.RegionInfo.RegionName);
                 }
                 else
@@ -1055,7 +1055,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     // TODO: make Event Queue disablable!
                 }
 
-                m_log.Info("[AGENT TRANSFER MODULE]: Completed inform client about neighbour " + endPoint.ToString());
+                m_log.Info("[ENTITY TRANSFER MODULE]: Completed inform client about neighbour " + endPoint.ToString());
 
             }
 
@@ -1154,6 +1154,329 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #endregion
 
+        #region Object Crossings
+        /// <summary>
+        /// Move the given scene object into a new region depending on which region its absolute position has moved
+        /// into.
+        ///
+        /// This method locates the new region handle and offsets the prim position for the new region
+        /// </summary>
+        /// <param name="attemptedPosition">the attempted out of region position of the scene object</param>
+        /// <param name="grp">the scene object that we're crossing</param>
+        public void Cross(SceneObjectGroup grp, Vector3 attemptedPosition, bool silent)
+        {
+            if (grp == null)
+                return;
+            if (grp.IsDeleted)
+                return;
+
+            Scene scene = grp.Scene;
+            if (scene == null)
+                return;
+
+            if (grp.RootPart.DIE_AT_EDGE)
+            {
+                // We remove the object here
+                try
+                {
+                    scene.DeleteSceneObject(grp, false);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                }
+                return;
+            }
+
+            int thisx = (int)scene.RegionInfo.RegionLocX;
+            int thisy = (int)scene.RegionInfo.RegionLocY;
+            Vector3 EastCross = new Vector3(0.1f, 0, 0);
+            Vector3 WestCross = new Vector3(-0.1f, 0, 0);
+            Vector3 NorthCross = new Vector3(0, 0.1f, 0);
+            Vector3 SouthCross = new Vector3(0, -0.1f, 0);
+
+
+            // use this if no borders were crossed!
+            ulong newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx) * Constants.RegionSize),
+                                           (uint)((thisy) * Constants.RegionSize));
+
+            Vector3 pos = attemptedPosition;
+
+            int changeX = 1;
+            int changeY = 1;
+
+            if (scene.TestBorderCross(attemptedPosition + WestCross, Cardinals.W))
+            {
+                if (scene.TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+                {
+
+                    Border crossedBorderx = scene.GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+
+                    if (crossedBorderx.BorderLine.Z > 0)
+                    {
+                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+                        changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.X = ((pos.X + Constants.RegionSize));
+
+                    Border crossedBordery = scene.GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+
+                    if (crossedBordery.BorderLine.Z > 0)
+                    {
+                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.Y = ((pos.Y + Constants.RegionSize));
+
+
+
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+                                           (uint)((thisy - changeY) * Constants.RegionSize));
+                    // x - 1
+                    // y - 1
+                }
+                else if (scene.TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+                {
+                    Border crossedBorderx = scene.GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+
+                    if (crossedBorderx.BorderLine.Z > 0)
+                    {
+                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+                        changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.X = ((pos.X + Constants.RegionSize));
+
+
+                    Border crossedBordery = scene.GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+
+                    if (crossedBordery.BorderLine.Z > 0)
+                    {
+                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.Y = ((pos.Y + Constants.RegionSize));
+
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+                                           (uint)((thisy + changeY) * Constants.RegionSize));
+                    // x - 1
+                    // y + 1
+                }
+                else
+                {
+                    Border crossedBorderx = scene.GetCrossedBorder(attemptedPosition + WestCross, Cardinals.W);
+
+                    if (crossedBorderx.BorderLine.Z > 0)
+                    {
+                        pos.X = ((pos.X + crossedBorderx.BorderLine.Z));
+                        changeX = (int)(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.X = ((pos.X + Constants.RegionSize));
+
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx - changeX) * Constants.RegionSize),
+                                           (uint)(thisy * Constants.RegionSize));
+                    // x - 1
+                }
+            }
+            else if (scene.TestBorderCross(attemptedPosition + EastCross, Cardinals.E))
+            {
+                if (scene.TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+                {
+
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    Border crossedBordery = scene.GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+                    //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+
+                    if (crossedBordery.BorderLine.Z > 0)
+                    {
+                        pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+                        changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+                    }
+                    else
+                        pos.Y = ((pos.Y + Constants.RegionSize));
+
+
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+                                           (uint)((thisy - changeY) * Constants.RegionSize));
+                    // x + 1
+                    // y - 1
+                }
+                else if (scene.TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+                {
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    pos.Y = ((pos.Y - Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+                                           (uint)((thisy + changeY) * Constants.RegionSize));
+                    // x + 1
+                    // y + 1
+                }
+                else
+                {
+                    pos.X = ((pos.X - Constants.RegionSize));
+                    newRegionHandle
+                        = Util.UIntsToLong((uint)((thisx + changeX) * Constants.RegionSize),
+                                           (uint)(thisy * Constants.RegionSize));
+                    // x + 1
+                }
+            }
+            else if (scene.TestBorderCross(attemptedPosition + SouthCross, Cardinals.S))
+            {
+                Border crossedBordery = scene.GetCrossedBorder(attemptedPosition + SouthCross, Cardinals.S);
+                //(crossedBorderx.BorderLine.Z / (int)Constants.RegionSize)
+
+                if (crossedBordery.BorderLine.Z > 0)
+                {
+                    pos.Y = ((pos.Y + crossedBordery.BorderLine.Z));
+                    changeY = (int)(crossedBordery.BorderLine.Z / (int)Constants.RegionSize);
+                }
+                else
+                    pos.Y = ((pos.Y + Constants.RegionSize));
+
+                newRegionHandle
+                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy - changeY) * Constants.RegionSize));
+                // y - 1
+            }
+            else if (scene.TestBorderCross(attemptedPosition + NorthCross, Cardinals.N))
+            {
+
+                pos.Y = ((pos.Y - Constants.RegionSize));
+                newRegionHandle
+                    = Util.UIntsToLong((uint)(thisx * Constants.RegionSize), (uint)((thisy + changeY) * Constants.RegionSize));
+                // y + 1
+            }
+
+            // Offset the positions for the new region across the border
+            Vector3 oldGroupPosition = grp.RootPart.GroupPosition;
+            grp.OffsetForNewRegion(pos);
+
+            // If we fail to cross the border, then reset the position of the scene object on that border.
+            uint x = 0, y = 0;
+            Utils.LongToUInts(newRegionHandle, out x, out y);
+            GridRegion destination = scene.GridService.GetRegionByPosition(UUID.Zero, (int)x, (int)y);
+            if (destination != null && !CrossPrimGroupIntoNewRegion(destination, grp, silent))
+            {
+                grp.OffsetForNewRegion(oldGroupPosition);
+                grp.ScheduleGroupForFullUpdate();
+            }
+        }
+
+
+        /// <summary>
+        /// Move the given scene object into a new region
+        /// </summary>
+        /// <param name="newRegionHandle"></param>
+        /// <param name="grp">Scene Object Group that we're crossing</param>
+        /// <returns>
+        /// true if the crossing itself was successful, false on failure
+        /// FIMXE: we still return true if the crossing object was not successfully deleted from the originating region
+        /// </returns>
+        protected bool CrossPrimGroupIntoNewRegion(GridRegion destination, SceneObjectGroup grp, bool silent)
+        {
+            //m_log.Debug("  >>> CrossPrimGroupIntoNewRegion <<<");
+
+            bool successYN = false;
+            grp.RootPart.UpdateFlag = 0;
+            //int primcrossingXMLmethod = 0;
+
+            if (destination != null)
+            {
+                //string objectState = grp.GetStateSnapshot();
+
+                //successYN
+                //    = m_sceneGridService.PrimCrossToNeighboringRegion(
+                //        newRegionHandle, grp.UUID, m_serialiser.SaveGroupToXml2(grp), primcrossingXMLmethod);
+                //if (successYN && (objectState != "") && m_allowScriptCrossings)
+                //{
+                //    successYN = m_sceneGridService.PrimCrossToNeighboringRegion(
+                //            newRegionHandle, grp.UUID, objectState, 100);
+                //}
+
+                //// And the new channel...
+                //if (m_interregionCommsOut != null)
+                //    successYN = m_interregionCommsOut.SendCreateObject(newRegionHandle, grp, true);
+                if (m_aScene.SimulationService != null)
+                    successYN = m_aScene.SimulationService.CreateObject(destination, grp, true);
+
+                if (successYN)
+                {
+                    // We remove the object here
+                    try
+                    {
+                        grp.Scene.DeleteSceneObject(grp, silent);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[ENTITY TRANSFER MODULE]: Exception deleting the old object left behind on a border crossing for {0}, {1}",
+                            grp, e);
+                    }
+                }
+                else
+                {
+                    if (!grp.IsDeleted)
+                    {
+                        if (grp.RootPart.PhysActor != null)
+                        {
+                            grp.RootPart.PhysActor.CrossingFailure();
+                        }
+                    }
+
+                    m_log.ErrorFormat("[ENTITY TRANSFER MODULE]: Prim crossing failed for {0}", grp);
+                }
+            }
+            else
+            {
+                m_log.Error("[ENTITY TRANSFER MODULE]: destination was unexpectedly null in Scene.CrossPrimGroupIntoNewRegion()");
+            }
+
+            return successYN;
+        }
+
+        protected bool CrossAttachmentsIntoNewRegion(GridRegion destination, ScenePresence sp, bool silent)
+        {
+            List<SceneObjectGroup> m_attachments = sp.Attachments;
+            lock (m_attachments)
+            {
+                // Validate
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    if (gobj == null || gobj.IsDeleted)
+                        return false;
+                }
+
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    // If the prim group is null then something must have happened to it!
+                    if (gobj != null && gobj.RootPart != null)
+                    {
+                        // Set the parent localID to 0 so it transfers over properly.
+                        gobj.RootPart.SetParentLocalId(0);
+                        gobj.AbsolutePosition = gobj.RootPart.AttachedPos;
+                        gobj.RootPart.IsAttachment = false;
+                        //gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
+                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending attachment {0} to region {1}", gobj.UUID, destination.RegionName);
+                        CrossPrimGroupIntoNewRegion(destination, gobj, silent);
+                    }
+                }
+                m_attachments.Clear();
+
+                return true;
+            }
+        }
+
+        #endregion
 
         #region Misc
 

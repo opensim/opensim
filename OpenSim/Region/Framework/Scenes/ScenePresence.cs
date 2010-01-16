@@ -218,6 +218,10 @@ namespace OpenSim.Region.Framework.Scenes
         protected AvatarAppearance m_appearance;
 
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        public List<SceneObjectGroup> Attachments
+        {
+            get { return m_attachments; }
+        }
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region

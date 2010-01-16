@@ -46,5 +46,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void EnableChildAgents(ScenePresence agent);
 
         void EnableChildAgent(ScenePresence agent, GridRegion region);
+
+        void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
     }
 }
