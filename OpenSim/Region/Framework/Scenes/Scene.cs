@@ -315,7 +315,7 @@ namespace OpenSim.Region.Framework.Scenes
         protected IConfigSource m_config;
         protected IRegionSerialiserModule m_serialiser;
         protected IDialogModule m_dialogModule;
-        protected IAgentTransferModule m_teleportModule;
+        protected IEntityTransferModule m_teleportModule;
 
         protected ICapabilitiesModule m_capsModule;
         public ICapabilitiesModule CapsModule
@@ -1218,7 +1218,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_serialiser = RequestModuleInterface<IRegionSerialiserModule>();
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
-            m_teleportModule = RequestModuleInterface<IAgentTransferModule>();
+            m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
         }
 
         #endregion

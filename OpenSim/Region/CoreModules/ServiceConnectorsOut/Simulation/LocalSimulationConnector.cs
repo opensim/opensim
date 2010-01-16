@@ -43,13 +43,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_sceneList = new List<Scene>();
 
-        private IAgentTransferModule m_AgentTransferModule;
-        protected IAgentTransferModule AgentTransferModule
+        private IEntityTransferModule m_AgentTransferModule;
+        protected IEntityTransferModule AgentTransferModule
         {
             get
             {
                 if (m_AgentTransferModule == null)
-                    m_AgentTransferModule = m_sceneList[0].RequestModuleInterface<IAgentTransferModule>();
+                    m_AgentTransferModule = m_sceneList[0].RequestModuleInterface<IEntityTransferModule>();
                 return m_AgentTransferModule;
             }
         }

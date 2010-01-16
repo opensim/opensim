@@ -34,7 +34,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IAgentTransferModule
+    public interface IEntityTransferModule
     {
         void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags);

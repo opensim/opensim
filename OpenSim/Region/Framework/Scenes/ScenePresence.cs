@@ -1110,7 +1110,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Create child agents in neighbouring regions
             if (!m_isChildAgent)
             {
-                IAgentTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IAgentTransferModule>();
+                IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                 if (m_agentTransfer != null)
                     m_agentTransfer.EnableChildAgents(this);
                 else
@@ -2193,7 +2193,7 @@ namespace OpenSim.Region.Framework.Scenes
                 
                 if (m_scene.SceneGridService != null)
                 {
-                    IAgentTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IAgentTransferModule>();
+                    IEntityTransferModule m_agentTransfer = m_scene.RequestModuleInterface<IEntityTransferModule>();
                     if (m_agentTransfer != null)
                         m_agentTransfer.EnableChildAgents(this);
                 }

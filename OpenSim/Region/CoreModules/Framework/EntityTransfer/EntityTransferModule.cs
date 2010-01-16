@@ -44,9 +44,9 @@ using OpenMetaverse;
 using log4net;
 using Nini.Config;
 
-namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
+namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 {
-    public class AgentTransferModule : ISharedRegionModule, IAgentTransferModule
+    public class AgentTransferModule : ISharedRegionModule, IEntityTransferModule
     {
         #region ISharedRegionModule
                 private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
             if (m_aScene == null)
                 m_aScene = scene;
 
-            scene.RegisterModuleInterface<IAgentTransferModule>(this);
+            scene.RegisterModuleInterface<IEntityTransferModule>(this);
         }
 
         public virtual void Close()
@@ -192,6 +192,7 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
                     uint oldRegionY = (((uint)(sp.Scene.RegionInfo.RegionHandle)) >> 8);
 
                     ulong destinationHandle = GetRegionHandle(reg);
+                    GridRegion finalDestination = GetFinalDestination(reg);
 
                     if (eq == null)
                         sp.ControllingClient.SendTeleportLocationStart();
@@ -235,7 +236,7 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
                         agentCircuit.child = true;
                         agentCircuit.Appearance = sp.Appearance;
 
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             // brand new agent, let's create a new caps seed
                             agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
@@ -244,7 +245,6 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
                         string reason = String.Empty;
 
                         // Let's create an agent there if one doesn't exist yet. 
-                        //if (!m_commsProvider.InterRegion.InformRegionOfChildAgent(reg.RegionHandle, agentCircuit))
                         if (!m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason))
                         {
                             sp.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
                         // OK, it got this agent. Let's close some child agents
                         sp.CloseChildAgents(newRegionX, newRegionY);
 
-                        if (Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                        if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                         {
                             #region IP Translation for NAT
                             IClientIPEndpoint ipepClient;
@@ -426,6 +426,47 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
                 }
             }
         }
+
+        protected void KillEntity(Scene scene, uint localID)
+        {
+            scene.SendKillObject(localID);
+        }
+
+        protected virtual ulong GetRegionHandle(GridRegion region)
+        {
+            return region.RegionHandle;
+        }
+
+        protected virtual GridRegion GetFinalDestination(GridRegion region)
+        {
+            return region;
+        }
+
+        protected virtual bool NeedsNewAgent(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY)
+        {
+            return Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY);
+        }
+
+        protected virtual bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
+        {
+            return Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY);
+        }
+
+        protected virtual bool IsOutsideRegion(Scene s, Vector3 pos)
+        {
+
+            if (s.TestBorderCross(pos, Cardinals.N))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.S))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.E))
+                return true;
+            if (s.TestBorderCross(pos, Cardinals.W))
+                return true;
+
+            return false;
+        }
+
 
         #endregion
 
@@ -1115,20 +1156,6 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
 
 
         #region Misc
-        protected bool IsOutsideRegion(Scene s, Vector3 pos)
-        {
-
-            if (s.TestBorderCross(pos, Cardinals.N))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.S))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.E))
-                return true;
-            if (s.TestBorderCross(pos, Cardinals.W))
-                return true;
-
-            return false;
-        }
 
         protected bool WaitForCallback(UUID id)
         {
@@ -1167,20 +1194,6 @@ namespace OpenSim.Region.CoreModules.Agent.AgentTransfer
             return false;
         }
 
-        protected void KillEntity(Scene scene, uint localID)
-        {
-            scene.SendKillObject(localID);
-        }
-
-        protected virtual ulong GetRegionHandle(GridRegion region)
-        {
-            return region.RegionHandle;
-        }
-
-        protected virtual bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
-        {
-            return Util.IsOutsideView(oldRegionX, newRegionX, oldRegionY, newRegionY);
-        }
 
         #endregion
 
