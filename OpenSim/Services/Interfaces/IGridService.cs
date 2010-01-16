@@ -307,7 +307,7 @@ namespace OpenSim.Services.Interfaces
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
             kvp["owner_uuid"] = EstateOwner.ToString();
-            kvp["token"] = Token.ToString();
+            kvp["Token"] = Token.ToString();
             // Maturity doesn't seem to exist in the DB
             return kvp;
         }
@@ -365,8 +365,8 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("owner_uuid"))
                 EstateOwner = new UUID(kvp["owner_uuid"].ToString());
 
-            if (kvp.ContainsKey("token"))
-                Token = kvp["token"].ToString();
+            if (kvp.ContainsKey("Token"))
+                Token = kvp["Token"].ToString();
 
         }
     }
