@@ -40,7 +40,6 @@ using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using OpenSim.Server.Base;
-using OpenSim.Services.Connectors.Grid;
 using OpenSim.Framework.Console;
 
 using OpenMetaverse;

@@ -69,7 +69,7 @@ namespace OpenSim.Services.HypergridService
 
             MainConsole.Instance.Output("Region Name          Region UUID");
             MainConsole.Instance.Output("Location             URI");
-            MainConsole.Instance.Output("Owner ID                                Flags");
+            MainConsole.Instance.Output("Owner ID  ");
             MainConsole.Instance.Output("-------------------------------------------------------------------------------");
             foreach (GridRegion r in regions)
             {

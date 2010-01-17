@@ -77,15 +77,24 @@ namespace OpenSim.Services.HypergridService
 
         public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason)
         {
-            regionID = m_DefaultGatewayRegion.RegionID;
-            regionHandle = m_DefaultGatewayRegion.RegionHandle;
+            regionID = UUID.Zero;
+            regionHandle = 0;
             imageURL = string.Empty;
             reason = string.Empty;
 
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", regionName);
             if (!m_AllowTeleportsToAnyRegion)
             {
-                regionID = m_DefaultGatewayRegion.RegionID;
-                regionHandle = m_DefaultGatewayRegion.RegionHandle;
+                try
+                {
+                    regionID = m_DefaultGatewayRegion.RegionID;
+                    regionHandle = m_DefaultGatewayRegion.RegionHandle;
+                }
+                catch
+                {
+                    reason = "Grid setup problem";
+                    return false;
+                }
                 if (regionName != string.Empty)
                 {
                     reason = "Direct links to regions not allowed";
