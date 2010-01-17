@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,46 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using Nini.Config;
+using System.Collections.Generic;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Framework;
-using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
 
-namespace OpenSim.Tests.Common.Mock
+namespace OpenSim.Services.Interfaces
 {
-    public class TestScene : Scene
+    public interface IHypergridService
     {
-        public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen,
-            SceneCommunicationService sceneGridService, StorageManager storeManager,
-            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
-            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
-                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
-        {
-        }
-        
-        /// <summary>
-        /// Temporarily override session authentication for tests (namely teleport).
-        /// </summary>
-        /// 
-        /// TODO: This needs to be mocked out properly.
-        /// 
-        /// <param name="agent"></param>
-        /// <returns></returns>
-        public override bool VerifyUserPresence(AgentCircuitData agent, out string reason)
-        {
-            reason = String.Empty;
-            return true;
-        }
-            
-        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
-        {
-            get { return m_asyncSceneObjectDeleter; }
-        }
+        bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason);
+        GridRegion GetHyperlinkRegion(UUID regionID);
+
+        GridRegion GetRegionByUUID(UUID regionID);
+        GridRegion GetRegionByPosition(int x, int y);
+        GridRegion GetRegionByName(string name);
+        List<GridRegion> GetRegionsByName(string name);
+        List<GridRegion> GetRegionRange(int xmin, int xmax, int ymin, int ymax);
     }
 }

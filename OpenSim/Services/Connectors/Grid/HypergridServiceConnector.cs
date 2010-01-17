@@ -55,6 +55,14 @@ namespace OpenSim.Services.Connectors.Grid
             m_AssetService = assService;
         }
 
+        public bool LinkRegion(GridRegion info, out UUID regionID, out ulong regionHandle, out string reason)
+        {
+            regionID = LinkRegion(info, out regionHandle);
+            // reason...
+            reason = string.Empty;
+            return true;
+        }
+
         public UUID LinkRegion(GridRegion info, out ulong realHandle)
         {
             UUID uuid = UUID.Zero;

@@ -3157,7 +3157,7 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.AgentID, agent.circuitcode, teleportFlags);
 
             reason = String.Empty;
-            if (!AuthenticateUser(agent, out reason))
+            if (!VerifyUserPresence(agent, out reason))
                 return false;
 
             if (!AuthorizeUser(agent, out reason))
@@ -3258,30 +3258,32 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Verifies that the user has a session on the Grid
+        /// Verifies that the user has a presence on the Grid
         /// </summary>
         /// <param name="agent">Circuit Data of the Agent we're verifying</param>
         /// <param name="reason">Outputs the reason for the false response on this string</param>
         /// <returns>True if the user has a session on the grid.  False if it does not.  False will 
         /// also return a reason.</returns>
-        public virtual bool AuthenticateUser(AgentCircuitData agent, out string reason)
+        public virtual bool VerifyUserPresence(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
 
-            IAuthenticationService auth = RequestModuleInterface<IAuthenticationService>();
-            if (auth == null)
+            IPresenceService presence = RequestModuleInterface<IPresenceService>();
+            if (presence == null)
             {
-                reason = String.Format("Failed to authenticate user {0} {1} in region {2}. Authentication service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = String.Format("Failed to verify user {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
-            bool result = auth.Verify(agent.AgentID, agent.SecureSessionID.ToString(), 30);
+            OpenSim.Services.Interfaces.PresenceInfo pinfo = presence.GetAgent(agent.SessionID);
 
-            m_log.Debug("[CONNECTION BEGIN]: Session authentication returned " + result);
-            if (!result)
-                reason = String.Format("Failed to authenticate user {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+            if (pinfo == null || (pinfo != null && pinfo.Online == false))
+            {
+                reason = String.Format("Failed to verify user {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                return false;
+            }
 
-            return result;
+            return true;
         }
 
         /// <summary>

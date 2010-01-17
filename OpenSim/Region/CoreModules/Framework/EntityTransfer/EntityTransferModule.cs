@@ -1154,7 +1154,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         #endregion
 
-        #region Object Crossings
+        #region Object Transfers
         /// <summary>
         /// Move the given scene object into a new region depending on which region its absolute position has moved
         /// into.

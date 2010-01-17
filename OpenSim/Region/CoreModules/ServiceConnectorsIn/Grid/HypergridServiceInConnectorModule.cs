@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using OpenSim.Server.Handlers.Grid;
+using OpenSim.Server.Handlers.Hypergrid;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -49,7 +49,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
         
         private IConfigSource m_Config;
         bool m_Registered = false;
-        HypergridServiceInConnector m_HypergridHandler;
+        GatekeeperServiceInConnector m_HypergridHandler;
 
         #region IRegionModule interface
 
@@ -102,9 +102,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
         {
             if (!m_Enabled)
                 return;
-
-            GridRegion rinfo = new GridRegion(scene.RegionInfo);
-            m_HypergridHandler.RemoveRegion(rinfo);
         }
 
         public void RegionLoaded(Scene scene)
@@ -119,13 +116,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
                 m_log.Info("[HypergridService]: Starting...");
 
 //                Object[] args = new Object[] { m_Config, MainServer.Instance };
-
-                m_HypergridHandler = new HypergridServiceInConnector(m_Config, MainServer.Instance, scene.RequestModuleInterface<IHyperlinkService>());
+                ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
+                m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
                 //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);
             }
-
-            GridRegion rinfo = new GridRegion(scene.RegionInfo);
-            m_HypergridHandler.AddRegion(rinfo);
         }
 
         #endregion

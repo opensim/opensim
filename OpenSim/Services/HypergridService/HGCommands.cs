@@ -34,41 +34,52 @@ using Nini.Config;
 using OpenSim.Framework;
 //using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Framework;
-using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Hypergrid;
+using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
+namespace OpenSim.Services.HypergridService
 {
     public class HGCommands
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private HGGridConnector m_HGGridConnector;
-        private Scene m_scene;
+        private HypergridService m_HypergridService;
 
         private static uint m_autoMappingX = 0;
         private static uint m_autoMappingY = 0;
         private static bool m_enableAutoMapping = false;
 
-        public HGCommands(HGGridConnector hgConnector, Scene scene)
+        public HGCommands(HypergridService service)
         {
-            m_HGGridConnector = hgConnector;
-            m_scene = scene;
+            m_HypergridService = service;
         }
 
-        //public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, CommunicationsManager m_commsManager,
-        //    StorageManager storageManager, ModuleLoader m_moduleLoader, ConfigSettings m_configSettings, OpenSimConfigSource m_config, string m_version)
-        //{
-        //    HGSceneCommunicationService sceneGridService = new HGSceneCommunicationService(m_commsManager, HGServices);
+        public void HandleShow(string module, string[] cmd)
+        {
+            if (cmd.Length != 2)
+            {
+                MainConsole.Instance.Output("Syntax: show hyperlinks");
+                return;
+            }
+            List<GridRegion> regions = new List<GridRegion>(m_HypergridService.m_HyperlinkRegions.Values);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("No hyperlinks");
+                return;
+            }
 
-        //    return
-        //        new HGScene(
-        //            regionInfo, circuitManager, m_commsManager, sceneGridService, storageManager,
-        //            m_moduleLoader, false, m_configSettings.PhysicalPrim,
-        //            m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
-        //}
-
+            MainConsole.Instance.Output("Region Name          Region UUID");
+            MainConsole.Instance.Output("Location             URI");
+            MainConsole.Instance.Output("Owner ID                                Flags");
+            MainConsole.Instance.Output("-------------------------------------------------------------------------------");
+            foreach (GridRegion r in regions)
+            {
+                MainConsole.Instance.Output(String.Format("{0,-20} {1}\n{2,-20} {3}\n{4,-39} \n\n",
+                        r.RegionName, r.RegionID,
+                        String.Format("{0},{1}", r.RegionLocX, r.RegionLocY), "http://" + r.ExternalHostName + ":" + r.HttpPort.ToString(),
+                        r.EstateOwner.ToString()));
+            }
+            return;
+        }
         public void RunCommand(string module, string[] cmdparams)
         {
             List<string> args = new List<string>(cmdparams);
@@ -133,13 +144,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                             for (int i = 3; i < cmdparams.Length; i++)
                                 mapName += " " + cmdparams[i];
 
-                        m_log.Info(">> MapName: " + mapName);
-                        //internalPort = Convert.ToUInt32(cmdparams[4]);
-                        //remotingPort = Convert.ToUInt32(cmdparams[5]);
+                        //m_log.Info(">> MapName: " + mapName);
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
+                        MainConsole.Instance.Output("[HGrid] Wrong format for link-region command: " + e.Message);
                         LinkRegionCmdUsage();
                         return;
                     }
@@ -147,7 +156,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     // Convert cell coordinates given by the user to meters
                     xloc = xloc * (int)Constants.RegionSize;
                     yloc = yloc * (int)Constants.RegionSize;
-                    m_HGGridConnector.TryLinkRegionToCoords(m_scene, null, mapName, xloc, yloc);
+                    string reason = string.Empty;
+                    if (m_HypergridService.TryLinkRegionToCoords(mapName, xloc, yloc, out reason) == null)
+                        MainConsole.Instance.Output("Failed to link region: " + reason);
                 }
                 else
                 {
@@ -167,7 +178,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[HGrid] Wrong format for link-region command: " + e.Message);
+                        MainConsole.Instance.Output("[HGrid] Wrong format for link-region command: " + e.Message);
                         LinkRegionCmdUsage();
                         return;
                     }
@@ -175,7 +186,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     // Convert cell coordinates given by the user to meters
                     xloc = xloc * (int)Constants.RegionSize;
                     yloc = yloc * (int)Constants.RegionSize;
-                    if (m_HGGridConnector.TryCreateLink(m_scene, null, xloc, yloc, "", externalPort, externalHostName, out regInfo))
+                    string reason = string.Empty;
+                    if (m_HypergridService.TryCreateLink(xloc, yloc, "", externalPort, externalHostName, out regInfo, out reason))
                     {
                         if (cmdparams.Length >= 5)
                         {
@@ -194,10 +206,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                     UnlinkRegionCmdUsage();
                     return;
                 }
-                if (m_HGGridConnector.TryUnlinkRegion(m_scene, cmdparams[0]))
-                    m_log.InfoFormat("[HGrid]: Successfully unlinked {0}", cmdparams[0]);
+                if (m_HypergridService.TryUnlinkRegion(cmdparams[0]))
+                    MainConsole.Instance.Output("Successfully unlinked " + cmdparams[0]);
                 else
-                    m_log.InfoFormat("[HGrid]: Unable to unlink {0}, region not found", cmdparams[0]);
+                    MainConsole.Instance.Output("Unable to unlink " + cmdparams[0] + ", region not found.");
             }
         }
 
@@ -276,27 +288,29 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 xloc = xloc * (int)Constants.RegionSize;
                 yloc = yloc * (int)Constants.RegionSize;
-                if (
-                    m_HGGridConnector.TryCreateLink(m_scene, null, xloc, yloc, "", externalPort,
-                                              externalHostName, out regInfo))
+                string reason = string.Empty;
+                if (m_HypergridService.TryCreateLink(xloc, yloc, "", externalPort,
+                                                     externalHostName, out regInfo, out reason))
                 {
                     regInfo.RegionName = config.GetString("localName", "");
                 }
+                else
+                    MainConsole.Instance.Output("Unable to link " + externalHostName + ": " + reason);
             }
         }
 
 
         private void LinkRegionCmdUsage()
         {
-            m_log.Info("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
-            m_log.Info("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
-            m_log.Info("Usage: link-region <URI_of_xml> [<exclude>]");
+            MainConsole.Instance.Output("Usage: link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>]");
+            MainConsole.Instance.Output("Usage: link-region <Xloc> <Yloc> <HostName> <HttpPort> [<LocalName>]");
+            MainConsole.Instance.Output("Usage: link-region <URI_of_xml> [<exclude>]");
         }
 
         private void UnlinkRegionCmdUsage()
         {
-            m_log.Info("Usage: unlink-region <HostName>:<HttpPort>");
-            m_log.Info("Usage: unlink-region <LocalName>");
+            MainConsole.Instance.Output("Usage: unlink-region <HostName>:<HttpPort>");
+            MainConsole.Instance.Output("Usage: unlink-region <LocalName>");
         }
 
     }
