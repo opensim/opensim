@@ -70,7 +70,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
             string uri = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/";
-            m_log.Debug("[HGrid]: Linking to " + uri);
+            //m_log.Debug("[HGrid]: Linking to " + uri);
             XmlRpcResponse response = null;
             try
             {

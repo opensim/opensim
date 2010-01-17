@@ -438,6 +438,7 @@ namespace OpenSim.Services.LLLoginService
             aCircuit.SecureSessionID = secureSession;
             aCircuit.SessionID = session;
             aCircuit.startpos = position;
+            aCircuit.ServiceURLs = account.ServiceURLs;
 
             if (simConnector.CreateAgent(region, aCircuit, 0, out reason))
                 return aCircuit;

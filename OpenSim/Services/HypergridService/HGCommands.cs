@@ -159,6 +159,7 @@ namespace OpenSim.Services.HypergridService
                     string reason = string.Empty;
                     if (m_HypergridService.TryLinkRegionToCoords(mapName, xloc, yloc, out reason) == null)
                         MainConsole.Instance.Output("Failed to link region: " + reason);
+                    MainConsole.Instance.Output("Hyperlink estalished");
                 }
                 else
                 {

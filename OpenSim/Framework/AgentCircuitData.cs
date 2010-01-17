@@ -101,6 +101,8 @@ namespace OpenSim.Framework
         /// </summary>
         public Vector3 startpos;
 
+        public Dictionary<string, object> ServiceURLs;
+
         public AgentCircuitData()
         {
         }
@@ -187,6 +189,16 @@ namespace OpenSim.Framework
                 }
             }
 
+            if (ServiceURLs != null && ServiceURLs.Count > 0)
+            {
+                OSDArray urls = new OSDArray(ServiceURLs.Count * 2);
+                foreach (KeyValuePair<string, object> kvp in ServiceURLs)
+                {
+                    urls.Add(OSD.FromString(kvp.Key));
+                    urls.Add(OSD.FromString((kvp.Value == null) ? string.Empty : kvp.Value.ToString()));
+                }
+            }
+
             return args;
         }
 
@@ -270,6 +282,15 @@ namespace OpenSim.Framework
                 Appearance.SetAttachments(attachments);
             }
 
+            ServiceURLs = new Dictionary<string, object>();
+            if (args.ContainsKey("service_urls") && args["service_urls"] != null && (args["service_urls"]).Type == OSDType.Array)
+            {
+                OSDArray urls = (OSDArray)(args["service_urls"]);
+                for (int i = 0; i < urls.Count / 2; i++)
+                {
+                    ServiceURLs[urls[i * 2].AsString()] = urls[(i * 2) + 1].AsString();
+                }
+            }
         }
     }
 

@@ -86,8 +86,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             //string portstr = (string)requestData["port"];
             string name = (string)requestData["region_name"];
 
-            m_log.DebugFormat("[HGrid]: Hyperlink request");
-
             UUID regionID = UUID.Zero;
             string imageURL = string.Empty;
             ulong regionHandle = 0;
