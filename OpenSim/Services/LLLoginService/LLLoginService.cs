@@ -37,24 +37,26 @@ namespace OpenSim.Services.LLLoginService
         private bool m_RequireInventory;
         private int m_MinLoginLevel;
 
+        IConfig m_LoginServerConfig;
+
         public LLLoginService(IConfigSource config, ISimulationService simService, ILibraryService libraryService)
         {
-            IConfig serverConfig = config.Configs["LoginService"];
-            if (serverConfig == null)
+            m_LoginServerConfig = config.Configs["LoginService"];
+            if (m_LoginServerConfig == null)
                 throw new Exception(String.Format("No section LoginService in config file"));
 
-            string accountService = serverConfig.GetString("UserAccountService", String.Empty);
-            string authService = serverConfig.GetString("AuthenticationService", String.Empty);
-            string invService = serverConfig.GetString("InventoryService", String.Empty);
-            string gridService = serverConfig.GetString("GridService", String.Empty);
-            string presenceService = serverConfig.GetString("PresenceService", String.Empty);
-            string libService = serverConfig.GetString("LibraryService", String.Empty);
-            string avatarService = serverConfig.GetString("AvatarService", String.Empty);
-            string simulationService = serverConfig.GetString("SimulationService", String.Empty);
+            string accountService = m_LoginServerConfig.GetString("UserAccountService", String.Empty);
+            string authService = m_LoginServerConfig.GetString("AuthenticationService", String.Empty);
+            string invService = m_LoginServerConfig.GetString("InventoryService", String.Empty);
+            string gridService = m_LoginServerConfig.GetString("GridService", String.Empty);
+            string presenceService = m_LoginServerConfig.GetString("PresenceService", String.Empty);
+            string libService = m_LoginServerConfig.GetString("LibraryService", String.Empty);
+            string avatarService = m_LoginServerConfig.GetString("AvatarService", String.Empty);
+            string simulationService = m_LoginServerConfig.GetString("SimulationService", String.Empty);
 
-            m_DefaultRegionName = serverConfig.GetString("DefaultRegion", String.Empty);
-            m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
-            m_RequireInventory = serverConfig.GetBoolean("RequireInventory", true);
+            m_DefaultRegionName = m_LoginServerConfig.GetString("DefaultRegion", String.Empty);
+            m_WelcomeMessage = m_LoginServerConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
+            m_RequireInventory = m_LoginServerConfig.GetBoolean("RequireInventory", true);
 
             // These are required; the others aren't
             if (accountService == string.Empty || authService == string.Empty)
@@ -438,13 +440,32 @@ namespace OpenSim.Services.LLLoginService
             aCircuit.SecureSessionID = secureSession;
             aCircuit.SessionID = session;
             aCircuit.startpos = position;
-            aCircuit.ServiceURLs = account.ServiceURLs;
+            SetServiceURLs(aCircuit, account);
 
             if (simConnector.CreateAgent(region, aCircuit, 0, out reason))
                 return aCircuit;
 
             return null;
 
+        }
+
+        private void SetServiceURLs(AgentCircuitData aCircuit, UserAccount account)
+        {
+            aCircuit.ServiceURLs = new Dictionary<string, object>();
+            if (account.ServiceURLs == null)
+                return;
+
+            foreach (KeyValuePair<string, object> kvp in account.ServiceURLs)
+            {
+                if (kvp.Value == null || (kvp.Value != null && kvp.Value.ToString() == string.Empty))
+                {
+                    aCircuit.ServiceURLs[kvp.Key] = m_LoginServerConfig.GetString(kvp.Key, string.Empty);
+                }
+                else
+                {
+                    aCircuit.ServiceURLs[kvp.Key] = kvp.Value;
+                }
+            }
         }
 
         #region Console Commands

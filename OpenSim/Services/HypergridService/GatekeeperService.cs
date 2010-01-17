@@ -112,6 +112,10 @@ namespace OpenSim.Services.HypergridService
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", regionName);
             if (!m_AllowTeleportsToAnyRegion)
             {
+                List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                if (defs != null && defs.Count > 0)
+                    m_DefaultGatewayRegion = defs[0];
+
                 try
                 {
                     regionID = m_DefaultGatewayRegion.RegionID;
@@ -150,6 +154,8 @@ namespace OpenSim.Services.HypergridService
 
         public GridRegion GetHyperlinkRegion(UUID regionID)
         {
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get hyperlink region {0}", regionID);
+
             if (!m_AllowTeleportsToAnyRegion)
                 // Don't even check the given regionID
                 return m_DefaultGatewayRegion;
@@ -160,23 +166,43 @@ namespace OpenSim.Services.HypergridService
 
         public bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination)
         {
+            string authURL = string.Empty;
+            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to login foreign agent {0} {1} @ {2} ({3}) at destination {4}", 
+                aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName);
+
             if (!Authenticate(aCircuit))
+            {
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Unable to verify identity of agent {0} {1}. Refusing service.", aCircuit.firstname, aCircuit.lastname);
                 return false;
+            }
 
             // Check to see if we have a local user with that UUID
             UserAccount account = m_UserAccountService.GetUserAccount(m_ScopeID, aCircuit.AgentID);
             if (account != null)
+            {
                 // No, sorry; go away
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agent {0} {1} has UUID of local user {3}. Refusing service.", 
+                    aCircuit.firstname, aCircuit.lastname, aCircuit.AgentID);
                 return false;
+            }
 
             // May want to authorize
 
             // Login the presence
             if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
+            {
+                m_log.InfoFormat("[GATEKEEPER SERVICE]: Presence login failed for foreign agent {0} {1}. Refusing service.",
+                    aCircuit.firstname, aCircuit.lastname);
                 return false;
+            }
 
             // Finally launch the agent at the destination
             string reason = string.Empty;
+            aCircuit.firstname = aCircuit.firstname + "." + aCircuit.lastname;
+            aCircuit.lastname = "@" + aCircuit.ServiceURLs["HomeURI"].ToString();
             return m_SimulationService.CreateAgent(destination, aCircuit, 0, out reason);
         }
 
@@ -188,9 +214,15 @@ namespace OpenSim.Services.HypergridService
 
         protected bool Authenticate(AgentCircuitData aCircuit)
         {
-            string authURL = string.Empty; // GetAuthURL(aCircuit);
+            string authURL = string.Empty; 
+            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
             if (authURL == string.Empty)
+            {
+                m_log.DebugFormat("[GATEKEEPER SERVICE]: Agent did not provide an authentication server URL");
                 return false;
+            }
 
             Object[] args = new Object[] { authURL };
             IAuthenticationService authService = ServerUtils.LoadPlugin<IAuthenticationService>(m_AuthDll, args);

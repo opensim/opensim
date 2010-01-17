@@ -347,10 +347,12 @@ namespace OpenSim.Services.HypergridService
 
         #region Get Hyperlinks
 
-        public GridRegion GetHyperlinkRegion(UUID regionID)
+        public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID)
         {
-            //GridRegion region = m_HypergridConnector.
-            return null;
+            if (m_HyperlinkRegions.ContainsKey(regionID))
+                return m_HypergridConnector.GetHyperlinkRegion(gatekeeper, regionID);
+            else
+                return gatekeeper;
         }
 
         #endregion

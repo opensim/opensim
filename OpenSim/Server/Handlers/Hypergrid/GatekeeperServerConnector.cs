@@ -109,7 +109,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
             //string portstr = (string)requestData["port"];
-            string regionID_str = (string)requestData["regionID"];
+            string regionID_str = (string)requestData["region_uuid"];
             UUID regionID = UUID.Zero;
             UUID.TryParse(regionID_str, out regionID);
 

@@ -48,7 +48,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
-    public class HGGridConnector : ISharedRegionModule, IGridService
+    public class HGGridConnector : ISharedRegionModule, IGridService, IHypergridService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -148,6 +148,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             m_LocalScenes[scene.RegionInfo.RegionHandle] = scene;
             scene.RegisterModuleInterface<IGridService>(this);
+            scene.RegisterModuleInterface<IHypergridService>(this);
 
             ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
@@ -158,6 +159,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (m_Enabled)
             {
                 m_LocalScenes.Remove(scene.RegionInfo.RegionHandle);
+                scene.UnregisterModuleInterface<IGridService>(this);
+                scene.UnregisterModuleInterface<IHypergridService>(this);
                 ((ISharedRegionModule)m_GridServiceConnector).RemoveRegion(scene);
             }
         }
@@ -278,5 +281,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
      
         #endregion
 
+        #region IHypergridService
+
+        public bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason)
+        {
+            return m_HypergridService.LinkRegion(regionDescriptor, out regionID, out regionHandle, out imageURL, out reason);
+        }
+
+        public GridRegion GetHyperlinkRegion(GridRegion gateway, UUID regionID)
+        {
+            if (m_LocalScenes.ContainsKey(gateway.RegionHandle))
+                return gateway;
+
+            return m_HypergridService.GetHyperlinkRegion(gateway, regionID);
+        }
+
+        public GridRegion GetRegionByUUID(UUID regionID) { return null; }
+        public GridRegion GetRegionByPosition(int x, int y) { return null; }
+        public GridRegion GetRegionByName(string name) { return null; }
+        public List<GridRegion> GetRegionsByName(string name) { return null; }
+        public List<GridRegion> GetRegionRange(int xmin, int xmax, int ymin, int ymax) { return null; }
+
+        #endregion
     }
 }

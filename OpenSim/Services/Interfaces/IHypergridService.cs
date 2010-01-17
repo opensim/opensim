@@ -36,7 +36,7 @@ namespace OpenSim.Services.Interfaces
     public interface IHypergridService
     {
         bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason);
-        GridRegion GetHyperlinkRegion(UUID regionID);
+        GridRegion GetHyperlinkRegion(GridRegion gateway, UUID regionID);
 
         GridRegion GetRegionByUUID(UUID regionID);
         GridRegion GetRegionByPosition(int x, int y);

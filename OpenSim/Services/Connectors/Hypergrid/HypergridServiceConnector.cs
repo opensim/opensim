@@ -50,6 +50,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         private IAssetService m_AssetService;
 
+        public HypergridServiceConnector() : this(null) { }
+
         public HypergridServiceConnector(IAssetService assService)
         {
             m_AssetService = assService;
@@ -197,21 +199,24 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     GridRegion region = new GridRegion();
 
                     UUID.TryParse((string)hash["uuid"], out region.RegionID);
-                    //m_log.Debug(">> HERE, uuid: " + uuid);
+                    //m_log.Debug(">> HERE, uuid: " + region.RegionID);
                     int n = 0;
                     if (hash["x"] != null)
                     {
                         Int32.TryParse((string)hash["x"], out n);
                         region.RegionLocX = n;
+                        //m_log.Debug(">> HERE, x: " + region.RegionLocX);
                     }
                     if (hash["y"] != null)
                     {
                         Int32.TryParse((string)hash["y"], out n);
                         region.RegionLocY = n;
+                        //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
                     if (hash["region_name"] != null)
                     {
                         region.RegionName = (string)hash["region_name"];
+                        //m_log.Debug(">> HERE, name: " + region.RegionName);
                     }
                     if (hash["hostname"] != null)
                         region.ExternalHostName = (string)hash["hostname"];
