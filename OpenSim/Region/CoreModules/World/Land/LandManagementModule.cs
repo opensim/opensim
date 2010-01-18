@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
-        private string DefaultGodParcelGroup;
+        private UUID DefaultGodParcelGroup;
         private string DefaultGodParcelName;
 
         // caches ExtendedLandData
@@ -96,6 +96,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void Initialise(IConfigSource source)
         {
+            IConfig cnf = source.Configs["LandManagement"];
+            if (cnf == null)
+            {
+                DefaultGodParcelGroup = new UUID(cnf.GetString("DefaultAdministratorGroupUUID", UUID.Zero.ToString()));
+                DefaultGodParcelName = cnf.GetString("DefaultAdministratorParcelName", "Default Parcel");
+            }
         }
 
         public void AddRegion(Scene scene)
@@ -1566,7 +1572,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     land = landObject;
                 }
             }
-            land.DeedToGroup(new UUID(DefaultGodParcelGroup));
+            land.DeedToGroup(DefaultGodParcelGroup);
             land.LandData.Name = DefaultGodParcelName;
             land.SendLandUpdateToAvatarsOverMe();
         }
