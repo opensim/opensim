@@ -345,8 +345,8 @@ namespace OpenSim.Data.MySQL
                 item.AssetID = new UUID((string) reader["assetID"]);
                 item.AssetType = (int) reader["assetType"];
                 item.Folder = new UUID((string) reader["parentFolderID"]);
-                item.Name = (string) reader["inventoryName"];
-                item.Description = (string) reader["inventoryDescription"];
+                item.Name = (string)(reader["inventoryName"] ?? String.Empty);
+                item.Description = (string)(reader["inventoryDescription"] ?? String.Empty);
                 item.NextPermissions = (uint) reader["inventoryNextPermissions"];
                 item.CurrentPermissions = (uint) reader["inventoryCurrentPermissions"];
                 item.InvType = (int) reader["invType"];
