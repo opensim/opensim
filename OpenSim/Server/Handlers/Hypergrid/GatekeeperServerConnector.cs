@@ -63,6 +63,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             HypergridHandlers hghandlers = new HypergridHandlers(m_GatekeeperService);
             server.AddXmlRPCHandler("link_region", hghandlers.LinkRegionRequest, false);
             server.AddXmlRPCHandler("get_region", hghandlers.GetRegion, false);
+            server.AddXmlRPCHandler("get_home_region", hghandlers.GetHomeRegion, false);
 
             server.AddHTTPHandler("/foreignagent/", new AgentHandler(m_GatekeeperService).Handler);
 

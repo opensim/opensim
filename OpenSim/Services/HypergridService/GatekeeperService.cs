@@ -164,6 +164,7 @@ namespace OpenSim.Services.HypergridService
             return region;
         }
 
+        #region Login Agent
         public bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason)
         {
             reason = string.Empty;
@@ -221,7 +222,7 @@ namespace OpenSim.Services.HypergridService
             return m_SimulationService.CreateAgent(destination, aCircuit, 0, out reason);
         }
 
-         protected bool Authenticate(AgentCircuitData aCircuit)
+        protected bool Authenticate(AgentCircuitData aCircuit)
         {
             string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
@@ -250,5 +251,40 @@ namespace OpenSim.Services.HypergridService
 
             return false;
         }
+
+        #endregion
+
+        public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)
+        {
+            position = new Vector3(128, 128, 0); lookAt = Vector3.UnitY;
+
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get home region of user {0}", userID);
+
+            GridRegion home = null;
+            PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { userID.ToString() });
+            if (presences != null && presences.Length > 0)
+            {
+                UUID homeID = presences[0].HomeRegionID;
+                if (homeID != UUID.Zero)
+                {
+                    home = m_GridService.GetRegionByUUID(m_ScopeID, homeID);
+                    position = presences[0].HomePosition;
+                    lookAt = presences[0].HomeLookAt;
+                }
+                if (home == null)
+                {
+                    List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
+                    if (defs != null && defs.Count > 0)
+                        home = defs[0];
+                }
+            }
+
+            return home;
+        }
+
+        #region Misc
+
+
+        #endregion
     }
 }

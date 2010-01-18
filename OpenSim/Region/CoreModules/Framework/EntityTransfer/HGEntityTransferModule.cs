@@ -111,6 +111,55 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
         }
 
+        public override void TeleportHome(UUID id, IClientAPI client)
+        {
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.FirstName, client.LastName);
+
+            // Let's find out if this is a foreign user or a local user
+            UserAccount account = m_aScene.UserAccountService.GetUserAccount(m_aScene.RegionInfo.ScopeID, id);
+            if (account != null)
+            {
+                // local grid user
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: User is local");
+                base.TeleportHome(id, client);
+                return;
+            }
+
+            // Foreign user wants to go home
+            // 
+            AgentCircuitData aCircuit = ((Scene)(client.Scene)).AuthenticateHandler.GetAgentCircuitData(client.CircuitCode);
+            if (aCircuit == null || (aCircuit != null && !aCircuit.ServiceURLs.ContainsKey("GatewayURI")))
+            {
+                client.SendTeleportFailed("Your information has been lost");
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Unable to locate agent's gateway information");
+                return;
+            }
+
+            GridRegion homeGatekeeper = MakeRegion(aCircuit);
+            if (homeGatekeeper == null)
+            {
+                client.SendTeleportFailed("Your information has been lost");
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent's gateway information is malformed");
+                return;
+            }
+
+            Vector3 position = Vector3.UnitY, lookAt = Vector3.UnitY;
+            GridRegion finalDestination = m_GatekeeperConnector.GetHomeRegion(homeGatekeeper, aCircuit.AgentID, out position, out lookAt);
+        }
         #endregion
+
+        private GridRegion MakeRegion(AgentCircuitData aCircuit)
+        {
+            GridRegion region = new GridRegion();
+
+            Uri uri = null;
+            if (!Uri.TryCreate(aCircuit.ServiceURLs["GatewayURI"].ToString(), UriKind.Absolute, out uri))
+                return null;
+
+            region.ExternalHostName = uri.Host;
+            region.HttpPort = (uint)uri.Port;
+            region.RegionName = string.Empty;
+            return region;
+        }
     }
 }

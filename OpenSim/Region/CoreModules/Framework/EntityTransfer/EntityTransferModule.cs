@@ -183,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     sp.ControllingClient.SendLocalTeleport(position, lookAt, teleportFlags);
                     sp.Teleport(position);
                 }
-                else
+                else // Another region possibly in another simulator
                 {
                     uint x = 0, y = 0;
                     Utils.LongToUInts(regionHandle, out x, out y);
@@ -191,15 +191,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
                     if (reg != null)
                     {
-                        m_log.DebugFormat(
-                            "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
-                            position, reg.RegionName);
-
-                        uint newRegionX = (uint)(reg.RegionHandle >> 40);
-                        uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
-                        uint oldRegionX = (uint)(sp.Scene.RegionInfo.RegionHandle >> 40);
-                        uint oldRegionY = (((uint)(sp.Scene.RegionInfo.RegionHandle)) >> 8);
-
                         GridRegion finalDestination = GetFinalDestination(reg);
                         if (finalDestination == null)
                         {
@@ -207,220 +198,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             sp.ControllingClient.SendTeleportFailed("Problem at destination");
                             return;
                         }
-                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} uuid={2}", finalDestination.RegionLocX, finalDestination.RegionLocY, finalDestination.RegionID);
-                        ulong destinationHandle = finalDestination.RegionHandle;
+                        m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Final destination is x={0} y={1} uuid={2}",
+                            finalDestination.RegionLocX / Constants.RegionSize, finalDestination.RegionLocY / Constants.RegionSize, finalDestination.RegionID);
 
-                        if (eq == null)
-                            sp.ControllingClient.SendTeleportLocationStart();
-
-                        // Let's do DNS resolution only once in this process, please!
-                        // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
-                        // it's actually doing a lot of work.
-                        IPEndPoint endPoint = finalDestination.ExternalEndPoint;
-                        if (endPoint.Address == null)
-                        {
-                            // Couldn't resolve the name. Can't TP, because the viewer wants IP addresses.
-                            destRegionUp = false;
-                        }
-
-                        if (destRegionUp)
-                        {
-                            // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
-                            // both regions
-                            if (sp.ParentID != (uint)0)
-                                sp.StandUp();
-
-                            if (!sp.ValidateAttachments())
-                            {
-                                sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
-                                return;
-                            }
-
-                            // the avatar.Close below will clear the child region list. We need this below for (possibly)
-                            // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
-                            //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
-                            // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
-                            // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
-                            // once we reach here...
-                            //avatar.Scene.RemoveCapsHandler(avatar.UUID);
-
-                            string capsPath = String.Empty;
-
-                            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode); 
-                            AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
-                            agentCircuit.startpos = position;
-                            agentCircuit.child = true;
-                            agentCircuit.Appearance = sp.Appearance;
-                            if (currentAgentCircuit != null)
-                                agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
-
-                            if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
-                            {
-                                // brand new agent, let's create a new caps seed
-                                agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
-                            }
-
-                            string reason = String.Empty;
-
-                            // Let's create an agent there if one doesn't exist yet. 
-                            if (!CreateAgent(reg, finalDestination, agentCircuit, teleportFlags, out reason))
-                            {
-                                sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
-                                                                                          reason));
-                                return;
-                            }
-
-                            // OK, it got this agent. Let's close some child agents
-                            sp.CloseChildAgents(newRegionX, newRegionY);
-
-                            if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
-                            {
-                                #region IP Translation for NAT
-                                IClientIPEndpoint ipepClient;
-                                if (sp.ClientView.TryGet(out ipepClient))
-                                {
-                                    capsPath
-                                        = "http://"
-                                          + NetworkUtil.GetHostFor(ipepClient.EndPoint, finalDestination.ExternalHostName)
-                                          + ":"
-                                          + finalDestination.HttpPort
-                                          + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-                                }
-                                else
-                                {
-                                    capsPath
-                                        = "http://"
-                                          + finalDestination.ExternalHostName
-                                          + ":"
-                                          + finalDestination.HttpPort
-                                          + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
-                                }
-                                #endregion
-
-                                if (eq != null)
-                                {
-                                    #region IP Translation for NAT
-                                    // Uses ipepClient above
-                                    if (sp.ClientView.TryGet(out ipepClient))
-                                    {
-                                        endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
-                                    }
-                                    #endregion
-
-                                    eq.EnableSimulator(destinationHandle, endPoint, sp.UUID);
-
-                                    // ES makes the client send a UseCircuitCode message to the destination, 
-                                    // which triggers a bunch of things there.
-                                    // So let's wait
-                                    Thread.Sleep(2000);
-
-                                    eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-
-                                }
-                                else
-                                {
-                                    sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
-                                }
-                            }
-                            else
-                            {
-                                agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
-                                capsPath = "http://" + finalDestination.ExternalHostName + ":" + finalDestination.HttpPort
-                                            + "/CAPS/" + agentCircuit.CapsPath + "0000/";
-                            }
-
-                            // Expect avatar crossing is a heavy-duty function at the destination.
-                            // That is where MakeRoot is called, which fetches appearance and inventory.
-                            // Plus triggers OnMakeRoot, which spawns a series of asynchronous updates.
-                            //m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
-                            //                                                      position, false);
-
-                            //{
-                            //    avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
-                            //    // We should close that agent we just created over at destination...
-                            //    List<ulong> lst = new List<ulong>();
-                            //    lst.Add(reg.RegionHandle);
-                            //    SendCloseChildAgentAsync(avatar.UUID, lst);
-                            //    return;
-                            //}
-
-                            SetInTransit(sp.UUID);
-
-                            // Let's send a full update of the agent. This is a synchronous call.
-                            AgentData agent = new AgentData();
-                            sp.CopyTo(agent);
-                            agent.Position = position;
-                            SetCallbackURL(agent, sp.Scene.RegionInfo);
-
-                            UpdateAgent(reg, finalDestination, agent);
-
-                            m_log.DebugFormat(
-                                "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
-
-
-                            if (eq != null)
-                            {
-                                eq.TeleportFinishEvent(destinationHandle, 13, endPoint,
-                                                       0, teleportFlags, capsPath, sp.UUID);
-                            }
-                            else
-                            {
-                                sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
-                                                                            teleportFlags, capsPath);
-                            }
-
-                            // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
-                            // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
-                            // that the client contacted the destination before we send the attachments and close things here.
-                            if (!WaitForCallback(sp.UUID))
-                            {
-                                // Client never contacted destination. Let's restore everything back
-                                sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
-
-                                ResetFromTransit(sp.UUID);
-
-                                // Yikes! We should just have a ref to scene here.
-                                //sp.Scene.InformClientOfNeighbours(sp);
-                                EnableChildAgents(sp);
-
-                                // Finally, kill the agent we just created at the destination.
-                                m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
-
-                                return;
-                            }
-
-                            KillEntity(sp.Scene, sp.LocalId);
-
-                            sp.MakeChildAgent();
-
-                            // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                            CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
-
-                            // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
-
-                            if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
-                            {
-                                Thread.Sleep(5000);
-                                sp.Close();
-                                sp.Scene.IncomingCloseAgent(sp.UUID);
-                            }
-                            else
-                                // now we have a child agent in this region. 
-                                sp.Reset();
-
-
-                            // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
-                            if (sp.Scene.NeedSceneCacheClear(sp.UUID))
-                            {
-                                m_log.DebugFormat(
-                                    "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
-                                    sp.UUID);
-                            }
-                        }
-                        else
-                        {
-                            sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
-                        }
+                        //
+                        // This is it
+                        //
+                        DoTeleport(sp, reg, finalDestination, position, lookAt, teleportFlags, eq);
+                        //
+                        //
+                        //
                     }
                     else
                     {
@@ -449,6 +236,227 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
         }
+
+        protected void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
+        {
+            m_log.DebugFormat(
+                "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
+                position, reg.RegionName);
+
+            uint newRegionX = (uint)(reg.RegionHandle >> 40);
+            uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
+            uint oldRegionX = (uint)(sp.Scene.RegionInfo.RegionHandle >> 40);
+            uint oldRegionY = (((uint)(sp.Scene.RegionInfo.RegionHandle)) >> 8);
+
+            ulong destinationHandle = finalDestination.RegionHandle;
+
+            if (eq == null)
+                sp.ControllingClient.SendTeleportLocationStart();
+
+            // Let's do DNS resolution only once in this process, please!
+            // This may be a costly operation. The reg.ExternalEndPoint field is not a passive field,
+            // it's actually doing a lot of work.
+            IPEndPoint endPoint = finalDestination.ExternalEndPoint;
+            if (endPoint.Address != null)
+            {
+                // Fixing a bug where teleporting while sitting results in the avatar ending up removed from
+                // both regions
+                if (sp.ParentID != (uint)0)
+                    sp.StandUp();
+
+                if (!sp.ValidateAttachments())
+                {
+                    sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
+                    return;
+                }
+
+                // the avatar.Close below will clear the child region list. We need this below for (possibly)
+                // closing the child agents, so save it here (we need a copy as it is Clear()-ed).
+                //List<ulong> childRegions = new List<ulong>(avatar.GetKnownRegionList());
+                // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
+                // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
+                // once we reach here...
+                //avatar.Scene.RemoveCapsHandler(avatar.UUID);
+
+                string capsPath = String.Empty;
+
+                AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
+                agentCircuit.startpos = position;
+                agentCircuit.child = true;
+                agentCircuit.Appearance = sp.Appearance;
+                if (currentAgentCircuit != null)
+                    agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
+
+                if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                {
+                    // brand new agent, let's create a new caps seed
+                    agentCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
+                }
+
+                string reason = String.Empty;
+
+                // Let's create an agent there if one doesn't exist yet. 
+                if (!CreateAgent(reg, finalDestination, agentCircuit, teleportFlags, out reason))
+                {
+                    sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
+                                                                              reason));
+                    return;
+                }
+
+                // OK, it got this agent. Let's close some child agents
+                sp.CloseChildAgents(newRegionX, newRegionY);
+
+                if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
+                {
+                    #region IP Translation for NAT
+                    IClientIPEndpoint ipepClient;
+                    if (sp.ClientView.TryGet(out ipepClient))
+                    {
+                        capsPath
+                            = "http://"
+                              + NetworkUtil.GetHostFor(ipepClient.EndPoint, finalDestination.ExternalHostName)
+                              + ":"
+                              + finalDestination.HttpPort
+                              + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                    }
+                    else
+                    {
+                        capsPath
+                            = "http://"
+                              + finalDestination.ExternalHostName
+                              + ":"
+                              + finalDestination.HttpPort
+                              + CapsUtil.GetCapsSeedPath(agentCircuit.CapsPath);
+                    }
+                    #endregion
+
+                    if (eq != null)
+                    {
+                        #region IP Translation for NAT
+                        // Uses ipepClient above
+                        if (sp.ClientView.TryGet(out ipepClient))
+                        {
+                            endPoint.Address = NetworkUtil.GetIPFor(ipepClient.EndPoint, endPoint.Address);
+                        }
+                        #endregion
+
+                        eq.EnableSimulator(destinationHandle, endPoint, sp.UUID);
+
+                        // ES makes the client send a UseCircuitCode message to the destination, 
+                        // which triggers a bunch of things there.
+                        // So let's wait
+                        Thread.Sleep(2000);
+
+                        eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
+
+                    }
+                    else
+                    {
+                        sp.ControllingClient.InformClientOfNeighbour(destinationHandle, endPoint);
+                    }
+                }
+                else
+                {
+                    agentCircuit.CapsPath = sp.Scene.CapsModule.GetChildSeed(sp.UUID, reg.RegionHandle);
+                    capsPath = "http://" + finalDestination.ExternalHostName + ":" + finalDestination.HttpPort
+                                + "/CAPS/" + agentCircuit.CapsPath + "0000/";
+                }
+
+                // Expect avatar crossing is a heavy-duty function at the destination.
+                // That is where MakeRoot is called, which fetches appearance and inventory.
+                // Plus triggers OnMakeRoot, which spawns a series of asynchronous updates.
+                //m_commsProvider.InterRegion.ExpectAvatarCrossing(reg.RegionHandle, avatar.ControllingClient.AgentId,
+                //                                                      position, false);
+
+                //{
+                //    avatar.ControllingClient.SendTeleportFailed("Problem with destination.");
+                //    // We should close that agent we just created over at destination...
+                //    List<ulong> lst = new List<ulong>();
+                //    lst.Add(reg.RegionHandle);
+                //    SendCloseChildAgentAsync(avatar.UUID, lst);
+                //    return;
+                //}
+
+                SetInTransit(sp.UUID);
+
+                // Let's send a full update of the agent. This is a synchronous call.
+                AgentData agent = new AgentData();
+                sp.CopyTo(agent);
+                agent.Position = position;
+                SetCallbackURL(agent, sp.Scene.RegionInfo);
+
+                UpdateAgent(reg, finalDestination, agent);
+
+                m_log.DebugFormat(
+                    "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
+
+
+                if (eq != null)
+                {
+                    eq.TeleportFinishEvent(destinationHandle, 13, endPoint,
+                                           0, teleportFlags, capsPath, sp.UUID);
+                }
+                else
+                {
+                    sp.ControllingClient.SendRegionTeleport(destinationHandle, 13, endPoint, 4,
+                                                                teleportFlags, capsPath);
+                }
+
+                // TeleportFinish makes the client send CompleteMovementIntoRegion (at the destination), which
+                // trigers a whole shebang of things there, including MakeRoot. So let's wait for confirmation
+                // that the client contacted the destination before we send the attachments and close things here.
+                if (!WaitForCallback(sp.UUID))
+                {
+                    // Client never contacted destination. Let's restore everything back
+                    sp.ControllingClient.SendTeleportFailed("Problems connecting to destination.");
+
+                    ResetFromTransit(sp.UUID);
+
+                    // Yikes! We should just have a ref to scene here.
+                    //sp.Scene.InformClientOfNeighbours(sp);
+                    EnableChildAgents(sp);
+
+                    // Finally, kill the agent we just created at the destination.
+                    m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
+
+                    return;
+                }
+
+                KillEntity(sp.Scene, sp.LocalId);
+
+                sp.MakeChildAgent();
+
+                // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
+                CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
+
+                // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
+
+                if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+                {
+                    Thread.Sleep(5000);
+                    sp.Close();
+                    sp.Scene.IncomingCloseAgent(sp.UUID);
+                }
+                else
+                    // now we have a child agent in this region. 
+                    sp.Reset();
+
+
+                // REFACTORING PROBLEM. Well, not a problem, but this method is HORRIBLE!
+                if (sp.Scene.NeedSceneCacheClear(sp.UUID))
+                {
+                    m_log.DebugFormat(
+                        "[ENTITY TRANSFER MODULE]: User {0} is going to another region, profile cache removed",
+                        sp.UUID);
+                }
+            }
+            else
+            {
+                sp.ControllingClient.SendTeleportFailed("Remote Region appears to be down");
+            }
+        }
+
 
         protected virtual bool CreateAgent(GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
         {

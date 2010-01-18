@@ -39,5 +39,8 @@ namespace OpenSim.Services.Interfaces
         GridRegion GetHyperlinkRegion(UUID regionID);
 
         bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
+
+        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+
     }
 }
