@@ -778,7 +778,7 @@ namespace OpenSim.Data.MySQL
                                   string aboutText, string firstText,
                                   UUID profileImage, UUID firstImage, UUID webLoginKey, int userFlags, int godLevel, string customType, UUID partner)
         {
-            m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
+            m_log.Debug("[MySQLManager]: Creating profile for \"" + username + " " + lastname + "\" (" + uuid + ")");
             string sql =
                 "INSERT INTO users (`UUID`, `username`, `lastname`, `email`, `passwordHash`, `passwordSalt`, `homeRegion`, `homeRegionID`, ";
             sql +=
