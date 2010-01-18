@@ -148,17 +148,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
         }
 
-        protected override bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
-        {
-            if (reg.RegionLocX != finalDestination.RegionLocX && reg.RegionLocY != finalDestination.RegionLocY)
-            {
-                // this user is going to another grid
-                return m_GatekeeperConnector.UpdateAgent(reg, agent);
-            }
-
-            return m_aScene.SimulationService.UpdateAgent(reg, agent);
-        }
-
         #endregion
     }
 }

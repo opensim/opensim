@@ -39,9 +39,5 @@ namespace OpenSim.Services.Interfaces
         GridRegion GetHyperlinkRegion(UUID regionID);
 
         bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
-        bool UpdateAgent(GridRegion destination, AgentData agent);
-        void ReleaseAgent(UUID regionID, UUID agentID);
-
-        bool LoginAttachment(GridRegion destination, ISceneObject sog);
     }
 }

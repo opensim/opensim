@@ -64,16 +64,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             return m_GatekeeperService.LoginAgent(aCircuit, destination, out reason);
         }
 
-        protected override bool UpdateAgent(GridRegion destination, AgentData agent)
-        {
-            return m_GatekeeperService.UpdateAgent(destination, agent);
-        }
-
-        protected override void ReleaseAgent(UUID regionID, UUID id)
-        {
-            m_GatekeeperService.ReleaseAgent(regionID, id);
-        }
-
     }
 
 }

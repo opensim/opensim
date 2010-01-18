@@ -221,44 +221,7 @@ namespace OpenSim.Services.HypergridService
             return m_SimulationService.CreateAgent(destination, aCircuit, 0, out reason);
         }
 
-        public bool UpdateAgent(GridRegion destination, AgentData agent)
-        {
-            // Get the region
-            destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
-            if (destination == null)
-            {
-                return false;
-            }
-
-            return m_SimulationService.UpdateAgent(destination, agent);
-        }
-
-        public bool LoginAttachment(GridRegion destination, ISceneObject sog)
-        {
-            // Get the region
-            destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
-            if (destination == null)
-            {
-                return false;
-            }
-
-            // May want to filter attachments
-            return m_SimulationService.CreateObject(destination, sog, false);
-        }
-
-        public void ReleaseAgent(UUID regionID, UUID agentID)
-        {
-            GridRegion region = m_GridService.GetRegionByUUID(m_ScopeID, regionID);
-            if (region != null)
-            {
-                string uri = "http://" + region.ExternalHostName + ":" + region.HttpPort +
-                    "/agent/" + agentID.ToString() + "/" + regionID.ToString() + "/release/";
-
-                m_SimulationService.ReleaseAgent(regionID, agentID, uri);
-            }
-        }
-
-        protected bool Authenticate(AgentCircuitData aCircuit)
+         protected bool Authenticate(AgentCircuitData aCircuit)
         {
             string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))

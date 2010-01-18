@@ -344,8 +344,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             AgentData agent = new AgentData();
                             sp.CopyTo(agent);
                             agent.Position = position;
-                            agent.CallbackURI = "http://" + sp.Scene.RegionInfo.ExternalHostName + ":" + sp.Scene.RegionInfo.HttpPort +
-                                "/agent/" + sp.UUID.ToString() + "/" + sp.Scene.RegionInfo.RegionID.ToString() + "/release/";
+                            SetCallbackURL(agent, sp.Scene.RegionInfo);
 
                             UpdateAgent(reg, finalDestination, agent);
 
@@ -379,7 +378,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 EnableChildAgents(sp);
 
                                 // Finally, kill the agent we just created at the destination.
-                                m_aScene.SimulationService.CloseAgent(reg, sp.UUID);
+                                m_aScene.SimulationService.CloseAgent(finalDestination, sp.UUID);
 
                                 return;
                             }
@@ -389,7 +388,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             sp.MakeChildAgent();
 
                             // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
-                            CrossAttachmentsIntoNewRegion(reg, sp, true);
+                            CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
 
                             // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
@@ -447,12 +446,19 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected virtual bool CreateAgent(GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
         {
-            return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
+            return m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
         }
 
         protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
         {
-            return m_aScene.SimulationService.UpdateAgent(reg, agent);
+            return m_aScene.SimulationService.UpdateAgent(finalDestination, agent);
+        }
+
+        protected virtual void SetCallbackURL(AgentData agent, RegionInfo region)
+        {
+            agent.CallbackURI = "http://" + region.ExternalHostName + ":" + region.HttpPort +
+                "/agent/" + agent.AgentID.ToString() + "/" + region.RegionID.ToString() + "/release/";
+
         }
 
         protected void KillEntity(Scene scene, uint localID)
