@@ -362,7 +362,14 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 if (oldID != UUID.Zero && ((Disp & DISP_EXPIRE) != 0))
                 {
-                    scene.AssetService.Delete(oldID.ToString());
+                    if (oldAsset == null) oldAsset = scene.AssetService.Get(oldID.ToString());
+                    if (oldAsset != null)
+                    {
+                        if (oldAsset.Temporary == true)
+                        {
+                            scene.AssetService.Delete(oldID.ToString());
+                        }
+                    }
                 }
             }
 
