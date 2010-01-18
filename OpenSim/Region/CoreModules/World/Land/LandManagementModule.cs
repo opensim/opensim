@@ -81,8 +81,8 @@ namespace OpenSim.Region.CoreModules.World.Land
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
-        private string DefultGodParcelGroup;
-        private string DefultGodParcelName;
+        private string DefaultGodParcelGroup;
+        private string DefaultGodParcelName;
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
@@ -1566,8 +1566,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                     land = landObject;
                 }
             }
-            land.DeedToGroup(new UUID(DefultGodParcelGroup));
-            land.LandData.Name = DefultGodParcelName;
+            land.DeedToGroup(new UUID(DefaultGodParcelGroup));
+            land.LandData.Name = DefaultGodParcelName;
             land.SendLandUpdateToAvatarsOverMe();
         }
         private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
