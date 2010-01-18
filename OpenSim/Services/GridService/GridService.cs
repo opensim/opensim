@@ -109,7 +109,7 @@ namespace OpenSim.Services.GridService
                 //
                 // Get it's flags
                 //
-                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["Flags"]);
+                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["flags"]);
 
                 // Is this a reservation?
                 //

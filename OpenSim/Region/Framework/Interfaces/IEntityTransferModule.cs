@@ -30,6 +30,7 @@ using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
@@ -38,6 +39,8 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void Teleport(ScenePresence agent, ulong regionHandle, Vector3 position,
                                                       Vector3 lookAt, uint teleportFlags);
+
+        void TeleportHome(UUID id, IClientAPI client);
 
         void Cross(ScenePresence agent, bool isFlying);
 

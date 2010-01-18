@@ -2558,7 +2558,6 @@ namespace OpenSim.Region.Framework.Scenes
         {
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
-            client.OnTeleportHomeRequest += TeleportClientHome;
         }
 
         public virtual void SubscribeToClientScriptEvents(IClientAPI client)
@@ -2713,7 +2712,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             client.OnTeleportLocationRequest -= RequestTeleportLocation;
             client.OnTeleportLandmarkRequest -= RequestTeleportLandmark;
-            client.OnTeleportHomeRequest -= TeleportClientHome;
+            //client.OnTeleportHomeRequest -= TeleportClientHome;
         }
 
         public virtual void UnSubscribeToClientScriptEvents(IClientAPI client)
@@ -2760,20 +2759,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client">The IClientAPI for the client</param>
         public virtual void TeleportClientHome(UUID agentId, IClientAPI client)
         {
-            OpenSim.Services.Interfaces.PresenceInfo pinfo = PresenceService.GetAgent(client.SessionId);
-
-            if (pinfo != null)
+            if (m_teleportModule != null)
+                m_teleportModule.TeleportHome(agentId, client);
+            else
             {
-                GridRegion regionInfo = GridService.GetRegionByUUID(UUID.Zero, pinfo.HomeRegionID);
-                if (regionInfo == null)
-                {
-                    // can't find the Home region: Tell viewer and abort
-                    client.SendTeleportFailed("Your home-region could not be found.");
-                    return;
-                }
-                RequestTeleportLocation(
-                    client, regionInfo.RegionHandle, pinfo.HomePosition, pinfo.HomeLookAt,
-                    (uint)(TPFlags.SetLastToTarget | TPFlags.ViaHome));
+                m_log.DebugFormat("[SCENE]: Unable to teleport user home: no AgentTransferModule is active");
+                client.SendTeleportFailed("Unable to perform teleports on this simulator.");
             }
         }
 

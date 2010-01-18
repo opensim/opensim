@@ -47,7 +47,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
         private IHypergridService m_HypergridService;
         private IHypergridService HyperGridService
         {
@@ -84,42 +83,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        public override void PostInitialise()
-        {
-        }
-
-        public override void AddRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-            if (m_aScene == null)
-                m_aScene = scene;
-
-            scene.RegisterModuleInterface<IEntityTransferModule>(this);
-        }
-
-        public override void Close()
-        {
-            if (!m_Enabled)
-                return;
-        }
-
-
-        public override void RemoveRegion(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-            if (scene == m_aScene)
-                m_aScene = null;
-        }
-
-        public override void RegionLoaded(Scene scene)
-        {
-            if (!m_Enabled)
-                return;
-
-        }
 
         #endregion
 

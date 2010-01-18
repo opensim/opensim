@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
+        protected bool m_Enabled = false;
         protected Scene m_aScene;
         protected List<UUID> m_agentsInTransit;
 
@@ -94,6 +94,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_aScene = scene;
 
             scene.RegisterModuleInterface<IEntityTransferModule>(this);
+            scene.EventManager.OnNewClient += OnNewClient;
+        }
+
+        protected void OnNewClient(IClientAPI client)
+        {
+            client.OnTeleportHomeRequest += TeleportHome;
         }
 
         public virtual void Close()
@@ -498,6 +504,33 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
 
         #endregion
+
+        #region Teleport Home
+
+        public virtual void TeleportHome(UUID id, IClientAPI client)
+        {
+            m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Request to teleport {0} {1} home", client.FirstName, client.LastName);
+
+            OpenSim.Services.Interfaces.PresenceInfo pinfo = m_aScene.PresenceService.GetAgent(client.SessionId);
+
+            if (pinfo != null)
+            {
+                GridRegion regionInfo = m_aScene.GridService.GetRegionByUUID(UUID.Zero, pinfo.HomeRegionID);
+                if (regionInfo == null)
+                {
+                    // can't find the Home region: Tell viewer and abort
+                    client.SendTeleportFailed("Your home region could not be found.");
+                    return;
+                }
+                // a little eekie that this goes back to Scene and with a forced cast, will fix that at some point...
+                ((Scene)(client.Scene)).RequestTeleportLocation(
+                    client, regionInfo.RegionHandle, pinfo.HomePosition, pinfo.HomeLookAt,
+                    (uint)(Constants.TeleportFlags.SetLastToTarget | Constants.TeleportFlags.ViaHome));
+            }
+        }
+
+        #endregion
+
 
         #region Agent Crossings
 
