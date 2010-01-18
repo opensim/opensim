@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Connectors.Hypergrid;
@@ -58,6 +59,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
+        private GatekeeperServiceConnector m_GatekeeperConnector;
+
         #region ISharedRegionModule
 
         public override string Name
@@ -74,6 +77,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (name == Name)
                 {
                     m_agentsInTransit = new List<UUID>();
+                    m_GatekeeperConnector = new GatekeeperServiceConnector();
                     m_Enabled = true;
                     m_log.InfoFormat("[HG ENTITY TRANSFER MODULE]: {0} enabled.", Name);
                 }
@@ -131,6 +135,29 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return true;
         }
 
+        protected override bool CreateAgent(GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
+        {
+            reason = string.Empty;
+            if (reg.RegionLocX != finalDestination.RegionLocX && reg.RegionLocY != finalDestination.RegionLocY)
+            {
+                // this user is going to another grid
+                reg.RegionName = finalDestination.RegionName;
+                return m_GatekeeperConnector.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
+            }
+
+            return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
+        }
+
+        protected override bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
+        {
+            if (reg.RegionLocX != finalDestination.RegionLocX && reg.RegionLocY != finalDestination.RegionLocY)
+            {
+                // this user is going to another grid
+                return m_GatekeeperConnector.UpdateAgent(reg, agent);
+            }
+
+            return m_aScene.SimulationService.UpdateAgent(reg, agent);
+        }
 
         #endregion
     }

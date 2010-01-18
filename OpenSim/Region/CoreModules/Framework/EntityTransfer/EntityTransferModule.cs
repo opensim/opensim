@@ -239,12 +239,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             //avatar.Scene.RemoveCapsHandler(avatar.UUID);
 
                             string capsPath = String.Empty;
+
+                            AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode); 
                             AgentCircuitData agentCircuit = sp.ControllingClient.RequestClientInfo();
-                            agentCircuit.BaseFolder = UUID.Zero;
-                            agentCircuit.InventoryFolder = UUID.Zero;
                             agentCircuit.startpos = position;
                             agentCircuit.child = true;
                             agentCircuit.Appearance = sp.Appearance;
+                            if (currentAgentCircuit != null)
+                                agentCircuit.ServiceURLs = currentAgentCircuit.ServiceURLs;
 
                             if (NeedsNewAgent(oldRegionX, newRegionX, oldRegionY, newRegionY))
                             {
@@ -255,9 +257,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             string reason = String.Empty;
 
                             // Let's create an agent there if one doesn't exist yet. 
-                            if (!m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason))
+                            if (!CreateAgent(reg, finalDestination, agentCircuit, teleportFlags, out reason))
                             {
-                                sp.ControllingClient.SendTeleportFailed(String.Format("Destination is not accepting teleports: {0}",
+                                sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
                                                                                           reason));
                                 return;
                             }
@@ -345,8 +347,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                             agent.CallbackURI = "http://" + sp.Scene.RegionInfo.ExternalHostName + ":" + sp.Scene.RegionInfo.HttpPort +
                                 "/agent/" + sp.UUID.ToString() + "/" + sp.Scene.RegionInfo.RegionID.ToString() + "/release/";
 
-                            // Straight to the region. Safe.
-                            m_aScene.SimulationService.UpdateAgent(reg, agent);
+                            UpdateAgent(reg, finalDestination, agent);
 
                             m_log.DebugFormat(
                                 "[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1}", capsPath, sp.UUID);
@@ -442,6 +443,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Exception on teleport: {0}\n{1}", e.Message, e.StackTrace);
                 sp.ControllingClient.SendTeleportFailed("Internal error");
             }
+        }
+
+        protected virtual bool CreateAgent(GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
+        {
+            return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
+        }
+
+        protected virtual bool UpdateAgent(GridRegion reg, GridRegion finalDestination, AgentData agent)
+        {
+            return m_aScene.SimulationService.UpdateAgent(reg, agent);
         }
 
         protected void KillEntity(Scene scene, uint localID)

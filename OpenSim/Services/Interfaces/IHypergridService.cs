@@ -44,4 +44,5 @@ namespace OpenSim.Services.Interfaces
         List<GridRegion> GetRegionsByName(string name);
         List<GridRegion> GetRegionRange(int xmin, int xmax, int ymin, int ymax);
     }
+
 }

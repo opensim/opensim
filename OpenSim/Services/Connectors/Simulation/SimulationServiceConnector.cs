@@ -65,6 +65,11 @@ namespace OpenSim.Services.Connectors.Simulation
 
         #region Agents
 
+        protected virtual string AgentPath()
+        {
+            return "/agent/";
+        }
+
         public bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint flags, out string reason)
         {
             reason = String.Empty;
@@ -80,7 +85,7 @@ namespace OpenSim.Services.Connectors.Simulation
             string uri = string.Empty;
             try
             {
-                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + aCircuit.AgentID + "/";
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + aCircuit.AgentID + "/";
             }
             catch (Exception e)
             {
@@ -197,7 +202,8 @@ namespace OpenSim.Services.Connectors.Simulation
             catch (WebException ex)
             {
                 m_log.InfoFormat("[REMOTE SIMULATION CONNECTOR]: exception on reply of DoCreateChildAgentCall {0}", ex.Message);
-                // ignore, really
+                reason = "Destination did not reply";
+                return false;
             }
             finally
             {
@@ -224,7 +230,7 @@ namespace OpenSim.Services.Connectors.Simulation
             string uri = string.Empty;
             try
             {
-                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + cAgentData.AgentID + "/";
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + cAgentData.AgentID + "/";
             }
             catch (Exception e)
             {
@@ -329,7 +335,7 @@ namespace OpenSim.Services.Connectors.Simulation
         {
             agent = null;
             // Eventually, we want to use a caps url instead of the agentID
-            string uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + id + "/" + destination.RegionID.ToString() + "/";
+            string uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
             //Console.WriteLine("   >>> DoRetrieveRootAgentCall <<< " + uri);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
@@ -426,7 +432,7 @@ namespace OpenSim.Services.Connectors.Simulation
             string uri = string.Empty;
             try
             {
-                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/agent/" + id + "/" + destination.RegionID.ToString() + "/";
+                uri = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + AgentPath() + id + "/" + destination.RegionID.ToString() + "/";
             }
             catch (Exception e)
             {
@@ -474,10 +480,15 @@ namespace OpenSim.Services.Connectors.Simulation
 
         #region Objects
 
+        protected virtual string ObjectPath()
+        {
+            return "/object/";
+        }
+
         public bool CreateObject(GridRegion destination, ISceneObject sog, bool isLocalCall)
         {
             string uri
-                = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + "/object/" + sog.UUID + "/";
+                = "http://" + destination.ExternalEndPoint.Address + ":" + destination.HttpPort + ObjectPath() + sog.UUID + "/";
             //m_log.Debug("   >>> DoCreateObjectCall <<< " + uri);
 
             WebRequest ObjectCreateRequest = WebRequest.Create(uri);

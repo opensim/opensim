@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,52 +26,42 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Collections;
+using System.IO;
 using System.Reflection;
-using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Server.Base;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Server.Handlers.Base;
+using System.Net;
+using System.Text;
 
+using OpenSim.Server.Base;
+using OpenSim.Server.Handlers.Base;
+using OpenSim.Services.Interfaces;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Simulation;
+using Utils = OpenSim.Server.Handlers.Simulation.Utils;
+
+using OpenMetaverse;
+using OpenMetaverse.StructuredData;
+using Nini.Config;
 using log4net;
+
 
 namespace OpenSim.Server.Handlers.Hypergrid
 {
-    public class GatekeeperServiceInConnector : ServiceConnector
+    public class ObjectHandler : OpenSim.Server.Handlers.Simulation.ObjectHandler
     {
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private IGatekeeperService m_GatekeeperService;
 
-        public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, ISimulationService simService) :
-                base(config, server, String.Empty)
+        public ObjectHandler(IGatekeeperService gatekeeper)
         {
-            IConfig gridConfig = config.Configs["GatekeeperService"];
-            if (gridConfig != null)
-            {
-                string serviceDll = gridConfig.GetString("LocalServiceModule", string.Empty);
-                Object[] args = new Object[] { config, simService };
-                m_GatekeeperService = ServerUtils.LoadPlugin<IGatekeeperService>(serviceDll, args);
-            }
-            if (m_GatekeeperService == null)
-                throw new Exception("Gatekeeper server connector cannot proceed because of missing service");
-
-            HypergridHandlers hghandlers = new HypergridHandlers(m_GatekeeperService);
-            server.AddXmlRPCHandler("link_region", hghandlers.LinkRegionRequest, false);
-            server.AddXmlRPCHandler("get_region", hghandlers.GetRegion, false);
-
-            server.AddHTTPHandler("/foreignagent/", new AgentHandler(m_GatekeeperService).Handler);
-            server.AddHTTPHandler("/foreignobject/", new ObjectHandler(m_GatekeeperService).Handler);
-
+            m_GatekeeperService = gatekeeper;
         }
 
-        public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server)
-            : this(config, server, null)
+        protected override bool CreateObject(GridRegion destination, ISceneObject sog)
         {
+            return m_GatekeeperService.LoginAttachment(destination, sog);
         }
 
     }

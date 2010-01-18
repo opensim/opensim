@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 
+using OpenSim.Framework;
 using OpenMetaverse;
 
 namespace OpenSim.Services.Interfaces
@@ -36,5 +37,11 @@ namespace OpenSim.Services.Interfaces
     {
         bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason);
         GridRegion GetHyperlinkRegion(UUID regionID);
+
+        bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
+        bool UpdateAgent(GridRegion destination, AgentData agent);
+        void ReleaseAgent(UUID regionID, UUID agentID);
+
+        bool LoginAttachment(GridRegion destination, ISceneObject sog);
     }
 }

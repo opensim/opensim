@@ -66,6 +66,7 @@
         <RegionModule id="LLLoginServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Login.LLLoginServiceInConnectorModule" />    \
         <RegionModule id="SimulationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation.SimulationServiceInConnectorModule" />    \
         <RegionModule id="GridInfoServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid.GridInfoServiceInConnectorModule" />    \
+        <RegionModule id="AuthenticationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Authentication.AuthenticationServiceInConnectorModule" />
         <RegionModule id="AccessModule" type="OpenSim.Region.CoreModules.World.AccessModule" />    \
 
     </Extension>

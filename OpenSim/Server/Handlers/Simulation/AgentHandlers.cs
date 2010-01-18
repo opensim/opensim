@@ -52,6 +52,8 @@ namespace OpenSim.Server.Handlers.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ISimulationService m_SimulationService;
 
+        public AgentHandler() { }
+
         public AgentHandler(ISimulationService sim)
         {
             m_SimulationService = sim;
@@ -117,7 +119,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         }
 
-        protected virtual void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
+        protected void DoAgentPost(Hashtable request, Hashtable responsedata, UUID id)
         {
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
@@ -171,7 +173,8 @@ namespace OpenSim.Server.Handlers.Simulation
 
             // This is the meaning of POST agent
             //m_regionClient.AdjustUserInformation(aCircuit);
-            bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            //bool result = m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+            bool result = CreateAgent(destination, aCircuit, teleportFlags, out reason);
 
             resp["reason"] = OSD.FromString(reason);
             resp["success"] = OSD.FromBoolean(result);
@@ -181,7 +184,13 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp);
         }
 
-        protected virtual void DoAgentPut(Hashtable request, Hashtable responsedata)
+        // subclasses can override this
+        protected virtual bool CreateAgent(GridRegion destination, AgentCircuitData aCircuit, uint teleportFlags, out string reason)
+        {
+            return m_SimulationService.CreateAgent(destination, aCircuit, teleportFlags, out reason);
+        }
+
+        protected void DoAgentPut(Hashtable request, Hashtable responsedata)
         {
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
@@ -237,7 +246,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
                 //agent.Dump();
                 // This is one of the meanings of PUT agent
-                result = m_SimulationService.UpdateAgent(destination, agent);
+                result = UpdateAgent(destination, agent);
 
             }
             else if ("AgentPosition".Equals(messageType))
@@ -261,6 +270,12 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = result.ToString();
             //responsedata["str_response_string"] = OSDParser.SerializeJsonString(resp); ??? instead
+        }
+
+        // subclasses cab override this
+        protected virtual bool UpdateAgent(GridRegion destination, AgentData agent)
+        {
+            return m_SimulationService.UpdateAgent(destination, agent);
         }
 
         protected virtual void DoAgentGet(Hashtable request, Hashtable responsedata, UUID id, UUID regionID)
@@ -305,7 +320,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
         }
 
-        protected virtual void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
+        protected void DoAgentDelete(Hashtable request, Hashtable responsedata, UUID id, string action, UUID regionID)
         {
             m_log.Debug(" >>> DoDelete action:" + action + "; RegionID:" + regionID);
 
@@ -313,7 +328,7 @@ namespace OpenSim.Server.Handlers.Simulation
             destination.RegionID = regionID;
 
             if (action.Equals("release"))
-                m_SimulationService.ReleaseAgent(regionID, id, "");
+                ReleaseAgent(regionID, id);
             else
                 m_SimulationService.CloseAgent(destination, id);
 
@@ -321,6 +336,11 @@ namespace OpenSim.Server.Handlers.Simulation
             responsedata["str_response_string"] = "OpenSim agent " + id.ToString();
 
             m_log.Debug("[AGENT HANDLER]: Agent Released/Deleted.");
+        }
+
+        protected virtual void ReleaseAgent(UUID regionID, UUID id)
+        {
+            m_SimulationService.ReleaseAgent(regionID, id, "");
         }
     }
 

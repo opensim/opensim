@@ -52,6 +52,8 @@ namespace OpenSim.Server.Handlers.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private ISimulationService m_SimulationService;
 
+        public ObjectHandler() { }
+
         public ObjectHandler(ISimulationService sim)
         {
             m_SimulationService = sim;
@@ -110,7 +112,7 @@ namespace OpenSim.Server.Handlers.Simulation
 
         }
 
-        protected virtual void DoObjectPost(Hashtable request, Hashtable responsedata, UUID regionID)
+        protected void DoObjectPost(Hashtable request, Hashtable responsedata, UUID regionID)
         {
             OSDMap args = Utils.GetOSDMap((string)request["body"]);
             if (args == null)
@@ -181,7 +183,7 @@ namespace OpenSim.Server.Handlers.Simulation
             try
             {
                 // This is the meaning of POST object
-                result = m_SimulationService.CreateObject(destination, sog, false);
+                result = CreateObject(destination, sog);
             }
             catch (Exception e)
             {
@@ -190,6 +192,12 @@ namespace OpenSim.Server.Handlers.Simulation
 
             responsedata["int_response_code"] = HttpStatusCode.OK;
             responsedata["str_response_string"] = result.ToString();
+        }
+
+        // subclasses can override this
+        protected virtual bool CreateObject(GridRegion destination, ISceneObject sog)
+        {
+            return m_SimulationService.CreateObject(destination, sog, false);
         }
 
         protected virtual void DoObjectPut(Hashtable request, Hashtable responsedata, UUID regionID)

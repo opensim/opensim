@@ -194,9 +194,11 @@ namespace OpenSim.Framework
                 OSDArray urls = new OSDArray(ServiceURLs.Count * 2);
                 foreach (KeyValuePair<string, object> kvp in ServiceURLs)
                 {
+                    //System.Console.WriteLine("XXX " + kvp.Key + "=" + kvp.Value);
                     urls.Add(OSD.FromString(kvp.Key));
                     urls.Add(OSD.FromString((kvp.Value == null) ? string.Empty : kvp.Value.ToString()));
                 }
+                args["service_urls"] = urls;
             }
 
             return args;
@@ -289,6 +291,8 @@ namespace OpenSim.Framework
                 for (int i = 0; i < urls.Count / 2; i++)
                 {
                     ServiceURLs[urls[i * 2].AsString()] = urls[(i * 2) + 1].AsString();
+                    //System.Console.WriteLine("XXX " + urls[i * 2].AsString() + "=" + urls[(i * 2) + 1].AsString());
+
                 }
             }
         }

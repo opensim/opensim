@@ -164,57 +164,103 @@ namespace OpenSim.Services.HypergridService
             return region;
         }
 
-        public bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination)
+        public bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason)
         {
+            reason = string.Empty;
+
             string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
-
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to login foreign agent {0} {1} @ {2} ({3}) at destination {4}", 
                 aCircuit.firstname, aCircuit.lastname, authURL, aCircuit.AgentID, destination.RegionName);
 
             if (!Authenticate(aCircuit))
             {
+                reason = "Unable to verify identity";
                 m_log.InfoFormat("[GATEKEEPER SERVICE]: Unable to verify identity of agent {0} {1}. Refusing service.", aCircuit.firstname, aCircuit.lastname);
                 return false;
             }
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Identity verified for {0} {1} @ {2}", aCircuit.firstname, aCircuit.lastname, authURL);
 
             // Check to see if we have a local user with that UUID
             UserAccount account = m_UserAccountService.GetUserAccount(m_ScopeID, aCircuit.AgentID);
             if (account != null)
             {
                 // No, sorry; go away
+                reason = "User identifier not allowed on this grid";
                 m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agent {0} {1} has UUID of local user {3}. Refusing service.", 
                     aCircuit.firstname, aCircuit.lastname, aCircuit.AgentID);
                 return false;
             }
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: User ID ok");
 
             // May want to authorize
 
             // Login the presence
             if (!m_PresenceService.LoginAgent(aCircuit.AgentID.ToString(), aCircuit.SessionID, aCircuit.SecureSessionID))
             {
+                reason = "Unable to login presence";
                 m_log.InfoFormat("[GATEKEEPER SERVICE]: Presence login failed for foreign agent {0} {1}. Refusing service.",
                     aCircuit.firstname, aCircuit.lastname);
                 return false;
             }
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Login presence ok");
+
+            // Get the region
+            destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
+            if (destination == null)
+            {
+                reason = "Destination region not found";
+                return false;
+            }
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: destination ok : {0}", destination.RegionName);
 
             // Finally launch the agent at the destination
-            string reason = string.Empty;
             aCircuit.firstname = aCircuit.firstname + "." + aCircuit.lastname;
             aCircuit.lastname = "@" + aCircuit.ServiceURLs["HomeURI"].ToString();
             return m_SimulationService.CreateAgent(destination, aCircuit, 0, out reason);
         }
 
-        public bool LoginAttachments(ISceneObject sog, GridRegion destination)
+        public bool UpdateAgent(GridRegion destination, AgentData agent)
         {
+            // Get the region
+            destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
+            if (destination == null)
+            {
+                return false;
+            }
+
+            return m_SimulationService.UpdateAgent(destination, agent);
+        }
+
+        public bool LoginAttachment(GridRegion destination, ISceneObject sog)
+        {
+            // Get the region
+            destination = m_GridService.GetRegionByUUID(m_ScopeID, destination.RegionID);
+            if (destination == null)
+            {
+                return false;
+            }
+
             // May want to filter attachments
             return m_SimulationService.CreateObject(destination, sog, false);
         }
 
+        public void ReleaseAgent(UUID regionID, UUID agentID)
+        {
+            GridRegion region = m_GridService.GetRegionByUUID(m_ScopeID, regionID);
+            if (region != null)
+            {
+                string uri = "http://" + region.ExternalHostName + ":" + region.HttpPort +
+                    "/agent/" + agentID.ToString() + "/" + regionID.ToString() + "/release/";
+
+                m_SimulationService.ReleaseAgent(regionID, agentID, uri);
+            }
+        }
+
         protected bool Authenticate(AgentCircuitData aCircuit)
         {
-            string authURL = string.Empty; 
+            string authURL = string.Empty;
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
                 authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
 
@@ -227,7 +273,17 @@ namespace OpenSim.Services.HypergridService
             Object[] args = new Object[] { authURL };
             IAuthenticationService authService = ServerUtils.LoadPlugin<IAuthenticationService>(m_AuthDll, args);
             if (authService != null)
-                return authService.Verify(aCircuit.AgentID, aCircuit.SecureSessionID.ToString(), 30);
+            {
+                try
+                {
+                    return authService.Verify(aCircuit.AgentID, aCircuit.SecureSessionID.ToString(), 30);
+                }
+                catch
+                {
+                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", authURL);
+                    return false;
+                }
+            }
 
             return false;
         }
