@@ -49,6 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         private int m_shoutdistance = 100;
         private int m_whisperdistance = 10;
         private List<Scene> m_scenes = new List<Scene>();
+        private List<string> FreezeCache = new List<string>();
         private string m_adminPrefix = "";
         internal object m_syncy = new object();
 
@@ -172,7 +173,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 return;
             }
 
-            DeliverChatToAvatars(ChatSourceType.Agent, c);
+            if (FreezeCache.Contains(c.Sender.AgentId.ToString()))
+            {
+                if (c.Type != ChatTypeEnum.StartTyping || c.Type != ChatTypeEnum.StopTyping)
+                    c.Sender.SendAgentAlertMessage("You may not talk as you are frozen.", false);
+            }
+            else
+            {
+                DeliverChatToAvatars(ChatSourceType.Agent, c);
+            }
         }
 
         public virtual void OnChatFromWorld(Object sender, OSChatMessage c)
@@ -232,7 +241,15 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 s.ForEachScenePresence(
                     delegate(ScenePresence presence)
                     {
-                        TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix+fromName, c.Type, message, sourceType);
+                        ILandObject Presencecheck = s.LandChannel.GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
+                        if (Presencecheck != null)
+                        {
+                            if (Presencecheck.IsEitherBannedOrRestricted(c.SenderUUID) != true)
+                            {
+                                TrySendChatMessage(presence, fromPos, regionPos, fromID, fromNamePrefix+fromName, c.Type, message, sourceType);
+                            }
+                        }
+
                     }
                 );
             }
@@ -321,6 +338,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
             presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName,
                                                        fromAgentID,(byte)src,(byte)ChatAudibleLevel.Fully);
+        }
+
+        Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();
+        public void ParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
+        {
+            System.Threading.Timer Timer;
+            if (flags == 0)
+            {
+                FreezeCache.Add(target.ToString());
+                System.Threading.TimerCallback timeCB = new System.Threading.TimerCallback(OnEndParcelFrozen);
+                Timer = new System.Threading.Timer(timeCB, target, 30000, 0);
+                Timers.Add(target, Timer);
+            }
+            else
+            {
+                FreezeCache.Remove(target.ToString());
+                Timers.TryGetValue(target, out Timer);
+                Timers.Remove(target);
+                Timer.Dispose();
+            }
+        }
+
+        private void OnEndParcelFrozen(object avatar)
+        {
+            UUID target = (UUID)avatar;
+            FreezeCache.Remove(target.ToString());
+            System.Threading.Timer Timer;
+            Timers.TryGetValue(target, out Timer);
+            Timers.Remove(target);
+            Timer.Dispose();
         }
     }
 }
