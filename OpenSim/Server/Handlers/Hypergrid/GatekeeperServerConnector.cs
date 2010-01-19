@@ -46,6 +46,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGatekeeperService m_GatekeeperService;
+        public IGatekeeperService GateKeeper
+        {
+            get { return m_GatekeeperService; }
+        }
+
+        private IHypergridService m_HypergridService;
 
         public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, ISimulationService simService) :
                 base(config, server, String.Empty)
@@ -56,13 +62,19 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 string serviceDll = gridConfig.GetString("LocalServiceModule", string.Empty);
                 Object[] args = new Object[] { config, simService };
                 m_GatekeeperService = ServerUtils.LoadPlugin<IGatekeeperService>(serviceDll, args);
+
+                serviceDll = gridConfig.GetString("HypergridService", string.Empty);
+                m_HypergridService = ServerUtils.LoadPlugin<IHypergridService>(serviceDll, args);
+
             }
-            if (m_GatekeeperService == null)
+            if (m_GatekeeperService == null || m_HypergridService == null)
                 throw new Exception("Gatekeeper server connector cannot proceed because of missing service");
 
-            HypergridHandlers hghandlers = new HypergridHandlers(m_GatekeeperService);
+            HypergridHandlers hghandlers = new HypergridHandlers(m_GatekeeperService, m_HypergridService);
             server.AddXmlRPCHandler("link_region", hghandlers.LinkRegionRequest, false);
+            server.AddXmlRPCHandler("link_region_by_desc", hghandlers.LinkRegionByDescRequest, false);
             server.AddXmlRPCHandler("get_region", hghandlers.GetRegion, false);
+            server.AddXmlRPCHandler("get_home_region", hghandlers.GetHomeRegion, false);
 
             server.AddHTTPHandler("/foreignagent/", new AgentHandler(m_GatekeeperService).Handler);
 

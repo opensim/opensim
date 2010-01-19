@@ -51,7 +51,7 @@ namespace OpenSim.Services.HypergridService
         private static HypergridService m_RootInstance = null;
         protected IConfigSource m_config;
 
-        protected IAuthenticationService m_AuthenticationService = null;
+        protected IPresenceService m_PresenceService = null;
         protected IGridService m_GridService;
         protected IAssetService m_AssetService;
         protected HypergridServiceConnector m_HypergridConnector;
@@ -94,7 +94,7 @@ namespace OpenSim.Services.HypergridService
             if (gridConfig != null)
             {
                 string gridService = gridConfig.GetString("GridService", string.Empty);                
-                string authService = gridConfig.GetString("AuthenticationService", String.Empty);
+                string presenceService = gridConfig.GetString("PresenceService", String.Empty);
                 string assetService = gridConfig.GetString("AssetService", string.Empty);
 
                 Object[] args = new Object[] { config };
@@ -104,8 +104,8 @@ namespace OpenSim.Services.HypergridService
                 if (m_GridService == null)
                     throw new Exception("HypergridService cannot function without a GridService");
 
-                if (authService != String.Empty)
-                    m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+                if (presenceService != String.Empty)
+                    m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
 
                 if (assetService != string.Empty)
                     m_AssetService = ServerUtils.LoadPlugin<IAssetService>(assetService, args);

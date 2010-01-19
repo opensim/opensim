@@ -44,10 +44,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGatekeeperService m_GatekeeperService;
+        private IHypergridService m_HypergridService;
 
-        public HypergridHandlers(IGatekeeperService gatekeeper)
+        public HypergridHandlers(IGatekeeperService gatekeeper, IHypergridService hyper)
         {
             m_GatekeeperService = gatekeeper;
+            m_HypergridService = hyper;
         }
 
         /// <summary>
@@ -68,6 +70,36 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string reason = string.Empty;
 
             bool success = m_GatekeeperService.LinkRegion(name, out regionID, out regionHandle, out imageURL, out reason);
+
+            Hashtable hash = new Hashtable();
+            hash["result"] = success.ToString();
+            hash["uuid"] = regionID.ToString();
+            hash["handle"] = regionHandle.ToString();
+            hash["region_image"] = imageURL;
+
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+        }
+
+        /// <summary>
+        /// A local region wants to establish a grid-wide hyperlink to another region
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse LinkRegionByDescRequest(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            string descriptor = (string)requestData["region_desc"];
+
+            UUID regionID = UUID.Zero;
+            string imageURL = string.Empty;
+            ulong regionHandle = 0;
+            string reason = string.Empty;
+
+            bool success = m_HypergridService.LinkRegion(descriptor, out regionID, out regionHandle, out imageURL, out reason);
 
             Hashtable hash = new Hashtable();
             hash["result"] = success.ToString();
@@ -111,5 +143,38 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         }
 
+        public XmlRpcResponse GetHomeRegion(XmlRpcRequest request, IPEndPoint remoteClient)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            //string host = (string)requestData["host"];
+            //string portstr = (string)requestData["port"];
+            string userID_str = (string)requestData["userID"];
+            UUID userID = UUID.Zero;
+            UUID.TryParse(userID_str, out userID);
+
+            Vector3 position = Vector3.UnitY, lookAt = Vector3.UnitY;
+            GridRegion regInfo = m_GatekeeperService.GetHomeRegion(userID, out position, out lookAt);
+
+            Hashtable hash = new Hashtable();
+            if (regInfo == null)
+                hash["result"] = "false";
+            else
+            {
+                hash["result"] = "true";
+                hash["uuid"] = regInfo.RegionID.ToString();
+                hash["x"] = regInfo.RegionLocX.ToString();
+                hash["y"] = regInfo.RegionLocY.ToString();
+                hash["region_name"] = regInfo.RegionName;
+                hash["hostname"] = regInfo.ExternalHostName;
+                hash["http_port"] = regInfo.HttpPort.ToString();
+                hash["internal_port"] = regInfo.InternalEndPoint.Port.ToString();
+                hash["position"] = position.ToString();
+                hash["lookAt"] = lookAt.ToString();
+            }
+            XmlRpcResponse response = new XmlRpcResponse();
+            response.Value = hash;
+            return response;
+
+        }
     }
 }

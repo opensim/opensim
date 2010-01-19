@@ -42,7 +42,6 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
 ; *
 [InventoryService]
     LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
-    UserServerURI = "http://127.0.0.1:8002"
     SessionAuthentication = "false"
     StorageProvider = "OpenSim.Data.MySQL.dll"
     ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
@@ -58,10 +57,12 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     Realm = "regions"
     ; AllowDuplicateNames = "True"
     ;; Next, we can specify properties of regions, including default and fallback regions
-    ;; The syntax is: Region_<RegioName> = "<flags>"
+    ;; The syntax is: Region_<RegionName> = "<flags>"
+    ;; or:            Region_<RegionID> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
     ;; For example: 
     ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
+    ; (replace spaces with underscore)
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]

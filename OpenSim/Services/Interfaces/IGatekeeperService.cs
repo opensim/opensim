@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Net;
 using System.Collections.Generic;
 
 using OpenSim.Framework;
@@ -39,5 +40,18 @@ namespace OpenSim.Services.Interfaces
         GridRegion GetHyperlinkRegion(UUID regionID);
 
         bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
+
+        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+
+    }
+
+    /// <summary>
+    /// HG1.5 only
+    /// </summary>
+    public interface IHomeUsersSecurityService
+    {
+        void SetEndPoint(UUID sessionID, IPEndPoint ep);
+        IPEndPoint GetEndPoint(UUID sessionID);
+        void RemoveEndPoint(UUID sessionID);
     }
 }

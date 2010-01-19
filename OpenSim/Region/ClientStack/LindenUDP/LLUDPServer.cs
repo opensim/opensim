@@ -38,6 +38,7 @@ using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 
 using TokenBucket = OpenSim.Region.ClientStack.LindenUDP.TokenBucket;
@@ -900,6 +901,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             if (!m_scene.TryGetClient(agentID, out existingClient))
             {
+                IHomeUsersSecurityService security = m_scene.RequestModuleInterface<IHomeUsersSecurityService>();
+                if (security != null)
+                {
+                    IPEndPoint ep = security.GetEndPoint(sessionID);
+                    if (ep != null && ep.ToString() != remoteEndPoint.ToString())
+                    {
+                        // uh-oh, this is fishy
+                        m_log.WarnFormat("[LLUDPSERVER]: Agent {0} with session {1} connecting with unidentified end point. Refusing service.", agentID, sessionID);
+                        m_log.WarnFormat("[LLUDPSERVER]: EP was {0}, now is {1}", ep.ToString(), remoteEndPoint.ToString());
+                        return;
+                    }
+                    else if (ep != null)
+                    {
+                        // ok, you're home, welcome back
+                        m_log.InfoFormat("LLUDPSERVER]: Agent {0} is coming back to this grid", agentID);
+                        security.RemoveEndPoint(sessionID);
+                    }
+                }
+
                 // Create the LLClientView
                 LLClientView client = new LLClientView(remoteEndPoint, m_scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
                 client.OnLogout += LogoutHandler;
