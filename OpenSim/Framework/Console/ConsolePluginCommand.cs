@@ -124,7 +124,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         public void ShowHelp(ConsoleBase console)
         {
-            console.Output(String.Join(" ", m_cmdText) + " - " + m_helpText);
+            console.Output(String.Join(" ", m_cmdText) + " - " + m_helpText + "\n");
         }
 
         /// <summary>
