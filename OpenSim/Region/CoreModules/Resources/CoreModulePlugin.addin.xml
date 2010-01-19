@@ -62,7 +62,7 @@
         <RegionModule id="InventoryServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory.InventoryServiceInConnectorModule" />
         <RegionModule id="LandServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Land.LandServiceInConnectorModule" />
         <RegionModule id="NeighbourServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour.NeighbourServiceInConnectorModule" />    \
-        <RegionModule id="HypergridServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid.HypergridServiceInConnectorModule" />    \
+        <RegionModule id="HypergridServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid.HypergridServiceInConnectorModule" />    \
         <RegionModule id="LLLoginServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Login.LLLoginServiceInConnectorModule" />    \
         <RegionModule id="SimulationServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation.SimulationServiceInConnectorModule" />    \
         <RegionModule id="GridInfoServiceInConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid.GridInfoServiceInConnectorModule" />    \

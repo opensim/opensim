@@ -134,8 +134,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (!sp.Scene.Permissions.CanTeleport(sp.UUID))
                 return;
 
-            bool destRegionUp = true;
-
             IEventQueue eq = sp.Scene.RequestModuleInterface<IEventQueue>();
 
             // Reset animations; the viewer does that in teleports.
@@ -240,8 +238,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
         {
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: RequestTeleportToLocation to {0} in {1}",
-                position, reg.RegionName);
+                "[ENTITY TRANSFER MODULE]: Request Teleport to {0}:{1}:{2}/{3} final destination {4}",
+                reg.ExternalHostName, reg.HttpPort, reg.RegionName, position, finalDestination.RegionName);
 
             uint newRegionX = (uint)(reg.RegionHandle >> 40);
             uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);
@@ -297,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 string reason = String.Empty;
 
                 // Let's create an agent there if one doesn't exist yet. 
-                if (!CreateAgent(reg, finalDestination, agentCircuit, teleportFlags, out reason))
+                if (!CreateAgent(sp, reg, finalDestination, agentCircuit, teleportFlags, out reason))
                 {
                     sp.ControllingClient.SendTeleportFailed(String.Format("Destination refused: {0}",
                                                                               reason));
@@ -458,7 +456,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         }
 
 
-        protected virtual bool CreateAgent(GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
+        protected virtual bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
         {
             return m_aScene.SimulationService.CreateAgent(finalDestination, agentCircuit, teleportFlags, out reason);
         }

@@ -40,7 +40,7 @@ using OpenSim.Server.Handlers.Hypergrid;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
+namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Hypergrid
 {
     public class HypergridServiceInConnectorModule : ISharedRegionModule
     {
@@ -119,6 +119,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
                 ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
                 m_HypergridHandler = new GatekeeperServiceInConnector(m_Config, MainServer.Instance, simService);
                 //ServerUtils.LoadPlugin<HypergridServiceInConnector>("OpenSim.Server.Handlers.dll:HypergridServiceInConnector", args);
+                scene.RegisterModuleInterface<IGatekeeperService>(m_HypergridHandler.GateKeeper);
             }
         }
 

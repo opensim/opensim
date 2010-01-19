@@ -46,6 +46,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGatekeeperService m_GatekeeperService;
+        public IGatekeeperService GateKeeper
+        {
+            get { return m_GatekeeperService; }
+        }
 
         public GatekeeperServiceInConnector(IConfigSource config, IHttpServer server, ISimulationService simService) :
                 base(config, server, String.Empty)

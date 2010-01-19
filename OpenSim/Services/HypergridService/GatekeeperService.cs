@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 
 using OpenSim.Framework;
@@ -51,6 +52,7 @@ namespace OpenSim.Services.HypergridService
         IPresenceService m_PresenceService;
         IAuthenticationService m_AuthenticationService;
         IUserAccountService m_UserAccountService;
+        IHomeUsersSecurityService m_HomeUsersSecurityService;
         ISimulationService m_SimulationService;
 
         string m_AuthDll;
@@ -66,14 +68,15 @@ namespace OpenSim.Services.HypergridService
                 throw new Exception(String.Format("No section GatekeeperService in config file"));
 
             string accountService = serverConfig.GetString("UserAccountService", String.Empty);
+            string homeUsersSecurityService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
             string gridService = serverConfig.GetString("GridService", String.Empty);
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
             string simulationService = serverConfig.GetString("SimulationService", String.Empty);
 
             m_AuthDll = serverConfig.GetString("AuthenticationService", String.Empty);
 
-            if (accountService == string.Empty || gridService == string.Empty ||
-                presenceService == string.Empty || m_AuthDll == string.Empty)
+            // These 3 are mandatory, the others aren't
+            if (gridService == string.Empty || presenceService == string.Empty || m_AuthDll == string.Empty)
                 throw new Exception("Incomplete specifications, Gatekeeper Service cannot function.");
             
             string scope = serverConfig.GetString("ScopeID", UUID.Zero.ToString());
@@ -82,16 +85,20 @@ namespace OpenSim.Services.HypergridService
             m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
 
             Object[] args = new Object[] { config };
-            m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
             m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
             m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
+
+            if (accountService != string.Empty)
+                m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
+            if (homeUsersSecurityService != string.Empty)
+                m_HomeUsersSecurityService = ServerUtils.LoadPlugin<IHomeUsersSecurityService>(homeUsersSecurityService, args);
+
             if (simService != null)
                 m_SimulationService = simService;
             else if (simulationService != string.Empty)
                     m_SimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
 
-            if (m_UserAccountService == null || m_GridService == null ||
-                m_PresenceService == null || m_SimulationService == null)
+            if (m_GridService == null || m_PresenceService == null || m_SimulationService == null)
                 throw new Exception("Unable to load a required plugin, Gatekeeper Service cannot function.");
 
             m_log.Debug("[GATEKEEPER SERVICE]: Starting...");
@@ -183,17 +190,31 @@ namespace OpenSim.Services.HypergridService
             }
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Identity verified for {0} {1} @ {2}", aCircuit.firstname, aCircuit.lastname, authURL);
 
-            // Check to see if we have a local user with that UUID
-            UserAccount account = m_UserAccountService.GetUserAccount(m_ScopeID, aCircuit.AgentID);
-            if (account != null)
-            {
-                // No, sorry; go away
-                reason = "User identifier not allowed on this grid";
-                m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agent {0} {1} has UUID of local user {3}. Refusing service.", 
-                    aCircuit.firstname, aCircuit.lastname, aCircuit.AgentID);
-                return false;
-            }
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: User ID ok");
+            //if (m_UserAccountService != null && m_HomeUsersSecurityService != null)
+            //{
+            //    // Check to see if we have a local user with that UUID
+            //    UserAccount account = m_UserAccountService.GetUserAccount(m_ScopeID, aCircuit.AgentID);
+
+            //    // See if that user went out of this home grid
+            //    IPEndPoint ep = m_HomeUsersSecurityService.GetEndPoint(aCircuit.AgentID);
+
+            //    if (account != null)
+            //    {
+            //        if ((ep == null) || // there's no memory of this agent going out
+            //            (ep != null && (ep.Address != aCircuit.ClientEndPoint.Address || ep.Port != aCircuit.ClientEndPoint.Port))) // fake agent
+            //        {
+            //            // No, sorry; go away
+            //            reason = "User identifier not allowed on this grid";
+            //            m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agent {0} {1} has UUID of local user {2}. Refusing service.",
+            //                aCircuit.firstname, aCircuit.lastname, aCircuit.AgentID);
+            //            return false;
+            //        }
+            //        else
+            //        {
+            //        }
+            //    }
+            //    m_log.DebugFormat("[GATEKEEPER SERVICE]: User ID ok");
+            //}
 
             // May want to authorize
 
