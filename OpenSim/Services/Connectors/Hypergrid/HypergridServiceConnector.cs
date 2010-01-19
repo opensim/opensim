@@ -41,20 +41,47 @@ using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using log4net;
 using Nwc.XmlRpc;
+using Nini.Config;
 
 namespace OpenSim.Services.Connectors.Hypergrid
 {
-    public class HypergridServiceConnector
+    public class HypergridServiceConnector : IHypergridService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IAssetService m_AssetService;
+        private string m_ServerURL;
 
-        public HypergridServiceConnector() : this(null) { }
+        public HypergridServiceConnector() { }
 
-        public HypergridServiceConnector(IAssetService assService)
+        public HypergridServiceConnector(IAssetService assService) 
         {
             m_AssetService = assService;
+        }
+
+        public HypergridServiceConnector(IConfigSource source)
+        {
+            Initialise(source);
+        }
+
+        public virtual void Initialise(IConfigSource source)
+        {
+            IConfig hgConfig = source.Configs["HypergridService"];
+            if (hgConfig == null)
+            {
+                m_log.Error("[HYPERGRID CONNECTOR]: HypergridService missing from OpenSim.ini");
+                throw new Exception("Hypergrid connector init error");
+            }
+
+            string serviceURI = hgConfig.GetString("HypergridServerURI",
+                    String.Empty);
+
+            if (serviceURI == String.Empty)
+            {
+                m_log.Error("[HYPERGRID CONNECTOR]: No Server URI named in section HypergridService");
+                throw new Exception("Hypergrid connector init error");
+            }
+            m_ServerURL = serviceURI;
         }
 
         public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string imageURL, out string reason)
@@ -246,5 +273,82 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
             return null;
         }
+
+        #region From local regions to grid-wide hypergrid service
+
+        public bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong realHandle, out string imageURL, out string reason)
+        {
+            regionID = UUID.Zero;
+            imageURL = string.Empty;
+            realHandle = 0;
+            reason = string.Empty;
+
+            Hashtable hash = new Hashtable();
+            hash["region_desc"] = regionDescriptor;
+
+            IList paramList = new ArrayList();
+            paramList.Add(hash);
+
+            XmlRpcRequest request = new XmlRpcRequest("link_region_by_desc", paramList);
+            XmlRpcResponse response = null;
+            try
+            {
+                response = request.Send(m_ServerURL, 10000);
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[HGrid]: Exception " + e.Message);
+                reason = "Error contacting remote server";
+                return false;
+            }
+
+            if (response.IsFault)
+            {
+                reason = response.FaultString;
+                m_log.ErrorFormat("[HGrid]: remote call returned an error: {0}", response.FaultString);
+                return false;
+            }
+
+            hash = (Hashtable)response.Value;
+            //foreach (Object o in hash)
+            //    m_log.Debug(">> " + ((DictionaryEntry)o).Key + ":" + ((DictionaryEntry)o).Value);
+            try
+            {
+                bool success = false;
+                Boolean.TryParse((string)hash["result"], out success);
+                if (success)
+                {
+                    UUID.TryParse((string)hash["uuid"], out regionID);
+                    //m_log.Debug(">> HERE, uuid: " + uuid);
+                    if ((string)hash["handle"] != null)
+                    {
+                        realHandle = Convert.ToUInt64((string)hash["handle"]);
+                        //m_log.Debug(">> HERE, realHandle: " + realHandle);
+                    }
+                    if (hash["region_image"] != null)
+                    {
+                        imageURL = (string)hash["region_image"];
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                reason = "Error parsing return arguments";
+                m_log.Error("[HGrid]: Got exception while parsing hyperlink response " + e.StackTrace);
+                return false;
+            }
+
+            return true;
+        }
+
+        // TODO !!!
+        public GridRegion GetRegionByUUID(UUID regionID) { return null; }
+        public GridRegion GetRegionByPosition(int x, int y) { return null; }
+        public GridRegion GetRegionByName(string name) { return null; }
+        public List<GridRegion> GetRegionsByName(string name) { return null; }
+        public List<GridRegion> GetRegionRange(int xmin, int xmax, int ymin, int ymax) { return null; }
+
+        #endregion
     }
 }
