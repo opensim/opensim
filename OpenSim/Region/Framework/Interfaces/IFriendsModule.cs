@@ -46,6 +46,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// </param>
         /// <param name="offerMessage"></param>
         void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);
-        List<FriendListItem> GetUserFriends(UUID agentID);
+        uint GetFriendPerms(UUID PrincipalID, UUID FriendID);
     }
 }

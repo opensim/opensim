@@ -39,7 +39,5 @@ namespace OpenSim.Framework
 
         // These are what the friend gives the listowner permission to do
         public uint FriendPerms;
-
-        public bool onlinestatus = false;
     }
 }

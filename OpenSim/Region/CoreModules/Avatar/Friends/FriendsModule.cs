@@ -84,9 +84,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
         }
 
-        public List<FriendListItem> GetUserFriends(UUID agentID)
+        public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
-            return null;
+            return 1;
         }
     }
 }

@@ -504,13 +504,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_friendsModule == null)
                 return false;
 
-            List<FriendListItem> profile = m_friendsModule.GetUserFriends(user);
+            uint friendPerms = m_friendsModule.GetFriendPerms(user, objectOwner);
+            if ((friendPerms & (uint)FriendRights.CanModifyObjects) != 0)
+                return true;
 
-            foreach (FriendListItem item in profile)
-            {
-                if (item.Friend == objectOwner && (item.FriendPerms & (uint)FriendRights.CanModifyObjects) != 0)
-                    return true;
-            }
             return false;
         }
 
