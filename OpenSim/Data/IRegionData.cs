@@ -75,6 +75,7 @@ namespace OpenSim.Data
         LockedOut = 32, // Don't allow registration
         NoMove = 64, // Don't allow moving this region
         Reservation = 128, // This is an inactive reservation
-        Authenticate = 256 // Require authentication
+        Authenticate = 256, // Require authentication
+        Hyperlink = 512 // Record represents a HG link
     }
 }
