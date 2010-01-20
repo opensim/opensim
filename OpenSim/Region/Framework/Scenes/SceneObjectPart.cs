@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
-        public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
+        public int[] PayPrice = {-2,-2,-2,-2,-2};
         [XmlIgnore]
         public PhysicsActor PhysActor;
 

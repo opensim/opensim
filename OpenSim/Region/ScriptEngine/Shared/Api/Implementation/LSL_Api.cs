@@ -8946,12 +8946,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSLError("List must have at least 4 elements");
                 return;
             }
-            m_host.ParentGroup.RootPart.PayPrice[0]=price;
-
-            m_host.ParentGroup.RootPart.PayPrice[1]=(LSL_Integer)quick_pay_buttons.Data[0];
-            m_host.ParentGroup.RootPart.PayPrice[2]=(LSL_Integer)quick_pay_buttons.Data[1];
-            m_host.ParentGroup.RootPart.PayPrice[3]=(LSL_Integer)quick_pay_buttons.Data[2];
-            m_host.ParentGroup.RootPart.PayPrice[4]=(LSL_Integer)quick_pay_buttons.Data[3];
+            int[] nPrice = new int[5];
+            nPrice[0]=price;
+            nPrice[1] = (LSL_Integer)quick_pay_buttons.Data[0];
+            nPrice[2] = (LSL_Integer)quick_pay_buttons.Data[1];
+            nPrice[3] = (LSL_Integer)quick_pay_buttons.Data[2];
+            nPrice[4] = (LSL_Integer)quick_pay_buttons.Data[3];
+            m_host.ParentGroup.RootPart.PayPrice = nPrice;
             m_host.ParentGroup.HasGroupChanged = true;
         }
 
