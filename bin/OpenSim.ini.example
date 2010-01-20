@@ -1351,6 +1351,9 @@
 ; For example- http://127.0.0.1:9000/SStats/
 ; enabled=false
 
+[LandManagement]
+; DefaultAdministratorGroupUUID = "";
+; DefaultAdministratorParcelName = "";
 
 ;;
 ;; These are defaults that are overwritten below in [Architecture].

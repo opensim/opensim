@@ -87,7 +87,10 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
                 foreach (IMonitor monitor in m_monitors)
                 {
-                    if (monitor.ToString() == monID)
+                    string elemName = monitor.ToString();
+                    if (elemName.StartsWith(monitor.GetType().Namespace))
+                        elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
+                    if (elemName == monID || monitor.ToString() == monID)
                     {
                         Hashtable ereply3 = new Hashtable();
 
@@ -112,7 +115,11 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             string xml = "<data>";
             foreach (IMonitor monitor in m_monitors)
             {
-                xml += "<" + monitor.ToString() + ">" + monitor.GetValue() + "</" + monitor.ToString() + ">";
+                string elemName = monitor.ToString();
+                if (elemName.StartsWith(monitor.GetType().Namespace))
+                    elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
+
+                xml += "<" + elemName + ">" + monitor.GetValue() + "</" + elemName + ">";
             }
             xml += "</data>";
 
