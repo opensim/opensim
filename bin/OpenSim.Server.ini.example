@@ -80,4 +80,7 @@ LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
 StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
 ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=grid;"
 Realm = "regions"
+
+; If true, duplicate region names are allowed on the grid.  If false, no duplicate names are allowed
+; Default is false
 ; AllowDuplicateNames = "True"
