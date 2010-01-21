@@ -184,7 +184,17 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
 
         }
+        
+        public override void VehicleFlagsSet(int flags)
+        {
 
+        }
+        
+        public override void VehicleFlagsRemove(int flags)
+        {
+
+        }
+        
         public override void SetVolumeDetect(int param)
         {
 

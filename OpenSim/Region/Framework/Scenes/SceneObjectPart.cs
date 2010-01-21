@@ -109,7 +109,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
-        public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
+        public int[] PayPrice = {-2,-2,-2,-2,-2};
         [XmlIgnore]
         public PhysicsActor PhysActor;
 
@@ -2963,7 +2963,23 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysActor.VehicleRotationParam(param, rotation);
             }
         }
-
+        
+        public void SetVehicleFlags(int flags)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFlagsSet(flags);
+            }
+        } 
+        
+        public void RemoveVehicleFlags(int flags)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFlagsRemove(flags);
+            }
+        } 
+        
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;

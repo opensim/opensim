@@ -229,7 +229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public int bodyFramesAutoDisable = 20;
 
-        protected DateTime m_lastframe = DateTime.UtcNow;
+        private DateTime m_lastframe = DateTime.UtcNow;
 
         private float[] _watermap;
         private bool m_filterCollisions = true;
