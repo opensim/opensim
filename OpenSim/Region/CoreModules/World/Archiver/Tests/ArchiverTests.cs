@@ -337,6 +337,34 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             RegionSettings loadedRs = scene.RegionInfo.RegionSettings;
 
             Assert.That(loadedRs.AgentLimit, Is.EqualTo(17));
+            Assert.That(loadedRs.AllowDamage, Is.True);
+            Assert.That(loadedRs.AllowLandJoinDivide, Is.True);
+            Assert.That(loadedRs.AllowLandResell, Is.True);
+            Assert.That(loadedRs.BlockFly, Is.True);
+            Assert.That(loadedRs.BlockShowInSearch, Is.True);
+            Assert.That(loadedRs.BlockTerraform, Is.True);
+            Assert.That(loadedRs.DisableCollisions, Is.True);
+            Assert.That(loadedRs.DisablePhysics, Is.True);
+            Assert.That(loadedRs.DisableScripts, Is.True);
+            Assert.That(loadedRs.Elevation1NW, Is.EqualTo(15.9));
+            Assert.That(loadedRs.Elevation1NE, Is.EqualTo(45.3));
+            Assert.That(loadedRs.Elevation1SE, Is.EqualTo(49));
+            Assert.That(loadedRs.Elevation1SW, Is.EqualTo(1.9));
+            Assert.That(loadedRs.Elevation2NW, Is.EqualTo(4.5));
+            Assert.That(loadedRs.Elevation2NE, Is.EqualTo(19.2));
+            Assert.That(loadedRs.Elevation2SE, Is.EqualTo(9.2));
+            Assert.That(loadedRs.Elevation2SW, Is.EqualTo(2.1));
+            Assert.That(loadedRs.FixedSun, Is.True);
+            Assert.That(loadedRs.ObjectBonus, Is.EqualTo(1.4));
+            Assert.That(loadedRs.RestrictPushing, Is.True);
+            Assert.That(loadedRs.TerrainLowerLimit, Is.EqualTo(0.4));
+            Assert.That(loadedRs.TerrainRaiseLimit, Is.EqualTo(17.9));
+            Assert.That(loadedRs.TerrainTexture1, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000020")));
+            Assert.That(loadedRs.TerrainTexture2, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000040")));
+            Assert.That(loadedRs.TerrainTexture3, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000060")));
+            Assert.That(loadedRs.TerrainTexture4, Is.EqualTo(UUID.Parse("00000000-0000-0000-0000-000000000080")));
+            Assert.That(loadedRs.UseEstateSun, Is.True);
+            Assert.That(loadedRs.WaterHeight, Is.EqualTo(23));
         }
         
         /// <summary>
