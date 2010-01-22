@@ -6315,13 +6315,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleFlags");
+            if (m_host.ParentGroup != null)
+            {
+                if (!m_host.ParentGroup.IsDeleted)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleFlags(flags);
+                }
+            }
         }
 
         public void llRemoveVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveVehicleFlags");
+            if (m_host.ParentGroup != null)
+            {
+                if (!m_host.ParentGroup.IsDeleted)
+                {
+                    m_host.ParentGroup.RootPart.RemoveVehicleFlags(flags);
+                }
+            }
         }
 
         public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)

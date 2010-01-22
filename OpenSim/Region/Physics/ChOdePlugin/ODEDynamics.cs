@@ -286,7 +286,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             
         }//end ProcessRotationVehicleParam
+        
+        internal void ProcessFlagsVehicleSet(int flags)
+        {
+        	m_flags |= (VehicleFlag)flags;
+        }
 
+        internal void ProcessFlagsVehicleRemove(int flags)
+        {
+        	m_flags &= ~((VehicleFlag)flags);         
+        }
+        
         internal void ProcessTypeChange(Vehicle pType)
         {
 			// Set Defaults For Type

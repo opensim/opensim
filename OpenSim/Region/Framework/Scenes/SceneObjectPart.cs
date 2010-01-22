@@ -2963,7 +2963,23 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysActor.VehicleRotationParam(param, rotation);
             }
         }
-
+        
+        public void SetVehicleFlags(int flags)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFlagsSet(flags);
+            }
+        } 
+        
+        public void RemoveVehicleFlags(int flags)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFlagsRemove(flags);
+            }
+        } 
+        
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;

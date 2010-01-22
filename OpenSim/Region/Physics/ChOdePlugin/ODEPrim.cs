@@ -2415,7 +2415,17 @@ Console.WriteLine(" JointCreateFixed");
         {
             m_vehicle.ProcessRotationVehicleParam((Vehicle) param, rotation);
         }
-
+        
+        public override void VehicleFlagsSet(int flags)
+        {
+			m_vehicle.ProcessFlagsVehicleSet(flags);
+        }
+        
+        public override void VehicleFlagsRemove(int flags)
+        {
+			m_vehicle.ProcessFlagsVehicleRemove(flags);
+        }
+        
         public override void SetVolumeDetect(int param)
         {
             lock (_parent_scene.OdeLock)
