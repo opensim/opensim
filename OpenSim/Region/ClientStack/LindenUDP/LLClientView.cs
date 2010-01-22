@@ -9091,8 +9091,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         private bool HandleSendPostcard(IClientAPI client, Packet packet)
         {
-            SendPostcardPacket SendPostcard =
-                (SendPostcardPacket)packet;
+//            SendPostcardPacket SendPostcard =
+//                (SendPostcardPacket)packet;
             SendPostcard handlerSendPostcard = OnSendPostcard;
             if (handlerSendPostcard != null)
             {
