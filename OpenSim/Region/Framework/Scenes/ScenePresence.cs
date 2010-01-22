@@ -1276,6 +1276,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_allowMovement)
             {
+                if (agentData.UseClientAgentPosition)
+                {
+                    m_moveToPositionInProgress = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
+                    m_moveToPositionTarget = agentData.ClientAgentPosition;
+                }
+
                 int i = 0;
                 
                 bool update_rotation = false;
@@ -1382,7 +1388,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
                     {
                         //Check the error term of the current position in relation to the target position
-                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 1.5f)
+                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
                         {
                             // we are close enough to the target
                             m_moveToPositionTarget = Vector3.Zero;
