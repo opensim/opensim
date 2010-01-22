@@ -3271,6 +3271,7 @@
         <Match path="Agent/TextureSender/Tests" pattern="*.cs" recurse="true" />
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true" />
+        <Match path="World/Archiver/Tests/Resources" pattern="*" buildAction="EmbeddedResource"/>
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
         <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true" />

@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             // Also check that direct entries which will also have a file entry containing that directory doesn't 
             // upset load
             tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
-
+            
             tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
 
             string part1Name = "object1";
@@ -235,6 +235,45 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                     UUID.Zero, shape, groupPosition, rotationOffset, offsetPosition);
             part1.Name = part1Name;
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
+
+            // Let's put some inventory items into our object
+            UUID soundItemUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
+            Type type = GetType();
+            Assembly assembly = type.Assembly;
+            string soundDataResourceName = null;
+            string[] names = assembly.GetManifestResourceNames();
+            foreach (string name in names)
+            {
+                if (name.EndsWith(".Resources.test-sound.wav"))
+                    soundDataResourceName = name;                
+            }
+            Assert.That(soundDataResourceName, Is.Not.Null);
+
+            byte[] soundData;
+            Console.WriteLine("Loading " + soundDataResourceName);
+            using (Stream resource = assembly.GetManifestResourceStream(soundDataResourceName))
+            {
+                using (BinaryReader br = new BinaryReader(resource))
+                {
+                    // FIXME: Use the inspector insteadthere are so many forums and lists already, though admittedly none of them are suitable for cross virtual-enivornemnt discussion
+                    soundData = br.ReadBytes(99999999);
+                    UUID soundUuid = UUID.Parse("00000000-0000-0000-0000-000000000001");
+                    string soundAssetFileName 
+                       = ArchiveConstants.ASSETS_PATH + soundUuid 
+                            + ArchiveConstants.ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV];
+                    tar.WriteFile(soundAssetFileName, soundData);
+                    
+                    /*
+                    AssetBase soundAsset = AssetHelpers.CreateAsset(soundUuid, soundData);
+                    scene.AssetService.Store(soundAsset);
+                    asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
+                    */
+                    
+                    TaskInventoryItem item1 = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid };
+                    part1.Inventory.AddInventoryItem(item1, true);
+                }
+            }            
+            
             scene.AddNewSceneObject(object1, false);
 
             string object1FileName = string.Format(
@@ -265,6 +304,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 object1PartLoaded.RotationOffset, Is.EqualTo(rotationOffset), "object1 rotation offset not equal");
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
+
+            // Need to implement a method to get the task inventory item by name (since the uuid will have changed on load)
+            /*
+            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItem(soundItemUuid);
+            Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
+            AssetBase loadedSoundAsset = scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
+            Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
+            Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
+            */
 
             // Temporary
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
