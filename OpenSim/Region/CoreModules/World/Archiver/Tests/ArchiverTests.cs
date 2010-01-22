@@ -36,6 +36,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Serialization;
+using OpenSim.Framework.Serialization.External;
 using OpenSim.Region.CoreModules.World.Serialiser;
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Scenes;
@@ -269,6 +270,75 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());
         }
 
+        /// <summary>
+        /// Test loading the region settings of a V0.2 OpenSim Region Archive.
+        /// </summary>
+        [Test]
+        public void TestLoadOarV0_2RegionSettings()     
+        {
+            TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
+
+            SerialiserModule serialiserModule = new SerialiserModule();
+            ArchiverModule archiverModule = new ArchiverModule();
+            Scene scene = SceneSetupHelpers.SetupScene();
+            SceneSetupHelpers.SetupSceneModules(scene, serialiserModule, archiverModule);            
+
+            MemoryStream archiveWriteStream = new MemoryStream();
+            TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
+            
+            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);            
+            tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
+
+            RegionSettings rs = new RegionSettings();
+            rs.AgentLimit = 17;
+            rs.AllowDamage = true;
+            rs.AllowLandJoinDivide = true;
+            rs.AllowLandResell = true;
+            rs.BlockFly = true;
+            rs.BlockShowInSearch = true;
+            rs.BlockTerraform = true;
+            rs.DisableCollisions = true;
+            rs.DisablePhysics = true;
+            rs.DisableScripts = true;
+            rs.Elevation1NW = 15.9;
+            rs.Elevation1NE = 45.3;            
+            rs.Elevation1SE = 49;
+            rs.Elevation1SW = 1.9;
+            rs.Elevation2NW = 4.5;
+            rs.Elevation2NE = 19.2;                                    
+            rs.Elevation2SE = 9.2;
+            rs.Elevation2SW = 2.1;
+            rs.FixedSun = true;
+            rs.ObjectBonus = 1.4;
+            rs.RestrictPushing = true;
+            rs.TerrainLowerLimit = 0.4;
+            rs.TerrainRaiseLimit = 17.9;
+            rs.TerrainTexture1 = UUID.Parse("00000000-0000-0000-0000-000000000020");
+            rs.TerrainTexture2 = UUID.Parse("00000000-0000-0000-0000-000000000040");
+            rs.TerrainTexture3 = UUID.Parse("00000000-0000-0000-0000-000000000060");
+            rs.TerrainTexture4 = UUID.Parse("00000000-0000-0000-0000-000000000080");
+            rs.UseEstateSun = true;
+            rs.WaterHeight = 23;
+
+            tar.WriteFile(ArchiveConstants.SETTINGS_PATH + "region1.xml", RegionSettingsSerializer.Serialize(rs));
+            
+            tar.Close();
+
+            MemoryStream archiveReadStream = new MemoryStream(archiveWriteStream.ToArray());
+
+            lock (this)
+            {
+                scene.EventManager.OnOarFileLoaded += LoadCompleted;
+                archiverModule.DearchiveRegion(archiveReadStream);
+            }
+            
+            Assert.That(m_lastErrorMessage, Is.Null);
+            RegionSettings loadedRs = scene.RegionInfo.RegionSettings;
+
+            Assert.That(loadedRs.AgentLimit, Is.EqualTo(17));
+        }
+        
         /// <summary>
         /// Test merging a V0.2 OpenSim Region Archive into an existing scene
         /// </summary>
