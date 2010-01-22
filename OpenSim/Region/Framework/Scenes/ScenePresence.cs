@@ -3236,17 +3236,15 @@ namespace OpenSim.Region.Framework.Scenes
             uint killerObj = 0;
             foreach (uint localid in coldata.Keys)
             {
-                if (coldata[localid].PenetrationDepth <= 0.10f || m_invulnerable)
-                    continue;
-                //if (localid == 0)
-                    //continue;
-
-                SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
+                SceneObjectPart part = Scene.GetSceneObjectPart(localid);
 
                 if (part != null && part.ParentGroup.Damage != -1.0f)
                     Health -= part.ParentGroup.Damage;
                 else
-                    Health -= coldata[localid].PenetrationDepth * 5.0f;
+                {
+                    if (coldata[localid].PenetrationDepth >= 0.10f)
+                        Health -= coldata[localid].PenetrationDepth * 5.0f;
+                }
 
                 if (Health <= 0.0f)
                 {
