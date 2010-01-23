@@ -2242,6 +2242,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
+      <Reference name="Mono.Addins" />
       <Reference name="log4net.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -2302,6 +2303,7 @@
       <Reference name="log4net.dll"/>
       <Reference name="protobuf-net"/>
       <Reference name="MXP.dll"/>
+      <Reference name="Mono.Addins"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -2812,6 +2814,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="Mono.Addins"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
