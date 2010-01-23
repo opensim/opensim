@@ -31,6 +31,7 @@ using System.IO;
 using System.Reflection;
 using System.Timers;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.CoreModules.World.Serialiser;
@@ -42,7 +43,8 @@ using Slash = System.IO.Path;
 
 namespace OpenSim.Region.Modules.SvnSerialiser
 {
-    public class SvnBackupModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class SvnBackupModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -200,9 +202,9 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             m_scenes = new List<Scene>();
             m_timer = new Timer();
@@ -225,7 +227,10 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             catch (Exception)
             {
             }
+        }
 
+        public void AddRegion(Scene scene)
+        {
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
@@ -235,6 +240,18 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
             }
+        }
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
         }
 
         public void PostInitialise()
@@ -275,11 +292,6 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         public string Name
         {
             get { return "SvnBackupModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

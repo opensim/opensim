@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Text;
 using System.Timers;
 using log4net;
+using Mono.Addins;
 using MXP;
 using Nini.Config;
 using OpenMetaverse;
@@ -44,7 +45,8 @@ namespace OpenSim.Client.MXP
     /**
      * MXP Client Module which adds MXP support to client / region communication.
      */
-    public class MXPModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class MXPModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -57,15 +59,23 @@ namespace OpenSim.Client.MXP
         private readonly Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
         private bool m_shutdown;
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            if (!m_scenes.ContainsKey(scene.RegionInfo.RegionID))
-                m_scenes.Add(scene.RegionInfo.RegionID, scene);
-
             m_config = source;
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (!m_scenes.ContainsKey(scene.RegionInfo.RegionID))
+                m_scenes.Add(scene.RegionInfo.RegionID, scene);
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             if (m_config.Configs["MXP"] != null)
             {
@@ -76,7 +86,7 @@ namespace OpenSim.Client.MXP
 
                 m_port = con.GetInt("Port", m_port);
 
-                m_server = new MXPPacketServer(m_port, m_scenes,m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate",true));
+                m_server = new MXPPacketServer(m_port, m_scenes, m_config.Configs["StandAlone"].GetBoolean("accounts_authenticate", true));
 
                 m_ticker = new Timer(100);
                 m_ticker.AutoReset = false;
@@ -87,6 +97,14 @@ namespace OpenSim.Client.MXP
 
                 m_log.Info("[MXP ClientStack] MXP Enabled and Listening");
             }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void PostInitialise()
+        {
         }
 
         void ticker_Elapsed(object sender, ElapsedEventArgs e)
@@ -121,11 +139,5 @@ namespace OpenSim.Client.MXP
         {
             get { return "MXP ClientStack Module"; }
         }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
     }
 }

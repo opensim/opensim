@@ -25,9 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using OpenMetaverse;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -37,7 +39,8 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.OptionalModules.World.NPC
 {
-    public class NPCModule : IRegionModule, INPCModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class NPCModule : ISharedRegionModule, INPCModule
     {
         // private const bool m_enabled = false;
 
@@ -134,15 +137,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         }
 
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             m_createMutex = new Mutex(false);
 
             m_timer = new Timer(500);
             m_timer.Elapsed += m_timer_Elapsed;
             m_timer.Start();
-            
-            scene.RegisterModuleInterface<INPCModule>(this);
         }
 
         void m_timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -173,6 +174,19 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             }
         }
 
+        public void AddRegion(Scene scene)
+        {
+            scene.RegisterModuleInterface<INPCModule>(this);
+        }
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<INPCModule>(this);
+        }
+
         public void PostInitialise()
         {
         }
@@ -186,9 +200,9 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return "NPCModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
-        }
+            get { return null; }
+        } 
     }
 }

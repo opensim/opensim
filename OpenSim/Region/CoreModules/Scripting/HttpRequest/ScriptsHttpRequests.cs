@@ -31,6 +31,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -84,7 +85,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 {
-    public class HttpRequestModule : IRegionModule, IHttpRequestModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class HttpRequestModule : ISharedRegionModule, IHttpRequestModule
     {
         private object HttpListLock = new object();
         private int httpTimeout = 30000;
@@ -229,18 +231,35 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+
+            m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
 
             m_scene.RegisterModuleInterface<IHttpRequestModule>(this);
+        }
 
-        m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-        m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
 
-            m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IHttpRequestModule>(this);
         }
 
         public void PostInitialise()
@@ -254,11 +273,6 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
         public string Name
         {
             get { return m_name; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

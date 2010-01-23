@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -35,6 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class CloudModule : ICloudModule
     {
 //        private static readonly log4net.ILog m_log 
@@ -48,7 +50,7 @@ namespace OpenSim.Region.CoreModules
         private float m_cloudDensity = 1.0F;
         private float[] cloudCover = new float[16 * 16];
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             IConfig cloudConfig = config.Configs["Cloud"];
 
@@ -58,10 +60,17 @@ namespace OpenSim.Region.CoreModules
                 m_cloudDensity = cloudConfig.GetFloat("density", 0.5F);
                 m_frameUpdateRate = cloudConfig.GetInt("cloud_update_rate", 1000);
             }
+        }
 
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
+        {
             if (m_enabled)
             {
-
                 m_scene = scene;
 
                 scene.EventManager.OnNewClient += CloudsToClient;
@@ -71,9 +80,18 @@ namespace OpenSim.Region.CoreModules
                 GenerateCloudCover();
 
                 m_ready = true;
-
             }
+        }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.EventManager.OnNewClient -= CloudsToClient;
+            scene.UnregisterModuleInterface<ICloudModule>(this);
+            scene.EventManager.OnFrame -= CloudUpdate;
         }
 
         public void PostInitialise()
@@ -95,12 +113,6 @@ namespace OpenSim.Region.CoreModules
         {
             get { return "CloudModule"; }
         }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
 
         public float CloudCover(int x, int y, int z)
         {

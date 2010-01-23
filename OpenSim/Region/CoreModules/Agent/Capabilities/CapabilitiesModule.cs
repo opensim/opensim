@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.Agent.Capabilities
 
         public void RemoveRegion(Scene scene)
         {
-            m_scene.UnregisterModuleInterface<ICapabilitiesModule>(this);
+            scene.UnregisterModuleInterface<ICapabilitiesModule>(this);
         }
         
         public void PostInitialise() {}

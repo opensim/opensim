@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -37,34 +38,70 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Lure
 {
-    public class LureModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class LureModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly List<Scene> m_scenes = new List<Scene>();
 
+        private bool m_enabled = true;
+
         private IMessageTransferModule m_TransferModule = null;
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             if (config.Configs["Messaging"] != null)
             {
                 if (config.Configs["Messaging"].GetString(
                         "LureModule", "LureModule") !=
                         "LureModule")
-                    return;
+                    m_enabled = false;
             }
+        }
 
-            lock (m_scenes)
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            if (m_enabled)
             {
-                if (!m_scenes.Contains(scene))
+                lock (m_scenes)
                 {
-                    m_scenes.Add(scene);
-                    scene.EventManager.OnNewClient += OnNewClient;
-                    scene.EventManager.OnIncomingInstantMessage +=
-                            OnGridInstantMessage;
+                    if (!m_scenes.Contains(scene))
+                    {
+                        m_scenes.Add(scene);
+                        scene.EventManager.OnNewClient += OnNewClient;
+                        scene.EventManager.OnIncomingInstantMessage +=
+                                OnGridInstantMessage;
+                    }
                 }
             }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            if (m_enabled)
+            {
+                m_TransferModule =
+                    m_scenes[0].RequestModuleInterface<IMessageTransferModule>();
+
+                if (m_TransferModule == null)
+                    m_log.Error("[INSTANT MESSAGE]: No message transfer module, " +
+                    "lures will not work!");
+            }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_scenes.Contains(scene))
+                m_scenes.Remove(scene);
+            scene.EventManager.OnNewClient -= OnNewClient;
+            scene.EventManager.OnIncomingInstantMessage -=
+                    OnGridInstantMessage;
         }
 
         void OnNewClient(IClientAPI client)
@@ -76,12 +113,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void PostInitialise()
         {
-            m_TransferModule =
-                m_scenes[0].RequestModuleInterface<IMessageTransferModule>();
-
-            if (m_TransferModule == null)
-                m_log.Error("[INSTANT MESSAGE]: No message transfer module, "+
-                "lures will not work!");
         }
 
         public void Close()

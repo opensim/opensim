@@ -38,7 +38,7 @@ namespace OpenSim.Region.Framework.Interfaces
         public int numLeft;
     }
 
-    public interface IEmailModule : IRegionModule
+    public interface IEmailModule : ISharedRegionModule
     {
         void SendEmail(UUID objectID, string address, string subject, string body);
         Email GetNextEmail(UUID objectID, string sender, string subject);

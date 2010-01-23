@@ -29,6 +29,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -39,7 +40,8 @@ using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 {
-    public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class LoadImageURLModule : ISharedRegionModule, IDynamicTextureRender
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -97,26 +99,42 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
+            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_scene == null)
             {
                 m_scene = scene;
             }
-            
-            m_proxyurl = config.Configs["Startup"].GetString("HttpProxy");
-            m_proxyexcepts = config.Configs["Startup"].GetString("HttpProxyExceptions");
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
             if (m_textureManager != null)
             {
                 m_textureManager.RegisterRender(GetContentType(), this);
             }
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void PostInitialise()
+        {
         }
 
         public void Close()
@@ -126,11 +144,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
         public string Name
         {
             get { return m_name; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

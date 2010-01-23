@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Timers;
 using OpenMetaverse;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.CoreModules.Framework.InterfaceCommander;
@@ -46,7 +47,8 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
     /// <summary>
     /// Version 2.02 - Still hacky 
     /// </summary>
-    public class TreePopulatorModule : IRegionModule, ICommandableModule, IVegetationModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class TreePopulatorModule : INonSharedRegionModule, ICommandableModule, IVegetationModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Commander m_commander = new Commander("tree");
@@ -168,15 +170,10 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            
-            m_scene = scene;
-            m_scene.RegisterModuleInterface<IRegionModule>(this);
-            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-
             // ini file settings
             try
             {
@@ -196,12 +193,18 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 m_log.Debug("[TREES]: ini failure for update_rate - using default");
             }
 
-            InstallCommands();
-
             m_log.Debug("[TREES]: Initialised tree module");
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+            m_scene.RegisterModuleInterface<INonSharedRegionModule>(this);
+            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+            InstallCommands();
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             ReloadCopse();
             if (m_copse.Count > 0)
@@ -211,6 +214,17 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 activeizeTreeze(true);
         }
 
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<INonSharedRegionModule>(this);
+            scene.EventManager.OnPluginConsole -= EventManager_OnPluginConsole;
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
         public void Close()
         {
         }
@@ -218,11 +232,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
         public string Name
         {
             get { return "TreePopulatorModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion

@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -35,7 +36,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Agent.Xfer
 {
-    public class XferModule : IRegionModule, IXfer
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class XferModule : INonSharedRegionModule, IXfer
     {
         private Scene m_scene;
         private Dictionary<string, XferRequest> Requests = new Dictionary<string, XferRequest>();
@@ -52,9 +54,13 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             public DateTime timeStamp;
         }
        
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
@@ -62,8 +68,19 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
             m_scene.RegisterModuleInterface<IXfer>(this);
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface
         {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.EventManager.OnNewClient -= NewClient;
+            scene.UnregisterModuleInterface<IXfer>(this);
         }
 
         public void Close()
@@ -73,11 +90,6 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         public string Name
         {
             get { return "XferModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion

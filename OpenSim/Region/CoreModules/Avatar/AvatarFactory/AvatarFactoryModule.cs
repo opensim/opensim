@@ -28,6 +28,7 @@
 using System;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,7 +39,8 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactory, IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class AvatarFactoryModule : IAvatarFactory, ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
@@ -75,7 +77,16 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             return appearance;
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
         {
             scene.RegisterModuleInterface<IAvatarFactory>(this);
             scene.EventManager.OnNewClient += NewClient;
@@ -84,9 +95,18 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             {
                 m_scene = scene;
             }
-
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IAvatarFactory>(this);
+            scene.EventManager.OnNewClient -= NewClient;
+        }
+        
         public void PostInitialise()
         {
         }
@@ -98,11 +118,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         public string Name
         {
             get { return "Default Avatar Factory"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         public void NewClient(IClientAPI client)
