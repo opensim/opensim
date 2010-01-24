@@ -2779,7 +2779,15 @@ namespace OpenSim.Region.Framework.Scenes
         protected void CrossToNewRegion()
         {
             InTransit();
-            m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+            try
+            {
+            	m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+            }
+            catch(Exception ex)
+            {
+            	m_scene.CrossAgentToNewRegion(this, false);
+            }
+
         }
 
         public void InTransit()
