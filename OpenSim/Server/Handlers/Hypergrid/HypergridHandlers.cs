@@ -44,12 +44,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IGatekeeperService m_GatekeeperService;
-        private IHypergridService m_HypergridService;
 
-        public HypergridHandlers(IGatekeeperService gatekeeper, IHypergridService hyper)
+        public HypergridHandlers(IGatekeeperService gatekeeper)
         {
             m_GatekeeperService = gatekeeper;
-            m_HypergridService = hyper;
         }
 
         /// <summary>
@@ -70,36 +68,6 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string reason = string.Empty;
 
             bool success = m_GatekeeperService.LinkRegion(name, out regionID, out regionHandle, out imageURL, out reason);
-
-            Hashtable hash = new Hashtable();
-            hash["result"] = success.ToString();
-            hash["uuid"] = regionID.ToString();
-            hash["handle"] = regionHandle.ToString();
-            hash["region_image"] = imageURL;
-
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
-            return response;
-        }
-
-        /// <summary>
-        /// A local region wants to establish a grid-wide hyperlink to another region
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public XmlRpcResponse LinkRegionByDescRequest(XmlRpcRequest request, IPEndPoint remoteClient)
-        {
-            Hashtable requestData = (Hashtable)request.Params[0];
-            //string host = (string)requestData["host"];
-            //string portstr = (string)requestData["port"];
-            string descriptor = (string)requestData["region_desc"];
-
-            UUID regionID = UUID.Zero;
-            string imageURL = string.Empty;
-            ulong regionHandle = 0;
-            string reason = string.Empty;
-
-            bool success = m_HypergridService.LinkRegion(descriptor, out regionID, out regionHandle, out imageURL, out reason);
 
             Hashtable hash = new Hashtable();
             hash["result"] = success.ToString();

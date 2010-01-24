@@ -48,16 +48,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IHypergridService m_HypergridService;
-        private IHypergridService HyperGridService
-        {
-            get
-            {
-                if (m_HypergridService == null)
-                    m_HypergridService = m_aScene.RequestModuleInterface<IHypergridService>();
-                return m_HypergridService;
-            }
-        }
+        private bool m_Initialized = false;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
         private IHomeUsersSecurityService m_Security;
@@ -78,7 +69,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (name == Name)
                 {
                     m_agentsInTransit = new List<UUID>();
-                    m_GatekeeperConnector = new GatekeeperServiceConnector();
 
                     IConfig config = source.Configs["HGEntityTransferModule"];
                     if (config != null)
@@ -108,6 +98,17 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 scene.RegisterModuleInterface<IHomeUsersSecurityService>(m_Security);
         }
 
+        public override void RegionLoaded(Scene scene)
+        {
+            base.RegionLoaded(scene);
+            if (m_Enabled)
+                if (!m_Initialized)
+                {
+                    m_GatekeeperConnector = new GatekeeperServiceConnector(scene.AssetService);
+                    m_Initialized = true;
+                }
+
+        }
         public override void RemoveRegion(Scene scene)
         {
             base.AddRegion(scene);
@@ -122,7 +123,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected override GridRegion GetFinalDestination(GridRegion region)
         {
-            return HyperGridService.GetHyperlinkRegion(region, region.RegionID);
+            int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, region.RegionID);
+            if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+            {
+                return m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
+            }
+            return region;
         }
 
         protected override bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
@@ -133,13 +139,16 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
         {
             reason = string.Empty;
-            if (reg.RegionLocX != finalDestination.RegionLocX || reg.RegionLocY != finalDestination.RegionLocY)
+            int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, reg.RegionID);
+            if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
-                reg.RegionName = finalDestination.RegionName;
-                reg.RegionID = finalDestination.RegionID;
-                reg.RegionLocX = finalDestination.RegionLocX;
-                reg.RegionLocY = finalDestination.RegionLocY;
+                // Take the IP address + port of the gatekeeper (reg) plus the info of finalDestination
+                GridRegion region = new GridRegion(reg);
+                region.RegionName = finalDestination.RegionName;
+                region.RegionID = finalDestination.RegionID;
+                region.RegionLocX = finalDestination.RegionLocX;
+                region.RegionLocY = finalDestination.RegionLocY;
                 
                 // Log their session and remote endpoint in the home users security service
                 IHomeUsersSecurityService security = sp.Scene.RequestModuleInterface<IHomeUsersSecurityService>();
@@ -149,7 +158,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 // Log them out of this grid
                 sp.Scene.PresenceService.LogoutAgent(agentCircuit.SessionID, sp.AbsolutePosition, sp.Lookat);
 
-                return m_GatekeeperConnector.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
+                return m_GatekeeperConnector.CreateAgent(region, agentCircuit, teleportFlags, out reason);
             }
 
             return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);

@@ -48,7 +48,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 {
-    public class HGGridConnector : ISharedRegionModule, IGridService, IHypergridService
+    public class HGGridConnector : ISharedRegionModule, IGridService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -61,8 +61,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         private Dictionary<ulong, Scene> m_LocalScenes = new Dictionary<ulong, Scene>();
 
         private IGridService m_GridServiceConnector;
-        private IHypergridService m_HypergridService;
-
 
         #region ISharedRegionModule
 
@@ -119,16 +117,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             Object[] args = new Object[] { source };
             m_GridServiceConnector = ServerUtils.LoadPlugin<IGridService>(module, args);
 
-            string hypergrid = gridConfig.GetString("HypergridService", string.Empty);
-            if (hypergrid == String.Empty)
-            {
-                m_log.Error("[HGGRID CONNECTOR]: No HypergridService named in section GridService");
-                throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
-            }
-            m_HypergridService = ServerUtils.LoadPlugin<IHypergridService>(hypergrid, args);
-
-            if (m_GridServiceConnector == null || m_HypergridService == null)
-                throw new Exception("Unable to proceed. HGGrid services could not be loaded.");
         }
 
         public void PostInitialise()
@@ -148,7 +136,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
             m_LocalScenes[scene.RegionInfo.RegionHandle] = scene;
             scene.RegisterModuleInterface<IGridService>(this);
-            scene.RegisterModuleInterface<IHypergridService>(this);
 
             ((ISharedRegionModule)m_GridServiceConnector).AddRegion(scene);
 
@@ -160,7 +147,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             {
                 m_LocalScenes.Remove(scene.RegionInfo.RegionHandle);
                 scene.UnregisterModuleInterface<IGridService>(this);
-                scene.UnregisterModuleInterface<IHypergridService>(this);
                 ((ISharedRegionModule)m_GridServiceConnector).RemoveRegion(scene);
             }
         }
@@ -201,13 +187,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public GridRegion GetRegionByUUID(UUID scopeID, UUID regionID)
         {
-            GridRegion region = m_GridServiceConnector.GetRegionByUUID(scopeID, regionID);
-            if (region != null)
-                return region;
+            return m_GridServiceConnector.GetRegionByUUID(scopeID, regionID);
+            //if (region != null)
+            //    return region;
 
-            region = m_HypergridService.GetRegionByUUID(regionID);
+            //region = m_HypergridService.GetRegionByUUID(regionID);
 
-            return region;
+            //return region;
         }
 
         public GridRegion GetRegionByPosition(UUID scopeID, int x, int y)
@@ -216,10 +202,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             int snapY = (int) (y / Constants.RegionSize) * (int)Constants.RegionSize;
 
             GridRegion region = m_GridServiceConnector.GetRegionByPosition(scopeID, x, y);
-            if (region != null)
-                return region;
+            //if (region != null)
+            //    return region;
 
-            region = m_HypergridService.GetRegionByPosition(snapX, snapY);
+            //region = m_HypergridService.GetRegionByPosition(snapX, snapY);
 
             return region;
         }
@@ -231,7 +217,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (region != null)
                 return region;
 
-            region = m_HypergridService.GetRegionByName(regionName);
+            //region = m_HypergridService.GetRegionByName(regionName);
 
             return region;
         }
@@ -241,27 +227,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (name == string.Empty)
                 return new List<GridRegion>();
 
-            List<GridRegion> rinfos = m_GridServiceConnector.GetRegionsByName(scopeID, name, maxNumber);
-
-            rinfos.AddRange(m_HypergridService.GetRegionsByName(name));
-            if (rinfos.Count > maxNumber)
-                rinfos.RemoveRange(maxNumber - 1, rinfos.Count - maxNumber);
-
-            return rinfos;
+            return m_GridServiceConnector.GetRegionsByName(scopeID, name, maxNumber);
         }
 
         public List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax)
         {
-            int snapXmin = (int)(xmin / Constants.RegionSize) * (int)Constants.RegionSize;
-            int snapXmax = (int)(xmax / Constants.RegionSize) * (int)Constants.RegionSize;
-            int snapYmin = (int)(ymin / Constants.RegionSize) * (int)Constants.RegionSize;
-            int snapYmax = (int)(ymax / Constants.RegionSize) * (int)Constants.RegionSize;
-
-            List<GridRegion> rinfos = m_GridServiceConnector.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
-
-            rinfos.AddRange(m_HypergridService.GetRegionRange(snapXmin, snapXmax, snapYmin, snapYmax));
-
-            return rinfos;
+            return m_GridServiceConnector.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
         }
 
         public List<GridRegion> GetDefaultRegions(UUID scopeID)
@@ -281,27 +252,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
      
         #endregion
 
-        #region IHypergridService
 
-        public bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason)
-        {
-            return m_HypergridService.LinkRegion(regionDescriptor, out regionID, out regionHandle, out imageURL, out reason);
-        }
-
-        public GridRegion GetHyperlinkRegion(GridRegion gateway, UUID regionID)
-        {
-            if (m_LocalScenes.ContainsKey(gateway.RegionHandle))
-                return gateway;
-
-            return m_HypergridService.GetHyperlinkRegion(gateway, regionID);
-        }
-
-        public GridRegion GetRegionByUUID(UUID regionID) { return null; }
-        public GridRegion GetRegionByPosition(int x, int y) { return null; }
-        public GridRegion GetRegionByName(string name) { return null; }
-        public List<GridRegion> GetRegionsByName(string name) { return null; }
-        public List<GridRegion> GetRegionRange(int xmin, int xmax, int ymin, int ymax) { return null; }
-
-        #endregion
     }
 }

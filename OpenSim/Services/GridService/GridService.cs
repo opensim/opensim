@@ -50,6 +50,7 @@ namespace OpenSim.Services.GridService
         private bool m_DeleteOnUnregister = true;
         private static GridService m_RootInstance = null;
         protected IConfigSource m_config;
+        protected HypergridLinker m_HypergridLinker;
 
         protected IAuthenticationService m_AuthenticationService = null;
         protected bool m_AllowDuplicateNames = false;
@@ -92,6 +93,8 @@ namespace OpenSim.Services.GridService
                         "Set database flags for region",
                         String.Empty,
                         HandleSetFlags);
+
+                m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
         }
 
@@ -346,7 +349,7 @@ namespace OpenSim.Services.GridService
 
         #region Data structure conversions
 
-        protected RegionData RegionInfo2RegionData(GridRegion rinfo)
+        public RegionData RegionInfo2RegionData(GridRegion rinfo)
         {
             RegionData rdata = new RegionData();
             rdata.posX = (int)rinfo.RegionLocX;
@@ -359,7 +362,7 @@ namespace OpenSim.Services.GridService
             return rdata;
         }
 
-        protected GridRegion RegionData2RegionInfo(RegionData rdata)
+        public GridRegion RegionData2RegionInfo(RegionData rdata)
         {
             GridRegion rinfo = new GridRegion(rdata.Data);
             rinfo.RegionLocX = rdata.posX;
