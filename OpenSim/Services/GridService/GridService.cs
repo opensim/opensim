@@ -410,7 +410,9 @@ namespace OpenSim.Services.GridService
         {
             RegionData region = m_Database.Get(regionID, scopeID);
 
-            return Convert.ToInt32(region.Data["flags"]);
+            int flags = Convert.ToInt32(region.Data["flags"]);
+            //m_log.DebugFormat("[GRID SERVICE]: Request for flags of {0}: {1}", regionID, flags);
+            return flags;
         }
 
         private void HandleShowRegion(string module, string[] cmd)

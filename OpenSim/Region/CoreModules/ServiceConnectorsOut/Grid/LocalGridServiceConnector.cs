@@ -238,6 +238,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return m_GridService.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
         }
 
+        public List<GridRegion> GetDefaultRegions(UUID scopeID)
+        {
+            return m_GridService.GetDefaultRegions(scopeID);
+        }
+
+        public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            return m_GridService.GetFallbackRegions(scopeID, x, y);
+        }
+
+        public int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            return m_GridService.GetRegionFlags(scopeID, regionID);
+        }
+
         #endregion
 
         public void NeighboursCommand(string module, string[] cmdparams)
@@ -249,21 +264,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 foreach (GridRegion r in regions)
                     m_log.InfoFormat("    {0} @ {1}={2}", r.RegionName, r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
             }
-        }
-
-        public List<GridRegion> GetDefaultRegions(UUID scopeID)
-        {
-            return null;
-        }
-
-        public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
-        {
-            return null;
-        }
-
-        public int GetRegionFlags(UUID scopeID, UUID regionID)
-        {
-            return 0;
         }
 
     }

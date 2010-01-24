@@ -124,8 +124,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected override GridRegion GetFinalDestination(GridRegion region)
         {
             int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, region.RegionID);
+            //m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: region {0} flags: {1}", region.RegionID, flags);
             if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
+                m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region {0} is hyperlink", region.RegionID);
                 return m_GatekeeperConnector.GetHyperlinkRegion(region, region.RegionID);
             }
             return region;
