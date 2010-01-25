@@ -302,6 +302,12 @@ namespace OpenSim.Framework.Console
             if (!UUID.TryParse(post["ID"].ToString(), out id))
                 return reply;
 
+            lock(m_Connections)
+            {
+                if(!m_Connections.ContainsKey(id))
+                    return reply;
+            }
+
             if (post["COMMAND"] == null || post["COMMAND"].ToString() == String.Empty)
                 return reply;
 
