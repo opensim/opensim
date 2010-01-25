@@ -54,6 +54,7 @@ namespace OpenSim.Services.GridService
 
         protected IAuthenticationService m_AuthenticationService = null;
         protected bool m_AllowDuplicateNames = false;
+        protected bool m_AllowHypergridMapSearch = false;
 
         public GridService(IConfigSource config)
             : base(config)
@@ -74,6 +75,7 @@ namespace OpenSim.Services.GridService
                     m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
                 }
                 m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
+                m_AllowHypergridMapSearch = gridConfig.GetBoolean("AllowHypergridMapSearch", m_AllowHypergridMapSearch);
             }
             
             if (m_RootInstance == null)
@@ -327,6 +329,13 @@ namespace OpenSim.Services.GridService
                 }
             }
 
+            if (m_AllowHypergridMapSearch && rdatas.Count == 0 && name.Contains("."))
+            {
+                GridRegion r = m_HypergridLinker.LinkRegion(scopeID, name);
+                if (r != null)
+                    rinfos.Add(r);
+            }
+
             return rinfos;
         }
 
@@ -410,9 +419,14 @@ namespace OpenSim.Services.GridService
         {
             RegionData region = m_Database.Get(regionID, scopeID);
 
-            int flags = Convert.ToInt32(region.Data["flags"]);
-            //m_log.DebugFormat("[GRID SERVICE]: Request for flags of {0}: {1}", regionID, flags);
-            return flags;
+            if (region != null)
+            {
+                int flags = Convert.ToInt32(region.Data["flags"]);
+                //m_log.DebugFormat("[GRID SERVICE]: Request for flags of {0}: {1}", regionID, flags);
+                return flags;
+            }
+            else
+                return -1;
         }
 
         private void HandleShowRegion(string module, string[] cmd)

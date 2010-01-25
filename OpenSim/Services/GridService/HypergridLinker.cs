@@ -130,26 +130,17 @@ namespace OpenSim.Services.GridService
 
         #region Link Region
 
-        public bool LinkRegion(string regionDescriptor, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason)
+        public GridRegion LinkRegion(UUID scopeID, string regionDescriptor)
         {
-            regionID = UUID.Zero;
-            imageURL = string.Empty;
-            regionHandle = 0;
-            reason = string.Empty;
+            string reason = string.Empty;
             int xloc = random.Next(0, Int16.MaxValue) * (int)Constants.RegionSize;
-            GridRegion region = TryLinkRegionToCoords(regionDescriptor, xloc, 0, out reason);
-            if (region == null)
-                return false;
-
-            regionID = region.RegionID;
-            regionHandle = region.RegionHandle;
-            return true;
+            return TryLinkRegionToCoords(scopeID, regionDescriptor, xloc, 0, out reason);
         }
 
         private static Random random = new Random();
 
         // From the command line link-region
-        public GridRegion TryLinkRegionToCoords(string mapName, int xloc, int yloc, out string reason)
+        public GridRegion TryLinkRegionToCoords(UUID scopeID, string mapName, int xloc, int yloc, out string reason)
         {
             reason = string.Empty;
             string host = "127.0.0.1";
@@ -183,7 +174,7 @@ namespace OpenSim.Services.GridService
             catch { }
 
             GridRegion regInfo;
-            bool success = TryCreateLink(xloc, yloc, regionName, port, host, out regInfo, out reason);
+            bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, out regInfo, out reason);
             if (success)
             {
                 regInfo.RegionName = mapName;
@@ -195,7 +186,7 @@ namespace OpenSim.Services.GridService
 
 
         // From the command line and the 2 above
-        public bool TryCreateLink(int xloc, int yloc,
+        public bool TryCreateLink(UUID scopeID, int xloc, int yloc,
             string externalRegionName, uint externalPort, string externalHostName, out GridRegion regInfo, out string reason)
         {
             m_log.DebugFormat("[HYPERGRID LINKER]: Link to {0}:{1}, in {2}-{3}", externalHostName, externalPort, xloc, yloc);
@@ -207,6 +198,7 @@ namespace OpenSim.Services.GridService
             regInfo.ExternalHostName = externalHostName;
             regInfo.RegionLocX = xloc;
             regInfo.RegionLocY = yloc;
+            regInfo.ScopeID = scopeID;
 
             try
             {
@@ -228,7 +220,16 @@ namespace OpenSim.Services.GridService
 
             if (regionID != UUID.Zero)
             {
+                GridRegion r = m_GridService.GetRegionByUUID(scopeID, regionID);
+                if (r != null)
+                {
+                    m_log.DebugFormat("[HYPERGRID LINKER]: Region already exists in coordinates {0} {1}", r.RegionLocX / Constants.RegionSize, r.RegionLocY / Constants.RegionSize);
+                    regInfo = r;
+                    return true;
+                }
+
                 regInfo.RegionID = regionID;
+                regInfo.RegionName = regInfo.ExternalHostName + ":" + regInfo.HttpPort + ":" + regInfo.RegionName;
                 // Try get the map image
                 regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
                 // I need a texture that works for this... the one I tried doesn't seem to be working
@@ -451,9 +452,9 @@ namespace OpenSim.Services.GridService
                     xloc = xloc * (int)Constants.RegionSize;
                     yloc = yloc * (int)Constants.RegionSize;
                     string reason = string.Empty;
-                    if (TryLinkRegionToCoords(mapName, xloc, yloc, out reason) == null)
+                    if (TryLinkRegionToCoords(UUID.Zero, mapName, xloc, yloc, out reason) == null)
                         MainConsole.Instance.Output("Failed to link region: " + reason);
-                    MainConsole.Instance.Output("Hyperlink estalished");
+                    MainConsole.Instance.Output("Hyperlink established");
                 }
                 else
                 {
@@ -482,7 +483,7 @@ namespace OpenSim.Services.GridService
                     xloc = xloc * (int)Constants.RegionSize;
                     yloc = yloc * (int)Constants.RegionSize;
                     string reason = string.Empty;
-                    if (TryCreateLink(xloc, yloc, "", externalPort, externalHostName, out regInfo, out reason))
+                    if (TryCreateLink(UUID.Zero, xloc, yloc, "", externalPort, externalHostName, out regInfo, out reason))
                     {
                         if (cmdparams.Length >= 5)
                         {
@@ -584,7 +585,7 @@ namespace OpenSim.Services.GridService
                 xloc = xloc * (int)Constants.RegionSize;
                 yloc = yloc * (int)Constants.RegionSize;
                 string reason = string.Empty;
-                if (TryCreateLink(xloc, yloc, "", externalPort,
+                if (TryCreateLink(UUID.Zero, xloc, yloc, "", externalPort,
                                                      externalHostName, out regInfo, out reason))
                 {
                     regInfo.RegionName = config.GetString("localName", "");
