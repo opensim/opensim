@@ -74,13 +74,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Stop the scripts contained in all the prims in this group
         /// </summary>
-        public void RemoveScriptInstances()
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if these scripts are being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.Inventory.RemoveScriptInstances();
+                    part.Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
                 }
             }
         }
