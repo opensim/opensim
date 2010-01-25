@@ -607,21 +607,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         // and convert the regionName to the target region
                         if (regionName.Contains(".") && regionName.Contains(":"))
                         {
+                            List<GridRegion> regions = World.GridService.GetRegionsByName(World.RegionInfo.ScopeID, regionName, 1);
                             // Try to link the region
-                            IHyperlinkService hyperService = World.RequestModuleInterface<IHyperlinkService>();
-                            if (hyperService != null)
+                            if (regions != null && regions.Count > 0)
                             {
-                                GridRegion regInfo = hyperService.TryLinkRegion(presence.ControllingClient,
-                                                                                regionName);
-                                // Get the region name
-                                if (regInfo != null)
-                                {
-                                    regionName = regInfo.RegionName;
-                                }
-                                else
-                                {
-                                    // Might need to ping the client here in case of failure??
-                                }
+                                GridRegion regInfo = regions[0];
+                                regionName = regInfo.RegionName;
                             }
                         }
                         presence.ControllingClient.SendTeleportLocationStart();

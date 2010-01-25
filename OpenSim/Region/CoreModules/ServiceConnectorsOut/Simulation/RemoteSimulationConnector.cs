@@ -58,8 +58,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         protected LocalSimulationConnectorModule m_localBackend;
         protected SimulationServiceConnector m_remoteConnector;
 
-        protected IHyperlinkService m_hyperlinkService;
-
         protected bool m_safemode;
         protected IPAddress m_thisIP;
 
@@ -124,9 +122,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         {
             if (!m_enabled)
                 return;
-
-            m_hyperlinkService = m_aScene.RequestModuleInterface<IHyperlinkService>();
-
         }
 
         public Type ReplaceableInterface
