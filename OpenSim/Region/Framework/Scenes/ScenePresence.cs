@@ -2781,11 +2781,11 @@ namespace OpenSim.Region.Framework.Scenes
             InTransit();
             try
             {
-            	m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+                m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
             }
             catch(Exception ex)
             {
-            	m_scene.CrossAgentToNewRegion(this, false);
+                m_scene.CrossAgentToNewRegion(this, false);
             }
 
         }
