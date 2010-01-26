@@ -1023,7 +1023,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (ent is SceneObjectGroup)
                         {
-                            ((SceneObjectGroup) ent).RemoveScriptInstances();
+                            ((SceneObjectGroup) ent).RemoveScriptInstances(false);
                         }
                     }
                 }
@@ -1911,13 +1911,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="silent">Suppress broadcasting changes to other clients.</param>
         public void DeleteSceneObject(SceneObjectGroup group, bool silent)
         {
+//            m_log.DebugFormat("[SCENE]: Deleting scene object {0} {1}", group.Name, group.UUID);
+            
             //SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
             // Serialise calls to RemoveScriptInstances to avoid
             // deadlocking on m_parts inside SceneObjectGroup
             lock (m_deleting_scene_object)
             {
-                group.RemoveScriptInstances();
+                group.RemoveScriptInstances(true);
             }
 
             foreach (SceneObjectPart part in group.Children.Values)
@@ -1945,6 +1947,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             group.DeleteGroup(silent);
+
+//            m_log.DebugFormat("[SCENE]: Exit DeleteSceneObject() for {0} {1}", group.Name, group.UUID);
         }
 
         /// <summary>

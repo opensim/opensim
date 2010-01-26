@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -40,7 +41,8 @@ using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 {
-    public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class DynamicTextureModule : ISharedRegionModule, IDynamicTextureManager
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -210,14 +212,37 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
         #endregion
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
                 RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
                 scene.RegisterModuleInterface<IDynamicTextureManager>(this);
+            }
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
+            {
+                RegisteredScenes.Remove(scene.RegionInfo.RegionID);
+                scene.UnregisterModuleInterface<IDynamicTextureManager>(this);
             }
         }
 
@@ -232,11 +257,6 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         public string Name
         {
             get { return "DynamicTextureModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

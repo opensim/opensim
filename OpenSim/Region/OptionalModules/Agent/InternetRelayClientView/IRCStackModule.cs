@@ -25,9 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Net;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -35,24 +37,23 @@ using OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server;
 
 namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
 {
-    public class IRCStackModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class IRCStackModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IRCServer m_server;
 //        private Scene m_scene;
+        private int portNo;
 
-        #region Implementation of IRegionModule
+        #region Implementation of ISharedRegionModule
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
             if (null != source.Configs["IRCd"] &&
                 source.Configs["IRCd"].GetBoolean("Enabled",false))
             {
-                int portNo = source.Configs["IRCd"].GetInt("Port",6666);
-//                m_scene = scene;
-                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
-                m_server.OnNewIRCClient += m_server_OnNewIRCClient;
+                portNo = source.Configs["IRCd"].GetInt("Port",6666);
             }
         }
 
@@ -68,9 +69,20 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
             m_log.Info("[IRCd] Added user to Scene");
         }
 
-        public void PostInitialise()
+        public void AddRegion(Scene scene)
         {
+            if (portNo != null)
+            {
+                m_server = new IRCServer(IPAddress.Parse("0.0.0.0"), portNo, scene);
+                m_server.OnNewIRCClient += m_server_OnNewIRCClient;
+            }
+        }
+        public void RegionLoaded(Scene scene)
+        {
+        }
 
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void Close()
@@ -83,9 +95,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView
             get { return "IRCClientStackModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return false; }
+            get { return null; }
         }
 
         #endregion

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -59,7 +60,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public face[] trns;
     }
 
-    public class MapImageModule : IMapImageGenerator, IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class MapImageModule : IMapImageGenerator, INonSharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -128,23 +130,36 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
         #endregion
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            m_scene = scene;
             m_config = source;
 
             IConfig startupConfig = m_config.Configs["Startup"];
             if (startupConfig.GetString("MapImageModule", "MapImageModule") !=
                     "MapImageModule")
                 return;
+        }
 
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
             m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface
         {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IMapImageGenerator>(this);
         }
 
         public void Close()
@@ -154,11 +169,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public string Name
         {
             get { return "MapImageModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         #endregion

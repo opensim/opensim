@@ -923,9 +923,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             instance = null;
 
+<<<<<<< HEAD:OpenSim/Region/ScriptEngine/XEngine/XEngine.cs
             ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
             if (handlerObjectRemoved != null)
                 handlerObjectRemoved(part.UUID);
+=======
+                ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
+                if (handlerObjectRemoved != null)
+                {
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);                    
+                    handlerObjectRemoved(part.UUID);
+                }
+>>>>>>> master:OpenSim/Region/ScriptEngine/XEngine/XEngine.cs
 
             CleanAssemblies();
             

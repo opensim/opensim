@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -34,7 +35,8 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
 {
-    public class CombatModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class CombatModule : ISharedRegionModule
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -53,7 +55,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="config"></param>
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
         {
             lock (m_scenel)
             {
@@ -71,6 +83,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
         }
 
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.EventManager.OnAvatarKilled -= KillAvatar;
+            scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
+            m_scenel.Remove(scene.RegionInfo.RegionHandle);
+        }
+
         public void PostInitialise()
         {
         }
@@ -82,11 +105,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         public string Name
         {
             get { return "CombatModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         private void KillAvatar(uint killerObjectLocalID, ScenePresence DeadAvatar)

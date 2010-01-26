@@ -58,6 +58,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.ScriptModuleComms
 
         public void RemoveRegion(Scene scene)
         {
+            scene.UnregisterModuleInterface<IScriptModuleComms>(this);
         }
 
         public void RegionLoaded(Scene scene)

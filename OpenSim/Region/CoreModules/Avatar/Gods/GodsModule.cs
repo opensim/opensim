@@ -25,7 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -34,7 +36,8 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Gods
 {
-    public class GodsModule : IRegionModule, IGodsModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class GodsModule : INonSharedRegionModule, IGodsModule
     {
         /// <summary>Special UUID for actions that apply to all agents</summary>
         private static readonly UUID ALL_AGENTS = new UUID("44e87126-e794-4ded-05b3-7c42da3d5cdb");
@@ -42,17 +45,34 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
         
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+            
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_dialogModule = m_scene.RequestModuleInterface<IDialogModule>();
             m_scene.RegisterModuleInterface<IGodsModule>(this);
         }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IGodsModule>(this);
+        }
         
-        public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Gods Module"; } }
-        public bool IsSharedModule { get { return false; } }
         
         public void RequestGodlikePowers(
             UUID agentID, UUID sessionID, UUID token, bool godLike, IClientAPI controllingClient)

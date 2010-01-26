@@ -34,6 +34,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -52,7 +53,8 @@ using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.UserStatistics
 {
-    public class WebStatsModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class WebStatsModule : ISharedRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -70,7 +72,7 @@ namespace OpenSim.Region.UserStatistics
         private string m_loglines = String.Empty;
         private volatile int lastHit = 12000;
 
-        public virtual void Initialise(Scene scene, IConfigSource config)
+        public virtual void Initialise(IConfigSource config)
         {
             IConfig cnfg;
             try
@@ -82,11 +84,17 @@ namespace OpenSim.Region.UserStatistics
             {
                 enabled = false;
             }
-            
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
+        {
             if (!enabled)
-            {
                 return;
-            }
 
             lock (m_scene)
             {
@@ -130,7 +138,7 @@ namespace OpenSim.Region.UserStatistics
                     MainServer.Instance.AddHTTPHandler("/SStats/", HandleStatsRequest);
                     MainServer.Instance.AddHTTPHandler("/CAPS/VS/", HandleUnknownCAPSRequest);
                 }
-                
+
                 m_scene.Add(scene);
                 if (m_simstatsCounters.ContainsKey(scene.RegionInfo.RegionID))
                     m_simstatsCounters.Remove(scene.RegionInfo.RegionID);
@@ -138,6 +146,14 @@ namespace OpenSim.Region.UserStatistics
                 m_simstatsCounters.Add(scene.RegionInfo.RegionID, new USimStatsData(scene.RegionInfo.RegionID));
                 scene.StatsReporter.OnSendStatsResult += ReceiveClassicSimStatsPacket;
             }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
         }
 
         public void ReceiveClassicSimStatsPacket(SimStats stats)
@@ -306,11 +322,6 @@ namespace OpenSim.Region.UserStatistics
         public virtual string Name
         {
             get { return "ViewerStatsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         public void OnRegisterCaps(UUID agentID, Caps caps)

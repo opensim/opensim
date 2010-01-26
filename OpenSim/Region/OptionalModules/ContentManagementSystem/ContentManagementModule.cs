@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -38,6 +38,7 @@ using System.Threading;
 
 using OpenMetaverse;
 
+using Mono.Addins;
 using Nini.Config;
 
 using OpenSim;
@@ -50,7 +51,8 @@ using log4net;
 
 namespace OpenSim.Region.OptionalModules.ContentManagement
 {
-    public class ContentManagementModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class ContentManagementModule : ISharedRegionModule
     {
         #region Static Fields
 
@@ -60,21 +62,19 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
 
         #region Fields
 
-        bool initialised = false;
-        CMController m_control = null;
-        bool m_enabled = false;
-        CMModel m_model = null;
-        bool m_posted = false;
-        CMView m_view = null;
+        private bool initialised = false;
+        private CMController m_control = null;
+        private bool m_enabled = false;
+        private CMModel m_model = null;
+        private bool m_posted = false;
+        private CMView m_view = null;
+        private string databaseDir = "./";
+        private string database = "FileSystemDatabase";
+        private int channel = 345;
 
         #endregion Fields
 
         #region Public Properties
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
 
         public string Name
         {
@@ -89,11 +89,8 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
         {
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
         {
-            string databaseDir = "./";
-            string database = "FileSystemDatabase";
-            int channel = 345;
             try
             {
                 if (source.Configs["CMS"] == null)
@@ -115,13 +112,15 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                 m_log.ErrorFormat("[Content Management]: Exception thrown while reading parameters from configuration file. Message: " + e);
                 m_enabled = false;
             }
+        }
 
+        public void AddRegion(Scene scene)
+        {
             if (!m_enabled)
             {
                 m_log.Info("[Content Management]: Content Management System is not Enabled.");
                 return;
             }
-
             lock (this)
             {
                 if (!initialised) //only init once
@@ -141,6 +140,18 @@ namespace OpenSim.Region.OptionalModules.ContentManagement
                     m_control.RegisterNewRegion(scene);
                 }
             }
+        }
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
         }
 
         public void PostInitialise()

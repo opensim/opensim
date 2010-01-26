@@ -32,6 +32,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -45,7 +46,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 {
     public delegate void J2KDecodeDelegate(UUID assetID);
 
-    public class J2KDecoderModule : IRegionModule, IJ2KDecoder
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class J2KDecoderModule : ISharedRegionModule, IJ2KDecoder
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -58,16 +60,19 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <summary>Reference to a scene (doesn't matter which one as long as it can load the cache module)</summary>
         private Scene m_scene;
 
-        #region IRegionModule
+        #region ISharedRegionModule
 
         public string Name { get { return "J2KDecoderModule"; } }
-        public bool IsSharedModule { get { return true; } }
-
+        
         public J2KDecoderModule()
         {
         }
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public void AddRegion(Scene scene)
         {
             if (m_scene == null)
                 m_scene = scene;
@@ -75,16 +80,30 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             scene.RegisterModuleInterface<IJ2KDecoder>(this);
         }
 
-        public void PostInitialise()
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             m_cache = m_scene.RequestModuleInterface<IImprovedAssetCache>();
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IJ2KDecoder>(this);
+        }
+
+        public void PostInitialise()
+        {
         }
 
         public void Close()
         {
         }
 
-        #endregion IRegionModule
+        #endregion
 
         #region IJ2KDecoder
 

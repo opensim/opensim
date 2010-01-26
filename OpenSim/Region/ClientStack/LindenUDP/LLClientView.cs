@@ -1450,6 +1450,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendKillObject(ulong regionHandle, uint localID)
         {
+//            m_log.DebugFormat("[CLIENT]: Sending KillObjectPacket to {0} for {1} in {2}", Name, localID, regionHandle);
+            
             KillObjectPacket kill = (KillObjectPacket)PacketPool.Instance.GetPacket(PacketType.KillObject);
             // TODO: don't create new blocks if recycling an old packet
             kill.ObjectData = new KillObjectPacket.ObjectDataBlock[1];
@@ -3455,6 +3457,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPrimitiveToClient(SendPrimitiveData data)
         {
+//            string text = data.text;
+//            if (text.IndexOf("\n") >= 0)
+//                text = text.Remove(text.IndexOf("\n"));
+//            m_log.DebugFormat(
+//                "[CLIENT]: Placing request to send full info about prim {0} text {1} to client {2}", 
+//                data.localID, text, Name);
+            
             if (data.priority == double.NaN)
             {
                 m_log.Error("[LLClientView] SendPrimitiveToClient received a NaN priority, dropping update");
@@ -3492,7 +3501,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 outPacket.ObjectData = new ObjectUpdatePacket.ObjectDataBlock[count];
                 for (int i = 0; i < count; i++)
+                {
                     outPacket.ObjectData[i] = m_primFullUpdates.Dequeue();
+
+//                    string text = Util.FieldToString(outPacket.ObjectData[i].Text);
+//                    if (text.IndexOf("\n") >= 0)
+//                        text = text.Remove(text.IndexOf("\n"));
+//                    m_log.DebugFormat(
+//                        "[CLIENT]: Sending full info about prim {0} text {1} to client {2}", 
+//                        outPacket.ObjectData[i].ID, text, Name);
+                }
             }
 
             OutPacket(outPacket, ThrottleOutPacketType.State);
@@ -9075,8 +9093,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         
         private bool HandleSendPostcard(IClientAPI client, Packet packet)
         {
-            SendPostcardPacket SendPostcard =
-                (SendPostcardPacket)packet;
+//            SendPostcardPacket SendPostcard =
+//                (SendPostcardPacket)packet;
             SendPostcard handlerSendPostcard = OnSendPostcard;
             if (handlerSendPostcard != null)
             {

@@ -2489,7 +2489,7 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.Debug("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
             //ScheduleFullUpdate();
         }
-
+        
         public void RemoveScriptEvents(UUID scriptid)
         {
             lock (m_scriptEvents)
@@ -2543,6 +2543,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleFullUpdate()
         {
+//            m_log.DebugFormat("[SCENE OBJECT PART]: Scheduling full update for {0} {1}", Name, LocalId);
+            
             if (m_parentGroup != null)
             {
                 m_parentGroup.QueueForUpdateCheck();
@@ -4069,6 +4071,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_parentGroup == null)
             {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents() since m_parentGroup == null", Name, LocalId);
                 ScheduleFullUpdate();
                 return;
             }
@@ -4085,9 +4089,15 @@ namespace OpenSim.Region.Framework.Scenes
             LocalFlags=(PrimFlags)objectflagupdate;
 
             if (m_parentGroup != null && m_parentGroup.RootPart == this)
+            {
                 m_parentGroup.aggregateScriptEvents();
+            }
             else
+            {
+//                m_log.DebugFormat(
+//                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents()", Name, LocalId);                
                 ScheduleFullUpdate();
+            }
         }
 
         public int registerTargetWaypoint(Vector3 target, float tolerance)

@@ -30,6 +30,7 @@ using System.IO;
 using System.Reflection;
 using System.Security;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,6 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Estate
 {
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class EstateManagementModule : IEstateModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -898,7 +900,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         #region IRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource source)
+        public void Initialise(IConfigSource source)
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IEstateModule>(this);
@@ -918,6 +929,29 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                "set it on regions with a matching coordinate. Specify -1 in <x> or <y> to wildcard" +
                                " that coordinate. Corner # SW = 0, NW = 1, SE = 2, NE = 3.",
                                consoleSetTerrainHeights);
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            // Sets up the sun module based on the saved Estate and Region Settings
+            // DO NOT REMOVE or the sun will stop working
+            TriggerEstateToolsSunUpdate();
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.UnregisterModuleInterface<IEstateModule>(this);
+            scene.EventManager.OnNewClient -= EventManager_OnNewClient;
+            scene.EventManager.OnRequestChangeWaterHeight -= changeWaterHeight;
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "EstateManagementModule"; }
         }
 
         #region Console Commands
@@ -1006,28 +1040,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
         }
 
         #endregion
-
-        public void PostInitialise()
-        {
-            // Sets up the sun module based no the saved Estate and Region Settings
-            // DO NOT REMOVE or the sun will stop working
-            TriggerEstateToolsSunUpdate();
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "EstateManagementModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
         #endregion
 
         #region Other Functions

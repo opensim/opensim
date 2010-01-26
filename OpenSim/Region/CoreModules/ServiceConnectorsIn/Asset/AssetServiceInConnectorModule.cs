@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
         private IConfigSource m_Config;
         bool m_Registered = false;
 
-        #region IRegionModule interface
+        #region ISharedRegionModule interface
 
         public void Initialise(IConfigSource config)
         {

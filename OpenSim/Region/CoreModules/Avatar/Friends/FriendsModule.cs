@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -81,7 +82,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         - Terminate Friendship messages (single)
      */
 
-    public class FriendsModule : IRegionModule, IFriendsModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class FriendsModule : ISharedRegionModule, IFriendsModule
     {
         private class Transaction
         {
@@ -111,9 +113,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private IGridService m_gridServices = null;
 
-        #region IRegionModule Members
+        #region ISharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
+        {
+            
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
         {
             lock (m_scenes)
             {
@@ -128,9 +144,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (!m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
                     m_scenes[scene.RegionInfo.RegionHandle] = scene;
             }
-            
+
             scene.RegisterModuleInterface<IFriendsModule>(this);
-            
+
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
@@ -138,15 +154,32 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             scene.EventManager.OnClientClosed += ClientClosed;
         }
 
-        public void PostInitialise()
+        public void RegionLoaded(Scene scene)
         {
             if (m_scenes.Count > 0)
             {
-                m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
-                m_gridServices = m_initialScene.GridService;
+                m_TransferModule = scene.RequestModuleInterface<IMessageTransferModule>();
+                m_gridServices = scene.GridService;
             }
             if (m_TransferModule == null)
                 m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            MainServer.Instance.RemoveXmlRPCHandler("presence_update_bulk");
+            MainServer.Instance.RemoveXmlRPCHandler("terminate_friend");
+
+            if (m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
+                m_scenes.Remove(scene.RegionInfo.RegionHandle);
+
+            scene.UnregisterModuleInterface<IFriendsModule>(this);
+
+            scene.EventManager.OnNewClient -= OnNewClient;
+            scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
+            scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
+            scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
+            scene.EventManager.OnClientClosed -= ClientClosed;
         }
 
         public void Close()
@@ -156,11 +189,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public string Name
         {
             get { return "FriendsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
 
         #endregion

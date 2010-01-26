@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -89,7 +90,8 @@ enum GroupPowers : long
 
 namespace OpenSim.Region.CoreModules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class PermissionsModule : INonSharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
                 
@@ -148,12 +150,10 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         #endregion
 
-        #region IRegionModule Members
+        #region INonSharedRegionModule Members
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
-            m_scene = scene;
-
             IConfig myConfig = config.Configs["Startup"];
 
             string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
@@ -177,74 +177,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (m_bypassPermissions)
                 m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
             else
-                m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
-
-            //Register functions with Scene External Checks!
-            m_scene.Permissions.OnBypassPermissions += BypassPermissions;
-            m_scene.Permissions.OnSetBypassPermissions += SetBypassPermissions;
-            m_scene.Permissions.OnPropagatePermissions += PropagatePermissions;
-            m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
-            m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
-            m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
-            m_scene.Permissions.OnDeedParcel += CanDeedParcel;
-            m_scene.Permissions.OnDeedObject += CanDeedObject;
-            m_scene.Permissions.OnIsGod += IsGod;
-            m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
-            m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnEditParcel += CanEditParcel; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnInstantMessage += CanInstantMessage;
-            m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
-            m_scene.Permissions.OnMoveObject += CanMoveObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnObjectEntry += CanObjectEntry;
-            m_scene.Permissions.OnReturnObject += CanReturnObject; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
-            m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnCompileScript += CanCompileScript;
-            m_scene.Permissions.OnSellParcel += CanSellParcel;
-            m_scene.Permissions.OnTakeObject += CanTakeObject;
-            m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
-            m_scene.Permissions.OnTerraformLand += CanTerraformLand;
-            m_scene.Permissions.OnLinkObject += CanLinkObject; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDelinkObject += CanDelinkObject; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnBuyLand += CanBuyLand; //NOT YET IMPLEMENTED
-            
-            m_scene.Permissions.OnViewNotecard += CanViewNotecard; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnViewScript += CanViewScript; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditNotecard += CanEditNotecard; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditScript += CanEditScript; //NOT YET IMPLEMENTED
-            
-            m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
-            m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED
-            m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnResetScript += CanResetScript;
-            
-            m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnEditUserInventory += CanEditUserInventory; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
-            
-            m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnUseObjectReturn += CanUseObjectReturn; //NOT YET IMPLEMENTED
-
-            m_scene.AddCommand(this, "bypass permissions",
-                    "bypass permissions <true / false>",
-                    "Bypass permission checks",
-                    HandleBypassPermissions);
-
-            m_scene.AddCommand(this, "force permissions",
-                    "force permissions <true / false>",
-                    "Force permissions on or off",
-                    HandleForcePermissions);
-
-            m_scene.AddCommand(this, "debug permissions",
-                    "debug permissions <true / false>",
-                    "Enable permissions debugging",
-                    HandleDebugPermissions);
-                    
+                m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");     
                     
             string grant = myConfig.GetString("GrantLSL","");
             if (grant.Length > 0) {
@@ -290,6 +223,158 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 }
             }
 
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            m_scene = scene;
+
+            //Register functions with Scene External Checks!
+            m_scene.Permissions.OnBypassPermissions += BypassPermissions;
+            m_scene.Permissions.OnSetBypassPermissions += SetBypassPermissions;
+            m_scene.Permissions.OnPropagatePermissions += PropagatePermissions;
+            m_scene.Permissions.OnGenerateClientFlags += GenerateClientFlags;
+            m_scene.Permissions.OnAbandonParcel += CanAbandonParcel;
+            m_scene.Permissions.OnReclaimParcel += CanReclaimParcel;
+            m_scene.Permissions.OnDeedParcel += CanDeedParcel;
+            m_scene.Permissions.OnDeedObject += CanDeedObject;
+            m_scene.Permissions.OnIsGod += IsGod;
+            m_scene.Permissions.OnDuplicateObject += CanDuplicateObject;
+            m_scene.Permissions.OnDeleteObject += CanDeleteObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnEditObject += CanEditObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnEditParcel += CanEditParcel; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnInstantMessage += CanInstantMessage;
+            m_scene.Permissions.OnInventoryTransfer += CanInventoryTransfer; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
+            m_scene.Permissions.OnMoveObject += CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnObjectEntry += CanObjectEntry;
+            m_scene.Permissions.OnReturnObject += CanReturnObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
+            m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCompileScript += CanCompileScript;
+            m_scene.Permissions.OnSellParcel += CanSellParcel;
+            m_scene.Permissions.OnTakeObject += CanTakeObject;
+            m_scene.Permissions.OnTakeCopyObject += CanTakeCopyObject;
+            m_scene.Permissions.OnTerraformLand += CanTerraformLand;
+            m_scene.Permissions.OnLinkObject += CanLinkObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDelinkObject += CanDelinkObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnBuyLand += CanBuyLand; //NOT YET IMPLEMENTED
+
+            m_scene.Permissions.OnViewNotecard += CanViewNotecard; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnViewScript += CanViewScript; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnEditNotecard += CanEditNotecard; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnEditScript += CanEditScript; //NOT YET IMPLEMENTED
+
+            m_scene.Permissions.OnCreateObjectInventory += CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            m_scene.Permissions.OnEditObjectInventory += CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED
+            m_scene.Permissions.OnCopyObjectInventory += CanCopyObjectInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDeleteObjectInventory += CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnResetScript += CanResetScript;
+
+            m_scene.Permissions.OnCreateUserInventory += CanCreateUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnCopyUserInventory += CanCopyUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnEditUserInventory += CanEditUserInventory; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
+
+            m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnUseObjectReturn += CanUseObjectReturn; //NOT YET IMPLEMENTED
+
+            m_scene.AddCommand(this, "bypass permissions",
+                    "bypass permissions <true / false>",
+                    "Bypass permission checks",
+                    HandleBypassPermissions);
+
+            m_scene.AddCommand(this, "force permissions",
+                    "force permissions <true / false>",
+                    "Force permissions on or off",
+                    HandleForcePermissions);
+
+            m_scene.AddCommand(this, "debug permissions",
+                    "debug permissions <true / false>",
+                    "Enable permissions debugging",
+                    HandleDebugPermissions);
+        }
+
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+            m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+
+            if (m_friendsModule == null)
+                m_log.Error("[PERMISSIONS]: Friends module not found, friend permissions will not work");
+            else
+                m_log.Info("[PERMISSIONS]: Friends module found, friend permissions enabled");
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            scene.Permissions.OnBypassPermissions -= BypassPermissions;
+            scene.Permissions.OnSetBypassPermissions -= SetBypassPermissions;
+            scene.Permissions.OnPropagatePermissions -= PropagatePermissions;
+            scene.Permissions.OnGenerateClientFlags -= GenerateClientFlags;
+            scene.Permissions.OnAbandonParcel -= CanAbandonParcel;
+            scene.Permissions.OnReclaimParcel -= CanReclaimParcel;
+            scene.Permissions.OnDeedParcel -= CanDeedParcel;
+            scene.Permissions.OnDeedObject -= CanDeedObject;
+            scene.Permissions.OnIsGod -= IsGod;
+            scene.Permissions.OnDuplicateObject -= CanDuplicateObject;
+            scene.Permissions.OnDeleteObject -= CanDeleteObject; //MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnEditObject -= CanEditObject; //MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnEditParcel -= CanEditParcel; //MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnInstantMessage -= CanInstantMessage;
+            scene.Permissions.OnInventoryTransfer -= CanInventoryTransfer; //NOT YET IMPLEMENTED
+            scene.Permissions.OnIssueEstateCommand -= CanIssueEstateCommand; //FULLY IMPLEMENTED
+            scene.Permissions.OnMoveObject -= CanMoveObject; //MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnObjectEntry -= CanObjectEntry;
+            scene.Permissions.OnReturnObject -= CanReturnObject; //NOT YET IMPLEMENTED
+            scene.Permissions.OnRezObject -= CanRezObject; //MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnRunConsoleCommand -= CanRunConsoleCommand;
+            scene.Permissions.OnRunScript -= CanRunScript; //NOT YET IMPLEMENTED
+            scene.Permissions.OnCompileScript -= CanCompileScript;
+            scene.Permissions.OnSellParcel -= CanSellParcel;
+            scene.Permissions.OnTakeObject -= CanTakeObject;
+            scene.Permissions.OnTakeCopyObject -= CanTakeCopyObject;
+            scene.Permissions.OnTerraformLand -= CanTerraformLand;
+            scene.Permissions.OnLinkObject -= CanLinkObject; //NOT YET IMPLEMENTED
+            scene.Permissions.OnDelinkObject -= CanDelinkObject; //NOT YET IMPLEMENTED
+            scene.Permissions.OnBuyLand -= CanBuyLand; //NOT YET IMPLEMENTED
+
+            scene.Permissions.OnViewNotecard -= CanViewNotecard; //NOT YET IMPLEMENTED
+            scene.Permissions.OnViewScript -= CanViewScript; //NOT YET IMPLEMENTED
+            scene.Permissions.OnEditNotecard -= CanEditNotecard; //NOT YET IMPLEMENTED
+            scene.Permissions.OnEditScript -= CanEditScript; //NOT YET IMPLEMENTED
+
+            scene.Permissions.OnCreateObjectInventory -= CanCreateObjectInventory; //NOT IMPLEMENTED HERE 
+            scene.Permissions.OnEditObjectInventory -= CanEditObjectInventory;//MAYBE FULLY IMPLEMENTED
+            scene.Permissions.OnCopyObjectInventory -= CanCopyObjectInventory; //NOT YET IMPLEMENTED
+            scene.Permissions.OnDeleteObjectInventory -= CanDeleteObjectInventory; //NOT YET IMPLEMENTED
+            scene.Permissions.OnResetScript -= CanResetScript;
+
+            scene.Permissions.OnCreateUserInventory -= CanCreateUserInventory; //NOT YET IMPLEMENTED
+            scene.Permissions.OnCopyUserInventory -= CanCopyUserInventory; //NOT YET IMPLEMENTED
+            scene.Permissions.OnEditUserInventory -= CanEditUserInventory; //NOT YET IMPLEMENTED
+            scene.Permissions.OnDeleteUserInventory -= CanDeleteUserInventory; //NOT YET IMPLEMENTED
+
+            scene.Permissions.OnTeleport -= CanTeleport; //NOT YET IMPLEMENTED
+            scene.Permissions.OnUseObjectReturn -= CanUseObjectReturn; //NOT YET IMPLEMENTED
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "PermissionsModule"; }
         }
 
         public void HandleBypassPermissions(string module, string[] args)
@@ -362,31 +447,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 m_log.InfoFormat("[PERMISSIONS] Set permissions debugging to {0} in {1}", m_debugPermissions, m_scene.RegionInfo.RegionName);
             }
         }
-
-        public void PostInitialise()
-        {
-            m_friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
-
-            if (m_friendsModule == null)
-                m_log.Error("[PERMISSIONS]: Friends module not found, friend permissions will not work");
-            else
-                m_log.Info("[PERMISSIONS]: Friends module found, friend permissions enabled");
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "PermissionsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
-        }
-
         #endregion
 
         #region Helper Functions

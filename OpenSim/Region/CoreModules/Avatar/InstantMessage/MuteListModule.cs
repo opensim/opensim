@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,7 +40,8 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.MuteList
 {
-    public class MuteListModule : IRegionModule
+    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
+    public class MuteListModule : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -47,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
         private List<Scene> m_SceneList = new List<Scene>();
         private string m_RestURL = String.Empty;
 
-        public void Initialise(Scene scene, IConfigSource config)
+        public void Initialise(IConfigSource config)
         {
             if (!enabled)
                 return;
@@ -66,24 +68,41 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
                 enabled = false;
                 return;
             }
+            m_RestURL = cnf.GetString("MuteListURL", "");
+            if (m_RestURL == "")
+            {
+                m_log.Error("[MUTE LIST] Module was enabled, but no URL is given, disabling");
+                enabled = false;
+                return;
+            }
+        }
 
+        public Type ReplaceableInterface
+        {
+            get { return null; }
+        }
+
+        public void AddRegion(Scene scene)
+        {
             lock (m_SceneList)
             {
-                if (m_SceneList.Count == 0)
-                {
-                    m_RestURL = cnf.GetString("MuteListURL", "");
-                    if (m_RestURL == "")
-                    {
-                        m_log.Error("[MUTE LIST] Module was enabled, but no URL is given, disabling");
-                        enabled = false;
-                        return;
-                    }
-                }
                 if (!m_SceneList.Contains(scene))
                     m_SceneList.Add(scene);
 
                 scene.EventManager.OnNewClient += OnNewClient;
             }
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            if (m_SceneList.Contains(scene))
+                m_SceneList.Remove(scene);
+
+            scene.EventManager.OnNewClient -= OnNewClient;
         }
 
         public void PostInitialise()
@@ -102,11 +121,6 @@ namespace OpenSim.Region.CoreModules.Avatar.MuteList
             get { return "MuteListModule"; }
         }
 
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-        
         public void Close()
         {
         }
