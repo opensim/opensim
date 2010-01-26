@@ -74,7 +74,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Stop the scripts contained in all the prims in this group
         /// </summary>
-        public void RemoveScriptInstances()
+        public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
             lockPartsForRead(true);
             List<SceneObjectPart> values = new List<SceneObjectPart>(m_parts.Values);
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Framework.Scenes
             
             foreach (SceneObjectPart part in values)
             {
-                part.Inventory.RemoveScriptInstances();
+                part.Inventory.RemoveScriptInstances(sceneObjectBeingDeleted);
             }
             
         }

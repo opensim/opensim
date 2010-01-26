@@ -180,11 +180,12 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void RetrieveInstantMessages(IClientAPI client)
         {
-            if (m_RestURL != "")
-            {
-                m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
+            if (m_RestURL == String.Empty)
+                return;
 
-                List<GridInstantMessage> msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
+            m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
+
+            List<GridInstantMessage> msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
                         "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
 
             if (msglist != null)

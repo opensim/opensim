@@ -249,7 +249,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((int)InventoryType.LSL == item.InvType)
                 {
-                    RemoveScriptInstance(item.ItemID);
+                    RemoveScriptInstance(item.ItemID, sceneObjectBeingDeleted);
                     m_part.RemoveScriptEvents(item.ItemID);
                 }
             }

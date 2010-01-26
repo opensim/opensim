@@ -885,12 +885,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             instance.ClearQueue();
             instance.Stop(0);
 
-            SceneObjectPart part =
-                m_Scene.GetSceneObjectPart(localID);
-
-            if (part != null)
-                part.RemoveScriptEvents(itemID);
-
 //                bool objectRemoved = false;
 
             lock (m_PrimObjects)
@@ -923,18 +917,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             instance = null;
 
-<<<<<<< HEAD:OpenSim/Region/ScriptEngine/XEngine/XEngine.cs
             ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
             if (handlerObjectRemoved != null)
+            {
+                SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);                    
                 handlerObjectRemoved(part.UUID);
-=======
-                ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
-                if (handlerObjectRemoved != null)
-                {
-                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);                    
-                    handlerObjectRemoved(part.UUID);
-                }
->>>>>>> master:OpenSim/Region/ScriptEngine/XEngine/XEngine.cs
+            }
 
             CleanAssemblies();
             
