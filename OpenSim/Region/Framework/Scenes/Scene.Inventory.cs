@@ -256,7 +256,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (isScriptRunning)
             {
-                part.Inventory.RemoveScriptInstance(item.ItemID);
+                part.Inventory.RemoveScriptInstance(item.ItemID, false);
             }
 
             // Update item with new asset
@@ -855,8 +855,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (item.Type == 10)
                 {
+                    part.RemoveScriptEvents(itemID);
                     EventManager.TriggerRemoveScript(localID, itemID);
                 }
+                
                 group.RemoveInventoryItem(localID, itemID);
                 part.GetProperties(remoteClient);
             }

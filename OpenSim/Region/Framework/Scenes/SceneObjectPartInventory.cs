@@ -230,7 +230,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Stop all the scripts in this prim.
         /// </summary>
-        public void RemoveScriptInstances()
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if these scripts are being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        public void RemoveScriptInstances(bool sceneObjectBeingDeleted)
         {
             lock (Items)
             {
@@ -238,8 +242,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if ((int)InventoryType.LSL == item.InvType)
                     {
-                        RemoveScriptInstance(item.ItemID);
-                        m_part.RemoveScriptEvents(item.ItemID);
+                        RemoveScriptInstance(item.ItemID, sceneObjectBeingDeleted);
                     }
                 }
             }
@@ -388,10 +391,17 @@ namespace OpenSim.Region.Framework.Scenes
         /// Stop a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId"></param>
-        public void RemoveScriptInstance(UUID itemId)
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if this script is being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        public void RemoveScriptInstance(UUID itemId, bool sceneObjectBeingDeleted)
         {
             if (m_items.ContainsKey(itemId))
             {
+                if (!sceneObjectBeingDeleted)
+                    m_part.RemoveScriptEvents(itemId);
+                
                 m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemId);
                 m_part.ParentGroup.AddActiveScriptCount(-1);
             }
@@ -465,7 +475,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (i.Name == item.Name)
                 {
                     if (i.InvType == (int)InventoryType.LSL)
-                        RemoveScriptInstance(i.ItemID);
+                        RemoveScriptInstance(i.ItemID, false);
 
                     RemoveInventoryItem(i.ItemID);
                     break;
@@ -613,6 +623,7 @@ namespace OpenSim.Region.Framework.Scenes
                     int type = m_items[itemID].InvType;
                     if (type == 10) // Script
                     {
+                        m_part.RemoveScriptEvents(itemID);
                         m_part.ParentGroup.Scene.EventManager.TriggerRemoveScript(m_part.LocalId, itemID);
                     }
                     m_items.Remove(itemID);
