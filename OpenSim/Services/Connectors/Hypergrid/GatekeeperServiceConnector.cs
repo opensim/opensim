@@ -45,11 +45,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return "/foreignobject/";
         }
 
-        public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string imageURL, out string reason)
+        public bool LinkRegion(GridRegion info, out UUID regionID, out ulong realHandle, out string externalName, out string imageURL, out string reason)
         {
             regionID = UUID.Zero;
             imageURL = string.Empty;
             realHandle = 0;
+            externalName = string.Empty;
             reason = string.Empty;
 
             Hashtable hash = new Hashtable();
@@ -97,9 +98,9 @@ namespace OpenSim.Services.Connectors.Hypergrid
                         //m_log.Debug(">> HERE, realHandle: " + realHandle);
                     }
                     if (hash["region_image"] != null)
-                    {
                         imageURL = (string)hash["region_image"];
-                    }
+                    if (hash["external_name"] != null)
+                        externalName = (string)hash["external_name"];
                 }
 
             }

@@ -59,6 +59,7 @@ namespace OpenSim.Services.HypergridService
 
         UUID m_ScopeID;
         bool m_AllowTeleportsToAnyRegion;
+        string m_ExternalName;
         GridRegion m_DefaultGatewayRegion;
 
         public GatekeeperService(IConfigSource config, ISimulationService simService)
@@ -83,6 +84,7 @@ namespace OpenSim.Services.HypergridService
             UUID.TryParse(scope, out m_ScopeID);
             //m_WelcomeMessage = serverConfig.GetString("WelcomeMessage", "Welcome to OpenSim!");
             m_AllowTeleportsToAnyRegion = serverConfig.GetBoolean("AllowTeleportsToAnyRegion", true);
+            m_ExternalName = serverConfig.GetString("ExternalName", string.Empty);
 
             Object[] args = new Object[] { config };
             m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
@@ -109,10 +111,11 @@ namespace OpenSim.Services.HypergridService
         {
         }
 
-        public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string imageURL, out string reason)
+        public bool LinkRegion(string regionName, out UUID regionID, out ulong regionHandle, out string externalName, out string imageURL, out string reason)
         {
             regionID = UUID.Zero;
             regionHandle = 0;
+            externalName = m_ExternalName;
             imageURL = string.Empty;
             reason = string.Empty;
 

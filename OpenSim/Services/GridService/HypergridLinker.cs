@@ -214,8 +214,9 @@ namespace OpenSim.Services.GridService
             // Finally, link it
             ulong handle = 0;
             UUID regionID = UUID.Zero;
+            string externalName = string.Empty;
             string imageURL = string.Empty;
-            if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out imageURL, out reason))
+            if (!m_GatekeeperConnector.LinkRegion(regInfo, out regionID, out handle, out externalName, out imageURL, out reason))
                 return false;
 
             if (regionID != UUID.Zero)
@@ -229,11 +230,22 @@ namespace OpenSim.Services.GridService
                 }
 
                 regInfo.RegionID = regionID;
+                Uri uri = null;
+                try
+                {
+                    uri = new Uri(externalName);
+                    regInfo.ExternalHostName = uri.Host;
+                    regInfo.HttpPort = (uint)uri.Port;
+                }
+                catch 
+                {
+                    m_log.WarnFormat("[HYPERGRID LINKER]: Remote Gatekeeper at {0} provided malformed ExternalName {1}", regInfo.ExternalHostName, externalName);
+                }
                 regInfo.RegionName = regInfo.ExternalHostName + ":" + regInfo.HttpPort + ":" + regInfo.RegionName;
                 // Try get the map image
-                regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
+                //regInfo.TerrainImage = m_GatekeeperConnector.GetMapImage(regionID, imageURL);
                 // I need a texture that works for this... the one I tried doesn't seem to be working
-                //regInfo.TerrainImage = m_HGMapImage;
+                regInfo.TerrainImage = m_HGMapImage;
 
                 AddHyperlinkRegion(regInfo, handle);
                 m_log.Info("[HYPERGRID LINKER]: Successfully linked to region_uuid " + regInfo.RegionID);

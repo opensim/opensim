@@ -63,17 +63,19 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string name = (string)requestData["region_name"];
 
             UUID regionID = UUID.Zero;
+            string externalName = string.Empty;
             string imageURL = string.Empty;
             ulong regionHandle = 0;
             string reason = string.Empty;
 
-            bool success = m_GatekeeperService.LinkRegion(name, out regionID, out regionHandle, out imageURL, out reason);
+            bool success = m_GatekeeperService.LinkRegion(name, out regionID, out regionHandle, out externalName, out imageURL, out reason);
 
             Hashtable hash = new Hashtable();
             hash["result"] = success.ToString();
             hash["uuid"] = regionID.ToString();
             hash["handle"] = regionHandle.ToString();
             hash["region_image"] = imageURL;
+            hash["external_name"] = externalName;
 
             XmlRpcResponse response = new XmlRpcResponse();
             response.Value = hash;

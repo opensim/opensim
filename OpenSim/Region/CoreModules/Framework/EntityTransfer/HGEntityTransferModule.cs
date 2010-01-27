@@ -157,6 +157,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (security != null)
                     security.SetEndPoint(sp.ControllingClient.SessionId, sp.ControllingClient.RemoteEndPoint);
 
+                //string token = sp.Scene.AuthenticationService.MakeToken(sp.UUID, reg.ExternalHostName + ":" + reg.HttpPort, 30);
                 // Log them out of this grid
                 sp.Scene.PresenceService.LogoutAgent(agentCircuit.SessionID, sp.AbsolutePosition, sp.Lookat);
 
