@@ -10,7 +10,7 @@ Steps:
  * run OpenSim.exe
 
 === Building on Linux ===
- 
+
 Prereqs:
  * Mono >= 2.4.2
  * Nant >= 0.85
