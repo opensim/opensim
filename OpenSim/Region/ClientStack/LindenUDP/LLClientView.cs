@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LayerDataPacket layerpack = TerrainCompressor.CreateLandPacket(heightmap, patches);
                 layerpack.Header.Reliable = true;
 
-                OutPacket(layerpack, ThrottleOutPacketType.Land);
+                OutPacket(layerpack, ThrottleOutPacketType.Task);
             }
             catch (Exception e)
             {
