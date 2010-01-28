@@ -87,7 +87,7 @@ using OpenSim.Region.Framework.Scenes;
 namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 {
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class WorldCommModule : INonSharedRegionModule, IWorldComm
+    public class WorldCommModule : ISharedRegionModule, IWorldComm
     {
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -125,6 +125,10 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
+        }
+
+        public void PostInitialise()
+        {
         }
 
         public void AddRegion(Scene scene)
