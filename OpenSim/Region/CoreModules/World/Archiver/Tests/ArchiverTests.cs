@@ -237,6 +237,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
 
             // Let's put some inventory items into our object
+            string soundItemName = "sound-item1";
             UUID soundItemUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
             Type type = GetType();
             Assembly assembly = type.Assembly;
@@ -269,7 +270,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                     asset1FileName = ArchiveConstants.ASSETS_PATH + soundUuid + ".wav";
                     */
                     
-                    TaskInventoryItem item1 = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid };
+                    TaskInventoryItem item1 
+                        = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid, Name = soundItemName };
                     part1.Inventory.AddInventoryItem(item1, true);
                 }
             }            
@@ -305,14 +307,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Assert.That(
                 object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
 
-            // Need to implement a method to get the task inventory item by name (since the uuid will have changed on load)
-            /*
-            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItem(soundItemUuid);
+            TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
             Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
             AssetBase loadedSoundAsset = scene.AssetService.Get(loadedSoundItem.AssetID.ToString());
             Assert.That(loadedSoundAsset, Is.Not.Null, "loaded sound asset was null");
             Assert.That(loadedSoundAsset.Data, Is.EqualTo(soundData), "saved and loaded sound data do not match");
-            */
 
             // Temporary
             Console.WriteLine("Successfully completed {0}", MethodBase.GetCurrentMethod());

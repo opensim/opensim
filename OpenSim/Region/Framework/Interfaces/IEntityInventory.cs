@@ -71,7 +71,8 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Start all the scripts contained in this entity's inventory
         /// </summary>
-       void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
+        void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
+        
         ArrayList GetScriptErrors(UUID itemID);
 
         /// <summary>
@@ -141,6 +142,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
         TaskInventoryItem GetInventoryItem(UUID itemId);
+
+        /// <summary>
+        /// Get inventory items by name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>
+        /// A list of inventory items with that name.
+        /// If no inventory item has that name then an empty list is returned.
+        /// </returns>        
+        IList<TaskInventoryItem> GetInventoryItems(string name);
 
         /// <summary>
         /// Update an existing inventory item.
