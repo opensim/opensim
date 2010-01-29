@@ -3885,6 +3885,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 m_propertiesPacketTimer.Stop();
 
+                if (m_propertiesBlocks.Count == 0)
+                    return;
+
                 proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[m_propertiesBlocks.Count];
 
                 int index = 0;
