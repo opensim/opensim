@@ -120,20 +120,6 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             if (maxlisteners < 1) maxlisteners = int.MaxValue;
             if (maxhandles < 1) maxhandles = int.MaxValue;
 
-<<<<<<< HEAD:OpenSim/Region/CoreModules/Scripting/WorldComm/WorldCommModule.cs
-            m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
-            m_pendingQ = new Queue();
-            m_pending = Queue.Synchronized(m_pendingQ);
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-=======
->>>>>>> ec3c31e... Updates all IRegionModules to the new style region modules.:OpenSim/Region/CoreModules/Scripting/WorldComm/WorldCommModule.cs
             m_scene = scene;
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
