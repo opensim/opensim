@@ -225,18 +225,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SceneObjectPart part1 = CreateSceneObjectPart1();
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
 
-//            string part1Name = "object1";
-//            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
-//            Vector3 groupPosition = new Vector3(90, 80, 70);
-//            Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
-//            Vector3 offsetPosition = new Vector3(20, 25, 30);
-//
-//            SceneObjectPart part1
-//                = new SceneObjectPart(
-//                    UUID.Zero, shape, groupPosition, rotationOffset, offsetPosition);
-//            part1.Name = part1Name;
-//            SceneObjectGroup object1 = new SceneObjectGroup(part1);
-
             // Let's put some inventory items into our object
             string soundItemName = "sound-item1";
             UUID soundItemUuid = UUID.Parse("00000000-0000-0000-0000-000000000002");
@@ -429,16 +417,23 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             // Create an oar file that we can use for the merge
             {
+                ArchiverModule archiverModule = new ArchiverModule();
+                SerialiserModule serialiserModule = new SerialiserModule();
+                TerrainModule terrainModule = new TerrainModule();
+
+                Scene scene = SceneSetupHelpers.SetupScene();
+                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
+                
                 SceneObjectPart part2
                     = new SceneObjectPart(
                         UUID.Zero, part2Shape, part2GroupPosition, part2RotationOffset, part2OffsetPosition);
                 part2.Name = part2Name;
                 SceneObjectGroup object2 = new SceneObjectGroup(part2);
 
-                m_scene.AddNewSceneObject(object2, false);
+                scene.AddNewSceneObject(object2, false);
 
                 // Write out this scene
-                m_scene.EventManager.OnOarFileSaved += SaveCompleted;
+                scene.EventManager.OnOarFileSaved += SaveCompleted;
 
                 lock (this)
                 {
@@ -448,13 +443,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
 
             {
-                ArchiverModule archiverModule = new ArchiverModule();
-                SerialiserModule serialiserModule = new SerialiserModule();
-                TerrainModule terrainModule = new TerrainModule();
-
-                Scene scene = SceneSetupHelpers.SetupScene();
-                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
-
                 string part1Name = "objectExisting";
                 PrimitiveBaseShape part1Shape = PrimitiveBaseShape.CreateCylinder();
                 Vector3 part1GroupPosition = new Vector3(80, 70, 60);
@@ -467,20 +455,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 part1.Name = part1Name;
                 SceneObjectGroup object1 = new SceneObjectGroup(part1);
 
-                scene.AddNewSceneObject(object1, false);
+                m_scene.AddNewSceneObject(object1, false);
 
                 // Merge in the archive we created earlier
                 byte[] archive = archiveWriteStream.ToArray();
                 MemoryStream archiveReadStream = new MemoryStream(archive);
 
-                archiverModule.DearchiveRegion(archiveReadStream, true, Guid.Empty);
+                m_archiverModule.DearchiveRegion(archiveReadStream, true, Guid.Empty);
 
-                SceneObjectPart object1Existing = scene.GetSceneObjectPart(part1Name);
+                SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
                 Assert.That(object1Existing.Name, Is.EqualTo(part1Name), "object1 names not identical after merge");
                 Assert.That(object1Existing.GroupPosition, Is.EqualTo(part1GroupPosition), "object1 group position not equal after merge");
 
-                SceneObjectPart object2PartMerged = scene.GetSceneObjectPart(part2Name);
+                SceneObjectPart object2PartMerged = m_scene.GetSceneObjectPart(part2Name);
                 Assert.That(object2PartMerged, Is.Not.Null, "object2 was not present after merge");
                 Assert.That(object2PartMerged.Name, Is.EqualTo(part2Name), "object2 names not identical after merge");
                 Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2GroupPosition), "object2 group position not equal after merge");
