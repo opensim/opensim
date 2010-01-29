@@ -75,6 +75,11 @@ namespace OpenSim.Framework
         public uint circuitcode;
 
         /// <summary>
+        /// How this agent got here
+        /// </summary>
+        public uint teleportFlags;
+
+        /// <summary>
         /// Agent's account first name
         /// </summary>
         public string firstname;

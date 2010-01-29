@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
+using OpenSim.Services.Connectors.Hypergrid;
 
 using OpenMetaverse;
 
@@ -50,9 +51,8 @@ namespace OpenSim.Services.HypergridService
 
         IGridService m_GridService;
         IPresenceService m_PresenceService;
-        IAuthenticationService m_AuthenticationService;
         IUserAccountService m_UserAccountService;
-        IHomeUsersSecurityService m_HomeUsersSecurityService;
+        IUserAgentService m_UserAgentService;
         ISimulationService m_SimulationService;
 
         string m_AuthDll;
@@ -69,12 +69,12 @@ namespace OpenSim.Services.HypergridService
                 throw new Exception(String.Format("No section GatekeeperService in config file"));
 
             string accountService = serverConfig.GetString("UserAccountService", String.Empty);
-            string homeUsersSecurityService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
+            string homeUsersService = serverConfig.GetString("HomeUsersSecurityService", string.Empty);
             string gridService = serverConfig.GetString("GridService", String.Empty);
             string presenceService = serverConfig.GetString("PresenceService", String.Empty);
             string simulationService = serverConfig.GetString("SimulationService", String.Empty);
 
-            m_AuthDll = serverConfig.GetString("AuthenticationService", String.Empty);
+            //m_AuthDll = serverConfig.GetString("AuthenticationService", String.Empty);
 
             // These 3 are mandatory, the others aren't
             if (gridService == string.Empty || presenceService == string.Empty || m_AuthDll == string.Empty)
@@ -92,8 +92,8 @@ namespace OpenSim.Services.HypergridService
 
             if (accountService != string.Empty)
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(accountService, args);
-            if (homeUsersSecurityService != string.Empty)
-                m_HomeUsersSecurityService = ServerUtils.LoadPlugin<IHomeUsersSecurityService>(homeUsersSecurityService, args);
+            if (homeUsersService != string.Empty)
+                m_UserAgentService = ServerUtils.LoadPlugin<IUserAgentService>(homeUsersService, args);
 
             if (simService != null)
                 m_SimulationService = simService;
@@ -206,13 +206,12 @@ namespace OpenSim.Services.HypergridService
                 account = m_UserAccountService.GetUserAccount(m_ScopeID, aCircuit.AgentID);
                 if (account != null)
                 {
-                    // Make sure this is the user coming home, and not a fake
-                    if (m_HomeUsersSecurityService != null)
+                    // Make sure this is the user coming home, and not a foreign user with same UUID as a local user
+                    if (m_UserAgentService != null)
                     {
-                        Object ep = m_HomeUsersSecurityService.GetEndPoint(aCircuit.SessionID);
-                        if (ep == null)
+                        if (!m_UserAgentService.AgentIsComingHome(aCircuit.SessionID, m_ExternalName))
                         {
-                            // This is a fake, this session never left this grid
+                            // Can't do, sorry
                             reason = "Unauthorized";
                             m_log.InfoFormat("[GATEKEEPER SERVICE]: Foreign agent {0} {1} has same ID as local user. Refusing service.",
                                 aCircuit.firstname, aCircuit.lastname);
@@ -266,32 +265,35 @@ namespace OpenSim.Services.HypergridService
             //
             // Finally launch the agent at the destination
             //
-            return m_SimulationService.CreateAgent(destination, aCircuit, 0, out reason);
+            return m_SimulationService.CreateAgent(destination, aCircuit, (uint)Constants.TeleportFlags.ViaLogin, out reason);
         }
 
         protected bool Authenticate(AgentCircuitData aCircuit)
         {
-            string authURL = string.Empty;
-            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
-                authURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+            if (!CheckAddress(aCircuit.ServiceSessionID))
+                return false;
 
-            if (authURL == string.Empty)
+            string userURL = string.Empty;
+            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                userURL = aCircuit.ServiceURLs["HomeURI"].ToString();
+
+            if (userURL == string.Empty)
             {
                 m_log.DebugFormat("[GATEKEEPER SERVICE]: Agent did not provide an authentication server URL");
                 return false;
             }
 
-            Object[] args = new Object[] { authURL };
-            IAuthenticationService authService = ServerUtils.LoadPlugin<IAuthenticationService>(m_AuthDll, args);
-            if (authService != null)
+            Object[] args = new Object[] { userURL };
+            IUserAgentService userAgentService = new UserAgentServiceConnector(userURL); //ServerUtils.LoadPlugin<IUserAgentService>(m_AuthDll, args);
+            if (userAgentService != null)
             {
                 try
                 {
-                    return authService.Verify(aCircuit.AgentID, aCircuit.SecureSessionID.ToString(), 30);
+                    return userAgentService.VerifyAgent(aCircuit.SessionID, aCircuit.ServiceSessionID);
                 }
                 catch
                 {
-                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", authURL);
+                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to contact authentication service at {0}", userURL);
                     return false;
                 }
             }
@@ -299,35 +301,20 @@ namespace OpenSim.Services.HypergridService
             return false;
         }
 
+        // Check that the service token was generated for *this* grid.
+        // If it wasn't then that's a fake agent.
+        protected bool CheckAddress(string serviceToken)
+        {
+            string[] parts = serviceToken.Split(new char[] { ';' });
+            if (parts.Length < 2)
+                return false;
+
+            string addressee = parts[0];
+            return (addressee == m_ExternalName);
+        }
+
         #endregion
 
-        public GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt)
-        {
-            position = new Vector3(128, 128, 0); lookAt = Vector3.UnitY;
-
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to get home region of user {0}", userID);
-
-            GridRegion home = null;
-            PresenceInfo[] presences = m_PresenceService.GetAgents(new string[] { userID.ToString() });
-            if (presences != null && presences.Length > 0)
-            {
-                UUID homeID = presences[0].HomeRegionID;
-                if (homeID != UUID.Zero)
-                {
-                    home = m_GridService.GetRegionByUUID(m_ScopeID, homeID);
-                    position = presences[0].HomePosition;
-                    lookAt = presences[0].HomeLookAt;
-                }
-                if (home == null)
-                {
-                    List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
-                    if (defs != null && defs.Count > 0)
-                        home = defs[0];
-                }
-            }
-
-            return home;
-        }
 
         #region Misc
 

@@ -2416,6 +2416,37 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 AgentCircuitData aCircuit = m_authenticateHandler.GetAgentCircuitData(client.CircuitCode);
 
+                // Do the verification here
+                System.Net.EndPoint ep = client.GetClientEP();
+                if (aCircuit != null)
+                {
+                    if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
+                    {
+                        m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
+                        if (userVerification != null)
+                        {
+                            if (!userVerification.VerifyClient(aCircuit, ep.ToString()))
+                            {
+                                // uh-oh, this is fishy
+                                m_log.WarnFormat("[Scene]: Agent {0} with session {1} connecting with unidentified end point {2}. Refusing service.",
+                                    client.AgentId, client.SessionId, ep.ToString());
+                                try
+                                {
+                                    client.Close();
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.DebugFormat("[Scene]: Exception while closing aborted client: {0}", e.StackTrace);
+                                }
+                                return;
+                            }
+                            else
+                                m_log.DebugFormat("[Scene]: User Client Verification for {0} {1} returned true", aCircuit.firstname, aCircuit.lastname);
+                        }
+                    }
+                }
+
                 m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
                 /*
                 string logMsg = string.Format("[SCENE]: Adding new {0} agent for {1} in {2}",
@@ -2426,7 +2457,6 @@ namespace OpenSim.Region.Framework.Scenes
                 */
 
                 //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
-
                 ScenePresence sp = CreateAndAddScenePresence(client);
                 sp.Appearance = aCircuit.Appearance;
 
@@ -3243,6 +3273,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
+            agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
             return true;

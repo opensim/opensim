@@ -104,21 +104,7 @@ namespace OpenSim.Services.Connectors.Simulation
             //AgentCreateRequest.Headers.Add("Authorization", authKey);
 
             // Fill it in
-            OSDMap args = null;
-            try
-            {
-                args = aCircuit.PackAgentCircuitData();
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
-            }
-            // Add the input arguments
-            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
-            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
-            args["destination_name"] = OSD.FromString(destination.RegionName);
-            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
-            args["teleport_flags"] = OSD.FromString(flags.ToString());
+            OSDMap args = PackCreateAgentArguments(aCircuit, destination, flags);
 
             string strBuffer = "";
             byte[] buffer = new byte[1];
@@ -212,6 +198,27 @@ namespace OpenSim.Services.Connectors.Simulation
             }
 
             return true;
+        }
+
+        protected virtual OSDMap PackCreateAgentArguments(AgentCircuitData aCircuit, GridRegion destination, uint flags)
+        {
+            OSDMap args = null;
+            try
+            {
+                args = aCircuit.PackAgentCircuitData();
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[REMOTE SIMULATION CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
+            }
+            // Add the input arguments
+            args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
+            args["destination_y"] = OSD.FromString(destination.RegionLocY.ToString());
+            args["destination_name"] = OSD.FromString(destination.RegionName);
+            args["destination_uuid"] = OSD.FromString(destination.RegionID.ToString());
+            args["teleport_flags"] = OSD.FromString(flags.ToString());
+
+            return args;
         }
 
         public bool UpdateAgent(GridRegion destination, AgentData data)

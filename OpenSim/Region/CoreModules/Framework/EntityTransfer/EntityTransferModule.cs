@@ -237,9 +237,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected void DoTeleport(ScenePresence sp, GridRegion reg, GridRegion finalDestination, Vector3 position, Vector3 lookAt, uint teleportFlags, IEventQueue eq)
         {
+            if (reg == null || finalDestination == null)
+            {
+                sp.ControllingClient.SendTeleportFailed("Unable to locate destination");
+                return;
+            }
+
             m_log.DebugFormat(
-                "[ENTITY TRANSFER MODULE]: Request Teleport to {0}:{1}:{2}/{3} final destination {4}",
-                reg.ExternalHostName, reg.HttpPort, reg.RegionName, position, finalDestination.RegionName);
+                "[ENTITY TRANSFER MODULE]: Request Teleport to {0}:{1}:{2}/{3}",
+                reg.ExternalHostName, reg.HttpPort, finalDestination.RegionName, position);
 
             uint newRegionX = (uint)(reg.RegionHandle >> 40);
             uint newRegionY = (((uint)(reg.RegionHandle)) >> 8);

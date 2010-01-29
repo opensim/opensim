@@ -52,4 +52,9 @@ namespace OpenSim.Region.Framework.Interfaces
 
         void Cross(SceneObjectGroup sog, Vector3 position, bool silent);
     }
+
+    public interface IUserAgentVerificationModule
+    {
+        bool VerifyClient(AgentCircuitData aCircuit, string token);
+    }
 }

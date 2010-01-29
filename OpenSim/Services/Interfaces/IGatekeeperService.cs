@@ -41,17 +41,19 @@ namespace OpenSim.Services.Interfaces
 
         bool LoginAgent(AgentCircuitData aCircuit, GridRegion destination, out string reason);
 
-        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
-
     }
 
     /// <summary>
     /// HG1.5 only
     /// </summary>
-    public interface IHomeUsersSecurityService
+    public interface IUserAgentService
     {
-        void SetEndPoint(UUID sessionID, IPEndPoint ep);
-        IPEndPoint GetEndPoint(UUID sessionID);
-        void RemoveEndPoint(UUID sessionID);
+        bool LoginAgentToGrid(AgentCircuitData agent, GridRegion gatekeeper, GridRegion finalDestination, out string reason);
+        void LogoutAgent(UUID userID, UUID sessionID);
+        GridRegion GetHomeRegion(UUID userID, out Vector3 position, out Vector3 lookAt);
+
+        bool AgentIsComingHome(UUID sessionID, string thisGridExternalName);
+        bool VerifyAgent(UUID sessionID, string token);
+        bool VerifyClient(UUID sessionID, string token);
     }
 }
