@@ -76,7 +76,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                     foreach (EntityBase e in m_presence.Scene.Entities)
                     {
-                        if (e is SceneObjectGroup)
+                        if (e != null && e is SceneObjectGroup)
                             m_pendingObjects.Enqueue((SceneObjectGroup)e);
                     }
                 }
