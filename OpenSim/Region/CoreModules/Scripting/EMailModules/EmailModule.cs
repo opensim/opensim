@@ -32,7 +32,6 @@ using System.Text.RegularExpressions;
 using DotNetOpenMail;
 using DotNetOpenMail.SmtpAuth;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -41,7 +40,6 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class EmailModule : IEmailModule
     {
         //
@@ -96,7 +94,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             }
         }
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             m_Config = config;
             IConfig SMTPConfig;
@@ -138,16 +136,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 m_Enabled = false;
                 return;
             }
-                m_log.Info("[EMAIL] Activated DefaultEmailModule");
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
             // It's a go!
             if (m_Enabled)
             {
@@ -166,20 +155,8 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                         m_Scenes.Add(scene.RegionInfo.RegionHandle, scene);
                     }
                 }
-            }
-        }
 
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<IEmailModule>(this);
-
-            if (m_Scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-            {
-                m_Scenes.Remove(scene.RegionInfo.RegionHandle);
+                m_log.Info("[EMAIL] Activated DefaultEmailModule");
             }
         }
 
@@ -194,6 +171,11 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         public string Name
         {
             get { return "DefaultEmailModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         /// <summary>

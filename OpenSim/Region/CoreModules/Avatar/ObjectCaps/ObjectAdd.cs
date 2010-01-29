@@ -29,7 +29,6 @@ using System;
 using System.Collections;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -42,52 +41,22 @@ using Caps=OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class ObjectAdd : ISharedRegionModule
+    public class ObjectAdd : IRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource pSource)
+        public void Initialise(Scene pScene, IConfigSource pSource)
         {
-            
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            m_scene = scene;
+            m_scene = pScene;
             m_scene.EventManager.OnRegisterCaps += RegisterCaps;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.EventManager.OnRegisterCaps -= RegisterCaps;
         }
 
         public void PostInitialise()
         {
             
-        }
-
-        public void Close()
-        {
-
-        }
-
-        public string Name
-        {
-            get { return "ObjectAddModule"; }
         }
 
         public void RegisterCaps(UUID agentID, Caps caps)
@@ -379,6 +348,22 @@ namespace OpenSim.Region.CoreModules.Avatar.ObjectCaps
                 Array.Reverse(resultbytes);
             return String.Format("<binary encoding=\"base64\">{0}</binary>",Convert.ToBase64String(resultbytes));
         }
+
+        public void Close()
+        {
+            
+        }
+
+        public string Name
+        {
+            get { return "ObjectAddModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

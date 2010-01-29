@@ -100,10 +100,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             if (!m_enabled)
                 return;
 
-            scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
-            scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
+            m_scene.EventManager.OnEmptyScriptCompileQueue -= OnEmptyScriptCompileQueue;
+            m_scene.EventManager.OnOarFileLoaded -= OnOarFileLoaded;
 
-            scene = null;
+            m_scene = null;
         }
 
         public void Close()

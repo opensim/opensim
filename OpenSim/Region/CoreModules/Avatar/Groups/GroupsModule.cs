@@ -25,11 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,8 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Groups
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class GroupsModule : ISharedRegionModule
+    public class GroupsModule : IRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -58,9 +55,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         private static GroupMembershipData osGroup =
                 new GroupMembershipData();
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig groupsConfig = config.Configs["Groups"];
 
@@ -79,15 +76,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
                 if (groupsConfig.GetString("Module", "Default") != "Default")
                     return;
             }
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
             lock (m_SceneList)
             {
                 if (!m_SceneList.Contains(scene))
@@ -108,19 +97,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_SceneList.Contains(scene))
-                m_SceneList.Remove(scene);
-            scene.EventManager.OnNewClient -= OnNewClient;
-            scene.EventManager.OnClientClosed -= OnClientClosed;
-            scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
         }
 
         public void PostInitialise()
@@ -145,6 +121,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
         public string Name
         {
             get { return "GroupsModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

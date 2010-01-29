@@ -24,12 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,8 +36,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class InstantMessageModule : ISharedRegionModule
+    public class InstantMessageModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -51,11 +47,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         
         private readonly List<Scene> m_scenes = new List<Scene>();
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
         private IMessageTransferModule m_TransferModule = null;
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (config.Configs["Messaging"] != null)
             {
@@ -66,15 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
             
             m_enabled = true;
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
             lock (m_scenes)
             {
                 if (!m_scenes.Contains(scene))
@@ -84,27 +72,6 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
                 }
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (!m_enabled)
-                return;
-
-            m_TransferModule =
-                m_scenes[0].RequestModuleInterface<IMessageTransferModule>();
-
-            if (m_TransferModule == null)
-                m_log.Error("[INSTANT MESSAGE]: No message transfer module, " +
-                "IM will not work!");
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_scenes.Contains(scene))
-                m_scenes.Remove(scene);
-            scene.EventManager.OnClientConnect -= OnClientConnect;
-            scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
         }
 
         void OnClientConnect(IClientCore client)
@@ -118,6 +85,15 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void PostInitialise()
         {
+            if (!m_enabled)
+                return;
+            
+            m_TransferModule =
+                m_scenes[0].RequestModuleInterface<IMessageTransferModule>();
+
+            if (m_TransferModule == null)
+                m_log.Error("[INSTANT MESSAGE]: No message transfer module, "+
+                "IM will not work!");
         }
 
         public void Close()
@@ -127,6 +103,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public string Name
         {
             get { return "InstantMessageModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

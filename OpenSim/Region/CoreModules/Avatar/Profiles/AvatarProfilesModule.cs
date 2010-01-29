@@ -30,7 +30,6 @@ using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,17 +38,20 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Profiles
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class AvatarProfilesModule : INonSharedRegionModule
+    public class AvatarProfilesModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
         private IProfileModule m_profileModule = null;
         private bool m_enabled = true;
 
-        #region INonSharedRegionModule Members
+        public AvatarProfilesModule()
+        {
+        }
 
-        public void Initialise(IConfigSource config)
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig profileConfig = config.Configs["Profile"];
             if (profileConfig != null)
@@ -60,29 +62,16 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
                     return;
                 }
             }
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
             m_scene = scene;
             m_scene.EventManager.OnNewClient += NewClient;
         }
 
-        public void RegionLoaded(Scene scene)
+        public void PostInitialise()
         {
             if (!m_enabled)
                 return;
             m_profileModule = m_scene.RequestModuleInterface<IProfileModule>();
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.EventManager.OnNewClient -= NewClient;
         }
 
         public void Close()
@@ -92,6 +81,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Profiles
         public string Name
         {
             get { return "AvatarProfilesModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
         }
 
         #endregion

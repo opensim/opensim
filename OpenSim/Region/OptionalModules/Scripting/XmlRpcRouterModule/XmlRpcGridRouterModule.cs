@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 
@@ -50,8 +49,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
         public string uri;
     }
 
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class XmlRpcGridRouter : INonSharedRegionModule, IXmlRpcRouter
+    public class XmlRpcGridRouter : IRegionModule, IXmlRpcRouter
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -61,7 +59,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
         private bool m_Enabled = false;
         private string m_ServerURI = String.Empty;
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             IConfig startupConfig = config.Configs["Startup"];
             if (startupConfig == null)
@@ -77,26 +75,13 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
                     return;
                 }
 
+                scene.RegisterModuleInterface<IXmlRpcRouter>(this);
                 m_Enabled = true;
             }
         }
 
-        public void AddRegion(Scene scene)
+        public void PostInitialise()
         {
-            scene.RegisterModuleInterface<IXmlRpcRouter>(this);
-        }
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<IXmlRpcRouter>(this);
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
         }
 
         public void Close()
@@ -106,6 +91,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
         public string Name
         {
             get { return "XmlRpcGridRouterModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
         }
 
         public void RegisterNewReceiver(IScriptModule scriptEngine, UUID channel, UUID objectID, UUID itemID, string uri)

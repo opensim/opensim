@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IEstateModule : INonSharedRegionModule
+    public interface IEstateModule : IRegionModule
     {
         uint GetRegionFlags();
         bool IsManager(UUID avatarID);

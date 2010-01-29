@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -42,8 +41,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.TextureDownload
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class TextureDownloadModule : INonSharedRegionModule
+    public class TextureDownloadModule : IRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -67,14 +65,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         {
         }
 
-        #region INonSharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
-        }
-
-        public void AddRegion(Scene scene)
-        {
+            
             if (m_scene == null)
             {
                 //m_log.Debug("Creating Texture download module");
@@ -95,21 +90,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
             }
         }
 
-        public Type ReplaceableInterface
+        public void PostInitialise()
         {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if(m_scenes.Contains(scene))
-                m_scenes.Remove(scene);
-            scene.EventManager.OnNewClient -= NewClient;
-            scene.EventManager.OnRemovePresence -= EventManager_OnRemovePresence;
         }
 
         public void Close()
@@ -119,6 +101,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
         public string Name
         {
             get { return "TextureDownloadModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
         }
 
         #endregion

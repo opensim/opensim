@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Grid
         bool m_Registered = false;
         HypergridServiceInConnector m_HypergridHandler;
 
-        #region ISharedRegionModule interface
+        #region IRegionModule interface
 
         public void Initialise(IConfigSource config)
         {

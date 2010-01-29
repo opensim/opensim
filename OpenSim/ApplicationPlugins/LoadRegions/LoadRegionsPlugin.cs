@@ -99,7 +99,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             regionLoader.SetIniConfigSource(m_openSim.ConfigSource.Source);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
-            /*m_log.Info("[LOADREGIONSPLUGIN]: Loading specific shared modules...");
+            m_log.Info("[LOADREGIONSPLUGIN]: Loading specific shared modules...");
             m_log.Info("[LOADREGIONSPLUGIN]: DynamicTextureModule...");
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
             m_log.Info("[LOADREGIONSPLUGIN]: InstantMessageModule...");
@@ -111,7 +111,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_log.Info("[LOADREGIONSPLUGIN]: AssetTransactionModule...");
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new AssetTransactionModule());
             m_log.Info("[LOADREGIONSPLUGIN]: Done.");
-            */
+
             if (!CheckRegionsForSanity(regionsToLoad))
             {
                 m_log.Error("[LOADREGIONS]: Halting startup due to conflicts in region configurations");

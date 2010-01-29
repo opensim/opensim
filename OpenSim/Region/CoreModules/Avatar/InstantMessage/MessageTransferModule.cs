@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -41,8 +40,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class MessageTransferModule : ISharedRegionModule, IMessageTransferModule
+    public class MessageTransferModule : IRegionModule, IMessageTransferModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -52,9 +50,8 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         protected Dictionary<UUID, ulong> m_UserRegionMap = new Dictionary<UUID, ulong>();
 
         public event UndeliveredMessage OnUndeliveredMessage;
-        private bool m_enabled = true;
 
-        public virtual void Initialise(IConfigSource config)
+        public virtual void Initialise(Scene scene, IConfigSource config)
         {
             IConfig cnf = config.Configs["Messaging"];
             if (cnf != null && cnf.GetString(
@@ -62,49 +59,27 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                     "MessageTransferModule")
             {
                 m_log.Debug("[MESSAGE TRANSFER]: Disabled by configuration");
-                m_enabled = false;
+                return;
             }
 
             cnf = config.Configs["Startup"];
             if (cnf != null)
                 m_Gridmode = cnf.GetBoolean("gridmode", false);
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
+            // m_Enabled = true;
 
-        public void AddRegion(Scene scene)
-        {
-            if (m_enabled)
+            lock (m_Scenes)
             {
-                lock (m_Scenes)
+                if (m_Scenes.Count == 0)
                 {
-                    if (m_Scenes.Count == 0)
-                    {
-                        MainServer.Instance.AddXmlRPCHandler(
-                            "grid_instant_message", processXMLRPCGridInstantMessage);
-                    }
-
-                    m_log.Debug("[MESSAGE TRANSFER]: Message transfer module active");
-                    scene.RegisterModuleInterface<IMessageTransferModule>(this);
-                    m_Scenes.Add(scene);
+                    MainServer.Instance.AddXmlRPCHandler(
+                        "grid_instant_message", processXMLRPCGridInstantMessage);
                 }
+
+                m_log.Debug("[MESSAGE TRANSFER]: Message transfer module active");
+                scene.RegisterModuleInterface<IMessageTransferModule>(this);
+                m_Scenes.Add(scene);
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_Scenes.Contains(scene))
-                m_Scenes.Remove(scene);
-            MainServer.Instance.RemoveXmlRPCHandler(
-                            "grid_instant_message");
-            scene.UnregisterModuleInterface<IMessageTransferModule>(this);
         }
 
         public virtual void PostInitialise()
@@ -118,6 +93,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public virtual string Name
         {
             get { return "MessageTransferModule"; }
+        }
+
+        public virtual bool IsSharedModule
+        {
+            get { return true; }
         }
 
         public virtual void SendInstantMessage(GridInstantMessage im, MessageResultNotification result)

@@ -31,7 +31,6 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
@@ -44,8 +43,7 @@ using System.Reflection;
 
 namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class VectorRenderModule : ISharedRegionModule, IDynamicTextureRender
+    public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -112,10 +110,15 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 
         #endregion
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
+            if (m_scene == null)
+            {
+                m_scene = scene;
+            }
+
             if (m_graph == null)
             {
                 Bitmap bitmap = new Bitmap(1024, 1024, PixelFormat.Format32bppArgb);
@@ -130,34 +133,13 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             m_log.DebugFormat("[VECTORRENDERMODULE]: using font \"{0}\" for text rendering.", m_fontName);
         }
 
-        public void AddRegion(Scene scene)
-        {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
+        public void PostInitialise()
         {
             m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
             if (m_textureManager != null)
             {
                 m_textureManager.RegisterRender(GetContentType(), this);
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void PostInitialise()
-        {
         }
 
         public void Close()
@@ -167,6 +149,11 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         public string Name
         {
             get { return m_name; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

@@ -28,7 +28,7 @@
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface ICloudModule : INonSharedRegionModule
+    public interface ICloudModule : IRegionModule
     {
         /// <summary>
         /// Retrieves the cloud density at the given region coordinates

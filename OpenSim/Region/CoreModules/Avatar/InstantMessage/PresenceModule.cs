@@ -24,14 +24,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -42,8 +39,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class PresenceModule : ISharedRegionModule, IPresenceModule
+    public class PresenceModule : IRegionModule, IPresenceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -63,7 +59,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public event PresenceChange OnPresenceChange;
         public event BulkPresenceData OnBulkPresenceData;
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             lock (m_Scenes)
             {
@@ -82,38 +78,28 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         m_Gridmode = cnf.GetBoolean("gridmode", false);
 
                     m_Enabled = true;
+
+                    m_initialScene = scene;
                 }
-            }
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (m_Enabled)
-            {
-                m_initialScene = scene;
                 if (m_Gridmode)
                     NotifyMessageServerOfStartup(scene);
 
                 m_Scenes.Add(scene);
-
-                scene.RegisterModuleInterface<IPresenceModule>(this);
-
-                scene.EventManager.OnNewClient += OnNewClient;
-                scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
-                scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
             }
+
+            scene.RegisterModuleInterface<IPresenceModule>(this);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnSetRootAgentScene += OnSetRootAgentScene;
+            scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
         }
 
-        public void RegionLoaded(Scene scene)
+        public void PostInitialise()
         {
         }
 
-        public void RemoveRegion(Scene scene)
+        public void Close()
         {
             if (!m_Gridmode || !m_Enabled)
                 return;
@@ -130,28 +116,21 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-            NotifyMessageServerOfShutdown(scene);
-            if(m_Scenes.Contains(scene))
-                m_Scenes.Remove(scene);
-
-            scene.UnregisterModuleInterface<IPresenceModule>(this);
-
-            scene.EventManager.OnNewClient -= OnNewClient;
-            scene.EventManager.OnSetRootAgentScene -= OnSetRootAgentScene;
-            scene.EventManager.OnMakeChildAgent -= OnMakeChildAgent;
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                    NotifyMessageServerOfShutdown(scene);
+            }
         }
 
         public string Name
         {
             get { return "PresenceModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         public void RequestBulkPresenceData(UUID[] users)

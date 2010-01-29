@@ -28,7 +28,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -41,8 +40,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class OfflineMessageModule : ISharedRegionModule
+    public class OfflineMessageModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -51,7 +49,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         private string m_RestURL = String.Empty;
         private bool m_ForwardOfflineGroupMessages = true;
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!enabled)
                 return;
@@ -85,23 +83,14 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                         return;
                     }
                 }
+                if (!m_SceneList.Contains(scene))
+                    m_SceneList.Add(scene);
+
+                scene.EventManager.OnNewClient += OnNewClient;
             }
         }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (!m_SceneList.Contains(scene))
-                m_SceneList.Add(scene);
-
-            scene.EventManager.OnNewClient += OnNewClient;
-        }
-
-        public void RegionLoaded(Scene scene)
+        public void PostInitialise()
         {
             if (!enabled)
                 return;
@@ -131,22 +120,16 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             m_log.Debug("[OFFLINE MESSAGING] Offline messages enabled");
         }
 
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_SceneList.Contains(scene))
-                m_SceneList.Remove(scene);
-            scene.EventManager.OnNewClient -= OnNewClient;
-        }
-
-        public void PostInitialise()
-        {
-        }
-
         public string Name
         {
             get { return "OfflineMessageModule"; }
         }
 
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+        
         public void Close()
         {
         }

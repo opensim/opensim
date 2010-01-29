@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -36,8 +35,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class AssetTransactionModule : ISharedRegionModule, IAgentAssetTransactions
+    public class AssetTransactionModule : IRegionModule, IAgentAssetTransactions
     {
         private readonly Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
         private bool m_dumpAssetsToFile = false;
@@ -61,14 +59,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             //m_log.Debug("creating AgentAssetTransactionModule");
         }
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
-        {
-            
-        }
-
-        public void AddRegion(Scene scene)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
             {
@@ -86,23 +79,6 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 m_scene = scene;
         }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
-                RegisteredScenes.Remove(scene.RegionInfo.RegionID);
-            scene.UnregisterModuleInterface<IAgentAssetTransactions>(this);
-            scene.EventManager.OnNewClient -= NewClient;
-        }
-
         public void PostInitialise()
         {
         }
@@ -114,6 +90,11 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         public string Name
         {
             get { return "AgentTransactionModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

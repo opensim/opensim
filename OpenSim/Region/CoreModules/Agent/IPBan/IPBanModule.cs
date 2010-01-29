@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
@@ -37,27 +36,21 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Agent.IPBan
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class IPBanModule : ISharedRegionModule 
+    public class IPBanModule : IRegionModule 
     {
-        #region Implementation of ISharedRegionModule
+        #region Implementation of IRegionModule
 
         private List<string> m_bans = new List<string>();
-        private Dictionary<Scene, SceneBanner> SceneBanners = new Dictionary<Scene, SceneBanner>();
 
-        public void Initialise(IConfigSource source)
+        public void Initialise(Scene scene, IConfigSource source)
         {
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            SceneBanners.Add(scene, new SceneBanner(scene, m_bans));
+            new SceneBanner(scene, m_bans);
 
             lock (m_bans)
             {
                 foreach (EstateBan ban in scene.RegionInfo.EstateSettings.EstateBans)
                 {
-                    if (!String.IsNullOrEmpty(ban.BannedHostIPMask))
+                    if (!String.IsNullOrEmpty(ban.BannedHostIPMask)) 
                         m_bans.Add(ban.BannedHostIPMask);
                     if (!String.IsNullOrEmpty(ban.BannedHostNameMask))
                         m_bans.Add(ban.BannedHostNameMask);
@@ -65,12 +58,7 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
             }
         }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
+        public void PostInitialise()
         {
             if (File.Exists("bans.txt"))
             {
@@ -82,23 +70,19 @@ namespace OpenSim.Region.CoreModules.Agent.IPBan
             }
         }
 
-        public void RemoveRegion(Scene scene)
-        {
-            if(SceneBanners.ContainsKey(scene))
-                SceneBanners.Remove(scene);
-        }
-
-        public void PostInitialise()
-        {
-        }
-
         public void Close()
         {
+            
         }
 
         public string Name
         {
             get { return "IPBanModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

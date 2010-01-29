@@ -29,7 +29,7 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IWindModule : INonSharedRegionModule
+    public interface IWindModule : IRegionModule
     {
         
         /// <summary>

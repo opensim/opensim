@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
         protected bool m_safemode;
         protected IPAddress m_thisIP;
 
-        #region ISharedRegionModule
+        #region IRegionModule
 
         public virtual void Initialise(IConfigSource config)
         {
@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             MainServer.Instance.AddHTTPHandler("/object/", ObjectHandler);
         }
 
-        #endregion
+        #endregion /* IRegionModule */
 
         #region IInterregionComms
 

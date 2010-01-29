@@ -32,7 +32,6 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
@@ -43,8 +42,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.InterGrid
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class OGSRadmin : ISharedRegionModule 
+    public class OGSRadmin : IRegionModule 
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly List<Scene> m_scenes = new List<Scene>();
@@ -58,6 +56,7 @@ namespace OpenSim.Region.CoreModules.InterGrid
             get { return "OGS Supporting RAdmin"; }
         }
 
+
         public void Initialise(IConfigSource source)
         {
             m_settings = source;
@@ -66,11 +65,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
         public void Close()
         {
 
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
         }
 
         public void AddRegion(Scene scene)
@@ -83,10 +77,14 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
             lock (m_scenes)
                 m_scenes.Remove(scene);
-            MainServer.Instance.RemoveXmlRPCHandler("grid_message");
         }
 
         public void RegionLoaded(Scene scene)
+        {
+            
+        }
+
+        public void PostInitialise()
         {
             if (m_settings.Configs["Startup"].GetBoolean("gridmode", false))
             {
@@ -95,8 +93,21 @@ namespace OpenSim.Region.CoreModules.InterGrid
             }
         }
 
-        public void PostInitialise()
+        #endregion
+
+        #region IRegionModule
+
+        public void Initialise(Scene scene, IConfigSource source)
         {
+            m_settings = source;
+
+            lock (m_scenes)
+                m_scenes.Add(scene);
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

@@ -25,11 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -39,46 +37,28 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Dialog
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class DialogModule : ISharedRegionModule, IDialogModule
+    public class DialogModule : IRegionModule, IDialogModule
     { 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         
-        public void Initialise(IConfigSource source)
-        {
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
+        public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
             m_scene.RegisterModuleInterface<IDialogModule>(this);
-
+            
             m_scene.AddCommand(
                 this, "alert", "alert <first> <last> <message>", "Send an alert to a user", HandleAlertConsoleCommand);
 
             m_scene.AddCommand(
                 this, "alert general", "alert general <message>", "Send an alert to everyone", HandleAlertConsoleCommand);
         }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<IDialogModule>(this);
-        }
-
-        public void PostInitialise() { }
+        
+        public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Dialog Module"; } }
+        public bool IsSharedModule { get { return false; } }
         
         public void SendAlertToUser(IClientAPI client, string message)
         {

@@ -35,7 +35,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Web;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
@@ -76,9 +75,8 @@ namespace OpenSim.Region.CoreModules.InterGrid
         public bool visible_to_parent;
         public string teleported_into_region;
     }
-
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class OpenGridProtocolModule : ISharedRegionModule
+    
+    public class OpenGridProtocolModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<Scene> m_scene = new List<Scene>();
@@ -94,22 +92,21 @@ namespace OpenSim.Region.CoreModules.InterGrid
         private bool httpSSL = false;
         private uint httpsslport = 0;
         private bool GridMode = false;
-        private bool m_enabled = false;
-        private IConfig cfg = null;
-        private IConfig httpcfg = null;
-        private IConfig startupcfg = null;
-            
-        #region ISharedRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
         {
+            bool enabled = false;
+            IConfig cfg = null;
+            IConfig httpcfg = null;
+            IConfig startupcfg = null;
             try
             {
                 cfg = config.Configs["OpenGridProtocol"];
-            } 
-            catch (NullReferenceException)
+            } catch (NullReferenceException)
             {
-                m_enabled = false;
+                enabled = false;
             }
 
             try
@@ -131,15 +128,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             if (startupcfg != null)
             {
-                GridMode = m_enabled = startupcfg.GetBoolean("gridmode", false);
+                GridMode = enabled = startupcfg.GetBoolean("gridmode", false);
             }
 
             if (cfg != null)
             {
-                m_enabled = cfg.GetBoolean("ogp_enabled", false);
+                enabled = cfg.GetBoolean("ogp_enabled", false);
                 LastNameSuffix = cfg.GetString("ogp_lastname_suffix", "_EXTERNAL");
                 FirstNamePrefix = cfg.GetString("ogp_firstname_prefix", "");
-                if (m_enabled)
+                if (enabled)
                 {
                     m_log.Warn("[OGP]: Open Grid Protocol is on, Listening for Clients on /agent/");
                     lock (m_scene)
@@ -168,60 +165,34 @@ namespace OpenSim.Region.CoreModules.InterGrid
                             }
 
                         }
-                    }
-                }
-            }
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (m_enabled)
-            {
-                lock (m_scene)
-                {
-                    if (m_scene.Count == 1)
-                    {
-                        if (httpcfg != null)
+                        // can't pick the region 'agent' because it would conflict with our agent domain handler
+                        // a zero length region name would conflict with are base region seed cap
+                        if (!SceneListDuplicateCheck(scene.RegionInfo.RegionName) && scene.RegionInfo.RegionName.ToLower() != "agent" && scene.RegionInfo.RegionName.Length > 0)
                         {
-                            httpSSL = httpcfg.GetBoolean("http_listener_ssl", false);
-                            httpsCN = httpcfg.GetString("http_listener_cn", scene.RegionInfo.ExternalHostName);
-                            if (httpsCN.Length == 0)
-                                httpsCN = scene.RegionInfo.ExternalHostName;
-                            httpsslport = (uint)httpcfg.GetInt("http_listener_sslport", ((int)scene.RegionInfo.HttpPort + 1));
+                            MainServer.Instance.AddLLSDHandler(
+                                "/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),
+                                ProcessRegionDomainSeed);
                         }
+
+                        if (!m_scene.Contains(scene))
+                            m_scene.Add(scene);
                     }
                 }
-                // can't pick the region 'agent' because it would conflict with our agent domain handler
-                // a zero length region name would conflict with are base region seed cap
-                if (!SceneListDuplicateCheck(scene.RegionInfo.RegionName) && scene.RegionInfo.RegionName.ToLower() != "agent" && scene.RegionInfo.RegionName.Length > 0)
-                {
-                    MainServer.Instance.AddLLSDHandler(
-                        "/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),
-                        ProcessRegionDomainSeed);
-                }
-
-                if (!m_scene.Contains(scene))
-                    m_scene.Add(scene);
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            MainServer.Instance.RemoveLLSDHandler(
-                        "/" + HttpUtility.UrlPathEncode(scene.RegionInfo.RegionName.ToLower()),
-                        ProcessRegionDomainSeed);
-
-            if (m_scene.Contains(scene))
-                m_scene.Remove(scene);
+            lock (m_scene)
+            {
+                if (m_scene.Count == 1)
+                {
+                    if (httpcfg != null)
+                    {
+                        httpSSL = httpcfg.GetBoolean("http_listener_ssl", false);
+                        httpsCN = httpcfg.GetString("http_listener_cn", scene.RegionInfo.ExternalHostName);
+                        if (httpsCN.Length == 0)
+                            httpsCN = scene.RegionInfo.ExternalHostName;
+                        httpsslport = (uint)httpcfg.GetInt("http_listener_sslport",((int)scene.RegionInfo.HttpPort + 1));
+                    }
+                }
+            }
         }
         
         public void PostInitialise()
@@ -236,6 +207,11 @@ namespace OpenSim.Region.CoreModules.InterGrid
         public string Name
         {
             get { return "OpenGridProtocolModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion
