@@ -405,11 +405,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             MemoryStream archiveWriteStream = new MemoryStream();
 
-            string part2Name = "objectMerge";
-            PrimitiveBaseShape part2Shape = PrimitiveBaseShape.CreateCylinder();
-            Vector3 part2GroupPosition = new Vector3(90, 80, 70);
-            Quaternion part2RotationOffset = new Quaternion(60, 70, 80, 90);
-            Vector3 part2OffsetPosition = new Vector3(20, 25, 30);
+//            string part2Name = "objectMerge";
+//            PrimitiveBaseShape part2Shape = PrimitiveBaseShape.CreateCylinder();
+//            Vector3 part2GroupPosition = new Vector3(90, 80, 70);
+//            Quaternion part2RotationOffset = new Quaternion(60, 70, 80, 90);
+//            Vector3 part2OffsetPosition = new Vector3(20, 25, 30);
+
+            SceneObjectPart part2 = CreateSceneObjectPart2();            
 
             // Create an oar file that we can use for the merge
             {
@@ -418,15 +420,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 TerrainModule terrainModule = new TerrainModule();
 
                 Scene scene = SceneSetupHelpers.SetupScene();
-                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
-                
-                SceneObjectPart part2
-                    = new SceneObjectPart(
-                        UUID.Zero, part2Shape, part2GroupPosition, part2RotationOffset, part2OffsetPosition);
-                part2.Name = part2Name;
-                SceneObjectGroup object2 = new SceneObjectGroup(part2);
+                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);               
 
-                scene.AddNewSceneObject(object2, false);
+                m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);                
 
                 // Write out this scene
                 scene.EventManager.OnOarFileSaved += SaveCompleted;
@@ -453,10 +449,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 Assert.That(object1Existing.Name, Is.EqualTo(part1.Name), "object1 names not identical after merge");
                 Assert.That(object1Existing.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal after merge");
 
-                SceneObjectPart object2PartMerged = m_scene.GetSceneObjectPart(part2Name);
+                SceneObjectPart object2PartMerged = m_scene.GetSceneObjectPart(part2.Name);
                 Assert.That(object2PartMerged, Is.Not.Null, "object2 was not present after merge");
-                Assert.That(object2PartMerged.Name, Is.EqualTo(part2Name), "object2 names not identical after merge");
-                Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2GroupPosition), "object2 group position not equal after merge");
+                Assert.That(object2PartMerged.Name, Is.EqualTo(part2.Name), "object2 names not identical after merge");
+                Assert.That(object2PartMerged.GroupPosition, Is.EqualTo(part2.GroupPosition), "object2 group position not equal after merge");
             }
         }
     }
