@@ -443,19 +443,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
 
             {
-                string part1Name = "objectExisting";
-                PrimitiveBaseShape part1Shape = PrimitiveBaseShape.CreateCylinder();
-                Vector3 part1GroupPosition = new Vector3(80, 70, 60);
-                Quaternion part1RotationOffset = new Quaternion(50, 60, 70, 80);
-                Vector3 part1OffsetPosition = new Vector3(15, 20, 25);
-
-                SceneObjectPart part1
-                    = new SceneObjectPart(
-                        UUID.Zero, part1Shape, part1GroupPosition, part1RotationOffset, part1OffsetPosition);
-                part1.Name = part1Name;
-                SceneObjectGroup object1 = new SceneObjectGroup(part1);
-
-                m_scene.AddNewSceneObject(object1, false);
+                SceneObjectPart part1 = CreateSceneObjectPart1();
+                m_scene.AddNewSceneObject(new SceneObjectGroup(part1), false);
 
                 // Merge in the archive we created earlier
                 byte[] archive = archiveWriteStream.ToArray();
@@ -463,10 +452,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
                 m_archiverModule.DearchiveRegion(archiveReadStream, true, Guid.Empty);
 
-                SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1Name);
+                SceneObjectPart object1Existing = m_scene.GetSceneObjectPart(part1.Name);
                 Assert.That(object1Existing, Is.Not.Null, "object1 was not present after merge");
-                Assert.That(object1Existing.Name, Is.EqualTo(part1Name), "object1 names not identical after merge");
-                Assert.That(object1Existing.GroupPosition, Is.EqualTo(part1GroupPosition), "object1 group position not equal after merge");
+                Assert.That(object1Existing.Name, Is.EqualTo(part1.Name), "object1 names not identical after merge");
+                Assert.That(object1Existing.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal after merge");
 
                 SceneObjectPart object2PartMerged = m_scene.GetSceneObjectPart(part2Name);
                 Assert.That(object2PartMerged, Is.Not.Null, "object2 was not present after merge");
