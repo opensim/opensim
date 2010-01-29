@@ -85,8 +85,9 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
         }
 
-        void OnNewClient(IClientAPI client)
+        protected override void OnNewClient(IClientAPI client)
         {
+            base.OnNewClient(client);
             client.OnLogout += new Action<IClientAPI>(OnLogout);
         }
 
@@ -118,7 +119,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         protected override GridRegion GetFinalDestination(GridRegion region)
         {
             int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, region.RegionID);
-            //m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: region {0} flags: {1}", region.RegionID, flags);
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: region {0} flags: {1}", region.RegionID, flags);
             if ((flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
                 m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Destination region {0} is hyperlink", region.RegionID);
@@ -129,7 +130,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected override bool NeedsClosing(uint oldRegionX, uint newRegionX, uint oldRegionY, uint newRegionY, GridRegion reg)
         {
-            return true;
+            if (base.NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))
+                return true;
+
+            int flags = m_aScene.GridService.GetRegionFlags(m_aScene.RegionInfo.ScopeID, reg.RegionID);
+            if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
+                return true;
+
+            return false;
         }
 
         protected override bool CreateAgent(ScenePresence sp, GridRegion reg, GridRegion finalDestination, AgentCircuitData agentCircuit, uint teleportFlags, out string reason)
@@ -139,14 +147,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (flags == -1 /* no region in DB */ || (flags & (int)OpenSim.Data.RegionFlags.Hyperlink) != 0)
             {
                 // this user is going to another grid
-                string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
-                IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
-                bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
-                if (success)
-                    // Log them out of this grid
-                    m_aScene.PresenceService.LogoutAgent(agentCircuit.SessionID, sp.AbsolutePosition, sp.Lookat);
+                if (agentCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                {
+                    string userAgentDriver = agentCircuit.ServiceURLs["HomeURI"].ToString();
+                    IUserAgentService connector = new UserAgentServiceConnector(userAgentDriver);
+                    bool success = connector.LoginAgentToGrid(agentCircuit, reg, finalDestination, out reason);
+                    if (success)
+                        // Log them out of this grid
+                        m_aScene.PresenceService.LogoutAgent(agentCircuit.SessionID, sp.AbsolutePosition, sp.Lookat);
 
-                return success;
+                    return success;
+                }
+                else
+                {
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Agent does not have a HomeURI address");
+                    return false;
+                }
             }
 
             return m_aScene.SimulationService.CreateAgent(reg, agentCircuit, teleportFlags, out reason);
@@ -220,6 +236,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         void OnLogout(IClientAPI obj)
         {
+            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: client {0} logged out in {1}", obj.AgentId, obj.Scene.RegionInfo.RegionName);
             AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
 
             if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))

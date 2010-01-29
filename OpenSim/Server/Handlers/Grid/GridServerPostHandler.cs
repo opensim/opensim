@@ -109,6 +109,8 @@ namespace OpenSim.Server.Handlers.Grid
                     case "get_fallback_regions":
                         return GetFallbackRegions(request);
 
+                    case "get_region_flags":
+                        return GetRegionFlags(request);
                 }
                 m_log.DebugFormat("[GRID HANDLER]: unknown method {0} request {1}", method.Length, method);
             }
@@ -480,6 +482,33 @@ namespace OpenSim.Server.Handlers.Grid
             UTF8Encoding encoding = new UTF8Encoding();
             return encoding.GetBytes(xmlString);
         }
+
+        byte[] GetRegionFlags(Dictionary<string, object> request)
+        {
+            UUID scopeID = UUID.Zero;
+            if (request.ContainsKey("SCOPEID"))
+                UUID.TryParse(request["SCOPEID"].ToString(), out scopeID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no scopeID in request to get neighbours");
+
+            UUID regionID = UUID.Zero;
+            if (request.ContainsKey("REGIONID"))
+                UUID.TryParse(request["REGIONID"].ToString(), out regionID);
+            else
+                m_log.WarnFormat("[GRID HANDLER]: no regionID in request to get neighbours");
+
+            int flags = m_GridService.GetRegionFlags(scopeID, regionID);
+           // m_log.DebugFormat("[GRID HANDLER]: flags for region {0}: {1}", regionID, flags);
+
+            Dictionary<string, object> result = new Dictionary<string, object>(); 
+            result["result"] = flags.ToString();
+
+            string xmlString = ServerUtils.BuildXmlResponse(result);
+            //m_log.DebugFormat("[GRID HANDLER]: resp string: {0}", xmlString);
+            UTF8Encoding encoding = new UTF8Encoding();
+            return encoding.GetBytes(xmlString);
+        }
+
 
         #endregion
 

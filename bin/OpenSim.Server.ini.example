@@ -13,7 +13,7 @@
 
 ;; HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService,OpenSim.Server.Handlers.dll:UserAgentService
 
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:GridInfoServerInConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,OpenSim.Server.Handlers.dll:UserAccountServiceConnector,OpenSim.Server.Handlers.dll:GatekeeperService,OpenSim.Server.Handlers.dll:UserAgentService"
+ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:GridInfoServerInConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,OpenSim.Server.Handlers.dll:UserAccountServiceConnector,OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,OpenSim.Server.Handlers.dll:UserAgentServerConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance
@@ -155,8 +155,9 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
+    SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     ; how does the outside world reach me? This acts as public key too.
-    ExternalName = "http://127.0.0.1:8002"
+    ExternalName = "http://127.0.0.1:8003"
 
 [UserAgentService]
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"

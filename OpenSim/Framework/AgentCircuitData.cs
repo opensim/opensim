@@ -149,17 +149,19 @@ namespace OpenSim.Framework
             args["base_folder"] = OSD.FromUUID(BaseFolder);
             args["caps_path"] = OSD.FromString(CapsPath);
 
-            OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
-            foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
+            if (ChildrenCapSeeds != null)
             {
-                OSDMap pair = new OSDMap();
-                pair["handle"] = OSD.FromString(kvp.Key.ToString());
-                pair["seed"] = OSD.FromString(kvp.Value);
-                childrenSeeds.Add(pair);
+                OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+                foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
+                {
+                    OSDMap pair = new OSDMap();
+                    pair["handle"] = OSD.FromString(kvp.Key.ToString());
+                    pair["seed"] = OSD.FromString(kvp.Value);
+                    childrenSeeds.Add(pair);
+                }
+                if (ChildrenCapSeeds.Count > 0)
+                    args["children_seeds"] = childrenSeeds;
             }
-            if (ChildrenCapSeeds.Count > 0)
-                args["children_seeds"] = childrenSeeds;
-
             args["child"] = OSD.FromBoolean(child);
             args["circuit_code"] = OSD.FromString(circuitcode.ToString());
             args["first_name"] = OSD.FromString(firstname);
@@ -167,6 +169,7 @@ namespace OpenSim.Framework
             args["inventory_folder"] = OSD.FromUUID(InventoryFolder);
             args["secure_session_id"] = OSD.FromUUID(SecureSessionID);
             args["session_id"] = OSD.FromUUID(SessionID);
+            
             args["service_session_id"] = OSD.FromString(ServiceSessionID);
             args["start_pos"] = OSD.FromString(startpos.ToString());
             args["appearance_serial"] = OSD.FromInteger(Appearance.Serial);
@@ -250,6 +253,8 @@ namespace OpenSim.Framework
                     }
                 }
             }
+            else
+                ChildrenCapSeeds = new Dictionary<ulong, string>();
 
             if (args["child"] != null)
                 child = args["child"].AsBoolean();
@@ -267,6 +272,7 @@ namespace OpenSim.Framework
                 SessionID = args["session_id"].AsUUID();
             if (args["service_session_id"] != null)
                 ServiceSessionID = args["service_session_id"].AsString();
+
             if (args["start_pos"] != null)
                 Vector3.TryParse(args["start_pos"].AsString(), out startpos);
 

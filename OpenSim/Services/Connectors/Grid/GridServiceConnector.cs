@@ -564,7 +564,47 @@ namespace OpenSim.Services.Connectors
 
         public int GetRegionFlags(UUID scopeID, UUID regionID)
         {
-            return 0;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+
+            sendData["SCOPEID"] = scopeID.ToString();
+            sendData["REGIONID"] = regionID.ToString();
+
+            sendData["METHOD"] = "get_region_flags";
+
+            string reply = string.Empty;
+            try
+            {
+                reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        m_ServerURI + "/grid",
+                        ServerUtils.BuildQueryString(sendData));
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[GRID CONNECTOR]: Exception when contacting grid server: {0}", e.Message);
+                return -1;
+            }
+
+            int flags = -1;
+
+            if (reply != string.Empty)
+            {
+                Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                if ((replyData != null) && replyData.ContainsKey("result") && (replyData["result"] != null))
+                {
+                    Int32.TryParse((string)replyData["result"], out flags);
+                    //else
+                    //    m_log.DebugFormat("[GRID CONNECTOR]: GetRegionFlags {0}, {1} received wrong type {2}",
+                    //        scopeID, regionID, replyData["result"].GetType());
+                }
+                else
+                    m_log.DebugFormat("[GRID CONNECTOR]: GetRegionFlags {0}, {1} received null response",
+                        scopeID, regionID);
+            }
+            else
+                m_log.DebugFormat("[GRID CONNECTOR]: GetRegionFlags received null reply");
+
+            return flags;
         }
 
         #endregion

@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             scene.EventManager.OnNewClient += OnNewClient;
         }
 
-        protected void OnNewClient(IClientAPI client)
+        protected virtual void OnNewClient(IClientAPI client)
         {
             client.OnTeleportHomeRequest += TeleportHome;
         }
@@ -268,6 +268,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.ParentID != (uint)0)
                     sp.StandUp();
 
+                m_log.Debug("XXX HERE 1");
                 if (!sp.ValidateAttachments())
                 {
                     sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
@@ -978,12 +979,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (neighbour.RegionHandle != sp.Scene.RegionInfo.RegionHandle)
                 {
 
+                    AgentCircuitData currentAgentCircuit = sp.Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
                     AgentCircuitData agent = sp.ControllingClient.RequestClientInfo();
                     agent.BaseFolder = UUID.Zero;
                     agent.InventoryFolder = UUID.Zero;
                     agent.startpos = new Vector3(128, 128, 70);
                     agent.child = true;
                     agent.Appearance = sp.Appearance;
+                    if (currentAgentCircuit != null)
+                        agent.ServiceURLs = currentAgentCircuit.ServiceURLs;
 
                     if (newRegions.Contains(neighbour.RegionHandle))
                     {

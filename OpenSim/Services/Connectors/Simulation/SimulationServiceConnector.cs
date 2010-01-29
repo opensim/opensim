@@ -105,6 +105,8 @@ namespace OpenSim.Services.Connectors.Simulation
 
             // Fill it in
             OSDMap args = PackCreateAgentArguments(aCircuit, destination, flags);
+            if (args == null)
+                return false;
 
             string strBuffer = "";
             byte[] buffer = new byte[1];
@@ -210,6 +212,7 @@ namespace OpenSim.Services.Connectors.Simulation
             catch (Exception e)
             {
                 m_log.Debug("[REMOTE SIMULATION CONNECTOR]: PackAgentCircuitData failed with exception: " + e.Message);
+                return null;
             }
             // Add the input arguments
             args["destination_x"] = OSD.FromString(destination.RegionLocX.ToString());
