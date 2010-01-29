@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -40,8 +39,7 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class InventoryTransferModule : IInventoryTransferModule, ISharedRegionModule
+    public class InventoryTransferModule : IInventoryTransferModule, IRegionModule
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -52,11 +50,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 new Dictionary<UUID, Scene>();
 
         private IMessageTransferModule m_TransferModule = null;
-        private bool m_enabled = true;
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (config.Configs["Messaging"] != null)
             {
@@ -65,59 +62,29 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 if (config.Configs["Messaging"].GetString(
                         "InventoryTransferModule", "InventoryTransferModule") !=
                         "InventoryTransferModule")
-                    m_enabled = false;
+                    return;
             }
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
-            if (m_enabled)
+            if (!m_Scenelist.Contains(scene))
             {
-                if (!m_Scenelist.Contains(scene))
-                {
-                    m_Scenelist.Add(scene);
+                m_Scenelist.Add(scene);
 
-                    scene.RegisterModuleInterface<IInventoryTransferModule>(this);
+                scene.RegisterModuleInterface<IInventoryTransferModule>(this);
 
-                    scene.EventManager.OnNewClient += OnNewClient;
-                    scene.EventManager.OnClientClosed += ClientLoggedOut;
-                    scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-                }
+                scene.EventManager.OnNewClient += OnNewClient;
+                scene.EventManager.OnClientClosed += ClientLoggedOut;
+                scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            if (m_enabled)
-            {
-                if (m_Scenelist.Count > 0)
-                {
-                    m_TransferModule = m_Scenelist[0].RequestModuleInterface<IMessageTransferModule>();
-                    if (m_TransferModule == null)
-                        m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
-                }
-            }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_Scenelist.Contains(scene))
-                m_Scenelist.Remove(scene);
-
-            scene.UnregisterModuleInterface<IInventoryTransferModule>(this);
-
-            scene.EventManager.OnNewClient -= OnNewClient;
-            scene.EventManager.OnClientClosed -= ClientLoggedOut;
-            scene.EventManager.OnIncomingInstantMessage -= OnGridInstantMessage;
         }
 
         public void PostInitialise()
         {
+            if (m_Scenelist.Count > 0)
+            {
+                m_TransferModule = m_Scenelist[0].RequestModuleInterface<IMessageTransferModule>();
+                if (m_TransferModule == null)
+                    m_log.Error("[INVENTORY TRANSFER] No Message transfer module found, transfers will be local only");
+            }
         }
 
         public void Close()

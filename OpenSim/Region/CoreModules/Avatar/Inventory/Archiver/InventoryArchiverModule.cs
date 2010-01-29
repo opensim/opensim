@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -42,11 +41,10 @@ using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     /// <summary>
     /// This module loads and saves OpenSimulator inventory archives
     /// </summary>
-    public class InventoryArchiverModule : ISharedRegionModule, IInventoryArchiverModule
+    public class InventoryArchiverModule : IRegionModule, IInventoryArchiverModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
@@ -84,28 +82,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             DisablePresenceChecks = disablePresenceChecks;
         }
 
-        public void Initialise(IConfigSource source)
-        {
-
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
+        public void Initialise(Scene scene, IConfigSource source)
         {
             if (m_scenes.Count == 0)
             {
                 scene.RegisterModuleInterface<IInventoryArchiverModule>(this);
                 OnInventoryArchiveSaved += SaveInvConsoleCommandCompleted;
-
+                
                 scene.AddCommand(
                     this, "load iar",
                     "load iar <first> <last> <inventory path> <password> [<archive path>]",
-                    "Load user inventory archive.", HandleLoadInvConsoleCommand);
-
+                    "Load user inventory archive.", HandleLoadInvConsoleCommand); 
+                
                 scene.AddCommand(
                     this, "save iar",
                     "save iar <first> <last> <inventory path> <password> [<archive path>]",
@@ -113,19 +101,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 m_aScene = scene;
             }
-
+                        
             m_scenes[scene.RegionInfo.RegionID] = scene;
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<IInventoryArchiverModule>(this);
-            if(m_scenes.ContainsKey(scene.RegionInfo.RegionID))
-                m_scenes.Remove(scene.RegionInfo.RegionID);
         }
 
         public void PostInitialise() {}

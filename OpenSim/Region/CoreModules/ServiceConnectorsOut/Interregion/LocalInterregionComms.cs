@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
 
         #endregion /* Events */
 
-        #region ISharedRegionModule
+        #region IRegionModule
 
         public void Initialise(IConfigSource config)
         {
@@ -136,7 +136,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Interregion
             }
         }
 
-        #endregion
+        #endregion /* IRegionModule */
 
         #region IInterregionComms
 

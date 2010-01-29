@@ -25,12 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -41,8 +39,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Framework.Monitoring
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class MonitorModule : INonSharedRegionModule 
+    public class MonitorModule : IRegionModule 
     {
         private Scene m_scene;
         private readonly List<IMonitor> m_monitors = new List<IMonitor>();
@@ -65,19 +62,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             }
         }
 
-        #region Implementation of INonSharedRegionModule
+        #region Implementation of IRegionModule
 
-        public void Initialise(IConfigSource source)
-        {
-            
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
+        public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
 
@@ -88,51 +75,6 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
                                DebugMonitors);
 
             MainServer.Instance.AddHTTPHandler("/monitorstats/" + m_scene.RegionInfo.RegionID + "/", StatsPage);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-            m_monitors.Add(new AgentCountMonitor(m_scene));
-            m_monitors.Add(new ChildAgentCountMonitor(m_scene));
-            m_monitors.Add(new GCMemoryMonitor());
-            m_monitors.Add(new ObjectCountMonitor(m_scene));
-            m_monitors.Add(new PhysicsFrameMonitor(m_scene));
-            m_monitors.Add(new PhysicsUpdateFrameMonitor(m_scene));
-            m_monitors.Add(new PWSMemoryMonitor());
-            m_monitors.Add(new ThreadCountMonitor());
-            m_monitors.Add(new TotalFrameMonitor(m_scene));
-            m_monitors.Add(new EventFrameMonitor(m_scene));
-            m_monitors.Add(new LandFrameMonitor(m_scene));
-            m_monitors.Add(new LastFrameTimeMonitor(m_scene));
-
-            m_alerts.Add(new DeadlockAlert(m_monitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
-
-            foreach (IAlert alert in m_alerts)
-            {
-                alert.OnTriggerAlert += OnTriggerAlert;
-            }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            MainServer.Instance.RemoveHTTPHandler("", "/monitorstats/" + m_scene.RegionInfo.RegionID + "/");
-            m_monitors.Clear();
-
-            foreach (IAlert alert in m_alerts)
-            {
-                alert.OnTriggerAlert -= OnTriggerAlert;
-            }
-            m_alerts.Clear();
-        }
-
-        public void Close()
-        {
-
-        }
-
-        public string Name
-        {
-            get { return "Region Health Monitoring Module"; }
         }
 
         public Hashtable StatsPage(Hashtable request)
@@ -190,10 +132,49 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             return ereply;
         }
 
+        public void PostInitialise()
+        {
+            m_monitors.Add(new AgentCountMonitor(m_scene));
+            m_monitors.Add(new ChildAgentCountMonitor(m_scene));
+            m_monitors.Add(new GCMemoryMonitor());
+            m_monitors.Add(new ObjectCountMonitor(m_scene));
+            m_monitors.Add(new PhysicsFrameMonitor(m_scene));
+            m_monitors.Add(new PhysicsUpdateFrameMonitor(m_scene));
+            m_monitors.Add(new PWSMemoryMonitor());
+            m_monitors.Add(new ThreadCountMonitor());
+            m_monitors.Add(new TotalFrameMonitor(m_scene));
+            m_monitors.Add(new EventFrameMonitor(m_scene));
+            m_monitors.Add(new LandFrameMonitor(m_scene));
+            m_monitors.Add(new LastFrameTimeMonitor(m_scene));
+
+            m_alerts.Add(new DeadlockAlert(m_monitors.Find(x => x is LastFrameTimeMonitor) as LastFrameTimeMonitor));
+
+            foreach (IAlert alert in m_alerts)
+            {
+                alert.OnTriggerAlert += OnTriggerAlert;
+            }
+        }
+
         void OnTriggerAlert(System.Type reporter, string reason, bool fatal)
         {
             m_log.Error("[Monitor] " + reporter.Name + " for " + m_scene.RegionInfo.RegionName + " reports " + reason + " (Fatal: " + fatal + ")");
         }
+
+        public void Close()
+        {
+            
+        }
+
+        public string Name
+        {
+            get { return "Region Health Monitoring Module"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
         #endregion
     }
 }

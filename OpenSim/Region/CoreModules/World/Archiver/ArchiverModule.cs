@@ -81,7 +81,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void RemoveRegion(Scene scene)
         {
-            scene.UnregisterModuleInterface<IRegionArchiverModule>(this);
         }
 
         public void Close()

@@ -33,7 +33,6 @@ using System.Net;
 using System.Reflection;
 using System.Xml;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -44,8 +43,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.DataSnapshot
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class DataSnapshotManager : ISharedRegionModule, IDataSnapshot
+    public class DataSnapshotManager : IRegionModule, IDataSnapshot
     {
         #region Class members
         //Information from config
@@ -91,7 +89,7 @@ namespace OpenSim.Region.DataSnapshot
 
         #region IRegionModule
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_configLoaded) 
             {
@@ -142,29 +140,24 @@ namespace OpenSim.Region.DataSnapshot
                         return;
                     }
                 }
+
+                if (m_enabled)
+                {
+                    //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
+                    new DataRequestHandler(scene, this);
+
+                    m_hostname = scene.RegionInfo.ExternalHostName;
+                    m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+
+                    MakeEverythingStale();
+
+                    if (m_dataServices != "" &&  m_dataServices != "noservices")
+                        NotifyDataServices(m_dataServices, "online");
+                }
             }
-        }
 
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void AddRegion(Scene scene)
-        {
             if (m_enabled)
             {
-                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                new DataRequestHandler(scene, this);
-
-                m_hostname = scene.RegionInfo.ExternalHostName;
-                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
-
-                MakeEverythingStale();
-
-                if (m_dataServices != "" && m_dataServices != "noservices")
-                    NotifyDataServices(m_dataServices, "online");
-
                 m_log.Info("[DATASNAPSHOT]: Scene added to module.");
 
                 m_snapStore.AddScene(scene);
@@ -198,25 +191,20 @@ namespace OpenSim.Region.DataSnapshot
             }
             else
             {
-                m_log.Info("[DATASNAPSHOT]: Data snapshot disabled, not adding scene to module (or anything else).");
+                m_log.Warn("[DATASNAPSHOT]: Data snapshot disabled, not adding scene to module (or anything else).");
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (m_scenes.Contains(scene))
-                m_scenes.Remove(scene);
-            m_snapStore.RemoveScene(scene);
         }
 
         public void Close() 
         {
             if (m_enabled && m_dataServices != "" && m_dataServices != "noservices")
                 NotifyDataServices(m_dataServices, "offline");
+        }
+
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         public string Name
@@ -226,6 +214,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public void PostInitialise()
         {
+
         }
 
         #endregion

@@ -24,12 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -41,8 +38,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.World.WorldMap
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class MapSearchModule : ISharedRegionModule
+    public class MapSearchModule : IRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -50,12 +46,8 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         Scene m_scene = null; // only need one for communication with GridService
         List<Scene> m_scenes = new List<Scene>();
 
-        #region ISharedRegionModule Members
-        public void Initialise(IConfigSource source)
-        {
-        }
-
-        public void AddRegion(Scene scene)
+        #region IRegionModule Members
+        public void Initialise(Scene scene, IConfigSource source)
         {
             if (m_scene == null)
             {
@@ -64,22 +56,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             m_scenes.Add(scene);
             scene.EventManager.OnNewClient += OnNewClient;
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if(m_scenes.Contains(scene))
-                m_scenes.Remove(scene);
-            scene.EventManager.OnNewClient -= OnNewClient;
         }
 
         public void PostInitialise()
@@ -95,6 +71,11 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         public string Name
         {
             get { return "MapSearchModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
 
         #endregion

@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,7 +37,6 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
     public class SunModule : ISunModule
     {
         /// <summary>
@@ -280,12 +278,27 @@ namespace OpenSim.Region.CoreModules
             return GetCurrentSunHour() + 6.0f;
         }
 
-        #region INonSharedRegionModule Methods
+        #region IRegion Methods
 
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
+            m_scene = scene;
+            m_frame = 0;
+
+            // This one puts an entry in the main help screen
+            m_scene.AddCommand(this, String.Empty, "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
+
+            // This one enables the ability to type just "sun" without any parameters
+            m_scene.AddCommand(this, "sun", "", "", HandleSunConsoleCommand);
+            foreach (KeyValuePair<string, string> kvp in GetParamList())
+            {
+                m_scene.AddCommand(this, String.Format("sun {0}", kvp.Key), String.Format("{0} - {1}", kvp.Key, kvp.Value), "", HandleSunConsoleCommand);
+            }
+
+
+
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksUTCOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
             m_log.Debug("[SUN]: localtime offset is " + TicksUTCOffset);
@@ -333,6 +346,57 @@ namespace OpenSim.Region.CoreModules
                 // m_latitude    = d_latitude;
                 // m_longitude   = d_longitude;
             }
+
+            switch (m_RegionMode)
+            {
+                case "T1":
+                default:
+                case "SL":
+                    // Time taken to complete a cycle (day and season)
+
+                    SecondsPerSunCycle = (uint) (m_DayLengthHours * 60 * 60);
+                    SecondsPerYear     = (uint) (SecondsPerSunCycle*m_YearLengthDays);
+
+                    // Ration of real-to-virtual time
+
+                    // VWTimeRatio        = 24/m_day_length;
+
+                    // Speed of rotation needed to complete a cycle in the
+                    // designated period (day and season)
+
+                    SunSpeed           = m_SunCycle/SecondsPerSunCycle;
+                    SeasonSpeed        = m_SeasonalCycle/SecondsPerYear;
+
+                    // Horizon translation
+
+                    HorizonShift      = m_HorizonShift; // Z axis translation
+                    // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
+
+                    //  Insert our event handling hooks
+
+                    scene.EventManager.OnFrame     += SunUpdate;
+                    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+                    scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
+                    scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
+
+                    ready = true;
+
+                    m_log.Debug("[SUN]: Mode is " + m_RegionMode);
+                    m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
+                    m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
+                    m_log.Debug("[SUN]: Percentage of time for daylight " + m_DayTimeSunHourScale);
+                    m_log.Debug("[SUN]: Positional data updated every " + m_UpdateInterval + " frames");
+
+                    break;
+            }
+
+            scene.RegisterModuleInterface<ISunModule>(this);
+
+        }
+
+
+        public void PostInitialise()
+        {
         }
 
         public void Close()
@@ -351,84 +415,10 @@ namespace OpenSim.Region.CoreModules
             get { return "SunModule"; }
         }
 
-        public Type ReplaceableInterface
+        public bool IsSharedModule
         {
-            get { return null; }
+            get { return false; }
         }
-
-        public void AddRegion(Scene scene)
-        {
-            m_scene = scene;
-            m_frame = 0;
-
-            // This one puts an entry in the main help screen
-            m_scene.AddCommand(this, String.Empty, "sun", "Usage: sun [param] [value] - Get or Update Sun module paramater", null);
-
-            // This one enables the ability to type just "sun" without any parameters
-            m_scene.AddCommand(this, "sun", "", "", HandleSunConsoleCommand);
-            foreach (KeyValuePair<string, string> kvp in GetParamList())
-            {
-                m_scene.AddCommand(this, String.Format("sun {0}", kvp.Key), String.Format("{0} - {1}", kvp.Key, kvp.Value), "", HandleSunConsoleCommand);
-            }
-            switch (m_RegionMode)
-            {
-                case "T1":
-                default:
-                case "SL":
-                    // Time taken to complete a cycle (day and season)
-
-                    SecondsPerSunCycle = (uint)(m_DayLengthHours * 60 * 60);
-                    SecondsPerYear = (uint)(SecondsPerSunCycle * m_YearLengthDays);
-
-                    // Ration of real-to-virtual time
-
-                    // VWTimeRatio        = 24/m_day_length;
-
-                    // Speed of rotation needed to complete a cycle in the
-                    // designated period (day and season)
-
-                    SunSpeed = m_SunCycle / SecondsPerSunCycle;
-                    SeasonSpeed = m_SeasonalCycle / SecondsPerYear;
-
-                    // Horizon translation
-
-                    HorizonShift = m_HorizonShift; // Z axis translation
-                    // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
-
-                    //  Insert our event handling hooks
-
-                    scene.EventManager.OnFrame += SunUpdate;
-                    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-                    scene.EventManager.OnEstateToolsSunUpdate += EstateToolsSunUpdate;
-                    scene.EventManager.OnGetCurrentTimeAsLindenSunHour += GetCurrentTimeAsLindenSunHour;
-
-                    ready = true;
-
-                    m_log.Debug("[SUN]: Mode is " + m_RegionMode);
-                    m_log.Debug("[SUN]: Initialization completed. Day is " + SecondsPerSunCycle + " seconds, and year is " + m_YearLengthDays + " days");
-                    m_log.Debug("[SUN]: Axis offset is " + m_HorizonShift);
-                    m_log.Debug("[SUN]: Percentage of time for daylight " + m_DayTimeSunHourScale);
-                    m_log.Debug("[SUN]: Positional data updated every " + m_UpdateInterval + " frames");
-
-                    break;
-            }
-
-            scene.RegisterModuleInterface<ISunModule>(this);
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.RegisterModuleInterface<ISunModule>(this);
-            scene.EventManager.OnFrame -= SunUpdate;
-            scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
-            scene.EventManager.OnEstateToolsSunUpdate -= EstateToolsSunUpdate;
-            scene.EventManager.OnGetCurrentTimeAsLindenSunHour -= GetCurrentTimeAsLindenSunHour;
-        }
-
         #endregion
 
         #region EventManager Events

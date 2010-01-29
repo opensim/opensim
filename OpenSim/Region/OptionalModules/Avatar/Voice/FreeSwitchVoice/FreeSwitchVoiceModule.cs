@@ -38,7 +38,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using OpenMetaverse;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -54,8 +53,7 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class FreeSwitchVoiceModule : ISharedRegionModule, IVoiceModule
+    public class FreeSwitchVoiceModule : IRegionModule, IVoiceModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -110,8 +108,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
 
         private IConfig m_config;
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
+            m_scene = scene;
             m_config = config.Configs["FreeSwitchVoice"];
 
             if (null == m_config)
@@ -225,21 +224,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                     return;
                 }
             }
-        }
 
-        public void AddRegion(Scene scene)
-        {
-            m_scene = scene;
-            if (m_pluginEnabled)
+            if (m_pluginEnabled) 
             {
                 // we need to capture scene in an anonymous method
                 // here as we need it later in the callbacks
                 scene.EventManager.OnRegisterCaps += delegate(UUID agentID, Caps caps)
-                {
-                    OnRegisterCaps(scene, agentID, caps);
-                };
-
-
+                    {
+                        OnRegisterCaps(scene, agentID, caps);
+                    };
+                    
+                
 
                 try
                 {
@@ -259,51 +254,19 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
                         m_log.Error("[FreeSwitchVoice]: Certificate validation handler change not supported.  You may get ssl certificate validation errors teleporting from your region to some SSL regions.");
                     }
                 }
-
+                
             }
+        }
+        
+        public void PostInitialise()
+        {
             if (m_pluginEnabled)
             {
                 m_log.Info("[FreeSwitchVoice] registering IVoiceModule with the scene");
-
+                
                 // register the voice interface for this module, so the script engine can call us
                 m_scene.RegisterModuleInterface<IVoiceModule>(this);
             }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            if (UseProxy)
-            {
-                MainServer.Instance.RemoveHTTPHandler("", String.Format("{0}/", m_freeSwitchAPIPrefix));
-            }
-            else
-            {
-                MainServer.Instance.RemoveHTTPHandler("", String.Format("{0}/viv_get_prelogin.php", m_freeSwitchAPIPrefix));
-
-                MainServer.Instance.RemoveHTTPHandler("", String.Format("{0}/viv_signin.php", m_freeSwitchAPIPrefix));
-
-                MainServer.Instance.RemoveHTTPHandler("", String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix));
-
-                MainServer.Instance.RemoveHTTPHandler("", String.Format("{0}/viv_buddy.php", m_freeSwitchAPIPrefix));
-            }
-            scene.EventManager.OnRegisterCaps -= delegate(UUID agentID, Caps caps)
-            {
-                OnRegisterCaps(scene, agentID, caps);
-            };
-            scene.UnregisterModuleInterface<IVoiceModule>(this);
-        }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void PostInitialise()
-        {
         }
 
         public void Close()
@@ -313,6 +276,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.FreeSwitchVoice
         public string Name
         {
             get { return "FreeSwitchVoiceModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
         }
         
         // <summary>

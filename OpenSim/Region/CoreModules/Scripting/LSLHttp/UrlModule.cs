@@ -126,8 +126,6 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
         public void RemoveRegion(Scene scene)
         {
-            scene.UnregisterModuleInterface<IUrlModule>(this);
-            scene.EventManager.OnScriptReset -= OnScriptReset;
         }
 
         public void Close()

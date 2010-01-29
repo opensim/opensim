@@ -28,7 +28,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -86,8 +85,7 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class WorldCommModule : ISharedRegionModule, IWorldComm
+    public class WorldCommModule : IRegionModule, IWorldComm
     {
         // private static readonly ILog m_log =
         //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -100,9 +98,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         private int m_saydistance = 30;
         private int m_shoutdistance = 100;
 
-        #region ISharedRegionModule Members
+        #region IRegionModule Members
 
-        public void Initialise(IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             // wrap this in a try block so that defaults will work if
             // the config file doesn't specify otherwise.
@@ -122,6 +120,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             if (maxlisteners < 1) maxlisteners = int.MaxValue;
             if (maxhandles < 1) maxhandles = int.MaxValue;
 
+<<<<<<< HEAD:OpenSim/Region/CoreModules/Scripting/WorldComm/WorldCommModule.cs
             m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
@@ -133,26 +132,19 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         public void AddRegion(Scene scene)
         {
+=======
+>>>>>>> ec3c31e... Updates all IRegionModules to the new style region modules.:OpenSim/Region/CoreModules/Scripting/WorldComm/WorldCommModule.cs
             m_scene = scene;
             m_scene.RegisterModuleInterface<IWorldComm>(this);
+            m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_scene.EventManager.OnChatFromClient += DeliverClientMessage;
             m_scene.EventManager.OnChatBroadcast += DeliverClientMessage;
+            m_pendingQ = new Queue();
+            m_pending = Queue.Synchronized(m_pendingQ);
         }
 
-        public Type ReplaceableInterface
+        public void PostInitialise()
         {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<IWorldComm>(this);
-            scene.EventManager.OnChatFromClient -= DeliverClientMessage;
-            scene.EventManager.OnChatBroadcast -= DeliverClientMessage;
         }
 
         public void Close()
@@ -162,6 +154,11 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         public string Name
         {
             get { return "WorldCommModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
         }
 
         #endregion

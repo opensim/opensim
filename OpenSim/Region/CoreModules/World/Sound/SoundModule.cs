@@ -26,7 +26,6 @@
  */
 
 using System;
-using Mono.Addins;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -35,44 +34,26 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Sound
 {
-    [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SoundModule : INonSharedRegionModule, ISoundModule
+    public class SoundModule : IRegionModule, ISoundModule
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         protected Scene m_scene;
         
-        public void Initialise(IConfigSource source)
-        {
-        }
-
-        public void AddRegion(Scene scene)
+        public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-
+            
             m_scene.EventManager.OnNewClient += OnNewClient;
-
+            
             m_scene.RegisterModuleInterface<ISoundModule>(this);
         }
-
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-            scene.EventManager.OnNewClient -= OnNewClient;
-            scene.UnregisterModuleInterface<ISoundModule>(this);
-        }
         
+        public void PostInitialise() {}
         public void Close() {}
         public string Name { get { return "Sound Module"; } }
-         
+        public bool IsSharedModule { get { return false; } }
+        
         private void OnNewClient(IClientAPI client)
         {
             client.OnSoundTrigger += TriggerSound;
