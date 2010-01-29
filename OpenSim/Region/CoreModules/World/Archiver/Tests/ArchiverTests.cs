@@ -102,6 +102,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };            
         }
 
+        protected SceneObjectPart CreateSceneObjectPart2()
+        {
+            string partName = "Action Man";
+            UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000016");
+            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
+            Vector3 groupPosition = new Vector3(90, 80, 70);
+            Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
+            Vector3 offsetPosition = new Vector3(20, 25, 30);
+
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
+        }        
+
         /// <summary>
         /// Test saving a V0.2 OpenSim Region Archive.
         /// </summary>
@@ -114,24 +126,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SceneObjectPart part1 = CreateSceneObjectPart1();
             m_scene.AddNewSceneObject(new SceneObjectGroup(part1), false);
 
-            SceneObjectPart part2;
-
-            // Create and add prim 2
-            {
-                string partName = "Action Man";
-                UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000016");
-                PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
-                Vector3 groupPosition = new Vector3(90, 80, 70);
-                Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
-                Vector3 offsetPosition = new Vector3(20, 25, 30);
-
-                part2
-                    = new SceneObjectPart(
-                        ownerId, shape, groupPosition, rotationOffset, offsetPosition);
-                part2.Name = partName;
-
-                m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
-            }
+            SceneObjectPart part2 = CreateSceneObjectPart2();
+            m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
 
             MemoryStream archiveWriteStream = new MemoryStream();
             m_scene.EventManager.OnOarFileSaved += SaveCompleted;
