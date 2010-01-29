@@ -151,7 +151,7 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"
     ;; for the service
     UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    UserAgentService = "OpenSim.Services.Hypergrid.dll:UserAgentService"
+    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
     PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
     GridService = "OpenSim.Services.GridService.dll:GridService"
     AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
