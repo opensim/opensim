@@ -55,8 +55,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
         protected TestScene m_scene;
         protected ArchiverModule m_archiverModule;
-
-        protected SceneObjectPart m_part1;
         
         [SetUp]
         public void SetUp()
@@ -92,7 +90,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             }
         }
 
-        protected void AddSceneObject1()
+        protected SceneObjectPart CreateSceneObjectPart1()
         {
             string partName = "My Little Pony";
             UUID ownerId = UUID.Parse("00000000-0000-0000-0000-000000000015");
@@ -101,10 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
             Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-            m_part1
-                = new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
-
-            m_scene.AddNewSceneObject(new SceneObjectGroup(m_part1), false);            
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };            
         }
 
         /// <summary>
@@ -116,7 +111,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             TestHelper.InMethod();
             //log4net.Config.XmlConfigurator.Configure();
 
-            AddSceneObject1();
+            SceneObjectPart part1 = CreateSceneObjectPart1();
+            m_scene.AddNewSceneObject(new SceneObjectGroup(part1), false);
 
             SceneObjectPart part2;
 
@@ -163,9 +159,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             bool gotObject2File = false;
             string expectedObject1FileName = string.Format(
                 "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-                m_part1.Name,
-                Math.Round(m_part1.GroupPosition.X), Math.Round(m_part1.GroupPosition.Y), Math.Round(m_part1.GroupPosition.Z),
-                m_part1.UUID);
+                part1.Name,
+                Math.Round(part1.GroupPosition.X), Math.Round(part1.GroupPosition.Y), Math.Round(part1.GroupPosition.Z),
+                part1.UUID);
             string expectedObject2FileName = string.Format(
                 "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
                 part2.Name,
@@ -185,7 +181,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 {
                     string fileName = filePath.Remove(0, ArchiveConstants.OBJECTS_PATH.Length);
 
-                    if (fileName.StartsWith(m_part1.Name))
+                    if (fileName.StartsWith(part1.Name))
                     {
                         Assert.That(fileName, Is.EqualTo(expectedObject1FileName));
                         gotObject1File = true;
@@ -226,18 +222,20 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
 
-            AddSceneObject1();
-            string part1Name = "object1";
-            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
-            Vector3 groupPosition = new Vector3(90, 80, 70);
-            Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
-            Vector3 offsetPosition = new Vector3(20, 25, 30);
-
-            SceneObjectPart part1
-                = new SceneObjectPart(
-                    UUID.Zero, shape, groupPosition, rotationOffset, offsetPosition);
-            part1.Name = part1Name;
+            SceneObjectPart part1 = CreateSceneObjectPart1();
             SceneObjectGroup object1 = new SceneObjectGroup(part1);
+
+//            string part1Name = "object1";
+//            PrimitiveBaseShape shape = PrimitiveBaseShape.CreateCylinder();
+//            Vector3 groupPosition = new Vector3(90, 80, 70);
+//            Quaternion rotationOffset = new Quaternion(60, 70, 80, 90);
+//            Vector3 offsetPosition = new Vector3(20, 25, 30);
+//
+//            SceneObjectPart part1
+//                = new SceneObjectPart(
+//                    UUID.Zero, shape, groupPosition, rotationOffset, offsetPosition);
+//            part1.Name = part1Name;
+//            SceneObjectGroup object1 = new SceneObjectGroup(part1);
 
             // Let's put some inventory items into our object
             string soundItemName = "sound-item1";
@@ -283,8 +281,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 
             string object1FileName = string.Format(
                 "{0}_{1:000}-{2:000}-{3:000}__{4}.xml",
-                part1Name,
-                Math.Round(groupPosition.X), Math.Round(groupPosition.Y), Math.Round(groupPosition.Z),
+                part1.Name,
+                Math.Round(part1.GroupPosition.X), Math.Round(part1.GroupPosition.Y), Math.Round(part1.GroupPosition.Z),
                 part1.UUID);
             tar.WriteFile(ArchiveConstants.OBJECTS_PATH + object1FileName, SceneObjectSerializer.ToXml2Format(object1));
             
@@ -300,15 +298,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             
             Assert.That(m_lastErrorMessage, Is.Null);
 
-            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1Name);
+            SceneObjectPart object1PartLoaded = m_scene.GetSceneObjectPart(part1.Name);
 
             Assert.That(object1PartLoaded, Is.Not.Null, "object1 was not loaded");
-            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1Name), "object1 names not identical");
-            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(groupPosition), "object1 group position not equal");
+            Assert.That(object1PartLoaded.Name, Is.EqualTo(part1.Name), "object1 names not identical");
+            Assert.That(object1PartLoaded.GroupPosition, Is.EqualTo(part1.GroupPosition), "object1 group position not equal");
             Assert.That(
-                object1PartLoaded.RotationOffset, Is.EqualTo(rotationOffset), "object1 rotation offset not equal");
+                object1PartLoaded.RotationOffset, Is.EqualTo(part1.RotationOffset), "object1 rotation offset not equal");
             Assert.That(
-                object1PartLoaded.OffsetPosition, Is.EqualTo(offsetPosition), "object1 offset position not equal");
+                object1PartLoaded.OffsetPosition, Is.EqualTo(part1.OffsetPosition), "object1 offset position not equal");
 
             TaskInventoryItem loadedSoundItem = object1PartLoaded.Inventory.GetInventoryItems(soundItemName)[0];
             Assert.That(loadedSoundItem, Is.Not.Null, "loaded sound item was null");
