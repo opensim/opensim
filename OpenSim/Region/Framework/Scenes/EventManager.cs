@@ -104,6 +104,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
         public event ObjectGrabDelegate OnObjectGrab;
+        public event ObjectGrabDelegate OnObjectGrabbing;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
 
@@ -408,6 +409,7 @@ namespace OpenSim.Region.Framework.Scenes
         private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
         private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
         private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
+        private ObjectGrabDelegate handlerObjectGrabbing = null; //OnObjectGrabbing;
         private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
         private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
         private NewRezScript handlerRezScript = null; //OnRezScript;
@@ -619,6 +621,15 @@ namespace OpenSim.Region.Framework.Scenes
                 handlerObjectGrab(localID, originalID, offsetPos, remoteClient, surfaceArgs);
             }
         }
+
+        public void TriggerObjectGrabbing(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
+        {
+            handlerObjectGrabbing = OnObjectGrabbing;
+            if (handlerObjectGrabbing != null)
+            {
+                handlerObjectGrabbing(localID, originalID, offsetPos, remoteClient, surfaceArgs);
+            }
+         }
 
         public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
