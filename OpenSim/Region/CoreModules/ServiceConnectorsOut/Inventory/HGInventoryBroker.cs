@@ -41,19 +41,20 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
-    public class HGInventoryBroker : BaseInventoryConnector, ISharedRegionModule, IInventoryService
+    public class HGInventoryBroker : BaseInventoryConnector, INonSharedRegionModule, IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_Enabled = false;
-        private bool m_Initialized = false;
+        private static bool m_Initialized = false;
+        private static bool m_Enabled = false;
+
+        private static IInventoryService m_GridService;
+        private static ISessionAuthInventoryService m_HGService;
+
         private Scene m_Scene;
         private IUserAccountService m_UserAccountService; 
-
-        private IInventoryService m_GridService;
-        private ISessionAuthInventoryService m_HGService;
 
         public Type ReplaceableInterface 
         {
@@ -67,63 +68,67 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void Initialise(IConfigSource source)
         {
-            IConfig moduleConfig = source.Configs["Modules"];
-            if (moduleConfig != null)
+            if (!m_Initialized)
             {
-                string name = moduleConfig.GetString("InventoryServices", "");
-                if (name == Name)
+                IConfig moduleConfig = source.Configs["Modules"];
+                if (moduleConfig != null)
                 {
-                    IConfig inventoryConfig = source.Configs["InventoryService"];
-                    if (inventoryConfig == null)
+                    string name = moduleConfig.GetString("InventoryServices", "");
+                    if (name == Name)
                     {
-                        m_log.Error("[HG INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
-                        return;
+                        IConfig inventoryConfig = source.Configs["InventoryService"];
+                        if (inventoryConfig == null)
+                        {
+                            m_log.Error("[HG INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
+                            return;
+                        }
+
+                        string localDll = inventoryConfig.GetString("LocalGridInventoryService",
+                                String.Empty);
+                        string HGDll = inventoryConfig.GetString("HypergridInventoryService",
+                                String.Empty);
+
+                        if (localDll == String.Empty)
+                        {
+                            m_log.Error("[HG INVENTORY CONNECTOR]: No LocalGridInventoryService named in section InventoryService");
+                            //return;
+                            throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
+                        }
+
+                        if (HGDll == String.Empty)
+                        {
+                            m_log.Error("[HG INVENTORY CONNECTOR]: No HypergridInventoryService named in section InventoryService");
+                            //return;
+                            throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
+                        }
+
+                        Object[] args = new Object[] { source };
+                        m_GridService =
+                                ServerUtils.LoadPlugin<IInventoryService>(localDll,
+                                args);
+
+                        m_HGService =
+                                ServerUtils.LoadPlugin<ISessionAuthInventoryService>(HGDll,
+                                args);
+
+                        if (m_GridService == null)
+                        {
+                            m_log.Error("[HG INVENTORY CONNECTOR]: Can't load local inventory service");
+                            return;
+                        }
+                        if (m_HGService == null)
+                        {
+                            m_log.Error("[HG INVENTORY CONNECTOR]: Can't load hypergrid inventory service");
+                            return;
+                        }
+
+                        Init(source);
+
+                        m_Enabled = true;
+                        m_log.Info("[HG INVENTORY CONNECTOR]: HG inventory broker enabled");
                     }
-
-                    string localDll = inventoryConfig.GetString("LocalGridInventoryService",
-                            String.Empty);
-                    string HGDll = inventoryConfig.GetString("HypergridInventoryService",
-                            String.Empty);
-
-                    if (localDll == String.Empty)
-                    {
-                        m_log.Error("[HG INVENTORY CONNECTOR]: No LocalGridInventoryService named in section InventoryService");
-                        //return;
-                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
-                    }
-
-                    if (HGDll == String.Empty)
-                    {
-                        m_log.Error("[HG INVENTORY CONNECTOR]: No HypergridInventoryService named in section InventoryService");
-                        //return;
-                        throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
-                    }
-
-                    Object[] args = new Object[] { source };
-                    m_GridService =
-                            ServerUtils.LoadPlugin<IInventoryService>(localDll,
-                            args);
-
-                    m_HGService =
-                            ServerUtils.LoadPlugin<ISessionAuthInventoryService>(HGDll,
-                            args);
-
-                    if (m_GridService == null)
-                    {
-                        m_log.Error("[HG INVENTORY CONNECTOR]: Can't load local inventory service");
-                        return;
-                    }
-                    if (m_HGService == null)
-                    {
-                        m_log.Error("[HG INVENTORY CONNECTOR]: Can't load hypergrid inventory service");
-                        return;
-                    }
-
-                    Init(source);
-
-                    m_Enabled = true;
-                    m_log.Info("[HG INVENTORY CONNECTOR]: HG inventory broker enabled");
                 }
+                m_Initialized = true;
             }
         }
 
@@ -140,13 +145,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (!m_Enabled)
                 return;
 
-            if (!m_Initialized)
-            {
-                m_Scene = scene;
-                m_UserAccountService = m_Scene.UserAccountService;
-
-                m_Initialized = true;
-            }
+            m_Scene = scene;
+            m_UserAccountService = m_Scene.UserAccountService;
 
             scene.RegisterModuleInterface<IInventoryService>(this);
             m_cache.AddRegion(scene);
@@ -514,7 +514,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool IsForeignUser(UUID userID, out string inventoryURL)
         {
             inventoryURL = string.Empty;
-            UserAccount account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+            UserAccount account = null;
+            if (m_Scene.UserAccountService != null)
+                account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+
             if (account == null) // foreign user
             {
                 ScenePresence sp = null;

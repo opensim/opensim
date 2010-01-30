@@ -40,12 +40,17 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 {
     public abstract class BaseInventoryConnector : IInventoryService
     {
-        protected InventoryCache m_cache;
+        protected static InventoryCache m_cache;
+        private static bool m_Initialized;
 
         protected virtual void Init(IConfigSource source)
         {
-            m_cache = new InventoryCache();
-            m_cache.Init(source, this);
+            if (!m_Initialized)
+            {
+                m_cache = new InventoryCache();
+                m_cache.Init(source, this);
+                m_Initialized = true;
+            }
         }
 
         /// <summary>

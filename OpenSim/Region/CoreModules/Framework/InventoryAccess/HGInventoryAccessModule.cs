@@ -183,7 +183,10 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         public bool IsForeignUser(UUID userID, out string assetServerURL)
         {
             assetServerURL = string.Empty;
-            UserAccount account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+            UserAccount account = null;
+            if (m_Scene.UserAccountService != null)
+                account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+
             if (account == null) // foreign
             {
                 ScenePresence sp = null;
@@ -193,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     if (aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
                     {
                         assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
-                        return true;
+                        assetServerURL = assetServerURL.Trim(new char[] { '/' }); return true;
                     }
                 }
             }
