@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,56 +25,67 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Reflection;
+
+using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
+using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Connectors.Hypergrid;
+using OpenSim.Services.Interfaces;
+using OpenSim.Server.Base;
+
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+
+using OpenMetaverse;
 using log4net;
 using Nini.Config;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
 
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Services.Interfaces;
-
-namespace OpenSim.Region.Framework.Scenes.Hypergrid
+namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
-    public partial class HGScene : Scene
+    public class HGInventoryAccessModule : InventoryAccessModule, INonSharedRegionModule, IInventoryAccessModule
     {
-        #region Fields
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private HGAssetMapper m_assMapper;
-        public HGAssetMapper AssetMapper
+        private static HGAssetMapper m_assMapper;
+        public static HGAssetMapper AssetMapper
         {
             get { return m_assMapper; }
         }
 
-        private IHyperAssetService m_hyper;
-        private IHyperAssetService HyperAssets
+        private bool m_Initialized = false;
+
+        #region INonSharedRegionModule
+
+        public override string Name
         {
-            get
+            get { return "HGInventoryAccessModule"; }
+        }
+
+        public override void Initialise(IConfigSource source)
+        {
+            IConfig moduleConfig = source.Configs["Modules"];
+            if (moduleConfig != null)
             {
-                if (m_hyper == null)
-                    m_hyper = RequestModuleInterface<IHyperAssetService>();
-                return m_hyper;
+                string name = moduleConfig.GetString("InventoryAccessModule", "");
+                if (name == Name)
+                {
+                    m_Enabled = true;
+                    m_log.InfoFormat("[HG INVENTORY ACCESS MODULE]: {0} enabled.", Name);
+                }
             }
         }
 
-        #endregion
-
-        #region Constructors
-
-        public HGScene(RegionInfo regInfo, AgentCircuitManager authen,
-                       SceneCommunicationService sceneGridService,
-                       StorageManager storeManager,
-                       ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
-                       bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
-                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
+        public override void AddRegion(Scene scene)
         {
-            m_log.Info("[HGScene]: Starting HGScene.");
-            m_assMapper = new HGAssetMapper(this);
+            if (!m_Enabled)
+                return;
 
-            EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
+            base.AddRegion(scene);
+            m_assMapper = new HGAssetMapper(scene);
+            scene.EventManager.OnNewInventoryItemUploadComplete += UploadInventoryItem;
+
         }
 
         #endregion
@@ -83,17 +94,16 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
 
         public void UploadInventoryItem(UUID avatarID, UUID assetID, string name, int userlevel)
         {
-            UserAccount userInfo = UserAccountService.GetUserAccount(RegionInfo.ScopeID, avatarID);
-            if (userInfo != null)
+            string userAssetServer = string.Empty;
+            if (IsForeignUser(avatarID, out userAssetServer))
             {
-                m_assMapper.Post(assetID, avatarID);
+                m_assMapper.Post(assetID, avatarID, userAssetServer);
             }
         }
 
         #endregion
 
-        #region Overrides of Scene.Inventory methods
-
+        #region Overrides of Basic Inventory Access methods
         /// 
         /// CapsUpdateInventoryItemAsset
         ///
@@ -136,7 +146,7 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             //{
             InventoryItemBase item = new InventoryItemBase(itemID);
             item.Owner = remoteClient.AgentId;
-            item = InventoryService.GetItem(item);
+            item = m_Scene.InventoryService.GetItem(item);
             //if (item == null)
             //{ // Fetch the item
             //    item = new InventoryItemBase();
@@ -144,32 +154,51 @@ namespace OpenSim.Region.Framework.Scenes.Hypergrid
             //    item.ID = itemID;
             //    item = m_assMapper.Get(item, userInfo.RootFolder.ID, userInfo);
             //}
-            if (item != null)
+            string userAssetServer = string.Empty;
+            if (item != null && IsForeignUser(remoteClient.AgentId, out userAssetServer))
             {
-                m_assMapper.Get(item.AssetID, remoteClient.AgentId);
+                m_assMapper.Get(item.AssetID, remoteClient.AgentId, userAssetServer);
 
             }
             //}
 
             // OK, we're done fetching. Pass it up to the default RezObject
-            return base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection, 
+            return base.RezObject(remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
                                   RezSelected, RemoveItem, fromTaskID, attachment);
 
         }
 
-        protected override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
+        public override void TransferInventoryAssets(InventoryItemBase item, UUID sender, UUID receiver)
         {
-            string userAssetServer = HyperAssets.GetUserAssetServer(sender);
-            if ((userAssetServer != string.Empty) && (userAssetServer != HyperAssets.GetSimAssetServer()))
-                m_assMapper.Get(item.AssetID, sender);
+            string userAssetServer = string.Empty;
+            if (IsForeignUser(sender, out userAssetServer))
+                m_assMapper.Get(item.AssetID, sender, userAssetServer);
 
-            userAssetServer = HyperAssets.GetUserAssetServer(receiver);
-            if ((userAssetServer != string.Empty) && (userAssetServer != HyperAssets.GetSimAssetServer()))
-                m_assMapper.Post(item.AssetID, receiver);
+            if (IsForeignUser(receiver, out userAssetServer))
+                m_assMapper.Post(item.AssetID, receiver, userAssetServer);
         }
 
         #endregion
 
-    }
+        public bool IsForeignUser(UUID userID, out string assetServerURL)
+        {
+            assetServerURL = string.Empty;
+            UserAccount account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+            if (account == null) // foreign
+            {
+                ScenePresence sp = null;
+                if (m_Scene.TryGetAvatar(userID, out sp))
+                {
+                    AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                    if (aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))
+                    {
+                        assetServerURL = aCircuit.ServiceURLs["AssetServerURI"].ToString();
+                        return true;
+                    }
+                }
+            }
 
+            return false;
+        }
+    }
 }

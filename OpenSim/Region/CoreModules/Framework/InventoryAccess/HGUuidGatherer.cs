@@ -27,34 +27,31 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Xml;
-using log4net;
-using Nini.Config;
+
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Hypergrid;
+using OpenSim.Services.Interfaces;
+using OpenMetaverse;
 
-namespace OpenSim
+namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
-    public class HGCommands
+    public class HGUuidGatherer : UuidGatherer
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        protected string m_assetServerURL;
+        protected HGAssetMapper m_assetMapper;
 
-        public static Scene CreateScene(RegionInfo regionInfo, AgentCircuitManager circuitManager, 
-            StorageManager storageManager, ModuleLoader m_moduleLoader, ConfigSettings m_configSettings, OpenSimConfigSource m_config, string m_version)
+        public HGUuidGatherer(HGAssetMapper assMap, IAssetService assetCache, string assetServerURL) : base(assetCache)
         {
-            SceneCommunicationService sceneGridService = new SceneCommunicationService();
-
-            return
-                new HGScene(
-                    regionInfo, circuitManager, sceneGridService, storageManager,
-                    m_moduleLoader, false, m_configSettings.PhysicalPrim,
-                    m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
+            m_assetMapper = assMap;
+            m_assetServerURL = assetServerURL;
         }
 
+        protected override AssetBase GetAsset(UUID uuid)
+        {
+            if (string.Empty == m_assetServerURL)
+                return m_assetCache.Get(uuid.ToString());
+            else
+                return m_assetMapper.FetchAsset(m_assetServerURL, uuid);
+        }
     }
 }

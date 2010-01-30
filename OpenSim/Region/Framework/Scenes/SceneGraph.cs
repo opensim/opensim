@@ -35,6 +35,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -498,27 +499,32 @@ namespace OpenSim.Region.Framework.Scenes
         public SceneObjectGroup RezSingleAttachment(
             IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient,
-                itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                false, false, remoteClient.AgentId, true);
-
-
-            if (objatt != null)
+            IInventoryAccessModule invAccess = m_parentScene.RequestModuleInterface<IInventoryAccessModule>();
+            if (invAccess != null)
             {
-                bool tainted = false;
-                if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
-                    tainted = true;
+                SceneObjectGroup objatt = invAccess.RezObject(remoteClient,
+                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                    false, false, remoteClient.AgentId, true);
 
-                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
-                objatt.ScheduleGroupForFullUpdate();
-                if (tainted)
-                    objatt.HasGroupChanged = true;
 
-                // Fire after attach, so we don't get messy perms dialogs
-                // 3 == AttachedRez
-                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+                if (objatt != null)
+                {
+                    bool tainted = false;
+                    if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
+                        tainted = true;
+
+                    AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
+                    objatt.ScheduleGroupForFullUpdate();
+                    if (tainted)
+                        objatt.HasGroupChanged = true;
+
+                    // Fire after attach, so we don't get messy perms dialogs
+                    // 3 == AttachedRez
+                    objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+                }
+                return objatt;
             }
-            return objatt;
+            return null;
         }
 
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.

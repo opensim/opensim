@@ -32,6 +32,7 @@ using System.Timers;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -137,7 +138,9 @@ namespace OpenSim.Region.Framework.Scenes
                         
                         try
                         {
-                            m_scene.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
+                            IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+                            if (invAccess != null)
+                                invAccess.DeleteToInventory(x.action, x.folderID, x.objectGroup, x.remoteClient);
                             if (x.permissionToDelete)
                                 m_scene.DeleteSceneObject(x.objectGroup, false);
                         }
