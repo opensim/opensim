@@ -365,7 +365,11 @@ namespace OpenSim.Tests.Common.Mock
             get { return true; }
             set { }
         }
-
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }

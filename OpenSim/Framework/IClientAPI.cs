@@ -826,6 +826,11 @@ namespace OpenSim.Framework
         /// </value>
         bool IsActive { get; set; }
 
+        /// <value>
+        /// Determines whether the client is logging out or not.
+        /// </value>
+        bool IsLoggingOut { get; set; }
+        
         bool SendLogoutPacketWhenClosing { set; }
 
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]

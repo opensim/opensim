@@ -455,6 +455,11 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             set { }
         }
 
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }

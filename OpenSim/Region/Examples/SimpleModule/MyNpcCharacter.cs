@@ -351,7 +351,11 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return true; }
             set { }
         }
-
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
         public UUID ActiveGroupId
         {
             get { return UUID.Zero; }

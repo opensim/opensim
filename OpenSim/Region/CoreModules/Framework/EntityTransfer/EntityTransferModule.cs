@@ -268,7 +268,6 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (sp.ParentID != (uint)0)
                     sp.StandUp();
 
-                m_log.Debug("XXX HERE 1");
                 if (!sp.ValidateAttachments())
                 {
                     sp.ControllingClient.SendTeleportFailed("Inconsistent attachment state");
@@ -351,7 +350,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                         // ES makes the client send a UseCircuitCode message to the destination, 
                         // which triggers a bunch of things there.
                         // So let's wait
-                        Thread.Sleep(2000);
+                        Thread.Sleep(200);
 
                         eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
 
@@ -428,13 +427,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     return;
                 }
 
-                KillEntity(sp.Scene, sp.LocalId);
-
-                sp.MakeChildAgent();
 
                 // CrossAttachmentsIntoNewRegion is a synchronous call. We shouldn't need to wait after it
                 CrossAttachmentsIntoNewRegion(finalDestination, sp, true);
 
+                KillEntity(sp.Scene, sp.LocalId);
+
+                sp.MakeChildAgent();
                 // Finally, let's close this previously-known-as-root agent, when the jump is outside the view zone
 
                 if (NeedsClosing(oldRegionX, newRegionX, oldRegionY, newRegionY, reg))

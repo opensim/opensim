@@ -627,6 +627,12 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             set { if (!value) Disconnect("IsActive Disconnected?"); }
         }
 
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
+
         public bool SendLogoutPacketWhenClosing
         {
             set { }

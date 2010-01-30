@@ -81,15 +81,15 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (m_Enabled)
             {
                 scene.RegisterModuleInterface<IUserAgentVerificationModule>(this);
-                scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(OnNewClient);
             }
         }
 
         protected override void OnNewClient(IClientAPI client)
         {
-            base.OnNewClient(client);
-            client.OnLogout += new Action<IClientAPI>(OnLogout);
+            client.OnTeleportHomeRequest += TeleportHome;
+            client.OnConnectionClosed += new Action<IClientAPI>(OnConnectionClosed);
         }
+
 
         public override void RegionLoaded(Scene scene)
         {
@@ -234,18 +234,22 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             return false;
         }
 
-        void OnLogout(IClientAPI obj)
+        void OnConnectionClosed(IClientAPI obj)
         {
-            m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: client {0} logged out in {1}", obj.AgentId, obj.Scene.RegionInfo.RegionName);
-            AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
-
-            if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+            if (obj.IsLoggingOut)
             {
-                string url = aCircuit.ServiceURLs["HomeURI"].ToString();
-                IUserAgentService security = new UserAgentServiceConnector(url);
-                security.LogoutAgent(obj.AgentId, obj.SessionId);
-            }
+                AgentCircuitData aCircuit = ((Scene)(obj.Scene)).AuthenticateHandler.GetAgentCircuitData(obj.CircuitCode);
 
+                if (aCircuit.ServiceURLs.ContainsKey("HomeURI"))
+                {
+                    string url = aCircuit.ServiceURLs["HomeURI"].ToString();
+                    IUserAgentService security = new UserAgentServiceConnector(url);
+                    security.LogoutAgent(obj.AgentId, obj.SessionId);
+                    //m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: Sent logout call to UserAgentService @ {0}", url);
+                }
+                else
+                    m_log.DebugFormat("[HG ENTITY TRANSFER MODULE]: HomeURI not found for agent {0} logout", obj.AgentId);
+            }
         }
 
         #endregion

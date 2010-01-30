@@ -160,6 +160,12 @@ namespace OpenSim.Client.MXP.ClientStack
             }
         }
 
+        public bool IsLoggingOut
+        {
+            get { return false ; }
+            set {  }
+        }
+
         #endregion
 
         #region Constructors

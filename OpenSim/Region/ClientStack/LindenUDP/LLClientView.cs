@@ -351,6 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private bool m_SendLogoutPacketWhenClosing = true;
         private AgentUpdateArgs lastarg;
         private bool m_IsActive = true;
+        private bool m_IsLoggingOut = false;
 
         protected Dictionary<PacketType, PacketProcessor> m_packetHandlers = new Dictionary<PacketType, PacketProcessor>();
         protected Dictionary<string, GenericMessage> m_genericPacketHandlers = new Dictionary<string, GenericMessage>(); //PauPaw:Local Generic Message handlers
@@ -414,6 +415,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_IsActive; }
             set { m_IsActive = value; }
         }
+        public bool IsLoggingOut
+        {
+            get { return m_IsLoggingOut; }
+            set { m_IsLoggingOut = value; }
+        }
+
         public bool SendLogoutPacketWhenClosing { set { m_SendLogoutPacketWhenClosing = value; } }
 
         #endregion Properties

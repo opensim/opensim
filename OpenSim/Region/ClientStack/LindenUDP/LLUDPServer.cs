@@ -919,7 +919,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Remove this client from the scene
             IClientAPI client;
             if (m_scene.TryGetClient(udpClient.AgentID, out client))
+            {
+                client.IsLoggingOut = true;
                 client.Close();
+            }
         }
 
         private void IncomingPacketHandler()

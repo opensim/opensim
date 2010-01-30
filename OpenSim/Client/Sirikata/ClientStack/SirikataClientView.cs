@@ -192,6 +192,11 @@ namespace OpenSim.Client.Sirikata.ClientStack
             get { return isActive; }
             set { isActive = value; }
         }
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
 
         public bool SendLogoutPacketWhenClosing
         {

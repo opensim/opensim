@@ -196,7 +196,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             get { throw new System.NotImplementedException(); }
             set { throw new System.NotImplementedException(); }
         }
-
+        public bool IsLoggingOut
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
         public bool SendLogoutPacketWhenClosing
         {
             set { throw new System.NotImplementedException(); }
