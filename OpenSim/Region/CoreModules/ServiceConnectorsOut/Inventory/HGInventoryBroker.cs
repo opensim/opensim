@@ -50,24 +50,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool m_Enabled = false;
         private bool m_Initialized = false;
         private Scene m_Scene;
-        private IUserAccountService m_UserAccountService; // This should change to IUserProfileService
+        private IUserAccountService m_UserAccountService; 
 
         private IInventoryService m_GridService;
         private ISessionAuthInventoryService m_HGService;
-
-        private string m_LocalGridInventoryURI = string.Empty;
-
-        private string LocalGridInventory
-        {
-            get
-            {
-                return string.Empty;
-                // REFACTORING PROBLEM
-                //if (m_LocalGridInventoryURI == null || m_LocalGridInventoryURI == "")
-                //    m_LocalGridInventoryURI = m_Scene.CommsManager.NetworkServersInfo.InventoryURL;
-                //return m_LocalGridInventoryURI;
-            }
-        }
 
         public Type ReplaceableInterface 
         {
@@ -133,8 +119,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                         return;
                     }
 
-                    m_LocalGridInventoryURI = inventoryConfig.GetString("InventoryServerURI", string.Empty);
-
                     Init(source);
 
                     m_Enabled = true;
@@ -199,22 +183,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override InventoryCollection GetUserInventory(UUID userID)
         {
-            if (IsLocalGridUser(userID))
-                return m_GridService.GetUserInventory(userID);
-            else
-                return null;
+            return null;
         }
 
         public override void GetUserInventory(UUID userID, InventoryReceiptCallback callback)
         {
-            if (IsLocalGridUser(userID))
-                m_GridService.GetUserInventory(userID, callback);
-            else
-            {
-                UUID sessionID = GetSessionID(userID);
-                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
-                m_HGService.GetUserInventory(uri, sessionID, callback);
-            }
         }
 
         // Inherited. See base
@@ -234,19 +207,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
-            if (IsLocalGridUser(userID))
+            string uri = string.Empty;
+            if (!IsForeignUser(userID, out uri))
                 return m_GridService.GetFolderContent(userID, folderID);
             else
             {
                 UUID sessionID = GetSessionID(userID);
-                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                uri = uri + "/" + userID.ToString();
                 return m_HGService.GetFolderContent(uri, folderID, sessionID);
             }
         }
 
         public override Dictionary<AssetType, InventoryFolderBase> GetSystemFolders(UUID userID)
         {
-            if (IsLocalGridUser(userID))
+            string uri = string.Empty;
+            if (!IsForeignUser(userID, out uri))
             {
                 // This is not pretty, but it will have to do for now
                 if (m_GridService is BaseInventoryConnector)
@@ -263,7 +238,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             else
             {
                 UUID sessionID = GetSessionID(userID);
-                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                uri = uri + "/" + userID.ToString();
                 return m_HGService.GetSystemFolders(uri, sessionID);
             }
         }
@@ -299,12 +274,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override List<InventoryItemBase> GetFolderItems(UUID userID, UUID folderID)
         {
-            if (IsLocalGridUser(userID))
+            string uri = string.Empty;
+            if (!IsForeignUser(userID, out uri))
                 return m_GridService.GetFolderItems(userID, folderID);
             else
             {
                 UUID sessionID = GetSessionID(userID);
-                string uri = GetUserInventoryURI(userID) + "/" + userID;
+                uri = uri + "/" + userID.ToString();
                 return m_HGService.GetFolderItems(uri, folderID, sessionID);
             }
         }
@@ -314,12 +290,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folder == null)
                 return false;
 
-            if (IsLocalGridUser(folder.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(folder.Owner, out uri))
                 return m_GridService.AddFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                uri = uri + "/" + folder.Owner.ToString();
                 return m_HGService.AddFolder(uri, folder, sessionID);
             }
         }
@@ -329,12 +306,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folder == null)
                 return false;
 
-            if (IsLocalGridUser(folder.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(folder.Owner, out uri))
                 return m_GridService.UpdateFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                uri = uri + "/" + folder.Owner.ToString();
                 return m_HGService.UpdateFolder(uri, folder, sessionID);
             }
         }
@@ -346,12 +324,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folderIDs.Count == 0)
                 return false;
 
-            if (IsLocalGridUser(ownerID))
+            string uri = string.Empty;
+            if (!IsForeignUser(ownerID, out uri))
                 return m_GridService.DeleteFolders(ownerID, folderIDs);
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                uri = uri + "/" + ownerID.ToString();
                 return m_HGService.DeleteFolders(uri, folderIDs, sessionID);
             }
         }
@@ -361,12 +340,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folder == null)
                 return false;
 
-            if (IsLocalGridUser(folder.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(folder.Owner, out uri))
                 return m_GridService.MoveFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                uri = uri + "/" + folder.Owner.ToString();
                 return m_HGService.MoveFolder(uri, folder, sessionID);
             }
         }
@@ -376,12 +356,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folder == null)
                 return false;
 
-            if (IsLocalGridUser(folder.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(folder.Owner, out uri))
                 return m_GridService.PurgeFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                uri = uri + "/" + folder.Owner.ToString();
                 return m_HGService.PurgeFolder(uri, folder, sessionID);
             }
         }
@@ -394,14 +375,15 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (item == null)
                 return false;
 
-            if (IsLocalGridUser(item.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(item.Owner, out uri))
             {
                 return m_GridService.AddItem(item);
             }
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                uri = uri + "/" + item.Owner.ToString();
                 return m_HGService.AddItem(uri, item, sessionID);
             }
         }
@@ -411,12 +393,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (item == null)
                 return false;
 
-            if (IsLocalGridUser(item.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(item.Owner, out uri))
                 return m_GridService.UpdateItem(item);
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                uri = uri + "/" + item.Owner.ToString();
                 return m_HGService.UpdateItem(uri, item, sessionID);
             }
         }
@@ -428,12 +411,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (items.Count == 0)
                 return true;
 
-            if (IsLocalGridUser(ownerID))
+            string uri = string.Empty;
+            if (!IsForeignUser(ownerID, out uri))
                 return m_GridService.MoveItems(ownerID, items);
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                uri = uri + "/" + ownerID.ToString();
                 return m_HGService.MoveItems(uri, items, sessionID);
             }
         }
@@ -447,12 +431,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (itemIDs.Count == 0)
                 return true;
 
-            if (IsLocalGridUser(ownerID))
+            string uri = string.Empty;
+            if (!IsForeignUser(ownerID, out uri))
                 return m_GridService.DeleteItems(ownerID, itemIDs);
             else
             {
                 UUID sessionID = GetSessionID(ownerID);
-                string uri = GetUserInventoryURI(ownerID) + "/" + ownerID.ToString();
+                uri = uri + "/" + ownerID.ToString();
                 return m_HGService.DeleteItems(uri, itemIDs, sessionID);
             }
         }
@@ -462,12 +447,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (item == null)
                 return null;
             m_log.DebugFormat("[HG INVENTORY CONNECTOR]: GetItem {0} for user {1}", item.ID, item.Owner);
-            if (IsLocalGridUser(item.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(item.Owner, out uri))
                 return m_GridService.GetItem(item);
             else
             {
                 UUID sessionID = GetSessionID(item.Owner);
-                string uri = GetUserInventoryURI(item.Owner) + "/" + item.Owner.ToString();
+                uri = uri + "/" + item.Owner.ToString();
                 return m_HGService.QueryItem(uri, item, sessionID);
             }
         }
@@ -477,12 +463,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (folder == null)
                 return null;
 
-            if (IsLocalGridUser(folder.Owner))
+            string uri = string.Empty;
+            if (!IsForeignUser(folder.Owner, out uri))
                 return m_GridService.GetFolder(folder);
             else
             {
                 UUID sessionID = GetSessionID(folder.Owner);
-                string uri = GetUserInventoryURI(folder.Owner) + "/" + folder.Owner.ToString();
+                uri = uri + "/" + folder.Owner.ToString();
                 return m_HGService.QueryFolder(uri, folder, sessionID);
             }
         }
@@ -499,12 +486,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override int GetAssetPermissions(UUID userID, UUID assetID)
         {
-            if (IsLocalGridUser(userID))
+            string uri = string.Empty;
+            if (!IsForeignUser(userID, out uri))
                 return m_GridService.GetAssetPermissions(userID, assetID);
             else
             {
                 UUID sessionID = GetSessionID(userID);
-                string uri = GetUserInventoryURI(userID) + "/" + userID.ToString();
+                uri = uri + "/" + userID.ToString();
                 return m_HGService.GetAssetPermissions(uri, assetID, sessionID);
             }
         }
@@ -523,59 +511,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             return UUID.Zero;
         }
 
-        private bool IsLocalGridUser(UUID userID)
+        private bool IsForeignUser(UUID userID, out string inventoryURL)
         {
-            return true;
-
-            // REFACTORING PROBLEM. This needs to be rewritten
-
-            //if (m_UserAccountService == null)
-            //{
-            //    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no user account service. Returning false.");
-            //    return false;
-            //}
-
-            //UserAccount uinfo = m_UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
-            //if (uinfo == null)
-            //{
-            //    m_log.DebugFormat("[HG INVENTORY CONNECTOR]: IsLocalGridUser, no account for user {0}. Returning false.", userID);
-            //    return false;
-            //}
-
-            //if ((uinfo.UserProfile.UserInventoryURI == null) || (uinfo.UserProfile.UserInventoryURI == ""))
-            //    // this happens in standalone profiles, apparently
-            //    return true;
-            
-            //string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
-
-            //string uri = LocalGridInventory.TrimEnd('/');
-
-            //if ((userInventoryServerURI == uri) || (userInventoryServerURI == ""))
-            //{
-            //    return true;
-            //}
-            //m_log.DebugFormat("[HG INVENTORY CONNECTOR]: user {0} is foreign({1} - {2})", userID, userInventoryServerURI, uri);
-            //return false;
+            inventoryURL = string.Empty;
+            UserAccount account = m_Scene.UserAccountService.GetUserAccount(m_Scene.RegionInfo.ScopeID, userID);
+            if (account == null) // foreign user
+            {
+                ScenePresence sp = null;
+                m_Scene.TryGetAvatar(userID, out sp);
+                if (sp != null)
+                {
+                    AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
+                    if (aCircuit.ServiceURLs.ContainsKey("InventoryServerURI"))
+                    {
+                        inventoryURL = aCircuit.ServiceURLs["InventoryServerURI"].ToString();
+                        inventoryURL = inventoryURL.Trim(new char[] { '/' });
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
-
-        private string GetUserInventoryURI(UUID userID)
-        {
-            string invURI = LocalGridInventory;
-            // REFACTORING PROBLEM!!! This needs to be rewritten
-
-            //CachedUserInfo uinfo = m_UserAccountService.GetUserDetails(userID);
-            //if ((uinfo == null) || (uinfo.UserProfile == null))
-            //    return invURI;
-
-            //string userInventoryServerURI = Util.ServerURI(uinfo.UserProfile.UserInventoryURI);
-
-            //if ((userInventoryServerURI != null) &&
-            //    (userInventoryServerURI != ""))
-            //    invURI = userInventoryServerURI;
-
-            return invURI;
-        }
-
 
     }
 }
