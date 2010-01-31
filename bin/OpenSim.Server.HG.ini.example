@@ -6,12 +6,12 @@
 ;; HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService
 ;;                     OpenSim.Server.Handlers.dll:UserAgentService
 ;;                     OpenSim.Server.Handlers.dll:HGInventoryServiceInConnector
+;; An additional OpenSim.Server.Handlers.dll:AssetServiceConnector is started
+;; in port 8002, outside the firewall
 ;;
-;; Note that we're putting the asset service in 8002. 
-;; Make sure your simulators point to that.
 
 [Startup]
-ServiceConnectors = "8002/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:InventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8003/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,8002/OpenSim.Server.Handlers.dll:HGInventoryServiceInConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:InventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8003/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8002/OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,8002/OpenSim.Server.Handlers.dll:UserAgentServerConnector,8002/OpenSim.Server.Handlers.dll:HGInventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:AssetServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none if specified above
