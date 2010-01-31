@@ -16,8 +16,8 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; * This is common for all services, it's the network setup for the entire
 ; * server instance, if none if specified above
 ; *
-;[Network]
-;    port = 8003
+[Network]
+    port = 8003
 
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
