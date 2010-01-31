@@ -405,6 +405,7 @@ namespace OpenSim.Services.LLLoginService
             gatekeeper.ExternalHostName = domainName;
             gatekeeper.HttpPort = port;
             gatekeeper.RegionName = regionName;
+            gatekeeper.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
 
             UUID regionID;
             ulong handle;

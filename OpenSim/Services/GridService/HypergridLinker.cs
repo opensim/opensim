@@ -165,13 +165,17 @@ namespace OpenSim.Services.GridService
                 regionName = parts[2];
             }
 
-            // Sanity check. Don't ever link to this sim.
+            // Sanity check. 
             IPAddress ipaddr = null;
             try
             {
                 ipaddr = Util.GetHostFromDNS(host);
             }
-            catch { }
+            catch 
+            {
+                reason = "Malformed hostname";
+                return null;
+            }
 
             GridRegion regInfo;
             bool success = TryCreateLink(scopeID, xloc, yloc, regionName, port, host, out regInfo, out reason);
