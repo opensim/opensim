@@ -48,3 +48,15 @@
 [LibraryModule]
     ; Set this if you want to change the name of the OpenSim Library
     ;LibraryName = "My World's Library"
+    
+[LoginService]
+    DefaultRegion = "OpenSim Test"
+    WelcomeMessage = "Welcome, Avatar!"
+    
+    HomeURI = "http://127.0.0.1:9000"
+    GatekeeperURI = "http://127.0.0.1:9000"
+    InventoryServerURI = "http://127.0.0.1:9000"
+    AssetServerURI = "http://127.0.0.1:9000"
+
+[GatekeeperService]
+    ExternalName = "http://127.0.0.1:9000"
