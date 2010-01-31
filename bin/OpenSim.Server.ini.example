@@ -26,6 +26,11 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ;ConsolePass = secret
 ;ConsolePort = 0
 
+[DatabaseService]
+    StorageProvider = "OpenSim.Data.MySQL.dll"
+    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
+
+
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
 ; * and it then loads the OUT connector (a local database module). That,
@@ -35,8 +40,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
@@ -44,8 +47,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [InventoryService]
     LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
     SessionAuthentication = "false"
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
 ; * This is the new style grid service.
 ; * "Realm" is the table that is used for user lookup.
@@ -53,8 +54,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 ; *
 [GridService]
     LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-    StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     Realm = "regions"
     ; AllowDuplicateNames = "True"
     ;; Next, we can specify properties of regions, including default and fallback regions
@@ -77,9 +76,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [AuthenticationService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-    ; for the service
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
 [OpenIdService]
     ; for the server connector
@@ -93,9 +89,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [UserAccountService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    ; for the service
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
     ; Realm = "useraccounts"
     ;; These are for creating new accounts by the service
     AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
@@ -106,16 +99,10 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 [PresenceService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
-    ; for the service
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
 [AvatarService]
     ; for the server connector
     LocalServiceModule = "OpenSim.Services.AvatarService.dll:AvatarService"
-    ; for the service
-    StorageProvider = "OpenSim.Data.MySQL.dll"
-    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
 
 [LibraryService]
     LibraryName = "OpenSim Library"
@@ -134,6 +121,5 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
 
-    DefaultRegion = "OpenSim Test"
     WelcomeMessage = "Welcome, Avatar!"
 

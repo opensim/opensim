@@ -68,7 +68,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             }
 
             AddHttpHandlers(server);
-            m_log.Debug("[HG HG INVENTORY HANDLER]: handlers initialized");
+            m_log.Debug("[HG INVENTORY HANDLER]: handlers initialized");
         }
 
         /// <summary>

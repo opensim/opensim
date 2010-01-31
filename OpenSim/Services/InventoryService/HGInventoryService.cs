@@ -87,7 +87,7 @@ namespace OpenSim.Services.InventoryService
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
 
-            m_log.Debug("[HG INVENTORY SERVVICE]: Starting...");
+            m_log.Debug("[HG INVENTORY SERVICE]: Starting...");
         }
 
         public override bool CreateUserInventory(UUID principalID)
