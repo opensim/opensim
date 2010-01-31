@@ -19,13 +19,6 @@
     ; inside your firewall, separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
 
-    ; Set this to true if you are connecting your regions to a grid
-    ; Set this to false if you are running in standalone mode
-    gridmode = false
-
-    ; Set this to true if you want Hypergrid functionality
-    hypergrid = false
-
     startup_console_commands_file = "startup_commands.txt"
     shutdown_console_commands_file = "shutdown_commands.txt"
 
@@ -118,7 +111,7 @@
     ;InworldRestartShutsDown = false
 
     ; ##
-    ; ## STORAGE
+    ; ## PRIM STORAGE
     ; ##
 
     ; *** Prim Storage - only leave one storage_plugin uncommented ***
@@ -134,22 +127,13 @@
     ; --- To use MySQL storage, supply your own connection string (this is only an example):
     ;     note that the supplied account needs create privilegies if you want it to auto-create needed tables.
     ;
-    ; -->>> There are multiple connection strings defined in several places in this file. Check it carefully!
+    ; -->>> There are multiple connection strings defined in several places. Check it carefully!
     ;
     ; storage_plugin="OpenSim.Data.MySQL.dll"
     ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
     ; If you want to use a different database/server for estate data, then
     ; uncomment and change this connect string. Defaults to the above if not set
     ; estate_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
-
-    ; Select whether you want to use local or grid asset storage.
-    ;
-    ; If you're running in standalone, you definitely want local, since there is no grid (hence this is redundant, and should
-    ; really be eliminated).  The database itself is defined in asset_plugin below
-    ;
-    ; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the
-    ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
-    ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
 
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
     ; prevent frequently changing objects from heavily loading the region data store.
@@ -338,8 +322,6 @@
     ConsolePass = "secret"
     http_listener_port = 9000
     console_port = 0
-    default_location_x = 1000
-    default_location_y = 1000
 
     ; ssl config: Experimental!  The auto https config only really works definately on windows XP now
     ; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
@@ -356,21 +338,6 @@
     ; Uncomment below to enable llRemoteData/remote channels
     ; remoteDataPort = 20800
 
-    grid_server_url = "http://127.0.0.1:8003"
-    grid_send_key = "null"
-    grid_recv_key = "null"
-
-    user_server_url = "http://127.0.0.1:8002"
-    user_send_key = "null"
-    user_recv_key = "null"
-
-    asset_server_url = "http://127.0.0.1:8003"
-
-    inventory_server_url = "http://127.0.0.1:8003"
-
-    ; The MessagingServer is a companion of the UserServer. It uses
-    ; user_send_key and user_recv_key, too
-    messaging_server_url = "http://127.0.0.1:8006"
 
     ; What is reported as the "X-Secondlife-Shard"
     ; Defaults to the user server url if not set
@@ -1360,7 +1327,7 @@
 
 [GridService]
     ;; default standalone, overridable in StandaloneCommon.ini
-	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+    StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; The following is the configuration section for the new style services

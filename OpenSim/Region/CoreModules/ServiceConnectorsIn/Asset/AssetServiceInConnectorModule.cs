@@ -51,11 +51,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Asset
 
         public void Initialise(IConfigSource config)
         {
-            //// This module is only on for standalones in hypergrid mode
-            //enabled = ((!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
-            //    config.Configs["Startup"].GetBoolean("hypergrid", true)) ||
-            //    ((config.Configs["MXP"] != null) && config.Configs["MXP"].GetBoolean("Enabled", true));
-            //m_log.DebugFormat("[RegionAssetService]: enabled? {0}", enabled);
             m_Config = config;
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)

@@ -51,10 +51,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Inventory
 
         public void Initialise(IConfigSource config)
         {
-            //// This module is only on for standalones in hypergrid mode
-            //enabled = (!config.Configs["Startup"].GetBoolean("gridmode", true)) &&
-            //    config.Configs["Startup"].GetBoolean("hypergrid", true);
-            //m_log.DebugFormat("[RegionInventoryService]: enabled? {0}", enabled);
             m_Config = config;
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)

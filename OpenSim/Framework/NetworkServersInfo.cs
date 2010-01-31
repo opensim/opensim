@@ -42,8 +42,6 @@ namespace OpenSim.Framework
         public string InventoryURL = String.Empty;
         public bool secureInventoryServer = false;
         public bool isSandbox;
-        private uint? m_defaultHomeLocX;
-        private uint? m_defaultHomeLocY;
         public string UserRecvKey = String.Empty;
         public string UserSendKey = String.Empty;
         public string UserURL = String.Empty;
@@ -59,24 +57,11 @@ namespace OpenSim.Framework
 
         public NetworkServersInfo(uint defaultHomeLocX, uint defaultHomeLocY)
         {
-            m_defaultHomeLocX = defaultHomeLocX;
-            m_defaultHomeLocY = defaultHomeLocY;
         }
 
-        public uint DefaultHomeLocX
-        {
-            get { return m_defaultHomeLocX.Value; }
-        }
-
-        public uint DefaultHomeLocY
-        {
-            get { return m_defaultHomeLocY.Value; }
-        }
 
         public void loadFromConfiguration(IConfigSource config)
         {
-            m_defaultHomeLocX = (uint) config.Configs["StandAlone"].GetInt("default_location_x", 1000);
-            m_defaultHomeLocY = (uint) config.Configs["StandAlone"].GetInt("default_location_y", 1000);
 
             HttpListenerPort =
                 (uint) config.Configs["Network"].GetInt("http_listener_port", (int) ConfigSettings.DefaultRegionHttpPort);
@@ -84,8 +69,6 @@ namespace OpenSim.Framework
                 (uint)config.Configs["Network"].GetInt("http_listener_sslport", ((int)ConfigSettings.DefaultRegionHttpPort+1));
             HttpUsesSSL = config.Configs["Network"].GetBoolean("http_listener_ssl", false);
             HttpSSLCN = config.Configs["Network"].GetString("http_listener_cn", "localhost");
-            ConfigSettings.DefaultRegionRemotingPort =
-                (uint) config.Configs["Network"].GetInt("remoting_listener_port", (int) ConfigSettings.DefaultRegionRemotingPort);
             GridURL =
                 config.Configs["Network"].GetString("grid_server_url",
                                                     "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort.ToString());

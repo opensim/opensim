@@ -304,7 +304,6 @@ namespace OpenSim
 
                 config.Set("region_info_source", "filesystem");
 
-                config.Set("gridmode", false);
                 config.Set("physics", "OpenDynamicsEngine");
                 config.Set("meshing", "Meshmerizer");
                 config.Set("physical_prim", true);
@@ -342,19 +341,7 @@ namespace OpenSim
                 if (null == config)
                     config = defaultConfig.AddConfig("Network");
 
-                config.Set("default_location_x", 1000);
-                config.Set("default_location_y", 1000);
                 config.Set("http_listener_port", ConfigSettings.DefaultRegionHttpPort);
-                config.Set("remoting_listener_port", ConfigSettings.DefaultRegionRemotingPort);
-                config.Set("grid_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultGridServerHttpPort.ToString());
-                config.Set("grid_send_key", "null");
-                config.Set("grid_recv_key", "null");
-                config.Set("user_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultUserServerHttpPort.ToString());
-                config.Set("user_send_key", "null");
-                config.Set("user_recv_key", "null");
-                config.Set("asset_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultAssetServerHttpPort.ToString());
-                config.Set("inventory_server_url", "http://127.0.0.1:" + ConfigSettings.DefaultInventoryServerHttpPort.ToString());
-                config.Set("secure_inventory_server", "true");
             }
 
             return defaultConfig;
@@ -368,7 +355,6 @@ namespace OpenSim
             IConfig startupConfig = m_config.Source.Configs["Startup"];
             if (startupConfig != null)
             {
-                m_configSettings.Standalone = !startupConfig.GetBoolean("gridmode", false);
                 m_configSettings.PhysicsEngine = startupConfig.GetString("physics");
                 m_configSettings.MeshEngineName = startupConfig.GetString("meshing");
                 m_configSettings.PhysicalPrim = startupConfig.GetBoolean("physical_prim", true);

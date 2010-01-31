@@ -11,15 +11,13 @@
 ; *
 [Startup]
 
-;; HG1.5 handlers are: OpenSim.Server.Handlers.dll:GatekeeperService,OpenSim.Server.Handlers.dll:UserAgentService
-
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector,OpenSim.Server.Handlers.dll:GridInfoServerInConnector,OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,OpenSim.Server.Handlers.dll:OpenIdServerConnector,OpenSim.Server.Handlers.dll:AvatarServiceConnector,OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,OpenSim.Server.Handlers.dll:PresenceServiceConnector,OpenSim.Server.Handlers.dll:UserAccountServiceConnector,OpenSim.Server.Handlers.dll:GatekeeperServiceInConnector,OpenSim.Server.Handlers.dll:UserAgentServerConnector"
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:InventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
-; * server instance
+; * server instance, if none if specified above
 ; *
-[Network]
-    port = 8003
+;[Network]
+;    port = 8003
 
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
@@ -135,33 +133,10 @@ ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.S
     GridService = "OpenSim.Services.GridService.dll:GridService"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
-    ; Do you let your users go outside this grid? If so, use this
-    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
 
     DefaultRegion = "OpenSim Test"
     WelcomeMessage = "Welcome, Avatar!"
-    HomeURI = "http://127.0.0.1:8003"
-    GatekeeperURI = "http://127.0.0.1:8003"
-    InventoryServerURI = "http://127.0.0.1:8003"
-    AssetServerURI = "http://127.0.0.1:8003"
 
-;; These 2 are for enabling HG1.5
-
-[GatekeeperService]
-    LocalServiceModule = "OpenSim.Services.HypergridService.dll:GatekeeperService"
-    ;; for the service
-    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
-    UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
-    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
-    GridService = "OpenSim.Services.GridService.dll:GridService"
-    AuthenticationService = "OpenSim.Services.Connectors.dll:AuthenticationServicesConnector"
-    SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
-    ; how does the outside world reach me? This acts as public key too.
-    ExternalName = "http://127.0.0.1:8003"
-
-[UserAgentService]
-    LocalServiceModule = "OpenSim.Services.HypergridService.dll:UserAgentService"
-    ;; for the service
-    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
-    GridService = "OpenSim.Services.GridService.dll:GridService"
-	
+;; Uncomment if you want your grid to become Hypergrid-enabled
+;;[Hypergrid]
+;;    Include-Hypergrid = "OpenSim.Server.HG.ini"

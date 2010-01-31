@@ -66,7 +66,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // private UUID EconomyBaseAccount = UUID.Zero;
 
         private float EnergyEfficiency = 0f;
-        private bool gridmode = false;
         // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
         private bool m_sellEnabled = false;
@@ -243,7 +242,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
             if (config == "Startup" && startupConfig != null)
             {
-                gridmode = startupConfig.GetBoolean("gridmode", false);
                 m_enabled = (startupConfig.GetString("economymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
             }
 
@@ -293,18 +291,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private void GetClientFunds(IClientAPI client)
         {
-            // Here we check if we're in grid mode
-            // I imagine that the 'check balance'
-            // function for the client should be here or shortly after
-
-            if (gridmode)
-            {
-                CheckExistAndRefreshFunds(client.AgentId);
-            }
-            else
-            {
-                CheckExistAndRefreshFunds(client.AgentId);
-            }
+            CheckExistAndRefreshFunds(client.AgentId);
 
         }
 

@@ -122,8 +122,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode",
-                             (ConfigurationSettings.Standalone ? "sandbox" : "grid"));
+            m_log.InfoFormat("[OPENSIM MAIN]: Running ");
             //m_log.InfoFormat("[OPENSIM MAIN]: GC Is Server GC: {0}", GCSettings.IsServerGC.ToString());
             // http://msdn.microsoft.com/en-us/library/bb384202.aspx
             //GCSettings.LatencyMode = GCLatencyMode.Batch;
@@ -352,16 +351,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("region", false, "kill uuid",
                                           "kill uuid <UUID>",
                                           "Kill an object by UUID", KillUUID);
-
-
-            m_console.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
-                                          "Set local coordinate to map HG regions to", RunCommand);
-            m_console.Commands.AddCommand("hypergrid", false, "link-region",
-                                          "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
-                                          "Link a hypergrid region", RunCommand);
-            m_console.Commands.AddCommand("hypergrid", false, "unlink-region",
-                                          "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
-                                          "Unlink a hypergrid region", RunCommand);
 
         }
 
