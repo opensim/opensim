@@ -267,56 +267,6 @@
     ;SMTP_SERVER_LOGIN=foo
     ;SMTP_SERVER_PASSWORD=bar
 
-
-[Communications]
-    ;InterregionComms = "LocalComms"
-    InterregionComms = "RESTComms"
-
-
-[StandAlone]
-    ; If this is set to true then OpenSim only allows in users who already have accounts.
-    ; An account can be created using the "create user" console command.
-    ;
-    ; If this is set to false then an account is automatically created for a user who logs in
-    ; without one.  PLEASE NOTE THAT IN THIS MODE NO PASSWORD CHECKS ARE PERFORMED.
-    ; Therefore, any user can log into any account.  If accounts_authenticate is later switched to
-    ; true then the passwords will need to be reset (using the "reset user password" console command) since
-    ; automatically created accounts have their password set to the string "test".
-    ;
-    ; This setting applies to standalone mode only, not grid or other modes.  Default is true.
-    accounts_authenticate = true
-
-    welcome_message = "Welcome to OpenSimulator"
-
-    ; Inventory database provider
-    inventory_plugin = "OpenSim.Data.SQLite.dll"
-    ; inventory_plugin = "OpenSim.Data.MySQL.dll"
-
-    ; Inventory source SQLite example
-    inventory_source = "URI=file:inventoryStore.db,version=3"
-    ; Inventory Source MySQL example
-    ;inventory_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
-    ; User Data Database provider
-    ;
-    ; Multiple providers can be specified by separating them with commas (whitespace is unimportant)
-    ; If multiple providers are specified then if a profile is requested, each is queried until one
-    ; provides a valid profile, or until all providers have been queried.
-    ; Unfortunately the order of querying is currently undefined (it may not be the order in which
-    ; providers are specified here).  This needs to be fixed
-    ;
-    userDatabase_plugin = "OpenSim.Data.SQLite.dll"
-    ; userDatabase_plugin = "OpenSim.Data.MySQL.dll"
-
-    ; User source SQLite example
-    user_source = "URI=file:userprofiles.db,version=3"
-    ; User Source MySQL example
-    ;user_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
-    ; Specifies the location and filename of the default inventory library control file.  The path can be relative or absolute
-    ; Default is ./inventory/Libraries.xml
-    LibrariesXMLFile="./inventory/Libraries.xml"
-
 [Network]
     ConsoleUser = "Test"
     ConsolePass = "secret"
