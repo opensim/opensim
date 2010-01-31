@@ -468,7 +468,10 @@ namespace OpenSim.Services.InventoryService
             newItem.EveryOnePermissions = (uint)item.inventoryEveryOnePermissions;
             newItem.GroupPermissions = (uint)item.inventoryGroupPermissions;
             newItem.GroupID = item.groupID;
-            newItem.GroupOwned = item.groupOwned;
+            if (item.groupOwned == 0)
+                newItem.GroupOwned = false;
+            else
+                newItem.GroupOwned = true;
             newItem.SalePrice = item.salePrice;
             newItem.SaleType = (byte)item.saleType;
             newItem.Flags = (uint)item.flags;
@@ -496,7 +499,10 @@ namespace OpenSim.Services.InventoryService
             newItem.inventoryEveryOnePermissions = (int)item.EveryOnePermissions;
             newItem.inventoryGroupPermissions = (int)item.GroupPermissions;
             newItem.groupID = item.GroupID;
-            newItem.groupOwned = item.GroupOwned;
+            if (item.GroupOwned)
+                newItem.groupOwned = 1;
+            else
+                newItem.groupOwned = 0;
             newItem.salePrice = item.SalePrice;
             newItem.saleType = (int)item.SaleType;
             newItem.flags = (int)item.Flags;
