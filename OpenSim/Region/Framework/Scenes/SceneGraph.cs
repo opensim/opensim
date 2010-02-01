@@ -528,6 +528,9 @@ namespace OpenSim.Region.Framework.Scenes
                     // Fire after attach, so we don't get messy perms dialogs
                     // 3 == AttachedRez
                     objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+
+                    // Do this last so that event listeners have access to all the effects of the attachment
+                    m_parentScene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
                 }
             }
             

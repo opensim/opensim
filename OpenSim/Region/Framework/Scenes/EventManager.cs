@@ -313,9 +313,10 @@ namespace OpenSim.Region.Framework.Scenes
         public event EmptyScriptCompileQueue OnEmptyScriptCompileQueue;
 
         /// <summary>
-        /// Called whenever an object is attached, or detached
-        /// from an in-world presence.
+        /// Called whenever an object is attached, or detached from an in-world presence.
         /// </summary>
+        /// If the object is being attached, then the avatarID will be present.  If the object is being detached then
+        /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
         public event Attach OnAttach;
 
