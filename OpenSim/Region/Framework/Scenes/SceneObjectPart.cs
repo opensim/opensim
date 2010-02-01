@@ -3053,7 +3053,7 @@ namespace OpenSim.Region.Framework.Scenes
                     ret = 1;
                     if (hasCut) ret += 2;
                     if (hasDimple) ret += 2;
-                    if (hasHollow) ret += 3; // Emulate lsl on secondlife (according to documentation it should have added only +1)
+                    if (hasHollow) ret += 1;
                     break;
                 case PrimType.TORUS:
                     ret = 1;
