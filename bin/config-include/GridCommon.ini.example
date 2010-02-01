@@ -20,6 +20,7 @@
     ; change this to your grid-wide grid server
     ;
     GridServerURI = "http://mygridserver.com:8003"
+    ;AllowHypergridMapSearch = true
 
 [AvatarService]
     ;

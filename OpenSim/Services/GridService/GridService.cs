@@ -329,7 +329,7 @@ namespace OpenSim.Services.GridService
                 }
             }
 
-            if (m_AllowHypergridMapSearch && rdatas.Count == 0 && name.Contains("."))
+            if (m_AllowHypergridMapSearch && rdatas == null || (rdatas != null && rdatas.Count == 0) && name.Contains("."))
             {
                 GridRegion r = m_HypergridLinker.LinkRegion(scopeID, name);
                 if (r != null)
@@ -412,6 +412,7 @@ namespace OpenSim.Services.GridService
                     ret.Add(RegionData2RegionInfo(r));
             }
 
+            m_log.DebugFormat("[GRID SERVICE]: Fallback returned {0} regions", ret.Count);
             return ret;
         }
 

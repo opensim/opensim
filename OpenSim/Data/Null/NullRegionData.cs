@@ -133,12 +133,12 @@ namespace OpenSim.Data.Null
 
         public List<RegionData> GetDefaultRegions(UUID scopeID)
         {
-            return null;
+            return new List<RegionData>();
         }
 
         public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
         {
-            return null;
+            return new List<RegionData>();
         }
     }
 }

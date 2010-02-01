@@ -470,7 +470,8 @@ namespace OpenSim.Services.GridService
                     string reason = string.Empty;
                     if (TryLinkRegionToCoords(UUID.Zero, mapName, xloc, yloc, out reason) == null)
                         MainConsole.Instance.Output("Failed to link region: " + reason);
-                    MainConsole.Instance.Output("Hyperlink established");
+                    else
+                        MainConsole.Instance.Output("Hyperlink established");
                 }
                 else
                 {

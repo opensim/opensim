@@ -120,7 +120,7 @@ namespace OpenSim.Services.HypergridService
             reason = string.Empty;
 
             m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", regionName);
-            if (!m_AllowTeleportsToAnyRegion)
+            if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
             {
                 List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
                 if (defs != null && defs.Count > 0)
@@ -133,12 +133,7 @@ namespace OpenSim.Services.HypergridService
                 }
                 catch
                 {
-                    reason = "Grid setup problem";
-                    return false;
-                }
-                if (regionName != string.Empty)
-                {
-                    reason = "Direct links to regions not allowed";
+                    reason = "Grid setup problem. Try specifying a particular region here.";
                     return false;
                 }
 
