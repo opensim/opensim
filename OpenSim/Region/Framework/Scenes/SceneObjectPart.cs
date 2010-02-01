@@ -3029,8 +3029,8 @@ namespace OpenSim.Region.Framework.Scenes
             bool hasDimple;
             bool hasProfileCut;
 
-            PrimType primType = getScriptPrimType();
-            hasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
+            PrimType primType = GetScriptPrimType();
+            HasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
 
             switch (primType)
             {
@@ -3085,7 +3085,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="primShape"></param>
         /// <returns></returns>
-        public PrimType getScriptPrimType()
+        public PrimType GetScriptPrimType()
         {
             if (Shape.SculptEntry)
                 return PrimType.SCULPT;
@@ -3129,7 +3129,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="hasHollow"></param>
         /// <param name="hasDimple"></param>
         /// <param name="hasProfileCut"></param>
-        protected static void hasCutHollowDimpleProfileCut(PrimType primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
+        protected static void HasCutHollowDimpleProfileCut(PrimType primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
             out bool hasDimple, out bool hasProfileCut)
         {
             if (primType == PrimType.BOX

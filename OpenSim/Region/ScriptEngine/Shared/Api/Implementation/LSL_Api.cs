@@ -1330,44 +1330,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            SetColor(m_host, color, face);
-        }
-
-        protected void SetColor(SceneObjectPart part, LSL_Vector color, int face)
-        {
-            Primitive.TextureEntry tex = part.Shape.Textures;
-            Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides(part))
-            {
-                texcolor = tex.CreateFace((uint)face).RGBA;
-                texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                tex.FaceTextures[face].RGBA = texcolor;
-                part.UpdateTexture(tex);
-                return;
-            }
-            else if (face == ScriptBaseClass.ALL_SIDES)
-            {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
-                {
-                    if (tex.FaceTextures[i] != null)
-                    {
-                        texcolor = tex.FaceTextures[i].RGBA;
-                        texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                        texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                        texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                        tex.FaceTextures[i].RGBA = texcolor;
-                    }
-                    texcolor = tex.DefaultTexture.RGBA;
-                    texcolor.R = Util.Clip((float)color.x, 0.0f, 1.0f);
-                    texcolor.G = Util.Clip((float)color.y, 0.0f, 1.0f);
-                    texcolor.B = Util.Clip((float)color.z, 0.0f, 1.0f);
-                    tex.DefaultTexture.RGBA = texcolor;
-                }
-                part.UpdateTexture(tex);
-                return;
-            }
+            m_host.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
         }
 
         public void SetTexGen(SceneObjectPart part, int face,int style)
@@ -1378,7 +1341,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (style == (int)ScriptBaseClass.PRIM_TEXGEN_PLANAR)
                 textype = MappingType.Planar;
 
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].TexMapType = textype;
@@ -1387,7 +1350,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1403,7 +1366,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void SetGlow(SceneObjectPart part, int face, float glow)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Glow = glow;
@@ -1412,7 +1375,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1450,7 +1413,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
 
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 tex.CreateFace((uint) face);
                 tex.FaceTextures[face].Shiny = sval;
@@ -1460,7 +1423,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1478,7 +1441,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void SetFullBright(SceneObjectPart part, int face, bool bright)
         {
              Primitive.TextureEntry tex = part.Shape.Textures;
-             if (face >= 0 && face < GetNumberOfSides(part))
+             if (face >= 0 && face < part.GetNumberOfSides())
              {
                  tex.CreateFace((uint) face);
                  tex.FaceTextures[face].Fullbright = bright;
@@ -1487,7 +1450,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
              }
              else if (face == ScriptBaseClass.ALL_SIDES)
              {
-                 for (uint i = 0; i < GetNumberOfSides(part); i++)
+                 for (uint i = 0; i < part.GetNumberOfSides(); i++)
                  {
                      if (tex.FaceTextures[i] != null)
                      {
@@ -1514,11 +1477,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 int i;
                 double sum = 0.0;
-                for (i = 0 ; i < GetNumberOfSides(part) ; i++)
+                for (i = 0 ; i < part.GetNumberOfSides(); i++)
                     sum += (double)tex.GetFace((uint)i).RGBA.A;
                 return sum;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 return (double)tex.GetFace((uint)face).RGBA.A;
             }
@@ -1546,7 +1509,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
             Color4 texcolor;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = Util.Clip((float)alpha, 0.0f, 1.0f);
@@ -1556,7 +1519,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1661,7 +1624,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 int i;
 
-                for (i = 0 ; i < GetNumberOfSides(part) ; i++)
+                for (i = 0 ; i < part.GetNumberOfSides(); i++)
                 {
                     texcolor = tex.GetFace((uint)i).RGBA;
                     rgb.x += texcolor.R;
@@ -1669,13 +1632,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     rgb.z += texcolor.B;
                 }
 
-                rgb.x /= (float)GetNumberOfSides(part);
-                rgb.y /= (float)GetNumberOfSides(part);
-                rgb.z /= (float)GetNumberOfSides(part);
+                rgb.x /= (float)part.GetNumberOfSides();
+                rgb.y /= (float)part.GetNumberOfSides();
+                rgb.z /= (float)part.GetNumberOfSides();
 
                 return rgb;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 texcolor = tex.GetFace((uint)face).RGBA;
                 rgb.x = texcolor.R;
@@ -1722,7 +1685,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             Primitive.TextureEntry tex = part.Shape.Textures;
 
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
@@ -1732,7 +1695,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (uint i = 0; i < GetNumberOfSides(part); i++)
+                for (uint i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1756,7 +1719,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void ScaleTexture(SceneObjectPart part, double u, double v, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.RepeatU = (float)u;
@@ -1767,7 +1730,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1792,7 +1755,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void OffsetTexture(SceneObjectPart part, double u, double v, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.OffsetU = (float)u;
@@ -1803,7 +1766,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1828,7 +1791,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         protected void RotateTexture(SceneObjectPart part, double rotation, int face)
         {
             Primitive.TextureEntry tex = part.Shape.Textures;
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 Primitive.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
@@ -1838,7 +1801,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             if (face == ScriptBaseClass.ALL_SIDES)
             {
-                for (int i = 0; i < GetNumberOfSides(part); i++)
+                for (int i = 0; i < part.GetNumberOfSides(); i++)
                 {
                     if (tex.FaceTextures[i] != null)
                     {
@@ -1864,7 +1827,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 Primitive.TextureEntryFace texface;
                 texface = tex.GetFace((uint)face);
@@ -3414,7 +3377,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             List<SceneObjectPart> parts = GetLinkParts(linknumber);
 
             foreach (SceneObjectPart part in parts)
-                SetColor(part, color, face);
+                part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
         }
 
         public void llCreateLink(string target, int parent)
@@ -4271,127 +4234,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return result;
         }
 
-        // this function to understand which shape it is (taken from meshmerizer)
-        // quite useful can be used by meshmerizer to have a centralized point of understanding the shape
-        // except that it refers to scripting constants
-        public int getScriptPrimType(PrimitiveBaseShape primShape)
-        {
-            if (primShape.SculptEntry)
-                return ScriptBaseClass.PRIM_TYPE_SCULPT;
-            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
-            {
-                if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return ScriptBaseClass.PRIM_TYPE_BOX;
-                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return ScriptBaseClass.PRIM_TYPE_TUBE;
-            }
-            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-            {
-                if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return ScriptBaseClass.PRIM_TYPE_CYLINDER;
-                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
-                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return ScriptBaseClass.PRIM_TYPE_TORUS;
-            }
-            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
-            {
-                if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte)Extrusion.Curve2)
-                    return ScriptBaseClass.PRIM_TYPE_SPHERE;
-            }
-            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
-            {
-                if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    return ScriptBaseClass.PRIM_TYPE_PRISM;
-                else if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    return ScriptBaseClass.PRIM_TYPE_RING;
-            }
-            return ScriptBaseClass.PRIM_TYPE_BOX;
-        }
-
-        // Helper functions to understand if object has cut, hollow, dimple, and other affecting number of faces
-        protected void hasCutHollowDimpleProfileCut(int primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
-            out bool hasDimple, out bool hasProfileCut)
-        {
-            if (primType == ScriptBaseClass.PRIM_TYPE_BOX
-                ||
-                primType == ScriptBaseClass.PRIM_TYPE_CYLINDER
-                ||
-                primType == ScriptBaseClass.PRIM_TYPE_PRISM)
-
-                hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
-            else
-                hasCut = (shape.PathBegin > 0) || (shape.PathEnd > 0);
-
-            hasHollow = shape.ProfileHollow > 0;
-            hasDimple = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0); // taken from llSetPrimitiveParms
-            hasProfileCut = hasDimple; // is it the same thing?
-
-        }
-
         public LSL_Integer llGetNumberOfSides()
         {
             m_host.AddScriptLPS(1);
 
-            return GetNumberOfSides(m_host);
-        }
-
-        protected int GetNumberOfSides(SceneObjectPart part)
-        {
-            int ret = 0;
-            bool hasCut;
-            bool hasHollow;
-            bool hasDimple;
-            bool hasProfileCut;
-
-            int primType = getScriptPrimType(part.Shape);
-            hasCutHollowDimpleProfileCut(primType, part.Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
-
-            switch (primType)
-            {
-                case ScriptBaseClass.PRIM_TYPE_BOX:
-                    ret = 6;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_CYLINDER:
-                    ret = 3;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_PRISM:
-                    ret = 5;
-                    if (hasCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_SPHERE:
-                    ret = 1;
-                    if (hasCut) ret += 2;
-                    if (hasDimple) ret += 2;
-                    if (hasHollow) ret += 3; // Emulate lsl on secondlife (according to documentation it should have added only +1)
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_TORUS:
-                    ret = 1;
-                    if (hasCut) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_TUBE:
-                    ret = 4;
-                    if (hasCut) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_RING:
-                    ret = 3;
-                    if (hasCut) ret += 2;
-                    if (hasProfileCut) ret += 2;
-                    if (hasHollow) ret += 1;
-                    break;
-                case ScriptBaseClass.PRIM_TYPE_SCULPT:
-                    ret = 1;
-                    break;
-            }
-            return ret;
+            return m_host.GetNumberOfSides();
         }
 
         /* The new / changed functions were tested with the following LSL script:
@@ -4588,7 +4435,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 offset.x = tex.GetFace((uint)face).OffsetU;
                 offset.y = tex.GetFace((uint)face).OffsetV;
@@ -4629,7 +4476,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 face = 0;
             }
-            if (face >= 0 && face < GetNumberOfSides(part))
+            if (face >= 0 && face < part.GetNumberOfSides())
             {
                 return tex.GetFace((uint)face).Rotation;
             }
@@ -7019,10 +6866,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Vector color=rules.GetVector3Item(idx++);
                         double alpha=(double)rules.GetLSLFloatItem(idx++);
 
-                        SetColor(part, color, face);
+                        part.SetFaceColor(new Vector3((float)color.x, (float)color.y, (float)color.z), face);
                         SetAlpha(part, alpha, face);
 
                         break;
+                    
                     case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                         if (remain < 7)
                             return;
@@ -7038,6 +6886,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetFlexi(part, flexi, softness, gravity, friction, wind, tension, force);
 
                         break;
+                    
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
@@ -7050,6 +6899,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetPointLight(part, light, lightcolor, intensity, radius, falloff);
 
                         break;
+                    
                     case (int)ScriptBaseClass.PRIM_GLOW:
                         if (remain < 2)
                             return;
@@ -7059,6 +6909,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetGlow(part, face, glow);
 
                         break;
+                    
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         if (remain < 3)
                             return;
@@ -7069,6 +6920,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         SetShiny(part, face, shiny, bump);
 
                         break;
+                    
                      case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                          if (remain < 2)
                              return;
@@ -7076,6 +6928,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                          bool st = rules.GetLSLIntegerItem(idx++);
                          SetFullBright(part, face , st);
                          break;
+                    
                      case (int)ScriptBaseClass.PRIM_MATERIAL:
                          if (remain < 1)
                              return;
@@ -7085,6 +6938,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          part.Material = Convert.ToByte(mat);
                          break;
+                    
                      case (int)ScriptBaseClass.PRIM_PHANTOM:
                         if (remain < 1)
                              return;
@@ -7099,6 +6953,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          part.ScriptSetPhantomStatus(phantom);
                          break;
+                    
                      case (int)ScriptBaseClass.PRIM_PHYSICS:
                         if (remain < 1)
                              return;
@@ -7112,6 +6967,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                          part.ScriptSetPhysicsStatus(physics);
                          break;
+                    
                     case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                         if (remain < 1)
                             return;
@@ -7379,7 +7235,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public LSL_List GetLinkPrimitiveParams(SceneObjectPart part, LSL_List rules)
         {
-
             LSL_List res = new LSL_List();
             int idx=0;
             while (idx < rules.Length)
@@ -7441,7 +7296,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TYPE:
                         // implementing box
                         PrimitiveBaseShape Shape = part.Shape;
-                        int primType = getScriptPrimType(part.Shape);
+                        int primType = (int)part.GetScriptPrimType();
                         res.Add(new LSL_Integer(primType));
                         double topshearx = (double)(sbyte)Shape.PathShearX / 100.0; // Fix negative values for PathShearX
                         double topsheary = (double)(sbyte)Shape.PathShearY / 100.0; // and PathShearY.
@@ -7521,7 +7376,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         Primitive.TextureEntry tex = part.Shape.Textures;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0 ; face < GetNumberOfSides(part) ; face++)
+                            for (face = 0 ; face < part.GetNumberOfSides() ; face++)
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -7537,7 +7392,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         }
                         else
                         {
-                            if (face >= 0 && face < GetNumberOfSides(part))
+                            if (face >= 0 && face < part.GetNumberOfSides())
                             {
                                 Primitive.TextureEntryFace texface = tex.GetFace((uint)face);
 
@@ -7563,7 +7418,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         Color4 texcolor;
                         if (face == ScriptBaseClass.ALL_SIDES)
                         {
-                            for (face = 0 ; face < GetNumberOfSides(part) ; face++)
+                            for (face = 0 ; face < part.GetNumberOfSides() ; face++)
                             {
                                 texcolor = tex.GetFace((uint)face).RGBA;
                                 res.Add(new LSL_Vector(texcolor.R,
