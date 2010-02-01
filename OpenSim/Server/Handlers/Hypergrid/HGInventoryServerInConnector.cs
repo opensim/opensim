@@ -80,7 +80,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         /// <returns></returns>
         public override bool CheckAuthSession(string session_id, string avatar_id)
         {
-            m_log.InfoFormat("[HG INVENTORY IN CONNECTOR]: checking authed session {0} {1}", session_id, avatar_id);
+            //m_log.InfoFormat("[HG INVENTORY IN CONNECTOR]: checking authed session {0} {1}", session_id, avatar_id);
             // This doesn't work
 
         //    if (m_session_cache.getCachedSession(session_id, avatar_id) == null)

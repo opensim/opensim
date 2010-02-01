@@ -152,7 +152,9 @@ namespace OpenSim.Services.HypergridService
             {
                 List<UUID> travels = new List<UUID>();
                 foreach (KeyValuePair<UUID, TravelingAgentInfo> kvp in m_TravelingAgents)
-                    if (kvp.Value.UserID == userID)
+                    if (kvp.Value == null) // do some clean up
+                        travels.Add(kvp.Key);
+                    else if (kvp.Value.UserID == userID)
                         travels.Add(kvp.Key);
                 foreach (UUID session in travels)
                     m_TravelingAgents.Remove(session);
