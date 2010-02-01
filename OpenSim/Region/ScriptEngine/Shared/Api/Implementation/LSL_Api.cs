@@ -4248,7 +4248,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             int sides = part.GetNumberOfSides();
 
-            if (part.GetScriptPrimType() == PrimType.SPHERE && part.Shape.ProfileHollow > 0)
+            if (part.GetPrimType() == PrimType.SPHERE && part.Shape.ProfileHollow > 0)
             {
                 // Make up for a bug where LSL shows 4 sides rather than 2
                 sides += 2;
@@ -7311,7 +7311,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.PRIM_TYPE:
                         // implementing box
                         PrimitiveBaseShape Shape = part.Shape;
-                        int primType = (int)part.GetScriptPrimType();
+                        int primType = (int)part.GetPrimType();
                         res.Add(new LSL_Integer(primType));
                         double topshearx = (double)(sbyte)Shape.PathShearX / 100.0; // Fix negative values for PathShearX
                         double topsheary = (double)(sbyte)Shape.PathShearY / 100.0; // and PathShearY.
