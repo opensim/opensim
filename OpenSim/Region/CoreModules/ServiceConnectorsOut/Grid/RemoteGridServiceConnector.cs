@@ -200,6 +200,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         // Let's not override GetRegionRange -- let's get them all from the grid server
 
+        public override int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            int flags = m_LocalGridService.GetRegionFlags(scopeID, regionID);
+            if (flags == -1)
+                flags = base.GetRegionFlags(scopeID, regionID);
+
+            return flags;
+        }
         #endregion
     }
 }

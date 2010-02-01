@@ -562,7 +562,7 @@ namespace OpenSim.Services.Connectors
             return rinfos;
         }
 
-        public int GetRegionFlags(UUID scopeID, UUID regionID)
+        public virtual int GetRegionFlags(UUID scopeID, UUID regionID)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
 
