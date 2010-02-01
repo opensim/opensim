@@ -4394,7 +4394,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return ret;
         }
 
-
         /* The new / changed functions were tested with the following LSL script:
 
         default
