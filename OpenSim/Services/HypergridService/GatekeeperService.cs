@@ -119,7 +119,7 @@ namespace OpenSim.Services.HypergridService
             imageURL = string.Empty;
             reason = string.Empty;
 
-            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", regionName);
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Request to link to {0}", (regionName == string.Empty ? "default region" : regionName));
             if (!m_AllowTeleportsToAnyRegion || regionName == string.Empty)
             {
                 List<GridRegion> defs = m_GridService.GetDefaultRegions(m_ScopeID);
@@ -134,6 +134,7 @@ namespace OpenSim.Services.HypergridService
                 catch
                 {
                     reason = "Grid setup problem. Try specifying a particular region here.";
+                    m_log.DebugFormat("[GATEKEEPER SERVICE]: Unable to send information. Please specify a default region for this grid!");
                     return false;
                 }
 
