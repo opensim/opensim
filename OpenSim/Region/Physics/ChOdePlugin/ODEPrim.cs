@@ -2593,14 +2593,14 @@ Console.WriteLine(" JointCreateFixed");
         {
             get
             {
-                Vector3 pv = Vector3.Zero;
+/*                Vector3 pv = Vector3.Zero;
                 if (_zeroFlag)
                     return pv;
                 m_lastUpdateSent = false;
 
                 if (m_rotationalVelocity.ApproxEquals(pv, 0.2f))
                     return pv;
-
+*/
                 return m_rotationalVelocity;
             }
             set
@@ -2827,14 +2827,15 @@ Console.WriteLine(" JointCreateFixed");
                         _acceleration = new Vector3(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
 
-                        if (_velocity.ApproxEquals(pv, 0.5f))
-                        {
-                            m_rotationalVelocity = pv;
-                        }
-                        else
-                        {
+//                        if (_velocity.ApproxEquals(pv, 0.5f))   ???? Disregard rotational vel if lin vel is < 0.5 ?????
+//                        {
+//                            m_rotationalVelocity = pv;/
+
+//                        }
+//                        else
+//                        {
                             m_rotationalVelocity = new Vector3(rotvel.X, rotvel.Y, rotvel.Z);
-                        }
+//                        }
 
                         //m_log.Debug("ODE: " + m_rotationalVelocity.ToString());
                         _orientation.X = ori.X;
