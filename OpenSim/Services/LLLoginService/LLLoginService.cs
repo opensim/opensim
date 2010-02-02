@@ -267,7 +267,7 @@ namespace OpenSim.Services.LLLoginService
 
                 GridRegion region = null;
 
-                if (pinfo.HomeRegionID.Equals(UUID.Zero))
+                if (pinfo.HomeRegionID.Equals(UUID.Zero) || (region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID)) == null)
                 {
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
                     if (defaults != null && defaults.Count > 0)
@@ -276,11 +276,9 @@ namespace OpenSim.Services.LLLoginService
                         where = "safe";
                     }
                     else
-                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have default locations.", 
+                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have default locations.",
                             account.FirstName, account.LastName);
                 }
-                else
-                    region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID);
 
                 return region;
             }
@@ -294,7 +292,7 @@ namespace OpenSim.Services.LLLoginService
 
                 GridRegion region = null;
 
-                if (pinfo.RegionID.Equals(UUID.Zero))
+                if (pinfo.RegionID.Equals(UUID.Zero) || (region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.RegionID)) == null)
                 {
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
                     if (defaults != null && defaults.Count > 0)
@@ -305,7 +303,6 @@ namespace OpenSim.Services.LLLoginService
                 }
                 else
                 {
-                    region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.RegionID);
                     position = pinfo.Position;
                     lookAt = pinfo.LookAt;
                 }
@@ -590,6 +587,7 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, out string reason)
         {
+            m_log.Debug("XXX Launching agent at {0}" + destination.RegionName);
             return m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, out reason);
         }
 
