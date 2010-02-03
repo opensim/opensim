@@ -2864,7 +2864,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 RemoveNeighbourRegion(handle);
             }
-
         }
 
         #endregion
@@ -3025,7 +3024,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<int> attPoints = m_appearance.GetAttachedPoints();
             if (attPoints != null)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
+                //m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
                 int i = 0;
                 AttachmentData[] attachs = new AttachmentData[attPoints.Count];
                 foreach (int point in attPoints)
