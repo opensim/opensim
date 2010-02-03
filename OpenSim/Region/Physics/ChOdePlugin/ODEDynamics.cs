@@ -646,12 +646,15 @@ namespace OpenSim.Region.Physics.OdePlugin
 //if(frcount == 0) Console.WriteLine("V0 = {0}", angObjectVel);        	
 //   	Vector3 FrAaccel = m_lastAngularVelocity - angObjectVel;
 //    Vector3 initavel =  angObjectVel;       	
-        	// Decay Angular Motor
+        	// Decay Angular Motor 1. In SL this also depends on attack rate! decay ~= 23/Attack.
+        	float atk_decayfactor = 23.0f  / (m_angularMotorTimescale * pTimestep); 
+        	m_angularMotorDVel -= m_angularMotorDVel / atk_decayfactor;
+        	// Decay Angular Motor 2.
         	if (m_angularMotorDecayTimescale < 300.0f)
         	{
-				float decayfactor = m_angularMotorDecayTimescale/pTimestep;
-	            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);
-	            m_angularMotorDVel -= decayAmount;        	
+				float decayfactor = m_angularMotorDecayTimescale/pTimestep;			// df = Dec / pts
+	            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);				// v-da = v-Dvel / df  = v-Dvel * pts / Dec
+	            m_angularMotorDVel -= decayAmount;        							// v-Dvel = v-Dvel - (v-Dvel / df  = v-Dvel * pts / Dec)
         	
 				if (m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
 				{
