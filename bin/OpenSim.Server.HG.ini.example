@@ -120,7 +120,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
 
-    DefaultRegion = "OpenSim Test"
     WelcomeMessage = "Welcome, Avatar!"
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
     ; CHANGE THIS

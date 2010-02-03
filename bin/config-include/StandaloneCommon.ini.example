@@ -50,9 +50,8 @@
     ;LibraryName = "My World's Library"
     
 [LoginService]
-    DefaultRegion = "OpenSim Test"
     WelcomeMessage = "Welcome, Avatar!"
-    
+
     HomeURI = "http://127.0.0.1:9000"
     GatekeeperURI = "http://127.0.0.1:9000"
     InventoryServerURI = "http://127.0.0.1:9000"
