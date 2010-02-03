@@ -2496,20 +2496,24 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //RootPrim.SetParentLocalId(parentLocalID);
 
-                    m_log.DebugFormat("[ATTACHMENT]: Received " +
-                                "attachment {0}, inworld asset id {1}",
-                                //grp.RootPart.LastOwnerID.ToString(),
-                                grp.GetFromItemID(),
-                                grp.UUID.ToString());
+                    m_log.DebugFormat(
+                        "[ATTACHMENT]: Received attachment {0}, inworld asset id {1}",
+                        //grp.RootPart.LastOwnerID.ToString(),
+                        grp.GetFromItemID(),
+                        grp.UUID.ToString());
 
                     //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
-                    m_log.DebugFormat("[ATTACHMENT]: Attach " +
-                            "to avatar {0} at position {1}",
-                            sp.UUID.ToString(), grp.AbsolutePosition);
-                    AttachObject(sp.ControllingClient,
-                            grp.LocalId, (uint)0,
-                            grp.GroupRotation,
-                            grp.AbsolutePosition, false);
+                    m_log.DebugFormat(
+                        "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID.ToString(), grp.AbsolutePosition);
+                    
+                    if (
+                        AttachObject(
+                            sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false))
+                    {
+                        // Do this last so that event listeners have access to all the effects of the attachment
+                        EventManager.TriggerOnAttach(grp.LocalId, UUID.Zero, sp.UUID);                        
+                    }
+                    
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     grp.SendGroupFullUpdate();
                 }
@@ -2518,7 +2522,6 @@ namespace OpenSim.Region.Framework.Scenes
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
-
             }
             else
             {
