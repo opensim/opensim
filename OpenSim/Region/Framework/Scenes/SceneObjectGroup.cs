@@ -301,6 +301,9 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_rootPart.GroupID = value; }
         }
 
+        /// <value>
+        /// The parts of this scene object group.  You must lock this property before using it.
+        /// </value>
         public Dictionary<UUID, SceneObjectPart> Children
         {
             get { return m_parts; }
@@ -2239,7 +2242,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Get a child part with a given UUID
+        /// Get a part with a given UUID
         /// </summary>
         /// <param name="primID"></param>
         /// <returns>null if a child part with the primID was not found</returns>
@@ -2254,7 +2257,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Get a child part with a given local ID
+        /// Get a part with a given local ID
         /// </summary>
         /// <param name="localID"></param>
         /// <returns>null if a child part with the local ID was not found</returns>

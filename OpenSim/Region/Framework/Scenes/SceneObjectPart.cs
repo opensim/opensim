@@ -90,10 +90,27 @@ namespace OpenSim.Region.Framework.Scenes
         SCALE = 0x40
     }
 
+    public enum PrimType : int
+    {
+        BOX = 0,
+        CYLINDER = 1,
+        PRISM = 2,
+        SPHERE = 3,
+        TORUS = 4,
+        TUBE = 5,
+        RING = 6,
+        SCULPT = 7
+    }
+
     #endregion Enumerations
 
     public class SceneObjectPart : IScriptHost
     {
+        /// <value>
+        /// Denote all sides of the prim
+        /// </value>
+        public const int ALL_SIDES = -1;
+        
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // use only one serializer to give the runtime a chance to optimize it (it won't do that if you
@@ -741,6 +758,9 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <value>
+        /// Text color.
+        /// </value>
         public Color Color
         {
             get { return m_color; }
@@ -1910,7 +1930,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (uint localId in startedColliders)
                     {
                         if (localId == 0)
-                            return;
+                            continue;
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
@@ -2046,7 +2066,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (localId == 0)
-                            return;
+                            continue;
 
                         if (m_parentGroup == null)
                             return;
@@ -2178,7 +2198,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (uint localId in endedColliders)
                     {
                         if (localId == 0)
-                            return;
+                            continue;
 
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
@@ -2981,6 +3001,178 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysActor.VehicleFlagsRemove(flags);
             }
         } 
+
+        /// <summary>
+        /// Set the color of prim faces
+        /// </summary>
+        /// <param name="color"></param>
+        /// <param name="face"></param>
+        public void SetFaceColor(Vector3 color, int face)
+        {
+            Primitive.TextureEntry tex = Shape.Textures;
+            Color4 texcolor;
+            if (face >= 0 && face < GetNumberOfSides())
+            {
+                texcolor = tex.CreateFace((uint)face).RGBA;
+                texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                tex.FaceTextures[face].RGBA = texcolor;
+                UpdateTexture(tex);
+                return;
+            }
+            else if (face == ALL_SIDES)
+            {
+                for (uint i = 0; i < GetNumberOfSides(); i++)
+                {
+                    if (tex.FaceTextures[i] != null)
+                    {
+                        texcolor = tex.FaceTextures[i].RGBA;
+                        texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                        texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                        texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                        tex.FaceTextures[i].RGBA = texcolor;
+                    }
+                    texcolor = tex.DefaultTexture.RGBA;
+                    texcolor.R = Util.Clip((float)color.X, 0.0f, 1.0f);
+                    texcolor.G = Util.Clip((float)color.Y, 0.0f, 1.0f);
+                    texcolor.B = Util.Clip((float)color.Z, 0.0f, 1.0f);
+                    tex.DefaultTexture.RGBA = texcolor;
+                }
+                UpdateTexture(tex);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Get the number of sides that this part has.
+        /// </summary>
+        /// <returns></returns>
+        public int GetNumberOfSides()
+        {
+            int ret = 0;
+            bool hasCut;
+            bool hasHollow;
+            bool hasDimple;
+            bool hasProfileCut;
+
+            PrimType primType = GetPrimType();
+            HasCutHollowDimpleProfileCut(primType, Shape, out hasCut, out hasHollow, out hasDimple, out hasProfileCut);
+
+            switch (primType)
+            {
+                case PrimType.BOX:
+                    ret = 6;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.CYLINDER:
+                    ret = 3;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.PRISM:
+                    ret = 5;
+                    if (hasCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.SPHERE:
+                    ret = 1;
+                    if (hasCut) ret += 2;
+                    if (hasDimple) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.TORUS:
+                    ret = 1;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.TUBE:
+                    ret = 4;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.RING:
+                    ret = 3;
+                    if (hasCut) ret += 2;
+                    if (hasProfileCut) ret += 2;
+                    if (hasHollow) ret += 1;
+                    break;
+                case PrimType.SCULPT:
+                    ret = 1;
+                    break;
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Tell us what type this prim is
+        /// </summary>
+        /// <param name="primShape"></param>
+        /// <returns></returns>
+        public PrimType GetPrimType()
+        {
+            if (Shape.SculptEntry)
+                return PrimType.SCULPT;
+            if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
+            {
+                if (Shape.PathCurve == (byte)Extrusion.Straight)
+                    return PrimType.BOX;
+                else if (Shape.PathCurve == (byte)Extrusion.Curve1)
+                    return PrimType.TUBE;
+            }
+            else if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+            {
+                if (Shape.PathCurve == (byte)Extrusion.Straight)
+                    return PrimType.CYLINDER;
+                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
+                else if (Shape.PathCurve == (byte)Extrusion.Curve1)
+                    return PrimType.TORUS;
+            }
+            else if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            {
+                if (Shape.PathCurve == (byte)Extrusion.Curve1 || Shape.PathCurve == (byte)Extrusion.Curve2)
+                    return PrimType.SPHERE;
+            }
+            else if ((Shape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            {
+                if (Shape.PathCurve == (byte)Extrusion.Straight)
+                    return PrimType.PRISM;
+                else if (Shape.PathCurve == (byte)Extrusion.Curve1)
+                    return PrimType.RING;
+            }
+            
+            return PrimType.BOX;
+        }
+        
+        /// <summary>
+        /// Tell us if this object has cut, hollow, dimple, and other factors affecting the number of faces 
+        /// </summary>
+        /// <param name="primType"></param>
+        /// <param name="shape"></param>
+        /// <param name="hasCut"></param>
+        /// <param name="hasHollow"></param>
+        /// <param name="hasDimple"></param>
+        /// <param name="hasProfileCut"></param>
+        protected static void HasCutHollowDimpleProfileCut(PrimType primType, PrimitiveBaseShape shape, out bool hasCut, out bool hasHollow,
+            out bool hasDimple, out bool hasProfileCut)
+        {
+            if (primType == PrimType.BOX
+                ||
+                primType == PrimType.CYLINDER
+                ||
+                primType == PrimType.PRISM)
+
+                hasCut = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0);
+            else
+                hasCut = (shape.PathBegin > 0) || (shape.PathEnd > 0);
+
+            hasHollow = shape.ProfileHollow > 0;
+            hasDimple = (shape.ProfileBegin > 0) || (shape.ProfileEnd > 0); // taken from llSetPrimitiveParms
+            hasProfileCut = hasDimple; // is it the same thing?
+        }
         
         public void SetGroup(UUID groupID, IClientAPI client)
         {
@@ -3013,6 +3205,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Set the events that this part will pass on to listeners.
+        /// </summary>
+        /// <param name="scriptid"></param>
+        /// <param name="events"></param>
         public void SetScriptEvents(UUID scriptid, int events)
         {
             // scriptEvents oldparts;

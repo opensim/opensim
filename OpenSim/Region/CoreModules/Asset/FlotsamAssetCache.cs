@@ -762,7 +762,7 @@ namespace Flotsam.RegionModules.AssetCache
                     case "expire":
 
 
-                        if (cmdparams.Length >= 3)
+                        if (cmdparams.Length < 3)
                         {
                             m_log.InfoFormat("[FLOTSAM ASSET CACHE] Invalid parameters for Expire, please specify a valid date & time", cmd);
                             break;

@@ -55,6 +55,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_log.Info("[XEngine] Hooking up to server events");
             myScriptEngine.World.EventManager.OnAttach += attach;
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
+            myScriptEngine.World.EventManager.OnObjectGrabbing += touch;
             myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
             myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
             myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
@@ -148,7 +149,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         }
 
         public void touch(uint localID, uint originalID, Vector3 offsetPos,
-                IClientAPI remoteClient)
+                IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
@@ -171,6 +172,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 SceneObjectPart originalPart = myScriptEngine.World.GetSceneObjectPart(originalID);
                 det[0].LinkNum = originalPart.LinkNum;
+            }
+            if (surfaceArgs != null)
+            {
+                det[0].SurfaceTouchArgs = surfaceArgs;
             }
 
             myScriptEngine.PostObjectEvent(localID, new EventParams(

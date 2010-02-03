@@ -502,30 +502,39 @@ namespace OpenSim.Region.Framework.Scenes
             if (part == null)
                 return;
 
-            if (!m_parentScene.Permissions.CanTakeObject(
-                    part.UUID, remoteClient.AgentId))
+            if (!m_parentScene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
                 return;
 
             // Calls attach with a Zero position
-            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false);
-            m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
-
-            // Save avatar attachment information
-            ScenePresence presence;
-            if (m_parentScene.AvatarFactory != null && m_parentScene.TryGetAvatar(remoteClient.AgentId, out presence))
+            if (AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
             {
-                m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", AttachmentPoint: " + AttachmentPt);
-                m_parentScene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
+    
+                // Save avatar attachment information
+                ScenePresence presence;
+                if (m_parentScene.AvatarFactory != null && m_parentScene.TryGetAvatar(remoteClient.AgentId, out presence))
+                {
+                    m_log.Info(
+                        "[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId 
+                            + ", AttachmentPoint: " + AttachmentPt);
+                    
+                    m_parentScene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
             }
         }
 
-        public SceneObjectGroup RezSingleAttachment(
-            IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        /// <summary>
+        /// Rez an attachment
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
+        public SceneObjectGroup RezSingleAttachment(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient,
                 itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
                 false, false, remoteClient.AgentId, true);
-
 
             if (objatt != null)
             {
@@ -533,15 +542,22 @@ namespace OpenSim.Region.Framework.Scenes
                 if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                     tainted = true;
 
-                AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
-                objatt.ScheduleGroupForFullUpdate();
-                if (tainted)
-                    objatt.HasGroupChanged = true;
+                if (AttachObject(
+                    remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false))
+                {
+                    objatt.ScheduleGroupForFullUpdate();
+                    if (tainted)
+                        objatt.HasGroupChanged = true;
+    
+                    // Fire after attach, so we don't get messy perms dialogs
+                    // 3 == AttachedRez
+                    objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
 
-                // Fire after attach, so we don't get messy perms dialogs
-                // 3 == AttachedRez
-                objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
+                    // Do this last so that event listeners have access to all the effects of the attachment
+                    m_parentScene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
+                }
             }
+            
             return objatt;
         }
 
@@ -590,7 +606,17 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected internal void AttachObject(
+        /// <summary>
+        /// Attach a scene object to an avatar.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="rot"></param>
+        /// <param name="attachPos"></param>
+        /// <param name="silent"></param>
+        /// <returns>true if the attachment was successful, false otherwise</returns>
+        protected internal bool AttachObject(
             IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
         {
             SceneObjectGroup group = GetGroupByPrim(objectLocalID);
@@ -619,9 +645,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // Stick it on left hand with Zero Offset from the attachment point.
                         AttachmentPt = (uint)AttachmentPoint.LeftHand;
                         attachPos = Vector3.Zero;
-
                     }
-
 
                     group.SetAttachmentPoint((byte)AttachmentPt);
                     group.AbsolutePosition = attachPos;
@@ -645,15 +669,21 @@ namespace OpenSim.Region.Framework.Scenes
                     // it get cleaned up
                     //
                     group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                    group.HasGroupChanged = false;
+                    group.HasGroupChanged = false;                   
                 }
                 else
                 {
                     remoteClient.SendAgentAlertMessage("You don't have sufficient permissions to attach this object", false);
+                    return false;
                 }
             }
             else
+            {
                 m_log.DebugFormat("[SCENE GRAPH]: AttachObject found no such scene object {0}", objectLocalID);
+                return false;
+            }
+
+            return true;
         }
 
         protected internal ScenePresence CreateAndAddChildScenePresence(IClientAPI client, AvatarAppearance appearance)

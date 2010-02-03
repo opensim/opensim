@@ -585,8 +585,32 @@ namespace OpenSim.Region.Framework.Scenes
             m_items.TryGetValue(itemId, out item);
             m_items.LockItemsForRead(false);
             return item;
-        }
+        }    
 
+        /// <summary>
+        /// Get inventory items by name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>
+        /// A list of inventory items with that name.
+        /// If no inventory item has that name then an empty list is returned.
+        /// </returns>        
+        public IList<TaskInventoryItem> GetInventoryItems(string name)
+        {
+            IList<TaskInventoryItem> items = new List<TaskInventoryItem>();
+
+            lock (m_items)
+            {
+                foreach (TaskInventoryItem item in m_items.Values)
+                {
+                    if (item.Name == name)
+                        items.Add(item);
+                }
+            }
+
+            return items;
+        }
+        
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>

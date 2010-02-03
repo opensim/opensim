@@ -92,8 +92,7 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void OnShutdownDelegate();
 
         public event OnShutdownDelegate OnShutdown;
-
-        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
+        
         public delegate void ObjectDeGrabDelegate(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         public delegate void ScriptResetDelegate(uint localID, UUID itemID);
 
@@ -103,62 +102,57 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
+        /// <summary>
+        /// Called when an object is touched/grabbed.
+        /// </summary>
+        /// The originalID is the local ID of the part that was actually touched.  The localID itself is always that of
+        /// the root part.
+        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         public event ObjectGrabDelegate OnObjectGrab;
+        
+        public event ObjectGrabDelegate OnObjectGrabbing;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
         public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
-
         public event NewRezScript OnRezScript;
 
         public delegate void RemoveScript(uint localID, UUID itemID);
-
         public event RemoveScript OnRemoveScript;
 
         public delegate void StartScript(uint localID, UUID itemID);
-
         public event StartScript OnStartScript;
 
         public delegate void StopScript(uint localID, UUID itemID);
-
         public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(UUID groupID, Vector3 delta);
-
         public event SceneGroupMoved OnSceneGroupMove;
 
         public delegate void SceneGroupGrabed(UUID groupID, Vector3 offset, UUID userID);
-
         public event SceneGroupGrabed OnSceneGroupGrab;
 
         public delegate bool SceneGroupSpinStarted(UUID groupID);
-
         public event SceneGroupSpinStarted OnSceneGroupSpinStart;
 
         public delegate bool SceneGroupSpun(UUID groupID, Quaternion rotation);
-
         public event SceneGroupSpun OnSceneGroupSpin;
 
         public delegate void LandObjectAdded(ILandObject newParcel);
-
         public event LandObjectAdded OnLandObjectAdded;
 
         public delegate void LandObjectRemoved(UUID globalID);
-
         public event LandObjectRemoved OnLandObjectRemoved;
 
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID);
-
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
         public delegate void SignificantClientMovement(IClientAPI remote_client);
-
         public event SignificantClientMovement OnSignificantClientMovement;
 
         public delegate void IncomingInstantMessage(GridInstantMessage message);
-
         public event IncomingInstantMessage OnIncomingInstantMessage;
 
         public event IncomingInstantMessage OnUnhandledInstantMessage;
@@ -316,9 +310,10 @@ namespace OpenSim.Region.Framework.Scenes
         public event EmptyScriptCompileQueue OnEmptyScriptCompileQueue;
 
         /// <summary>
-        /// Called whenever an object is attached, or detached
-        /// from an in-world presence.
+        /// Called whenever an object is attached, or detached from an in-world presence.
         /// </summary>
+        /// If the object is being attached, then the avatarID will be present.  If the object is being detached then
+        /// the avatarID is UUID.Zero (I know, this doesn't make much sense but now it's historical).
         public delegate void Attach(uint localID, UUID itemID, UUID avatarID);
         public event Attach OnAttach;
 
@@ -412,6 +407,7 @@ namespace OpenSim.Region.Framework.Scenes
         private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
         private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
         private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
+        private ObjectGrabDelegate handlerObjectGrabbing = null; //OnObjectGrabbing;
         private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
         private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
         private NewRezScript handlerRezScript = null; //OnRezScript;
@@ -625,6 +621,15 @@ namespace OpenSim.Region.Framework.Scenes
                 handlerObjectGrab(localID, originalID, offsetPos, remoteClient, surfaceArgs);
             }
         }
+
+        public void TriggerObjectGrabbing(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
+        {
+            handlerObjectGrabbing = OnObjectGrabbing;
+            if (handlerObjectGrabbing != null)
+            {
+                handlerObjectGrabbing(localID, originalID, offsetPos, remoteClient, surfaceArgs);
+            }
+         }
 
         public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
         {
