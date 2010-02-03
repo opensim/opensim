@@ -1921,7 +1921,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (uint localId in startedColliders)
                     {
                         if (localId == 0)
-                            return;
+                            continue;
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
                             return;
@@ -2057,7 +2057,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (localId == 0)
-                            return;
+                            continue;
 
                         if (m_parentGroup == null)
                             return;
@@ -2189,7 +2189,7 @@ namespace OpenSim.Region.Framework.Scenes
                     foreach (uint localId in endedColliders)
                     {
                         if (localId == 0)
-                            return;
+                            continue;
 
                         // always running this check because if the user deletes the object it would return a null reference.
                         if (m_parentGroup == null)
