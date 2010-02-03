@@ -173,17 +173,22 @@ namespace OpenSim.Services.HypergridService
 
         public bool VerifyClient(UUID sessionID, string token)
         {
-            if (m_TravelingAgents.ContainsKey(sessionID))
-            {
-                // Aquiles heel. Must trust the first grid upon login
-                if (m_TravelingAgents[sessionID].ClientToken == string.Empty)
-                {
-                    m_TravelingAgents[sessionID].ClientToken = token;
-                    return true;
-                }
-                return m_TravelingAgents[sessionID].ClientToken == token;
-            }
-            return false;
+            return true;
+
+            // Commenting this for now until I understand better what part of a sender's
+            // info stays unchanged throughout a session
+            //
+            //if (m_TravelingAgents.ContainsKey(sessionID))
+            //{
+            //    // Aquiles heel. Must trust the first grid upon login
+            //    if (m_TravelingAgents[sessionID].ClientToken == string.Empty)
+            //    {
+            //        m_TravelingAgents[sessionID].ClientToken = token;
+            //        return true;
+            //    }
+            //    return m_TravelingAgents[sessionID].ClientToken == token;
+            //}
+            //return false;
         }
 
         public bool VerifyAgent(UUID sessionID, string token)
