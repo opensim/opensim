@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
 using OpenSim.Region.Framework.Interfaces;
-using Caps=OpenSim.Framework.Capabilities.Caps;
+using Caps = OpenSim.Framework.Capabilities.Caps;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.Framework.Scenes
@@ -41,6 +43,8 @@ namespace OpenSim.Region.Framework.Scenes
     /// </summary>
     public class EventManager
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public delegate void OnFrameDelegate();
 
         public event OnFrameDelegate OnFrame;
@@ -213,9 +217,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public event AvatarKillData OnAvatarKilled;
 
-        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
+//        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
 
-        public event ScriptTimerEvent OnScriptTimerEvent;
+//        public event ScriptTimerEvent OnScriptTimerEvent;
 
         public delegate void EstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
         public delegate void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID);
@@ -382,95 +386,12 @@ namespace OpenSim.Region.Framework.Scenes
         public event LandBuy OnLandBuy;
         public event LandBuy OnValidateLandBuy;
 
-        /* Designated Event Deletage Instances */
-
-        private ScriptChangedEvent handlerScriptChangedEvent = null; //OnScriptChangedEvent;
-        private ScriptAtTargetEvent handlerScriptAtTargetEvent = null;
-        private ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = null;
-        private ScriptAtRotTargetEvent handlerScriptAtRotTargetEvent = null;
-        private ScriptNotAtRotTargetEvent handlerScriptNotAtRotTargetEvent = null;
-        private ClientMovement handlerClientMovement = null; //OnClientMovement;
-        private OnPermissionErrorDelegate handlerPermissionError = null; //OnPermissionError;
-        private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
-        private OnFrameDelegate handlerFrame = null; //OnFrame;
-        private OnNewClientDelegate handlerNewClient = null; //OnNewClient;
-        private OnClientConnectCoreDelegate handlerClientConnect = null; //OnClientConnect
-        private OnNewPresenceDelegate handlerNewPresence = null; //OnNewPresence;
-        private OnRemovePresenceDelegate handlerRemovePresence = null; //OnRemovePresence;
-        private OnBackupDelegate handlerBackup = null; //OnBackup;
-        private OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate = null; //OnParcelPrimCountUpdate;
-        private MoneyTransferEvent handlerMoneyTransfer = null; //OnMoneyTransfer;
-        private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
-        private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
-        private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
-        private ObjectGrabDelegate handlerObjectGrabbing = null; //OnObjectGrabbing;
-        private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
-        private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
-        private NewRezScript handlerRezScript = null; //OnRezScript;
-        private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
-        private StartScript handlerStartScript = null; //OnStartScript;
-        private StopScript handlerStopScript = null; //OnStopScript;
-        private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
-        private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
-        private SceneGroupSpinStarted handlerSceneGroupSpinStarted = null; //OnSceneGroupSpinStart;
-        private SceneGroupSpun handlerSceneGroupSpin = null; //OnSceneGroupSpin;
-        private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
-        private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
-        private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
-        private IncomingInstantMessage handlerIncomingInstantMessage = null; //OnIncomingInstantMessage;
-        private IncomingInstantMessage handlerUnhandledInstantMessage = null; //OnUnhandledInstantMessage;
-        private ClientClosed handlerClientClosed = null; //OnClientClosed;
-        private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
-        private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
-        private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
-        private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
-        private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
-        private ChatFromWorldEvent handlerChatFromWorld = null; // OnChatFromWorld;
-        private ChatFromClientEvent handlerChatFromClient = null; // OnChatFromClient;
-        private ChatBroadcastEvent handlerChatBroadcast = null; // OnChatBroadcast;
-        private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
-        private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
-        private ScriptControlEvent handlerScriptControlEvent = null;
-        private SignificantClientMovement handlerSignificantClientMovement = null;
-
-        private LandBuy handlerLandBuy = null;
-        private LandBuy handlerValidateLandBuy = null;
-        private AvatarKillData handlerAvatarKill = null;
-
-        private NoticeNoLandDataFromStorage handlerNoticeNoLandDataFromStorage = null;
-        private IncomingLandDataFromStorage handlerIncomingLandDataFromStorage = null;
-        private SetAllowForcefulBan handlerSetAllowForcefulBan = null;
-        private RequestParcelPrimCountUpdate handlerRequestParcelPrimCountUpdate = null;
-        private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
-        private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
-        // TODO: unused: private ScriptTimerEvent handlerScriptTimerEvent = null;
-        private EstateToolsSunUpdate handlerEstateToolsSunUpdate = null;
-
-        private ScriptColliding handlerCollidingStart = null;
-        private ScriptColliding handlerColliding = null;
-        private ScriptColliding handlerCollidingEnd = null;
-        private ScriptColliding handlerLandCollidingStart = null;
-        private ScriptColliding handlerLandColliding = null;
-        private ScriptColliding handlerLandCollidingEnd = null;
-        private GetScriptRunning handlerGetScriptRunning = null;
-
-        private SunLindenHour handlerCurrentTimeAsLindenSunHour = null;
-        private OnSetRootAgentSceneDelegate handlerSetRootAgentScene = null;
-
-        private OarFileLoaded handlerOarFileLoaded = null;
-        private OarFileSaved handlerOarFileSaved = null;
-        
-        private EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = null;
-
-        private Attach handlerOnAttach = null;
-        private RegionUp handlerOnRegionUp = null;
-
         public void TriggerOnAttach(uint localID, UUID itemID, UUID avatarID)
         {
-            handlerOnAttach = OnAttach;
+            Attach handlerOnAttach = OnAttach;
             if (handlerOnAttach != null)
             {
-                foreach (Delegate d in handlerOnAttach.GetInvocationList())
+                foreach (Attach d in handlerOnAttach.GetInvocationList())
                 {
                     try
                     {
@@ -479,7 +400,7 @@ namespace OpenSim.Region.Framework.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  Error was {0} {1}", 
+                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
                 }
@@ -488,525 +409,1240 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
-            handlerGetScriptRunning = OnGetScriptRunning;
+            GetScriptRunning handlerGetScriptRunning = OnGetScriptRunning;
             if (handlerGetScriptRunning != null)
-                handlerGetScriptRunning(controllingClient, objectID, itemID);
+            {
+                foreach (GetScriptRunning d in handlerGetScriptRunning.GetInvocationList())
+                {
+                    try
+                    {
+                        d(controllingClient, objectID, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerGetScriptRunning failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
-            handlerScriptChangedEvent = OnScriptChangedEvent;
+            ScriptChangedEvent handlerScriptChangedEvent = OnScriptChangedEvent;
             if (handlerScriptChangedEvent != null)
-                handlerScriptChangedEvent(localID, change);
+            {
+                foreach (ScriptChangedEvent d in handlerScriptChangedEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, change);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnScriptChangedEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnClientMovement(ScenePresence avatar)
         {
-            handlerClientMovement = OnClientMovement;
+            ClientMovement handlerClientMovement = OnClientMovement;
             if (handlerClientMovement != null)
-                handlerClientMovement(avatar);
+            {
+                foreach (ClientMovement d in handlerClientMovement.GetInvocationList())
+                {
+                    try
+                    {
+                        d(avatar);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnClientMovement failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerPermissionError(UUID user, string reason)
         {
-            handlerPermissionError = OnPermissionError;
+            OnPermissionErrorDelegate handlerPermissionError = OnPermissionError;
             if (handlerPermissionError != null)
-                handlerPermissionError(user, reason);
+            {
+                foreach (OnPermissionErrorDelegate d in handlerPermissionError.GetInvocationList())
+                {
+                    try
+                    {
+                        d(user, reason);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerPermissionError failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnPluginConsole(string[] args)
         {
-            handlerPluginConsole = OnPluginConsole;
+            OnPluginConsoleDelegate handlerPluginConsole = OnPluginConsole;
             if (handlerPluginConsole != null)
-                handlerPluginConsole(args);
+            {
+                foreach (OnPluginConsoleDelegate d in handlerPluginConsole.GetInvocationList())
+                {
+                    try
+                    {
+                        d(args);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnPluginConsole failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnFrame()
         {
-            handlerFrame = OnFrame;
+            OnFrameDelegate handlerFrame = OnFrame;
             if (handlerFrame != null)
             {
-                handlerFrame();
-            }
+                foreach (OnFrameDelegate d in handlerFrame.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnFrame failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnNewClient(IClientAPI client)
-        {
-            handlerNewClient = OnNewClient;
+        {          
+            OnNewClientDelegate handlerNewClient = OnNewClient;
             if (handlerNewClient != null)
-                handlerNewClient(client);
+            {
+                foreach (OnNewClientDelegate d in handlerNewClient.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnNewClient failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
 
             if (client is IClientCore)
-            {
-                handlerClientConnect = OnClientConnect;
+            {              
+                OnClientConnectCoreDelegate handlerClientConnect = OnClientConnect;
                 if (handlerClientConnect != null)
-                    handlerClientConnect((IClientCore)client);
+                {
+                    foreach (OnClientConnectCoreDelegate d in handlerClientConnect.GetInvocationList())
+                    {
+                        try
+                        {
+                            d((IClientCore)client);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.ErrorFormat(
+                                "[EVENT MANAGER]: Delegate for TriggerOnNewClient (IClientCore) failed - continuing.  {0} {1}", 
+                                e.Message, e.StackTrace);
+                        }
+                    }
+                }                
             }
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)
         {
-            handlerNewPresence = OnNewPresence;
+            OnNewPresenceDelegate handlerNewPresence = OnNewPresence;
             if (handlerNewPresence != null)
-                handlerNewPresence(presence);
+            {
+                foreach (OnNewPresenceDelegate d in handlerNewPresence.GetInvocationList())
+                {
+                    try
+                    {
+                        d(presence);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnNewPresence failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnRemovePresence(UUID agentId)
-        {
-            handlerRemovePresence = OnRemovePresence;
+        {          
+            OnRemovePresenceDelegate handlerRemovePresence = OnRemovePresence;
             if (handlerRemovePresence != null)
             {
-                handlerRemovePresence(agentId);
-            }
+                foreach (OnRemovePresenceDelegate d in handlerRemovePresence.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agentId);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnRemovePresence failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnBackup(IRegionDataStore dstore)
-        {
-            handlerBackup = OnBackup;
-            if (handlerBackup != null)
+        {          
+            OnBackupDelegate handlerOnAttach = OnBackup;
+            if (handlerOnAttach != null)
             {
-                handlerBackup(dstore, false);
-            }
+                foreach (OnBackupDelegate d in handlerOnAttach.GetInvocationList())
+                {
+                    try
+                    {
+                        d(dstore, false);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnBackup failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerParcelPrimCountUpdate()
         {
-            handlerParcelPrimCountUpdate = OnParcelPrimCountUpdate;
+            OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate = OnParcelPrimCountUpdate;
             if (handlerParcelPrimCountUpdate != null)
             {
-                handlerParcelPrimCountUpdate();
-            }
+                foreach (OnParcelPrimCountUpdateDelegate d in handlerParcelPrimCountUpdate.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerParcelPrimCountUpdate failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
-        public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
+        public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs args)
         {
-            handlerMoneyTransfer = OnMoneyTransfer;
+            MoneyTransferEvent handlerMoneyTransfer = OnMoneyTransfer;
             if (handlerMoneyTransfer != null)
             {
-                handlerMoneyTransfer(sender, e);
-            }
+                foreach (MoneyTransferEvent d in handlerMoneyTransfer.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, args);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerMoneyTransfer failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerTerrainTick()
         {
-            handlerTerrainTick = OnTerrainTick;
+            OnTerrainTickDelegate handlerTerrainTick = OnTerrainTick;
             if (handlerTerrainTick != null)
             {
-                handlerTerrainTick();
-            }
+                foreach (OnTerrainTickDelegate d in handlerTerrainTick.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerTerrainTick failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
         {
-            handlerParcelPrimCountAdd = OnParcelPrimCountAdd;
+            OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = OnParcelPrimCountAdd;
             if (handlerParcelPrimCountAdd != null)
             {
-                handlerParcelPrimCountAdd(obj);
-            }
+                foreach (OnParcelPrimCountAddDelegate d in handlerParcelPrimCountAdd.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerParcelPrimCountAdd failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
         {
-            handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;
+            ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;
             if (handlerObjectBeingRemovedFromScene != null)
             {
-                handlerObjectBeingRemovedFromScene(obj);
-            }
+                foreach (ObjectBeingRemovedFromScene d in handlerObjectBeingRemovedFromScene.GetInvocationList())
+                {
+                    try
+                    {
+                        d(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectBeingRemovedFromScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerShutdown()
-        {
-            handlerShutdown = OnShutdown;
+        {          
+            OnShutdownDelegate handlerShutdown = OnShutdown;
             if (handlerShutdown != null)
-                handlerShutdown();
+            {
+                foreach (OnShutdownDelegate d in handlerShutdown.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerShutdown failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {
-            handlerObjectGrab = OnObjectGrab;
+        {        
+            ObjectGrabDelegate handlerObjectGrab = OnObjectGrab;
             if (handlerObjectGrab != null)
             {
-                handlerObjectGrab(localID, originalID, offsetPos, remoteClient, surfaceArgs);
-            }
+                foreach (ObjectGrabDelegate d in handlerObjectGrab.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, originalID, offsetPos, remoteClient, surfaceArgs);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectGrab failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerObjectGrabbing(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {
-            handlerObjectGrabbing = OnObjectGrabbing;
+        {          
+            ObjectGrabDelegate handlerObjectGrabbing = OnObjectGrabbing;
             if (handlerObjectGrabbing != null)
             {
-                handlerObjectGrabbing(localID, originalID, offsetPos, remoteClient, surfaceArgs);
-            }
+                foreach (ObjectGrabDelegate d in handlerObjectGrabbing.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, originalID, offsetPos, remoteClient, surfaceArgs);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectGrabbing failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
          }
 
         public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {
-            handlerObjectDeGrab = OnObjectDeGrab;
+        {         
+            ObjectDeGrabDelegate handlerObjectDeGrab = OnObjectDeGrab;
             if (handlerObjectDeGrab != null)
             {
-                handlerObjectDeGrab(localID, originalID, remoteClient, surfaceArgs);
-            }
+                foreach (ObjectDeGrabDelegate d in handlerObjectDeGrab.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, originalID, remoteClient, surfaceArgs);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerObjectDeGrab failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptReset(uint localID, UUID itemID)
-        {
-            handlerScriptReset = OnScriptReset;
+        {          
+            ScriptResetDelegate handlerScriptReset = OnScriptReset;
             if (handlerScriptReset != null)
             {
-                handlerScriptReset(localID, itemID);
-            }
+                foreach (ScriptResetDelegate d in handlerScriptReset.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptReset failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
-        {
-            handlerRezScript = OnRezScript;
+        {           
+            NewRezScript handlerRezScript = OnRezScript;
             if (handlerRezScript != null)
             {
-                handlerRezScript(localID, itemID, script, startParam,
-                        postOnRez, engine, stateSource);
-            }
+                foreach (NewRezScript d in handlerRezScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID, script, startParam, postOnRez, engine, stateSource);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerRezScript failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerStartScript(uint localID, UUID itemID)
         {
-            handlerStartScript = OnStartScript;
+            StartScript handlerStartScript = OnStartScript;
             if (handlerStartScript != null)
             {
-                handlerStartScript(localID, itemID);
-            }
+                foreach (StartScript d in handlerStartScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerStartScript failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerStopScript(uint localID, UUID itemID)
         {
-            handlerStopScript = OnStopScript;
+            StopScript handlerStopScript = OnStopScript;
             if (handlerStopScript != null)
             {
-                handlerStopScript(localID, itemID);
-            }
+                foreach (StopScript d in handlerStopScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerStopScript failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerRemoveScript(uint localID, UUID itemID)
-        {
-            handlerRemoveScript = OnRemoveScript;
+        {          
+            RemoveScript handlerRemoveScript = OnRemoveScript;
             if (handlerRemoveScript != null)
             {
-                handlerRemoveScript(localID, itemID);
-            }
+                foreach (RemoveScript d in handlerRemoveScript.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerRemoveScript failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public bool TriggerGroupMove(UUID groupID, Vector3 delta)
         {
-            handlerSceneGroupMove = OnSceneGroupMove;
-
+            bool result = true;
+            
+            SceneGroupMoved handlerSceneGroupMove = OnSceneGroupMove;
             if (handlerSceneGroupMove != null)
             {
-                return handlerSceneGroupMove(groupID, delta);
+                foreach (SceneGroupMoved d in handlerSceneGroupMove.GetInvocationList())
+                {
+                    try
+                    {
+                        if (d(groupID, delta) == false)
+                            result = false;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
             }
-            return true;
+            
+            return result;
         }
 
         public bool TriggerGroupSpinStart(UUID groupID)
         {
-            handlerSceneGroupSpinStarted = OnSceneGroupSpinStart;
-
+            bool result = true;
+            
+            SceneGroupSpinStarted handlerSceneGroupSpinStarted = OnSceneGroupSpinStart;
             if (handlerSceneGroupSpinStarted != null)
             {
-                return handlerSceneGroupSpinStarted(groupID);
+                foreach (SceneGroupSpinStarted d in handlerSceneGroupSpinStarted.GetInvocationList())
+                {
+                    try
+                    {
+                        if (d(groupID) == false)
+                            result = false;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerGroupSpinStart failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
             }
-            return true;
+            
+            return result;
         }
 
         public bool TriggerGroupSpin(UUID groupID, Quaternion rotation)
         {
-            handlerSceneGroupSpin = OnSceneGroupSpin;
-
+            bool result = true;
+            
+            SceneGroupSpun handlerSceneGroupSpin = OnSceneGroupSpin;
             if (handlerSceneGroupSpin != null)
             {
-                return handlerSceneGroupSpin(groupID, rotation);
+                foreach (SceneGroupSpun d in handlerSceneGroupSpin.GetInvocationList())
+                {
+                    try
+                    {
+                        if (d(groupID, rotation) == false)
+                            result = false;
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerGroupSpin failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
             }
-            return true;
+            
+            return result;
         }
 
         public void TriggerGroupGrab(UUID groupID, Vector3 offset, UUID userID)
         {
-            handlerSceneGroupGrab = OnSceneGroupGrab;
+            SceneGroupGrabed handlerSceneGroupGrab = OnSceneGroupGrab;
             if (handlerSceneGroupGrab != null)
             {
-                handlerSceneGroupGrab(groupID, offset, userID);
-            }
+                foreach (SceneGroupGrabed d in handlerSceneGroupGrab.GetInvocationList())
+                {
+                    try
+                    {
+                        d(groupID, offset, userID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerGroupGrab failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerLandObjectAdded(ILandObject newParcel)
         {
-            handlerLandObjectAdded = OnLandObjectAdded;
-
+            LandObjectAdded handlerLandObjectAdded = OnLandObjectAdded;
             if (handlerLandObjectAdded != null)
             {
-                handlerLandObjectAdded(newParcel);
-            }
+                foreach (LandObjectAdded d in handlerLandObjectAdded.GetInvocationList())
+                {
+                    try
+                    {
+                        d(newParcel);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerLandObjectAdded failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerLandObjectRemoved(UUID globalID)
         {
-            handlerLandObjectRemoved = OnLandObjectRemoved;
+            LandObjectRemoved handlerLandObjectRemoved = OnLandObjectRemoved;
             if (handlerLandObjectRemoved != null)
             {
-                handlerLandObjectRemoved(globalID);
-            }
+                foreach (LandObjectRemoved d in handlerLandObjectRemoved.GetInvocationList())
+                {
+                    try
+                    {
+                        d(globalID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerLandObjectRemoved failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerLandObjectUpdated(uint localParcelID, ILandObject newParcel)
         {
-            //triggerLandObjectRemoved(localParcelID);
-
             TriggerLandObjectAdded(newParcel);
         }
 
         public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
-            handlerAvatarEnteringNewParcel = OnAvatarEnteringNewParcel;
-
+            AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = OnAvatarEnteringNewParcel;
             if (handlerAvatarEnteringNewParcel != null)
             {
-                handlerAvatarEnteringNewParcel(avatar, localLandID, regionID);
-            }
+                foreach (AvatarEnteringNewParcel d in handlerAvatarEnteringNewParcel.GetInvocationList())
+                {
+                    try
+                    {
+                        d(avatar, localLandID, regionID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAvatarEnteringNewParcel failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerIncomingInstantMessage(GridInstantMessage message)
         {
-            handlerIncomingInstantMessage = OnIncomingInstantMessage;
+            IncomingInstantMessage handlerIncomingInstantMessage = OnIncomingInstantMessage;
             if (handlerIncomingInstantMessage != null)
             {
-                handlerIncomingInstantMessage(message);
-            }
+                foreach (IncomingInstantMessage d in handlerIncomingInstantMessage.GetInvocationList())
+                {
+                    try
+                    {
+                        d(message);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerIncomingInstantMessage failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerUnhandledInstantMessage(GridInstantMessage message)
         {
-            handlerUnhandledInstantMessage = OnUnhandledInstantMessage;
+            IncomingInstantMessage handlerUnhandledInstantMessage = OnUnhandledInstantMessage;
             if (handlerUnhandledInstantMessage != null)
             {
-                handlerUnhandledInstantMessage(message);
-            }
+                foreach (IncomingInstantMessage d in handlerUnhandledInstantMessage.GetInvocationList())
+                {
+                    try
+                    {
+                        d(message);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerClientClosed(UUID ClientID, Scene scene)
         {
-            handlerClientClosed = OnClientClosed;
+            ClientClosed handlerClientClosed = OnClientClosed;
             if (handlerClientClosed != null)
             {
-                handlerClientClosed(ClientID, scene);
-            }
+                foreach (ClientClosed d in handlerClientClosed.GetInvocationList())
+                {
+                    try
+                    {
+                        d(ClientID, scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerClientClosed failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnMakeChildAgent(ScenePresence presence)
         {
-            handlerMakeChildAgent = OnMakeChildAgent;
+            OnMakeChildAgentDelegate handlerMakeChildAgent = OnMakeChildAgent;
             if (handlerMakeChildAgent != null)
             {
-                handlerMakeChildAgent(presence);
-            }
+                foreach (OnMakeChildAgentDelegate d in handlerMakeChildAgent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(presence);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnMakeChildAgent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnMakeRootAgent(ScenePresence presence)
         {
-            handlerMakeRootAgent = OnMakeRootAgent;
+            OnMakeRootAgentDelegate handlerMakeRootAgent = OnMakeRootAgent;
             if (handlerMakeRootAgent != null)
             {
-                handlerMakeRootAgent(presence);
-            }
+                foreach (OnMakeRootAgentDelegate d in handlerMakeRootAgent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(presence);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnMakeRootAgent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnRegisterCaps(UUID agentID, Caps caps)
-        {
-            handlerRegisterCaps = OnRegisterCaps;
+        {          
+            RegisterCapsEvent handlerRegisterCaps = OnRegisterCaps;
             if (handlerRegisterCaps != null)
             {
-                handlerRegisterCaps(agentID, caps);
-            }
+                foreach (RegisterCapsEvent d in handlerRegisterCaps.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agentID, caps);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnRegisterCaps failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnDeregisterCaps(UUID agentID, Caps caps)
         {
-            handlerDeregisterCaps = OnDeregisterCaps;
+            DeregisterCapsEvent handlerDeregisterCaps = OnDeregisterCaps;
             if (handlerDeregisterCaps != null)
             {
-                handlerDeregisterCaps(agentID, caps);
-            }
+                foreach (DeregisterCapsEvent d in handlerDeregisterCaps.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agentID, caps);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnDeregisterCaps failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnNewInventoryItemUploadComplete(UUID agentID, UUID AssetID, String AssetName, int userlevel)
         {
-            handlerNewInventoryItemUpdateComplete = OnNewInventoryItemUploadComplete;
+            NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = OnNewInventoryItemUploadComplete;
             if (handlerNewInventoryItemUpdateComplete != null)
             {
-                handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
-            }
+                foreach (NewInventoryItemUploadComplete d in handlerNewInventoryItemUpdateComplete.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agentID, AssetID, AssetName, userlevel);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnNewInventoryItemUploadComplete failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
-        public void TriggerLandBuy(Object sender, LandBuyArgs e)
+        public void TriggerLandBuy(Object sender, LandBuyArgs args)
         {
-            handlerLandBuy = OnLandBuy;
+            LandBuy handlerLandBuy = OnLandBuy;
             if (handlerLandBuy != null)
             {
-                handlerLandBuy(sender, e);
-            }
+                foreach (LandBuy d in handlerLandBuy.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, args);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerLandBuy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
-        public void TriggerValidateLandBuy(Object sender, LandBuyArgs e)
+        public void TriggerValidateLandBuy(Object sender, LandBuyArgs args)
         {
-            handlerValidateLandBuy = OnValidateLandBuy;
+            LandBuy handlerValidateLandBuy = OnValidateLandBuy;
             if (handlerValidateLandBuy != null)
             {
-                handlerValidateLandBuy(sender, e);
-            }
+                foreach (LandBuy d in handlerValidateLandBuy.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, args);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerValidateLandBuy failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 currentpos)
-        {
-            handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
+        {           
+            ScriptAtTargetEvent handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
             if (handlerScriptAtTargetEvent != null)
             {
-                handlerScriptAtTargetEvent(localID, handle, targetpos, currentpos);
-            }
+                foreach (ScriptAtTargetEvent d in handlerScriptAtTargetEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, handle, targetpos, currentpos);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAtTargetEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerNotAtTargetEvent(uint localID)
         {
-            handlerScriptNotAtTargetEvent = OnScriptNotAtTargetEvent;
+            ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = OnScriptNotAtTargetEvent;
             if (handlerScriptNotAtTargetEvent != null)
             {
-                handlerScriptNotAtTargetEvent(localID);
-            }
+                foreach (ScriptNotAtTargetEvent d in handlerScriptNotAtTargetEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerNotAtTargetEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion currentrot)
-        {
-            handlerScriptAtRotTargetEvent = OnScriptAtRotTargetEvent;
+        {            
+            ScriptAtRotTargetEvent handlerScriptAtRotTargetEvent = OnScriptAtRotTargetEvent;
             if (handlerScriptAtRotTargetEvent != null)
             {
-                handlerScriptAtRotTargetEvent(localID, handle, targetrot, currentrot);
-            }
+                foreach (ScriptAtRotTargetEvent d in handlerScriptAtRotTargetEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, handle, targetrot, currentrot);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAtRotTargetEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerNotAtRotTargetEvent(uint localID)
         {
-            handlerScriptNotAtRotTargetEvent = OnScriptNotAtRotTargetEvent;
+            ScriptNotAtRotTargetEvent handlerScriptNotAtRotTargetEvent = OnScriptNotAtRotTargetEvent;
             if (handlerScriptNotAtRotTargetEvent != null)
             {
-                handlerScriptNotAtRotTargetEvent(localID);
-            }
+                foreach (ScriptNotAtRotTargetEvent d in handlerScriptNotAtRotTargetEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerNotAtRotTargetEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerRequestChangeWaterHeight(float height)
         {
-            handlerRequestChangeWaterHeight = OnRequestChangeWaterHeight;
+            RequestChangeWaterHeight handlerRequestChangeWaterHeight = OnRequestChangeWaterHeight;
             if (handlerRequestChangeWaterHeight != null)
             {
-                handlerRequestChangeWaterHeight(height);
-            }
+                foreach (RequestChangeWaterHeight d in handlerRequestChangeWaterHeight.GetInvocationList())
+                {
+                    try
+                    {
+                        d(height);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerRequestChangeWaterHeight failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerAvatarKill(uint KillerObjectLocalID, ScenePresence DeadAvatar)
         {
-            handlerAvatarKill = OnAvatarKilled;
+            AvatarKillData handlerAvatarKill = OnAvatarKilled;
             if (handlerAvatarKill != null)
             {
-                handlerAvatarKill(KillerObjectLocalID, DeadAvatar);
-            }
+                foreach (AvatarKillData d in handlerAvatarKill.GetInvocationList())
+                {
+                    try
+                    {
+                        d(KillerObjectLocalID, DeadAvatar);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerAvatarKill failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerSignificantClientMovement(IClientAPI client)
         {
-            handlerSignificantClientMovement = OnSignificantClientMovement;
+            SignificantClientMovement handlerSignificantClientMovement = OnSignificantClientMovement;
             if (handlerSignificantClientMovement != null)
             {
-                handlerSignificantClientMovement(client);
-            }
+                foreach (SignificantClientMovement d in handlerSignificantClientMovement.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSignificantClientMovement failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnChatFromWorld(Object sender, OSChatMessage chat)
         {
-            handlerChatFromWorld = OnChatFromWorld;
+            ChatFromWorldEvent handlerChatFromWorld = OnChatFromWorld;
             if (handlerChatFromWorld != null)
             {
-                handlerChatFromWorld(sender, chat);
-            }
+                foreach (ChatFromWorldEvent d in handlerChatFromWorld.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, chat);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnChatFromWorld failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnChatFromClient(Object sender, OSChatMessage chat)
         {
-            handlerChatFromClient = OnChatFromClient;
+            ChatFromClientEvent handlerChatFromClient = OnChatFromClient;
             if (handlerChatFromClient != null)
             {
-                handlerChatFromClient(sender, chat);
-            }
+                foreach (ChatFromClientEvent d in handlerChatFromClient.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, chat);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnChatFromClient failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
         {
-            handlerChatBroadcast = OnChatBroadcast;
+            ChatBroadcastEvent handlerChatBroadcast = OnChatBroadcast;
             if (handlerChatBroadcast != null)
             {
-                handlerChatBroadcast(sender, chat);
-            }
+                foreach (ChatBroadcastEvent d in handlerChatBroadcast.GetInvocationList())
+                {
+                    try
+                    {
+                        d(sender, chat);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnChatBroadcast failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         internal void TriggerControlEvent(uint p, UUID scriptUUID, UUID avatarID, uint held, uint _changed)
         {
-            handlerScriptControlEvent = OnScriptControlEvent;
+            ScriptControlEvent handlerScriptControlEvent = OnScriptControlEvent;
             if (handlerScriptControlEvent != null)
             {
-                handlerScriptControlEvent(p, scriptUUID,  avatarID, held, _changed);
-            }
+                foreach (ScriptControlEvent d in handlerScriptControlEvent.GetInvocationList())
+                {
+                    try
+                    {
+                        d(p, scriptUUID,  avatarID, held, _changed);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerControlEvent failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerNoticeNoLandDataFromStorage()
         {
-            handlerNoticeNoLandDataFromStorage = OnNoticeNoLandDataFromStorage;
+            NoticeNoLandDataFromStorage handlerNoticeNoLandDataFromStorage = OnNoticeNoLandDataFromStorage;
             if (handlerNoticeNoLandDataFromStorage != null)
             {
-                handlerNoticeNoLandDataFromStorage();
-
-            }
+                foreach (NoticeNoLandDataFromStorage d in handlerNoticeNoLandDataFromStorage.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerNoticeNoLandDataFromStorage failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerIncomingLandDataFromStorage(List<LandData> landData)
         {
-            handlerIncomingLandDataFromStorage = OnIncomingLandDataFromStorage;
+            IncomingLandDataFromStorage handlerIncomingLandDataFromStorage = OnIncomingLandDataFromStorage;
             if (handlerIncomingLandDataFromStorage != null)
             {
-                handlerIncomingLandDataFromStorage(landData);
-
-            }
+                foreach (IncomingLandDataFromStorage d in handlerIncomingLandDataFromStorage.GetInvocationList())
+                {
+                    try
+                    {
+                        d(landData);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerIncomingLandDataFromStorage failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerSetAllowForcefulBan(bool allow)
         {
-            handlerSetAllowForcefulBan = OnSetAllowForcefulBan;
+            SetAllowForcefulBan handlerSetAllowForcefulBan = OnSetAllowForcefulBan;
             if (handlerSetAllowForcefulBan != null)
             {
-                handlerSetAllowForcefulBan(allow);
-
-            }
+                foreach (SetAllowForcefulBan d in handlerSetAllowForcefulBan.GetInvocationList())
+                {
+                    try
+                    {
+                        d(allow);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSetAllowForcefulBan failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerRequestParcelPrimCountUpdate()
         {
-            handlerRequestParcelPrimCountUpdate = OnRequestParcelPrimCountUpdate;
+            RequestParcelPrimCountUpdate handlerRequestParcelPrimCountUpdate = OnRequestParcelPrimCountUpdate;
             if (handlerRequestParcelPrimCountUpdate != null)
             {
-                handlerRequestParcelPrimCountUpdate();
-            }
+                foreach (RequestParcelPrimCountUpdate d in handlerRequestParcelPrimCountUpdate.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerRequestParcelPrimCountUpdate failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerParcelPrimCountTainted()
         {
-            handlerParcelPrimCountTainted = OnParcelPrimCountTainted;
+            ParcelPrimCountTainted handlerParcelPrimCountTainted = OnParcelPrimCountTainted;
             if (handlerParcelPrimCountTainted != null)
             {
-                handlerParcelPrimCountTainted();
-            }
+                foreach (ParcelPrimCountTainted d in handlerParcelPrimCountTainted.GetInvocationList())
+                {
+                    try
+                    {
+                        d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerParcelPrimCountTainted failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         // this lets us keep track of nasty script events like timer, etc.
@@ -1029,99 +1665,277 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="FixedSunHour">The hour 0.0 <= FixedSunHour <= 24.0 at which the sun is fixed at. Sun Hour 0 is sun-rise, when Day/Night ratio is 1:1</param>
         public void TriggerEstateToolsSunUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float FixedSunHour)
         {
-            handlerEstateToolsSunUpdate = OnEstateToolsSunUpdate;
+            EstateToolsSunUpdate handlerEstateToolsSunUpdate = OnEstateToolsSunUpdate;
             if (handlerEstateToolsSunUpdate != null)
             {
-                handlerEstateToolsSunUpdate(regionHandle, FixedTime, useEstateTime, FixedSunHour);
-            }
+                foreach (EstateToolsSunUpdate d in handlerEstateToolsSunUpdate.GetInvocationList())
+                {
+                    try
+                    {
+                        d(regionHandle, FixedTime, useEstateTime, FixedSunHour);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerEstateToolsSunUpdate failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public float GetCurrentTimeAsSunLindenHour()
         {
-            handlerCurrentTimeAsLindenSunHour = OnGetCurrentTimeAsLindenSunHour;
+            SunLindenHour handlerCurrentTimeAsLindenSunHour = OnGetCurrentTimeAsLindenSunHour;
             if (handlerCurrentTimeAsLindenSunHour != null)
             {
-                return handlerCurrentTimeAsLindenSunHour();
+                foreach (SunLindenHour d in handlerCurrentTimeAsLindenSunHour.GetInvocationList())
+                {
+                    try
+                    {
+                        return d();
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
             }
+            
             return 6;
         }
 
         public void TriggerOarFileLoaded(Guid requestId, string message)
-        {
-            handlerOarFileLoaded = OnOarFileLoaded;
+        {           
+            OarFileLoaded handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
-                handlerOarFileLoaded(requestId, message);
+            {
+                foreach (OarFileLoaded d in handlerOarFileLoaded.GetInvocationList())
+                {
+                    try
+                    {
+                        d(requestId, message);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOarFileLoaded failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
         
         public void TriggerOarFileSaved(Guid requestId, string message)
         {
-            handlerOarFileSaved = OnOarFileSaved;
+            OarFileSaved handlerOarFileSaved = OnOarFileSaved;
             if (handlerOarFileSaved != null)
-                handlerOarFileSaved(requestId, message);
+            {
+                foreach (OarFileSaved d in handlerOarFileSaved.GetInvocationList())
+                {
+                    try
+                    {
+                        d(requestId, message);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOarFileSaved failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)
         {
-            handlerEmptyScriptCompileQueue = OnEmptyScriptCompileQueue;
+            EmptyScriptCompileQueue handlerEmptyScriptCompileQueue = OnEmptyScriptCompileQueue;
             if (handlerEmptyScriptCompileQueue != null)
-                handlerEmptyScriptCompileQueue(numScriptsFailed, message);
+            {
+                foreach (EmptyScriptCompileQueue d in handlerEmptyScriptCompileQueue.GetInvocationList())
+                {
+                    try
+                    {
+                        d(numScriptsFailed, message);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerEmptyScriptCompileQueue failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptCollidingStart(uint localId, ColliderArgs colliders)
         {
-            handlerCollidingStart = OnScriptColliderStart;
+            ScriptColliding handlerCollidingStart = OnScriptColliderStart;
             if (handlerCollidingStart != null)
-                handlerCollidingStart(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerCollidingStart.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptCollidingStart failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptColliding(uint localId, ColliderArgs colliders)
         {
-            handlerColliding = OnScriptColliding;
+            ScriptColliding handlerColliding = OnScriptColliding;
             if (handlerColliding != null)
-                handlerColliding(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerColliding.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptColliding failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptCollidingEnd(uint localId, ColliderArgs colliders)
         {
-            handlerCollidingEnd = OnScriptCollidingEnd;
+            ScriptColliding handlerCollidingEnd = OnScriptCollidingEnd;
             if (handlerCollidingEnd != null)
-                handlerCollidingEnd(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerCollidingEnd.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptCollidingEnd failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptLandCollidingStart(uint localId, ColliderArgs colliders)
         {
-            handlerLandCollidingStart = OnScriptLandColliderStart;
+            ScriptColliding handlerLandCollidingStart = OnScriptLandColliderStart;
             if (handlerLandCollidingStart != null)
-                handlerLandCollidingStart(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerLandCollidingStart.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptLandCollidingStart failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptLandColliding(uint localId, ColliderArgs colliders)
         {
-            handlerLandColliding = OnScriptLandColliding;
+            ScriptColliding handlerLandColliding = OnScriptLandColliding;
             if (handlerLandColliding != null)
-                handlerLandColliding(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerLandColliding.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptLandColliding failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerScriptLandCollidingEnd(uint localId, ColliderArgs colliders)
         {
-            handlerLandCollidingEnd = OnScriptLandColliderEnd;
+            ScriptColliding handlerLandCollidingEnd = OnScriptLandColliderEnd;
             if (handlerLandCollidingEnd != null)
-                handlerLandCollidingEnd(localId, colliders);
+            {
+                foreach (ScriptColliding d in handlerLandCollidingEnd.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localId, colliders);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerScriptLandCollidingEnd failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerSetRootAgentScene(UUID agentID, Scene scene)
-        {
-            handlerSetRootAgentScene = OnSetRootAgentScene;
+        {            
+            OnSetRootAgentSceneDelegate handlerSetRootAgentScene = OnSetRootAgentScene;
             if (handlerSetRootAgentScene != null)
-                handlerSetRootAgentScene(agentID, scene);
+            {
+                foreach (OnSetRootAgentSceneDelegate d in handlerSetRootAgentScene.GetInvocationList())
+                {
+                    try
+                    {
+                        d(agentID, scene);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerSetRootAgentScene failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
 
         public void TriggerOnRegionUp(GridRegion otherRegion)
         {
-            handlerOnRegionUp = OnRegionUp;
+            RegionUp handlerOnRegionUp = OnRegionUp;
             if (handlerOnRegionUp != null)
-                handlerOnRegionUp(otherRegion);
+            {
+                foreach (RegionUp d in handlerOnRegionUp.GetInvocationList())
+                {
+                    try
+                    {
+                        d(otherRegion);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnRegionUp failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }            
         }
-
     }
 }
