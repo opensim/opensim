@@ -3178,6 +3178,11 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        /// <summary>
+        /// Set the events that this part will pass on to listeners.
+        /// </summary>
+        /// <param name="scriptid"></param>
+        /// <param name="events"></param>
         public void SetScriptEvents(UUID scriptid, int events)
         {
             // scriptEvents oldparts;
