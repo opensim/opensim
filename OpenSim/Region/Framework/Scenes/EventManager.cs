@@ -469,7 +469,21 @@ namespace OpenSim.Region.Framework.Scenes
         {
             handlerOnAttach = OnAttach;
             if (handlerOnAttach != null)
-                handlerOnAttach(localID, itemID, avatarID);
+            {
+                foreach (Delegate d in handlerOnAttach.GetInvocationList())
+                {
+                    try
+                    {
+                        d(localID, itemID, avatarID);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnAttach failed - continuing.  Error was {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
         }
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
