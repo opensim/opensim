@@ -44,8 +44,6 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        static System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-
         private string m_inventoryFileName = String.Empty;
         private int m_inventoryFileNameSerial = 0;
         
