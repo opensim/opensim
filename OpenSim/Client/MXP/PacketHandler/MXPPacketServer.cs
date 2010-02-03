@@ -55,7 +55,7 @@ namespace OpenSim.Client.MXP.PacketHandler
         private readonly Dictionary<UUID, Scene> m_scenes;
         private readonly Transmitter m_transmitter;
 
-        private readonly Thread m_clientThread;
+//        private readonly Thread m_clientThread;
 
         private readonly IList<Session> m_sessions = new List<Session>();
         private readonly IList<Session> m_sessionsToClient = new List<Session>();
