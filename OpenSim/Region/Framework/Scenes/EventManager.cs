@@ -212,10 +212,12 @@ namespace OpenSim.Region.Framework.Scenes
         public delegate void RequestChangeWaterHeight(float height);
 
         public event RequestChangeWaterHeight OnRequestChangeWaterHeight;
-
-        public delegate void AvatarKillData(uint KillerLocalID, ScenePresence avatar);
-
+        
+        /// <summary>
+        /// Fired if any avatar is 'killed' due to its health falling to zero
+        /// </summary>
         public event AvatarKillData OnAvatarKilled;
+        public delegate void AvatarKillData(uint KillerLocalID, ScenePresence avatar);
 
 //        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
 

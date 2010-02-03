@@ -3274,9 +3274,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_health <= 0)
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
-            }
-
-            
+            }            
         }
 
         public void setHealthWithUpdate(float health)
