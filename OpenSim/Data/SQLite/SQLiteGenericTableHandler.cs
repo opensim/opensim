@@ -39,9 +39,7 @@ namespace OpenSim.Data.SQLite
 {
     public class SQLiteGenericTableHandler<T> : SQLiteFramework where T: class, new()
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, FieldInfo> m_Fields =
                 new Dictionary<string, FieldInfo>();

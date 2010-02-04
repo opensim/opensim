@@ -174,18 +174,16 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 {
                     m_log.DebugFormat("[LIBRARY MODULE]: Exception when processing archive {0}: {1}", iarFileName, e.Message);
                 }
-
             }
-
         }
-
-        private void DumpLibrary()
-        {
-            InventoryFolderImpl lib = m_Scene.CommsManager.UserProfileCacheService.LibraryRoot;
-
-            m_log.DebugFormat(" - folder {0}", lib.Name);
-            DumpFolder(lib);
-        }
+//
+//        private void DumpLibrary()
+//        {
+//            InventoryFolderImpl lib = m_Scene.CommsManager.UserProfileCacheService.LibraryRoot;
+//
+//            m_log.DebugFormat(" - folder {0}", lib.Name);
+//            DumpFolder(lib);
+//        }
 
         private void DumpFolder(InventoryFolderImpl folder)
         {
