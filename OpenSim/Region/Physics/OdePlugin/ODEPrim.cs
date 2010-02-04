@@ -1575,6 +1575,7 @@ Console.WriteLine(" JointCreateFixed");
                 {
 //Console.WriteLine("Move " +  m_primName);
                     if (!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
+                    /*
                     // NON-'VEHICLES' are dealt with here
                     if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
                     {
@@ -1587,6 +1588,7 @@ Console.WriteLine(" JointCreateFixed");
                             avel2.Z = 0;
                         d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
                     }
+                    */
                     //float PID_P = 900.0f;
 
                     float m_mass = CalculateMass();
