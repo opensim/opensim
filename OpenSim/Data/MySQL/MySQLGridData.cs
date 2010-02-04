@@ -31,6 +31,7 @@ using System.Data;
 using System.Reflection;
 using System.Threading;
 using log4net;
+using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -43,49 +44,9 @@ namespace OpenSim.Data.MySQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// MySQL Database Manager
-        /// </summary>
-        private MySQLManager database;
-
-
-        /// <summary>
-        /// Better DB manager. Swap-in replacement too.
-        /// </summary>
-        public Dictionary<int, MySQLSuperManager> m_dbconnections = new Dictionary<int, MySQLSuperManager>();
-
-        public int m_maxConnections = 10;
-        public int m_lastConnect;
-
-        public MySQLSuperManager GetLockedConnection()
-        {
-            int lockedCons = 0;
-            while (true)
-            {
-                m_lastConnect++;
-
-                // Overflow protection
-                if (m_lastConnect == int.MaxValue)
-                    m_lastConnect = 0;
-
-                MySQLSuperManager x = m_dbconnections[m_lastConnect % m_maxConnections];
-                if (!x.Locked)
-                {
-                    x.GetLock();
-                    return x;
-                }
-
-                lockedCons++;
-                if (lockedCons > m_maxConnections)
-                {
-                    lockedCons = 0;
-                    Thread.Sleep(1000); // Wait some time before searching them again.
-                    m_log.Debug(
-                        "WARNING: All threads are in use. Probable cause: Something didnt release a mutex properly, or high volume of requests inbound.");
-                }
-            }
-        }
-
+        private MySQLManager m_database;
+        private object m_dbLock = new object();
+        private string m_connectionString;
 
         override public void Initialise()
         {
@@ -106,49 +67,17 @@ namespace OpenSim.Data.MySQL
         /// <param name="connect">connect string.</param>
         override public void Initialise(string connect)
         {
-            if (connect != String.Empty)
-            {
-                database = new MySQLManager(connect);
-
-                m_log.Info("Creating " + m_maxConnections + " DB connections...");
-                for (int i = 0; i < m_maxConnections; i++)
-                {
-                    m_log.Info("Connecting to DB... [" + i + "]");
-                    MySQLSuperManager msm = new MySQLSuperManager();
-                    msm.Manager = new MySQLManager(connect);
-                    m_dbconnections.Add(i, msm);
-                }
-
-            }
-            else
-            {
-                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
-                IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
-                string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
-                string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
-                string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
-                string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
-                string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
-                string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
-
-                database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword,
-                                            settingPooling, settingPort);
-
-                m_log.Info("Creating " + m_maxConnections + " DB connections...");
-                for (int i = 0; i < m_maxConnections; i++)
-                {
-                    m_log.Info("Connecting to DB... [" + i + "]");
-                    MySQLSuperManager msm = new MySQLSuperManager();
-                    msm.Manager = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword,
-                                                   settingPooling, settingPort);
-                    m_dbconnections.Add(i, msm);
-                }
-            }
+            m_connectionString = connect;
+            m_database = new MySQLManager(connect);
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
-            Migration m = new Migration(database.Connection, assem, "GridStore");
-            m.Update();
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                Migration m = new Migration(dbcon, assem, "GridStore");
+                m.Update();
+            }
         }
 
         /// <summary>
@@ -156,7 +85,6 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         override public void Dispose()
         {
-            database.Close();
         }
 
         /// <summary>
@@ -187,8 +115,6 @@ namespace OpenSim.Data.MySQL
         /// <returns>Array of sim profiles</returns>
         override public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
@@ -197,34 +123,32 @@ namespace OpenSim.Data.MySQL
                     param["?xmax"] = xmax.ToString();
                     param["?ymax"] = ymax.ToString();
 
-                    IDbCommand result =
-                        dbm.Manager.Query(
-                            "SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row;
-
-                    List<RegionProfileData> rows = new List<RegionProfileData>();
-
-                    while ((row = dbm.Manager.readSimRow(reader)) != null)
+                    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                     {
-                        rows.Add(row);
-                    }
-                    reader.Close();
-                    result.Dispose();
+                        dbcon.Open();
 
-                    return rows.ToArray();
+                        using (IDbCommand result = m_database.Query(dbcon,
+                                "SELECT * FROM regions WHERE locX >= ?xmin AND locX <= ?xmax AND locY >= ?ymin AND locY <= ?ymax",
+                                param))
+                        {
+                            using (IDataReader reader = result.ExecuteReader())
+                            {
+                                RegionProfileData row;
+
+                                List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                                while ((row = m_database.readSimRow(reader)) != null)
+                                    rows.Add(row);
+
+                                return rows.ToArray();
+                            }
+                        }
+                    }
             }
             catch (Exception e)
             {
-                dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            }
-            finally
-            {
-                dbm.Release();
             }
         }
 
@@ -236,41 +160,37 @@ namespace OpenSim.Data.MySQL
         /// <returns>A list of sim profiles</returns>
         override public List<RegionProfileData> GetRegionsByName(string namePrefix, uint maxNum)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
                 param["?name"] = namePrefix + "%";
 
-                IDbCommand result =
-                    dbm.Manager.Query(
-                        "SELECT * FROM regions WHERE regionName LIKE ?name",
-                        param);
-                IDataReader reader = result.ExecuteReader();
-
-                RegionProfileData row;
-
-                List<RegionProfileData> rows = new List<RegionProfileData>();
-
-                while (rows.Count < maxNum && (row = dbm.Manager.readSimRow(reader)) != null)
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    rows.Add(row);
-                }
-                reader.Close();
-                result.Dispose();
+                    dbcon.Open();
 
-                return rows;
+                    using (IDbCommand result = m_database.Query(dbcon,
+                        "SELECT * FROM regions WHERE regionName LIKE ?name",
+                        param))
+                    {
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            RegionProfileData row;
+
+                            List<RegionProfileData> rows = new List<RegionProfileData>();
+
+                            while (rows.Count < maxNum && (row = m_database.readSimRow(reader)) != null)
+                                rows.Add(row);
+
+                            return rows;
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
-                dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            }
-            finally
-            {
-                dbm.Release();
             }
         }
 
@@ -281,31 +201,29 @@ namespace OpenSim.Data.MySQL
         /// <returns>Sim profile</returns>
         override public RegionProfileData GetProfileByHandle(ulong handle)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?handle"] = handle.ToString();
+                param["?handle"] = handle.ToString();
 
-                    IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE regionHandle = ?handle", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
 
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                    using (IDbCommand result = m_database.Query(dbcon, "SELECT * FROM regions WHERE regionHandle = ?handle", param))
+                    {
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            RegionProfileData row = m_database.readSimRow(reader);
+                            return row;
+                        }
+                    }
                 }
+            }
             catch (Exception e)
             {
-                dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            }
-            finally
-            {
-                dbm.Release();
             }
         }
 
@@ -316,30 +234,29 @@ namespace OpenSim.Data.MySQL
         /// <returns>The sim profile</returns>
         override public RegionProfileData GetProfileByUUID(UUID uuid)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?uuid"] = uuid.ToString();
+                param["?uuid"] = uuid.ToString();
 
-                    IDbCommand result = dbm.Manager.Query("SELECT * FROM regions WHERE uuid = ?uuid", param);
-                    IDataReader reader = result.ExecuteReader();
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
 
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                    using (IDbCommand result = m_database.Query(dbcon, "SELECT * FROM regions WHERE uuid = ?uuid", param))
+                    {
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            RegionProfileData row = m_database.readSimRow(reader);
+                            return row;
+                        }
+                    }
                 }
+            }
             catch (Exception e)
             {
-                dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            } finally
-            {
-                dbm.Release();
             }
         }
 
@@ -351,37 +268,36 @@ namespace OpenSim.Data.MySQL
         {
             if (regionName.Length > 2)
             {
-                MySQLSuperManager dbm = GetLockedConnection();
-
                 try
                 {
                     Dictionary<string, object> param = new Dictionary<string, object>();
                     // Add % because this is a like query.
                     param["?regionName"] = regionName + "%";
-                    // Order by statement will return shorter matches first.  Only returns one record or no record.
-                    IDbCommand result =
-                        dbm.Manager.Query(
+
+                    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                    {
+                        dbcon.Open();
+
+                        // Order by statement will return shorter matches first.  Only returns one record or no record.
+                        using (IDbCommand result = m_database.Query(dbcon,
                             "SELECT * FROM regions WHERE regionName like ?regionName order by LENGTH(regionName) asc LIMIT 1",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
-
-                    RegionProfileData row = dbm.Manager.readSimRow(reader);
-                    reader.Close();
-                    result.Dispose();
-
-                    return row;
+                            param))
+                        {
+                            using (IDataReader reader = result.ExecuteReader())
+                            {
+                                RegionProfileData row = m_database.readSimRow(reader);
+                                return row;
+                            }
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                    dbm.Manager.Reconnect();
-                    m_log.Error(e.ToString());
+                    m_log.Error(e.Message, e);
                     return null;
                 }
-                finally
-                {
-                    dbm.Release();
-                }
             }
+
             m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
             return null;
         }
@@ -393,17 +309,16 @@ namespace OpenSim.Data.MySQL
         /// <returns>Successful?</returns>
         override public DataResponse StoreProfile(RegionProfileData profile)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-            try {
-                if (dbm.Manager.insertRegion(profile))
-                {
-                    return DataResponse.RESPONSE_OK;
-                }
-                return DataResponse.RESPONSE_ERROR;
-            }
-            finally
+            try
             {
-                dbm.Release();
+                if (m_database.insertRegion(profile))
+                    return DataResponse.RESPONSE_OK;
+                else
+                    return DataResponse.RESPONSE_ERROR;
+            }
+            catch
+            {
+                return DataResponse.RESPONSE_ERROR;
             }
         }
 
@@ -415,18 +330,16 @@ namespace OpenSim.Data.MySQL
         //public DataResponse DeleteProfile(RegionProfileData profile)
         override public DataResponse DeleteProfile(string uuid)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
-
-            try {
-                if (dbm.Manager.deleteRegion(uuid))
-                {
-                    return DataResponse.RESPONSE_OK;
-                }
-                return DataResponse.RESPONSE_ERROR;
-            } finally
+            try
             {
-                dbm.Release();
+                if (m_database.deleteRegion(uuid))
+                    return DataResponse.RESPONSE_OK;
+                else
+                    return DataResponse.RESPONSE_ERROR;
+            }
+            catch
+            {
+                return DataResponse.RESPONSE_ERROR;
             }
         }
 
@@ -477,33 +390,32 @@ namespace OpenSim.Data.MySQL
         /// <returns></returns>
         override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
-            MySQLSuperManager dbm = GetLockedConnection();
-
             try
             {
                 Dictionary<string, object> param = new Dictionary<string, object>();
-                    param["?x"] = x.ToString();
-                    param["?y"] = y.ToString();
-                    IDbCommand result =
-                        dbm.Manager.Query(
-                            "SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y",
-                            param);
-                    IDataReader reader = result.ExecuteReader();
+                param["?x"] = x.ToString();
+                param["?y"] = y.ToString();
 
-                    ReservationData row = dbm.Manager.readReservationRow(reader);
-                    reader.Close();
-                    result.Dispose();
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
 
-                    return row;
+                    using (IDbCommand result = m_database.Query(dbcon,
+                        "SELECT * FROM reservations WHERE resXMin <= ?x AND resXMax >= ?x AND resYMin <= ?y AND resYMax >= ?y",
+                        param))
+                    {
+                        using (IDataReader reader = result.ExecuteReader())
+                        {
+                            ReservationData row = m_database.readReservationRow(reader);
+                            return row;
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
-                dbm.Manager.Reconnect();
-                m_log.Error(e.ToString());
+                m_log.Error(e.Message, e);
                 return null;
-            } finally
-            {
-                dbm.Release();
             }
         }
     }
