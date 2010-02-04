@@ -104,6 +104,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
+        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -215,9 +217,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Agent's Draw distance.
         protected float m_DrawDistance;
 
-        protected AvatarAppearance m_appearance;
-
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        protected AvatarAppearance m_appearance;        
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region
@@ -630,12 +630,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Constructor(s)
-
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
-        {
-            m_animator = new ScenePresenceAnimator(this);
+        
+        public ScenePresence()
+        {            
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
+            m_animator = new ScenePresenceAnimator(this);
+        }
+        
+        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
+        {
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -658,7 +662,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
             m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
             m_reprioritization_timer.AutoReset = false;
-
 
             AdjustKnownSeeds();
 
@@ -3319,13 +3322,6 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             m_animator.Close();
             m_animator = null;
-        }
-
-        public ScenePresence()
-        {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            CreateSceneViewer();
-            m_animator = new ScenePresenceAnimator(this);
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
