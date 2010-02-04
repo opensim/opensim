@@ -627,10 +627,11 @@ namespace OpenSim.Region.Framework.Scenes
                     }
 
                     m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
+
                     group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
-                    
                     // In case it is later dropped again, don't let
                     // it get cleaned up
+                    //
                     group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
                     group.HasGroupChanged = false;                   
                 }
