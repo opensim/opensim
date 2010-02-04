@@ -31,21 +31,19 @@ using System.Collections.Generic;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
-    public interface IFriendsModule
+    public struct FriendInfo
     {
-        /// <summary>
-        /// Offer a friendship to a user from the server end rather than by direct initiation from a client.
-        /// </summary>
-        /// <param name="fromUserId">
-        /// A user with this id must existing in the user data store, but need not be logged on.
-        /// </param>
-        /// <param name="toUserClient">
-        /// An actually logged in client to which the offer is being made.
-        /// FIXME: This is somewhat too tightly coupled - it should arguably be possible to offer friendships even if the 
-        /// receiving user is not currently online. 
-        /// </param>
-        /// <param name="offerMessage"></param>
-        void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);
-        uint GetFriendPerms(UUID PrincipalID, UUID FriendID);
+        public UUID PrincipalID;
+        public string Friend;
+        int MyRights;
+        int TheirRights;
+    }
+
+    public interface IFriendsService
+    {
+        FriendInfo[] GetFriends(UUID PrincipalID);
+        bool StoreFriend(UUID PrincipalID, string Friend, int flags);
+        bool SetFlags(UUID PrincipalID, int flags);
+        bool Delete(UUID PrincipalID, string Friend);
     }
 }

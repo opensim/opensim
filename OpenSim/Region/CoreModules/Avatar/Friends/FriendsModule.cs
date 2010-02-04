@@ -40,7 +40,6 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using FriendInfo = OpenSim.Region.Framework.Interfaces.FriendInfo;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
@@ -87,11 +86,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
             return 1;
-        }
-
-        public FriendInfo[] GetFriends(UUID PrincipalID)
-        {
-            return new FriendInfo[0];
         }
     }
 }
