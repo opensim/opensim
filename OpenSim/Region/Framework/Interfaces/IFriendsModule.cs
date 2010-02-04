@@ -31,6 +31,14 @@ using System.Collections.Generic;
 
 namespace OpenSim.Region.Framework.Interfaces
 {
+    public struct FriendInfo
+    {
+        public UUID PrincipalID;
+        public string Friend;
+        int MyRights;
+        int TheirRights;
+    }
+
     public interface IFriendsModule
     {
         /// <summary>
@@ -47,5 +55,6 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="offerMessage"></param>
         void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage);
         uint GetFriendPerms(UUID PrincipalID, UUID FriendID);
+        FriendInfo[] GetFriends(UUID PrincipalID);
     }
 }
