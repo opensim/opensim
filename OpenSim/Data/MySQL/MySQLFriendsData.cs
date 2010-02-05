@@ -38,19 +38,26 @@ namespace OpenSim.Data.MySQL
     public class MySqlFriendsData : MySQLGenericTableHandler<FriendsData>, IFriendsData
     {
         public MySqlFriendsData(string connectionString, string realm)
-                : base(connectionString, realm, "Friends")
+                : base(connectionString, realm, "FriendsStore")
         {
         }
 
-        public bool Delete(UUID principalID, UUID friendID)
+        public bool Delete(UUID principalID, string friend)
         {
-            // We need to delete the row where PrincipalID=principalID AND FriendID=firnedID
-            return false;
+            MySqlCommand cmd = new MySqlCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where PrincipalID = ?PrincipalID and Friend = ?Friend", m_Realm);
+            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
+            cmd.Parameters.AddWithValue("?Friend", friend);
+
+            ExecuteNonQuery(cmd);
+
+            return true;
         }
 
-        public FriendsData[] GetFriends(UUID userID)
+        public FriendsData[] GetFriends(UUID principalID)
         {
-            return Get("PrincipalID =\'" + userID.ToString() + "'");
+            return Get("PrincipalID", principalID.ToString());
         }
     }
 }
