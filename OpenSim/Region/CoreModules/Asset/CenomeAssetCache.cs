@@ -324,9 +324,7 @@ namespace OpenSim.Region.CoreModules.Asset
             if (moduleConfig == null)
                 return;
 
-            // We're going to make CenomeAssetCache the default if there is no AssetCaching setting at all.  This
-            // matches the default StandaloneCommon.ini.example
-            string name = moduleConfig.GetString("AssetCaching", Name);
+            string name = moduleConfig.GetString("AssetCaching");
             //Log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
             if (name != Name)
