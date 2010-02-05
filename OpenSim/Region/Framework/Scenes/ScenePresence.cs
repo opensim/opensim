@@ -3184,8 +3184,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
-            m_physicsActor.LocalID = LocalId;
-            
+            m_physicsActor.LocalID = LocalId;            
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -3195,7 +3194,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //AddToPhysicalScene(flying);
             if (ControllingClient != null)
-                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.",true);
+                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.
