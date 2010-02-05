@@ -35,15 +35,14 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         public UUID PrincipalID;
         public string Friend;
-        int MyRights;
-        int TheirRights;
+        int MyFlags;
+        int TheirFlags;
     }
 
     public interface IFriendsService
     {
         FriendInfo[] GetFriends(UUID PrincipalID);
         bool StoreFriend(UUID PrincipalID, string Friend, int flags);
-        bool SetFlags(UUID PrincipalID, int flags);
         bool Delete(UUID PrincipalID, string Friend);
     }
 }
