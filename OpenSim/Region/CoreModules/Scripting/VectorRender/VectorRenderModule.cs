@@ -342,6 +342,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                 m_log.Error(
                     "[VECTORRENDERMODULE]: OpenJpeg Encode Failed.  Empty byte data returned!");
             }
+
             m_textureManager.ReturnData(id, imageJ2000);
         }
         

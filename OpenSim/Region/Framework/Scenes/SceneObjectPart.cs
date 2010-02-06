@@ -4144,9 +4144,13 @@ namespace OpenSim.Region.Framework.Scenes
             ScheduleFullUpdate();
         }
 
-        // Added to handle bug in libsecondlife's TextureEntry.ToBytes()
-        // not handling RGBA properly. Cycles through, and "fixes" the color
-        // info
+        /// <summary>
+        /// Update the textures on the part.
+        /// </summary>
+        /// Added to handle bug in libsecondlife's TextureEntry.ToBytes()
+        /// not handling RGBA properly. Cycles through, and "fixes" the color
+        /// info
+        /// <param name="tex"></param>
         public void UpdateTexture(Primitive.TextureEntry tex)
         {
             //Color4 tmpcolor;
