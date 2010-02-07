@@ -231,6 +231,13 @@ namespace OpenSim.Server.Handlers.Asset
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
 
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            InventoryFolderBase rfolder = m_InventoryService.GetRootFolder(principal);
+            if (rfolder == null)
+                return FailureResult();
+
+            result[rfolder.ID.ToString()] = EncodeFolder(rfolder);
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
@@ -240,7 +247,15 @@ namespace OpenSim.Server.Handlers.Asset
         byte[] HandleGetFolderForType(Dictionary<string,object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            int type = 0;
+            Int32.TryParse(request["TYPE"].ToString(), out type);
+            InventoryFolderBase folder = m_InventoryService.GetFolderForType(principal, (AssetType)type);
+            if (folder == null)
+                return FailureResult();
 
+            result[folder.ID.ToString()] = EncodeFolder(folder);
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
@@ -250,7 +265,25 @@ namespace OpenSim.Server.Handlers.Asset
         byte[] HandleGetFolderContent(Dictionary<string,object> request)
         {
             Dictionary<string,object> result = new Dictionary<string,object>();
+            UUID principal = UUID.Zero;
+            UUID.TryParse(request["PRINCIPAL"].ToString(), out principal);
+            UUID folderID = UUID.Zero;
+            UUID.TryParse(request["FOLDER"].ToString(), out folderID);
 
+            InventoryCollection icoll = m_InventoryService.GetFolderContent(principal, folderID);
+            if (icoll == null)
+                return FailureResult();
+
+            Dictionary<string, object> folders = new Dictionary<string,object>();
+            foreach (InventoryFolderBase f in icoll.Folders)
+                folders[f.ID.ToString()] = EncodeFolder(f);
+            result["FOLDERS"] = folders;
+
+            Dictionary<string, object> items = new Dictionary<string, object>();
+            foreach (InventoryItemBase i in icoll.Items)
+                items[i.ID.ToString()] = EncodeItem(i);
+            result["ITEMS"] = folders;
+            
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);
             UTF8Encoding encoding = new UTF8Encoding();
@@ -407,6 +440,34 @@ namespace OpenSim.Server.Handlers.Asset
             ret["Name"] = f.Name;
             ret["Owner"] = f.Owner.ToString();
             ret["ID"] = f.ID.ToString();
+
+            return ret;
+        }
+
+        private Dictionary<string, object> EncodeItem(InventoryItemBase item)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+
+            ret["AssetID"] = item.AssetID.ToString();
+            ret["AssetType"] = item.AssetType.ToString();
+            ret["BasePermissions"] = item.BasePermissions.ToString();
+            ret["CreationDate"] = item.CreationDate.ToString();
+            ret["CreatorId"] = item.CreatorId.ToString();
+            ret["CurrentPermissions"] = item.CurrentPermissions.ToString();
+            ret["Description"] = item.Description.ToString();
+            ret["EveryOnePermissions"] = item.EveryOnePermissions.ToString();
+            ret["Flags"] = item.Flags.ToString();
+            ret["Folder"] = item.Folder.ToString();
+            ret["GroupID"] = item.GroupID.ToString();
+            ret["GroupedOwned"] = item.GroupOwned.ToString();
+            ret["GroupPermissions"] = item.GroupPermissions.ToString();
+            ret["ID"] = item.ID.ToString();
+            ret["InvType"] = item.InvType.ToString();
+            ret["Name"] = item.Name.ToString();
+            ret["NextPermissions"] = item.NextPermissions.ToString();
+            ret["Owner"] = item.Owner.ToString();
+            ret["SalePrice"] = item.SalePrice.ToString();
+            ret["SaleType"] = item.SaleType.ToString();
 
             return ret;
         }
