@@ -191,6 +191,7 @@
     ; This allows somne control over permissions
     ; please note that this still doesn't duplicate SL, and is not intended to
     ;region_owner_is_god = true
+    ;region_manager_is_god = false
     ;parcel_owner_is_god = true
 
     ; Control user types that are allowed to create new scripts

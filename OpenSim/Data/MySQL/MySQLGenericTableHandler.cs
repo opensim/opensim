@@ -54,12 +54,16 @@ namespace OpenSim.Data.MySQL
                 string realm, string storeName) : base(connectionString)
         {
             m_Realm = realm;
+            m_connectionString = connectionString;
+            
             if (storeName != String.Empty)
             {
-                Assembly assem = GetType().Assembly;
-
-                Migration m = new Migration(m_Connection, assem, storeName);
-                m.Update();
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+                    Migration m = new Migration(dbcon, GetType().Assembly, storeName);
+                    m.Update();
+                }
             }
 
             Type t = typeof(T);
@@ -107,149 +111,160 @@ namespace OpenSim.Data.MySQL
 
             List<string> terms = new List<string>();
 
-            MySqlCommand cmd = new MySqlCommand();
-
-            for (int i = 0 ; i < fields.Length ; i++)
+            using (MySqlCommand cmd = new MySqlCommand())
             {
-                cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                for (int i = 0 ; i < fields.Length ; i++)
+                {
+                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
+                    terms.Add("`" + fields[i] + "` = ?" + fields[i]);
+                }
+
+                string where = String.Join(" and ", terms.ToArray());
+
+                string query = String.Format("select * from {0} where {1}",
+                                             m_Realm, where);
+
+                cmd.CommandText = query;
+                
+                return DoQuery(cmd);
             }
-
-            string where = String.Join(" and ", terms.ToArray());
-
-            string query = String.Format("select * from {0} where {1}",
-                    m_Realm, where);
-
-            cmd.CommandText = query;
-
-            return DoQuery(cmd);
         }
 
         protected T[] DoQuery(MySqlCommand cmd)
         {
-            IDataReader reader = ExecuteReader(cmd);
-            if (reader == null)
-                return new T[0];
-
-            CheckColumnNames(reader);
-
             List<T> result = new List<T>();
 
-            while (reader.Read())
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                T row = new T();
+                dbcon.Open();
+                cmd.Connection = dbcon;
 
-                foreach (string name in m_Fields.Keys)
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
-                    if (m_Fields[name].GetValue(row) is bool)
-                    {
-                        int v = Convert.ToInt32(reader[name]);
-                        m_Fields[name].SetValue(row, v != 0 ? true : false);
-                    }
-                    else if (m_Fields[name].GetValue(row) is UUID)
-                    {
-                        UUID uuid = UUID.Zero;
+                    if (reader == null)
+                        return new T[0];
 
-                        UUID.TryParse(reader[name].ToString(), out uuid);
-                        m_Fields[name].SetValue(row, uuid);
-                    }
-                    else if (m_Fields[name].GetValue(row) is int)
+                    CheckColumnNames(reader);
+
+                    while (reader.Read())
                     {
-                        int v = Convert.ToInt32(reader[name]);
-                        m_Fields[name].SetValue(row, v);
-                    }
-                    else
-                    {
-                        m_Fields[name].SetValue(row, reader[name]);
-                    }
-                }
+                        T row = new T();
+
+                        foreach (string name in m_Fields.Keys)
+                        {
+                            if (m_Fields[name].GetValue(row) is bool)
+                            {
+                                int v = Convert.ToInt32(reader[name]);
+                                m_Fields[name].SetValue(row, v != 0 ? true : false);
+                            }
+                            else if (m_Fields[name].GetValue(row) is UUID)
+                            {
+                                UUID uuid = UUID.Zero;
+
+                                UUID.TryParse(reader[name].ToString(), out uuid);
+                                m_Fields[name].SetValue(row, uuid);
+                            }
+                            else if (m_Fields[name].GetValue(row) is int)
+                            {
+                                int v = Convert.ToInt32(reader[name]);
+                                m_Fields[name].SetValue(row, v);
+                            }
+                            else
+                            {
+                                m_Fields[name].SetValue(row, reader[name]);
+                            }
+                        }
                 
-                if (m_DataField != null)
-                {
-                    Dictionary<string, string> data =
-                            new Dictionary<string, string>();
+                        if (m_DataField != null)
+                        {
+                            Dictionary<string, string> data =
+                                new Dictionary<string, string>();
 
-                    foreach (string col in m_ColumnNames)
-                    {
-                        data[col] = reader[col].ToString();
-                        if (data[col] == null)
-                            data[col] = String.Empty;
+                            foreach (string col in m_ColumnNames)
+                            {
+                                data[col] = reader[col].ToString();
+                                if (data[col] == null)
+                                    data[col] = String.Empty;
+                            }
+
+                            m_DataField.SetValue(row, data);
+                        }
+
+                        result.Add(row);
                     }
-
-                    m_DataField.SetValue(row, data);
                 }
-
-                result.Add(row);
             }
-
-            reader.Close();
-
-            CloseReaderCommand(cmd);
 
             return result.ToArray();
         }
 
         public virtual T[] Get(string where)
         {
-            MySqlCommand cmd = new MySqlCommand();
-
-            string query = String.Format("select * from {0} where {1}",
-                    m_Realm, where);
-
-            cmd.CommandText = query;
-
-            return DoQuery(cmd);
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
+            
+                string query = String.Format("select * from {0} where {1}",
+                                             m_Realm, where);
+                
+                cmd.CommandText = query;
+                
+                return DoQuery(cmd);
+            }
         }
 
         public virtual bool Store(T row)
         {
-            MySqlCommand cmd = new MySqlCommand();
-
-            string query = "";
-            List<String> names = new List<String>();
-            List<String> values = new List<String>();
-
-            foreach (FieldInfo fi in m_Fields.Values)
+            using (MySqlCommand cmd = new MySqlCommand())
             {
-                names.Add(fi.Name);
-                values.Add("?" + fi.Name);
-                cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
-            }
 
-            if (m_DataField != null)
-            {
-                Dictionary<string, string> data =
+                string query = "";
+                List<String> names = new List<String>();
+                List<String> values = new List<String>();
+
+                foreach (FieldInfo fi in m_Fields.Values)
+                {
+                    names.Add(fi.Name);
+                    values.Add("?" + fi.Name);
+                    cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
+                }
+
+                if (m_DataField != null)
+                {
+                    Dictionary<string, string> data =
                         (Dictionary<string, string>)m_DataField.GetValue(row);
 
-                foreach (KeyValuePair<string, string> kvp in data)
-                {
-                    names.Add(kvp.Key);
-                    values.Add("?" + kvp.Key);
-                    cmd.Parameters.AddWithValue("?" + kvp.Key, kvp.Value);
+                    foreach (KeyValuePair<string, string> kvp in data)
+                    {
+                        names.Add(kvp.Key);
+                        values.Add("?" + kvp.Key);
+                        cmd.Parameters.AddWithValue("?" + kvp.Key, kvp.Value);
+                    }
                 }
+
+                query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+
+                cmd.CommandText = query;
+
+                if (ExecuteNonQuery(cmd) > 0)
+                    return true;
+
+                return false;
             }
-
-            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
-
-            cmd.CommandText = query;
-
-            if (ExecuteNonQuery(cmd) > 0)
-                return true;
-
-            return false;
         }
 
         public virtual bool Delete(string field, string val)
         {
-            MySqlCommand cmd = new MySqlCommand();
+            using (MySqlCommand cmd = new MySqlCommand())
+            {
 
-            cmd.CommandText = String.Format("delete from {0} where `{1}` = ?{1}", m_Realm, field);
-            cmd.Parameters.AddWithValue(field, val);
+                cmd.CommandText = String.Format("delete from {0} where `{1}` = ?{1}", m_Realm, field);
+                cmd.Parameters.AddWithValue(field, val);
 
-            if (ExecuteNonQuery(cmd) > 0)
-                return true;
+                if (ExecuteNonQuery(cmd) > 0)
+                    return true;
 
-            return false;
+                return false;
+            }
         }
     }
 }

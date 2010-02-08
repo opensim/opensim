@@ -1915,6 +1915,7 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
+      <Reference name="Mono.Addins" />
       <Reference name="log4net.dll" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -1976,6 +1977,7 @@
       <Reference name="log4net.dll"/>
       <Reference name="protobuf-net"/>
       <Reference name="MXP.dll"/>
+      <Reference name="Mono.Addins"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -2486,6 +2488,7 @@
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="Mono.Data.SqliteClient"/>
+      <Reference name="Mono.Addins"/>
 
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
@@ -2550,6 +2553,28 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
       <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Tools.Configger" path="OpenSim/Tools/Configger" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="Nini.dll"/>
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -2963,6 +2988,7 @@
         <Match path="Agent/TextureSender/Tests" pattern="*.cs" recurse="true" />
         <Match path="Avatar/Inventory/Archiver/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Archiver/Tests" pattern="*.cs" recurse="true" />
+        <Match path="World/Archiver/Tests/Resources" pattern="*" buildAction="EmbeddedResource"/>
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
         <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true" />

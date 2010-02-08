@@ -172,24 +172,27 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private void RetrieveInstantMessages(IClientAPI client)
         {
-            m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
-
-            List<GridInstantMessage>msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
-                    "POST", m_RestURL+"/RetrieveMessages/", client.AgentId);
-
-            foreach (GridInstantMessage im in msglist)
+            if (m_RestURL != "")
             {
-                // client.SendInstantMessage(im);
+                m_log.DebugFormat("[OFFLINE MESSAGING] Retrieving stored messages for {0}", client.AgentId);
 
-                // Send through scene event manager so all modules get a chance
-                // to look at this message before it gets delivered.
-                //
-                // Needed for proper state management for stored group
-                // invitations
-                //
-                Scene s = FindScene(client.AgentId);
-                if (s != null)
-                    s.EventManager.TriggerIncomingInstantMessage(im);
+                List<GridInstantMessage> msglist = SynchronousRestObjectPoster.BeginPostObject<UUID, List<GridInstantMessage>>(
+                        "POST", m_RestURL + "/RetrieveMessages/", client.AgentId);
+
+                foreach (GridInstantMessage im in msglist)
+                {
+                    // client.SendInstantMessage(im);
+
+                    // Send through scene event manager so all modules get a chance
+                    // to look at this message before it gets delivered.
+                    //
+                    // Needed for proper state management for stored group
+                    // invitations
+                    //
+                    Scene s = FindScene(client.AgentId);
+                    if (s != null)
+                        s.EventManager.TriggerIncomingInstantMessage(im);
+                }
             }
         }
 

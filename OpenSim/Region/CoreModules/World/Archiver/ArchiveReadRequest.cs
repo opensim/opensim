@@ -420,9 +420,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
-
+            
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
-            estateModule.sendRegionHandshakeToAll();
+
+            if (estateModule != null)
+                estateModule.sendRegionHandshakeToAll();
 
             return true;
         }

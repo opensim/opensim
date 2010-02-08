@@ -123,3 +123,16 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
 
     WelcomeMessage = "Welcome, Avatar!"
 
+; * This is the new style grid service.
+; * "Realm" is the table that is used for user lookup.
+; * It defaults to "regions", which uses the legacy tables
+; *
+[GridService]
+LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
+StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
+ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=grid;"
+Realm = "regions"
+
+; If true, duplicate region names are allowed on the grid.  If false, no duplicate names are allowed
+; Default is false
+; AllowDuplicateNames = "True"

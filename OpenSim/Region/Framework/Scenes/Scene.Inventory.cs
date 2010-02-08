@@ -197,7 +197,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (isScriptRunning)
             {
-                part.Inventory.RemoveScriptInstance(item.ItemID);
+                part.Inventory.RemoveScriptInstance(item.ItemID, false);
             }
 
             // Update item with new asset
@@ -794,8 +794,10 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (item.Type == 10)
                 {
+                    part.RemoveScriptEvents(itemID);
                     EventManager.TriggerRemoveScript(localID, itemID);
                 }
+                
                 group.RemoveInventoryItem(localID, itemID);
                 part.GetProperties(remoteClient);
             }
@@ -1879,9 +1881,19 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
+        /// <summary>
+        /// Attach an object.
+        /// </summary>
+        /// <param name="controllingClient"></param>
+        /// <param name="localID"></param>
+        /// <param name="attachPoint"></param>
+        /// <param name="rot"></param>
+        /// <param name="pos"></param>
+        /// <param name="silent"></param>
+        /// <returns>true if the object was successfully attached, false otherwise</returns>
+        public bool AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
         {
-            m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
+            return m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
         }
 
         public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)

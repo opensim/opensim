@@ -87,7 +87,10 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
 
                 foreach (IMonitor monitor in m_monitors)
                 {
-                    if (monitor.ToString() == monID)
+                    string elemName = monitor.ToString();
+                    if (elemName.StartsWith(monitor.GetType().Namespace))
+                        elemName = elemName.Substring(monitor.GetType().Namespace.Length + 1);
+                    if (elemName == monID || monitor.ToString() == monID)
                     {
                         Hashtable ereply3 = new Hashtable();
 

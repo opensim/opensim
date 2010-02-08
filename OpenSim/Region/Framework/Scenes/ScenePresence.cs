@@ -104,6 +104,8 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
+        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -217,7 +219,6 @@ namespace OpenSim.Region.Framework.Scenes
 
         protected AvatarAppearance m_appearance;
 
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
         public List<SceneObjectGroup> Attachments
         {
             get { return m_attachments; }
@@ -636,12 +637,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Constructor(s)
-
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
-        {
-            m_animator = new ScenePresenceAnimator(this);
+        
+        public ScenePresence()
+        {            
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
+            m_animator = new ScenePresenceAnimator(this);
+        }
+        
+        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
+        {
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -664,7 +669,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
             m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
             m_reprioritization_timer.AutoReset = false;
-
 
             AdjustKnownSeeds();
 
@@ -1294,6 +1298,12 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_allowMovement)
             {
+                if (agentData.UseClientAgentPosition)
+                {
+                    m_moveToPositionInProgress = (agentData.ClientAgentPosition - AbsolutePosition).Length() > 0.2f;
+                    m_moveToPositionTarget = agentData.ClientAgentPosition;
+                }
+
                 int i = 0;
                 
                 bool update_rotation = false;
@@ -1400,7 +1410,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (bAllowUpdateMoveToPosition && (m_moveToPositionInProgress && !m_autopilotMoving))
                     {
                         //Check the error term of the current position in relation to the target position
-                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 1.5f)
+                        if (Util.GetDistanceTo(AbsolutePosition, m_moveToPositionTarget) <= 0.5f)
                         {
                             // we are close enough to the target
                             m_moveToPositionTarget = Vector3.Zero;
@@ -2795,7 +2805,14 @@ namespace OpenSim.Region.Framework.Scenes
         protected void CrossToNewRegion()
         {
             InTransit();
-            m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+            try
+            {
+                m_scene.CrossAgentToNewRegion(this, m_physicsActor.Flying);
+            }
+            catch
+            {
+                m_scene.CrossAgentToNewRegion(this, false);
+            }
         }
 
         public void InTransit()
@@ -2873,7 +2890,6 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 RemoveNeighbourRegion(handle);
             }
-
         }
 
         #endregion
@@ -3037,7 +3053,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<int> attPoints = m_appearance.GetAttachedPoints();
             if (attPoints != null)
             {
-                m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
+                //m_log.DebugFormat("[SCENE PRESENCE]: attachments {0}", attPoints.Count);
                 int i = 0;
                 AttachmentData[] attachs = new AttachmentData[attPoints.Count];
                 foreach (int point in attPoints)
@@ -3261,17 +3277,15 @@ namespace OpenSim.Region.Framework.Scenes
             uint killerObj = 0;
             foreach (uint localid in coldata.Keys)
             {
-                if (coldata[localid].PenetrationDepth <= 0.10f || m_invulnerable)
-                    continue;
-                //if (localid == 0)
-                    //continue;
-
-                SceneObjectPart part = m_scene.GetSceneObjectPart(localid);
+                SceneObjectPart part = Scene.GetSceneObjectPart(localid);
 
                 if (part != null && part.ParentGroup.Damage != -1.0f)
                     Health -= part.ParentGroup.Damage;
                 else
-                    Health -= coldata[localid].PenetrationDepth * 5.0f;
+                {
+                    if (coldata[localid].PenetrationDepth >= 0.10f)
+                        Health -= coldata[localid].PenetrationDepth * 5.0f;
+                }
 
                 if (Health <= 0.0f)
                 {
@@ -3289,9 +3303,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_health <= 0)
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
-            }
-
-            
+            }            
         }
 
         public void setHealthWithUpdate(float health)
@@ -3336,13 +3348,6 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             m_animator.Close();
             m_animator = null;
-        }
-
-        public ScenePresence()
-        {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            CreateSceneViewer();
-            m_animator = new ScenePresenceAnimator(this);
         }
 
         public void AddAttachment(SceneObjectGroup gobj)

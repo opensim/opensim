@@ -63,7 +63,7 @@ namespace OpenSim.Server.Handlers.Asset
 
             if (p.Length > 0)
             {
-                result = m_AssetService.Delete(p[0]);
+                // result = m_AssetService.Delete(p[0]);
             }
 
             XmlSerializer xs = new XmlSerializer(typeof(bool));

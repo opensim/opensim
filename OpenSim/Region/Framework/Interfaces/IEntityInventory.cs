@@ -71,13 +71,18 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <summary>
         /// Start all the scripts contained in this entity's inventory
         /// </summary>
-       void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
+        void CreateScriptInstances(int startParam, bool postOnRez, string engine, int stateSource);
+        
         ArrayList GetScriptErrors(UUID itemID);
 
         /// <summary>
         /// Stop all the scripts in this entity.
         /// </summary>
-        void RemoveScriptInstances();
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if these scripts are being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        void RemoveScriptInstances(bool sceneObjectBeingDeleted);
 
         /// <summary>
         /// Start a script which is in this entity's inventory.
@@ -103,7 +108,11 @@ namespace OpenSim.Region.Framework.Interfaces
         /// Stop a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId"></param>
-        void RemoveScriptInstance(UUID itemId);
+        /// <param name="sceneObjectBeingDeleted">
+        /// Should be true if these scripts are being removed because the scene
+        /// object is being deleted.  This will prevent spurious updates to the client.
+        /// </param>
+        void RemoveScriptInstance(UUID itemId, bool sceneObjectBeingDeleted);
 
         /// <summary>
         /// Add an item to this entity's inventory.  If an item with the same name already exists, then an alternative
@@ -133,6 +142,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
         TaskInventoryItem GetInventoryItem(UUID itemId);
+
+        /// <summary>
+        /// Get inventory items by name.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>
+        /// A list of inventory items with that name.
+        /// If no inventory item has that name then an empty list is returned.
+        /// </returns>        
+        IList<TaskInventoryItem> GetInventoryItems(string name);
 
         /// <summary>
         /// Update an existing inventory item.

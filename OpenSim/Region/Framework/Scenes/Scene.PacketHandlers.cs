@@ -292,6 +292,46 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        public virtual void ProcessObjectGrabUpdate(UUID objectID, Vector3 offset, Vector3 pos, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
+        {
+            List<EntityBase> EntityList = GetEntities();
+
+            SurfaceTouchEventArgs surfaceArg = null;
+            if (surfaceArgs != null && surfaceArgs.Count > 0)
+                surfaceArg = surfaceArgs[0];
+
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup obj = ent as SceneObjectGroup;
+                    if (obj != null)
+                    {
+                        // Is this prim part of the group
+                        if (obj.HasChildPrim(objectID))
+                        {
+                            SceneObjectPart part = obj.GetChildPart(objectID);
+
+                            // If the touched prim handles touches, deliver it
+                            // If not, deliver to root prim
+                            if ((part.ScriptEvents & scriptEvents.touch) != 0)
+                                EventManager.TriggerObjectGrabbing(part.LocalId, 0, part.OffsetPosition, remoteClient, surfaceArg);
+                            // Deliver to the root prim if the touched prim doesn't handle touches
+                            // or if we're meant to pass on touches anyway. Don't send to root prim
+                            // if prim touched is the root prim as we just did it
+                            if (((part.ScriptEvents & scriptEvents.touch) == 0) ||
+                                (part.PassTouches && (part.LocalId != obj.RootPart.LocalId)))
+                            {
+                                EventManager.TriggerObjectGrabbing(obj.RootPart.LocalId, part.LocalId, part.OffsetPosition, remoteClient, surfaceArg);
+                            }
+
+                            return;
+                        }
+                    }
+                }
+            }
+         }
+
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient, List<SurfaceTouchEventArgs> surfaceArgs)
         {
             List<EntityBase> EntityList = GetEntities();

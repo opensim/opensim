@@ -82,9 +82,11 @@ namespace OpenSim.ConsoleClient
 
         private static void SendCommand(string module, string[] cmd)
         {
-            string sendCmd = cmd[0];
+            string sendCmd = "";
             if (cmd.Length > 1)
             {
+                sendCmd = cmd[0];
+
                 Array.Copy(cmd, 1, cmd, 0, cmd.Length-1);
                 Array.Resize(ref cmd, cmd.Length-1);
                 sendCmd += "\"" + String.Join("\" \"", cmd) + "\"";

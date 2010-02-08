@@ -116,7 +116,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
 
         static string ConvertMRMKeywords(string script)
         {
-            script = script.Replace("microthreaded void ", "IEnumerable");
+            script = script.Replace("microthreaded void", "IEnumerable");
             script = script.Replace("relax;", "yield return null;");
 
             return script;
