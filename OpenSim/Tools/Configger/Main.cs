@@ -59,9 +59,9 @@ namespace Careminster
                             if (k.StartsWith("Include-"))
                                 continue;
                             Console.WriteLine("    <Key Name=\"{0}\" Value=\"{1}\" />", k, v);
-
-                            Console.WriteLine("</Section>");
                         }
+
+                        Console.WriteLine("</Section>");
                     }
                 }
                 Console.WriteLine("</Nini>");
