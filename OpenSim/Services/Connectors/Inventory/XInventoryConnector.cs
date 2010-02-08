@@ -92,6 +92,8 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return false;
+            if (ret.Count == 0)
+                return false;
 
             return bool.Parse(ret["RESULT"].ToString());
         }
@@ -104,6 +106,8 @@ namespace OpenSim.Services.Connectors
                     });
 
             if (ret == null)
+                return null;
+            if (ret.Count == 0)
                 return null;
 
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
@@ -122,8 +126,7 @@ namespace OpenSim.Services.Connectors
                     });
 
             if (ret == null)
-                return null;
-
+                return null;            
             if (ret.Count == 0)
                 return null;
 
@@ -140,7 +143,6 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return null;
-
             if (ret.Count == 0)
                 return null;
 
@@ -157,7 +159,6 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return null;
-
             if (ret.Count == 0)
                 return null;
 
@@ -182,7 +183,7 @@ namespace OpenSim.Services.Connectors
 
         public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
-            Dictionary<string,object> ret = MakeRequest("GETFOLDERCONTENT",
+            Dictionary<string,object> ret = MakeRequest("GETFOLDERITEMS",
                     new Dictionary<string,object> {
                         { "PRINCIPAL", principalID.ToString() },
                         { "FOLDER", folderID.ToString() }
@@ -190,7 +191,6 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return null;
-
             if (ret.Count == 0)
                 return null;
 
@@ -244,7 +244,8 @@ namespace OpenSim.Services.Connectors
             Dictionary<string,object> ret = MakeRequest("MOVEFOLDER",
                     new Dictionary<string,object> {
                         { "ParentID", folder.ParentID.ToString() },
-                        { "ID", folder.ID.ToString() }
+                        { "ID", folder.ID.ToString() },
+                        { "PRINCIPAL", folder.Owner.ToString() }
                     });
 
             if (ret == null)
@@ -362,7 +363,7 @@ namespace OpenSim.Services.Connectors
 
             Dictionary<string,object> ret = MakeRequest("MOVEITEMS",
                     new Dictionary<string,object> {
-                        { "PrincipalID", principalID.ToString() },
+                        { "PRINCIPAL", principalID.ToString() },
                         { "IDLIST", idlist },
                         { "DESTLIST", destlist }
                     });
@@ -401,7 +402,6 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return null;
-
             if (ret.Count == 0)
                 return null;
 
@@ -417,7 +417,6 @@ namespace OpenSim.Services.Connectors
 
             if (ret == null)
                 return null;
-
             if (ret.Count == 0)
                 return null;
 
@@ -531,5 +530,6 @@ namespace OpenSim.Services.Connectors
 
             return item;
         }
+
     }
 }
