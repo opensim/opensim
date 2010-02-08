@@ -122,26 +122,33 @@ namespace OpenSim.Data.MySQL
             cmd.CommandText = String.Format("select * from {0} where UserID=?UserID", m_Realm);
 
             cmd.Parameters.AddWithValue("?UserID", userID);
+;
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            { 
+                dbcon.Open();
 
-            using (IDataReader reader = cmd.ExecuteReader())
-            {
+                cmd.Connection = dbcon;
 
-                List<UUID> deleteSessions = new List<UUID>();
-                int online = 0;
-
-                while(reader.Read())
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
-                    if (bool.Parse(reader["Online"].ToString()))
-                        online++;
-                    else
-                        deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
+
+                    List<UUID> deleteSessions = new List<UUID>();
+                    int online = 0;
+
+                    while(reader.Read())
+                    {
+                        if (bool.Parse(reader["Online"].ToString()))
+                            online++;
+                        else
+                            deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
+                    }
+
+                    if (online == 0 && deleteSessions.Count > 0)
+                        deleteSessions.RemoveAt(0);
+
+                    foreach (UUID s in deleteSessions)
+                        Delete("SessionID", s.ToString());
                 }
-
-                if (online == 0 && deleteSessions.Count > 0)
-                    deleteSessions.RemoveAt(0);
-
-                foreach (UUID s in deleteSessions)
-                    Delete("SessionID", s.ToString());
             }
         }
     }
