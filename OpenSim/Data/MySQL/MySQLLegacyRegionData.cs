@@ -715,88 +715,93 @@ namespace OpenSim.Data.MySQL
         {
             RegionMeta7WindlightData nWP = new RegionMeta7WindlightData();
             nWP.OnSave += StoreRegionWindlightSettings;
-            lock (m_Connection)
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                
+                dbcon.Open();
+
                 string command = "select * from `regionwindlight` where region_id = ?regionID";
 
-                MySqlCommand cmd = new MySqlCommand(command);
-
-                cmd.Parameters.AddWithValue("?regionID", regionUUID.ToString());
-
-                IDataReader result = ExecuteReader(cmd);
-                if (!result.Read())
+                using(MySqlCommand cmd = new MySqlCommand(command))
                 {
-                    //No result, so store our default windlight profile and return it
-                    nWP.regionID = regionUUID;
-                    StoreRegionWindlightSettings(nWP);
-                    return nWP;
-                }
-                else
-                {
-                    UUID.TryParse(result["region_id"].ToString(), out nWP.regionID);
-                    nWP.waterColor.X = Convert.ToSingle(result["water_color_r"]);
-                    nWP.waterColor.Y = Convert.ToSingle(result["water_color_g"]);
-                    nWP.waterColor.Z = Convert.ToSingle(result["water_color_b"]);
-                    nWP.waterFogDensityExponent = Convert.ToSingle(result["water_fog_density_exponent"]);
-                    nWP.underwaterFogModifier = Convert.ToSingle(result["underwater_fog_modifier"]);
-                    nWP.reflectionWaveletScale.X = Convert.ToSingle(result["reflection_wavelet_scale_1"]);
-                    nWP.reflectionWaveletScale.Y = Convert.ToSingle(result["reflection_wavelet_scale_2"]);
-                    nWP.reflectionWaveletScale.Z = Convert.ToSingle(result["reflection_wavelet_scale_3"]);
-                    nWP.fresnelScale = Convert.ToSingle(result["fresnel_scale"]);
-                    nWP.fresnelOffset = Convert.ToSingle(result["fresnel_offset"]);
-                    nWP.refractScaleAbove = Convert.ToSingle(result["refract_scale_above"]);
-                    nWP.refractScaleBelow = Convert.ToSingle(result["refract_scale_below"]);
-                    nWP.blurMultiplier = Convert.ToSingle(result["blur_multiplier"]);
-                    nWP.bigWaveDirection.X = Convert.ToSingle(result["big_wave_direction_x"]);
-                    nWP.bigWaveDirection.Y = Convert.ToSingle(result["big_wave_direction_y"]);
-                    nWP.littleWaveDirection.X = Convert.ToSingle(result["little_wave_direction_x"]);
-                    nWP.littleWaveDirection.Y = Convert.ToSingle(result["little_wave_direction_y"]);
-                    UUID.TryParse(result["normal_map_texture"].ToString(), out nWP.normalMapTexture);
-                    nWP.horizon.X = Convert.ToSingle(result["horizon_r"]);
-                    nWP.horizon.Y = Convert.ToSingle(result["horizon_g"]);
-                    nWP.horizon.Z = Convert.ToSingle(result["horizon_b"]);
-                    nWP.horizon.W = Convert.ToSingle(result["horizon_i"]);
-                    nWP.hazeHorizon = Convert.ToSingle(result["haze_horizon"]);
-                    nWP.blueDensity.X = Convert.ToSingle(result["blue_density_r"]);
-                    nWP.blueDensity.Y = Convert.ToSingle(result["blue_density_g"]);
-                    nWP.blueDensity.Z = Convert.ToSingle(result["blue_density_b"]);
-                    nWP.blueDensity.W = Convert.ToSingle(result["blue_density_i"]);
-                    nWP.hazeDensity = Convert.ToSingle(result["haze_density"]);
-                    nWP.densityMultiplier = Convert.ToSingle(result["density_multiplier"]);
-                    nWP.distanceMultiplier = Convert.ToSingle(result["distance_multiplier"]);
-                    nWP.maxAltitude = Convert.ToUInt16(result["max_altitude"]);
-                    nWP.sunMoonColor.X = Convert.ToSingle(result["sun_moon_color_r"]);
-                    nWP.sunMoonColor.Y = Convert.ToSingle(result["sun_moon_color_g"]);
-                    nWP.sunMoonColor.Z = Convert.ToSingle(result["sun_moon_color_b"]);
-                    nWP.sunMoonColor.W = Convert.ToSingle(result["sun_moon_color_i"]);
-                    nWP.sunMoonPosition = Convert.ToSingle(result["sun_moon_position"]);
-                    nWP.ambient.X = Convert.ToSingle(result["ambient_r"]);
-                    nWP.ambient.Y = Convert.ToSingle(result["ambient_g"]);
-                    nWP.ambient.Z = Convert.ToSingle(result["ambient_b"]);
-                    nWP.ambient.W = Convert.ToSingle(result["ambient_i"]);
-                    nWP.eastAngle = Convert.ToSingle(result["east_angle"]);
-                    nWP.sunGlowFocus = Convert.ToSingle(result["sun_glow_focus"]);
-                    nWP.sunGlowSize = Convert.ToSingle(result["sun_glow_size"]);
-                    nWP.sceneGamma = Convert.ToSingle(result["scene_gamma"]);
-                    nWP.starBrightness = Convert.ToSingle(result["star_brightness"]);
-                    nWP.cloudColor.X = Convert.ToSingle(result["cloud_color_r"]);
-                    nWP.cloudColor.Y = Convert.ToSingle(result["cloud_color_g"]);
-                    nWP.cloudColor.Z = Convert.ToSingle(result["cloud_color_b"]);
-                    nWP.cloudColor.W = Convert.ToSingle(result["cloud_color_i"]);
-                    nWP.cloudXYDensity.X = Convert.ToSingle(result["cloud_x"]);
-                    nWP.cloudXYDensity.Y = Convert.ToSingle(result["cloud_y"]);
-                    nWP.cloudXYDensity.Z = Convert.ToSingle(result["cloud_density"]);
-                    nWP.cloudCoverage = Convert.ToSingle(result["cloud_coverage"]);
-                    nWP.cloudScale = Convert.ToSingle(result["cloud_scale"]);
-                    nWP.cloudDetailXYDensity.X = Convert.ToSingle(result["cloud_detail_x"]);
-                    nWP.cloudDetailXYDensity.Y = Convert.ToSingle(result["cloud_detail_y"]);
-                    nWP.cloudDetailXYDensity.Z = Convert.ToSingle(result["cloud_detail_density"]);
-                    nWP.cloudScrollX = Convert.ToSingle(result["cloud_scroll_x"]);
-                    nWP.cloudScrollXLock = Convert.ToBoolean(result["cloud_scroll_x_lock"]);
-                    nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
-                    nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
-                    nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                    cmd.Connection = dbcon;
+
+                    cmd.Parameters.AddWithValue("?regionID", regionUUID.ToString());
+
+                    IDataReader result = ExecuteReader(cmd);
+                    if (!result.Read())
+                    {
+                        //No result, so store our default windlight profile and return it
+                        nWP.regionID = regionUUID;
+                        StoreRegionWindlightSettings(nWP);
+                        return nWP;
+                    }
+                    else
+                    {
+                        UUID.TryParse(result["region_id"].ToString(), out nWP.regionID);
+                        nWP.waterColor.X = Convert.ToSingle(result["water_color_r"]);
+                        nWP.waterColor.Y = Convert.ToSingle(result["water_color_g"]);
+                        nWP.waterColor.Z = Convert.ToSingle(result["water_color_b"]);
+                        nWP.waterFogDensityExponent = Convert.ToSingle(result["water_fog_density_exponent"]);
+                        nWP.underwaterFogModifier = Convert.ToSingle(result["underwater_fog_modifier"]);
+                        nWP.reflectionWaveletScale.X = Convert.ToSingle(result["reflection_wavelet_scale_1"]);
+                        nWP.reflectionWaveletScale.Y = Convert.ToSingle(result["reflection_wavelet_scale_2"]);
+                        nWP.reflectionWaveletScale.Z = Convert.ToSingle(result["reflection_wavelet_scale_3"]);
+                        nWP.fresnelScale = Convert.ToSingle(result["fresnel_scale"]);
+                        nWP.fresnelOffset = Convert.ToSingle(result["fresnel_offset"]);
+                        nWP.refractScaleAbove = Convert.ToSingle(result["refract_scale_above"]);
+                        nWP.refractScaleBelow = Convert.ToSingle(result["refract_scale_below"]);
+                        nWP.blurMultiplier = Convert.ToSingle(result["blur_multiplier"]);
+                        nWP.bigWaveDirection.X = Convert.ToSingle(result["big_wave_direction_x"]);
+                        nWP.bigWaveDirection.Y = Convert.ToSingle(result["big_wave_direction_y"]);
+                        nWP.littleWaveDirection.X = Convert.ToSingle(result["little_wave_direction_x"]);
+                        nWP.littleWaveDirection.Y = Convert.ToSingle(result["little_wave_direction_y"]);
+                        UUID.TryParse(result["normal_map_texture"].ToString(), out nWP.normalMapTexture);
+                        nWP.horizon.X = Convert.ToSingle(result["horizon_r"]);
+                        nWP.horizon.Y = Convert.ToSingle(result["horizon_g"]);
+                        nWP.horizon.Z = Convert.ToSingle(result["horizon_b"]);
+                        nWP.horizon.W = Convert.ToSingle(result["horizon_i"]);
+                        nWP.hazeHorizon = Convert.ToSingle(result["haze_horizon"]);
+                        nWP.blueDensity.X = Convert.ToSingle(result["blue_density_r"]);
+                        nWP.blueDensity.Y = Convert.ToSingle(result["blue_density_g"]);
+                        nWP.blueDensity.Z = Convert.ToSingle(result["blue_density_b"]);
+                        nWP.blueDensity.W = Convert.ToSingle(result["blue_density_i"]);
+                        nWP.hazeDensity = Convert.ToSingle(result["haze_density"]);
+                        nWP.densityMultiplier = Convert.ToSingle(result["density_multiplier"]);
+                        nWP.distanceMultiplier = Convert.ToSingle(result["distance_multiplier"]);
+                        nWP.maxAltitude = Convert.ToUInt16(result["max_altitude"]);
+                        nWP.sunMoonColor.X = Convert.ToSingle(result["sun_moon_color_r"]);
+                        nWP.sunMoonColor.Y = Convert.ToSingle(result["sun_moon_color_g"]);
+                        nWP.sunMoonColor.Z = Convert.ToSingle(result["sun_moon_color_b"]);
+                        nWP.sunMoonColor.W = Convert.ToSingle(result["sun_moon_color_i"]);
+                        nWP.sunMoonPosition = Convert.ToSingle(result["sun_moon_position"]);
+                        nWP.ambient.X = Convert.ToSingle(result["ambient_r"]);
+                        nWP.ambient.Y = Convert.ToSingle(result["ambient_g"]);
+                        nWP.ambient.Z = Convert.ToSingle(result["ambient_b"]);
+                        nWP.ambient.W = Convert.ToSingle(result["ambient_i"]);
+                        nWP.eastAngle = Convert.ToSingle(result["east_angle"]);
+                        nWP.sunGlowFocus = Convert.ToSingle(result["sun_glow_focus"]);
+                        nWP.sunGlowSize = Convert.ToSingle(result["sun_glow_size"]);
+                        nWP.sceneGamma = Convert.ToSingle(result["scene_gamma"]);
+                        nWP.starBrightness = Convert.ToSingle(result["star_brightness"]);
+                        nWP.cloudColor.X = Convert.ToSingle(result["cloud_color_r"]);
+                        nWP.cloudColor.Y = Convert.ToSingle(result["cloud_color_g"]);
+                        nWP.cloudColor.Z = Convert.ToSingle(result["cloud_color_b"]);
+                        nWP.cloudColor.W = Convert.ToSingle(result["cloud_color_i"]);
+                        nWP.cloudXYDensity.X = Convert.ToSingle(result["cloud_x"]);
+                        nWP.cloudXYDensity.Y = Convert.ToSingle(result["cloud_y"]);
+                        nWP.cloudXYDensity.Z = Convert.ToSingle(result["cloud_density"]);
+                        nWP.cloudCoverage = Convert.ToSingle(result["cloud_coverage"]);
+                        nWP.cloudScale = Convert.ToSingle(result["cloud_scale"]);
+                        nWP.cloudDetailXYDensity.X = Convert.ToSingle(result["cloud_detail_x"]);
+                        nWP.cloudDetailXYDensity.Y = Convert.ToSingle(result["cloud_detail_y"]);
+                        nWP.cloudDetailXYDensity.Z = Convert.ToSingle(result["cloud_detail_density"]);
+                        nWP.cloudScrollX = Convert.ToSingle(result["cloud_scroll_x"]);
+                        nWP.cloudScrollXLock = Convert.ToBoolean(result["cloud_scroll_x_lock"]);
+                        nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
+                        nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
+                        nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                    }
                 }
             }
             return nWP;
@@ -842,9 +847,11 @@ namespace OpenSim.Data.MySQL
 
         public void StoreRegionWindlightSettings(RegionMeta7WindlightData wl)
         {
-            lock (m_Connection)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
                     cmd.CommandText = "REPLACE INTO `regionwindlight` (`region_id`, `water_color_r`, `water_color_g`, ";
                     cmd.CommandText += "`water_color_b`, `water_fog_density_exponent`, `underwater_fog_modifier`, ";
