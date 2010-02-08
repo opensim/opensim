@@ -71,6 +71,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int WL_CLOUD_SCROLL_Y_LOCK = 33;
         public const int WL_CLOUD_SCROLL_X_LOCK = 34;
         public const int WL_DRAW_CLASSIC_CLOUDS = 35;
+        public const int WL_SUN_MOON_POSITION = 36;
 
     }
 }
