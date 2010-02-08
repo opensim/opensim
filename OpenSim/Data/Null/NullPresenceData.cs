@@ -36,10 +36,15 @@ namespace OpenSim.Data.Null
 {
     public class NullPresenceData : IPresenceData
     {
+        private static NullPresenceData Instance;
+
         Dictionary<UUID, PresenceData> m_presenceData = new Dictionary<UUID, PresenceData>();
 
         public NullPresenceData(string connectionString, string realm)
         {
+            if (Instance == null)
+                Instance = this;
+
             //Console.WriteLine("[XXX] NullRegionData constructor");
             // Let's stick in a test presence
             PresenceData p = new PresenceData();
@@ -52,12 +57,18 @@ namespace OpenSim.Data.Null
 
         public bool Store(PresenceData data)
         {
+            if (Instance != this)
+                return Instance.Store(data);
+
             m_presenceData[data.SessionID] = data;
             return true;
         }
 
         public PresenceData Get(UUID sessionID)
         {
+            if (Instance != this)
+                return Instance.Get(sessionID);
+
             if (m_presenceData.ContainsKey(sessionID))
                 return m_presenceData[sessionID];
 
@@ -66,6 +77,12 @@ namespace OpenSim.Data.Null
 
         public void LogoutRegionAgents(UUID regionID)
         {
+            if (Instance != this)
+            {
+                Instance.LogoutRegionAgents(regionID);
+                return;
+            }
+
             List<UUID> toBeDeleted = new List<UUID>();
             foreach (KeyValuePair<UUID, PresenceData> kvp in m_presenceData)
                 if (kvp.Value.RegionID == regionID)
@@ -77,6 +94,8 @@ namespace OpenSim.Data.Null
 
         public bool ReportAgent(UUID sessionID, UUID regionID, string position, string lookAt)
         {
+            if (Instance != this)
+                return Instance.ReportAgent(sessionID, regionID, position, lookAt);
             if (m_presenceData.ContainsKey(sessionID))
             {
                 m_presenceData[sessionID].RegionID = regionID;
@@ -90,6 +109,9 @@ namespace OpenSim.Data.Null
 
         public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
+            if (Instance != this)
+                return Instance.SetHomeLocation(userID, regionID, position, lookAt);
+
             bool foundone = false;
             foreach (PresenceData p in m_presenceData.Values)
             {
@@ -107,6 +129,9 @@ namespace OpenSim.Data.Null
 
         public PresenceData[] Get(string field, string data)
         {
+            if (Instance != this)
+                return Instance.Get(field, data);
+
             List<PresenceData> presences = new List<PresenceData>();
             if (field == "UserID")
             {
@@ -152,6 +177,12 @@ namespace OpenSim.Data.Null
 
         public void Prune(string userID)
         {
+            if (Instance != this)
+            {
+                Instance.Prune(userID);
+                return;
+            }
+
             List<UUID> deleteSessions = new List<UUID>();
             int online = 0;
 
@@ -173,6 +204,9 @@ namespace OpenSim.Data.Null
 
         public bool Delete(string field, string data)
         {
+            if (Instance != this)
+                return Delete(field, data);
+
             List<UUID> presences = new List<UUID>();
             if (field == "UserID")
             {
