@@ -2483,7 +2483,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart p in sceneObject.Children.Values)
                 p.LocalId = 0;
 
-            if ((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0)) // Attachment
+            if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
@@ -2518,9 +2518,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AttachObject(
                         sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    grp.SendGroupFullUpdate();
-
-                    
+                    grp.SendGroupFullUpdate();                    
                 }
                 else
                 {
