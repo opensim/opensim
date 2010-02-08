@@ -337,7 +337,16 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private bool IsAttachmentCheckFull()
+        /// <summary>
+        /// Check both the attachment property and the relevant properties of the underlying root part.
+        /// </summary>
+        /// This is necessary in some cases, particularly when a scene object has just crossed into a region and doesn't
+        /// have the IsAttachment property yet checked.
+        /// 
+        /// FIXME: However, this should be fixed so that this property
+        /// propertly reflects the underlying status.
+        /// <returns></returns>
+        public bool IsAttachmentCheckFull()
         {
             return (IsAttachment || (m_rootPart.Shape.PCode == 9 && m_rootPart.Shape.State != 0));
         }

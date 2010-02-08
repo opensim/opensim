@@ -2433,9 +2433,14 @@ namespace OpenSim.Region.Framework.Scenes
             return successYN;
         }
 
+        /// <summary>
+        /// Called when objects or attachments cross the border between regions.
+        /// </summary>
+        /// <param name="sog"></param>
+        /// <returns></returns>
         public bool IncomingCreateObject(ISceneObject sog)
         {
-            //m_log.Debug(" >>> IncomingCreateObject <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
+            //m_log.Debug(" >>> IncomingCreateObject(sog) <<< " + ((SceneObjectGroup)sog).AbsolutePosition + " deleted? " + ((SceneObjectGroup)sog).IsDeleted);
             SceneObjectGroup newObject;
             try
             {
@@ -2452,7 +2457,12 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[SCENE]: Problem adding scene object {0} in {1} ", sog.UUID, RegionInfo.RegionName);
                 return false;
             }
+            
             newObject.RootPart.ParentGroup.CreateScriptInstances(0, false, DefaultScriptEngine, 1);
+
+            // Do this as late as possible so that listeners have full access to the incoming object
+            EventManager.TriggerOnIncomingSceneObject(newObject);
+            
             return true;
         }
 
@@ -2464,6 +2474,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>False</returns>
         public virtual bool IncomingCreateObject(UUID userID, UUID itemID)
         {
+            //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
+            
             ScenePresence sp = GetScenePresence(userID);
             if (sp != null)
             {
@@ -2498,7 +2510,7 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (SceneObjectPart p in sceneObject.Children.Values)
                 p.LocalId = 0;
 
-            if ((sceneObject.RootPart.Shape.PCode == (byte)PCode.Prim) && (sceneObject.RootPart.Shape.State != 0)) // Attachment
+            if (sceneObject.IsAttachmentCheckFull()) // Attachment
             {
                 sceneObject.RootPart.AddFlag(PrimFlags.TemporaryOnRez);
                 sceneObject.RootPart.AddFlag(PrimFlags.Phantom);
@@ -2523,29 +2535,23 @@ namespace OpenSim.Region.Framework.Scenes
 
                     //RootPrim.SetParentLocalId(parentLocalID);
 
-                    m_log.DebugFormat("[ATTACHMENT]: Received " +
-                                "attachment {0}, inworld asset id {1}",
-                                //grp.RootPart.LastOwnerID.ToString(),
-                                grp.GetFromItemID(),
-                                grp.UUID.ToString());
+                    m_log.DebugFormat(
+                        "[ATTACHMENT]: Received attachment {0}, inworld asset id {1}", grp.GetFromItemID(), grp.UUID);
 
                     //grp.SetFromAssetID(grp.RootPart.LastOwnerID);
-                    m_log.DebugFormat("[ATTACHMENT]: Attach " +
-                            "to avatar {0} at position {1}",
-                            sp.UUID.ToString(), grp.AbsolutePosition);
-                    AttachObject(sp.ControllingClient,
-                            grp.LocalId, (uint)0,
-                            grp.GroupRotation,
-                            grp.AbsolutePosition, false);
+                    m_log.DebugFormat(
+                        "[ATTACHMENT]: Attach to avatar {0} at position {1}", sp.UUID, grp.AbsolutePosition);
+                    
+                    AttachObject(
+                        sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    grp.SendGroupFullUpdate();
+                    grp.SendGroupFullUpdate();                    
                 }
                 else
                 {
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
                     RootPrim.AddFlag(PrimFlags.TemporaryOnRez);
                 }
-
             }
             else
             {

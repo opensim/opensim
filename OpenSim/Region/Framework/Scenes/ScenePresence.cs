@@ -106,6 +106,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
+        /// <value>
+        /// The scene objects attached to this avatar.  Do not change this list directly - use methods such as
+        /// AddAttachment() and RemoveAttachment().  Lock this list when performing any read operations upon it.
+        /// </value>
+        public List<SceneObjectGroup> Attachments
+        {
+            get { return m_attachments; }
+        }
+        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
@@ -223,9 +233,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Agent's Draw distance.
         protected float m_DrawDistance;
 
-        protected AvatarAppearance m_appearance;
-
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+        protected AvatarAppearance m_appearance;        
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region
@@ -640,12 +648,16 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region Constructor(s)
-
-        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo)
-        {
-            m_animator = new ScenePresenceAnimator(this);
+        
+        public ScenePresence()
+        {            
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
+            m_animator = new ScenePresenceAnimator(this);
+        }
+        
+        private ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo) : this()
+        {
             m_rootRegionHandle = reginfo.RegionHandle;
             m_controllingClient = client;
             m_firstname = m_controllingClient.FirstName;
@@ -668,7 +680,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_reprioritization_timer = new Timer(world.ReprioritizationInterval);
             m_reprioritization_timer.Elapsed += new ElapsedEventHandler(Reprioritize);
             m_reprioritization_timer.AutoReset = false;
-
 
             AdjustKnownSeeds();
             Animator.TrySetMovementAnimation("STAND"); 
@@ -1150,7 +1161,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
-
         }
 
         /// <summary>
@@ -3388,8 +3398,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
-            m_physicsActor.LocalID = LocalId;
-            
+            m_physicsActor.LocalID = LocalId;            
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -3399,7 +3408,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //AddToPhysicalScene(flying);
             if (ControllingClient != null)
-                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.",true);
+                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.
@@ -3537,13 +3546,6 @@ namespace OpenSim.Region.Framework.Scenes
             RemoveFromPhysicalScene();
             m_animator.Close();
             m_animator = null;
-        }
-
-        public ScenePresence()
-        {
-            m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
-            CreateSceneViewer();
-            m_animator = new ScenePresenceAnimator(this);
         }
 
         public void AddAttachment(SceneObjectGroup gobj)
