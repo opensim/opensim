@@ -41,8 +41,7 @@ namespace OpenSim.Data.SQLite
     /// </summary>
     public class SQLiteXInventoryData : IXInventoryData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private SQLiteGenericTableHandler<XInventoryFolder> m_Folders;
         private SqliteItemHandler m_Items;

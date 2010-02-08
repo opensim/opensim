@@ -41,7 +41,7 @@ namespace OpenSim.Data.SQLite
     /// </summary>
     public class SQLiteAssetData : AssetDataBase
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
         private const string SelectAssetMetadataSQL = "select Name, Description, Type, Temporary, UUID from assets limit :start, :count";

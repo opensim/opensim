@@ -113,6 +113,15 @@ namespace OpenSim.Region.Framework.Scenes
         
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <value>
+        /// Is this sop a root part?
+        /// </value>
+        [XmlIgnore]
+        public bool IsRoot 
+        {
+           get { return ParentGroup.RootPart == this; } 
+        }
+
         // use only one serializer to give the runtime a chance to optimize it (it won't do that if you
         // use a new instance every time)
         private static XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));

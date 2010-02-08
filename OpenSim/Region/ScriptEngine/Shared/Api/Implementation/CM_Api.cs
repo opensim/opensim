@@ -244,6 +244,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 LSL_Types.Vector3 iV;
                 switch (rule)
                 {
+                    case (int)ScriptBaseClass.WL_SUN_MOON_POSITION:
+                        idx++;
+                        wl.sunMoonPosition = (float)rules.GetLSLFloatItem(idx);
+                        break;
                     case (int)ScriptBaseClass.WL_AMBIENT:
                         idx++;
                         iQ = rules.GetQuaternionItem(idx);
@@ -300,7 +304,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     case (int)ScriptBaseClass.WL_CLOUD_XY_DENSITY:
                         idx++;
                         iV = rules.GetVector3Item(idx);
-                        wl.cloudDetailXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
+                        wl.cloudXYDensity = new Vector3((float)iV.x, (float)iV.y, (float)iV.z);
                         break;
                     case (int)ScriptBaseClass.WL_DENSITY_MULTIPLIER:
                         idx++;

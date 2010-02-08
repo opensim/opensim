@@ -262,41 +262,31 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 {
                     case ChatTypeEnum.Whisper:
                         if (dis < m_whisperdistance)
-                        {
-                            lock (m_pending.SyncRoot)
-                            {
-                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
-                            }
-                        }
+                            QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
                     case ChatTypeEnum.Say:
                         if (dis < m_saydistance)
-                        {
-                            lock (m_pending.SyncRoot)
-                            {
-                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
-                            }
-                        }
+                            QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
                     case ChatTypeEnum.Shout:
                         if (dis < m_shoutdistance)
-                        {
-                            lock (m_pending.SyncRoot)
-                            {
-                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
-                            }
-                        }
+                            QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
 
                     case ChatTypeEnum.Region:
-                        lock (m_pending.SyncRoot)
-                        {
-                            m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
-                        }
+                        QueueMessage(new ListenerInfo(li, name, id, msg));
                         break;
                 }
+            }
+        }
+
+        protected void QueueMessage(ListenerInfo li)
+        {
+            lock (m_pending.SyncRoot)
+            {
+                m_pending.Enqueue(li);
             }
         }
 
@@ -319,7 +309,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
             lock (m_pending.SyncRoot)
             {
-                li = (ListenerInfo) m_pending.Dequeue();
+                li = (ListenerInfo)m_pending.Dequeue();
             }
 
             return li;
