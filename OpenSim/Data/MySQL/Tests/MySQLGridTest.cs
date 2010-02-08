@@ -31,6 +31,7 @@ using OpenSim.Data.Tests;
 using log4net;
 using System.Reflection;
 using OpenSim.Tests.Common;
+using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL.Tests
 {
@@ -65,9 +66,13 @@ namespace OpenSim.Data.MySQL.Tests
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
-            Migration m = new Migration(database.Connection, assem, "GridStore");
 
-            m.Update();
+            using (MySqlConnection dbcon = new MySqlConnection(connect))
+            {
+                dbcon.Open();
+                Migration m = new Migration(dbcon, assem, "AssetStore");
+                m.Update();
+            }
         }
 
         [TestFixtureTearDown]
