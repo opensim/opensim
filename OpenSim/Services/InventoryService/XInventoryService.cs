@@ -99,7 +99,7 @@ namespace OpenSim.Services.InventoryService
 
             if (rootFolder == null)
             {
-                rootFolder = ConvertToOpenSim(CreateFolder(principalID, UUID.Zero, (int)AssetType.Folder, "My Inventory"));
+                rootFolder = ConvertToOpenSim(CreateFolder(principalID, UUID.Zero, (int)AssetType.RootFolder, "My Inventory"));
                 result = true;
             }
 
