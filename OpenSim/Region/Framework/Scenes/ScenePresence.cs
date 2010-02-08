@@ -104,6 +104,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
+        /// <value>
+        /// The scene objects attached to this avatar.  Do not change this list directly - use methods such as
+        /// AddAttachment() and RemoveAttachment().  Lock this list when performing any read operations upon it.
+        /// </value>
+        public List<SceneObjectGroup> Attachments
+        {
+            get { return m_attachments; }
+        }
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
@@ -1105,7 +1113,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
-
         }
 
         /// <summary>
