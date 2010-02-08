@@ -104,6 +104,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
         protected ScenePresenceAnimator m_animator;
 
+        /// <value>
+        /// The scene objects attached to this avatar.  Do not change this list directly - use methods such as
+        /// AddAttachment() and RemoveAttachment().  Lock this list when performing any read operations upon it.
+        /// </value>
+        public List<SceneObjectGroup> Attachments
+        {
+            get { return m_attachments; }
+        }
         protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
 
         private Dictionary<UUID, ScriptControllers> scriptedcontrols = new Dictionary<UUID, ScriptControllers>();
@@ -1105,7 +1113,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_controllingClient.MoveAgentIntoRegion(m_regionInfo, AbsolutePosition, look);
             SendInitialData();
-
         }
 
         /// <summary>
@@ -3184,8 +3191,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
-            m_physicsActor.LocalID = LocalId;
-            
+            m_physicsActor.LocalID = LocalId;            
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -3195,7 +3201,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             //AddToPhysicalScene(flying);
             if (ControllingClient != null)
-                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.",true);
+                ControllingClient.SendAgentAlertMessage("Physics is having a problem with your avatar.  You may not be able to move until you relog.", true);
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.

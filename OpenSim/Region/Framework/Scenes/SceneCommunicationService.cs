@@ -191,7 +191,6 @@ namespace OpenSim.Region.Framework.Scenes
             if (handlerChildAgentUpdate != null)
                 handlerChildAgentUpdate(cAgentData);
 
-
             return true;
         }
 
