@@ -25,44 +25,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
-using MySql.Data.MySqlClient;
+using System.Collections.Generic;
+using OpenSim.Services.Interfaces;
+using Nini.Config;
+using log4net;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
-namespace OpenSim.Data.MySQL
+namespace OpenSim.Services.Friends
 {
-    public class MySqlFriendsData : MySQLGenericTableHandler<FriendsData>, IFriendsData
+    public class FriendsService : FriendsServiceBase, IFriendsService
     {
-        public MySqlFriendsData(string connectionString, string realm)
-                : base(connectionString, realm, "FriendsStore")
+        public FriendsService(IConfigSource config) : base(config)
         {
         }
 
-        public bool Delete(UUID principalID, string friend)
+        public FriendInfo[] GetFriends(UUID PrincipalID)
         {
-            MySqlCommand cmd = new MySqlCommand();
-
-            cmd.CommandText = String.Format("delete from {0} where PrincipalID = ?PrincipalID and Friend = ?Friend", m_Realm);
-            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
-            cmd.Parameters.AddWithValue("?Friend", friend);
-
-            ExecuteNonQuery(cmd);
-
-            return true;
+            return new FriendInfo[0];
         }
 
-        public FriendsData[] GetFriends(UUID principalID)
+        public bool StoreFriend(UUID PrincipalID, string Friend, int flags)
         {
-            MySqlCommand cmd = new MySqlCommand();
-
-            cmd.CommandText = String.Format("select a.*,b.Flags as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = ?PrincipalID and b.Flags is not null", m_Realm);
-            cmd.Parameters.AddWithValue("?PrincipalID", principalID.ToString());
-
-            return DoQuery(cmd);
+            return false;
         }
+
+        public bool Delete(UUID PrincipalID, string Friend)
+        {
+            return false;
+        }
+
     }
 }

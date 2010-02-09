@@ -29,7 +29,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using System.Collections.Generic;
 
-namespace OpenSim.Region.Framework.Interfaces
+namespace OpenSim.Services.Interfaces
 {
     public struct FriendInfo
     {
