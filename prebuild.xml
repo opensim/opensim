@@ -2900,6 +2900,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="Nini.dll"/>
       <Reference name="log4net.dll"/>
 
