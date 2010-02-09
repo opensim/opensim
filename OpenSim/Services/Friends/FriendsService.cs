@@ -27,8 +27,10 @@
 
 using OpenMetaverse;
 using OpenSim.Framework;
+using System;
 using System.Collections.Generic;
 using OpenSim.Services.Interfaces;
+using OpenSim.Data;
 using Nini.Config;
 using log4net;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
@@ -43,12 +45,35 @@ namespace OpenSim.Services.Friends
 
         public FriendInfo[] GetFriends(UUID PrincipalID)
         {
-            return new FriendInfo[0];
+            FriendsData[] data = m_Database.GetFriends(PrincipalID);
+
+            List<FriendInfo> info = new List<FriendInfo>();
+
+            foreach (FriendsData d in data)
+            {
+                FriendInfo i = new FriendInfo();
+
+                i.PrincipalID = d.PrincipalID;
+                i.Friend = d.Friend;
+                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
+                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
+
+                info.Add(i);
+            }
+
+            return info.ToArray();
         }
 
         public bool StoreFriend(UUID PrincipalID, string Friend, int flags)
         {
-            return false;
+            FriendsData d = new FriendsData();
+
+            d.PrincipalID = PrincipalID;
+            d.Friend = Friend;
+            d.Data = new Dictionary<string, string>();
+            d.Data["Flags"] = flags.ToString();
+
+            return m_Database.Store(d);
         }
 
         public bool Delete(UUID PrincipalID, string Friend)

@@ -35,8 +35,8 @@ namespace OpenSim.Services.Interfaces
     {
         public UUID PrincipalID;
         public string Friend;
-        int MyFlags;
-        int TheirFlags;
+        public int MyFlags;
+        public int TheirFlags;
     }
 
     public interface IFriendsService
