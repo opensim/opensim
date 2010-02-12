@@ -76,17 +76,19 @@ namespace OpenSim.Services.AssetService
                             });
                 }
                 
-                m_log.Info("[ASSET CONNECTOR]: Local asset service enabled");
+                m_log.Info("[ASSET SERVICE]: Local asset service enabled");
             }
         }
 
         public AssetBase Get(string id)
-        {
-            //m_log.DebugFormat("[ASSET SERVICE]: Get asset {0}", id);
+        {                        
             UUID assetID;
 
             if (!UUID.TryParse(id, out assetID))
+            {
+                m_log.WarnFormat("[ASSET SERVICE]: Could not parse requested sset id {0}", id);                
                 return null;
+            }
 
             return m_Database.GetAsset(assetID);
         }

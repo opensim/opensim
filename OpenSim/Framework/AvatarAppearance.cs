@@ -69,9 +69,7 @@ namespace OpenSim.Framework
         private static UUID HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
         private static UUID HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
 
-        public readonly static int VISUALPARAM_COUNT = 218;
-
-        
+        public readonly static int VISUALPARAM_COUNT = 218;        
 
         protected UUID m_owner;
 
@@ -346,11 +344,7 @@ namespace OpenSim.Framework
         }
          */
 
-
-        public AvatarAppearance()
-            : this(UUID.Zero)
-        {
-        }
+        public AvatarAppearance() : this(UUID.Zero) {}
 
         public AvatarAppearance(UUID owner)
         {
@@ -367,10 +361,8 @@ namespace OpenSim.Framework
             // This sets Visual Params with *less* weirder values then default. Instead of a ugly alien, it looks like a fat scientist
             SetDefaultParams(m_visualparams);
             SetDefaultWearables();
-            m_texture = GetDefaultTexture();
-            
+            m_texture = GetDefaultTexture();            
         }
-
         
         public AvatarAppearance(UUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
         {

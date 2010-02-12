@@ -3301,9 +3301,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 awb.ItemID = wearables[i].ItemID;
                 aw.WearableData[i] = awb;
 
-                //                m_log.DebugFormat(
-                //                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
-                //                    awb.ItemID, awb.AssetID, i, Name);
+//                                m_log.DebugFormat(
+//                                    "[APPEARANCE]: Sending wearable item/asset {0} {1} (index {2}) for {3}",
+//                                    awb.ItemID, awb.AssetID, i, Name);
             }
 
             OutPacket(aw, ThrottleOutPacketType.Task);

@@ -785,7 +785,8 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Name, e.ToString());
+                    m_log.ErrorFormat(
+                        "[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user, plugin.Name, e);
                 }
             }
             

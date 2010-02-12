@@ -2505,6 +2505,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void SendWearables()
         {
+            m_log.DebugFormat("[SCENE]: Received request for wearables of {0}", Name);
+            
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
