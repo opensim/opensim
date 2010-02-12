@@ -209,6 +209,12 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnSendNewWindlightProfileTargetedDelegate OnSendNewWindlightProfileTargeted;
         public event OnSaveNewWindlightProfileDelegate OnSaveNewWindlightProfile;
 
+        /// <summary>
+        /// Triggered when an object or attachment enters a scene
+        /// </summary>
+        public event OnIncomingSceneObjectDelegate OnIncomingSceneObject;
+        public delegate void OnIncomingSceneObjectDelegate(SceneObjectGroup so);        
+
         public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
@@ -411,7 +417,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
+        }     
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
@@ -1226,6 +1232,27 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }            
+        }
+
+        public void TriggerOnIncomingSceneObject(SceneObjectGroup so)
+        {
+            OnIncomingSceneObjectDelegate handlerIncomingSceneObject = OnIncomingSceneObject;
+            if (handlerIncomingSceneObject != null)
+            {
+                foreach (OnIncomingSceneObjectDelegate d in handlerIncomingSceneObject.GetInvocationList())
+                {
+                    try
+                    {
+                        d(so);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnIncomingSceneObject failed - continuing.  {0} {1}", 
+                            e.Message, e.StackTrace);
+                    }
+                }                
+            }
         }
 
         public void TriggerOnRegisterCaps(UUID agentID, Caps caps)

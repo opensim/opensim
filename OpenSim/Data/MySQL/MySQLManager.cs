@@ -46,14 +46,11 @@ namespace OpenSim.Data.MySQL
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// The database connection object
-        /// </summary>
-        private MySqlConnection dbcon;
-
-        /// <summary>
         /// Connection string for ADO.net
         /// </summary>
         private string connectionString;
+
+        private object m_dbLock = new object();
 
         private const string m_waitTimeoutSelect = "select @@wait_timeout";
 
@@ -109,11 +106,11 @@ namespace OpenSim.Data.MySQL
             try
             {
                 connectionString = connect;
-                dbcon = new MySqlConnection(connectionString);
+                //dbcon = new MySqlConnection(connectionString);
 
                 try
                 {
-                    dbcon.Open();
+                    //dbcon.Open();
                 }
                 catch(Exception e)
                 {
@@ -134,18 +131,21 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         protected void GetWaitTimeout()
         {
-            MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, dbcon);
-
-            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            using (MySqlConnection dbcon = new MySqlConnection(connectionString))
             {
-                if (dbReader.Read())
-                {
-                    m_waitTimeout
-                        = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
-                }
+                dbcon.Open();
 
-                dbReader.Close();
-                cmd.Dispose();
+                using (MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, dbcon))
+                {
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                    {
+                        if (dbReader.Read())
+                        {
+                            m_waitTimeout
+                                = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                        }
+                    }
+                }
             }
 
             m_lastConnectionUse = DateTime.Now.Ticks;
@@ -154,66 +154,9 @@ namespace OpenSim.Data.MySQL
                 "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);
         }
 
-        /// <summary>
-        /// Should be called before any db operation.  This checks to see if the connection has not timed out
-        /// </summary>
-        public void CheckConnection()
+        public string ConnectionString
         {
-            //m_log.Debug("[REGION DB]: Checking connection");
-
-            long timeNow = DateTime.Now.Ticks;
-            if (timeNow - m_lastConnectionUse > m_waitTimeout || dbcon.State != ConnectionState.Open)
-            {
-                m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");
-                Reconnect();
-            }
-
-            // Strictly, we should set this after the actual db operation.  But it's more convenient to set here rather
-            // than require the code to call another method - the timeout leeway should be large enough to cover the
-            // inaccuracy.
-            m_lastConnectionUse = timeNow;
-        }
-
-        /// <summary>
-        /// Get the connection being used
-        /// </summary>
-        /// <returns>MySqlConnection Object</returns>
-        public MySqlConnection Connection
-        {
-            get { return dbcon; }
-        }
-
-        /// <summary>
-        /// Shuts down the database connection
-        /// </summary>
-        public void Close()
-        {
-            dbcon.Close();
-            dbcon = null;
-        }
-
-        /// <summary>
-        /// Reconnects to the database
-        /// </summary>
-        public void Reconnect()
-        {
-            m_log.Info("[REGION DB] Reconnecting database");
-
-            lock (dbcon)
-            {
-                try
-                {
-                    // Close the DB connection
-                    dbcon.Close();
-                    // Try reopen it
-                    dbcon = new MySqlConnection(connectionString);
-                    dbcon.Open();
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("Unable to reconnect to database " + e.ToString());
-                }
-            }
+            get { return connectionString; }
         }
 
         /// <summary>
@@ -264,9 +207,13 @@ namespace OpenSim.Data.MySQL
         /// <param name="name">name of embedded resource</param>
         public void ExecuteResourceSql(string name)
         {
-            CheckConnection();
-            MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
-            cmd.ExecuteNonQuery();
+            using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+            {
+                dbcon.Open();
+
+                MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         /// <summary>
@@ -275,22 +222,29 @@ namespace OpenSim.Data.MySQL
         /// <param name="sql">sql string to execute</param>
         public void ExecuteSql(string sql)
         {
-            CheckConnection();
-            MySqlCommand cmd = new MySqlCommand(sql, dbcon);
-            cmd.ExecuteNonQuery();
+            using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+            {
+                dbcon.Open();
+
+                MySqlCommand cmd = new MySqlCommand(sql, dbcon);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public void ExecuteParameterizedSql(string sql, Dictionary<string, string> parameters)
         {
-            CheckConnection();
-
-            MySqlCommand cmd = (MySqlCommand)dbcon.CreateCommand();
-            cmd.CommandText = sql;
-            foreach (KeyValuePair<string, string> param in parameters)
+            using (MySqlConnection dbcon = new MySqlConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue(param.Key, param.Value);
+                dbcon.Open();
+
+                MySqlCommand cmd = (MySqlCommand)dbcon.CreateCommand();
+                cmd.CommandText = sql;
+                foreach (KeyValuePair<string, string> param in parameters)
+                {
+                    cmd.Parameters.AddWithValue(param.Key, param.Value);
+                }
+                cmd.ExecuteNonQuery();
             }
-            cmd.ExecuteNonQuery();
         }
 
         /// <summary>
@@ -299,35 +253,37 @@ namespace OpenSim.Data.MySQL
         /// <param name="tableList"></param>
         public void GetTableVersion(Dictionary<string, string> tableList)
         {
-            lock (dbcon)
+            lock (m_dbLock)
             {
-                CheckConnection();
-
-                MySqlCommand tablesCmd =
-                    new MySqlCommand(
-                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
-                        dbcon);
-                tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
-
-                using (MySqlDataReader tables = tablesCmd.ExecuteReader())
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
                 {
-                    while (tables.Read())
+                    dbcon.Open();
+
+                    using (MySqlCommand tablesCmd = new MySqlCommand(
+                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname", dbcon))
                     {
-                        try
+                        tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+
+                        using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                         {
-                            string tableName = (string) tables["TABLE_NAME"];
-                            string comment = (string) tables["TABLE_COMMENT"];
-                            if (tableList.ContainsKey(tableName))
+                            while (tables.Read())
                             {
-                                tableList[tableName] = comment;
+                                try
+                                {
+                                    string tableName = (string)tables["TABLE_NAME"];
+                                    string comment = (string)tables["TABLE_COMMENT"];
+                                    if (tableList.ContainsKey(tableName))
+                                    {
+                                        tableList[tableName] = comment;
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.Error(e.Message, e);
+                                }
                             }
                         }
-                        catch (Exception e)
-                        {
-                            m_log.Error(e.ToString());
-                        }
                     }
-                    tables.Close();
                 }
             }
         }
@@ -337,28 +293,27 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Runs a query with protection against SQL Injection by using parameterised input.
         /// </summary>
+        /// <param name="dbcon">Database connection</param>
         /// <param name="sql">The SQL string - replace any variables such as WHERE x = "y" with WHERE x = @y</param>
         /// <param name="parameters">The parameters - index so that @y is indexed as 'y'</param>
         /// <returns>A MySQL DB Command</returns>
-        public IDbCommand Query(string sql, Dictionary<string, object> parameters)
+        public IDbCommand Query(MySqlConnection dbcon, string sql, Dictionary<string, object> parameters)
         {
             try
             {
-                CheckConnection(); // Not sure if this one is necessary
-
-                MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
+                MySqlCommand dbcommand = (MySqlCommand)dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
                 foreach (KeyValuePair<string, object> param in parameters)
                 {
                     dbcommand.Parameters.AddWithValue(param.Key, param.Value);
                 }
 
-                return (IDbCommand) dbcommand;
+                return (IDbCommand)dbcommand;
             }
             catch (Exception e)
             {
                 // Return null if it fails.
-                m_log.Error("Failed during Query generation: " + e.ToString());
+                m_log.Error("Failed during Query generation: " + e.Message, e);
                 return null;
             }
         }
@@ -694,8 +649,6 @@ namespace OpenSim.Data.MySQL
                 ret.Add(attachpoint, item);
             }
 
-            r.Close();
-
             return ret;
         }
 
@@ -727,12 +680,17 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                IDbCommand result = Query(sql, parameters);
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+                {
+                    dbcon.Open();
 
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
+                    IDbCommand result = Query(dbcon, sql, parameters);
 
-                result.Dispose();
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
+
+                    result.Dispose();
+                }
             }
             catch (Exception e)
             {
@@ -778,7 +736,7 @@ namespace OpenSim.Data.MySQL
                                   string aboutText, string firstText,
                                   UUID profileImage, UUID firstImage, UUID webLoginKey, int userFlags, int godLevel, string customType, UUID partner)
         {
-            m_log.Debug("[MySQLManager]: Fetching profile for " + uuid.ToString());
+            m_log.Debug("[MySQLManager]: Creating profile for \"" + username + " " + lastname + "\" (" + uuid + ")");
             string sql =
                 "INSERT INTO users (`UUID`, `username`, `lastname`, `email`, `passwordHash`, `passwordSalt`, `homeRegion`, `homeRegionID`, ";
             sql +=
@@ -828,12 +786,17 @@ namespace OpenSim.Data.MySQL
                 
             try
             {
-                IDbCommand result = Query(sql, parameters);
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+                {
+                    dbcon.Open();
 
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
+                    IDbCommand result = Query(dbcon, sql, parameters);
 
-                result.Dispose();
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
+
+                    result.Dispose();
+                }
             }
             catch (Exception e)
             {
@@ -927,12 +890,17 @@ namespace OpenSim.Data.MySQL
             bool returnval = false;
             try
             {
-                IDbCommand result = Query(sql, parameters);
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+                {
+                    dbcon.Open();
 
-                if (result.ExecuteNonQuery() == 1)
-                    returnval = true;
+                    IDbCommand result = Query(dbcon, sql, parameters);
 
-                result.Dispose();
+                    if (result.ExecuteNonQuery() == 1)
+                        returnval = true;
+
+                    result.Dispose();
+                }
             }
             catch (Exception e)
             {
@@ -1030,18 +998,23 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                IDbCommand result = Query(sql, parameters);
-
-                // int x;
-                // if ((x = result.ExecuteNonQuery()) > 0)
-                // {
-                //     returnval = true;
-                // }
-                if (result.ExecuteNonQuery() > 0)
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
                 {
-                    returnval = true;
+                    dbcon.Open();
+
+                    IDbCommand result = Query(dbcon, sql, parameters);
+
+                    // int x;
+                    // if ((x = result.ExecuteNonQuery()) > 0)
+                    // {
+                    //     returnval = true;
+                    // }
+                    if (result.ExecuteNonQuery() > 0)
+                    {
+                        returnval = true;
+                    }
+                    result.Dispose();
                 }
-                result.Dispose();
             }
             catch (Exception e)
             {
@@ -1070,18 +1043,23 @@ namespace OpenSim.Data.MySQL
             {
                 parameters["?uuid"] = uuid;
 
-                IDbCommand result = Query(sql, parameters);
-
-                // int x;
-                // if ((x = result.ExecuteNonQuery()) > 0)
-                // {
-                //     returnval = true;
-                // }
-                if (result.ExecuteNonQuery() > 0)
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
                 {
-                    returnval = true;
+                    dbcon.Open();
+
+                    IDbCommand result = Query(dbcon, sql, parameters);
+
+                    // int x;
+                    // if ((x = result.ExecuteNonQuery()) > 0)
+                    // {
+                    //     returnval = true;
+                    // }
+                    if (result.ExecuteNonQuery() > 0)
+                    {
+                        returnval = true;
+                    }
+                    result.Dispose();
                 }
-                result.Dispose();
             }
             catch (Exception e)
             {
@@ -1122,18 +1100,23 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                IDbCommand result = Query(sql, parameters);
-
-                // int x;
-                // if ((x = result.ExecuteNonQuery()) > 0)
-                // {
-                //     returnval = true;
-                // }
-                if (result.ExecuteNonQuery() > 0)
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
                 {
-                    returnval = true;
+                    dbcon.Open();
+
+                    IDbCommand result = Query(dbcon, sql, parameters);
+
+                    // int x;
+                    // if ((x = result.ExecuteNonQuery()) > 0)
+                    // {
+                    //     returnval = true;
+                    // }
+                    if (result.ExecuteNonQuery() > 0)
+                    {
+                        returnval = true;
+                    }
+                    result.Dispose();
                 }
-                result.Dispose();
             }
             catch (Exception e)
             {
@@ -1167,45 +1150,51 @@ namespace OpenSim.Data.MySQL
             bool returnval = false;
 
             // we want to send in byte data, which means we can't just pass down strings
-            try {
-                MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.Parameters.AddWithValue("?owner", appearance.Owner.ToString());
-                cmd.Parameters.AddWithValue("?serial", appearance.Serial);
-                cmd.Parameters.AddWithValue("?visual_params", appearance.VisualParams);
-                cmd.Parameters.AddWithValue("?texture", appearance.Texture.GetBytes());
-                cmd.Parameters.AddWithValue("?avatar_height", appearance.AvatarHeight);
-                cmd.Parameters.AddWithValue("?body_item", appearance.BodyItem.ToString());
-                cmd.Parameters.AddWithValue("?body_asset", appearance.BodyAsset.ToString());
-                cmd.Parameters.AddWithValue("?skin_item", appearance.SkinItem.ToString());
-                cmd.Parameters.AddWithValue("?skin_asset", appearance.SkinAsset.ToString());
-                cmd.Parameters.AddWithValue("?hair_item", appearance.HairItem.ToString());
-                cmd.Parameters.AddWithValue("?hair_asset", appearance.HairAsset.ToString());
-                cmd.Parameters.AddWithValue("?eyes_item", appearance.EyesItem.ToString());
-                cmd.Parameters.AddWithValue("?eyes_asset", appearance.EyesAsset.ToString());
-                cmd.Parameters.AddWithValue("?shirt_item", appearance.ShirtItem.ToString());
-                cmd.Parameters.AddWithValue("?shirt_asset", appearance.ShirtAsset.ToString());
-                cmd.Parameters.AddWithValue("?pants_item", appearance.PantsItem.ToString());
-                cmd.Parameters.AddWithValue("?pants_asset", appearance.PantsAsset.ToString());
-                cmd.Parameters.AddWithValue("?shoes_item", appearance.ShoesItem.ToString());
-                cmd.Parameters.AddWithValue("?shoes_asset", appearance.ShoesAsset.ToString());
-                cmd.Parameters.AddWithValue("?socks_item", appearance.SocksItem.ToString());
-                cmd.Parameters.AddWithValue("?socks_asset", appearance.SocksAsset.ToString());
-                cmd.Parameters.AddWithValue("?jacket_item", appearance.JacketItem.ToString());
-                cmd.Parameters.AddWithValue("?jacket_asset", appearance.JacketAsset.ToString());
-                cmd.Parameters.AddWithValue("?gloves_item", appearance.GlovesItem.ToString());
-                cmd.Parameters.AddWithValue("?gloves_asset", appearance.GlovesAsset.ToString());
-                cmd.Parameters.AddWithValue("?undershirt_item", appearance.UnderShirtItem.ToString());
-                cmd.Parameters.AddWithValue("?undershirt_asset", appearance.UnderShirtAsset.ToString());
-                cmd.Parameters.AddWithValue("?underpants_item", appearance.UnderPantsItem.ToString());
-                cmd.Parameters.AddWithValue("?underpants_asset", appearance.UnderPantsAsset.ToString());
-                cmd.Parameters.AddWithValue("?skirt_item", appearance.SkirtItem.ToString());
-                cmd.Parameters.AddWithValue("?skirt_asset", appearance.SkirtAsset.ToString());
+            try
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+                {
+                    dbcon.Open();
 
-                if (cmd.ExecuteNonQuery() > 0)
-                    returnval = true;
+                    using (MySqlCommand cmd = (MySqlCommand)dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = sql;
+                        cmd.Parameters.AddWithValue("?owner", appearance.Owner.ToString());
+                        cmd.Parameters.AddWithValue("?serial", appearance.Serial);
+                        cmd.Parameters.AddWithValue("?visual_params", appearance.VisualParams);
+                        cmd.Parameters.AddWithValue("?texture", appearance.Texture.GetBytes());
+                        cmd.Parameters.AddWithValue("?avatar_height", appearance.AvatarHeight);
+                        cmd.Parameters.AddWithValue("?body_item", appearance.BodyItem.ToString());
+                        cmd.Parameters.AddWithValue("?body_asset", appearance.BodyAsset.ToString());
+                        cmd.Parameters.AddWithValue("?skin_item", appearance.SkinItem.ToString());
+                        cmd.Parameters.AddWithValue("?skin_asset", appearance.SkinAsset.ToString());
+                        cmd.Parameters.AddWithValue("?hair_item", appearance.HairItem.ToString());
+                        cmd.Parameters.AddWithValue("?hair_asset", appearance.HairAsset.ToString());
+                        cmd.Parameters.AddWithValue("?eyes_item", appearance.EyesItem.ToString());
+                        cmd.Parameters.AddWithValue("?eyes_asset", appearance.EyesAsset.ToString());
+                        cmd.Parameters.AddWithValue("?shirt_item", appearance.ShirtItem.ToString());
+                        cmd.Parameters.AddWithValue("?shirt_asset", appearance.ShirtAsset.ToString());
+                        cmd.Parameters.AddWithValue("?pants_item", appearance.PantsItem.ToString());
+                        cmd.Parameters.AddWithValue("?pants_asset", appearance.PantsAsset.ToString());
+                        cmd.Parameters.AddWithValue("?shoes_item", appearance.ShoesItem.ToString());
+                        cmd.Parameters.AddWithValue("?shoes_asset", appearance.ShoesAsset.ToString());
+                        cmd.Parameters.AddWithValue("?socks_item", appearance.SocksItem.ToString());
+                        cmd.Parameters.AddWithValue("?socks_asset", appearance.SocksAsset.ToString());
+                        cmd.Parameters.AddWithValue("?jacket_item", appearance.JacketItem.ToString());
+                        cmd.Parameters.AddWithValue("?jacket_asset", appearance.JacketAsset.ToString());
+                        cmd.Parameters.AddWithValue("?gloves_item", appearance.GlovesItem.ToString());
+                        cmd.Parameters.AddWithValue("?gloves_asset", appearance.GlovesAsset.ToString());
+                        cmd.Parameters.AddWithValue("?undershirt_item", appearance.UnderShirtItem.ToString());
+                        cmd.Parameters.AddWithValue("?undershirt_asset", appearance.UnderShirtAsset.ToString());
+                        cmd.Parameters.AddWithValue("?underpants_item", appearance.UnderPantsItem.ToString());
+                        cmd.Parameters.AddWithValue("?underpants_asset", appearance.UnderPantsAsset.ToString());
+                        cmd.Parameters.AddWithValue("?skirt_item", appearance.SkirtItem.ToString());
+                        cmd.Parameters.AddWithValue("?skirt_asset", appearance.SkirtAsset.ToString());
 
-                cmd.Dispose();
+                        if (cmd.ExecuteNonQuery() > 0)
+                            returnval = true;
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -1221,33 +1210,38 @@ namespace OpenSim.Data.MySQL
         {
             string sql = "delete from avatarattachments where UUID = ?uuid";
 
-            MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
-            cmd.CommandText = sql;
-            cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
-
-            cmd.ExecuteNonQuery();
-
-            if (data == null)
-                return;
-
-            sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (?uuid, ?attachpoint, ?item, ?asset)";
-
-            cmd = (MySqlCommand) dbcon.CreateCommand();
-            cmd.CommandText = sql;
-
-            foreach (DictionaryEntry e in data)
+            using (MySqlConnection dbcon = new MySqlConnection(connectionString))
             {
-                int attachpoint = Convert.ToInt32(e.Key);
+                dbcon.Open();
 
-                Hashtable item = (Hashtable)e.Value;
-
-                cmd.Parameters.Clear();
+                MySqlCommand cmd = (MySqlCommand)dbcon.CreateCommand();
+                cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
-                cmd.Parameters.AddWithValue("?attachpoint", attachpoint);
-                cmd.Parameters.AddWithValue("?item",  item["item"]);
-                cmd.Parameters.AddWithValue("?asset", item["asset"]);
 
                 cmd.ExecuteNonQuery();
+
+                if (data == null)
+                    return;
+
+                sql = "insert into avatarattachments (UUID, attachpoint, item, asset) values (?uuid, ?attachpoint, ?item, ?asset)";
+
+                cmd = (MySqlCommand)dbcon.CreateCommand();
+                cmd.CommandText = sql;
+
+                foreach (DictionaryEntry e in data)
+                {
+                    int attachpoint = Convert.ToInt32(e.Key);
+
+                    Hashtable item = (Hashtable)e.Value;
+
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("?uuid", agentID.ToString());
+                    cmd.Parameters.AddWithValue("?attachpoint", attachpoint);
+                    cmd.Parameters.AddWithValue("?item", item["item"]);
+                    cmd.Parameters.AddWithValue("?asset", item["asset"]);
+
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
     }

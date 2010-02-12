@@ -115,7 +115,6 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             // client.OnAvatarNowWearing -= AvatarIsWearing;
         }
 
-
         public void SetAppearanceAssets(UUID userID, ref AvatarAppearance appearance)
         {
             IInventoryService invService = m_scene.InventoryService;
@@ -139,7 +138,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                         }
                         else
                         {
-                            m_log.ErrorFormat("[APPEARANCE]: Can't find inventory item {0}, setting to default", appearance.Wearables[i].ItemID);
+                            m_log.ErrorFormat(
+                                "[APPEARANCE]: Can't find inventory item {0} for {1}, setting to default", 
+                                appearance.Wearables[i].ItemID, (WearableType)i);
+                            
                             appearance.Wearables[i].AssetID = def.Wearables[i].AssetID;
                         }
                     }

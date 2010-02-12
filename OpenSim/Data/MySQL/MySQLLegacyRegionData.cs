@@ -48,75 +48,54 @@ namespace OpenSim.Data.MySQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ConnectionString;
-
-        private MySqlConnection m_Connection = null;
+        private string m_connectionString;
+        private object m_dbLock = new object();
 
         public void Initialise(string connectionString)
         {
-            m_ConnectionString = connectionString;
+            m_connectionString = connectionString;
 
-            m_Connection = new MySqlConnection(m_ConnectionString);
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
 
-            m_Connection.Open();
+                // Apply new Migrations
+                //
+                Assembly assem = GetType().Assembly;
+                Migration m = new Migration(dbcon, assem, "RegionStore");
+                m.Update();
 
-            // Apply new Migrations
-            //
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(m_Connection, assem, "RegionStore");
-            m.Update();
-
-            // NOTE: This is a very slow query that times out on regions with a lot of prims.
-            // I'm told that it is no longer relevant so it's commented out now, but if it
-            // is relevant it should be added as a console command instead of part of the
-            // startup phase
-            // Clean dropped attachments
-            //
-            //try
-            //{
-            //    using (MySqlCommand cmd = m_Connection.CreateCommand())
-            //    {
-            //        cmd.CommandText = "delete from prims, primshapes using prims " +
-            //                "left join primshapes on prims.uuid = primshapes.uuid " +
-            //                "where PCode = 9 and State <> 0";
-            //        ExecuteNonQuery(cmd);
-            //    }
-            //}
-            //catch (MySqlException ex)
-            //{
-            //    m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
-            //}
+                // Clean dropped attachments
+                //
+                try
+                {
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from prims, primshapes using prims " +
+                                "left join primshapes on prims.uuid = primshapes.uuid " +
+                                "where PCode = 9 and State <> 0";
+                        ExecuteNonQuery(cmd);
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("[REGION DB]: Error cleaning up dropped attachments: " + ex.Message);
+                }
+            }
         }
 
         private IDataReader ExecuteReader(MySqlCommand c)
         {
             IDataReader r = null;
-            bool errorSeen = false;
 
-            while (true)
+            try
             {
-                try
-                {
-                    r = c.ExecuteReader();
-                }
-                catch (Exception)
-                {
-                    Thread.Sleep(500);
-
-                    m_Connection.Close();
-                    m_Connection = (MySqlConnection) ((ICloneable)m_Connection).Clone();
-                    m_Connection.Open();
-                    c.Connection = m_Connection;
-
-                    if (!errorSeen)
-                    {
-                        errorSeen = true;
-                        continue;
-                    }
-                    throw;
-                }
-
-                break;
+                r = c.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[REGION DB]: MySQL error in ExecuteReader: " + e.Message);
+                throw;
             }
 
             return r;
@@ -124,32 +103,14 @@ namespace OpenSim.Data.MySQL
 
         private void ExecuteNonQuery(MySqlCommand c)
         {
-            bool errorSeen = false;
-
-            while (true)
+            try
             {
-                try
-                {
-                    c.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                    Thread.Sleep(500);
-
-                    m_Connection.Close();
-                    m_Connection = (MySqlConnection) ((ICloneable)m_Connection).Clone();
-                    m_Connection.Open();
-                    c.Connection = m_Connection;
-
-                    if (!errorSeen)
-                    {
-                        errorSeen = true;
-                        continue;
-                    }
-                    throw;
-                }
-
-                break;
+                c.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[REGION DB]: MySQL error in ExecuteNonQuery: " + e.Message);
+                throw;
             }
         }
 
@@ -166,115 +127,119 @@ namespace OpenSim.Data.MySQL
             if ((flags & (uint)PrimFlags.TemporaryOnRez) != 0)
                 return;
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                foreach (SceneObjectPart prim in obj.Children.Values)
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.Parameters.Clear();
+                    dbcon.Open();
+                    MySqlCommand cmd = dbcon.CreateCommand();
 
-                    cmd.CommandText = "replace into prims ("+
-                            "UUID, CreationDate, "+
-                            "Name, Text, Description, "+
-                            "SitName, TouchName, ObjectFlags, "+
-                            "OwnerMask, NextOwnerMask, GroupMask, "+
-                            "EveryoneMask, BaseMask, PositionX, "+
-                            "PositionY, PositionZ, GroupPositionX, "+
-                            "GroupPositionY, GroupPositionZ, VelocityX, "+
-                            "VelocityY, VelocityZ, AngularVelocityX, "+
-                            "AngularVelocityY, AngularVelocityZ, "+
-                            "AccelerationX, AccelerationY, "+
-                            "AccelerationZ, RotationX, "+
-                            "RotationY, RotationZ, "+
-                            "RotationW, SitTargetOffsetX, "+
-                            "SitTargetOffsetY, SitTargetOffsetZ, "+
-                            "SitTargetOrientW, SitTargetOrientX, "+
-                            "SitTargetOrientY, SitTargetOrientZ, "+
-                            "RegionUUID, CreatorID, "+
-                            "OwnerID, GroupID, "+
-                            "LastOwnerID, SceneGroupID, "+
-                            "PayPrice, PayButton1, "+
-                            "PayButton2, PayButton3, "+
-                            "PayButton4, LoopedSound, "+
-                            "LoopedSoundGain, TextureAnimation, "+
-                            "OmegaX, OmegaY, OmegaZ, "+
-                            "CameraEyeOffsetX, CameraEyeOffsetY, "+
-                            "CameraEyeOffsetZ, CameraAtOffsetX, "+
-                            "CameraAtOffsetY, CameraAtOffsetZ, "+
-                            "ForceMouselook, ScriptAccessPin, "+
-                            "AllowedDrop, DieAtEdge, "+
-                            "SalePrice, SaleType, "+
-                            "ColorR, ColorG, ColorB, ColorA, "+
-                            "ParticleSystem, ClickAction, Material, "+
-                            "CollisionSound, CollisionSoundVolume, "+
-                            "PassTouches, "+
-                            "LinkNumber) values (" + "?UUID, "+
-                            "?CreationDate, ?Name, ?Text, "+
-                            "?Description, ?SitName, ?TouchName, "+
-                            "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, "+
-                            "?GroupMask, ?EveryoneMask, ?BaseMask, "+
-                            "?PositionX, ?PositionY, ?PositionZ, "+
-                            "?GroupPositionX, ?GroupPositionY, "+
-                            "?GroupPositionZ, ?VelocityX, "+
-                            "?VelocityY, ?VelocityZ, ?AngularVelocityX, "+
-                            "?AngularVelocityY, ?AngularVelocityZ, "+
-                            "?AccelerationX, ?AccelerationY, "+
-                            "?AccelerationZ, ?RotationX, "+
-                            "?RotationY, ?RotationZ, "+
-                            "?RotationW, ?SitTargetOffsetX, "+
-                            "?SitTargetOffsetY, ?SitTargetOffsetZ, "+
-                            "?SitTargetOrientW, ?SitTargetOrientX, "+
-                            "?SitTargetOrientY, ?SitTargetOrientZ, "+
-                            "?RegionUUID, ?CreatorID, ?OwnerID, "+
-                            "?GroupID, ?LastOwnerID, ?SceneGroupID, "+
-                            "?PayPrice, ?PayButton1, ?PayButton2, "+
-                            "?PayButton3, ?PayButton4, ?LoopedSound, "+
-                            "?LoopedSoundGain, ?TextureAnimation, "+
-                            "?OmegaX, ?OmegaY, ?OmegaZ, "+
-                            "?CameraEyeOffsetX, ?CameraEyeOffsetY, "+
-                            "?CameraEyeOffsetZ, ?CameraAtOffsetX, "+
-                            "?CameraAtOffsetY, ?CameraAtOffsetZ, "+
-                            "?ForceMouselook, ?ScriptAccessPin, "+
-                            "?AllowedDrop, ?DieAtEdge, ?SalePrice, "+
-                            "?SaleType, ?ColorR, ?ColorG, "+
-                            "?ColorB, ?ColorA, ?ParticleSystem, "+
-                            "?ClickAction, ?Material, ?CollisionSound, "+
-                            "?CollisionSoundVolume, ?PassTouches, ?LinkNumber)";
+                    foreach (SceneObjectPart prim in obj.Children.Values)
+                    {
+                        cmd.Parameters.Clear();
 
-                    FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
+                        cmd.CommandText = "replace into prims (" +
+                                "UUID, CreationDate, " +
+                                "Name, Text, Description, " +
+                                "SitName, TouchName, ObjectFlags, " +
+                                "OwnerMask, NextOwnerMask, GroupMask, " +
+                                "EveryoneMask, BaseMask, PositionX, " +
+                                "PositionY, PositionZ, GroupPositionX, " +
+                                "GroupPositionY, GroupPositionZ, VelocityX, " +
+                                "VelocityY, VelocityZ, AngularVelocityX, " +
+                                "AngularVelocityY, AngularVelocityZ, " +
+                                "AccelerationX, AccelerationY, " +
+                                "AccelerationZ, RotationX, " +
+                                "RotationY, RotationZ, " +
+                                "RotationW, SitTargetOffsetX, " +
+                                "SitTargetOffsetY, SitTargetOffsetZ, " +
+                                "SitTargetOrientW, SitTargetOrientX, " +
+                                "SitTargetOrientY, SitTargetOrientZ, " +
+                                "RegionUUID, CreatorID, " +
+                                "OwnerID, GroupID, " +
+                                "LastOwnerID, SceneGroupID, " +
+                                "PayPrice, PayButton1, " +
+                                "PayButton2, PayButton3, " +
+                                "PayButton4, LoopedSound, " +
+                                "LoopedSoundGain, TextureAnimation, " +
+                                "OmegaX, OmegaY, OmegaZ, " +
+                                "CameraEyeOffsetX, CameraEyeOffsetY, " +
+                                "CameraEyeOffsetZ, CameraAtOffsetX, " +
+                                "CameraAtOffsetY, CameraAtOffsetZ, " +
+                                "ForceMouselook, ScriptAccessPin, " +
+                                "AllowedDrop, DieAtEdge, " +
+                                "SalePrice, SaleType, " +
+                                "ColorR, ColorG, ColorB, ColorA, " +
+                                "ParticleSystem, ClickAction, Material, " +
+                                "CollisionSound, CollisionSoundVolume, " +
+                                "PassTouches, " +
+                                "LinkNumber) values (" + "?UUID, " +
+                                "?CreationDate, ?Name, ?Text, " +
+                                "?Description, ?SitName, ?TouchName, " +
+                                "?ObjectFlags, ?OwnerMask, ?NextOwnerMask, " +
+                                "?GroupMask, ?EveryoneMask, ?BaseMask, " +
+                                "?PositionX, ?PositionY, ?PositionZ, " +
+                                "?GroupPositionX, ?GroupPositionY, " +
+                                "?GroupPositionZ, ?VelocityX, " +
+                                "?VelocityY, ?VelocityZ, ?AngularVelocityX, " +
+                                "?AngularVelocityY, ?AngularVelocityZ, " +
+                                "?AccelerationX, ?AccelerationY, " +
+                                "?AccelerationZ, ?RotationX, " +
+                                "?RotationY, ?RotationZ, " +
+                                "?RotationW, ?SitTargetOffsetX, " +
+                                "?SitTargetOffsetY, ?SitTargetOffsetZ, " +
+                                "?SitTargetOrientW, ?SitTargetOrientX, " +
+                                "?SitTargetOrientY, ?SitTargetOrientZ, " +
+                                "?RegionUUID, ?CreatorID, ?OwnerID, " +
+                                "?GroupID, ?LastOwnerID, ?SceneGroupID, " +
+                                "?PayPrice, ?PayButton1, ?PayButton2, " +
+                                "?PayButton3, ?PayButton4, ?LoopedSound, " +
+                                "?LoopedSoundGain, ?TextureAnimation, " +
+                                "?OmegaX, ?OmegaY, ?OmegaZ, " +
+                                "?CameraEyeOffsetX, ?CameraEyeOffsetY, " +
+                                "?CameraEyeOffsetZ, ?CameraAtOffsetX, " +
+                                "?CameraAtOffsetY, ?CameraAtOffsetZ, " +
+                                "?ForceMouselook, ?ScriptAccessPin, " +
+                                "?AllowedDrop, ?DieAtEdge, ?SalePrice, " +
+                                "?SaleType, ?ColorR, ?ColorG, " +
+                                "?ColorB, ?ColorA, ?ParticleSystem, " +
+                                "?ClickAction, ?Material, ?CollisionSound, " +
+                                "?CollisionSoundVolume, ?PassTouches, ?LinkNumber)";
 
-                    ExecuteNonQuery(cmd);
+                        FillPrimCommand(cmd, prim, obj.UUID, regionUUID);
 
-                    cmd.Parameters.Clear();
+                        ExecuteNonQuery(cmd);
 
-                    cmd.CommandText = "replace into primshapes ("+
-                            "UUID, Shape, ScaleX, ScaleY, "+
-                            "ScaleZ, PCode, PathBegin, PathEnd, "+
-                            "PathScaleX, PathScaleY, PathShearX, "+
-                            "PathShearY, PathSkew, PathCurve, "+
-                            "PathRadiusOffset, PathRevolutions, "+
-                            "PathTaperX, PathTaperY, PathTwist, "+
-                            "PathTwistBegin, ProfileBegin, ProfileEnd, "+
-                            "ProfileCurve, ProfileHollow, Texture, "+
-                            "ExtraParams, State) values (?UUID, "+
-                            "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, "+
-                            "?PCode, ?PathBegin, ?PathEnd, "+
-                            "?PathScaleX, ?PathScaleY, "+
-                            "?PathShearX, ?PathShearY, "+
-                            "?PathSkew, ?PathCurve, ?PathRadiusOffset, "+
-                            "?PathRevolutions, ?PathTaperX, "+
-                            "?PathTaperY, ?PathTwist, "+
-                            "?PathTwistBegin, ?ProfileBegin, "+
-                            "?ProfileEnd, ?ProfileCurve, "+
-                            "?ProfileHollow, ?Texture, ?ExtraParams, "+
-                            "?State)";
+                        cmd.Parameters.Clear();
 
-                    FillShapeCommand(cmd, prim);
+                        cmd.CommandText = "replace into primshapes (" +
+                                "UUID, Shape, ScaleX, ScaleY, " +
+                                "ScaleZ, PCode, PathBegin, PathEnd, " +
+                                "PathScaleX, PathScaleY, PathShearX, " +
+                                "PathShearY, PathSkew, PathCurve, " +
+                                "PathRadiusOffset, PathRevolutions, " +
+                                "PathTaperX, PathTaperY, PathTwist, " +
+                                "PathTwistBegin, ProfileBegin, ProfileEnd, " +
+                                "ProfileCurve, ProfileHollow, Texture, " +
+                                "ExtraParams, State) values (?UUID, " +
+                                "?Shape, ?ScaleX, ?ScaleY, ?ScaleZ, " +
+                                "?PCode, ?PathBegin, ?PathEnd, " +
+                                "?PathScaleX, ?PathScaleY, " +
+                                "?PathShearX, ?PathShearY, " +
+                                "?PathSkew, ?PathCurve, ?PathRadiusOffset, " +
+                                "?PathRevolutions, ?PathTaperX, " +
+                                "?PathTaperY, ?PathTwist, " +
+                                "?PathTwistBegin, ?ProfileBegin, " +
+                                "?ProfileEnd, ?ProfileCurve, " +
+                                "?ProfileHollow, ?Texture, ?ExtraParams, " +
+                                "?State)";
 
-                    ExecuteNonQuery(cmd);
+                        FillShapeCommand(cmd, prim);
+
+                        ExecuteNonQuery(cmd);
+                    }
+                    cmd.Dispose();
                 }
-                cmd.Dispose();
             }
         }
 
@@ -290,22 +255,27 @@ namespace OpenSim.Data.MySQL
             // cause the loss of a prim, but is cleaner.
             // It's also faster because it uses the primary key.
             //
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "select UUID from prims where SceneGroupID= ?UUID";
-                    cmd.Parameters.AddWithValue("UUID", obj.ToString());
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        while (reader.Read())
-                            uuids.Add(new UUID(reader["UUID"].ToString()));
-                    }
+                        cmd.CommandText = "select UUID from prims where SceneGroupID= ?UUID";
+                        cmd.Parameters.AddWithValue("UUID", obj.ToString());
 
-                    // delete the main prims
-                    cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
-                    ExecuteNonQuery(cmd);
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                                uuids.Add(new UUID(reader["UUID"].ToString()));
+                        }
+
+                        // delete the main prims
+                        cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
+                        ExecuteNonQuery(cmd);
+                    }
                 }
             }
 
@@ -326,14 +296,19 @@ namespace OpenSim.Data.MySQL
         /// <param name="uuid">the Item UUID</param>
         private void RemoveItems(UUID uuid)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "delete from primitems where PrimID = ?PrimID";
-                    cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
+                    dbcon.Open();
 
-                    ExecuteNonQuery(cmd);
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from primitems where PrimID = ?PrimID";
+                        cmd.Parameters.AddWithValue("PrimID", uuid.ToString());
+
+                        ExecuteNonQuery(cmd);
+                    }
                 }
             }
         }
@@ -345,29 +320,33 @@ namespace OpenSim.Data.MySQL
         /// <param name="uuids">the list of UUIDs</param>
         private void RemoveShapes(List<UUID> uuids)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
                 string sql = "delete from primshapes where ";
-
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    for (int i = 0; i < uuids.Count; i++)
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        if ((i + 1) == uuids.Count)
-                        {// end of the list
-                            sql += "(UUID = ?UUID" + i + ")";
-                        }
-                        else
+                        for (int i = 0; i < uuids.Count; i++)
                         {
-                            sql += "(UUID = ?UUID" + i + ") or ";
+                            if ((i + 1) == uuids.Count)
+                            {// end of the list
+                                sql += "(UUID = ?UUID" + i + ")";
+                            }
+                            else
+                            {
+                                sql += "(UUID = ?UUID" + i + ") or ";
+                            }
                         }
+                        cmd.CommandText = sql;
+
+                        for (int i = 0; i < uuids.Count; i++)
+                            cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
+
+                        ExecuteNonQuery(cmd);
                     }
-                    cmd.CommandText = sql;
-
-                    for (int i = 0; i < uuids.Count; i++)
-                        cmd.Parameters.AddWithValue("UUID" + i, uuids[i].ToString());
-
-                    ExecuteNonQuery(cmd);
                 }
             }
         }
@@ -379,30 +358,34 @@ namespace OpenSim.Data.MySQL
         /// <param name="uuids">the list of UUIDs</param>
         private void RemoveItems(List<UUID> uuids)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
                 string sql = "delete from primitems where ";
-
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    for (int i = 0; i < uuids.Count; i++)
+                    dbcon.Open();
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        if ((i + 1) == uuids.Count)
+                        for (int i = 0; i < uuids.Count; i++)
                         {
-                            // end of the list
-                            sql += "(PrimID = ?PrimID" + i + ")";
+                            if ((i + 1) == uuids.Count)
+                            {
+                                // end of the list
+                                sql += "(PrimID = ?PrimID" + i + ")";
+                            }
+                            else
+                            {
+                                sql += "(PrimID = ?PrimID" + i + ") or ";
+                            }
                         }
-                        else
-                        {
-                            sql += "(PrimID = ?PrimID" + i + ") or ";
-                        }
+                        cmd.CommandText = sql;
+
+                        for (int i = 0; i < uuids.Count; i++)
+                            cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
+
+                        ExecuteNonQuery(cmd);
                     }
-                    cmd.CommandText = sql;
-
-                    for (int i = 0; i < uuids.Count; i++)
-                        cmd.Parameters.AddWithValue("PrimID" + i, uuids[i].ToString());
-
-                    ExecuteNonQuery(cmd);
                 }
             }
         }
@@ -417,33 +400,38 @@ namespace OpenSim.Data.MySQL
 
             #region Prim Loading
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText =
-                        "SELECT * FROM prims LEFT JOIN primshapes ON prims.UUID = primshapes.UUID WHERE RegionUUID = ?RegionUUID";
-                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        while (reader.Read())
+                        cmd.CommandText =
+                            "SELECT * FROM prims LEFT JOIN primshapes ON prims.UUID = primshapes.UUID WHERE RegionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
                         {
-                            SceneObjectPart prim = BuildPrim(reader);
-                            if (reader["Shape"] is DBNull)
-                                prim.Shape = PrimitiveBaseShape.Default;
-                            else
-                                prim.Shape = BuildShape(reader);
+                            while (reader.Read())
+                            {
+                                SceneObjectPart prim = BuildPrim(reader);
+                                if (reader["Shape"] is DBNull)
+                                    prim.Shape = PrimitiveBaseShape.Default;
+                                else
+                                    prim.Shape = BuildShape(reader);
 
-                            UUID parentID = new UUID(reader["SceneGroupID"].ToString());
-                            if (parentID != prim.UUID)
-                                prim.ParentUUID = parentID;
+                                UUID parentID = new UUID(reader["SceneGroupID"].ToString());
+                                if (parentID != prim.UUID)
+                                    prim.ParentUUID = parentID;
 
-                            prims[prim.UUID] = prim;
+                                prims[prim.UUID] = prim;
 
-                            ++count;
-                            if (count % ROWS_PER_QUERY == 0)
-                                m_log.Debug("[REGION DB]: Loaded " + count + " prims...");
+                                ++count;
+                                if (count % ROWS_PER_QUERY == 0)
+                                    m_log.Debug("[REGION DB]: Loaded " + count + " prims...");
+                            }
                         }
                     }
                 }
@@ -497,20 +485,25 @@ namespace OpenSim.Data.MySQL
             // list from DB of all prims which have items and
             // LoadItems only on those
             List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand itemCmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    itemCmd.CommandText = "SELECT DISTINCT primID FROM primitems";
-                    using (IDataReader itemReader = ExecuteReader(itemCmd))
+                    dbcon.Open();
+
+                    using (MySqlCommand itemCmd = dbcon.CreateCommand())
                     {
-                        while (itemReader.Read())
+                        itemCmd.CommandText = "SELECT DISTINCT primID FROM primitems";
+                        using (IDataReader itemReader = ExecuteReader(itemCmd))
                         {
-                            if (!(itemReader["primID"] is DBNull))
+                            while (itemReader.Read())
                             {
-                                UUID primID = new UUID(itemReader["primID"].ToString());
-                                if (prims.ContainsKey(primID))
-                                    primsWithInventory.Add(prims[primID]);
+                                if (!(itemReader["primID"] is DBNull))
+                                {
+                                    UUID primID = new UUID(itemReader["primID"].ToString());
+                                    if (prims.ContainsKey(primID))
+                                        primsWithInventory.Add(prims[primID]);
+                                }
                             }
                         }
                     }
@@ -535,23 +528,28 @@ namespace OpenSim.Data.MySQL
         /// <param name="prim">The prim</param>
         private void LoadItems(SceneObjectPart prim)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
                 List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "select * from primitems where PrimID = ?PrimID";
-                    cmd.Parameters.AddWithValue("PrimID", prim.UUID.ToString());
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        while (reader.Read())
-                        {
-                            TaskInventoryItem item = BuildItem(reader);
+                        cmd.CommandText = "select * from primitems where PrimID = ?PrimID";
+                        cmd.Parameters.AddWithValue("PrimID", prim.UUID.ToString());
 
-                            item.ParentID = prim.UUID; // Values in database are often wrong
-                            inventory.Add(item);
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            while (reader.Read())
+                            {
+                                TaskInventoryItem item = BuildItem(reader);
+
+                                item.ParentID = prim.UUID; // Values in database are often wrong
+                                inventory.Add(item);
+                            }
                         }
                     }
                 }
@@ -564,22 +562,27 @@ namespace OpenSim.Data.MySQL
         {
             m_log.Info("[REGION DB]: Storing terrain");
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
-                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                    dbcon.Open();
 
-                    ExecuteNonQuery(cmd);
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from terrain where RegionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
 
-                    cmd.CommandText = "insert into terrain (RegionUUID, " +
-                        "Revision, Heightfield) values (?RegionUUID, " +
-                        "1, ?Heightfield)";
+                        ExecuteNonQuery(cmd);
 
-                    cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
+                        cmd.CommandText = "insert into terrain (RegionUUID, " +
+                            "Revision, Heightfield) values (?RegionUUID, " +
+                            "1, ?Heightfield)";
 
-                    ExecuteNonQuery(cmd);
+                        cmd.Parameters.AddWithValue("Heightfield", SerializeTerrain(ter));
+
+                        ExecuteNonQuery(cmd);
+                    }
                 }
             }
         }
@@ -588,38 +591,43 @@ namespace OpenSim.Data.MySQL
         {
             double[,] terrain = null;
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
-                        "from terrain where RegionUUID = ?RegionUUID " +
-                        "order by Revision desc limit 1";
-                    cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        while (reader.Read())
+                        cmd.CommandText = "select RegionUUID, Revision, Heightfield " +
+                            "from terrain where RegionUUID = ?RegionUUID " +
+                            "order by Revision desc limit 1";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
+
+                        using (IDataReader reader = ExecuteReader(cmd))
                         {
-                            int rev = Convert.ToInt32(reader["Revision"]);
-
-                            terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
-                            terrain.Initialize();
-
-                            using (MemoryStream mstr = new MemoryStream((byte[])reader["Heightfield"]))
+                            while (reader.Read())
                             {
-                                using (BinaryReader br = new BinaryReader(mstr))
+                                int rev = Convert.ToInt32(reader["Revision"]);
+
+                                terrain = new double[(int)Constants.RegionSize, (int)Constants.RegionSize];
+                                terrain.Initialize();
+
+                                using (MemoryStream mstr = new MemoryStream((byte[])reader["Heightfield"]))
                                 {
-                                    for (int x = 0; x < (int)Constants.RegionSize; x++)
+                                    using (BinaryReader br = new BinaryReader(mstr))
                                     {
-                                        for (int y = 0; y < (int)Constants.RegionSize; y++)
+                                        for (int x = 0; x < (int)Constants.RegionSize; x++)
                                         {
-                                            terrain[x, y] = br.ReadDouble();
+                                            for (int y = 0; y < (int)Constants.RegionSize; y++)
+                                            {
+                                                terrain[x, y] = br.ReadDouble();
+                                            }
                                         }
                                     }
-                                }
 
-                                m_log.InfoFormat("[REGION DB]: Loaded terrain revision r{0}", rev);
+                                    m_log.InfoFormat("[REGION DB]: Loaded terrain revision r{0}", rev);
+                                }
                             }
                         }
                     }
@@ -631,63 +639,73 @@ namespace OpenSim.Data.MySQL
 
         public void RemoveLandObject(UUID globalID)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "delete from land where UUID = ?UUID";
-                    cmd.Parameters.AddWithValue("UUID", globalID.ToString());
+                    dbcon.Open();
 
-                    ExecuteNonQuery(cmd);
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "delete from land where UUID = ?UUID";
+                        cmd.Parameters.AddWithValue("UUID", globalID.ToString());
+
+                        ExecuteNonQuery(cmd);
+                    }
                 }
             }
         }
 
         public void StoreLandObject(ILandObject parcel)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "replace into land (UUID, RegionUUID, " +
-                        "LocalLandID, Bitmap, Name, Description, " +
-                        "OwnerUUID, IsGroupOwned, Area, AuctionID, " +
-                        "Category, ClaimDate, ClaimPrice, GroupUUID, " +
-                        "SalePrice, LandStatus, LandFlags, LandingType, " +
-                        "MediaAutoScale, MediaTextureUUID, MediaURL, " +
-                        "MusicURL, PassHours, PassPrice, SnapshotUUID, " +
-                        "UserLocationX, UserLocationY, UserLocationZ, " +
-                        "UserLookAtX, UserLookAtY, UserLookAtZ, " +
-                        "AuthbuyerID, OtherCleanTime, Dwell) values (" +
-                        "?UUID, ?RegionUUID, " +
-                        "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
-                        "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
-                        "?Category, ?ClaimDate, ?ClaimPrice, ?GroupUUID, " +
-                        "?SalePrice, ?LandStatus, ?LandFlags, ?LandingType, " +
-                        "?MediaAutoScale, ?MediaTextureUUID, ?MediaURL, " +
-                        "?MusicURL, ?PassHours, ?PassPrice, ?SnapshotUUID, " +
-                        "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
-                        "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
-                        "?AuthbuyerID, ?OtherCleanTime, ?Dwell)";
+                    dbcon.Open();
 
-                    FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
-
-                    ExecuteNonQuery(cmd);
-
-                    cmd.CommandText = "delete from landaccesslist where LandUUID = ?UUID";
-
-                    ExecuteNonQuery(cmd);
-
-                    cmd.Parameters.Clear();
-                    cmd.CommandText = "insert into landaccesslist (LandUUID, " +
-                            "AccessUUID, Flags) values (?LandUUID, ?AccessUUID, " +
-                            "?Flags)";
-
-                    foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        FillLandAccessCommand(cmd, entry, parcel.LandData.GlobalID);
+                        cmd.CommandText = "replace into land (UUID, RegionUUID, " +
+                            "LocalLandID, Bitmap, Name, Description, " +
+                            "OwnerUUID, IsGroupOwned, Area, AuctionID, " +
+                            "Category, ClaimDate, ClaimPrice, GroupUUID, " +
+                            "SalePrice, LandStatus, LandFlags, LandingType, " +
+                            "MediaAutoScale, MediaTextureUUID, MediaURL, " +
+                            "MusicURL, PassHours, PassPrice, SnapshotUUID, " +
+                            "UserLocationX, UserLocationY, UserLocationZ, " +
+                            "UserLookAtX, UserLookAtY, UserLookAtZ, " +
+                            "AuthbuyerID, OtherCleanTime, Dwell) values (" +
+                            "?UUID, ?RegionUUID, " +
+                            "?LocalLandID, ?Bitmap, ?Name, ?Description, " +
+                            "?OwnerUUID, ?IsGroupOwned, ?Area, ?AuctionID, " +
+                            "?Category, ?ClaimDate, ?ClaimPrice, ?GroupUUID, " +
+                            "?SalePrice, ?LandStatus, ?LandFlags, ?LandingType, " +
+                            "?MediaAutoScale, ?MediaTextureUUID, ?MediaURL, " +
+                            "?MusicURL, ?PassHours, ?PassPrice, ?SnapshotUUID, " +
+                            "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
+                            "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
+                            "?AuthbuyerID, ?OtherCleanTime, ?Dwell)";
+
+                        FillLandCommand(cmd, parcel.LandData, parcel.RegionUUID);
+
                         ExecuteNonQuery(cmd);
+
+                        cmd.CommandText = "delete from landaccesslist where LandUUID = ?UUID";
+
+                        ExecuteNonQuery(cmd);
+
                         cmd.Parameters.Clear();
+                        cmd.CommandText = "insert into landaccesslist (LandUUID, " +
+                                "AccessUUID, Flags) values (?LandUUID, ?AccessUUID, " +
+                                "?Flags)";
+
+                        foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
+                        {
+                            FillLandAccessCommand(cmd, entry, parcel.LandData.GlobalID);
+                            ExecuteNonQuery(cmd);
+                            cmd.Parameters.Clear();
+                        }
                     }
                 }
             }
@@ -697,88 +715,93 @@ namespace OpenSim.Data.MySQL
         {
             RegionMeta7WindlightData nWP = new RegionMeta7WindlightData();
             nWP.OnSave += StoreRegionWindlightSettings;
-            lock (m_Connection)
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                
+                dbcon.Open();
+
                 string command = "select * from `regionwindlight` where region_id = ?regionID";
 
-                MySqlCommand cmd = new MySqlCommand(command);
-
-                cmd.Parameters.AddWithValue("?regionID", regionUUID.ToString());
-
-                IDataReader result = ExecuteReader(cmd);
-                if (!result.Read())
+                using(MySqlCommand cmd = new MySqlCommand(command))
                 {
-                    //No result, so store our default windlight profile and return it
-                    nWP.regionID = regionUUID;
-                    StoreRegionWindlightSettings(nWP);
-                    return nWP;
-                }
-                else
-                {
-                    UUID.TryParse(result["region_id"].ToString(), out nWP.regionID);
-                    nWP.waterColor.X = Convert.ToSingle(result["water_color_r"]);
-                    nWP.waterColor.Y = Convert.ToSingle(result["water_color_g"]);
-                    nWP.waterColor.Z = Convert.ToSingle(result["water_color_b"]);
-                    nWP.waterFogDensityExponent = Convert.ToSingle(result["water_fog_density_exponent"]);
-                    nWP.underwaterFogModifier = Convert.ToSingle(result["underwater_fog_modifier"]);
-                    nWP.reflectionWaveletScale.X = Convert.ToSingle(result["reflection_wavelet_scale_1"]);
-                    nWP.reflectionWaveletScale.Y = Convert.ToSingle(result["reflection_wavelet_scale_2"]);
-                    nWP.reflectionWaveletScale.Z = Convert.ToSingle(result["reflection_wavelet_scale_3"]);
-                    nWP.fresnelScale = Convert.ToSingle(result["fresnel_scale"]);
-                    nWP.fresnelOffset = Convert.ToSingle(result["fresnel_offset"]);
-                    nWP.refractScaleAbove = Convert.ToSingle(result["refract_scale_above"]);
-                    nWP.refractScaleBelow = Convert.ToSingle(result["refract_scale_below"]);
-                    nWP.blurMultiplier = Convert.ToSingle(result["blur_multiplier"]);
-                    nWP.bigWaveDirection.X = Convert.ToSingle(result["big_wave_direction_x"]);
-                    nWP.bigWaveDirection.Y = Convert.ToSingle(result["big_wave_direction_y"]);
-                    nWP.littleWaveDirection.X = Convert.ToSingle(result["little_wave_direction_x"]);
-                    nWP.littleWaveDirection.Y = Convert.ToSingle(result["little_wave_direction_y"]);
-                    UUID.TryParse(result["normal_map_texture"].ToString(), out nWP.normalMapTexture);
-                    nWP.horizon.X = Convert.ToSingle(result["horizon_r"]);
-                    nWP.horizon.Y = Convert.ToSingle(result["horizon_g"]);
-                    nWP.horizon.Z = Convert.ToSingle(result["horizon_b"]);
-                    nWP.horizon.W = Convert.ToSingle(result["horizon_i"]);
-                    nWP.hazeHorizon = Convert.ToSingle(result["haze_horizon"]);
-                    nWP.blueDensity.X = Convert.ToSingle(result["blue_density_r"]);
-                    nWP.blueDensity.Y = Convert.ToSingle(result["blue_density_g"]);
-                    nWP.blueDensity.Z = Convert.ToSingle(result["blue_density_b"]);
-                    nWP.blueDensity.W = Convert.ToSingle(result["blue_density_i"]);
-                    nWP.hazeDensity = Convert.ToSingle(result["haze_density"]);
-                    nWP.densityMultiplier = Convert.ToSingle(result["density_multiplier"]);
-                    nWP.distanceMultiplier = Convert.ToSingle(result["distance_multiplier"]);
-                    nWP.maxAltitude = Convert.ToUInt16(result["max_altitude"]);
-                    nWP.sunMoonColor.X = Convert.ToSingle(result["sun_moon_color_r"]);
-                    nWP.sunMoonColor.Y = Convert.ToSingle(result["sun_moon_color_g"]);
-                    nWP.sunMoonColor.Z = Convert.ToSingle(result["sun_moon_color_b"]);
-                    nWP.sunMoonColor.W = Convert.ToSingle(result["sun_moon_color_i"]);
-                    nWP.sunMoonPosition = Convert.ToSingle(result["sun_moon_position"]);
-                    nWP.ambient.X = Convert.ToSingle(result["ambient_r"]);
-                    nWP.ambient.Y = Convert.ToSingle(result["ambient_g"]);
-                    nWP.ambient.Z = Convert.ToSingle(result["ambient_b"]);
-                    nWP.ambient.W = Convert.ToSingle(result["ambient_i"]);
-                    nWP.eastAngle = Convert.ToSingle(result["east_angle"]);
-                    nWP.sunGlowFocus = Convert.ToSingle(result["sun_glow_focus"]);
-                    nWP.sunGlowSize = Convert.ToSingle(result["sun_glow_size"]);
-                    nWP.sceneGamma = Convert.ToSingle(result["scene_gamma"]);
-                    nWP.starBrightness = Convert.ToSingle(result["star_brightness"]);
-                    nWP.cloudColor.X = Convert.ToSingle(result["cloud_color_r"]);
-                    nWP.cloudColor.Y = Convert.ToSingle(result["cloud_color_g"]);
-                    nWP.cloudColor.Z = Convert.ToSingle(result["cloud_color_b"]);
-                    nWP.cloudColor.W = Convert.ToSingle(result["cloud_color_i"]);
-                    nWP.cloudXYDensity.X = Convert.ToSingle(result["cloud_x"]);
-                    nWP.cloudXYDensity.Y = Convert.ToSingle(result["cloud_y"]);
-                    nWP.cloudXYDensity.Z = Convert.ToSingle(result["cloud_density"]);
-                    nWP.cloudCoverage = Convert.ToSingle(result["cloud_coverage"]);
-                    nWP.cloudScale = Convert.ToSingle(result["cloud_scale"]);
-                    nWP.cloudDetailXYDensity.X = Convert.ToSingle(result["cloud_detail_x"]);
-                    nWP.cloudDetailXYDensity.Y = Convert.ToSingle(result["cloud_detail_y"]);
-                    nWP.cloudDetailXYDensity.Z = Convert.ToSingle(result["cloud_detail_density"]);
-                    nWP.cloudScrollX = Convert.ToSingle(result["cloud_scroll_x"]);
-                    nWP.cloudScrollXLock = Convert.ToBoolean(result["cloud_scroll_x_lock"]);
-                    nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
-                    nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
-                    nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                    cmd.Connection = dbcon;
+
+                    cmd.Parameters.AddWithValue("?regionID", regionUUID.ToString());
+
+                    IDataReader result = ExecuteReader(cmd);
+                    if (!result.Read())
+                    {
+                        //No result, so store our default windlight profile and return it
+                        nWP.regionID = regionUUID;
+                        StoreRegionWindlightSettings(nWP);
+                        return nWP;
+                    }
+                    else
+                    {
+                        UUID.TryParse(result["region_id"].ToString(), out nWP.regionID);
+                        nWP.waterColor.X = Convert.ToSingle(result["water_color_r"]);
+                        nWP.waterColor.Y = Convert.ToSingle(result["water_color_g"]);
+                        nWP.waterColor.Z = Convert.ToSingle(result["water_color_b"]);
+                        nWP.waterFogDensityExponent = Convert.ToSingle(result["water_fog_density_exponent"]);
+                        nWP.underwaterFogModifier = Convert.ToSingle(result["underwater_fog_modifier"]);
+                        nWP.reflectionWaveletScale.X = Convert.ToSingle(result["reflection_wavelet_scale_1"]);
+                        nWP.reflectionWaveletScale.Y = Convert.ToSingle(result["reflection_wavelet_scale_2"]);
+                        nWP.reflectionWaveletScale.Z = Convert.ToSingle(result["reflection_wavelet_scale_3"]);
+                        nWP.fresnelScale = Convert.ToSingle(result["fresnel_scale"]);
+                        nWP.fresnelOffset = Convert.ToSingle(result["fresnel_offset"]);
+                        nWP.refractScaleAbove = Convert.ToSingle(result["refract_scale_above"]);
+                        nWP.refractScaleBelow = Convert.ToSingle(result["refract_scale_below"]);
+                        nWP.blurMultiplier = Convert.ToSingle(result["blur_multiplier"]);
+                        nWP.bigWaveDirection.X = Convert.ToSingle(result["big_wave_direction_x"]);
+                        nWP.bigWaveDirection.Y = Convert.ToSingle(result["big_wave_direction_y"]);
+                        nWP.littleWaveDirection.X = Convert.ToSingle(result["little_wave_direction_x"]);
+                        nWP.littleWaveDirection.Y = Convert.ToSingle(result["little_wave_direction_y"]);
+                        UUID.TryParse(result["normal_map_texture"].ToString(), out nWP.normalMapTexture);
+                        nWP.horizon.X = Convert.ToSingle(result["horizon_r"]);
+                        nWP.horizon.Y = Convert.ToSingle(result["horizon_g"]);
+                        nWP.horizon.Z = Convert.ToSingle(result["horizon_b"]);
+                        nWP.horizon.W = Convert.ToSingle(result["horizon_i"]);
+                        nWP.hazeHorizon = Convert.ToSingle(result["haze_horizon"]);
+                        nWP.blueDensity.X = Convert.ToSingle(result["blue_density_r"]);
+                        nWP.blueDensity.Y = Convert.ToSingle(result["blue_density_g"]);
+                        nWP.blueDensity.Z = Convert.ToSingle(result["blue_density_b"]);
+                        nWP.blueDensity.W = Convert.ToSingle(result["blue_density_i"]);
+                        nWP.hazeDensity = Convert.ToSingle(result["haze_density"]);
+                        nWP.densityMultiplier = Convert.ToSingle(result["density_multiplier"]);
+                        nWP.distanceMultiplier = Convert.ToSingle(result["distance_multiplier"]);
+                        nWP.maxAltitude = Convert.ToUInt16(result["max_altitude"]);
+                        nWP.sunMoonColor.X = Convert.ToSingle(result["sun_moon_color_r"]);
+                        nWP.sunMoonColor.Y = Convert.ToSingle(result["sun_moon_color_g"]);
+                        nWP.sunMoonColor.Z = Convert.ToSingle(result["sun_moon_color_b"]);
+                        nWP.sunMoonColor.W = Convert.ToSingle(result["sun_moon_color_i"]);
+                        nWP.sunMoonPosition = Convert.ToSingle(result["sun_moon_position"]);
+                        nWP.ambient.X = Convert.ToSingle(result["ambient_r"]);
+                        nWP.ambient.Y = Convert.ToSingle(result["ambient_g"]);
+                        nWP.ambient.Z = Convert.ToSingle(result["ambient_b"]);
+                        nWP.ambient.W = Convert.ToSingle(result["ambient_i"]);
+                        nWP.eastAngle = Convert.ToSingle(result["east_angle"]);
+                        nWP.sunGlowFocus = Convert.ToSingle(result["sun_glow_focus"]);
+                        nWP.sunGlowSize = Convert.ToSingle(result["sun_glow_size"]);
+                        nWP.sceneGamma = Convert.ToSingle(result["scene_gamma"]);
+                        nWP.starBrightness = Convert.ToSingle(result["star_brightness"]);
+                        nWP.cloudColor.X = Convert.ToSingle(result["cloud_color_r"]);
+                        nWP.cloudColor.Y = Convert.ToSingle(result["cloud_color_g"]);
+                        nWP.cloudColor.Z = Convert.ToSingle(result["cloud_color_b"]);
+                        nWP.cloudColor.W = Convert.ToSingle(result["cloud_color_i"]);
+                        nWP.cloudXYDensity.X = Convert.ToSingle(result["cloud_x"]);
+                        nWP.cloudXYDensity.Y = Convert.ToSingle(result["cloud_y"]);
+                        nWP.cloudXYDensity.Z = Convert.ToSingle(result["cloud_density"]);
+                        nWP.cloudCoverage = Convert.ToSingle(result["cloud_coverage"]);
+                        nWP.cloudScale = Convert.ToSingle(result["cloud_scale"]);
+                        nWP.cloudDetailXYDensity.X = Convert.ToSingle(result["cloud_detail_x"]);
+                        nWP.cloudDetailXYDensity.Y = Convert.ToSingle(result["cloud_detail_y"]);
+                        nWP.cloudDetailXYDensity.Z = Convert.ToSingle(result["cloud_detail_density"]);
+                        nWP.cloudScrollX = Convert.ToSingle(result["cloud_scroll_x"]);
+                        nWP.cloudScrollXLock = Convert.ToBoolean(result["cloud_scroll_x_lock"]);
+                        nWP.cloudScrollY = Convert.ToSingle(result["cloud_scroll_y"]);
+                        nWP.cloudScrollYLock = Convert.ToBoolean(result["cloud_scroll_y_lock"]);
+                        nWP.drawClassicClouds = Convert.ToBoolean(result["draw_classic_clouds"]);
+                    }
                 }
             }
             return nWP;
@@ -788,27 +811,32 @@ namespace OpenSim.Data.MySQL
         {
             RegionSettings rs = null;
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "select * from regionsettings where regionUUID = ?RegionUUID";
-                    cmd.Parameters.AddWithValue("regionUUID", regionUUID);
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        if (reader.Read())
-                        {
-                            rs = BuildRegionSettings(reader);
-                            rs.OnSave += StoreRegionSettings;
-                        }
-                        else
-                        {
-                            rs = new RegionSettings();
-                            rs.RegionUUID = regionUUID;
-                            rs.OnSave += StoreRegionSettings;
+                        cmd.CommandText = "select * from regionsettings where regionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("regionUUID", regionUUID);
 
-                            StoreRegionSettings(rs);
+                        using (IDataReader reader = ExecuteReader(cmd))
+                        {
+                            if (reader.Read())
+                            {
+                                rs = BuildRegionSettings(reader);
+                                rs.OnSave += StoreRegionSettings;
+                            }
+                            else
+                            {
+                                rs = new RegionSettings();
+                                rs.RegionUUID = regionUUID;
+                                rs.OnSave += StoreRegionSettings;
+
+                                StoreRegionSettings(rs);
+                            }
                         }
                     }
                 }
@@ -819,9 +847,11 @@ namespace OpenSim.Data.MySQL
 
         public void StoreRegionWindlightSettings(RegionMeta7WindlightData wl)
         {
-            lock (m_Connection)
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                dbcon.Open();
+
+                using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
                     cmd.CommandText = "REPLACE INTO `regionwindlight` (`region_id`, `water_color_r`, `water_color_g`, ";
                     cmd.CommandText += "`water_color_b`, `water_fog_density_exponent`, `underwater_fog_modifier`, ";
@@ -920,46 +950,51 @@ namespace OpenSim.Data.MySQL
 
         public void StoreRegionSettings(RegionSettings rs)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "replace into regionsettings (regionUUID, " +
-                        "block_terraform, block_fly, allow_damage, " +
-                        "restrict_pushing, allow_land_resell, " +
-                        "allow_land_join_divide, block_show_in_search, " +
-                        "agent_limit, object_bonus, maturity, " +
-                        "disable_scripts, disable_collisions, " +
-                        "disable_physics, terrain_texture_1, " +
-                        "terrain_texture_2, terrain_texture_3, " +
-                        "terrain_texture_4, elevation_1_nw, " +
-                        "elevation_2_nw, elevation_1_ne, " +
-                        "elevation_2_ne, elevation_1_se, " +
-                        "elevation_2_se, elevation_1_sw, " +
-                        "elevation_2_sw, water_height, " +
-                        "terrain_raise_limit, terrain_lower_limit, " +
-                        "use_estate_sun, fixed_sun, sun_position, " +
-                        "covenant, Sandbox, sunvectorx, sunvectory, " +
-                        "sunvectorz, loaded_creation_datetime, " +
-                        "loaded_creation_id) values (?RegionUUID, ?BlockTerraform, " +
-                        "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
-                        "?AllowLandResell, ?AllowLandJoinDivide, " +
-                        "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
-                        "?Maturity, ?DisableScripts, ?DisableCollisions, " +
-                        "?DisablePhysics, ?TerrainTexture1, " +
-                        "?TerrainTexture2, ?TerrainTexture3, " +
-                        "?TerrainTexture4, ?Elevation1NW, ?Elevation2NW, " +
-                        "?Elevation1NE, ?Elevation2NE, ?Elevation1SE, " +
-                        "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
-                        "?WaterHeight, ?TerrainRaiseLimit, " +
-                        "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
-                        "?SunPosition, ?Covenant, ?Sandbox, " +
-                        "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
-                        "?LoadedCreationDateTime, ?LoadedCreationID)";
+                    dbcon.Open();
 
-                    FillRegionSettingsCommand(cmd, rs);
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        cmd.CommandText = "replace into regionsettings (regionUUID, " +
+                            "block_terraform, block_fly, allow_damage, " +
+                            "restrict_pushing, allow_land_resell, " +
+                            "allow_land_join_divide, block_show_in_search, " +
+                            "agent_limit, object_bonus, maturity, " +
+                            "disable_scripts, disable_collisions, " +
+                            "disable_physics, terrain_texture_1, " +
+                            "terrain_texture_2, terrain_texture_3, " +
+                            "terrain_texture_4, elevation_1_nw, " +
+                            "elevation_2_nw, elevation_1_ne, " +
+                            "elevation_2_ne, elevation_1_se, " +
+                            "elevation_2_se, elevation_1_sw, " +
+                            "elevation_2_sw, water_height, " +
+                            "terrain_raise_limit, terrain_lower_limit, " +
+                            "use_estate_sun, fixed_sun, sun_position, " +
+                            "covenant, Sandbox, sunvectorx, sunvectory, " +
+                            "sunvectorz, loaded_creation_datetime, " +
+                            "loaded_creation_id) values (?RegionUUID, ?BlockTerraform, " +
+                            "?BlockFly, ?AllowDamage, ?RestrictPushing, " +
+                            "?AllowLandResell, ?AllowLandJoinDivide, " +
+                            "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
+                            "?Maturity, ?DisableScripts, ?DisableCollisions, " +
+                            "?DisablePhysics, ?TerrainTexture1, " +
+                            "?TerrainTexture2, ?TerrainTexture3, " +
+                            "?TerrainTexture4, ?Elevation1NW, ?Elevation2NW, " +
+                            "?Elevation1NE, ?Elevation2NE, ?Elevation1SE, " +
+                            "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
+                            "?WaterHeight, ?TerrainRaiseLimit, " +
+                            "?TerrainLowerLimit, ?UseEstateSun, ?FixedSun, " +
+                            "?SunPosition, ?Covenant, ?Sandbox, " +
+                            "?SunVectorX, ?SunVectorY, ?SunVectorZ, " +
+                            "?LoadedCreationDateTime, ?LoadedCreationID)";
 
-                    ExecuteNonQuery(cmd);
+                        FillRegionSettingsCommand(cmd, rs);
+
+                        ExecuteNonQuery(cmd);
+                    }
                 }
             }
         }
@@ -968,36 +1003,41 @@ namespace OpenSim.Data.MySQL
         {
             List<LandData> landData = new List<LandData>();
 
-            lock (m_Connection)
+            lock (m_dbLock)
             {
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.CommandText = "select * from land where RegionUUID = ?RegionUUID";
-                    cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
+                    dbcon.Open();
 
-                    using (IDataReader reader = ExecuteReader(cmd))
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
-                        while (reader.Read())
-                        {
-                            LandData newLand = BuildLandData(reader);
-                            landData.Add(newLand);
-                        }
-                    }
-                }
-
-                using (MySqlCommand cmd = m_Connection.CreateCommand())
-                {
-                    foreach (LandData land in landData)
-                    {
-                        cmd.Parameters.Clear();
-                        cmd.CommandText = "select * from landaccesslist where LandUUID = ?LandUUID";
-                        cmd.Parameters.AddWithValue("LandUUID", land.GlobalID.ToString());
+                        cmd.CommandText = "select * from land where RegionUUID = ?RegionUUID";
+                        cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
 
                         using (IDataReader reader = ExecuteReader(cmd))
                         {
                             while (reader.Read())
                             {
-                                land.ParcelAccessList.Add(BuildLandAccessData(reader));
+                                LandData newLand = BuildLandData(reader);
+                                landData.Add(newLand);
+                            }
+                        }
+                    }
+
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
+                        foreach (LandData land in landData)
+                        {
+                            cmd.Parameters.Clear();
+                            cmd.CommandText = "select * from landaccesslist where LandUUID = ?LandUUID";
+                            cmd.Parameters.AddWithValue("LandUUID", land.GlobalID.ToString());
+
+                            using (IDataReader reader = ExecuteReader(cmd))
+                            {
+                                while (reader.Read())
+                                {
+                                    land.ParcelAccessList.Add(BuildLandAccessData(reader));
+                                }
                             }
                         }
                     }
@@ -1705,41 +1745,46 @@ namespace OpenSim.Data.MySQL
 
         public void StorePrimInventory(UUID primID, ICollection<TaskInventoryItem> items)
         {
-            lock (m_Connection)
+            lock (m_dbLock)
             {
                 RemoveItems(primID);
 
-                MySqlCommand cmd = m_Connection.CreateCommand();
-
-                if (items.Count == 0)
-                    return;
-
-                cmd.CommandText = "insert into primitems ("+
-                        "invType, assetType, name, "+
-                        "description, creationDate, nextPermissions, "+
-                        "currentPermissions, basePermissions, "+
-                        "everyonePermissions, groupPermissions, "+
-                        "flags, itemID, primID, assetID, "+
-                        "parentFolderID, creatorID, ownerID, "+
-                        "groupID, lastOwnerID) values (?invType, "+
-                        "?assetType, ?name, ?description, "+
-                        "?creationDate, ?nextPermissions, "+
-                        "?currentPermissions, ?basePermissions, "+
-                        "?everyonePermissions, ?groupPermissions, "+
-                        "?flags, ?itemID, ?primID, ?assetID, "+
-                        "?parentFolderID, ?creatorID, ?ownerID, "+
-                        "?groupID, ?lastOwnerID)";
-
-                foreach (TaskInventoryItem item in items)
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    cmd.Parameters.Clear();
+                    dbcon.Open();
 
-                    FillItemCommand(cmd, item);
+                    MySqlCommand cmd = dbcon.CreateCommand();
 
-                    ExecuteNonQuery(cmd);
+                    if (items.Count == 0)
+                        return;
+
+                    cmd.CommandText = "insert into primitems (" +
+                            "invType, assetType, name, " +
+                            "description, creationDate, nextPermissions, " +
+                            "currentPermissions, basePermissions, " +
+                            "everyonePermissions, groupPermissions, " +
+                            "flags, itemID, primID, assetID, " +
+                            "parentFolderID, creatorID, ownerID, " +
+                            "groupID, lastOwnerID) values (?invType, " +
+                            "?assetType, ?name, ?description, " +
+                            "?creationDate, ?nextPermissions, " +
+                            "?currentPermissions, ?basePermissions, " +
+                            "?everyonePermissions, ?groupPermissions, " +
+                            "?flags, ?itemID, ?primID, ?assetID, " +
+                            "?parentFolderID, ?creatorID, ?ownerID, " +
+                            "?groupID, ?lastOwnerID)";
+
+                    foreach (TaskInventoryItem item in items)
+                    {
+                        cmd.Parameters.Clear();
+
+                        FillItemCommand(cmd, item);
+
+                        ExecuteNonQuery(cmd);
+                    }
+
+                    cmd.Dispose();
                 }
-                
-                cmd.Dispose();
             }
         }
     }
