@@ -224,6 +224,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // These are vector properties but the engine lets you use a single float value to 
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
+                	if (pValue > 30f) pValue = 30f;
+                	if (pValue < 0.1f) pValue = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
@@ -250,6 +252,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
+                	if (pValue.X > 30f) pValue.X = 30f;
+                	if (pValue.X < 0.1f) pValue.X = 0.1f;
+                	if (pValue.Y > 30f) pValue.Y = 30f;
+                	if (pValue.Y < 0.1f) pValue.Y = 0.1f;
+                	if (pValue.Z > 30f) pValue.Z = 30f;
+                	if (pValue.Z < 0.1f) pValue.Z = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
@@ -306,7 +314,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case Vehicle.TYPE_SLED:
                     m_linearFrictionTimescale = new Vector3(30, 1, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    m_angularFrictionTimescale = new Vector3(30, 30, 30);
 //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1000;
                     m_linearMotorDecayTimescale = 120;
@@ -333,7 +341,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.TYPE_CAR:
                     m_linearFrictionTimescale = new Vector3(100, 2, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    m_angularFrictionTimescale = new Vector3(30, 30, 30);		// was 1000, but sl max frict time is 30.
 //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1;
                     m_linearMotorDecayTimescale = 60;
@@ -548,6 +556,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 		        if (m_linearFrictionTimescale.Z < 300.0f)
 		        {
 			        float fricfactor = m_linearFrictionTimescale.Z / pTimestep;
+//if(frcount == 0) Console.WriteLine("Zfric={0}", fricfactor);
 			        float fricZ = m_lLinObjectVel.Z / fricfactor;
 			        m_lLinObjectVel.Z -= fricZ;
 			    }
@@ -639,7 +648,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 			*/
 //if(frcount == 0) Console.WriteLine("MoveAngular ");	
         
-//#### 
         	// Get what the body is doing, this includes 'external' influences
         	d.Vector3 angularObjectVel = d.BodyGetAngularVel(Body);
         	Vector3 angObjectVel = new Vector3(angularObjectVel.X, angularObjectVel.Y, angularObjectVel.Z);
@@ -652,9 +660,18 @@ namespace OpenSim.Region.Physics.OdePlugin
         	// Decay Angular Motor 2.
         	if (m_angularMotorDecayTimescale < 300.0f)
         	{
-				float decayfactor = m_angularMotorDecayTimescale/pTimestep;			// df = Dec / pts
-	            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);				// v-da = v-Dvel / df  = v-Dvel * pts / Dec
-	            m_angularMotorDVel -= decayAmount;        							// v-Dvel = v-Dvel - (v-Dvel / df  = v-Dvel * pts / Dec)
+//#### 
+            	if ( Vector3.Mag(m_angularMotorDVel) < 1.0f)
+            	{
+					float decayfactor = (m_angularMotorDecayTimescale)/pTimestep;
+		            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);	
+		            m_angularMotorDVel -= decayAmount;             	
+				}
+				else
+				{
+					Vector3 decel = Vector3.Normalize(m_angularMotorDVel) * pTimestep / m_angularMotorDecayTimescale;
+					m_angularMotorDVel -= decel;
+				}
         	
 				if (m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
 				{
@@ -743,22 +760,9 @@ namespace OpenSim.Region.Physics.OdePlugin
 //if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
                 }
                 
-		        if (m_angularFrictionTimescale.X < 300.0f)
-		        {
-			        float fricfactor = m_angularFrictionTimescale.X / pTimestep;
-			        angObjectVel.X -= angObjectVel.X / fricfactor;
-			    }
-		        if (m_angularFrictionTimescale.Y < 300.0f)
-		        {
-			        float fricfactor = m_angularFrictionTimescale.Y / pTimestep;
-			        angObjectVel.Y -= angObjectVel.Y / fricfactor;
-			    }
-		        if (m_angularFrictionTimescale.Z < 300.0f)
-		        {
-			        float fricfactor = m_angularFrictionTimescale.Z / pTimestep;
-			        angObjectVel.Z -= angObjectVel.Z / fricfactor;
-			        Console.WriteLine("z fric");
-			    }       	
+		        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / pTimestep);
+		        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / pTimestep);
+		        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / pTimestep);
 			} // else no signif. motion
 			
 //if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
