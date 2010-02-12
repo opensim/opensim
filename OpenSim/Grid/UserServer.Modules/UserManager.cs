@@ -503,7 +503,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLocationX = (float)Convert.ToDecimal((string)requestData["home_pos_x"]);
+                    userProfile.HomeLocationX = (float)Convert.ToDecimal((string)requestData["home_pos_x"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -514,7 +514,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLocationY = (float)Convert.ToDecimal((string)requestData["home_pos_y"]);
+                    userProfile.HomeLocationY = (float)Convert.ToDecimal((string)requestData["home_pos_y"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -525,7 +525,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLocationZ = (float)Convert.ToDecimal((string)requestData["home_pos_z"]);
+                    userProfile.HomeLocationZ = (float)Convert.ToDecimal((string)requestData["home_pos_z"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -536,7 +536,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLookAtX = (float)Convert.ToDecimal((string)requestData["home_look_x"]);
+                    userProfile.HomeLookAtX = (float)Convert.ToDecimal((string)requestData["home_look_x"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -547,7 +547,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLookAtY = (float)Convert.ToDecimal((string)requestData["home_look_y"]);
+                    userProfile.HomeLookAtY = (float)Convert.ToDecimal((string)requestData["home_look_y"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -558,7 +558,7 @@ namespace OpenSim.Grid.UserServer.Modules
             {
                 try
                 {
-                    userProfile.HomeLookAtZ = (float)Convert.ToDecimal((string)requestData["home_look_z"]);
+                    userProfile.HomeLookAtZ = (float)Convert.ToDecimal((string)requestData["home_look_z"], Culture.NumberFormatInfo);
                 }
                 catch (InvalidCastException)
                 {
@@ -634,13 +634,13 @@ namespace OpenSim.Grid.UserServer.Modules
                     UUID RegionID = new UUID((string)requestData["region_uuid"]);
                     ulong regionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
                     Vector3 position = new Vector3(
-                        (float)Convert.ToDecimal((string)requestData["region_pos_x"]),
-                        (float)Convert.ToDecimal((string)requestData["region_pos_y"]),
-                        (float)Convert.ToDecimal((string)requestData["region_pos_z"]));
+                        (float)Convert.ToDecimal((string)requestData["region_pos_x"], Culture.NumberFormatInfo),
+                        (float)Convert.ToDecimal((string)requestData["region_pos_y"], Culture.NumberFormatInfo),
+                        (float)Convert.ToDecimal((string)requestData["region_pos_z"], Culture.NumberFormatInfo));
                     Vector3 lookat = new Vector3(
-                        (float)Convert.ToDecimal((string)requestData["lookat_x"]),
-                        (float)Convert.ToDecimal((string)requestData["lookat_y"]),
-                        (float)Convert.ToDecimal((string)requestData["lookat_z"]));
+                        (float)Convert.ToDecimal((string)requestData["lookat_x"], Culture.NumberFormatInfo),
+                        (float)Convert.ToDecimal((string)requestData["lookat_y"], Culture.NumberFormatInfo),
+                        (float)Convert.ToDecimal((string)requestData["lookat_z"], Culture.NumberFormatInfo));
 
                     handlerLogOffUser = OnLogOffUser;
                     if (handlerLogOffUser != null)

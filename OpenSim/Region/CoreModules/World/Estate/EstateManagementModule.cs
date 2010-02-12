@@ -974,8 +974,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 if (y == -1 || m_scene.RegionInfo.RegionLocY == y)
                 {
                     int corner = int.Parse(num);
-                    float lowValue = float.Parse(min);
-                    float highValue = float.Parse(max);
+                    float lowValue = float.Parse(min, Culture.NumberFormatInfo);
+                    float highValue = float.Parse(max, Culture.NumberFormatInfo);
 
                     m_log.Debug("[ESTATEMODULE] Setting terrain heights " + m_scene.RegionInfo.RegionName +
                                 string.Format(" (C{0}, {1}-{2}", corner, lowValue, highValue));

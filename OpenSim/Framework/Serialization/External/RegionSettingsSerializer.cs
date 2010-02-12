@@ -109,7 +109,7 @@ namespace OpenSim.Framework.Serialization.External
                         settings.AgentLimit = int.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "ObjectBonus":
-                        settings.ObjectBonus = double.Parse(xtr.ReadElementContentAsString());
+                        settings.ObjectBonus = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                 }
             }
@@ -134,28 +134,28 @@ namespace OpenSim.Framework.Serialization.External
                         settings.TerrainTexture4 = UUID.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "ElevationLowSW":
-                        settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationLowNW":
-                        settings.Elevation1NW = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation1NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationLowSE":
-                        settings.Elevation1SE = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation1SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationLowNE":
-                        settings.Elevation1NE = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation1NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationHighSW":
-                        settings.Elevation2SW = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation2SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationHighNW":
-                        settings.Elevation2NW = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation2NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationHighSE":
-                        settings.Elevation2SE = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation2SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "ElevationHighNE":
-                        settings.Elevation2NE = double.Parse(xtr.ReadElementContentAsString());
+                        settings.Elevation2NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                 }
             }
@@ -168,13 +168,13 @@ namespace OpenSim.Framework.Serialization.External
                 switch (xtr.Name)
                 {
                     case "WaterHeight":
-                        settings.WaterHeight = double.Parse(xtr.ReadElementContentAsString());
+                        settings.WaterHeight = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "TerrainRaiseLimit":
-                        settings.TerrainRaiseLimit = double.Parse(xtr.ReadElementContentAsString());
+                        settings.TerrainRaiseLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "TerrainLowerLimit":
-                        settings.TerrainLowerLimit = double.Parse(xtr.ReadElementContentAsString());
+                        settings.TerrainLowerLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
                         break;
                     case "UseEstateSun":
                         settings.UseEstateSun = bool.Parse(xtr.ReadElementContentAsString());

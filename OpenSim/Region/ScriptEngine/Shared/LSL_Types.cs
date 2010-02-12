@@ -72,9 +72,9 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
                 bool res;
-                res = Double.TryParse(tmps[0], out x);
-                res = res & Double.TryParse(tmps[1], out y);
-                res = res & Double.TryParse(tmps[2], out z);
+                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x);
+                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y);
+                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z);
             }
 
             #endregion
@@ -309,10 +309,10 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return;
                 }
                 bool res;
-                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.FormatProvider, out x);
-                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.FormatProvider, out y);
-                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.FormatProvider, out z);
-                res = res & Double.TryParse(tmps[3], NumberStyles.Float, Culture.FormatProvider, out s);
+                res = Double.TryParse(tmps[0], NumberStyles.Float, Culture.NumberFormatInfo, out x);
+                res = res & Double.TryParse(tmps[1], NumberStyles.Float, Culture.NumberFormatInfo, out y);
+                res = res & Double.TryParse(tmps[2], NumberStyles.Float, Culture.NumberFormatInfo, out z);
+                res = res & Double.TryParse(tmps[3], NumberStyles.Float, Culture.NumberFormatInfo, out s);
                 if (x == 0 && y == 0 && z == 0 && s == 0)
                     s = 1;
             }
@@ -1015,7 +1015,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), out entry))
+                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         if (entry < minimum) minimum = entry;
                     }
@@ -1029,7 +1029,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), out entry))
+                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         if (entry > maximum) maximum = entry;
                     }
@@ -1048,7 +1048,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), out entry))
+                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         count++;
                     }
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < src.Data.Length - 1; i++)
                 {
-                    if (double.TryParse(src.Data[i].ToString(), out entry))
+                    if (double.TryParse(src.Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         ret.Add(entry);
                     }
@@ -1076,7 +1076,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), out entry))
+                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         sum = sum + entry;
                     }
@@ -1090,7 +1090,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 double entry;
                 for (int i = 0; i < Data.Length; i++)
                 {
-                    if (double.TryParse(Data[i].ToString(), out entry))
+                    if (double.TryParse(Data[i].ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out entry))
                     {
                         sum = sum + Math.Pow(entry, 2);
                     }
@@ -1213,11 +1213,11 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 {
                     double a;
                     double b;
-                    if (!double.TryParse(x.ToString(), out a))
+                    if (!double.TryParse(x.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out a))
                     {
                         a = 0.0;
                     }
-                    if (!double.TryParse(y.ToString(), out b))
+                    if (!double.TryParse(y.ToString(), NumberStyles.Float, Culture.NumberFormatInfo, out b))
                     {
                         b = 0.0;
                     }
@@ -1857,7 +1857,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     else
                         if (v.EndsWith("."))
                             v = v + "0";
-                this.value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.FormatProvider);
+                this.value = double.Parse(v, System.Globalization.NumberStyles.Float, Culture.NumberFormatInfo);
             }
 
             #endregion

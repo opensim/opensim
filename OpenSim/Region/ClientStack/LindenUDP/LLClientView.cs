@@ -8307,8 +8307,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter), convertParamStringToBool(messagePacket.ParamList[1].Parameter),
                                                 convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
-                                                Convert.ToInt16(Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[4].Parameter))),
-                                                (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter)),
+                                                Convert.ToInt16(Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[4].Parameter), Culture.NumberFormatInfo)),
+                                                (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter), Culture.NumberFormatInfo),
                                                 Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[6].Parameter)),
                                                 convertParamStringToBool(messagePacket.ParamList[7].Parameter), convertParamStringToBool(messagePacket.ParamList[8].Parameter));
                     }
@@ -8356,8 +8356,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (splitField.Length == 3)
                             {
                                 Int16 corner = Convert.ToInt16(splitField[0]);
-                                float lowValue = (float)Convert.ToDecimal(splitField[1]);
-                                float highValue = (float)Convert.ToDecimal(splitField[2]);
+                                float lowValue = (float)Convert.ToDecimal(splitField[1], Culture.NumberFormatInfo);
+                                float highValue = (float)Convert.ToDecimal(splitField[2], Culture.NumberFormatInfo);
 
                                 OnSetEstateTerrainTextureHeights(this, corner, lowValue, highValue);
                             }
@@ -8380,19 +8380,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 string tmp = Utils.BytesToString(messagePacket.ParamList[0].Parameter);
                                 if (!tmp.Contains(".")) tmp += ".00";
-                                float WaterHeight = (float)Convert.ToDecimal(tmp);
+                                float WaterHeight = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                 tmp = Utils.BytesToString(messagePacket.ParamList[1].Parameter);
                                 if (!tmp.Contains(".")) tmp += ".00";
-                                float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp);
+                                float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                 tmp = Utils.BytesToString(messagePacket.ParamList[2].Parameter);
                                 if (!tmp.Contains(".")) tmp += ".00";
-                                float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                                float TerrainLowerLimit = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                 bool UseEstateSun = convertParamStringToBool(messagePacket.ParamList[3].Parameter);
                                 bool UseFixedSun = convertParamStringToBool(messagePacket.ParamList[4].Parameter);
-                                float SunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter));
+                                float SunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter), Culture.NumberFormatInfo);
                                 bool UseGlobal = convertParamStringToBool(messagePacket.ParamList[6].Parameter);
                                 bool EstateFixedSun = convertParamStringToBool(messagePacket.ParamList[7].Parameter);
-                                float EstateSunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[8].Parameter));
+                                float EstateSunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[8].Parameter), Culture.NumberFormatInfo);
 
                                 OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseEstateSun, UseFixedSun, SunHour, UseGlobal, EstateFixedSun, EstateSunHour);
 
@@ -13924,8 +13924,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             {
                                 OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter), convertParamStringToBool(messagePacket.ParamList[1].Parameter),
                                                         convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
-                                                        Convert.ToInt16(Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[4].Parameter))),
-                                                        (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter)),
+                                                        Convert.ToInt16(Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[4].Parameter), Culture.NumberFormatInfo)),
+                                                        (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter), Culture.NumberFormatInfo),
                                                         Convert.ToInt16(Utils.BytesToString(messagePacket.ParamList[6].Parameter)),
                                                         convertParamStringToBool(messagePacket.ParamList[7].Parameter), convertParamStringToBool(messagePacket.ParamList[8].Parameter));
                             }
@@ -13973,8 +13973,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     if (splitField.Length == 3)
                                     {
                                         Int16 corner = Convert.ToInt16(splitField[0]);
-                                        float lowValue = (float)Convert.ToDecimal(splitField[1]);
-                                        float highValue = (float)Convert.ToDecimal(splitField[2]);
+                                        float lowValue = (float)Convert.ToDecimal(splitField[1], Culture.NumberFormatInfo);
+                                        float highValue = (float)Convert.ToDecimal(splitField[2], Culture.NumberFormatInfo);
 
                                         OnSetEstateTerrainTextureHeights(this, corner, lowValue, highValue);
                                     }
@@ -13997,19 +13997,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     {
                                         string tmp = Utils.BytesToString(messagePacket.ParamList[0].Parameter);
                                         if (!tmp.Contains(".")) tmp += ".00";
-                                        float WaterHeight = (float)Convert.ToDecimal(tmp);
+                                        float WaterHeight = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                         tmp = Utils.BytesToString(messagePacket.ParamList[1].Parameter);
                                         if (!tmp.Contains(".")) tmp += ".00";
-                                        float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp);
+                                        float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                         tmp = Utils.BytesToString(messagePacket.ParamList[2].Parameter);
                                         if (!tmp.Contains(".")) tmp += ".00";
-                                        float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                                        float TerrainLowerLimit = (float)Convert.ToDecimal(tmp, Culture.NumberFormatInfo);
                                         bool UseEstateSun = convertParamStringToBool(messagePacket.ParamList[3].Parameter);
                                         bool UseFixedSun = convertParamStringToBool(messagePacket.ParamList[4].Parameter);
-                                        float SunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter));
+                                        float SunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[5].Parameter), Culture.NumberFormatInfo);
                                         bool UseGlobal = convertParamStringToBool(messagePacket.ParamList[6].Parameter);
                                         bool EstateFixedSun = convertParamStringToBool(messagePacket.ParamList[7].Parameter);
-                                        float EstateSunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[8].Parameter));
+                                        float EstateSunHour = (float)Convert.ToDecimal(Utils.BytesToString(messagePacket.ParamList[8].Parameter), Culture.NumberFormatInfo);
 
                                         OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseEstateSun, UseFixedSun, SunHour, UseGlobal, EstateFixedSun, EstateSunHour);
 

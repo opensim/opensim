@@ -218,9 +218,9 @@ namespace OpenSim.Client.Linden
                 {
                     //m_log.Debug("[CLIENT]: Main agent detected");
                     agentData.startpos =
-                        new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
-                                      (float)Convert.ToDecimal((string)requestData["startpos_y"]),
-                                      (float)Convert.ToDecimal((string)requestData["startpos_z"]));
+                        new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"], Culture.NumberFormatInfo),
+                                      (float)Convert.ToDecimal((string)requestData["startpos_y"], Culture.NumberFormatInfo),
+                                      (float)Convert.ToDecimal((string)requestData["startpos_z"], Culture.NumberFormatInfo));
                     agentData.child = false;
                 }
 
