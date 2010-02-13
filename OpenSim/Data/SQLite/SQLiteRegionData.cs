@@ -617,18 +617,42 @@ namespace OpenSim.Data.SQLite
         {
             lock (ds)
             {
-                using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", m_conn))
+                // Can't use blanket SQL statements when using SqlAdapters unless you re-read the data into the adapter
+                // after you're done.
+                // replaced below code with the SqliteAdapter version.
+                //using (SqliteCommand cmd = new SqliteCommand("delete from land where UUID=:UUID", m_conn))
+                //{
+                //    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                //    cmd.ExecuteNonQuery();
+                //}
+
+                //using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", m_conn))
+                //{
+                //   cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
+                //    cmd.ExecuteNonQuery();
+                //}
+
+                DataTable land = ds.Tables["land"];
+                DataTable landaccesslist = ds.Tables["landaccesslist"];
+                DataRow landRow = land.Rows.Find(globalID.ToString());
+                if (landRow != null)
                 {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
-                    cmd.ExecuteNonQuery();
+                    land.Rows.Remove(landRow);
+                }
+                List<DataRow> rowsToDelete = new List<DataRow>();
+                foreach (DataRow rowToCheck in landaccesslist.Rows)
+                {
+                    if (rowToCheck["LandUUID"].ToString() == globalID.ToString())
+                        rowsToDelete.Add(rowToCheck);
+                }
+                for (int iter = 0; iter < rowsToDelete.Count; iter++)
+                {
+                    landaccesslist.Rows.Remove(rowsToDelete[iter]);
                 }
 
-                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:UUID", m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":UUID", globalID.ToString()));
-                    cmd.ExecuteNonQuery();
-                }
+               
             }
+            Commit();
         }
 
         /// <summary>
@@ -655,12 +679,27 @@ namespace OpenSim.Data.SQLite
                 }
 
                 // I know this caused someone issues before, but OpenSim is unusable if we leave this stuff around
-                using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
-                {
-                    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.LandData.GlobalID.ToString()));
-                    cmd.ExecuteNonQuery();
-                }
+                //using (SqliteCommand cmd = new SqliteCommand("delete from landaccesslist where LandUUID=:LandUUID", m_conn))
+                //{
+                //    cmd.Parameters.Add(new SqliteParameter(":LandUUID", parcel.LandData.GlobalID.ToString()));
+                //    cmd.ExecuteNonQuery();
 
+//                }
+
+                // This is the slower..  but more appropriate thing to do
+
+                // We can't modify the table with direct queries before calling Commit() and re-filling them.
+                List<DataRow> rowsToDelete = new List<DataRow>();
+                foreach (DataRow rowToCheck in landaccesslist.Rows)
+                {
+                    if (rowToCheck["LandUUID"].ToString() == parcel.LandData.GlobalID.ToString())
+                        rowsToDelete.Add(rowToCheck);
+                }
+                for (int iter = 0; iter < rowsToDelete.Count; iter++)
+                {
+                    landaccesslist.Rows.Remove(rowsToDelete[iter]);
+                }
+                rowsToDelete.Clear();
                 foreach (ParcelManager.ParcelAccessEntry entry in parcel.LandData.ParcelAccessList)
                 {
                     DataRow newAccessRow = landaccesslist.NewRow();
@@ -1813,6 +1852,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="regionUUID"></param>
         private void addPrim(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
+
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
@@ -1962,6 +2002,40 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
+        /// create an update command
+        /// </summary>
+        /// <param name="table">table name</param>
+        /// <param name="pk"></param>
+        /// <param name="dt"></param>
+        /// <returns>the created command</returns>
+        private static SqliteCommand createUpdateCommand(string table, string pk1, string pk2, DataTable dt)
+        {
+            string sql = "update " + table + " set ";
+            string subsql = String.Empty;
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (subsql.Length > 0)
+                {
+                    // a map function would rock so much here
+                    subsql += ", ";
+                }
+                subsql += col.ColumnName + "= :" + col.ColumnName;
+            }
+            sql += subsql;
+            sql += " where " + pk1 + " and " + pk2;
+            SqliteCommand cmd = new SqliteCommand(sql);
+
+            // this provides the binding for all our parameters, so
+            // much less code than it used to be
+
+            foreach (DataColumn col in dt.Columns)
+            {
+                cmd.Parameters.Add(createSqliteParameter(col.ColumnName, col.DataType));
+            }
+            return cmd;
+        }
+
+        /// <summary>
         ///
         /// </summary>
         /// <param name="dt">Data Table</param>
@@ -2079,6 +2153,11 @@ namespace OpenSim.Data.SQLite
 
             da.UpdateCommand = createUpdateCommand("land", "UUID=:UUID", ds.Tables["land"]);
             da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from land where UUID=:UUID");
+            delete.Parameters.Add(createSqliteParameter("UUID", typeof(String)));
+            da.DeleteCommand = delete;
+            da.DeleteCommand.Connection = conn;
         }
 
         /// <summary>
@@ -2090,6 +2169,16 @@ namespace OpenSim.Data.SQLite
         {
             da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("landaccesslist", "LandUUID=:landUUID", "AccessUUID=:AccessUUID", ds.Tables["landaccesslist"]);
+            da.UpdateCommand.Connection = conn;
+
+            SqliteCommand delete = new SqliteCommand("delete from landaccesslist where LandUUID= :LandUUID and AccessUUID= :AccessUUID");
+            delete.Parameters.Add(createSqliteParameter("LandUUID", typeof(String)));
+            delete.Parameters.Add(createSqliteParameter("AccessUUID", typeof(String)));
+            da.DeleteCommand = delete;
+            da.DeleteCommand.Connection = conn;
+            
         }
 
         private void setupRegionSettingsCommands(SqliteDataAdapter da, SqliteConnection conn)
