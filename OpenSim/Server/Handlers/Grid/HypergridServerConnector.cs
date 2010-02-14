@@ -132,9 +132,9 @@ namespace OpenSim.Server.Handlers.Grid
             userData.SurName = (string)requestData["lastname"];
             userData.ID = new UUID((string)requestData["agent_id"]);
             UUID sessionID = new UUID((string)requestData["session_id"]);
-            userData.HomeLocation = new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
-                                  (float)Convert.ToDecimal((string)requestData["startpos_y"]),
-                                  (float)Convert.ToDecimal((string)requestData["startpos_z"]));
+            userData.HomeLocation = new Vector3((float)Convert.ToDecimal((string)requestData["startpos_x"], Culture.NumberFormatInfo),
+                                  (float)Convert.ToDecimal((string)requestData["startpos_y"], Culture.NumberFormatInfo),
+                                  (float)Convert.ToDecimal((string)requestData["startpos_z"], Culture.NumberFormatInfo));
 
             userData.UserServerURI = (string)requestData["userserver_id"];
             userData.UserAssetURI = (string)requestData["assetserver_id"];

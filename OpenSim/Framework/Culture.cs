@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 {
     public class Culture
     {
-        private static readonly CultureInfo m_cultureInfo = new CultureInfo("en-US", true);
+        private static readonly CultureInfo m_cultureInfo = new CultureInfo("en-US", false);
 
         public static NumberFormatInfo NumberFormatInfo
         {

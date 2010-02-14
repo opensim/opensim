@@ -1015,8 +1015,8 @@ namespace OpenSim.Framework.Communications.Services
                     }
                     else
                     {
-                        theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value),
-                                                                    float.Parse(uriMatch.Groups["y"].Value), float.Parse(uriMatch.Groups["z"].Value));
+                        theUser.CurrentAgent.Position = new Vector3(float.Parse(uriMatch.Groups["x"].Value, Culture.NumberFormatInfo),
+                                                                    float.Parse(uriMatch.Groups["y"].Value, Culture.NumberFormatInfo), float.Parse(uriMatch.Groups["z"].Value, Culture.NumberFormatInfo));
                     }
                 }
                 response.LookAt = "[r0,r1,r0]";

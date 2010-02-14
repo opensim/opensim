@@ -673,13 +673,13 @@ namespace OpenSim.Region.Communications.OGS1
             else
                 userData.HomeRegionID = UUID.Zero;
             userData.HomeLocation =
-                new Vector3((float)Convert.ToDecimal((string)data["home_coordinates_x"]),
-                              (float)Convert.ToDecimal((string)data["home_coordinates_y"]),
-                              (float)Convert.ToDecimal((string)data["home_coordinates_z"]));
+                new Vector3((float)Convert.ToDecimal((string)data["home_coordinates_x"], Culture.NumberFormatInfo),
+                              (float)Convert.ToDecimal((string)data["home_coordinates_y"], Culture.NumberFormatInfo),
+                              (float)Convert.ToDecimal((string)data["home_coordinates_z"], Culture.NumberFormatInfo));
             userData.HomeLookAt =
-                new Vector3((float)Convert.ToDecimal((string)data["home_look_x"]),
-                              (float)Convert.ToDecimal((string)data["home_look_y"]),
-                              (float)Convert.ToDecimal((string)data["home_look_z"]));
+                new Vector3((float)Convert.ToDecimal((string)data["home_look_x"], Culture.NumberFormatInfo),
+                              (float)Convert.ToDecimal((string)data["home_look_y"], Culture.NumberFormatInfo),
+                              (float)Convert.ToDecimal((string)data["home_look_z"], Culture.NumberFormatInfo));
             if (data.Contains("user_flags"))
                 userData.UserFlags = Convert.ToInt32((string)data["user_flags"]);
             if (data.Contains("god_level"))

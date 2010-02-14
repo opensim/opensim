@@ -93,7 +93,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public AssetBase Get(string id)
-        {
+        {            
             string uri = m_ServerURI + "/assets/" + id;
 
             AssetBase asset = null;

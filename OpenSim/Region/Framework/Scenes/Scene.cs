@@ -3147,7 +3147,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[APPEARANCE]: Appearance not found in {0}, returning default", RegionInfo.RegionName);
                 appearance = new AvatarAppearance(client.AgentId);
             }
-
         }
 
         /// <summary>

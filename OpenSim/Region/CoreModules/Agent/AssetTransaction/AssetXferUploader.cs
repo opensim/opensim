@@ -154,7 +154,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 m_userTransactions.Manager.MyScene.AssetService.Store(m_asset);
             }
 
-            m_log.DebugFormat("[ASSET TRANSACTIONS]: Uploaded asset data for transaction {0}", TransactionID);
+            m_log.DebugFormat(
+                "[ASSET TRANSACTIONS]: Uploaded asset {0} for transaction {1}", m_asset.FullID, TransactionID);
 
             if (m_dumpAssetToFile)
             {

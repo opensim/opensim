@@ -1183,14 +1183,14 @@ namespace OpenSim
                     }
                     if (cmdparams.Length > 4)
                     {
-                        loadOffset.X = (float) Convert.ToDecimal(cmdparams[4]);
+                        loadOffset.X = (float)Convert.ToDecimal(cmdparams[4], Culture.NumberFormatInfo);
                         if (cmdparams.Length > 5)
                         {
-                            loadOffset.Y = (float) Convert.ToDecimal(cmdparams[5]);
+                            loadOffset.Y = (float)Convert.ToDecimal(cmdparams[5], Culture.NumberFormatInfo);
                         }
                         if (cmdparams.Length > 6)
                         {
-                            loadOffset.Z = (float) Convert.ToDecimal(cmdparams[6]);
+                            loadOffset.Z = (float)Convert.ToDecimal(cmdparams[6], Culture.NumberFormatInfo);
                         }
                         MainConsole.Instance.Output(String.Format("loadOffsets <X,Y,Z> = <{0},{1},{2}>",loadOffset.X,loadOffset.Y,loadOffset.Z));
                     }
