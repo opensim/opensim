@@ -108,13 +108,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         
         //Angular properties
         private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
-        private int m_angularMotorApply = 0;							// application frame counter
-        private Vector3 m_angularMotorVelocity = Vector3.Zero;			// current angular motor velocity 
-        private float m_angularMotorTimescale = 0;						// motor angular velocity ramp up rate
-        private float m_angularMotorDecayTimescale = 0;					// motor angular velocity decay rate
-        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular velocity  decay rate
+        
+        private float m_angularMotorTimescale = 0;						// motor angular Attack rate set by LSL
+        private float m_angularMotorDecayTimescale = 0;					// motor angular Decay rate set by LSL
+        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular Friction set by LSL
+
+        private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
+//        private Vector3 m_angObjectVel = Vector3.Zero;					// current body angular velocity
         private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
- //       private Vector3 m_lastVertAttractor = Vector3.Zero;				// what VA was last applied to body
 
 		//Deflection properties        
         // private float m_angularDeflectionEfficiency = 0;
@@ -223,11 +224,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // These are vector properties but the engine lets you use a single float value to 
                 // set all of the components to the same value
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
+                	if (pValue > 30f) pValue = 30f;
+                	if (pValue < 0.1f) pValue = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue, pValue, pValue);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
                     m_angularMotorDirection = new Vector3(pValue, pValue, pValue);
-                    m_angularMotorApply = 10;
+                    UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue, pValue, pValue);
@@ -249,6 +252,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             switch (pParam)
             {
                 case Vehicle.ANGULAR_FRICTION_TIMESCALE:
+                	if (pValue.X > 30f) pValue.X = 30f;
+                	if (pValue.X < 0.1f) pValue.X = 0.1f;
+                	if (pValue.Y > 30f) pValue.Y = 30f;
+                	if (pValue.Y < 0.1f) pValue.Y = 0.1f;
+                	if (pValue.Z > 30f) pValue.Z = 30f;
+                	if (pValue.Z < 0.1f) pValue.Z = 0.1f;
                     m_angularFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
                     break;
                 case Vehicle.ANGULAR_MOTOR_DIRECTION:
@@ -260,7 +269,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if(m_angularMotorDirection.Y < - 12.56f) m_angularMotorDirection.Y = - 12.56f; 
                     if(m_angularMotorDirection.Z > 12.56f) m_angularMotorDirection.Z = 12.56f; 
                     if(m_angularMotorDirection.Z < - 12.56f) m_angularMotorDirection.Z = - 12.56f; 
-                    m_angularMotorApply = 10;
+                    UpdateAngDecay();
                     break;
                 case Vehicle.LINEAR_FRICTION_TIMESCALE:
                     m_linearFrictionTimescale = new Vector3(pValue.X, pValue.Y, pValue.Z);
@@ -305,11 +314,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case Vehicle.TYPE_SLED:
                     m_linearFrictionTimescale = new Vector3(30, 1, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    m_angularFrictionTimescale = new Vector3(30, 30, 30);
 //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1000;
                     m_linearMotorDecayTimescale = 120;
                     m_angularMotorDirection = Vector3.Zero;
+                    m_angularMotorDVel = Vector3.Zero;
                     m_angularMotorTimescale = 1000;
                     m_angularMotorDecayTimescale = 120;
                     m_VhoverHeight = 0;
@@ -331,11 +341,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
                 case Vehicle.TYPE_CAR:
                     m_linearFrictionTimescale = new Vector3(100, 2, 1000);
-                    m_angularFrictionTimescale = new Vector3(1000, 1000, 1000);
+                    m_angularFrictionTimescale = new Vector3(30, 30, 30);		// was 1000, but sl max frict time is 30.
 //                     m_lLinMotorVel = Vector3.Zero;
                     m_linearMotorTimescale = 1;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
+                    m_angularMotorDVel = Vector3.Zero;
                     m_angularMotorTimescale = 1;
                     m_angularMotorDecayTimescale = 0.8f;
                     m_VhoverHeight = 0;
@@ -363,6 +374,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearMotorTimescale = 5;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
+                    m_angularMotorDVel = Vector3.Zero;
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
@@ -391,6 +403,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearMotorTimescale = 2;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
+                    m_angularMotorDVel = Vector3.Zero;
                     m_angularMotorTimescale = 4;
                     m_angularMotorDecayTimescale = 4;
                     m_VhoverHeight = 0;
@@ -417,6 +430,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     m_linearMotorTimescale = 5;
                     m_linearMotorDecayTimescale = 60;
                     m_angularMotorDirection = Vector3.Zero;
+                    m_angularMotorDVel = Vector3.Zero;
                     m_angularMotorTimescale = 6;
                     m_angularMotorDecayTimescale = 10;
                     m_VhoverHeight = 5;
@@ -468,8 +482,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 			m_lLinObjectVel = Vector3.Zero;						
 			m_wLinObjectVel = Vector3.Zero;
 			m_angularMotorDirection = Vector3.Zero;		
-			m_angularMotorVelocity = Vector3.Zero;		
-			m_lastAngularVelocity = Vector3.Zero;		
+			m_lastAngularVelocity = Vector3.Zero;
+			m_angularMotorDVel = Vector3.Zero;	
 		}
 		
 		private void UpdateLinDecay()
@@ -542,6 +556,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 		        if (m_linearFrictionTimescale.Z < 300.0f)
 		        {
 			        float fricfactor = m_linearFrictionTimescale.Z / pTimestep;
+//if(frcount == 0) Console.WriteLine("Zfric={0}", fricfactor);
 			        float fricZ = m_lLinObjectVel.Z / fricfactor;
 			        m_lLinObjectVel.Z -= fricZ;
 			    }
@@ -611,54 +626,73 @@ namespace OpenSim.Region.Physics.OdePlugin
 			d.BodyAddForce(Body, grav.X, grav.Y, grav.Z);		
 //if(frcount == 0) Console.WriteLine("Grav {0}", grav);
         } // end MoveLinear()
+
+		private void UpdateAngDecay()
+		{
+			if (Math.Abs(m_angularMotorDirection.X) > Math.Abs(m_angularMotorDVel.X)) m_angularMotorDVel.X = m_angularMotorDirection.X;
+			if (Math.Abs(m_angularMotorDirection.Y) > Math.Abs(m_angularMotorDVel.Y)) m_angularMotorDVel.Y = m_angularMotorDirection.Y;
+			if (Math.Abs(m_angularMotorDirection.Z) > Math.Abs(m_angularMotorDVel.Z)) m_angularMotorDVel.Z = m_angularMotorDirection.Z;
+		} // else let the motor decay on its own
         
         private void MoveAngular(float pTimestep)
         {
 	        /*
-	        private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
-	        private int m_angularMotorApply = 0;							// application frame counter
- 	        private float m_angularMotorVelocity = 0;						// current angular motor velocity (ramps up and down) 
-	        private float m_angularMotorTimescale = 0;						// motor angular velocity ramp up rate
-	        private float m_angularMotorDecayTimescale = 0;					// motor angular velocity decay rate
-	        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular velocity  decay rate
-	        private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
+        private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor 
+        
+        private float m_angularMotorTimescale = 0;						// motor angular Attack rate set by LSL
+        private float m_angularMotorDecayTimescale = 0;					// motor angular Decay rate set by LSL
+        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular Friction set by LSL
+
+        private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
+        private Vector3 m_angObjectVel = Vector3.Zero;					// what was last applied to body
 			*/
 //if(frcount == 0) Console.WriteLine("MoveAngular ");	
         
         	// Get what the body is doing, this includes 'external' influences
-        	d.Vector3 angularVelocity = d.BodyGetAngularVel(Body);
-   //     	Vector3 angularVelocity = Vector3.Zero;
+        	d.Vector3 angularObjectVel = d.BodyGetAngularVel(Body);
+        	Vector3 angObjectVel = new Vector3(angularObjectVel.X, angularObjectVel.Y, angularObjectVel.Z);
+//if(frcount == 0) Console.WriteLine("V0 = {0}", angObjectVel);        	
+//   	Vector3 FrAaccel = m_lastAngularVelocity - angObjectVel;
+//    Vector3 initavel =  angObjectVel;       	
+        	// Decay Angular Motor 1. In SL this also depends on attack rate! decay ~= 23/Attack.
+        	float atk_decayfactor = 23.0f  / (m_angularMotorTimescale * pTimestep); 
+        	m_angularMotorDVel -= m_angularMotorDVel / atk_decayfactor;
+        	// Decay Angular Motor 2.
+        	if (m_angularMotorDecayTimescale < 300.0f)
+        	{
+//#### 
+            	if ( Vector3.Mag(m_angularMotorDVel) < 1.0f)
+            	{
+					float decayfactor = (m_angularMotorDecayTimescale)/pTimestep;
+		            Vector3 decayAmount = (m_angularMotorDVel/decayfactor);	
+		            m_angularMotorDVel -= decayAmount;             	
+				}
+				else
+				{
+					Vector3 decel = Vector3.Normalize(m_angularMotorDVel) * pTimestep / m_angularMotorDecayTimescale;
+					m_angularMotorDVel -= decel;
+				}
         	
-        	if (m_angularMotorApply > 0)
-        	{	
-				// ramp up to new value
-				//   current velocity  += 		                error       				/    ( time to get there / step interval )
-				//							   requested speed     	   -  last motor speed
-				m_angularMotorVelocity.X += (m_angularMotorDirection.X - m_angularMotorVelocity.X) /  (m_angularMotorTimescale / pTimestep);
-				m_angularMotorVelocity.Y += (m_angularMotorDirection.Y - m_angularMotorVelocity.Y) /  (m_angularMotorTimescale / pTimestep);
-				m_angularMotorVelocity.Z += (m_angularMotorDirection.Z - m_angularMotorVelocity.Z) /  (m_angularMotorTimescale / pTimestep);
+				if (m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f))
+				{
+					m_angularMotorDVel = Vector3.Zero;
+				}
+				else
+	           	{
+			        if (Math.Abs(m_angularMotorDVel.X) <  Math.Abs(angObjectVel.X)) angObjectVel.X = m_angularMotorDVel.X;
+	    		    if (Math.Abs(m_angularMotorDVel.Y) <  Math.Abs(angObjectVel.Y)) angObjectVel.Y = m_angularMotorDVel.Y;
+			        if (Math.Abs(m_angularMotorDVel.Z) <  Math.Abs(angObjectVel.Z)) angObjectVel.Z = m_angularMotorDVel.Z;
+			    }        	
+        	} // end decay angular motor
+//if(frcount == 0) Console.WriteLine("MotorDvel {0}    Obj {1}", m_angularMotorDVel, angObjectVel);
 
-				m_angularMotorApply--;		// This is done so that if script request rate is less than phys frame rate the expected
-											// velocity may still be acheived.
-			}
-			else
-			{
-				// no motor recently applied, keep the body velocity
-		/*		m_angularMotorVelocity.X = angularVelocity.X;
-				m_angularMotorVelocity.Y = angularVelocity.Y;
-				m_angularMotorVelocity.Z = angularVelocity.Z; */
-				
-				// and decay the velocity
-				m_angularMotorVelocity -= m_angularMotorVelocity /  (m_angularMotorDecayTimescale / pTimestep);
-			} // end motor section
-			
-
+//if(frcount == 0) Console.WriteLine("VA = {0}", angObjectVel);   
             // Vertical attractor section
 			Vector3 vertattr = Vector3.Zero;
             
 			if(m_verticalAttractionTimescale < 300)
 			{
-	            float VAservo = 0.0167f / (m_verticalAttractionTimescale * pTimestep);
+	            float VAservo = 1.0f / (m_verticalAttractionTimescale * pTimestep);
 	    	    // get present body rotation
 	    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
 	    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
@@ -670,38 +704,75 @@ namespace OpenSim.Region.Physics.OdePlugin
 				// verterr.X and .Y are the World error ammounts. They are 0 when there is no error (Vehicle Body is 'vertical'), and .Z will be 1.
 				// As the body leans to its side |.X| will increase to 1 and .Z fall to 0. As body inverts |.X| will fall and .Z will go
 				// negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
+				
 				if (verterr.Z < 0.0f)
-				{
+				{	// Defelction from vertical exceeds 90-degrees. This method will ensure stable return to
+					// vertical, BUT for some reason a z-rotation is imparted to the object. TBI.
+//Console.WriteLine("InvertFlip");	
 					verterr.X = 2.0f - verterr.X;
 					verterr.Y = 2.0f - verterr.Y;
 				}
-				// Error is 0 (no error) to +/- 2 (max error)
-				// scale it by VAservo
-				verterr = verterr * VAservo;
+				verterr *= 0.5f;
+				// verterror is 0 (no error) to +/- 1 (max error at 180-deg tilt)
+	
+				if ((!angObjectVel.ApproxEquals(Vector3.Zero, 0.001f)) || (verterr.Z < 0.49f))
+				{
+//if(frcount == 0) 
+					// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
+					// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
+					vertattr.X =    verterr.Y;
+					vertattr.Y =  - verterr.X;
+					vertattr.Z = 0f;
 //if(frcount == 0) Console.WriteLine("VAerr=" + verterr);	
-
-				// As the body rotates around the X axis, then verterr.Y increases; Rotated around Y then .X increases, so 
-				// Change  Body angular velocity  X based on Y, and Y based on X. Z is not changed.
-				vertattr.X =    verterr.Y;
-				vertattr.Y =  - verterr.X;
-				vertattr.Z = 0f;
-				
-									// scaling appears better usingsquare-law
-				float bounce = 1.0f - (m_verticalAttractionEfficiency * m_verticalAttractionEfficiency);  
-				vertattr.X += bounce * angularVelocity.X;
-				vertattr.Y += bounce * angularVelocity.Y;
-				
-			} // else vertical attractor is off
 			
-	//		m_lastVertAttractor = vertattr;
-				
+					// scaling appears better usingsquare-law
+					float damped = m_verticalAttractionEfficiency * m_verticalAttractionEfficiency;
+					float bounce = 1.0f - damped;  
+					// 0 = crit damp, 1 = bouncy
+					float oavz = angObjectVel.Z;   // retain z velocity
+					angObjectVel = (angObjectVel + (vertattr * VAservo * 0.0333f)) * bounce; // The time-scaled correction, which sums, therefore is bouncy
+					angObjectVel = angObjectVel + (vertattr * VAservo *  0.0667f * damped); // damped, good @ < 90.
+					angObjectVel.Z = oavz;
+//if(frcount == 0) Console.WriteLine("VA+");					
+//Console.WriteLine("VAttr {0}         OAvel {1}", vertattr, angObjectVel);
+				}
+				else
+				{
+					// else error is very small
+					angObjectVel.X = 0f;
+					angObjectVel.Y = 0f;
+//if(frcount == 0) Console.WriteLine("VA0");					
+				}
+			} // else vertical attractor is off
+//if(frcount == 0) Console.WriteLine("V1 = {0}", angObjectVel);        	
+
+            if ( (! m_angularMotorDVel.ApproxEquals(Vector3.Zero, 0.01f)) || (! angObjectVel.ApproxEquals(Vector3.Zero, 0.01f)) )
+            {  // if motor or object have motion
+            	if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
+            	
+                if (m_angularMotorTimescale < 300.0f)
+                {	
+	                Vector3 attack_error = m_angularMotorDVel - angObjectVel;	
+	                float angfactor = m_angularMotorTimescale/pTimestep;
+	                Vector3 attackAmount = (attack_error/angfactor);
+                	angObjectVel += attackAmount;
+//if(frcount == 0) Console.WriteLine("Accel {0}      Attk {1}",FrAaccel, attackAmount);                	
+//if(frcount == 0) Console.WriteLine("V2+= {0}", angObjectVel);        	
+                }
+                
+		        angObjectVel.X -= angObjectVel.X / (m_angularFrictionTimescale.X * 0.7f / pTimestep);
+		        angObjectVel.Y -= angObjectVel.Y / (m_angularFrictionTimescale.Y * 0.7f / pTimestep);
+		        angObjectVel.Z -= angObjectVel.Z / (m_angularFrictionTimescale.Z * 0.7f / pTimestep);
+			} // else no signif. motion
+			
+//if(frcount == 0) Console.WriteLine("Dmotor {0}      Obj {1}", m_angularMotorDVel, angObjectVel);
 			// Bank section tba
 			// Deflection section tba
+//if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
 			
-			// Sum velocities
-			m_lastAngularVelocity = m_angularMotorVelocity + vertattr; // tba: + bank + deflection
-			
-        	if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.01f))
+			m_lastAngularVelocity = angObjectVel;
+/*			
+        	if (!m_lastAngularVelocity.ApproxEquals(Vector3.Zero, 0.0001f))
             {
 				if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body);
 			}
@@ -709,13 +780,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 			{
 				m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
 			}
-			
- 			// apply friction
-            Vector3 decayamount = Vector3.One / (m_angularFrictionTimescale / pTimestep);
-	        m_lastAngularVelocity -= m_lastAngularVelocity * decayamount;   	
-	        		
+	*/		
 			// Apply to the body
+// Vector3 aInc = m_lastAngularVelocity - initavel;
+//if(frcount == 0) Console.WriteLine("Inc {0}", aInc);			
 			d.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
+//if(frcount == 0) Console.WriteLine("V4 = {0}", m_lastAngularVelocity);        	
 				
 	    } //end MoveAngular
 	}
