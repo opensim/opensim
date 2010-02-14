@@ -362,6 +362,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             
         }
 
+        public override void VehicleFlags(int param, bool remove)
+        {
+
+        }
+
         public override void SetVolumeDetect(int param)
         {
             

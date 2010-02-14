@@ -233,6 +233,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectBuy OnObjectBuy;
         public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;
         public event RequestObjectPropertiesFamily OnObjectGroupRequest;
@@ -4667,6 +4669,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.ObjectName, HandleObjectName, false);
             AddLocalPacketHandler(PacketType.ObjectPermissions, HandleObjectPermissions, false);
             AddLocalPacketHandler(PacketType.Undo, HandleUndo, false);
+            AddLocalPacketHandler(PacketType.UndoLand, HandleLandUndo, false);
+            AddLocalPacketHandler(PacketType.Redo, HandleRedo, false);
             AddLocalPacketHandler(PacketType.ObjectDuplicateOnRay, HandleObjectDuplicateOnRay);
             AddLocalPacketHandler(PacketType.RequestObjectPropertiesFamily, HandleRequestObjectPropertiesFamily, false);
             AddLocalPacketHandler(PacketType.ObjectIncludeInSearch, HandleObjectIncludeInSearch);
@@ -5836,7 +5840,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 handlerSoundTrigger(soundTriggerPacket.SoundData.SoundID, soundTriggerPacket.SoundData.OwnerID,
                     soundTriggerPacket.SoundData.ObjectID, soundTriggerPacket.SoundData.ParentID,
                     soundTriggerPacket.SoundData.Gain, soundTriggerPacket.SoundData.Position,
-                    soundTriggerPacket.SoundData.Handle);
+                    soundTriggerPacket.SoundData.Handle, 0);
 
             }
             return true;
@@ -6727,6 +6731,56 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     if (handlerOnUndo != null)
                     {
                         handlerOnUndo(this, objiD);
+                    }
+
+                }
+            }
+            return true;
+        }
+
+        private bool HandleLandUndo(IClientAPI sender, Packet Pack)
+        {
+            UndoLandPacket undolanditem = (UndoLandPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (undolanditem.AgentData.SessionID != SessionId ||
+                    undolanditem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            LandUndo handlerOnUndo = OnLandUndo;
+            if (handlerOnUndo != null)
+            {
+                handlerOnUndo(this);
+            }
+            return true;
+        }
+
+        private bool HandleRedo(IClientAPI sender, Packet Pack)
+        {
+            RedoPacket redoitem = (RedoPacket)Pack;
+
+            #region Packet Session and User Check
+            if (m_checkPackets)
+            {
+                if (redoitem.AgentData.SessionID != SessionId ||
+                    redoitem.AgentData.AgentID != AgentId)
+                    return true;
+            }
+            #endregion
+
+            if (redoitem.ObjectData.Length > 0)
+            {
+                for (int i = 0; i < redoitem.ObjectData.Length; i++)
+                {
+                    UUID objiD = redoitem.ObjectData[i].ObjectID;
+                    AgentSit handlerOnRedo = OnRedo;
+                    if (handlerOnRedo != null)
+                    {
+                        handlerOnRedo(this, objiD);
                     }
 
                 }

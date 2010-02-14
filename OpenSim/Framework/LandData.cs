@@ -358,6 +358,32 @@ namespace OpenSim.Framework
             }
         }
 
+        private int[] _mediaSize = new int[2];
+        public int[] MediaSize
+        {
+            get
+            {
+                return _mediaSize;
+            }
+            set
+            {
+                _mediaSize = value;
+            }
+        }
+
+        private string _mediaType = "";
+        public string MediaType
+        {
+            get
+            {
+                return _mediaType;
+            }
+            set
+            {
+                _mediaType = value;
+            }
+        }
+
         /// <summary>
         /// URL to the shoutcast music stream to play on the parcel
         /// </summary>

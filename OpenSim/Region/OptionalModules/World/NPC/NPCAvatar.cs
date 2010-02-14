@@ -298,6 +298,8 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         public event ObjectBuy OnObjectBuy;
         public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;

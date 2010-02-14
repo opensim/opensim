@@ -84,6 +84,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         private ITerrainChannel m_revert;
         private Scene m_scene;
         private volatile bool m_tainted;
+        private readonly UndoStack<LandUndoState> m_undo = new UndoStack<LandUndoState>(5);
 
         #region ICommandableModule Members
 
@@ -173,6 +174,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         #endregion
 
         #region ITerrainModule Members
+
+        public void UndoTerrain(ITerrainChannel channel)
+        {
+            m_channel = channel;
+        }
 
         /// <summary>
         /// Loads a terrain file from disk and installs it in the scene.
@@ -574,6 +580,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
         {
             client.OnModifyTerrain += client_OnModifyTerrain;
             client.OnBakeTerrain += client_OnBakeTerrain;
+            client.OnLandUndo += client_OnLandUndo;
         }
 
         /// <summary>
@@ -664,6 +671,19 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return changesLimited;
         }
 
+        private void client_OnLandUndo(IClientAPI client)
+        {
+            lock (m_undo)
+            {
+                if (m_undo.Count > 0)
+                {
+                    LandUndoState goback = m_undo.Pop();
+                    if (goback != null)
+                        goback.PlaybackState();
+                }
+            }
+        }
+
         /// <summary>
         /// Sends a copy of the current terrain to the scenes clients
         /// </summary>
@@ -718,6 +738,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     }
                     if (allowed)
                     {
+                        StoreUndoState();
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
                             m_channel, allowMask, west, south, height, size, seconds);
 
@@ -758,6 +779,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
                     if (allowed)
                     {
+                        StoreUndoState();
                         m_floodeffects[(StandardTerrainEffects) action].FloodEffect(
                             m_channel, fillArea, size);
 
@@ -779,6 +801,25 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             if (m_scene.Permissions.CanIssueEstateCommand(remoteClient.AgentId, true))
             {
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
+            }
+        }
+
+        private void StoreUndoState()
+        {
+            lock (m_undo)
+            {
+                if (m_undo.Count > 0)
+                {
+                    LandUndoState last = m_undo.Peek();
+                    if (last != null)
+                    {
+                        if (last.Compare(m_channel))
+                            return;
+                    }
+                }
+
+                LandUndoState nUndo = new LandUndoState(this, m_channel);
+                m_undo.Push(nUndo);
             }
         }
 
