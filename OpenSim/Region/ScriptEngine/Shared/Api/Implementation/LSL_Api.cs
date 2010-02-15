@@ -7675,24 +7675,95 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
 
-                        face=(int)rules.GetLSLIntegerItem(idx++);
-
-                        res.Add(new LSL_Integer(0));
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        int shiny;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                Shininess shinyness = tex.GetFace((uint)face).Shiny;
+                                if (shinyness == Shininess.High)
+                                {
+                                    shiny = ScriptBaseClass.PRIM_SHINY_HIGH;
+                                }
+                                else if (shinyness == Shininess.Medium)
+                                {
+                                    shiny = ScriptBaseClass.PRIM_SHINY_MEDIUM;
+                                }
+                                else if (shinyness == Shininess.Low)
+                                {
+                                    shiny = ScriptBaseClass.PRIM_SHINY_LOW;
+                                }
+                                else
+                                {
+                                    shiny = ScriptBaseClass.PRIM_SHINY_NONE;
+                                }
+                                res.Add(new LSL_Integer(shiny));
+                                res.Add(new LSL_Integer((int)tex.GetFace((uint)face).Bump));
+                            }
+                        }
+                        else
+                        {
+                            Shininess shinyness = tex.GetFace((uint)face).Shiny;
+                            if (shinyness == Shininess.High)
+                            {
+                                shiny = ScriptBaseClass.PRIM_SHINY_HIGH; 
+                            }
+                            else if (shinyness == Shininess.Medium)
+                            {
+                                shiny = ScriptBaseClass.PRIM_SHINY_MEDIUM;
+                            }
+                            else if (shinyness == Shininess.Low)
+                            {
+                                shiny = ScriptBaseClass.PRIM_SHINY_LOW;
+                            }
+                            else
+                            {
+                                shiny = ScriptBaseClass.PRIM_SHINY_NONE;
+                            }
+                            res.Add(new LSL_Integer(shiny));
+                            res.Add(new LSL_Integer((int)tex.GetFace((uint)face).Bump));
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
 
-                        face=(int)rules.GetLSLIntegerItem(idx++);
-
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        int fullbright;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                if (tex.GetFace((uint)face).Fullbright == true)
+                                {
+                                    fullbright = ScriptBaseClass.TRUE;
+                                }
+                                else
+                                {
+                                    fullbright = ScriptBaseClass.FALSE;
+                                }
+                                res.Add(new LSL_Integer(fullbright));
+                            }
+                        }
+                        else
+                        {
+                            if (tex.GetFace((uint)face).Fullbright == true)
+                            {
+                                fullbright = ScriptBaseClass.TRUE;
+                            }
+                            else
+                            {
+                                fullbright = ScriptBaseClass.FALSE;
+                            }
+                            res.Add(new LSL_Integer(fullbright));
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_FLEXIBLE:
@@ -7713,14 +7784,37 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_TEXGEN:
-                        // TODO--------------
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
                             return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
 
-                        face=(int)rules.GetLSLIntegerItem(idx++);
-
-                        res.Add(new LSL_Integer(0));
+                        tex = part.Shape.Textures;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                if (tex.GetFace((uint)face).TexMapType == MappingType.Planar)
+                                {
+                                    res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_PLANAR));
+                                }
+                                else
+                                {
+                                    res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (tex.GetFace((uint)face).TexMapType == MappingType.Planar)
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_PLANAR));
+                            }
+                            else
+                            {
+                                res.Add(new LSL_Integer(ScriptBaseClass.PRIM_TEXGEN_DEFAULT));
+                            }
+                        }
                         break;
 
                     case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
@@ -7739,13 +7833,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         break;
 
                     case (int)ScriptBaseClass.PRIM_GLOW:
-                        // TODO--------------
                         if (remain < 1)
                             return res;
+                        face = (int)rules.GetLSLIntegerItem(idx++);
 
-                        face=(int)rules.GetLSLIntegerItem(idx++);
-
-                        res.Add(new LSL_Float(0));
+                        tex = part.Shape.Textures;
+                        float primglow;
+                        if (face == ScriptBaseClass.ALL_SIDES)
+                        {
+                            for (face = 0; face < GetNumberOfSides(part); face++)
+                            {
+                                primglow = tex.GetFace((uint)face).Glow;
+                                res.Add(new LSL_Float(primglow));
+                            }
+                        }
+                        else
+                        {
+                            primglow = tex.GetFace((uint)face).Glow;
+                            res.Add(new LSL_Float(primglow));
+                        }
                         break;
                 }
             }
