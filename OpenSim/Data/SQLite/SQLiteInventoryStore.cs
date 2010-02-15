@@ -391,9 +391,7 @@ namespace OpenSim.Data.SQLite
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
                 string selectExp = "agentID = '" + user + "' AND parentID = '" + UUID.Zero + "'";
-                m_log.DebugFormat("XXX selectExp = {0}", selectExp);
                 DataRow[] rows = inventoryFolderTable.Select(selectExp);
-                m_log.DebugFormat("XXX rows: {0}", rows.Length);
                 foreach (DataRow row in rows)
                 {
                     folders.Add(buildFolder(row));
@@ -406,11 +404,9 @@ namespace OpenSim.Data.SQLite
                 // suitably refactor.
                 if (folders.Count > 0)
                 {
-                    m_log.DebugFormat("XXX Found root folder");
                     return folders[0];
                 }
 
-                m_log.DebugFormat("XXX Root folder for {0} not found", user);
                 return null;
             }
         }
