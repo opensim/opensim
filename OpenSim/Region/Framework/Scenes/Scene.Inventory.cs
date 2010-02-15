@@ -585,6 +585,9 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
                     return;
                 }
+
+                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                    return;
             }
 
             AssetBase asset = AssetService.Get(item.AssetID.ToString());
