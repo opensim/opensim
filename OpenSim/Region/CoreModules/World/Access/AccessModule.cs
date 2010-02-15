@@ -109,7 +109,7 @@ namespace OpenSim.Region.CoreModules.World
             {
                 foreach (Scene s in m_SceneList)
                 {
-                    if(!ProcessCommand(s, cmd))
+                    if (!ProcessCommand(s, cmd))
                         break;
                 }
             }

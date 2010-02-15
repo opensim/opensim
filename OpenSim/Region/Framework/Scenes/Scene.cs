@@ -2541,7 +2541,7 @@ namespace OpenSim.Region.Framework.Scenes
                     AttachObject(
                         sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition, false);
                     RootPrim.RemFlag(PrimFlags.TemporaryOnRez);
-                    grp.SendGroupFullUpdate();                    
+                    grp.SendGroupFullUpdate();
                 }
                 else
                 {

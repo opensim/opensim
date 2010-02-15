@@ -5216,7 +5216,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 args.Type = ChatTypeEnum.Shout;
                 args.Position = new Vector3();
                 args.Scene = Scene;
-                args.Sender = this;                
+                args.Sender = this;
                 ChatMessage handlerChatFromClient2 = OnChatFromClient;
                 if (handlerChatFromClient2 != null)
                     handlerChatFromClient2(this, args);

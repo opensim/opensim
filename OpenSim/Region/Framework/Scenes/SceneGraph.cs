@@ -642,7 +642,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // it get cleaned up
                     //
                     group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                    group.HasGroupChanged = false;                   
+                    group.HasGroupChanged = false;
                 }
                 else
                 {

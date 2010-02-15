@@ -227,7 +227,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Agent's Draw distance.
         protected float m_DrawDistance;
 
-        protected AvatarAppearance m_appearance;        
+        protected AvatarAppearance m_appearance;
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region
@@ -648,7 +648,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructor(s)
         
         public ScenePresence()
-        {            
+        {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
@@ -3265,7 +3265,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
-            m_physicsActor.LocalID = LocalId;            
+            m_physicsActor.LocalID = LocalId;
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -3357,7 +3357,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_health <= 0)
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
-            }            
+            }
         }
 
         public void setHealthWithUpdate(float health)
