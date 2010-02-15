@@ -152,6 +152,8 @@ namespace OpenSim.Framework
 
     public delegate void AgentSit(IClientAPI remoteClient, UUID agentID);
 
+    public delegate void LandUndo(IClientAPI remoteClient);
+
     public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery);
 
     public delegate void GrabObject(
@@ -419,9 +421,9 @@ namespace OpenSim.Framework
     public delegate void AcceptCallingCard(IClientAPI remoteClient, UUID transactionID, UUID folderID);
 
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
-    
+
     public delegate void SoundTrigger(
-        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle);
+        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle, float radius);
 
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
@@ -993,6 +995,8 @@ namespace OpenSim.Framework
         event ScriptAnswer OnScriptAnswer;
 
         event AgentSit OnUndo;
+        event AgentSit OnRedo;
+        event LandUndo OnLandUndo;
 
         event ForceReleaseControls OnForceReleaseControls;
         event GodLandStatRequest OnLandStatRequest;

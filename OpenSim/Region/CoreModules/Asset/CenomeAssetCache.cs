@@ -91,6 +91,8 @@ namespace OpenSim.Region.CoreModules.Asset
     /// </example>
     public class CenomeMemoryAssetCache : IImprovedAssetCache, ISharedRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// Cache's default maximal asset count.
         /// </summary>
@@ -115,12 +117,7 @@ namespace OpenSim.Region.CoreModules.Asset
         /// Asset's default expiration time in the cache.
         /// </summary>
         public static readonly TimeSpan DefaultExpirationTime = TimeSpan.FromMinutes(30.0);
-
-        /// <summary>
-        /// Log manager instance.
-        /// </summary>
-        private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         /// <summary>
         /// Cache object.
         /// </summary>
@@ -170,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (maximalSize <= 0 || maximalCount <= 0)
             {
-                //Log.Debug("[ASSET CACHE]: Cenome asset cache is not enabled.");
+                //m_log.Debug("[ASSET CACHE]: Cenome asset cache is not enabled.");
                 m_enabled = false;
                 return;
             }
@@ -186,7 +183,7 @@ namespace OpenSim.Region.CoreModules.Asset
                 CnmSynchronizedCache<string, AssetBase>.Synchronized(new CnmMemoryCache<string, AssetBase>(
                     maximalSize, maximalCount, expirationTime));
             m_enabled = true;
-            Log.DebugFormat(
+            m_log.DebugFormat(
                 "[ASSET CACHE]: Cenome asset cache enabled (MaxSize = {0} bytes, MaxCount = {1}, ExpirationTime = {2})",
                 maximalSize,
                 maximalCount,
@@ -205,6 +202,8 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             if (asset != null)
             {
+//                m_log.DebugFormat("[CENOME ASSET CACHE]: Caching asset {0}", asset.ID);
+                
                 long size = asset.Data != null ? asset.Data.Length : 1;
                 m_cache.Set(asset.ID, asset, size);
                 m_cachedCount++;
@@ -255,7 +254,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             if (m_getCount == m_debugEpoch)
             {
-                Log.DebugFormat(
+                m_log.DebugFormat(
                     "[ASSET CACHE]: Cached = {0}, Get = {1}, Hits = {2}%, Size = {3} bytes, Avg. A. Size = {4} bytes",
                     m_cachedCount,
                     m_getCount,
@@ -267,6 +266,9 @@ namespace OpenSim.Region.CoreModules.Asset
                 m_cachedCount = 0;
             }
 
+//            if (null == assetBase)
+//                m_log.DebugFormat("[CENOME ASSET CACHE]: Asset {0} not in cache", id);
+            
             return assetBase;
         }
 
@@ -325,12 +327,11 @@ namespace OpenSim.Region.CoreModules.Asset
                 return;
 
             string name = moduleConfig.GetString("AssetCaching");
-            //Log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
+            //m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
             if (name != Name)
-                return;
-
-            // This module is used 
+                return;           
+            
             long maxSize = DefaultMaxSize;
             int maxCount = DefaultMaxCount;
             TimeSpan expirationTime = DefaultExpirationTime;

@@ -453,6 +453,15 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Undo();
             }
         }
+        protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
+        {
+            if (primId != UUID.Zero)
+            {
+                SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
+                if (part != null)
+                    part.Redo();
+            }
+        }
 
         protected internal void HandleObjectGroupUpdate(
             IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)

@@ -120,6 +120,7 @@ what it is today.
 * tglion
 * tlaukkan/Tommil (Tommi S. E. Laukkanen, Bubble Cloud)
 * tyre
+* VikingErik
 * Vytek
 * webmage (IBM)
 * Xantor

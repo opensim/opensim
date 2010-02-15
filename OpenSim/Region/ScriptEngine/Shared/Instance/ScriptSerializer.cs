@@ -389,7 +389,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Instance
                         break;
                     case "MinEventDelay":
                         double minEventDelay = 0.0;
-                        double.TryParse(part.InnerText, out minEventDelay);
+                        double.TryParse(part.InnerText, NumberStyles.Float, Culture.NumberFormatInfo, out minEventDelay);
                         instance.MinEventDelay = minEventDelay;
                         break;
                 }

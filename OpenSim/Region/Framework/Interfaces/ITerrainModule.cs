@@ -62,5 +62,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void SaveToStream(string filename, Stream stream);
 
         void InstallPlugin(string name, ITerrainEffect plug);
+
+        void UndoTerrain(ITerrainChannel channel);
     }
 }

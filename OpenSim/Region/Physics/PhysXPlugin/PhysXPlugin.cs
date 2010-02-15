@@ -371,6 +371,8 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 
+        public override void VehicleFlags(int param, bool remove) { }
+
         public override void SetVolumeDetect(int param)
         {
 
@@ -774,6 +776,8 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
 
         }
+
+        public override void VehicleFlags(int param, bool remove) { }
 
         public override void SetVolumeDetect(int param)
         {

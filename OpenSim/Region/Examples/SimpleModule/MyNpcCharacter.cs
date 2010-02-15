@@ -194,6 +194,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ObjectBuy OnObjectBuy;
         public event BuyObjectInventory OnBuyObjectInventory;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
 

@@ -622,11 +622,6 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
-        /// <summary>
-        /// Appearance
-        /// TODO: stubs for now to get us to a compiling state gently
-        /// override
-        /// </summary>
         public override AvatarAppearance GetUserAppearance(UUID user)
         {
             try

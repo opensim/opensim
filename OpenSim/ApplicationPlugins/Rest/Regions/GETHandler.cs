@@ -29,6 +29,7 @@ using System;
 using System.IO;
 using System.Xml.Serialization;
 using OpenMetaverse;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
@@ -156,8 +157,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                         Vector3 min, max;
                         try
                         {
-                            min = new Vector3((float)Double.Parse(subregion[0]), (float)Double.Parse(subregion[1]), (float)Double.Parse(subregion[2]));
-                            max = new Vector3((float)Double.Parse(subregion[3]), (float)Double.Parse(subregion[4]), (float)Double.Parse(subregion[5]));
+                            min = new Vector3((float)Double.Parse(subregion[0], Culture.NumberFormatInfo), (float)Double.Parse(subregion[1], Culture.NumberFormatInfo), (float)Double.Parse(subregion[2], Culture.NumberFormatInfo));
+                            max = new Vector3((float)Double.Parse(subregion[3], Culture.NumberFormatInfo), (float)Double.Parse(subregion[4], Culture.NumberFormatInfo), (float)Double.Parse(subregion[5], Culture.NumberFormatInfo));
                         }
                         catch (Exception)
                         {

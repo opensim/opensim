@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     IConfig inventoryConfig = source.Configs["InventoryService"];
                     if (inventoryConfig == null)
                     {
-                        m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
+                        m_log.Error("[LOCAL INVENTORY SERVICES CONNECTOR]: InventoryService missing from OpenSim.ini");
                         return;
                     }
 
@@ -81,18 +81,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
                     if (serviceDll == String.Empty)
                     {
-                        m_log.Error("[INVENTORY CONNECTOR]: No LocalServiceModule named in section InventoryService");
+                        m_log.Error("[LOCAL INVENTORY SERVICES CONNECTOR]: No LocalServiceModule named in section InventoryService");
                         return;
                     }
 
                     Object[] args = new Object[] { source };
-                    m_log.DebugFormat("[INVENTORY CONNECTOR]: Service dll = {0}", serviceDll);
+                    m_log.DebugFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Service dll = {0}", serviceDll);
 
                     m_InventoryService = ServerUtils.LoadPlugin<IInventoryService>(serviceDll, args);
 
                     if (m_InventoryService == null)
                     {
-                        m_log.Error("[INVENTORY CONNECTOR]: Can't load inventory service");
+                        m_log.Error("[LOCAL INVENTORY SERVICES CONNECTOR]: Can't load inventory service");
                         //return;
                         throw new Exception("Unable to proceed. Please make sure your ini files in config-include are updated according to .example's");
                     }
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     Init(source);
 
                     m_Enabled = true;
-                    m_log.Info("[INVENTORY CONNECTOR]: Local inventory connector enabled");
+                    m_log.Info("[LOCAL INVENTORY SERVICES CONNECTOR]: Local inventory connector enabled");
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             }
 
 //            m_log.DebugFormat(
-//                "[INVENTORY CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
+//                "[LOCAL INVENTORY SERVICES CONNECTOR]: Registering IInventoryService to scene {0}", scene.RegionInfo.RegionName);
             
             scene.RegisterModuleInterface<IInventoryService>(this);
             m_cache.AddRegion(scene);
@@ -155,7 +155,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 return;
 
             m_log.InfoFormat(
-                "[INVENTORY CONNECTOR]: Enabled local invnetory for region {0}", scene.RegionInfo.RegionName);
+                "[LOCAL INVENTORY SERVICES CONNECTOR]: Enabled local inventory for region {0}", scene.RegionInfo.RegionName);
         }
 
         #region IInventoryService
@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                     return folders;
                 }
             }
-            m_log.WarnFormat("[INVENTORY CONNECTOR]: System folders for {0} not found", userID);
+            m_log.WarnFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: System folders for {0} not found", userID);
             return new Dictionary<AssetType, InventoryFolderBase>();
         }
 
@@ -309,7 +309,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public override InventoryItemBase GetItem(InventoryItemBase item)
         {
-            return m_InventoryService.GetItem(item);
+//            m_log.DebugFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Requesting inventory item {0}", item.ID);
+
+            item = m_InventoryService.GetItem(item);
+
+            if (null == item)
+                m_log.ErrorFormat("[LOCAL INVENTORY SERVICES CONNECTOR]: Could not find item with id {0}");
+
+            return item;
         }
 
         public override InventoryFolderBase GetFolder(InventoryFolderBase folder)

@@ -1182,7 +1182,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_BLOCK_GRAB) == ScriptBaseClass.STATUS_BLOCK_GRAB)
             {
-                NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
+                if (value != 0)
+                    m_host.SetBlockGrab(true);
+                else
+                    m_host.SetBlockGrab(false);
             }
 
             if ((status & ScriptBaseClass.STATUS_DIE_AT_EDGE) == ScriptBaseClass.STATUS_DIE_AT_EDGE)
@@ -1195,12 +1198,18 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if ((status & ScriptBaseClass.STATUS_RETURN_AT_EDGE) == ScriptBaseClass.STATUS_RETURN_AT_EDGE)
             {
-                NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
+                if (value != 0)
+                    m_host.SetReturnAtEdge(true);
+                else
+                    m_host.SetReturnAtEdge(false);
             }
 
             if ((status & ScriptBaseClass.STATUS_SANDBOX) == ScriptBaseClass.STATUS_SANDBOX)
             {
-                NotImplemented("llSetStatus - STATUS_SANDBOX");
+                if (value != 0)
+                    m_host.SetStatusSandbox(true);
+                else
+                    m_host.SetStatusSandbox(false);
             }
 
             if (statusrotationaxis != 0)
@@ -1237,8 +1246,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     return 0;
 
                 case ScriptBaseClass.STATUS_BLOCK_GRAB:
-                    NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
-                    return 0;
+                    if (m_host.GetBlockGrab())
+                        return 1;
+                    else
+                        return 0;
 
                 case ScriptBaseClass.STATUS_DIE_AT_EDGE:
                     if (m_host.GetDieAtEdge())
@@ -1247,24 +1258,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         return 0;
 
                 case ScriptBaseClass.STATUS_RETURN_AT_EDGE:
-                    NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
-                    return 0;
+                    if (m_host.GetReturnAtEdge())
+                        return 1;
+                    else
+                        return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_X:
-                    NotImplemented("llGetStatus - STATUS_ROTATE_X");
-                    return 0;
+                    if (m_host.GetAxisRotation(2) == 2)
+                        return 1;
+                    else
+                        return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Y:
-                    NotImplemented("llGetStatus - STATUS_ROTATE_Y");
-                    return 0;
+                    if (m_host.GetAxisRotation(4) == 4)
+                        return 1;
+                    else
+                        return 0;
 
                 case ScriptBaseClass.STATUS_ROTATE_Z:
-                    NotImplemented("llGetStatus - STATUS_ROTATE_Z");
-                    return 0;
+                    if (m_host.GetAxisRotation(8) == 8)
+                        return 1;
+                    else
+                        return 0;
 
                 case ScriptBaseClass.STATUS_SANDBOX:
-                    NotImplemented("llGetStatus - STATUS_SANDBOX");
-                    return 0;
+                    if (m_host.GetStatusSandbox())
+                        return 1;
+                    else
+                        return 0;
             }
             return 0;
         }
@@ -2202,7 +2223,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0);
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0, 0, false, false);
         }
 
         // Xantor 20080528 we should do this differently.
@@ -2232,42 +2253,98 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llLoopSoundMaster(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llLoopSoundMaster");
+            m_host.ParentGroup.LoopSoundMasterPrim = m_host;
+            lock (m_host.ParentGroup.LoopSoundSlavePrims)
+            {
+                foreach (SceneObjectPart prim in m_host.ParentGroup.LoopSoundSlavePrims)
+                {
+                    if (prim.Sound != UUID.Zero)
+                        llStopSound();
+
+                    prim.Sound = KeyOrName(sound);
+                    prim.SoundGain = volume;
+                    prim.SoundFlags = 1;      // looping
+                    prim.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
+
+                    prim.ScheduleFullUpdate();
+                    prim.SendFullUpdateToAllClients();
+                }
+            }
+            if (m_host.Sound != UUID.Zero)
+                llStopSound();
+
+            m_host.Sound = KeyOrName(sound);
+            m_host.SoundGain = volume;
+            m_host.SoundFlags = 1;      // looping
+            m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
+
+            m_host.ScheduleFullUpdate();
+            m_host.SendFullUpdateToAllClients();
         }
 
         public void llLoopSoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llLoopSoundSlave");
+            lock (m_host.ParentGroup.LoopSoundSlavePrims)
+            {
+                m_host.ParentGroup.LoopSoundSlavePrims.Add(m_host);
+            }
         }
 
         public void llPlaySoundSlave(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPlaySoundSlave");
+
+            // send the sound, once, to all clients in range
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0, 0, true, false);
         }
 
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
             // send the sound, once, to all clients in range
-            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0);
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0, 0, false, false);
         }
 
         // Xantor 20080528: Clear prim data of sound instead
         public void llStopSound()
         {
             m_host.AddScriptLPS(1);
-
-            m_host.Sound = UUID.Zero;
-            m_host.SoundGain = 0;
-            m_host.SoundFlags = 0;
-            m_host.SoundRadius = 0;
-
-            m_host.ScheduleFullUpdate();
-            m_host.SendFullUpdateToAllClients();
-
-            // m_host.SendSound(UUID.Zero.ToString(), 1.0, false, 2);
+            if (m_host.ParentGroup.LoopSoundSlavePrims.Contains(m_host))
+            {
+                if (m_host.ParentGroup.LoopSoundMasterPrim == m_host)
+                {
+                    foreach (SceneObjectPart part in m_host.ParentGroup.LoopSoundSlavePrims)
+                    {
+                        part.Sound = UUID.Zero;
+                        part.SoundGain = 0;
+                        part.SoundFlags = 0;
+                        part.SoundRadius = 0;
+                        part.ScheduleFullUpdate();
+                        part.SendFullUpdateToAllClients();
+                    }
+                    m_host.ParentGroup.LoopSoundMasterPrim = null;
+                    m_host.ParentGroup.LoopSoundSlavePrims.Clear();
+                }
+                else
+                {
+                    m_host.Sound = UUID.Zero;
+                    m_host.SoundGain = 0;
+                    m_host.SoundFlags = 0;
+                    m_host.SoundRadius = 0;
+                    m_host.ScheduleFullUpdate();
+                    m_host.SendFullUpdateToAllClients();
+                }
+            }
+            else
+            {
+                m_host.Sound = UUID.Zero;
+                m_host.SoundGain = 0;
+                m_host.SoundFlags = 0;
+                m_host.SoundRadius = 0;
+                m_host.ScheduleFullUpdate();
+                m_host.SendFullUpdateToAllClients();
+            }
         }
 
         public void llPreloadSound(string sound)
@@ -2661,8 +2738,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llLookAt(LSL_Vector target, double strength, double damping)
         {
-            // partial implementation, rotates objects correctly but does not apply strength or damping attributes
-
             m_host.AddScriptLPS(1);
             // Determine where we are looking from
             LSL_Vector from = llGetPos();
@@ -2682,9 +2757,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // the angles of rotation in radians into rotation value
 
             LSL_Types.Quaternion rot = llEuler2Rot(angle);
-
+            Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
+            m_host.startLookAt(rotation, (float)damping, (float)strength);
             // Orient the object to the angle calculated
-            llSetRot(rot);
+            //llSetRot(rot);
         }
 
         public void llStopLookAt()
@@ -3046,8 +3122,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
         {
             m_host.AddScriptLPS(1);
-//            NotImplemented("llRotLookAt");
-            m_host.RotLookAt(Rot2Quaternion(target), (float)strength, (float)damping);
+            Quaternion rot = new Quaternion((float)target.x, (float)target.y, (float)target.z, (float)target.s);
+            m_host.RotLookAt(rot, (float)strength, (float)damping);
         }
 
         public LSL_Integer llStringLength(string str)
@@ -3145,13 +3221,17 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llPointAt(LSL_Vector pos)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llPointAt");
+            ScenePresence Owner = World.GetScenePresence(m_host.UUID);
+            LSL_Rotation rot = llEuler2Rot(pos);
+            Owner.PreviousRotation = Owner.Rotation;
+            Owner.Rotation = (new Quaternion((float)rot.x,(float)rot.y,(float)rot.z,(float)rot.s));
         }
 
         public void llStopPointAt()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopPointAt");
+            ScenePresence Owner = m_host.ParentGroup.Scene.GetScenePresence(m_host.OwnerID);
+            Owner.Rotation = Owner.PreviousRotation;
         }
 
         public void llTargetOmega(LSL_Vector axis, double spinrate, double gain)
@@ -3946,8 +4026,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
             m_host.AddScriptLPS(1);
-            //NotImplemented("llCollisionSound");
-
             // TODO: Parameter check logic required.
             UUID soundId = UUID.Zero;
             if (!UUID.TryParse(impact_sound, out soundId))
@@ -4535,8 +4613,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Vector llGetCenterOfMass()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetCenterOfMass");
-            return new LSL_Vector();
+            Vector3 center = m_host.GetGeometricCenter();
+            return new LSL_Vector(center.X,center.Y,center.Z);
         }
 
         public LSL_List llListSort(LSL_List src, int stride, int ascending)
@@ -5269,8 +5347,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                  flags |= ScriptBaseClass.AGENT_SITTING;
              }
 
-             //NotImplemented("llGetAgentInfo");
-
             return flags;
         }
 
@@ -5353,7 +5429,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                           LSL_Vector bottom_south_west)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llTriggerSoundLimited");
+            float radius1 = (float)llVecDist(llGetPos(), top_north_east);
+            float radius2 = (float)llVecDist(llGetPos(), bottom_south_west);
+            float radius = Math.Abs(radius1 - radius2);
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, true, 0, radius, false, false);
         }
 
         public void llEjectFromLand(string pest)
@@ -5892,7 +5971,26 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGroundRepel(double height, int water, double tau)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGroundRepel");
+            if (m_host.PhysActor != null)
+            {
+                float ground = (float)llGround(new LSL_Types.Vector3(0, 0, 0));
+                float waterLevel = (float)llWater(new LSL_Types.Vector3(0, 0, 0)); 
+                PIDHoverType hoverType = PIDHoverType.Ground;
+                if (water != 0)
+                {
+                    hoverType = PIDHoverType.GroundAndWater;
+                    if (ground < waterLevel)
+                        height += waterLevel;
+                    else
+                        height += ground;
+                }
+                else
+                {
+                    height += ground;
+                }
+                
+                m_host.SetHoverHeight((float)height, hoverType, (float)tau);
+            }
         }
 
         protected UUID GetTaskInventoryItem(string name)
@@ -6021,13 +6119,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetVehicleFlags");
+            if (m_host.ParentGroup != null)
+            {
+                if (!m_host.ParentGroup.IsDeleted)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleFlags(flags, false);
+                }
+            }
         }
 
         public void llRemoveVehicleFlags(int flags)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveVehicleFlags");
+            if (m_host.ParentGroup != null)
+            {
+                if (!m_host.ParentGroup.IsDeleted)
+                {
+                    m_host.ParentGroup.RootPart.SetVehicleFlags(flags, true);
+                }
+            }
         }
 
         public void llSitTarget(LSL_Vector offset, LSL_Rotation rot)
@@ -7049,7 +7159,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llRemoteDataSetRegion()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoteDataSetRegion");
+            Deprecated("llRemoteDataSetRegion");
         }
 
         public LSL_Float llLog10(double val)
@@ -8081,7 +8191,39 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llSetInventoryPermMask(string item, int mask, int value)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetInventoryPermMask");
+            if (m_ScriptEngine.Config.GetBoolean("AllowGodFunctions", false))
+        	{
+        		if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+        		{
+        			lock (m_host.TaskInventory)
+        			{
+        				foreach (KeyValuePair<UUID, TaskInventoryItem> inv in m_host.TaskInventory)
+        				{
+        					if (inv.Value.Name == item)
+        					{
+        						switch (mask)
+        						{
+        							case 0:
+        								inv.Value.BasePermissions = (uint)value;
+        								break;
+        							case 1:
+        								inv.Value.CurrentPermissions = (uint)value;
+        								break;
+        							case 2:
+        								inv.Value.GroupPermissions = (uint)value;
+        								break;
+        							case 3:
+        								inv.Value.EveryonePermissions = (uint)value;
+        								break;
+        							case 4:
+        								inv.Value.NextPermissions = (uint)value;
+        								break;
+        						}
+        					}
+        				}
+        			}
+        		}
+        	}
         }
 
         public LSL_String llGetInventoryCreator(string item)
@@ -8515,6 +8657,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     // we send to all
                     landData.MediaID = new UUID(texture);
                     landData.MediaAutoScale = autoAlign ? (byte)1 : (byte)0;
+                    landData.MediaSize[0] = width;
+                    landData.MediaSize[1] = height;
+                    landData.MediaType = mediaType;
 
                     // do that one last, it will cause a ParcelPropertiesUpdate
                     landObject.SetMediaUrl(url);
@@ -8574,11 +8719,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
             LSL_List list = new LSL_List();
             //TO DO: make the implementation for the missing commands
-            //PARCEL_MEDIA_COMMAND_TEXTURE     key uuid        Use this to get or set the parcel's media texture.
-            //PARCEL_MEDIA_COMMAND_URL         string url      Used to get or set the parcel's media url.
-            //PARCEL_MEDIA_COMMAND_TYPE        string mime_type        Use this to get or set the parcel media MIME type (e.g. "text/html"). (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_SIZE        integer x, integer y    Use this to get or set the parcel media pixel resolution. (1.19.1 RC0 or later)
-            //PARCEL_MEDIA_COMMAND_DESC        string desc     Use this to get or set the parcel media description. (1.19.1 RC0 or later)
             //PARCEL_MEDIA_COMMAND_LOOP_SET    float loop      Use this to get or set the parcel's media loop duration. (1.19.1 RC0 or later)
             for (int i = 0; i < aList.Data.Length; i++)
             {
@@ -8595,6 +8735,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             break;
                         case ParcelMediaCommandEnum.Texture:
                             list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaID.ToString()));
+                            break;
+                        case ParcelMediaCommandEnum.Type:
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaType));
+                            break;
+                        case ParcelMediaCommandEnum.Size:
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[0]));
+                            list.Add(new LSL_String(World.GetLandData(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).MediaSize[1]));
                             break;
                         default:
                             ParcelMediaCommandEnum mediaCommandEnum = ParcelMediaCommandEnum.Url;

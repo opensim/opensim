@@ -397,6 +397,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             //TODO:
         }
 
+        public override void VehicleFlags(int param, bool remove)
+        {
+
+        }
+
         public override void SetVolumeDetect(int param)
         {
             //TODO: GhostObject

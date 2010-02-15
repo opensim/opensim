@@ -2054,9 +2054,39 @@ namespace OpenSim.Region.Framework.Scenes
             if (grp.IsDeleted)
                 return;
 
+            if (grp.RootPart.DIE_AT_EDGE)
+            {
+                // We remove the object here
+                try
+                {
+                    DeleteSceneObject(grp, false);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                }
+                return;
+            }
+
+            if (grp.RootPart.RETURN_AT_EDGE)
+            {
+                // We remove the object here
+                try
+                {
+                    List<SceneObjectGroup> objects = new List<SceneObjectGroup>();
+                    objects.Add(grp);
+                    SceneObjectGroup[] objectsArray = objects.ToArray();
+                    returnObjects(objectsArray, UUID.Zero);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[DATABASE]: exception when trying to return the prim that crossed the border.");
+                }
+                return;
+            }
+
             if (m_teleportModule != null)
                 m_teleportModule.Cross(grp, attemptedPosition, silent);
-
         }
 
         public Border GetCrossedBorder(Vector3 position, Cardinals gridline)
@@ -2552,6 +2582,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnGrabUpdate += ProcessObjectGrabUpdate; 
             client.OnDeGrabObject += ProcessObjectDeGrab;
             client.OnUndo += m_sceneGraph.HandleUndo;
+            client.OnRedo += m_sceneGraph.HandleRedo;
             client.OnObjectDescription += m_sceneGraph.PrimDescription;
             client.OnObjectDrop += m_sceneGraph.DropObject;
             client.OnObjectSaleInfo += ObjectSaleInfo;
@@ -2705,6 +2736,7 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnGrabObject -= ProcessObjectGrab;
             client.OnDeGrabObject -= ProcessObjectDeGrab;
             client.OnUndo -= m_sceneGraph.HandleUndo;
+            client.OnRedo -= m_sceneGraph.HandleRedo;
             client.OnObjectDescription -= m_sceneGraph.PrimDescription;
             client.OnObjectDrop -= m_sceneGraph.DropObject;
             client.OnObjectSaleInfo -= ObjectSaleInfo;
@@ -2953,7 +2985,6 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.DebugFormat("[APPEARANCE]: Appearance not found in {0}, returning default", RegionInfo.RegionName);
                 appearance = new AvatarAppearance(client.AgentId);
             }
-
         }
 
         /// <summary>

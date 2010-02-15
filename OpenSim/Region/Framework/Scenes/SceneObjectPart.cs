@@ -133,6 +133,18 @@ namespace OpenSim.Region.Framework.Scenes
         [XmlIgnore]
         public bool DIE_AT_EDGE;
 
+        [XmlIgnore]
+        public bool RETURN_AT_EDGE;
+
+        [XmlIgnore]
+        public bool BlockGrab;
+
+        [XmlIgnore]
+        public bool StatusSandbox;
+
+        [XmlIgnore]
+        public Vector3 StatusSandboxPos;
+
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
         public readonly int[] PayPrice = {-2,-2,-2,-2,-2};
@@ -219,6 +231,15 @@ namespace OpenSim.Region.Framework.Scenes
         [XmlIgnore]
         public Quaternion SpinOldOrientation = Quaternion.Identity;
 
+        [XmlIgnore]
+        public Quaternion m_APIDTarget = Quaternion.Identity;
+
+        [XmlIgnore]
+        public float m_APIDDamp = 0;
+
+        [XmlIgnore]
+        public float m_APIDStrength = 0;
+
         /// <summary>
         /// This part's inventory
         /// </summary>
@@ -231,6 +252,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         [XmlIgnore]
         public bool Undoing;
+
+        [XmlIgnore]
+        public bool IgnoreUndoUpdate = false;
 
         [XmlIgnore]
         private PrimFlags LocalFlags;
@@ -253,6 +277,7 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
+        private readonly UndoStack<UndoState> m_redo = new UndoStack<UndoState>(5);
         private UUID _creatorID;
 
         private bool m_passTouches;
@@ -501,6 +526,27 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
+        [XmlIgnore]
+        public Quaternion APIDTarget
+        {
+            get { return m_APIDTarget; }
+            set { m_APIDTarget = value; }
+        }
+
+        [XmlIgnore]
+        public float APIDDamp
+        {
+            get { return m_APIDDamp; }
+            set { m_APIDDamp = value; }
+        }
+
+        [XmlIgnore]
+        public float APIDStrength
+        {
+            get { return m_APIDStrength; }
+            set { m_APIDStrength = value; }
+        }
+
         public ulong RegionHandle
         {
             get { return m_regionHandle; }
@@ -511,6 +557,33 @@ namespace OpenSim.Region.Framework.Scenes
         {
             get { return m_scriptAccessPin; }
             set { m_scriptAccessPin = (int)value; }
+        }
+        private SceneObjectPart m_PlaySoundMasterPrim = null;
+        public SceneObjectPart PlaySoundMasterPrim
+        {
+            get { return m_PlaySoundMasterPrim; }
+            set { m_PlaySoundMasterPrim = value; }
+        }
+
+        private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
+        public List<SceneObjectPart> PlaySoundSlavePrims
+        {
+            get { return m_LoopSoundSlavePrims; }
+            set { m_LoopSoundSlavePrims = value; }
+        }
+
+        private SceneObjectPart m_LoopSoundMasterPrim = null;
+        public SceneObjectPart LoopSoundMasterPrim
+        {
+            get { return m_LoopSoundMasterPrim; }
+            set { m_LoopSoundMasterPrim = value; }
+        }
+
+        private List<SceneObjectPart> m_LoopSoundSlavePrims = new List<SceneObjectPart>();
+        public List<SceneObjectPart> LoopSoundSlavePrims
+        {
+            get { return m_LoopSoundSlavePrims; }
+            set { m_LoopSoundSlavePrims = value; }
         }
 
         [XmlIgnore]
@@ -573,8 +646,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             set
             {
-                StoreUndoState();
-
                 m_groupPosition = value;
 
                 PhysicsActor actor = PhysActor;
@@ -1401,6 +1472,10 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_undo.Clear();
             }
+            lock (m_redo)
+            {
+                m_redo.Clear();
+            }
             StoreUndoState();
         }
 
@@ -1711,6 +1786,66 @@ namespace OpenSim.Region.Framework.Scenes
             return m_parentGroup.RootPart.DIE_AT_EDGE;
         }
 
+        public bool GetReturnAtEdge()
+        {
+            if (m_parentGroup == null)
+                return false;
+            if (m_parentGroup.IsDeleted)
+                return false;
+
+            return m_parentGroup.RootPart.RETURN_AT_EDGE;
+        }
+
+        public void SetReturnAtEdge(bool p)
+        {
+            if (m_parentGroup == null)
+                return;
+            if (m_parentGroup.IsDeleted)
+                return;
+
+            m_parentGroup.RootPart.RETURN_AT_EDGE = p;
+        }
+
+        public bool GetBlockGrab()
+        {
+            if (m_parentGroup == null)
+                return false;
+            if (m_parentGroup.IsDeleted)
+                return false;
+
+            return m_parentGroup.RootPart.BlockGrab;
+        }
+
+        public void SetBlockGrab(bool p)
+        {
+            if (m_parentGroup == null)
+                return;
+            if (m_parentGroup.IsDeleted)
+                return;
+
+            m_parentGroup.RootPart.BlockGrab = p;
+        }
+
+        public void SetStatusSandbox(bool p)
+        {
+            if (m_parentGroup == null)
+                return;
+            if (m_parentGroup.IsDeleted)
+                return;
+            StatusSandboxPos = m_parentGroup.RootPart.AbsolutePosition;
+            m_parentGroup.RootPart.StatusSandbox = p;
+        }
+
+        public bool GetStatusSandbox()
+        {
+            if (m_parentGroup == null)
+                return false;
+            if (m_parentGroup.IsDeleted)
+                return false;
+
+            return m_parentGroup.RootPart.StatusSandbox;
+        }
+
         public int GetAxisRotation(int axis)
         {
             //Cannot use ScriptBaseClass constants as no referance to it currently.
@@ -1917,7 +2052,7 @@ namespace OpenSim.Region.Framework.Scenes
             // play the sound.
             if (startedColliders.Count > 0 && CollisionSound != UUID.Zero && CollisionSoundVolume > 0.0f)
             {
-                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0);
+                SendSound(CollisionSound.ToString(), CollisionSoundVolume, true, (byte)0, 0, false, false);
             }
 
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision_start) != 0)
@@ -2491,9 +2626,8 @@ namespace OpenSim.Region.Framework.Scenes
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
-                // TODO: some filtering by distance of avatar
-
-                p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
+                if (!(Util.GetDistanceTo(p.AbsolutePosition, AbsolutePosition) >= 100))
+                    p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
             }
         }
 
@@ -2554,7 +2688,38 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void RotLookAt(Quaternion target, float strength, float damping)
         {
-            m_parentGroup.rotLookAt(target, strength, damping);
+            rotLookAt(target, strength, damping);
+        }
+
+        public void rotLookAt(Quaternion target, float strength, float damping)
+        {
+            if (IsAttachment)
+            {
+                /*
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null)
+                    {
+                    Rotate the Av?
+                    } */
+            }
+            else
+            {
+                APIDDamp = damping;
+                APIDStrength = strength;
+                APIDTarget = target;
+            }
+        }
+
+        public void startLookAt(Quaternion rot, float damp, float strength)
+        {
+            APIDDamp = damp;
+            APIDStrength = strength;
+            APIDTarget = rot;
+        }
+
+        public void stopLookAt()
+        {
+            APIDTarget = Quaternion.Identity;
         }
 
         /// <summary>
@@ -2814,7 +2979,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="volume"></param>
         /// <param name="triggered"></param>
         /// <param name="flags"></param>
-        public void SendSound(string sound, double volume, bool triggered, byte flags)
+        public void SendSound(string sound, double volume, bool triggered, byte flags, float radius, bool useMaster, bool isMaster)
         {
             if (volume > 1)
                 volume = 1;
@@ -2850,10 +3015,51 @@ namespace OpenSim.Region.Framework.Scenes
             ISoundModule soundModule = m_parentGroup.Scene.RequestModuleInterface<ISoundModule>();
             if (soundModule != null)
             {
-                if (triggered)
-                    soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle);
+                if (useMaster)
+                {
+                    if (isMaster)
+                    {
+                        if (triggered)
+                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                        else
+                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        ParentGroup.PlaySoundMasterPrim = this;
+                        ownerID = this._ownerID;
+                        objectID = this.UUID;
+                        parentID = this.GetRootPartUUID();
+                        position = this.AbsolutePosition; // region local
+                        regionHandle = this.ParentGroup.Scene.RegionInfo.RegionHandle;
+                        if (triggered)
+                            soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                        else
+                            soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        foreach (SceneObjectPart prim in ParentGroup.PlaySoundSlavePrims)
+                        {
+                            ownerID = prim._ownerID;
+                            objectID = prim.UUID;
+                            parentID = prim.GetRootPartUUID();
+                            position = prim.AbsolutePosition; // region local
+                            regionHandle = prim.ParentGroup.Scene.RegionInfo.RegionHandle;
+                            if (triggered)
+                                soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                            else
+                                soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                        }
+                        ParentGroup.PlaySoundSlavePrims.Clear();
+                        ParentGroup.PlaySoundMasterPrim = null;
+                    }
+                    else
+                    {
+                        ParentGroup.PlaySoundSlavePrims.Add(this);
+                    }
+                }
                 else
-                    soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags);
+                {
+                    if (triggered)
+                        soundModule.TriggerSound(soundID, ownerID, objectID, parentID, volume, position, regionHandle, radius);
+                    else
+                        soundModule.PlayAttachedSound(soundID, ownerID, objectID, volume, position, flags, radius);
+                }
             }
         }
 
@@ -3156,6 +3362,14 @@ namespace OpenSim.Region.Framework.Scenes
             hasProfileCut = hasDimple; // is it the same thing?
         }
         
+        public void SetVehicleFlags(int param, bool remove)
+        {
+            if (PhysActor != null)
+            {
+                PhysActor.VehicleFlags(param, remove);
+            }
+        }
+
         public void SetGroup(UUID groupID, IClientAPI client)
         {
             _groupID = groupID;
@@ -3260,27 +3474,30 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (!Undoing)
             {
-                if (m_parentGroup != null)
+                if (!IgnoreUndoUpdate)
                 {
-                    lock (m_undo)
+                    if (m_parentGroup != null)
                     {
-                        if (m_undo.Count > 0)
+                        lock (m_undo)
                         {
-                            UndoState last = m_undo.Peek();
-                            if (last != null)
+                            if (m_undo.Count > 0)
                             {
-                                if (last.Compare(this))
-                                    return;
+                                UndoState last = m_undo.Peek();
+                                if (last != null)
+                                {
+                                    if (last.Compare(this))
+                                        return;
+                                }
                             }
+
+                            if (m_parentGroup.GetSceneMaxUndo() > 0)
+                            {
+                                UndoState nUndo = new UndoState(this);
+
+                                m_undo.Push(nUndo);
+                            }
+
                         }
-
-                        if (m_parentGroup.GetSceneMaxUndo() > 0)
-                        {
-                            UndoState nUndo = new UndoState(this);
-
-                            m_undo.Push(nUndo);
-                        }
-
                     }
                 }
             }
@@ -3751,11 +3968,36 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_undo)
             {
                 if (m_undo.Count > 0)
+                {
+                    UndoState nUndo = null;
+                    if (m_parentGroup.GetSceneMaxUndo() > 0)
                     {
-                        UndoState goback = m_undo.Pop();
-                        if (goback != null)
-                            goback.PlaybackState(this);
+                        nUndo = new UndoState(this);
+                    }
+                    UndoState goback = m_undo.Pop();
+                    if (goback != null)
+                    {
+                        goback.PlaybackState(this);
+                        if (nUndo != null)
+                            m_redo.Push(nUndo);
+                    }
                 }
+            }
+        }
+
+        public void Redo()
+        {
+            lock (m_redo)
+            {
+                if (m_parentGroup.GetSceneMaxUndo() > 0)
+                {
+                    UndoState nUndo = new UndoState(this);
+
+                    m_undo.Push(nUndo);
+                }
+                UndoState gofwd = m_redo.Pop();
+                if (gofwd != null)
+                    gofwd.PlayfwdState(this);
             }
         }
 
@@ -3802,6 +4044,18 @@ namespace OpenSim.Region.Framework.Scenes
                 (pos.Z != OffsetPosition.Z))
             {
                 Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
+
+                if (ParentGroup.RootPart.GetStatusSandbox())
+                {
+                    if (Util.GetDistanceTo(ParentGroup.RootPart.StatusSandboxPos, newPos) > 10)
+                    {
+                        ParentGroup.RootPart.ScriptSetPhysicsStatus(false);
+                        newPos = OffsetPosition;
+                        ParentGroup.Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                              ChatTypeEnum.DebugChannel, 0x7FFFFFFF, ParentGroup.RootPart.AbsolutePosition, Name, UUID, false);
+                    }
+                }
+
                 OffsetPosition = newPos;
                 ScheduleTerseUpdate();
             }
@@ -4094,7 +4348,6 @@ namespace OpenSim.Region.Framework.Scenes
                 (rot.Z != RotationOffset.Z) ||
                 (rot.W != RotationOffset.W))
             {
-                //StoreUndoState();
                 RotationOffset = rot;
                 ParentGroup.HasGroupChanged = true;
                 ScheduleTerseUpdate();
@@ -4395,6 +4648,37 @@ namespace OpenSim.Region.Framework.Scenes
             _everyoneMask &= _nextOwnerMask;
 
             Inventory.ApplyNextOwnerPermissions();
+        }
+        public void UpdateLookAt()
+        {
+            try
+            {
+                if (APIDTarget != Quaternion.Identity)
+                {
+                    if (Single.IsNaN(APIDTarget.W) == true)
+                    {
+                        APIDTarget = Quaternion.Identity;
+                        return;
+                    }
+                    Quaternion rot = RotationOffset;
+                    Quaternion dir = (rot - APIDTarget);
+                    float speed = ((APIDStrength / APIDDamp) * (float)(Math.PI / 180.0f));
+                    if (dir.Z > speed)
+                    {
+                        rot.Z -= speed;
+                    }
+                    if (dir.Z < -speed)
+                    {
+                        rot.Z += speed;
+                    }
+                    rot.Normalize();
+                    UpdateRotation(rot);
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[Physics] " + ex);
+            }
         }
     }
 }
