@@ -66,6 +66,7 @@ namespace OpenSim.Services.InventoryService
             // Agent has no inventory structure yet.
             if (null == rootFolder)
             {
+                m_log.DebugFormat("[INVENTORY SERVICE]: No root folder");
                 return null;
             }
 

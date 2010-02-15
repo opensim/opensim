@@ -46,10 +46,12 @@ namespace OpenSim.Data.SQLite
         private const string invItemsSelect = "select * from inventoryitems";
         private const string invFoldersSelect = "select * from inventoryfolders";
 
-        private SqliteConnection conn;
-        private DataSet ds;
-        private SqliteDataAdapter invItemsDa;
-        private SqliteDataAdapter invFoldersDa;
+        private static SqliteConnection conn;
+        private static DataSet ds;
+        private static SqliteDataAdapter invItemsDa;
+        private static SqliteDataAdapter invFoldersDa;
+
+        private static bool m_Initialized = false;
 
         public void Initialise()
         {
@@ -67,39 +69,44 @@ namespace OpenSim.Data.SQLite
         /// <param name="dbconnect">connect string</param>
         public void Initialise(string dbconnect)
         {
-            if (dbconnect == string.Empty)
+            if (!m_Initialized)
             {
-                dbconnect = "URI=file:inventoryStore.db,version=3";
+                m_Initialized = true;
+
+                if (dbconnect == string.Empty)
+                {
+                    dbconnect = "URI=file:inventoryStore.db,version=3";
+                }
+                m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
+                conn = new SqliteConnection(dbconnect);
+
+                conn.Open();
+
+                Assembly assem = GetType().Assembly;
+                Migration m = new Migration(conn, assem, "InventoryStore");
+                m.Update();
+
+                SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
+                invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
+                //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
+
+                SqliteCommand foldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
+                invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
+
+                ds = new DataSet();
+
+                ds.Tables.Add(createInventoryFoldersTable());
+                invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
+                setupFoldersCommands(invFoldersDa, conn);
+                m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
+
+                ds.Tables.Add(createInventoryItemsTable());
+                invItemsDa.Fill(ds.Tables["inventoryitems"]);
+                setupItemsCommands(invItemsDa, conn);
+                m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
+
+                ds.AcceptChanges();
             }
-            m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
-            conn = new SqliteConnection(dbconnect);
-
-            conn.Open();
-
-            Assembly assem = GetType().Assembly;
-            Migration m = new Migration(conn, assem, "InventoryStore");
-            m.Update();
-
-            SqliteCommand itemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
-            invItemsDa = new SqliteDataAdapter(itemsSelectCmd);
-            //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
-
-            SqliteCommand foldersSelectCmd = new SqliteCommand(invFoldersSelect, conn);
-            invFoldersDa = new SqliteDataAdapter(foldersSelectCmd);
-
-            ds = new DataSet();
-
-            ds.Tables.Add(createInventoryFoldersTable());
-            invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
-            setupFoldersCommands(invFoldersDa, conn);
-            m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
-
-            ds.Tables.Add(createInventoryItemsTable());
-            invItemsDa.Fill(ds.Tables["inventoryitems"]);
-            setupItemsCommands(invItemsDa, conn);
-            m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
-
-            ds.AcceptChanges();
         }
 
         /// <summary>
@@ -384,7 +391,9 @@ namespace OpenSim.Data.SQLite
                 List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
                 string selectExp = "agentID = '" + user + "' AND parentID = '" + UUID.Zero + "'";
+                m_log.DebugFormat("XXX selectExp = {0}", selectExp);
                 DataRow[] rows = inventoryFolderTable.Select(selectExp);
+                m_log.DebugFormat("XXX rows: {0}", rows.Length);
                 foreach (DataRow row in rows)
                 {
                     folders.Add(buildFolder(row));
@@ -397,9 +406,11 @@ namespace OpenSim.Data.SQLite
                 // suitably refactor.
                 if (folders.Count > 0)
                 {
+                    m_log.DebugFormat("XXX Found root folder");
                     return folders[0];
                 }
 
+                m_log.DebugFormat("XXX Root folder for {0} not found", user);
                 return null;
             }
         }
