@@ -97,7 +97,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public void Initialise(IConfigSource source)
         {
             IConfig cnf = source.Configs["LandManagement"];
-            if (cnf == null)
+            if (cnf != null)
             {
                 DefaultGodParcelGroup = new UUID(cnf.GetString("DefaultAdministratorGroupUUID", UUID.Zero.ToString()));
                 DefaultGodParcelName = cnf.GetString("DefaultAdministratorParcelName", "Default Parcel");
