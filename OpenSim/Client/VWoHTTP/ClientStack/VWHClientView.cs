@@ -343,6 +343,8 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event UUIDNameRequest OnTeleportHomeRequest = delegate { };
         public event ScriptAnswer OnScriptAnswer = delegate { };
         public event AgentSit OnUndo = delegate { };
+        public event AgentSit OnRedo = delegate { };
+        public event LandUndo OnLandUndo = delegate { };
         public event ForceReleaseControls OnForceReleaseControls = delegate { };
         public event GodLandStatRequest OnLandStatRequest = delegate { };
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest = delegate { };

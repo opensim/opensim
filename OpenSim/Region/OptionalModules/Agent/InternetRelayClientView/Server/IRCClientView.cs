@@ -774,6 +774,8 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public event UUIDNameRequest OnTeleportHomeRequest;
         public event ScriptAnswer OnScriptAnswer;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;

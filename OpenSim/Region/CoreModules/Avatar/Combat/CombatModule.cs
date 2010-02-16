@@ -148,13 +148,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
         private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
         {
             ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-            if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0)
+            try
             {
-                avatar.Invulnerable = false;
+                if ((obj.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0)
+                {
+                    avatar.Invulnerable = false;
+                }
+                else
+                {
+                    avatar.Invulnerable = true;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                avatar.Invulnerable = true;
             }
         }
     }

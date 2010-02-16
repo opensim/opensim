@@ -197,7 +197,7 @@ namespace OpenSim.Server.Handlers.Asset
             if (!request.ContainsKey("PRINCIPAL"))
                 return FailureResult();
 
-            if(m_InventoryService.CreateUserInventory(new UUID(request["PRINCIPAL"].ToString())))
+            if (m_InventoryService.CreateUserInventory(new UUID(request["PRINCIPAL"].ToString())))
                 result["RESULT"] = "True";
             else
                 result["RESULT"] = "False";

@@ -69,7 +69,7 @@ namespace OpenSim.Framework
         private static UUID HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
         private static UUID HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
 
-        public readonly static int VISUALPARAM_COUNT = 218;        
+        public readonly static int VISUALPARAM_COUNT = 218;
 
         protected UUID m_owner;
 
@@ -361,7 +361,7 @@ namespace OpenSim.Framework
             // This sets Visual Params with *less* weirder values then default. Instead of a ugly alien, it looks like a fat scientist
             SetDefaultParams(m_visualparams);
             SetDefaultWearables();
-            m_texture = GetDefaultTexture();            
+            m_texture = GetDefaultTexture();
         }
         
         public AvatarAppearance(UUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
@@ -390,11 +390,12 @@ namespace OpenSim.Framework
                            + 0.08f * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f    // Shoe platform height
                            + 0.07f * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT] / 255.0f    // Shoe heel height
                            + 0.076f * (float)m_visualparams[(int)VPElement.SHAPE_NECK_LENGTH] / 255.0f;    // Neck length
-            m_hipOffset = (0.615385f // Half of avatar
+            m_hipOffset = (((1.23077f // Half of avatar
+                           + 0.516945f * (float)m_visualparams[(int)VPElement.SHAPE_HEIGHT] / 255.0f   // Body height
+                           + 0.3836f * (float)m_visualparams[(int)VPElement.SHAPE_LEG_LENGTH] / 255.0f    // Leg length
                            + 0.08f * (float)m_visualparams[(int)VPElement.SHOES_PLATFORM_HEIGHT] / 255.0f    // Shoe platform height
                            + 0.07f * (float)m_visualparams[(int)VPElement.SHOES_HEEL_HEIGHT] / 255.0f    // Shoe heel height
-                           + 0.3836f * (float)m_visualparams[(int)VPElement.SHAPE_LEG_LENGTH] / 255.0f    // Leg length
-                           - m_avatarHeight / 2) * 0.3f - 0.04f;
+                           ) / 2) - m_avatarHeight / 2) * 0.31f - 0.0425f;
             
 
 

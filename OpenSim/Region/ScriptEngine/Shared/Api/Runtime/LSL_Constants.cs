@@ -160,6 +160,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int VEHICLE_BANKING_MIX = 39;
         public const int VEHICLE_BANKING_TIMESCALE = 40;
         public const int VEHICLE_REFERENCE_FRAME = 44;
+        public const int VEHICLE_RANGE_BLOCK = 45;
+        public const int VEHICLE_ROLL_FRAME = 46;
         public const int VEHICLE_FLAG_NO_DEFLECTION_UP = 1;
         public const int VEHICLE_FLAG_LIMIT_ROLL_ONLY = 2;
         public const int VEHICLE_FLAG_HOVER_WATER_ONLY = 4;
@@ -170,6 +172,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int VEHICLE_FLAG_MOUSELOOK_STEER = 128;
         public const int VEHICLE_FLAG_MOUSELOOK_BANK = 256;
         public const int VEHICLE_FLAG_CAMERA_DECOUPLED = 512;
+        public const int VEHICLE_FLAG_NO_X = 1024;
+        public const int VEHICLE_FLAG_NO_Y = 2048;
+        public const int VEHICLE_FLAG_NO_Z = 4096;
+        public const int VEHICLE_FLAG_LOCK_HOVER_HEIGHT = 8192;
+        public const int VEHICLE_FLAG_NO_DEFLECTION = 16392;
+        public const int VEHICLE_FLAG_LOCK_ROTATION = 32784;
 
         public const int INVENTORY_ALL = -1;
         public const int INVENTORY_NONE = -1;

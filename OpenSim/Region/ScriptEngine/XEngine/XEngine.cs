@@ -841,7 +841,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 ObjectRemoved handlerObjectRemoved = OnObjectRemoved;
                 if (handlerObjectRemoved != null)
                 {
-                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);                    
+                    SceneObjectPart part = m_Scene.GetSceneObjectPart(localID);
                     handlerObjectRemoved(part.UUID);
                 }
 
