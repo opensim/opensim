@@ -8969,8 +8969,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             if (quick_pay_buttons.Data.Length < 4)
             {
-                LSLError("List must have at least 4 elements");
-                return;
+                int x;
+                for (x=quick_pay_buttons.Data.Length; x<= 4; x++)
+                {
+                    quick_pay_buttons.Add(ScriptBaseClass.PAY_HIDE);
+                }
             }
             int[] nPrice = new int[5];
             nPrice[0]=price;
