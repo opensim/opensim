@@ -190,6 +190,8 @@ namespace OpenSim
 
             PrintFileToConsole("startuplogo.txt");
 
+            m_log.InfoFormat("[NETWORK]: Using {0} as SYSTEMIP", Util.GetLocalHost().ToString());
+
             // For now, start at the 'root' level by default
             if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
                 ChangeSelectedRegion("region",

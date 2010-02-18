@@ -589,11 +589,17 @@ namespace OpenSim.Framework
 
         public static IPAddress GetLocalHost()
         {
-            string dnsAddress = "localhost";
+            IPAddress[] iplist = GetLocalHosts();
 
-            IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+            if (iplist.Length == 0) // No accessible external interfaces
+            {
+                IPAddress[] loopback = Dns.GetHostAddresses("localhost");
+                IPAddress localhost = loopback[0];
 
-            foreach (IPAddress host in hosts)
+                return localhost;
+            }
+
+            foreach (IPAddress host in iplist)
             {
                 if (!IPAddress.IsLoopback(host) && host.AddressFamily == AddressFamily.InterNetwork)
                 {
@@ -601,15 +607,15 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (hosts.Length > 0)
+            if (iplist.Length > 0)
             {
-                foreach (IPAddress host in hosts)
+                foreach (IPAddress host in iplist)
                 {
                     if (host.AddressFamily == AddressFamily.InterNetwork)
                         return host;
                 }
                 // Well all else failed...
-                return hosts[0];
+                return iplist[0];
             }
 
             return null;
