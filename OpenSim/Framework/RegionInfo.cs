@@ -474,15 +474,15 @@ namespace OpenSim.Framework
 
             if (config.Contains("ExternalHostName"))
             {
-                externalName = config.GetString("ExternalHostName", "SYSTEMIP");
+                externalName = config.GetString("ExternalHostName", "localhost");
             }
             else
             {
-                externalName = MainConsole.Instance.CmdPrompt("External host name", "SYSTEMIP");
+                externalName = MainConsole.Instance.CmdPrompt("External host name", "localhost");
                 config.Set("ExternalHostName", externalName);
             }
 
-            if (externalName == "SYSTEMIP")
+            if (externalName == "localhost")
                 m_externalHostName = Util.GetLocalHost().ToString();
             else
                 m_externalHostName = externalName;
@@ -788,7 +788,7 @@ namespace OpenSim.Framework
                     m_allow_alternate_ports = (bool) configuration_result;
                     break;
                 case "external_host_name":
-                    if ((string) configuration_result != "SYSTEMIP")
+                    if ((string) configuration_result != "localhost")
                     {
                         m_externalHostName = (string) configuration_result;
                     }
