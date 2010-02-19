@@ -131,7 +131,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
-                        new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream).Execute();
+                        try
+                        {
+                            new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream).Execute();
+                        }                                    
+                        catch (EntryPointNotFoundException e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                    + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                            m_log.Error(e);
+
+                            return false;
+                        }
+                    
                         return true;
                     }
                     else
@@ -156,7 +169,20 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
-                        new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath).Execute();
+                        try
+                        {
+                            new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath).Execute();
+                        }                                    
+                        catch (EntryPointNotFoundException e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                    + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                            m_log.Error(e);
+
+                            return false;
+                        }
+                    
                         return true;
                     }
                     else
@@ -181,8 +207,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
-                        InventoryArchiveReadRequest request = 
-                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);
+                        InventoryArchiveReadRequest request;
+                        
+                        try
+                        {
+                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadStream);
+                        }                                    
+                        catch (EntryPointNotFoundException e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                    + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                            m_log.Error(e);
+
+                            return false;
+                        }
+                    
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
@@ -209,8 +249,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 {
                     if (CheckPresence(userInfo.UserProfile.ID))
                     {
-                        InventoryArchiveReadRequest request = 
-                            new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);
+                        InventoryArchiveReadRequest request;
+                        
+                        try
+                        {
+                            request = new InventoryArchiveReadRequest(m_aScene, userInfo, invPath, loadPath);
+                        }                                    
+                        catch (EntryPointNotFoundException e)
+                        {
+                            m_log.ErrorFormat(
+                                "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                                    + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                            m_log.Error(e);
+
+                            return false;
+                        }
+                        
                         UpdateClientWithLoadedNodes(userInfo, request.Execute());
 
                         return true;
