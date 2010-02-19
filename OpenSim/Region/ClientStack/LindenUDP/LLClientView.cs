@@ -11025,10 +11025,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet Pack)
         {
+//            m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack);
+            
             if (!ProcessPacketMethod(Pack))
-            {
                 m_log.Warn("[CLIENT]: unhandled packet " + Pack);
-            }
 
             PacketPool.Instance.ReturnPacket(Pack);
         }
