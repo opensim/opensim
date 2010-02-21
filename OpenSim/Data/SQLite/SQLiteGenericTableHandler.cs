@@ -57,6 +57,9 @@ namespace OpenSim.Data.SQLite
 
             if (!m_initialized)
             {
+                m_Connection = new SqliteConnection(connectionString);
+                m_Connection.Open();
+
                 if (storeName != String.Empty)
                 {
                     Assembly assem = GetType().Assembly;
@@ -64,6 +67,7 @@ namespace OpenSim.Data.SQLite
                     Migration m = new Migration(m_Connection, assem, storeName);
                     m.Update();
                 }
+
                 m_initialized = true;
             }
 
@@ -117,7 +121,7 @@ namespace OpenSim.Data.SQLite
             for (int i = 0 ; i < fields.Length ; i++)
             {
                 cmd.Parameters.Add(new SqliteParameter(":" + fields[i], keys[i]));
-                terms.Add("`" + fields[i] + "` = :" + fields[i]);
+                terms.Add("`" + fields[i] + "`='" + keys[i] + "'");
             }
 
             string where = String.Join(" and ", terms.ToArray());
@@ -215,8 +219,8 @@ namespace OpenSim.Data.SQLite
             foreach (FieldInfo fi in m_Fields.Values)
             {
                 names.Add(fi.Name);
-                values.Add(":" + fi.Name);
-                cmd.Parameters.Add(new SqliteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
+                values.Add(fi.GetValue(row).ToString());
+                cmd.Parameters.Add(new SqliteParameter(fi.Name, fi.GetValue(row).ToString()));
             }
 
             if (m_DataField != null)
@@ -227,12 +231,12 @@ namespace OpenSim.Data.SQLite
                 foreach (KeyValuePair<string, string> kvp in data)
                 {
                     names.Add(kvp.Key);
-                    values.Add(":" + kvp.Key);
-                    cmd.Parameters.Add(new SqliteParameter(":" + kvp.Key, kvp.Value));
+                    values.Add(kvp.Value);
+                    cmd.Parameters.Add(new SqliteParameter(kvp.Key, kvp.Value));
                 }
             }
 
-            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+            query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values ('" + String.Join("', '", values.ToArray()) + "')";
 
             cmd.CommandText = query;
 

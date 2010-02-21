@@ -106,12 +106,17 @@ namespace OpenSim.Services.AuthenticationService
             string passwordSalt = Util.Md5Hash(UUID.Random().ToString());
             string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(password) + ":" + passwordSalt);
 
-            AuthenticationData auth = new AuthenticationData();
-            auth.PrincipalID = principalID;
-            auth.Data = new System.Collections.Generic.Dictionary<string, object>();
+            AuthenticationData auth = m_Database.Get(principalID);
+            if (auth == null)
+            {
+                auth = new AuthenticationData();
+                auth.PrincipalID = principalID;
+                auth.Data = new System.Collections.Generic.Dictionary<string, object>();
+                auth.Data["accountType"] = "UserAccount";
+                auth.Data["webLoginKey"] = UUID.Zero.ToString();
+            }
             auth.Data["passwordHash"] = md5PasswdHash;
             auth.Data["passwordSalt"] = passwordSalt;
-            auth.Data["webLoginKey"] = UUID.Zero.ToString();
             if (!m_Database.Store(auth))
             {
                 m_log.DebugFormat("[AUTHENTICATION DB]: Failed to store authentication data");

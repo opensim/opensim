@@ -40,17 +40,12 @@ namespace OpenSim.Data.SQLite
     /// </summary>
     public class SQLiteFramework
     {
-        protected static SqliteConnection m_Connection;
-        private bool m_initialized;
+        protected SqliteConnection m_Connection;
 
         protected SQLiteFramework(string connectionString)
         {
-            if (!m_initialized)
-            {
-                m_Connection = new SqliteConnection(connectionString);
-                m_Connection.Open();
-                m_initialized = true;
-            }
+            //m_Connection = new SqliteConnection(connectionString);
+            //m_Connection.Open();
         }
 
         //////////////////////////////////////////////////////////////
@@ -63,6 +58,7 @@ namespace OpenSim.Data.SQLite
             lock (m_Connection)
             {
                 cmd.Connection = m_Connection;
+                Console.WriteLine("XXX " + cmd.CommandText);
 
                 return cmd.ExecuteNonQuery();
             }
@@ -75,6 +71,7 @@ namespace OpenSim.Data.SQLite
             newConnection.Open();
 
             cmd.Connection = newConnection;
+            Console.WriteLine("XXX " + cmd.CommandText);
             return cmd.ExecuteReader();
         }
 

@@ -52,12 +52,16 @@ namespace OpenSim.Data.SQLite
 
             if (!m_initialized)
             {
+                m_Connection = new SqliteConnection(connectionString);
+                m_Connection.Open();
+
                 using (SqliteConnection dbcon = new SqliteConnection(m_connectionString))
                 {
                     dbcon.Open();
                     Migration m = new Migration(dbcon, GetType().Assembly, "AuthStore");
                     m.Update();
                 }
+
                 m_initialized = true;
             }
         }
@@ -105,7 +109,7 @@ namespace OpenSim.Data.SQLite
         }
 
         public bool Store(AuthenticationData data)
-        {
+        {            
             if (data.Data.ContainsKey("UUID"))
                 data.Data.Remove("UUID");
 
@@ -117,31 +121,60 @@ namespace OpenSim.Data.SQLite
 
             SqliteCommand cmd = new SqliteCommand();
 
-            string update = "update `"+m_Realm+"` set ";
-            bool first = true;
-            foreach (string field in fields)
+            if (Get(data.PrincipalID) != null)
             {
-                if (!first)
-                    update += ", ";
-                update += "`" + field + "` = " + data.Data[field];
 
-                first = false;
 
+                string update = "update `" + m_Realm + "` set ";
+                bool first = true;
+                foreach (string field in fields)
+                {
+                    if (!first)
+                        update += ", ";
+                    update += "`" + field + "` = '" + data.Data[field] + "'";
+
+                    first = false;
+
+                }
+
+                update += " where UUID = '" + data.PrincipalID.ToString() + "'";
+
+                cmd.CommandText = update;
+                Console.WriteLine("XXX " + cmd.CommandText);
+                try
+                {
+                    if (ExecuteNonQuery(cmd) < 1)
+                    {
+                        cmd.Dispose();
+                        return false;
+                    }
+                }
+                catch
+                {
+                    cmd.Dispose();
+                    return false;
+                }
             }
 
-            update += " where UUID = '" + data.PrincipalID.ToString() + "'";
-
-            cmd.CommandText = update;
-
-            if (ExecuteNonQuery(cmd) < 1)
+            else
             {
                 string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ('" + data.PrincipalID.ToString() + "', " + String.Join(", '", values) + "')";
+                        "`) values ('" + data.PrincipalID.ToString() + "', '" + String.Join("', '", values) + "')";
 
                 cmd.CommandText = insert;
 
-                if (ExecuteNonQuery(cmd) < 1)
+                Console.WriteLine("XXX " + cmd.CommandText);
+
+                try
+                {
+                    if (ExecuteNonQuery(cmd) < 1)
+                    {
+                        cmd.Dispose();
+                        return false;
+                    }
+                }
+                catch
                 {
                     cmd.Dispose();
                     return false;
