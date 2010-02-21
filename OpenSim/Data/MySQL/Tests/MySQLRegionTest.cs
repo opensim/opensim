@@ -31,6 +31,7 @@ using OpenSim.Data.Tests;
 using log4net;
 using System.Reflection;
 using OpenSim.Tests.Common;
+using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL.Tests
 {
@@ -39,7 +40,6 @@ namespace OpenSim.Data.MySQL.Tests
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string file;
-        public MySQLManager database;
         public string connect = "Server=localhost;Port=3306;Database=opensim-nunit;User ID=opensim-nunit;Password=opensim-nunit;Pooling=false;";
         
         [TestFixtureSetUp]
@@ -52,9 +52,8 @@ namespace OpenSim.Data.MySQL.Tests
             // tests.
             try 
             {
-                database = new MySQLManager(connect);
                 // this is important in case a previous run ended badly
-                ClearDB(database);
+                ClearDB();
 
                 db = new MySQLDataStore();
                 db.Initialise(connect);
@@ -73,28 +72,40 @@ namespace OpenSim.Data.MySQL.Tests
             {
                 db.Dispose();
             }
-            ClearDB(database);
+            ClearDB();
         }
 
-        private void ClearDB(MySQLManager manager) 
+        private void ClearDB() 
         {
-            if (manager != null)
+            ExecuteSql("drop table if exists migrations");
+            ExecuteSql("drop table if exists prims");
+            ExecuteSql("drop table if exists primshapes");
+            ExecuteSql("drop table if exists primitems");
+            ExecuteSql("drop table if exists terrain");
+            ExecuteSql("drop table if exists land");
+            ExecuteSql("drop table if exists landaccesslist");
+            ExecuteSql("drop table if exists regionban");
+            ExecuteSql("drop table if exists regionsettings");
+            ExecuteSql("drop table if exists estate_managers");
+            ExecuteSql("drop table if exists estate_groups");
+            ExecuteSql("drop table if exists estate_users");
+            ExecuteSql("drop table if exists estateban");
+            ExecuteSql("drop table if exists estate_settings");
+            ExecuteSql("drop table if exists estate_map");
+        }
+
+        /// <summary>
+        /// Execute a MySqlCommand
+        /// </summary>
+        /// <param name="sql">sql string to execute</param>
+        private void ExecuteSql(string sql)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(connect))
             {
-                manager.ExecuteSql("drop table if exists migrations");
-                manager.ExecuteSql("drop table if exists prims");
-                manager.ExecuteSql("drop table if exists primshapes");
-                manager.ExecuteSql("drop table if exists primitems");
-                manager.ExecuteSql("drop table if exists terrain");
-                manager.ExecuteSql("drop table if exists land");
-                manager.ExecuteSql("drop table if exists landaccesslist");
-                manager.ExecuteSql("drop table if exists regionban");
-                manager.ExecuteSql("drop table if exists regionsettings");
-                manager.ExecuteSql("drop table if exists estate_managers");
-                manager.ExecuteSql("drop table if exists estate_groups");
-                manager.ExecuteSql("drop table if exists estate_users");
-                manager.ExecuteSql("drop table if exists estateban");
-                manager.ExecuteSql("drop table if exists estate_settings");
-                manager.ExecuteSql("drop table if exists estate_map");
+                dbcon.Open();
+
+                MySqlCommand cmd = new MySqlCommand(sql, dbcon);
+                cmd.ExecuteNonQuery();
             }
         }
     }
