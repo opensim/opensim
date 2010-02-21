@@ -57,8 +57,8 @@ namespace OpenSim.Data.SQLite
 
                 using (SqliteConnection dbcon = new SqliteConnection(m_connectionString))
                 {
-                    dbcon.Open();
-                    Migration m = new Migration(dbcon, GetType().Assembly, "AuthStore");
+                    //dbcon.Open();
+                    Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
                     m.Update();
                 }
 
@@ -149,8 +149,9 @@ namespace OpenSim.Data.SQLite
                         return false;
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                     cmd.Dispose();
                     return false;
                 }
@@ -174,8 +175,9 @@ namespace OpenSim.Data.SQLite
                         return false;
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Console.WriteLine(e.ToString());
                     cmd.Dispose();
                     return false;
                 }
