@@ -42,7 +42,6 @@ namespace OpenSim.Data.SQLite
     {
         protected Object m_lockObject = new Object();
 
-        protected static SqliteConnection m_Connection;
         protected SQLiteFramework(string connectionString)
         {
         }
@@ -52,43 +51,41 @@ namespace OpenSim.Data.SQLite
         // All non queries are funneled through one connection
         // to increase performance a little
         //
-        protected int ExecuteNonQuery(SqliteCommand cmd)
+        protected int ExecuteNonQuery(SqliteCommand cmd, SqliteConnection connection)
         {
-            lock (m_lockObject)
+            lock (connection)
             {
                 SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                        (SqliteConnection)((ICloneable)connection).Clone();
                 newConnection.Open();
 
                 cmd.Connection = newConnection;
-                Console.WriteLine("XXX " + cmd.CommandText);
+                //Console.WriteLine("XXX " + cmd.CommandText);
 
                 return cmd.ExecuteNonQuery();
             }
         }
-        
-        protected IDataReader ExecuteReader(SqliteCommand cmd)
+
+        protected IDataReader ExecuteReader(SqliteCommand cmd, SqliteConnection connection)
         {
-            lock (m_lockObject)
+            lock (connection)
             {
                 SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                        (SqliteConnection)((ICloneable)connection).Clone();
                 newConnection.Open();
 
                 cmd.Connection = newConnection;
-                Console.WriteLine("XXX " + cmd.CommandText);
+                //Console.WriteLine("XXX " + cmd.CommandText);
+
                 return cmd.ExecuteReader();
             }
         }
 
-        protected void CloseReaderCommand(SqliteCommand cmd)
+        protected void CloseCommand(SqliteCommand cmd)
         {
-            lock (m_lockObject)
-            {
-                cmd.Connection.Close();
-                cmd.Connection.Dispose();
-                cmd.Dispose();
-            }
+            cmd.Connection.Close();
+            cmd.Connection.Dispose();
+            cmd.Dispose();
         }
     }
 }

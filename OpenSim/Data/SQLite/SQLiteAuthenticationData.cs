@@ -42,6 +42,7 @@ namespace OpenSim.Data.SQLite
         private int m_LastExpire;
         private string m_connectionString;
 
+        protected static SqliteConnection m_Connection;
         private static bool m_initialized = false;
 
         public SQLiteAuthenticationData(string connectionString, string realm)
@@ -55,11 +56,12 @@ namespace OpenSim.Data.SQLite
                 m_Connection = new SqliteConnection(connectionString);
                 m_Connection.Open();
 
-                using (SqliteConnection dbcon = new SqliteConnection(m_connectionString))
+                using (SqliteConnection dbcon = (SqliteConnection)((ICloneable)m_Connection).Clone())
                 {
-                    //dbcon.Open();
-                    Migration m = new Migration(m_Connection, GetType().Assembly, "AuthStore");
+                    dbcon.Open();
+                    Migration m = new Migration(dbcon, GetType().Assembly, "AuthStore");
                     m.Update();
+                    dbcon.Close();
                 }
 
                 m_initialized = true;
@@ -71,13 +73,13 @@ namespace OpenSim.Data.SQLite
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
-            using (SqliteConnection dbcon = new SqliteConnection(m_connectionString))
+            SqliteCommand cmd = new SqliteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID");
+            cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
+
+            IDataReader result = ExecuteReader(cmd, m_Connection);
+
+            try
             {
-                dbcon.Open();
-                SqliteCommand cmd = new SqliteCommand("select * from `" + m_Realm + "` where UUID = '" + principalID.ToString() + "'", dbcon);
-
-                IDataReader result = cmd.ExecuteReader();
-
                 if (result.Read())
                 {
                     ret.PrincipalID = principalID;
@@ -106,6 +108,15 @@ namespace OpenSim.Data.SQLite
                     return null;
                 }
             }
+            catch
+            {
+            }
+            finally
+            {
+                CloseCommand(cmd);
+            }
+
+            return null;
         }
 
         public bool Store(AuthenticationData data)
@@ -131,28 +142,28 @@ namespace OpenSim.Data.SQLite
                 {
                     if (!first)
                         update += ", ";
-                    update += "`" + field + "` = '" + data.Data[field] + "'";
+                    update += "`" + field + "` = :" + field;
+                    cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
 
                     first = false;
-
                 }
 
-                update += " where UUID = '" + data.PrincipalID.ToString() + "'";
+                update += " where UUID = :UUID";
+                cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
 
                 cmd.CommandText = update;
-                Console.WriteLine("XXX " + cmd.CommandText);
                 try
                 {
-                    if (ExecuteNonQuery(cmd) < 1)
+                    if (ExecuteNonQuery(cmd, m_Connection) < 1)
                     {
-                        cmd.Dispose();
+                        CloseCommand(cmd);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
-                    cmd.Dispose();
+                    CloseCommand(cmd);
                     return false;
                 }
             }
@@ -161,29 +172,31 @@ namespace OpenSim.Data.SQLite
             {
                 string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
                         String.Join("`, `", fields) +
-                        "`) values ('" + data.PrincipalID.ToString() + "', '" + String.Join("', '", values) + "')";
+                        "`) values (:UUID, :" + String.Join(", :", fields) + ")";
+
+                cmd.Parameters.Add(new SqliteParameter(":UUID", data.PrincipalID.ToString()));
+                foreach (string field in fields)
+                    cmd.Parameters.Add(new SqliteParameter(":" + field, data.Data[field]));
 
                 cmd.CommandText = insert;
 
-                Console.WriteLine("XXX " + cmd.CommandText);
-
                 try
                 {
-                    if (ExecuteNonQuery(cmd) < 1)
+                    if (ExecuteNonQuery(cmd, m_Connection) < 1)
                     {
-                        cmd.Dispose();
+                        CloseCommand(cmd);
                         return false;
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
-                    cmd.Dispose();
+                    CloseCommand(cmd);
                     return false;
                 }
             }
 
-            cmd.Dispose();
+            CloseCommand(cmd);
 
             return true;
         }
@@ -193,7 +206,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = new SqliteCommand("update `" + m_Realm +
                     "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'");
 
-            if (ExecuteNonQuery(cmd) > 0)
+            if (ExecuteNonQuery(cmd, m_Connection) > 0)
                 return true;
 
             return false;
@@ -205,9 +218,9 @@ namespace OpenSim.Data.SQLite
                 DoExpire();
 
             SqliteCommand cmd = new SqliteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() + 
-                "', '" + token + "', datetime('now, 'localtime', '+" + lifetime.ToString() + " minutes'))");
+                "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))");
 
-            if (ExecuteNonQuery(cmd) > 0)
+            if (ExecuteNonQuery(cmd, m_Connection) > 0)
             {
                 cmd.Dispose();
                 return true;
@@ -225,7 +238,7 @@ namespace OpenSim.Data.SQLite
             SqliteCommand cmd = new SqliteCommand("update tokens set validity = datetime('now, 'localtime', '+" + lifetime.ToString() + 
                 " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')");
 
-            if (ExecuteNonQuery(cmd) > 0)
+            if (ExecuteNonQuery(cmd, m_Connection) > 0)
             {
                 cmd.Dispose();
                 return true;
@@ -238,8 +251,8 @@ namespace OpenSim.Data.SQLite
 
         private void DoExpire()
         {
-            SqliteCommand cmd = new SqliteCommand("delete from tokens where validity < datetime('now, 'localtime')");
-            ExecuteNonQuery(cmd);
+            SqliteCommand cmd = new SqliteCommand("delete from tokens where validity < datetime('now', 'localtime')");
+            ExecuteNonQuery(cmd, m_Connection);
 
             cmd.Dispose();
 
