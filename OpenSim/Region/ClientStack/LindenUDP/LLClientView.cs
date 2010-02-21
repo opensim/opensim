@@ -2533,6 +2533,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAsset(AssetRequestToClient req)
         {
+            if (req.AssetInf.Data == null)
+            {
+                m_log.ErrorFormat("Cannot send asset {0} ({1}), asset data is null",
+                    req.AssetInf.ID, req.AssetInf.Metadata.ContentType);
+                return;
+            }
+
             //m_log.Debug("sending asset " + req.RequestAssetID);
             TransferInfoPacket Transfer = new TransferInfoPacket();
             Transfer.TransferInfo.ChannelType = 2;
@@ -16192,6 +16199,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             const uint m_maxPacketSize = 600;
             int numPackets = 1;
+
+            if (data == null)
+                return 0;
 
             if (data.LongLength > m_maxPacketSize)
             {

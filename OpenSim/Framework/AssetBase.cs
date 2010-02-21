@@ -289,8 +289,21 @@ namespace OpenSim.Framework
 
         public string ContentType
         {
-            get { return m_content_type; }
-            set { m_content_type = value; }
+            get
+            {
+                if (!String.IsNullOrEmpty(m_content_type))
+                    return m_content_type;
+                else
+                    return SLUtil.SLAssetTypeToContentType(m_type);
+            }
+            set
+            {
+                m_content_type = value;
+
+                sbyte type = (sbyte)SLUtil.ContentTypeToSLAssetType(value);
+                if (type != -1)
+                    m_type = type;
+            }
         }
 
         public byte[] SHA1
