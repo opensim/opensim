@@ -48,16 +48,23 @@ namespace OpenSim.Data.SQLite
         protected string m_Realm;
         protected FieldInfo m_DataField = null;
 
+        private static bool m_initialized;
+
         public SQLiteGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
             m_Realm = realm;
-            if (storeName != String.Empty)
-            {
-                Assembly assem = GetType().Assembly;
 
-                Migration m = new Migration(m_Connection, assem, storeName);
-                m.Update();
+            if (!m_initialized)
+            {
+                if (storeName != String.Empty)
+                {
+                    Assembly assem = GetType().Assembly;
+
+                    Migration m = new Migration(m_Connection, assem, storeName);
+                    m.Update();
+                }
+                m_initialized = true;
             }
 
             Type t = typeof(T);
