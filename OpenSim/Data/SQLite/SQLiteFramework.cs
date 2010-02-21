@@ -40,12 +40,10 @@ namespace OpenSim.Data.SQLite
     /// </summary>
     public class SQLiteFramework
     {
-        protected SqliteConnection m_Connection;
+        protected Object m_lockObject = new Object();
 
         protected SQLiteFramework(string connectionString)
         {
-            //m_Connection = new SqliteConnection(connectionString);
-            //m_Connection.Open();
         }
 
         //////////////////////////////////////////////////////////////
@@ -55,9 +53,13 @@ namespace OpenSim.Data.SQLite
         //
         protected int ExecuteNonQuery(SqliteCommand cmd)
         {
-            lock (m_Connection)
+            lock (m_lockObject)
             {
-                cmd.Connection = m_Connection;
+                SqliteConnection newConnection =
+                        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                newConnection.Open();
+
+                cmd.Connection = newConnection;
                 Console.WriteLine("XXX " + cmd.CommandText);
 
                 return cmd.ExecuteNonQuery();
@@ -66,20 +68,26 @@ namespace OpenSim.Data.SQLite
         
         protected IDataReader ExecuteReader(SqliteCommand cmd)
         {
-            SqliteConnection newConnection =
-                    (SqliteConnection)((ICloneable)m_Connection).Clone();
-            newConnection.Open();
+            lock (m_lockObject)
+            {
+                SqliteConnection newConnection =
+                        (SqliteConnection)((ICloneable)m_Connection).Clone();
+                newConnection.Open();
 
-            cmd.Connection = newConnection;
-            Console.WriteLine("XXX " + cmd.CommandText);
-            return cmd.ExecuteReader();
+                cmd.Connection = newConnection;
+                Console.WriteLine("XXX " + cmd.CommandText);
+                return cmd.ExecuteReader();
+            }
         }
 
         protected void CloseReaderCommand(SqliteCommand cmd)
         {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
+            lock (m_lockObject)
+            {
+                cmd.Connection.Close();
+                cmd.Connection.Dispose();
+                cmd.Dispose();
+            }
         }
     }
 }
