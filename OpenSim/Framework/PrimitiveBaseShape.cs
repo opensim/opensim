@@ -190,7 +190,6 @@ namespace OpenSim.Framework
 
         public PrimitiveBaseShape(Primitive prim)
         {
-
             PCode = (byte)prim.PrimData.PCode;
             ExtraParams = new byte[1];
 
