@@ -74,7 +74,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public ArchiveReadRequest(Scene scene, string loadPath, bool merge, Guid requestId)
         {
             m_scene = scene;
-            m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
+
+            try
+            {
+                m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
+            }
+            catch (EntryPointNotFoundException e)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                        + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                m_log.Error(e);
+            }
+        
             m_errorMessage = String.Empty;
             m_merge = merge;
             m_requestId = requestId;

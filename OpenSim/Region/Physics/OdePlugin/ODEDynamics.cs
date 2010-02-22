@@ -72,23 +72,23 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
         // Vehicle properties
-        private Vehicle m_type = Vehicle.TYPE_NONE;						// If a 'VEHICLE', and what kind
-        // private Quaternion m_referenceFrame = Quaternion.Identity;	// Axis modifier
-        private VehicleFlag m_flags = (VehicleFlag) 0;					// Boolean settings:
-																		// HOVER_TERRAIN_ONLY
-																		// HOVER_GLOBAL_HEIGHT
-																		// NO_DEFLECTION_UP
-																		// HOVER_WATER_ONLY
-																		// HOVER_UP_ONLY
-																		// LIMIT_MOTOR_UP
-																		// LIMIT_ROLL_ONLY
+        private Vehicle m_type = Vehicle.TYPE_NONE;                     // If a 'VEHICLE', and what kind
+        // private Quaternion m_referenceFrame = Quaternion.Identity;   // Axis modifier
+        private VehicleFlag m_flags = (VehicleFlag) 0;                  // Boolean settings:
+                                                                        // HOVER_TERRAIN_ONLY
+                                                                        // HOVER_GLOBAL_HEIGHT
+                                                                        // NO_DEFLECTION_UP
+                                                                        // HOVER_WATER_ONLY
+                                                                        // HOVER_UP_ONLY
+                                                                        // LIMIT_MOTOR_UP
+                                                                        // LIMIT_ROLL_ONLY
         private VehicleFlag m_Hoverflags = (VehicleFlag)0;
         private Vector3 m_BlockingEndPoint = Vector3.Zero;
         private Quaternion m_RollreferenceFrame = Quaternion.Identity;
         // Linear properties
-        private Vector3 m_linearMotorDirection = Vector3.Zero;			// velocity requested by LSL, decayed by time
-        private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;	// velocity requested by LSL
-        private Vector3 m_dir = Vector3.Zero;							// velocity applied to body
+        private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
+        private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
+        private Vector3 m_dir = Vector3.Zero;                           // velocity applied to body
         private Vector3 m_linearFrictionTimescale = Vector3.Zero;
         private float m_linearMotorDecayTimescale = 0;
         private float m_linearMotorTimescale = 0;
@@ -98,14 +98,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         // private Vector3 m_linearMotorOffset = Vector3.Zero;
 
         //Angular properties
-        private Vector3 m_angularMotorDirection = Vector3.Zero;			// angular velocity requested by LSL motor
-        private int m_angularMotorApply = 0;							// application frame counter
-        private Vector3 m_angularMotorVelocity = Vector3.Zero;			// current angular motor velocity
-        private float m_angularMotorTimescale = 0;						// motor angular velocity ramp up rate
-        private float m_angularMotorDecayTimescale = 0;					// motor angular velocity decay rate
-        private Vector3 m_angularFrictionTimescale = Vector3.Zero;		// body angular velocity  decay rate
-        private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
- //       private Vector3 m_lastVertAttractor = Vector3.Zero;				// what VA was last applied to body
+        private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
+        private int m_angularMotorApply = 0;                            // application frame counter
+        private Vector3 m_angularMotorVelocity = Vector3.Zero;          // current angular motor velocity
+        private float m_angularMotorTimescale = 0;                      // motor angular velocity ramp up rate
+        private float m_angularMotorDecayTimescale = 0;                 // motor angular velocity decay rate
+        private Vector3 m_angularFrictionTimescale = Vector3.Zero;      // body angular velocity  decay rate
+        private Vector3 m_lastAngularVelocity = Vector3.Zero;           // what was last applied to body
+ //       private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
 
         //Deflection properties
         // private float m_angularDeflectionEfficiency = 0;
@@ -123,14 +123,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 //        private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
         private float m_VhoverTargetHeight = -1.0f;     // if <0 then no hover, else its the current target height
-        private float m_VehicleBuoyancy = 0f;			//KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
+        private float m_VehicleBuoyancy = 0f;           //KF: m_VehicleBuoyancy is set by VEHICLE_BUOYANCY for a vehicle.
                     // Modifies gravity. Slider between -1 (double-gravity) and 1 (full anti-gravity)
                     // KF: So far I have found no good method to combine a script-requested .Z velocity and gravity.
                     // Therefore only m_VehicleBuoyancy=1 (0g) will use the script-requested .Z velocity.
 
-    	//Attractor properties
-        private float m_verticalAttractionEfficiency = 1.0f;		// damped
-        private float m_verticalAttractionTimescale = 500f;			// Timescale > 300  means no vert attractor.
+        //Attractor properties
+        private float m_verticalAttractionEfficiency = 1.0f;        // damped
+        private float m_verticalAttractionTimescale = 500f;         // Timescale > 300  means no vert attractor.
 
         internal void ProcessFloatVehicleParam(Vehicle pParam, float pValue)
         {

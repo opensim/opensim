@@ -62,7 +62,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="name">name to filter on</param>
         /// <param name="id">key to filter on (user given, could be totally faked)</param>
         /// <param name="msg">msg to filter on</param>
-        /// <returns>number of the scripts handle</returns>        
+        /// <returns>number of the scripts handle</returns>
         int Listen(uint LocalID, UUID itemID, UUID hostID, int channel, string name, UUID id, string msg);
 
         /// <summary>
@@ -77,19 +77,19 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="channel">channel to sent on</param>
         /// <param name="name">name of sender (object or avatar)</param>
         /// <param name="id">key of sender (object or avatar)</param>
-        /// <param name="msg">msg to sent</param>        
+        /// <param name="msg">msg to sent</param>
         void DeliverMessage(ChatTypeEnum type, int channel, string name, UUID id, string msg);
 
         /// <summary>
         /// Are there any listen events ready to be dispatched?
         /// </summary>
-        /// <returns>boolean indication</returns>        
+        /// <returns>boolean indication</returns>
         bool HasMessages();
 
         /// <summary>
         /// Pop the first availlable listen event from the queue
         /// </summary>
-        /// <returns>ListenerInfo with filter filled in</returns>        
+        /// <returns>ListenerInfo with filter filled in</returns>
         IWorldCommListenerInfo GetNextMessage();
         
         void ListenControl(UUID itemID, int handle, int active);

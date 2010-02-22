@@ -159,7 +159,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                     avatar.Invulnerable = true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

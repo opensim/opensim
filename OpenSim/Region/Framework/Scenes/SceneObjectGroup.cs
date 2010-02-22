@@ -546,7 +546,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_rootPart.Shape.PCode != 9 || m_rootPart.Shape.State == 0)
                 m_rootPart.ParentID = 0;
-            if (m_rootPart.LocalId==0)
+            if (m_rootPart.LocalId == 0)
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
             // No need to lock here since the object isn't yet in a scene
@@ -1505,6 +1505,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
+//            m_log.DebugFormat(
+//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+            
             if (m_rootPart.UUID == part.UUID)
             {
                 if (IsAttachment)
@@ -2297,7 +2300,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             AttachToBackup();
 
-
             // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
             // position of linkset prims.  IF YOU CHANGE THIS, YOU MUST TEST colliding with just linked and 
             // unmoved prims!
@@ -2312,9 +2314,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// an independent SceneObjectGroup.
         /// </summary>
         /// <param name="partID"></param>
-        public void DelinkFromGroup(uint partID)
+        /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
+        public SceneObjectGroup DelinkFromGroup(uint partID)
         {
-            DelinkFromGroup(partID, true);
+            return DelinkFromGroup(partID, true);
         }
 
         /// <summary>
@@ -2323,28 +2326,39 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="partID"></param>
         /// <param name="sendEvents"></param>
-        public void DelinkFromGroup(uint partID, bool sendEvents)
+        /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
+        public SceneObjectGroup DelinkFromGroup(uint partID, bool sendEvents)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (linkPart != null)
             {
-                DelinkFromGroup(linkPart, sendEvents);
+                return DelinkFromGroup(linkPart, sendEvents);
             }
             else
             {
-                m_log.InfoFormat("[SCENE OBJECT GROUP]: " +
+                m_log.WarnFormat("[SCENE OBJECT GROUP]: " +
                                  "DelinkFromGroup(): Child prim {0} not found in object {1}, {2}",
                                  partID, LocalId, UUID);
+
+                return null;
             }
         }
 
-        public void DelinkFromGroup(SceneObjectPart linkPart, bool sendEvents)
+        /// <summary>
+        /// Delink the given prim from this group.  The delinked prim is established as
+        /// an independent SceneObjectGroup.
+        /// </summary>
+        /// <param name="partID"></param>
+        /// <param name="sendEvents"></param>
+        /// <returns>The object group of the newly delinked prim.</returns>
+        public SceneObjectGroup DelinkFromGroup(SceneObjectPart linkPart, bool sendEvents)
         {
-            linkPart.ClearUndoState();
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
 //                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
+            
+            linkPart.ClearUndoState();
 
             Quaternion worldRot = linkPart.GetWorldRotation();
 
@@ -2397,6 +2411,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             //HasGroupChanged = true;
             //ScheduleGroupForFullUpdate();
+
+            return objectGroup;
         }
 
         /// <summary>
@@ -2434,7 +2450,6 @@ namespace OpenSim.Region.Framework.Scenes
             m_parts.Add(part.UUID, part);
 
             part.LinkNum = linkNum;
-
 
             part.OffsetPosition = part.GroupPosition - AbsolutePosition;
 

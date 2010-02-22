@@ -4531,7 +4531,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
 //                m_log.DebugFormat(
-//                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents()", Name, LocalId);                
+//                    "[SCENE OBJECT PART]: Scheduling part {0} {1} for full update in aggregateScriptEvents()", Name, LocalId);
                 ScheduleFullUpdate();
             }
         }

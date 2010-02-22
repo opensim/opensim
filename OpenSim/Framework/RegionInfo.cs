@@ -483,7 +483,6 @@ namespace OpenSim.Framework
             else
                 m_externalHostName = externalName;
 
-
             m_regionType = config.GetString("RegionType", String.Empty);
 
             // Prim stuff
