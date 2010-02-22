@@ -121,19 +121,19 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 serialiser.LoadPrimsFromXml2(
                     scene,
-                    m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID 
+                    m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID
                         + Slash.DirectorySeparatorChar + "objects.xml");
-            
+
                 scene.RequestModuleInterface<ITerrainModule>().LoadFromFile(
-                    m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID 
+                    m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID
                         + Slash.DirectorySeparatorChar + "heightmap.r32");
-            
+
                 m_log.Info("[SVNBACKUP]: Region load successful (" + scene.RegionInfo.RegionName + ").");
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[SVNBACKUP]: Region load of {0} failed - no serialisation module available", 
+                    "[SVNBACKUP]: Region load of {0} failed - no serialisation module available",
                     scene.RegionInfo.RegionName);
             }
         }
