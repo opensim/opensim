@@ -209,7 +209,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Triggered when an object or attachment enters a scene
         /// </summary>
         public event OnIncomingSceneObjectDelegate OnIncomingSceneObject;
-        public delegate void OnIncomingSceneObjectDelegate(SceneObjectGroup so);        
+        public delegate void OnIncomingSceneObjectDelegate(SceneObjectGroup so);
 
         public delegate void NewInventoryItemUploadComplete(UUID avatarID, UUID assetID, string name, int userlevel);
 
@@ -413,7 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }     
+        }
 
         public void TriggerGetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)
         {
@@ -433,7 +433,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
@@ -454,7 +454,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnClientMovement(ScenePresence avatar)
@@ -475,7 +475,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerPermissionError(UUID user, string reason)
@@ -496,7 +496,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnPluginConsole(string[] args)
@@ -517,7 +517,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnFrame()
@@ -538,11 +538,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnNewClient(IClientAPI client)
-        {          
+        {
             OnNewClientDelegate handlerNewClient = OnNewClient;
             if (handlerNewClient != null)
             {
@@ -559,10 +559,10 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
 
             if (client is IClientCore)
-            {              
+            {
                 OnClientConnectCoreDelegate handlerClientConnect = OnClientConnect;
                 if (handlerClientConnect != null)
                 {
@@ -579,7 +579,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 e.Message, e.StackTrace);
                         }
                     }
-                }                
+                }
             }
         }
 
@@ -601,11 +601,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnRemovePresence(UUID agentId)
-        {          
+        {
             OnRemovePresenceDelegate handlerRemovePresence = OnRemovePresence;
             if (handlerRemovePresence != null)
             {
@@ -622,11 +622,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnBackup(IRegionDataStore dstore)
-        {          
+        {
             OnBackupDelegate handlerOnAttach = OnBackup;
             if (handlerOnAttach != null)
             {
@@ -643,7 +643,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerParcelPrimCountUpdate()
@@ -664,7 +664,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs args)
@@ -685,7 +685,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerTerrainTick()
@@ -706,7 +706,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerParcelPrimCountAdd(SceneObjectGroup obj)
@@ -727,7 +727,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
@@ -748,11 +748,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerShutdown()
-        {          
+        {
             OnShutdownDelegate handlerShutdown = OnShutdown;
             if (handlerShutdown != null)
             {
@@ -769,11 +769,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerObjectGrab(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {        
+        {
             ObjectGrabDelegate handlerObjectGrab = OnObjectGrab;
             if (handlerObjectGrab != null)
             {
@@ -790,11 +790,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerObjectGrabbing(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {          
+        {
             ObjectGrabDelegate handlerObjectGrabbing = OnObjectGrabbing;
             if (handlerObjectGrabbing != null)
             {
@@ -811,11 +811,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
          }
 
         public void TriggerObjectDeGrab(uint localID, uint originalID, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs)
-        {         
+        {
             ObjectDeGrabDelegate handlerObjectDeGrab = OnObjectDeGrab;
             if (handlerObjectDeGrab != null)
             {
@@ -832,11 +832,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptReset(uint localID, UUID itemID)
-        {          
+        {
             ScriptResetDelegate handlerScriptReset = OnScriptReset;
             if (handlerScriptReset != null)
             {
@@ -853,11 +853,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource)
-        {           
+        {
             NewRezScript handlerRezScript = OnRezScript;
             if (handlerRezScript != null)
             {
@@ -874,7 +874,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerStartScript(uint localID, UUID itemID)
@@ -895,7 +895,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerStopScript(uint localID, UUID itemID)
@@ -916,11 +916,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerRemoveScript(uint localID, UUID itemID)
-        {          
+        {
             RemoveScript handlerRemoveScript = OnRemoveScript;
             if (handlerRemoveScript != null)
             {
@@ -937,7 +937,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public bool TriggerGroupMove(UUID groupID, Vector3 delta)
@@ -1036,7 +1036,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerLandObjectAdded(ILandObject newParcel)
@@ -1057,7 +1057,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerLandObjectRemoved(UUID globalID)
@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerLandObjectUpdated(uint localParcelID, ILandObject newParcel)
@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerIncomingInstantMessage(GridInstantMessage message)
@@ -1125,7 +1125,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerUnhandledInstantMessage(GridInstantMessage message)
@@ -1146,7 +1146,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerClientClosed(UUID ClientID, Scene scene)
@@ -1167,7 +1167,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnMakeChildAgent(ScenePresence presence)
@@ -1188,7 +1188,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnMakeRootAgent(ScenePresence presence)
@@ -1209,7 +1209,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnIncomingSceneObject(SceneObjectGroup so)
@@ -1229,12 +1229,12 @@ namespace OpenSim.Region.Framework.Scenes
                             "[EVENT MANAGER]: Delegate for TriggerOnIncomingSceneObject failed - continuing.  {0} {1}", 
                             e.Message, e.StackTrace);
                     }
-                }                
+                }
             }
         }
 
         public void TriggerOnRegisterCaps(UUID agentID, Caps caps)
-        {          
+        {
             RegisterCapsEvent handlerRegisterCaps = OnRegisterCaps;
             if (handlerRegisterCaps != null)
             {
@@ -1251,7 +1251,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnDeregisterCaps(UUID agentID, Caps caps)
@@ -1272,7 +1272,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnNewInventoryItemUploadComplete(UUID agentID, UUID AssetID, String AssetName, int userlevel)
@@ -1293,7 +1293,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerLandBuy(Object sender, LandBuyArgs args)
@@ -1314,7 +1314,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerValidateLandBuy(Object sender, LandBuyArgs args)
@@ -1335,11 +1335,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 currentpos)
-        {           
+        {
             ScriptAtTargetEvent handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
             if (handlerScriptAtTargetEvent != null)
             {
@@ -1356,7 +1356,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerNotAtTargetEvent(uint localID)
@@ -1377,11 +1377,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion currentrot)
-        {            
+        {
             ScriptAtRotTargetEvent handlerScriptAtRotTargetEvent = OnScriptAtRotTargetEvent;
             if (handlerScriptAtRotTargetEvent != null)
             {
@@ -1398,7 +1398,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerNotAtRotTargetEvent(uint localID)
@@ -1419,7 +1419,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerRequestChangeWaterHeight(float height)
@@ -1440,7 +1440,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerAvatarKill(uint KillerObjectLocalID, ScenePresence DeadAvatar)
@@ -1461,7 +1461,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerSignificantClientMovement(IClientAPI client)
@@ -1482,7 +1482,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnChatFromWorld(Object sender, OSChatMessage chat)
@@ -1503,7 +1503,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnChatFromClient(Object sender, OSChatMessage chat)
@@ -1524,7 +1524,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
@@ -1545,7 +1545,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         internal void TriggerControlEvent(uint p, UUID scriptUUID, UUID avatarID, uint held, uint _changed)
@@ -1566,7 +1566,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerNoticeNoLandDataFromStorage()
@@ -1587,7 +1587,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerIncomingLandDataFromStorage(List<LandData> landData)
@@ -1608,7 +1608,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerSetAllowForcefulBan(bool allow)
@@ -1629,7 +1629,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerRequestParcelPrimCountUpdate()
@@ -1650,7 +1650,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerParcelPrimCountTainted()
@@ -1671,7 +1671,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         // this lets us keep track of nasty script events like timer, etc.
@@ -1710,7 +1710,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public float GetCurrentTimeAsSunLindenHour()
@@ -1737,7 +1737,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public void TriggerOarFileLoaded(Guid requestId, string message)
-        {           
+        {
             OarFileLoaded handlerOarFileLoaded = OnOarFileLoaded;
             if (handlerOarFileLoaded != null)
             {
@@ -1754,7 +1754,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
         
         public void TriggerOarFileSaved(Guid requestId, string message)
@@ -1775,7 +1775,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerEmptyScriptCompileQueue(int numScriptsFailed, string message)
@@ -1796,7 +1796,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptCollidingStart(uint localId, ColliderArgs colliders)
@@ -1817,7 +1817,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptColliding(uint localId, ColliderArgs colliders)
@@ -1838,7 +1838,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptCollidingEnd(uint localId, ColliderArgs colliders)
@@ -1859,7 +1859,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptLandCollidingStart(uint localId, ColliderArgs colliders)
@@ -1880,7 +1880,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptLandColliding(uint localId, ColliderArgs colliders)
@@ -1901,7 +1901,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerScriptLandCollidingEnd(uint localId, ColliderArgs colliders)
@@ -1922,11 +1922,11 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerSetRootAgentScene(UUID agentID, Scene scene)
-        {            
+        {
             OnSetRootAgentSceneDelegate handlerSetRootAgentScene = OnSetRootAgentScene;
             if (handlerSetRootAgentScene != null)
             {
@@ -1943,7 +1943,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
 
         public void TriggerOnRegionUp(GridRegion otherRegion)
@@ -1964,7 +1964,7 @@ namespace OpenSim.Region.Framework.Scenes
                             e.Message, e.StackTrace);
                     }
                 }
-            }            
+            }
         }
     }
 }

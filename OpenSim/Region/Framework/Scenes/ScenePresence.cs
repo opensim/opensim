@@ -650,7 +650,7 @@ namespace OpenSim.Region.Framework.Scenes
         #region Constructor(s)
         
         public ScenePresence()
-        {            
+        {
             m_sendCourseLocationsMethod = SendCoarseLocationsDefault;
             CreateSceneViewer();
             m_animator = new ScenePresenceAnimator(this);
@@ -1241,14 +1241,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                if (m_pos.X < 0)
-                    m_pos.X = 128;
-                if (m_pos.Y < 0)
-                    m_pos.Y = 128;
-                if (m_pos.X > Scene.WestBorders[0].BorderLine.X)
-                    m_pos.X = 128;
-                if (m_pos.Y > Scene.NorthBorders[0].BorderLine.Y)
-                    m_pos.Y = 128;
                 m_LastFinitePos = m_pos;
             }
 
@@ -2818,16 +2810,19 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (!needsTransit)
                     {
-                        Vector3 pos = AbsolutePosition;
-                        if (AbsolutePosition.X < 0)
-                            pos.X += Velocity.Y;
-                        else if (AbsolutePosition.X > Constants.RegionSize)
-                            pos.X -= Velocity.Y;
-                        if (AbsolutePosition.Y < 0)
-                            pos.Y += Velocity.Y;
-                        else if (AbsolutePosition.Y > Constants.RegionSize)
-                            pos.Y -= Velocity.Y;
-                        AbsolutePosition = pos;
+                        if (m_requestedSitTargetUUID == UUID.Zero)
+                        {
+                            Vector3 pos = AbsolutePosition;
+                            if (AbsolutePosition.X < 0)
+                                pos.X += Velocity.X;
+                            else if (AbsolutePosition.X > Constants.RegionSize)
+                                pos.X -= Velocity.X;
+                            if (AbsolutePosition.Y < 0)
+                                pos.Y += Velocity.Y;
+                            else if (AbsolutePosition.Y > Constants.RegionSize)
+                                pos.Y -= Velocity.Y;
+                            AbsolutePosition = pos;
+                        }
                     }
                 }
                 else if (neighbor > 0)
@@ -3292,7 +3287,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
             m_physicsActor.OnOutOfBounds += OutOfBoundsCall; // Called for PhysicsActors when there's something wrong
             m_physicsActor.SubscribeEvents(500);
-            m_physicsActor.LocalID = LocalId;            
+            m_physicsActor.LocalID = LocalId;
         }
 
         private void OutOfBoundsCall(Vector3 pos)
@@ -3384,7 +3379,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 if (m_health <= 0)
                     m_scene.EventManager.TriggerAvatarKill(killerObj, this);
-            }            
+            }
         }
 
         public void setHealthWithUpdate(float health)

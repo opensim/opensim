@@ -35,57 +35,47 @@ using Mono.Data.SqliteClient;
 
 namespace OpenSim.Data.SQLite
 {
-    /// <summary>
-    /// A database interface class to a user profile storage system
-    /// </summary>
-    public class SQLiteFramework
+    public class SQLiteUserAccountData : SQLiteGenericTableHandler<UserAccountData>, IUserAccountData
     {
-        protected Object m_lockObject = new Object();
-
-        protected SQLiteFramework(string connectionString)
+        public SQLiteUserAccountData(string connectionString, string realm)
+                : base(connectionString, realm, "UserAccount")
         {
         }
 
-        //////////////////////////////////////////////////////////////
-        //
-        // All non queries are funneled through one connection
-        // to increase performance a little
-        //
-        protected int ExecuteNonQuery(SqliteCommand cmd, SqliteConnection connection)
+        public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            lock (connection)
+            string[] words = query.Split(new char[] {' '});
+
+            for (int i = 0 ; i < words.Length ; i++)
             {
-                SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)connection).Clone();
-                newConnection.Open();
-
-                cmd.Connection = newConnection;
-                //Console.WriteLine("XXX " + cmd.CommandText);
-
-                return cmd.ExecuteNonQuery();
+                if (words[i].Length < 3)
+                {
+                    if (i != words.Length - 1)
+                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
+                    Array.Resize(ref words, words.Length - 1);
+                }
             }
-        }
 
-        protected IDataReader ExecuteReader(SqliteCommand cmd, SqliteConnection connection)
-        {
-            lock (connection)
+            if (words.Length == 0)
+                return new UserAccountData[0];
+
+            if (words.Length > 2)
+                return new UserAccountData[0];
+
+            SqliteCommand cmd = new SqliteCommand();
+
+            if (words.Length == 1)
             {
-                SqliteConnection newConnection =
-                        (SqliteConnection)((ICloneable)connection).Clone();
-                newConnection.Open();
-
-                cmd.Connection = newConnection;
-                //Console.WriteLine("XXX " + cmd.CommandText);
-
-                return cmd.ExecuteReader();
+                cmd.CommandText = String.Format("select * from {0} where ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
+                    m_Realm, scopeID.ToString(), words[0]);
             }
-        }
+            else
+            {
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')", 
+                    m_Realm, scopeID.ToString(), words[0], words[1]);
+            }
 
-        protected void CloseCommand(SqliteCommand cmd)
-        {
-            cmd.Connection.Close();
-            cmd.Connection.Dispose();
-            cmd.Dispose();
+            return DoQuery(cmd);
         }
     }
 }

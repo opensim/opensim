@@ -65,7 +65,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// The UUID of the texture updater, not the texture UUID.  If you need the texture UUID then you will need
         /// to obtain it directly from the SceneObjectPart.  For instance, if ALL_SIDES is set then this texture
         /// can be obtained as SceneObjectPart.Shape.Textures.DefaultTexture.TextureID
-        /// </returns>        
+        /// </returns>
         UUID AddDynamicTextureData(UUID simID, UUID primID, string contentType, string data, string extraParams,
                                     int updateTimer, bool SetBlending, byte AlphaValue);
 

@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             SerialiserModule serialiserModule = new SerialiserModule();
             TerrainModule terrainModule = new TerrainModule();
 
-            m_scene = SceneSetupHelpers.SetupScene("scene1");
+            m_scene = SceneSetupHelpers.SetupScene("useraccounts");
             SceneSetupHelpers.SetupSceneModules(m_scene, m_archiverModule, serialiserModule, terrainModule);
         }
         
@@ -99,7 +99,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Quaternion rotationOffset = new Quaternion(20, 30, 40, 50);
             Vector3 offsetPosition = new Vector3(5, 10, 15);
 
-            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };            
+            return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
         }
 
         protected SceneObjectPart CreateSceneObjectPart2()
@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             Vector3 offsetPosition = new Vector3(20, 25, 30);
 
             return new SceneObjectPart(ownerId, shape, groupPosition, rotationOffset, offsetPosition) { Name = partName };
-        }        
+        }
 
         /// <summary>
         /// Test saving a V0.2 OpenSim Region Archive.
@@ -231,7 +231,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             foreach (string name in names)
             {
                 if (name.EndsWith(".Resources.test-sound.wav"))
-                    soundDataResourceName = name;                
+                    soundDataResourceName = name;
             }
             Assert.That(soundDataResourceName, Is.Not.Null);
 
@@ -259,7 +259,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                         = new TaskInventoryItem { AssetID = soundUuid, ItemID = soundItemUuid, Name = soundItemName };
                     part1.Inventory.AddInventoryItem(item1, true);
                 }
-            }            
+            }
             
             m_scene.AddNewSceneObject(object1, false);
 
@@ -306,15 +306,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
         /// Test loading the region settings of a V0.2 OpenSim Region Archive.
         /// </summary>
         [Test]
-        public void TestLoadOarV0_2RegionSettings()     
+        public void TestLoadOarV0_2RegionSettings()
         {
             TestHelper.InMethod();
-            //log4net.Config.XmlConfigurator.Configure();          
+            //log4net.Config.XmlConfigurator.Configure();
 
             MemoryStream archiveWriteStream = new MemoryStream();
             TarArchiveWriter tar = new TarArchiveWriter(archiveWriteStream);
             
-            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);            
+            tar.WriteDir(ArchiveConstants.TERRAINS_PATH);
             tar.WriteFile(ArchiveConstants.CONTROL_FILE_PATH, ArchiveWriteRequestExecution.Create0p2ControlFile());
 
             RegionSettings rs = new RegionSettings();
@@ -329,11 +329,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
             rs.DisablePhysics = true;
             rs.DisableScripts = true;
             rs.Elevation1NW = 15.9;
-            rs.Elevation1NE = 45.3;            
+            rs.Elevation1NE = 45.3;
             rs.Elevation1SE = 49;
             rs.Elevation1SW = 1.9;
             rs.Elevation2NW = 4.5;
-            rs.Elevation2NE = 19.2;                                    
+            rs.Elevation2NE = 19.2;
             rs.Elevation2SE = 9.2;
             rs.Elevation2SW = 2.1;
             rs.FixedSun = true;
@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
 //            Quaternion part2RotationOffset = new Quaternion(60, 70, 80, 90);
 //            Vector3 part2OffsetPosition = new Vector3(20, 25, 30);
 
-            SceneObjectPart part2 = CreateSceneObjectPart2();            
+            SceneObjectPart part2 = CreateSceneObjectPart2();
 
             // Create an oar file that we can use for the merge
             {
@@ -420,9 +420,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver.Tests
                 TerrainModule terrainModule = new TerrainModule();
 
                 Scene scene = SceneSetupHelpers.SetupScene();
-                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);               
+                SceneSetupHelpers.SetupSceneModules(scene, archiverModule, serialiserModule, terrainModule);
 
-                m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);                
+                m_scene.AddNewSceneObject(new SceneObjectGroup(part2), false);
 
                 // Write out this scene
                 scene.EventManager.OnOarFileSaved += SaveCompleted;

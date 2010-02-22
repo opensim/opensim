@@ -313,7 +313,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 );
             }
-        }        
+        }
 
         private void RestoreSavedScriptState(UUID oldID, UUID newID)
         {
@@ -578,7 +578,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.TryGetValue(itemId, out item);
 
             return item;
-        }    
+        }
 
         /// <summary>
         /// Get inventory items by name.
@@ -587,7 +587,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>
         /// A list of inventory items with that name.
         /// If no inventory item has that name then an empty list is returned.
-        /// </returns>        
+        /// </returns>
         public IList<TaskInventoryItem> GetInventoryItems(string name)
         {
             IList<TaskInventoryItem> items = new List<TaskInventoryItem>();

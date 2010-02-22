@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
             config.AddConfig("PresenceService");
             config.Configs["Modules"].Set("PresenceServices", "LocalPresenceServicesConnector");
             config.Configs["PresenceService"].Set("LocalServiceModule", "OpenSim.Services.PresenceService.dll:PresenceService");
-            config.Configs["PresenceService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullPresenceData");
+            config.Configs["PresenceService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
 
             m_LocalConnector = new LocalPresenceServicesConnector(config);
         }

@@ -31,6 +31,7 @@ using OpenSim.Data.Tests;
 using log4net;
 using System.Reflection;
 using OpenSim.Tests.Common;
+using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL.Tests
 {
@@ -39,7 +40,7 @@ namespace OpenSim.Data.MySQL.Tests
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string file;
-        public MySQLManager database;
+        private string m_connectionString;
         public string connect = "Server=localhost;Port=3306;Database=opensim-nunit;User ID=opensim-nunit;Password=opensim-nunit;Pooling=false;";
         
         [TestFixtureSetUp]
@@ -52,7 +53,6 @@ namespace OpenSim.Data.MySQL.Tests
             // tests.
             try 
             {
-                database = new MySQLManager(connect);
                 db = new MySQLAssetData();
                 db.Initialise(connect);
             } 
@@ -70,10 +70,22 @@ namespace OpenSim.Data.MySQL.Tests
             {
                 db.Dispose();
             }
-            if (database != null)
+            ExecuteSql("drop table migrations");
+            ExecuteSql("drop table assets");
+        }
+
+        /// <summary>
+        /// Execute a MySqlCommand
+        /// </summary>
+        /// <param name="sql">sql string to execute</param>
+        private void ExecuteSql(string sql)
+        {
+            using (MySqlConnection dbcon = new MySqlConnection(connect))
             {
-                database.ExecuteSql("drop table migrations");
-                database.ExecuteSql("drop table assets");
+                dbcon.Open();
+
+                MySqlCommand cmd = new MySqlCommand(sql, dbcon);
+                cmd.ExecuteNonQuery();
             }
         }
     }

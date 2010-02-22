@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             config.AddConfig("GridService");
             config.Configs["Modules"].Set("GridServices", "LocalGridServicesConnector");
             config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Services.GridService.dll:GridService");
-            config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll:NullRegionData");
+            config.Configs["GridService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
 
             m_LocalConnector = new LocalGridServicesConnector(config);
         }
@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             r2.HttpPort = 9002;
             r2.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
             s = new Scene(new RegionInfo());
-            s.RegionInfo.RegionID = r1.RegionID;
+            s.RegionInfo.RegionID = r2.RegionID;
             m_LocalConnector.AddRegion(s);
 
             GridRegion r3 = new GridRegion();
@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid.Tests
             r3.HttpPort = 9003;
             r3.InternalEndPoint = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("0.0.0.0"), 0);
             s = new Scene(new RegionInfo());
-            s.RegionInfo.RegionID = r1.RegionID;
+            s.RegionInfo.RegionID = r3.RegionID;
             m_LocalConnector.AddRegion(s);
 
             m_LocalConnector.RegisterRegion(UUID.Zero, r1);

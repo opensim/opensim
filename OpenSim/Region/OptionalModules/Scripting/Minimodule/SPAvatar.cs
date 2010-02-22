@@ -70,6 +70,11 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             set { GetSP().TeleportWithMomentum(value); }
         }
         
+        public bool IsChildAgent
+        {
+            get { return GetSP().IsChildAgent; }
+        }
+        
         #region IAvatar implementation
         public IAvatarAttachment[] Attachments
         {

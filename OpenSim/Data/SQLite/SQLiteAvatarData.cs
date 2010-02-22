@@ -26,23 +26,49 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Reflection;
+using System.Threading;
+using log4net;
 using OpenMetaverse;
+using OpenSim.Framework;
+using Mono.Data.SqliteClient;
 
-namespace OpenSim.Data
+namespace OpenSim.Data.SQLite
 {
-    public class ReservationData
+    /// <summary>
+    /// A MySQL Interface for the Grid Server
+    /// </summary>
+    public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
+            IAvatarData
     {
-        public UUID userUUID = UUID.Zero;
-        public int reservationMinX = 0;
-        public int reservationMinY = 0;
-        public int reservationMaxX = 65536;
-        public int reservationMaxY = 65536;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public string reservationName = String.Empty;
-        public string reservationCompany = String.Empty;
-        public bool status = true;
+        public SQLiteAvatarData(string connectionString, string realm) :
+                base(connectionString, realm, "Avatar")
+        {
+        }
 
-        public string gridSendKey = String.Empty;
-        public string gridRecvKey = String.Empty;
+        public bool Delete(UUID principalID, string name)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
+            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
+            cmd.Parameters.Add(":Name", name);
+
+            try
+            {
+                if (ExecuteNonQuery(cmd, m_Connection) > 0)
+                    return true;
+
+                return false;
+            }
+            finally
+            {
+                CloseCommand(cmd);
+            }
+        }
     }
 }

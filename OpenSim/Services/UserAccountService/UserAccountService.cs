@@ -77,13 +77,16 @@ namespace OpenSim.Services.UserAccountService
                 if (invServiceDll != string.Empty)
                     m_InventoryService = LoadPlugin<IInventoryService>(invServiceDll, new Object[] { config });
 
-                MainConsole.Instance.Commands.AddCommand("UserService", false,
-                        "create user",
-                        "create user [<first> [<last> [<pass> [<email>]]]]",
-                        "Create a new user", HandleCreateUser);
-                MainConsole.Instance.Commands.AddCommand("UserService", false, "reset user password",
-                        "reset user password [<first> [<last> [<password>]]]",
-                        "Reset a user password", HandleResetUserPassword);
+                if (MainConsole.Instance != null)
+                {
+                    MainConsole.Instance.Commands.AddCommand("UserService", false,
+                            "create user",
+                            "create user [<first> [<last> [<pass> [<email>]]]]",
+                            "Create a new user", HandleCreateUser);
+                    MainConsole.Instance.Commands.AddCommand("UserService", false, "reset user password",
+                            "reset user password [<first> [<last> [<password>]]]",
+                            "Reset a user password", HandleResetUserPassword);
+                }
 
             }
 

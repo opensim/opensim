@@ -115,7 +115,7 @@ namespace OpenSim.Data.SQLite
             cmd.Parameters.Add(new SqliteParameter(":ParentFolderID", newParent));
             cmd.Parameters.Add(new SqliteParameter(":InventoryID", id));
 
-            return ExecuteNonQuery(cmd) == 0 ? false : true;
+            return ExecuteNonQuery(cmd, m_Connection) == 0 ? false : true;
         }
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
@@ -137,7 +137,7 @@ namespace OpenSim.Data.SQLite
             cmd.Parameters.Add(new SqliteParameter(":PrincipalID", principalID.ToString()));
             cmd.Parameters.Add(new SqliteParameter(":AssetID", assetID.ToString()));
 
-            IDataReader reader = ExecuteReader(cmd);
+            IDataReader reader = ExecuteReader(cmd, m_Connection);
 
             int perms = 0;
 
@@ -147,7 +147,7 @@ namespace OpenSim.Data.SQLite
             }
 
             reader.Close();
-            CloseReaderCommand(cmd);
+            CloseCommand(cmd);
 
             return perms;
         }

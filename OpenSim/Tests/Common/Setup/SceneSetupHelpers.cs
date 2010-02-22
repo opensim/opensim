@@ -45,6 +45,7 @@ using OpenSim.Region.CoreModules.Avatar.Gods;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory;
 using OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid;
+using OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts;
 using OpenSim.Services.Interfaces;
 using OpenSim.Tests.Common.Mock;
 
@@ -60,6 +61,7 @@ namespace OpenSim.Tests.Common.Setup
         private static ISharedRegionModule m_assetService = null;
         private static ISharedRegionModule m_inventoryService = null;
         private static ISharedRegionModule m_gridService = null;
+        private static ISharedRegionModule m_userAccountService = null;
 
         /// <summary>
         /// Set up a test scene
@@ -183,6 +185,8 @@ namespace OpenSim.Tests.Common.Setup
                     StartInventoryService(testScene, false);
                 if (realServices.Contains("grid"))
                     StartGridService(testScene, true);
+                if (realServices.Contains("useraccounts"))
+                    StartUserAccountService(testScene, true);
 
             }
             // If not, make sure the shared module gets references to this new scene
@@ -266,6 +270,28 @@ namespace OpenSim.Tests.Common.Setup
             //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
             m_gridService.AddRegion(testScene);
             m_gridService.RegionLoaded(testScene);
+            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
+        }
+
+        private static void StartUserAccountService(Scene testScene, bool real)
+        {
+            IConfigSource config = new IniConfigSource();
+            config.AddConfig("Modules");
+            config.AddConfig("UserAccountService");
+            config.Configs["Modules"].Set("UserAccountServices", "LocalUserAccountServicesConnector");
+            config.Configs["UserAccountService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            if (real)
+                config.Configs["UserAccountService"].Set("LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
+            if (m_userAccountService == null)
+            {
+                ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
+                userAccountService.Initialise(config);
+                m_userAccountService = userAccountService;
+            }
+            //else
+            //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
+            m_userAccountService.AddRegion(testScene);
+            m_userAccountService.RegionLoaded(testScene);
             //testScene.AddRegionModule(m_gridService.Name, m_gridService);
         }
 

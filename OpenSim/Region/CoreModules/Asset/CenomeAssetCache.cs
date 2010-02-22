@@ -330,7 +330,7 @@ namespace OpenSim.Region.CoreModules.Asset
             //m_log.DebugFormat("[XXX] name = {0} (this module's name: {1}", name, Name);
 
             if (name != Name)
-                return;           
+                return;
             
             long maxSize = DefaultMaxSize;
             int maxCount = DefaultMaxCount;
