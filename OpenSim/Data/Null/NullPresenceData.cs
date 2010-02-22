@@ -43,16 +43,18 @@ namespace OpenSim.Data.Null
         public NullPresenceData(string connectionString, string realm)
         {
             if (Instance == null)
+            {
                 Instance = this;
 
-            //Console.WriteLine("[XXX] NullRegionData constructor");
-            // Let's stick in a test presence
-            PresenceData p = new PresenceData();
-            p.SessionID = UUID.Zero;
-            p.UserID = UUID.Zero.ToString();
-            p.Data = new Dictionary<string, string>();
-            p.Data["Online"] = "true";
-            m_presenceData.Add(UUID.Zero, p);
+                //Console.WriteLine("[XXX] NullRegionData constructor");
+                // Let's stick in a test presence
+                PresenceData p = new PresenceData();
+                p.SessionID = UUID.Zero;
+                p.UserID = UUID.Zero.ToString();
+                p.Data = new Dictionary<string, string>();
+                p.Data["Online"] = true.ToString();
+                m_presenceData.Add(UUID.Zero, p);
+            }
         }
 
         public bool Store(PresenceData data)
@@ -70,7 +72,9 @@ namespace OpenSim.Data.Null
                 return Instance.Get(sessionID);
 
             if (m_presenceData.ContainsKey(sessionID))
+            {
                 return m_presenceData[sessionID];
+            }
 
             return null;
         }

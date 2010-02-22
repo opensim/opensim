@@ -113,18 +113,20 @@ namespace OpenSim.Services.GridService
 
                 m_log.DebugFormat("[HYPERGRID LINKER]: Loaded all services...");
             }
-            
 
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
-                "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
-                "Link a hypergrid region", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
-                "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
-                "Unlink a hypergrid region", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
-                "Set local coordinate to map HG regions to", RunCommand);
-            MainConsole.Instance.Commands.AddCommand("hypergrid", false, "show hyperlinks", "show hyperlinks <cr>",
-                "List the HG regions", HandleShow);
+            if (MainConsole.Instance != null)
+            {
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-region",
+                    "link-region <Xloc> <Yloc> <HostName>:<HttpPort>[:<RemoteRegionName>] <cr>",
+                    "Link a hypergrid region", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "unlink-region",
+                    "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
+                    "Unlink a hypergrid region", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "link-mapping", "link-mapping [<x> <y>] <cr>",
+                    "Set local coordinate to map HG regions to", RunCommand);
+                MainConsole.Instance.Commands.AddCommand("hypergrid", false, "show hyperlinks", "show hyperlinks <cr>",
+                    "List the HG regions", HandleShow);
+            }
         }
 
 

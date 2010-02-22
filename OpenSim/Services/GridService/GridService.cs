@@ -82,20 +82,22 @@ namespace OpenSim.Services.GridService
             {
                 m_RootInstance = this;
 
-                MainConsole.Instance.Commands.AddCommand("grid", true,
-                        "show region",
-                        "show region <Region name>",
-                        "Show details on a region",
-                        String.Empty,
-                        HandleShowRegion);
+                if (MainConsole.Instance != null)
+                {
+                    MainConsole.Instance.Commands.AddCommand("grid", true,
+                            "show region",
+                            "show region <Region name>",
+                            "Show details on a region",
+                            String.Empty,
+                            HandleShowRegion);
 
-                MainConsole.Instance.Commands.AddCommand("grid", true,
-                        "set region flags",
-                        "set region flags <Region name> <flags>",
-                        "Set database flags for region",
-                        String.Empty,
-                        HandleSetFlags);
-
+                    MainConsole.Instance.Commands.AddCommand("grid", true,
+                            "set region flags",
+                            "set region flags <Region name> <flags>",
+                            "Set database flags for region",
+                            String.Empty,
+                            HandleSetFlags);
+                }
                 m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
         }
