@@ -52,7 +52,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public EstateTerrainXferHandler(IClientAPI pRemoteClient, string pClientFilename)
         {
-            m_asset = new AssetBase(UUID.Zero, pClientFilename, type);
+            m_asset = new AssetBase(UUID.Zero, pClientFilename, type, pRemoteClient.AgentId);
             m_asset.Data = new byte[0];
             m_asset.Description = "empty";
             m_asset.Local = true;

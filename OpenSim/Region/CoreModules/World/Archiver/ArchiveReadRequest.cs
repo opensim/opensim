@@ -335,7 +335,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType);
+                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType, UUID.Zero);
                 asset.Data = data;
 
                 // We're relying on the asset service to do the sensible thing and not store the asset if it already

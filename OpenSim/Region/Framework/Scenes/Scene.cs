@@ -4389,7 +4389,8 @@ namespace OpenSim.Region.Framework.Scenes
                     group.GetPartName(localID),
                     group.GetPartDescription(localID),
                     (sbyte)AssetType.Object,
-                    Utils.StringToBytes(sceneObjectXml));
+                    Utils.StringToBytes(sceneObjectXml),
+                    group.OwnerID);
                 AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();

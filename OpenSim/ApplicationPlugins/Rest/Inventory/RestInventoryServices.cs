@@ -1871,7 +1871,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Create AssetBase entity to hold the inlined asset
 
-                asset = new AssetBase(uuid, name, type);
+                asset = new AssetBase(uuid, name, type, UUID.Zero);
 
                 asset.Description = desc;
                 asset.Local       = local;

@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                                bool storeLocal, bool tempFile)
         {
             ourClient = remoteClient;
-            m_asset = new AssetBase(assetID, "blank", type);
+            m_asset = new AssetBase(assetID, "blank", type, remoteClient.AgentId);
             m_asset.Data = data;
             m_asset.Description = "empty";
             m_asset.Local = storeLocal;

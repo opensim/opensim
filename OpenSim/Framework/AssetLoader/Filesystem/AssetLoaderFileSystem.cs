@@ -41,11 +41,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 {
     public class AssetLoaderFileSystem : IAssetLoader
     {
+        private static readonly UUID LIBRARY_OWNER_ID = new UUID("11111111-1111-0000-0000-000100bba000");
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static AssetBase CreateAsset(string assetIdStr, string name, string path, sbyte type)
         {
-            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type);
+            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type, LIBRARY_OWNER_ID);
 
             if (!String.IsNullOrEmpty(path))
             {

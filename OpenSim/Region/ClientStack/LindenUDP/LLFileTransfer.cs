@@ -197,7 +197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private void Initialise(UUID fileID, string fileName)
         {
-            m_asset = new AssetBase(fileID, fileName, type);
+            m_asset = new AssetBase(fileID, fileName, type, UUID.Zero);
             m_asset.Data = new byte[0];
             m_asset.Description = "empty";
             m_asset.Local = true;
@@ -212,6 +212,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void RequestStartXfer(IClientAPI pRemoteClient)
         {
+            m_asset.Metadata.CreatorID = pRemoteClient.AgentId;
+
             if (!String.IsNullOrEmpty(m_asset.Name))
             {
                 pRemoteClient.SendXferRequest(mXferID, m_asset.Type, m_asset.FullID, 0, Utils.StringToBytes(m_asset.Name));

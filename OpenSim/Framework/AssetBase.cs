@@ -61,7 +61,7 @@ namespace OpenSim.Framework
             m_metadata.Type = (sbyte)AssetType.Unknown;
         }
 
-        public AssetBase(UUID assetID, string name, sbyte assetType)
+        public AssetBase(UUID assetID, string name, sbyte assetType, UUID creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -76,7 +76,7 @@ namespace OpenSim.Framework
             m_metadata.Type = assetType;
         }
 
-        public AssetBase(string assetID, string name, sbyte assetType)
+        public AssetBase(string assetID, string name, sbyte assetType, UUID creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -220,7 +220,6 @@ namespace OpenSim.Framework
     public class AssetMetadata
     {
         private UUID m_fullid;
-        // m_id added as a dirty hack to transition from FullID to ID
         private string m_id;
         private string m_name = String.Empty;
         private string m_description = String.Empty;
@@ -230,8 +229,7 @@ namespace OpenSim.Framework
         private byte[] m_sha1;
         private bool m_local;
         private bool m_temporary;
-        //private Dictionary<string, Uri> m_methods = new Dictionary<string, Uri>();
-        //private OSDMap m_extra_data;
+        private UUID m_creatorid;
 
         public UUID FullID
         {
@@ -324,16 +322,10 @@ namespace OpenSim.Framework
             set { m_temporary = value; }
         }
 
-        //public Dictionary<string, Uri> Methods
-        //{
-        //    get { return m_methods; }
-        //    set { m_methods = value; }
-        //}
-
-        //public OSDMap ExtraData
-        //{
-        //    get { return m_extra_data; }
-        //    set { m_extra_data = value; }
-        //}
+        public UUID CreatorID
+        {
+            get { return m_creatorid; }
+            set { m_creatorid = value; }
+        }
     }
 }

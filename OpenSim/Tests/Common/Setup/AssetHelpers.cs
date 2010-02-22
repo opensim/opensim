@@ -38,12 +38,9 @@ namespace OpenSim.Tests.Common
         /// <summary>
         /// Create an asset from the given data
         /// </summary>
-        /// <param name="assetUuid"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public static AssetBase CreateAsset(UUID assetUuid, string data)
+        public static AssetBase CreateAsset(UUID assetUuid, string data, UUID creatorID)
         {
-            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object);
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object, creatorID);
             asset.Data = Encoding.ASCII.GetBytes(data);
             return asset;
         }
@@ -56,7 +53,7 @@ namespace OpenSim.Tests.Common
         /// <returns></returns>
         public static AssetBase CreateAsset(UUID assetUuid, SceneObjectGroup sog)
         {
-            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object);
+            AssetBase asset = new AssetBase(assetUuid, assetUuid.ToString(), (sbyte)AssetType.Object, sog.OwnerID);
             asset.Data = Encoding.ASCII.GetBytes(SceneObjectSerializer.ToXml2Format(sog));
             return asset;
         }

@@ -135,7 +135,8 @@ namespace OpenSim.Data.MSSQL
                         AssetBase asset = new AssetBase(
                             new UUID((Guid)reader["id"]),
                             (string)reader["name"],
-                            Convert.ToSByte(reader["assetType"])
+                            Convert.ToSByte(reader["assetType"]),
+                            UUID.Zero
                         );
                         // Region Main
                         asset.Description = (string)reader["description"];

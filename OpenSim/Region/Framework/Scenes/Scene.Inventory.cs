@@ -192,7 +192,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return new ArrayList();
             }
 
-            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
+            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data, remoteClient.AgentId);
             AssetService.Store(asset);
 
             if (isScriptRunning)
@@ -570,15 +570,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Create a new asset data structure.
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="description"></param>
-        /// <param name="invType"></param>
-        /// <param name="assetType"></param>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data)
+        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
         {
-            AssetBase asset = new AssetBase(UUID.Random(), name, assetType);
+            AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID);
             asset.Description = description;
             asset.Data = (data == null) ? new byte[1] : data;
 
@@ -704,7 +698,7 @@ namespace OpenSim.Region.Framework.Scenes
                         data = Encoding.ASCII.GetBytes(strdata);
                     }
 
-                    AssetBase asset = CreateAsset(name, description, assetType, data);
+                    AssetBase asset = CreateAsset(name, description, assetType, data, remoteClient.AgentId);
                     AssetService.Store(asset);
 
                     CreateNewInventoryItem(remoteClient, remoteClient.AgentId.ToString(), folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
@@ -1289,7 +1283,9 @@ namespace OpenSim.Region.Framework.Scenes
                     itemBase.InvType, part.UUID, remoteClient.AgentId))
                     return;
 
-                AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
+                AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType,
+                    Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"),
+                    remoteClient.AgentId);
                 AssetService.Store(asset);
 
                 TaskInventoryItem taskItem = new TaskInventoryItem();
@@ -1583,7 +1579,8 @@ namespace OpenSim.Region.Framework.Scenes
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
                         (sbyte)AssetType.Object,
-                        Utils.StringToBytes(sceneObjectXml));
+                        Utils.StringToBytes(sceneObjectXml),
+                        remoteClient.AgentId);
                     AssetService.Store(asset);
 
                     item.AssetID = asset.FullID;
@@ -1630,7 +1627,8 @@ namespace OpenSim.Region.Framework.Scenes
                     grp.GetPartName(grp.LocalId),
                     grp.GetPartDescription(grp.LocalId),
                     (sbyte)AssetType.Object,
-                    Utils.StringToBytes(sceneObjectXml));
+                    Utils.StringToBytes(sceneObjectXml),
+                    remoteClient.AgentId);
                 AssetService.Store(asset);
 
                 InventoryItemBase item = new InventoryItemBase();
