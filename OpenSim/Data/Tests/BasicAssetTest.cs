@@ -66,9 +66,9 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleAsset()
         {
-            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero);
-            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, UUID.Zero);
-            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, UUID.Zero);
+            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, UUID.Zero.ToString());
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;

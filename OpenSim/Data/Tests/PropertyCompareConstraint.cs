@@ -297,8 +297,8 @@ namespace OpenSim.Data.Tests
         public void AssetShouldMatch()
         {
             UUID uuid1 = UUID.Random();
-            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero);
-            AssetBase expected = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero);
+            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase expected = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
 
             var constraint = Constraints.PropertyCompareConstraint(expected);
 
@@ -309,8 +309,8 @@ namespace OpenSim.Data.Tests
         public void AssetShouldNotMatch()
         {
             UUID uuid1 = UUID.Random();
-            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero);
-            AssetBase expected = new AssetBase(UUID.Random(), "asset one", (sbyte)AssetType.Texture, UUID.Zero);
+            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase expected = new AssetBase(UUID.Random(), "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
 
             var constraint = Constraints.PropertyCompareConstraint(expected);
 
@@ -321,8 +321,8 @@ namespace OpenSim.Data.Tests
         public void AssetShouldNotMatch2()
         {
             UUID uuid1 = UUID.Random();
-            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero);
-            AssetBase expected = new AssetBase(uuid1, "asset two", (sbyte)AssetType.Texture, UUID.Zero);
+            AssetBase actual = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase expected = new AssetBase(uuid1, "asset two", (sbyte)AssetType.Texture, UUID.Zero.ToString());
 
             var constraint = Constraints.PropertyCompareConstraint(expected);
 

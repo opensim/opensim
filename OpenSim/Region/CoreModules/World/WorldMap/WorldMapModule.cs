@@ -1081,7 +1081,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 m_scene.RegionInfo.RegionSettings.TerrainImageID,
                 "terrainImage_" + m_scene.RegionInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString(),
                 (sbyte)AssetType.Texture,
-                m_scene.RegionInfo.RegionID);
+                m_scene.RegionInfo.RegionID.ToString());
             asset.Data = data;
             asset.Description = m_scene.RegionInfo.RegionName;
             asset.Temporary = temporary;

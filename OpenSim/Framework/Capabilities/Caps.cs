@@ -888,7 +888,7 @@ namespace OpenSim.Framework.Capabilities
             }
 
             AssetBase asset;
-            asset = new AssetBase(assetID, assetName, assType, m_agentID);
+            asset = new AssetBase(assetID, assetName, assType, m_agentID.ToString());
             asset.Data = data;
             if (AddNewAsset != null)
                 AddNewAsset(asset);

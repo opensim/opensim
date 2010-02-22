@@ -59,9 +59,10 @@ namespace OpenSim.Framework
             m_metadata.FullID = UUID.Zero;
             m_metadata.ID = UUID.Zero.ToString();
             m_metadata.Type = (sbyte)AssetType.Unknown;
+            m_metadata.CreatorID = String.Empty;
         }
 
-        public AssetBase(UUID assetID, string name, sbyte assetType, UUID creatorID)
+        public AssetBase(UUID assetID, string name, sbyte assetType, string creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -74,9 +75,10 @@ namespace OpenSim.Framework
             m_metadata.FullID = assetID;
             m_metadata.Name = name;
             m_metadata.Type = assetType;
+            m_metadata.CreatorID = creatorID;
         }
 
-        public AssetBase(string assetID, string name, sbyte assetType, UUID creatorID)
+        public AssetBase(string assetID, string name, sbyte assetType, string creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -89,6 +91,7 @@ namespace OpenSim.Framework
             m_metadata.ID = assetID;
             m_metadata.Name = name;
             m_metadata.Type = assetType;
+            m_metadata.CreatorID = creatorID;
         }
 
         public bool ContainsReferences
@@ -229,7 +232,7 @@ namespace OpenSim.Framework
         private byte[] m_sha1;
         private bool m_local;
         private bool m_temporary;
-        private UUID m_creatorid;
+        private string m_creatorid;
 
         public UUID FullID
         {
@@ -322,7 +325,7 @@ namespace OpenSim.Framework
             set { m_temporary = value; }
         }
 
-        public UUID CreatorID
+        public string CreatorID
         {
             get { return m_creatorid; }
             set { m_creatorid = value; }

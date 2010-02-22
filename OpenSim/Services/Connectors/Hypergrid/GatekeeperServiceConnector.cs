@@ -131,7 +131,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 Bitmap m = new Bitmap(filename + ".jpg");
                 //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                 byte[] imageData = OpenJPEG.EncodeFromImage(m, true);
-                AssetBase ass = new AssetBase(UUID.Random(), "region " + filename, (sbyte)AssetType.Texture, regionID);
+                AssetBase ass = new AssetBase(UUID.Random(), "region " + filename, (sbyte)AssetType.Texture, regionID.ToString());
 
                 // !!! for now
                 //info.RegionSettings.TerrainImageID = ass.FullID;

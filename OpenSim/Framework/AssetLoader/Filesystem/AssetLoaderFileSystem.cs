@@ -46,7 +46,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         protected static AssetBase CreateAsset(string assetIdStr, string name, string path, sbyte type)
         {
-            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type, LIBRARY_OWNER_ID);
+            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type, LIBRARY_OWNER_ID.ToString());
 
             if (!String.IsNullOrEmpty(path))
             {

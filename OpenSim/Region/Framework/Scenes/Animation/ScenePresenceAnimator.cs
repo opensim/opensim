@@ -384,7 +384,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 }
             }
 
-            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation, m_scenePresence.UUID);
+            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation, m_scenePresence.UUID.ToString());
             Animasset.Data = anim.ToBytes();
             Animasset.Temporary = true;
             Animasset.Local = true;

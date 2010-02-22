@@ -572,7 +572,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
         {
-            AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID);
+            AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID.ToString());
             asset.Description = description;
             asset.Data = (data == null) ? new byte[1] : data;
 

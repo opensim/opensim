@@ -136,7 +136,7 @@ namespace OpenSim.Data.MSSQL
                             new UUID((Guid)reader["id"]),
                             (string)reader["name"],
                             Convert.ToSByte(reader["assetType"]),
-                            UUID.Zero
+                            UUID.Zero.ToString()
                         );
                         // Region Main
                         asset.Description = (string)reader["description"];

@@ -310,7 +310,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 // Create a new asset for user
                 AssetBase asset = new AssetBase(UUID.Random(), "DynamicImage" + Util.RandomClass.Next(1, 10000), (sbyte)AssetType.Texture,
-                    scene.RegionInfo.RegionID);
+                    scene.RegionInfo.RegionID.ToString());
                 asset.Data = assetData;
                 asset.Description = String.Format("URL image : {0}", Url);
                 asset.Local = false;

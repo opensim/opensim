@@ -161,7 +161,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 }
 
                 AssetBase asset =
-                    CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId);
+                    CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data, remoteClient.AgentId.ToString());
                 item.AssetID = asset.FullID;
                 m_Scene.AssetService.Store(asset);
 
@@ -340,7 +340,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 objectGroup.GetPartDescription(objectGroup.RootPart.LocalId),
                 (sbyte)AssetType.Object,
                 Utils.StringToBytes(sceneObjectXml),
-                objectGroup.OwnerID);
+                objectGroup.OwnerID.ToString());
             m_Scene.AssetService.Store(asset);
             assetID = asset.FullID;
 
@@ -641,7 +641,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <param name="assetType"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, UUID creatorID)
+        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data, string creatorID)
         {
             AssetBase asset = new AssetBase(UUID.Random(), name, assetType, creatorID);
             asset.Description = description;

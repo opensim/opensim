@@ -1564,7 +1564,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     assets = doc.GetElementsByTagName("RequiredAsset");
                     foreach (XmlNode asset in assets)
                     {
-                        AssetBase rass   = new AssetBase(UUID.Random(), GetStringAttribute(asset,"name",""), SByte.Parse(GetStringAttribute(asset,"type","")), UUID.Zero);
+                        AssetBase rass = new AssetBase(UUID.Random(), GetStringAttribute(asset, "name", ""), SByte.Parse(GetStringAttribute(asset, "type", "")), UUID.Zero.ToString());
                         rass.Description = GetStringAttribute(asset,"desc","");
                         rass.Local       = Boolean.Parse(GetStringAttribute(asset,"local",""));
                         rass.Temporary   = Boolean.Parse(GetStringAttribute(asset,"temporary",""));

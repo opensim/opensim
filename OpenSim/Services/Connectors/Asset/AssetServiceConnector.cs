@@ -243,7 +243,7 @@ namespace OpenSim.Services.Connectors
                 if (metadata == null)
                     return false;
 
-                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type, UUID.Zero);
+                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type, UUID.Zero.ToString());
                 asset.Metadata = metadata;
             }
             asset.Data = data;
