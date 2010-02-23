@@ -266,8 +266,6 @@ namespace OpenSim.Services.Interfaces
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
-
-            set { m_externalHostName = value.ToString(); }
         }
 
         public string ExternalHostName
