@@ -285,11 +285,6 @@ namespace OpenSim.Services.Interfaces
             get { return Util.UIntsToLong((uint)RegionLocX, (uint)RegionLocY); }
         }
 
-        public int getInternalEndPointPort()
-        {
-            return m_internalEndPoint.Port;
-        }
-
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> kvp = new Dictionary<string, object>();

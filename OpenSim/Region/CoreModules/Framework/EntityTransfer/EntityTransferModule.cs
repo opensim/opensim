@@ -1120,10 +1120,12 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     }
                     #endregion
 
+                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: {0} is sending {1} EnableSimulator for neighbor region {2} @ {3} " +
+                        "and EstablishAgentCommunication with seed cap {4}",
+                        m_scene.RegionInfo.RegionName, sp.Name, reg.RegionName, reg.RegionHandle, capsPath);
+
                     eq.EnableSimulator(reg.RegionHandle, endPoint, sp.UUID);
                     eq.EstablishAgentCommunication(sp.UUID, endPoint, capsPath);
-                    m_log.DebugFormat("[ENTITY TRANSFER MODULE]: Sending new CAPS seed url {0} to client {1} in region {2}",
-                                      capsPath, sp.UUID, sp.Scene.RegionInfo.RegionName);
                 }
                 else
                 {
