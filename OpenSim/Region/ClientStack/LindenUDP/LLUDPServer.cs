@@ -596,15 +596,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (MalformedDataException)
             {
-                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse packet from {0}:\n{1}",
-                    buffer.RemoteEndPoint, Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
             }
 
             // Fail-safe check
             if (packet == null)
             {
-                m_log.Warn("[LLUDPSERVER]: Couldn't build a message from incoming data " + buffer.DataLength +
-                    " bytes long from " + buffer.RemoteEndPoint);
+                m_log.ErrorFormat("[LLUDPSERVER]: Malformed data, cannot parse {0} byte packet from {1}:",
+                    buffer.DataLength, buffer.RemoteEndPoint);
+                m_log.Error(Utils.BytesToHexString(buffer.Data, buffer.DataLength, null));
                 return;
             }
 
