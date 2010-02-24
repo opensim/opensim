@@ -49,6 +49,7 @@ namespace OpenSim.Data.MSSQL
         /// Database manager
         /// </summary>
         private MSSQLManager m_database;
+        private string m_connectionString;
 
         #region IPlugin Members
 
@@ -75,23 +76,8 @@ namespace OpenSim.Data.MSSQL
         {
             m_ticksToEpoch = new System.DateTime(1970, 1, 1).Ticks;
 
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                m_database = new MSSQLManager(connectionString);
-            }
-            else
-            {
-                IniFile gridDataMSSqlFile = new IniFile("mssql_connection.ini");
-                string settingDataSource = gridDataMSSqlFile.ParseFileReadValue("data_source");
-                string settingInitialCatalog = gridDataMSSqlFile.ParseFileReadValue("initial_catalog");
-                string settingPersistSecurityInfo = gridDataMSSqlFile.ParseFileReadValue("persist_security_info");
-                string settingUserId = gridDataMSSqlFile.ParseFileReadValue("user_id");
-                string settingPassword = gridDataMSSqlFile.ParseFileReadValue("password");
-
-                m_database =
-                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                     settingPassword);
-            }
+            m_database = new MSSQLManager(connectionString);
+            m_connectionString = connectionString;
 
             //New migration to check for DB changes
             m_database.CheckMigration(_migrationStore);
@@ -125,18 +111,19 @@ namespace OpenSim.Data.MSSQL
         override public AssetBase GetAsset(UUID assetID)
         {
             string sql = "SELECT * FROM assets WHERE id = @id";
-            using (AutoClosingSqlCommand command = m_database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                command.Parameters.Add(m_database.CreateParameter("id", assetID));
-                using (SqlDataReader reader = command.ExecuteReader())
+                cmd.Parameters.Add(m_database.CreateParameter("id", assetID));
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
                         AssetBase asset = new AssetBase(
                             new UUID((Guid)reader["id"]),
                             (string)reader["name"],
-                            Convert.ToSByte(reader["assetType"]),
-                            UUID.Zero.ToString()
+                            Convert.ToSByte(reader["assetType"])
                         );
                         // Region Main
                         asset.Description = (string)reader["description"];
@@ -191,7 +178,8 @@ namespace OpenSim.Data.MSSQL
                 m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on add");
             }
             
-            using (AutoClosingSqlCommand command = m_database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand command = new SqlCommand(sql, conn))
             {
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
@@ -203,7 +191,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(m_database.CreateParameter("access_time", now));
                 command.Parameters.Add(m_database.CreateParameter("create_time", now));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
-
+                conn.Open();
                 try
                 {
                     command.ExecuteNonQuery();
@@ -239,7 +227,8 @@ namespace OpenSim.Data.MSSQL
                 m_log.Warn("[ASSET DB]: Description field truncated from " + asset.Description.Length + " to " + assetDescription.Length + " characters on update");
             }
             
-            using (AutoClosingSqlCommand command = m_database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand command = new SqlCommand(sql, conn))
             {
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
                 command.Parameters.Add(m_database.CreateParameter("name", assetName));
@@ -249,7 +238,7 @@ namespace OpenSim.Data.MSSQL
                 command.Parameters.Add(m_database.CreateParameter("temporary", asset.Temporary));
                 command.Parameters.Add(m_database.CreateParameter("data", asset.Data));
                 command.Parameters.Add(m_database.CreateParameter("@keyId", asset.FullID));
-
+                conn.Open();
                 try
                 {
                     command.ExecuteNonQuery();
@@ -308,13 +297,14 @@ namespace OpenSim.Data.MSSQL
             string sql = @"SELECT (name,description,assetType,temporary,id), Row = ROW_NUMBER() 
                             OVER (ORDER BY (some column to order by)) 
                             WHERE Row >= @Start AND Row < @Start + @Count";
-            
-            using (AutoClosingSqlCommand command = m_database.Query(sql))
-            {
-                command.Parameters.Add(m_database.CreateParameter("start", start));
-                command.Parameters.Add(m_database.CreateParameter("count", count));
 
-                using (SqlDataReader reader = command.ExecuteReader())
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(m_database.CreateParameter("start", start));
+                cmd.Parameters.Add(m_database.CreateParameter("count", count));
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
