@@ -47,7 +47,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
-    public class InventoryAccessModule : INonSharedRegionModule, IInventoryAccessModule
+    public class BasicInventoryAccessModule : INonSharedRegionModule, IInventoryAccessModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
         public virtual string Name
         {
-            get { return "BasicInventoryAcessModule"; }
+            get { return "BasicInventoryAccessModule"; }
         }
 
         public virtual void Initialise(IConfigSource source)

@@ -44,7 +44,7 @@ using Nini.Config;
 
 namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 {
-    public class HGInventoryAccessModule : InventoryAccessModule, INonSharedRegionModule, IInventoryAccessModule
+    public class HGInventoryAccessModule : BasicInventoryAccessModule, INonSharedRegionModule, IInventoryAccessModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
