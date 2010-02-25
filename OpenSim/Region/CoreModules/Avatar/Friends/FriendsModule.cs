@@ -191,7 +191,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
-            return 1;
+            if (!m_Friends.ContainsKey(principalID))
+                return 0;
+
+            UserFriendData data = m_Friends[principalID];
+
+            foreach (FriendInfo fi in data.Friends)
+            {
+                if (fi.Friend == friendID.ToString())
+                    return (uint)fi.TheirFlags;
+            }
+            return 0;
         }
 
         private byte[] FailureResult()
