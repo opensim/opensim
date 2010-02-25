@@ -1321,3 +1321,8 @@
     ; The port the friendslist interregion comms will listen on
     ; Defaults to the simulator's TCP port
     ;Port = 0
+
+    ; Uncomment one of the lines below. Use FriendsService for local
+    ; operation, Connectors for remote operation
+    ;Connector = "OpenSim.Services.FriendsService.dll"
+    Connector = "OpenSim.Services.Connectors.dll"
