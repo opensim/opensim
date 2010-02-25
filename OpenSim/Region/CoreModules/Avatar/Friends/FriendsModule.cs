@@ -56,6 +56,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             public FriendInfo[] Friends;
             public int Refcount;
             public UUID RegionID;
+
+            public bool IsFriend(string friend)
+            {
+                foreach (FriendInfo fi in Friends)
+                {
+                    if (fi.Friend == friend)
+                        return true;
+                }
+
+                return false;
+            }
         }
             
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -267,6 +278,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             newFriends.RegionID = UUID.Zero;
 
             m_Friends.Add(client.AgentId, newFriends);
+            
+            StatusChange(client.AgentId, true);
         }
 
         private void OnClientClosed(UUID agentID, Scene scene)
@@ -283,6 +296,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnLogout(IClientAPI client)
         {
             m_Friends.Remove(client.AgentId);
+
+            StatusChange(client.AgentId, false);
         }
 
         private void OnMakeRootAgent(ScenePresence sp)
@@ -377,6 +392,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
             }
             return null;
+        }
+
+        private void StatusChange(UUID agentID, bool online)
+        {
+            foreach (UserFriendData fd in m_Friends.Values)
+            {
+                // Is this a root agent? If not, they will get updates
+                // through the root and this next check is redundant
+                //
+                if (fd.RegionID == UUID.Zero)
+                    continue;
+
+                if (fd.IsFriend(agentID.ToString()))
+                {
+                    UUID[] changed = new UUID[] { agentID };
+                    IClientAPI client = LocateClientObject(fd.PrincipalID);
+                    if (online)
+                        client.SendAgentOnline(changed);
+                    else
+                        client.SendAgentOffline(changed);
+                }
+            }
         }
     }
 }
