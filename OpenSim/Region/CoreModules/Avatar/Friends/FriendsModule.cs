@@ -43,11 +43,20 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Framework.Servers.HttpServer;
 using log4net;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
     public class FriendsModule : BaseStreamHandler, ISharedRegionModule, IFriendsModule
     {
+        protected class UserFriendData
+        {
+            public UUID PrincipalID;
+            public FriendInfo[] Friends;
+            public int Refcount;
+            public UUID RegionID;
+        }
+            
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected int m_Port = 0;
@@ -56,6 +65,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected IPresenceService m_PresenceService = null;
         protected IFriendsService m_FriendsService = null;
+        protected Dictionary<UUID, UserFriendData> m_Friends =
+                new Dictionary<UUID, UserFriendData>();
 
         protected IPresenceService PresenceService
         {
@@ -113,6 +124,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             m_Scenes.Add(scene);
             scene.RegisterModuleInterface<IFriendsModule>(this);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnClientClosed += OnClientClosed;
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
+            scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
         }
 
         public void RegionLoaded(Scene scene)
@@ -220,5 +236,70 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             return ms.ToArray();
         }
+
+        private void OnNewClient(IClientAPI client)
+        {
+            client.OnLogout += OnLogout;
+
+            if (m_Friends.ContainsKey(client.AgentId))
+            {
+                m_Friends[client.AgentId].Refcount++;
+                return;
+            }
+
+            UserFriendData newFriends = new UserFriendData();
+
+            newFriends.PrincipalID = client.AgentId;
+            newFriends.Friends = m_FriendsService.GetFriends(client.AgentId);
+            newFriends.Refcount = 1;
+            newFriends.RegionID = UUID.Zero;
+
+            m_Friends.Add(client.AgentId, newFriends);
+        }
+
+        private void OnClientClosed(UUID agentID, Scene scene)
+        {
+            if (m_Friends.ContainsKey(agentID))
+            {
+                if (m_Friends[agentID].Refcount == 1)
+                    m_Friends.Remove(agentID);
+                else
+                    m_Friends[agentID].Refcount--;
+            }
+        }
+
+        private void OnLogout(IClientAPI client)
+        {
+            m_Friends.Remove(client.AgentId);
+        }
+
+        private void OnMakeRootAgent(ScenePresence sp)
+        {
+            UUID agentID = sp.ControllingClient.AgentId;
+
+            if (m_Friends.ContainsKey(agentID))
+            {
+                if (m_Friends[agentID].RegionID == UUID.Zero)
+                {
+                    m_Friends[agentID].Friends =
+                            m_FriendsService.GetFriends(agentID);
+                }
+                m_Friends[agentID].RegionID =
+                        sp.ControllingClient.Scene.RegionInfo.RegionID;
+            }
+        }
+
+
+        private void OnMakeChildAgent(ScenePresence sp)
+        {
+            UUID agentID = sp.ControllingClient.AgentId;
+
+            if (m_Friends.ContainsKey(agentID))
+            {
+                if (m_Friends[agentID].RegionID == sp.ControllingClient.Scene.RegionInfo.RegionID)
+                    m_Friends[agentID].RegionID = UUID.Zero;
+            }
+        }
+
     }
 }
