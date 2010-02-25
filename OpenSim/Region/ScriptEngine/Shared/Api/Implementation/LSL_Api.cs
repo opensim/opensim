@@ -1118,7 +1118,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
-            throw new SelfDeleteException();
+            if (!m_host.IsAttachment) throw new SelfDeleteException();
         }
 
         public LSL_Float llGround(LSL_Vector offset)
