@@ -306,6 +306,7 @@ namespace OpenSim.Services.HypergridService
                 return false;
 
             string addressee = parts[0];
+            m_log.DebugFormat("[GATEKEEPER SERVICE]: Verifying {0} against {1}", addressee, m_ExternalName);
             return (addressee == m_ExternalName);
         }
 

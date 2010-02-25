@@ -14,6 +14,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 using OpenSim.Services.Connectors.Hypergrid;
 
 namespace OpenSim.Services.LLLoginService
@@ -31,6 +32,7 @@ namespace OpenSim.Services.LLLoginService
         private ISimulationService m_LocalSimulationService;
         private ISimulationService m_RemoteSimulationService;
         private ILibraryService m_LibraryService;
+        private IFriendsService m_FriendsService;
         private IAvatarService m_AvatarService;
         private IUserAgentService m_UserAgentService;
 
@@ -57,6 +59,7 @@ namespace OpenSim.Services.LLLoginService
             string gridService = m_LoginServerConfig.GetString("GridService", String.Empty);
             string presenceService = m_LoginServerConfig.GetString("PresenceService", String.Empty);
             string libService = m_LoginServerConfig.GetString("LibraryService", String.Empty);
+            string friendsService = m_LoginServerConfig.GetString("FriendsService", String.Empty);
             string avatarService = m_LoginServerConfig.GetString("AvatarService", String.Empty);
             string simulationService = m_LoginServerConfig.GetString("SimulationService", String.Empty);
 
@@ -79,6 +82,8 @@ namespace OpenSim.Services.LLLoginService
                 m_PresenceService = ServerUtils.LoadPlugin<IPresenceService>(presenceService, args);
             if (avatarService != string.Empty)
                 m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarService, args);
+            if (friendsService != string.Empty)
+                m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(friendsService, args);
             if (simulationService != string.Empty)
                 m_RemoteSimulationService = ServerUtils.LoadPlugin<ISimulationService>(simulationService, args);
             if (agentService != string.Empty)
@@ -228,12 +233,18 @@ namespace OpenSim.Services.LLLoginService
                     return LLFailedLoginResponse.AuthorizationProblem;
 
                 }
-                // TODO: Get Friends list... 
+                // Get Friends list 
+                FriendInfo[] friendsList = new FriendInfo[0];
+                if (m_FriendsService != null)
+                {
+                    friendsList = m_FriendsService.GetFriends(account.PrincipalID);
+                    m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
+                }
 
                 //
                 // Finally, fill out the response and return it
                 //
-                LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel, m_LibraryService,
+                LLLoginResponse response = new LLLoginResponse(account, aCircuit, presence, destination, inventorySkel, friendsList, m_LibraryService,
                     where, startLocation, position, lookAt, m_WelcomeMessage, home, clientIP);
 
                 return response;
@@ -587,7 +598,7 @@ namespace OpenSim.Services.LLLoginService
 
         private bool LaunchAgentIndirectly(GridRegion gatekeeper, GridRegion destination, AgentCircuitData aCircuit, out string reason)
         {
-            m_log.Debug("XXX Launching agent at {0}" + destination.RegionName);
+            m_log.Debug("[LLOGIN SERVICE] Launching agent at " + destination.RegionName);
             return m_UserAgentService.LoginAgentToGrid(aCircuit, gatekeeper, destination, out reason);
         }
 

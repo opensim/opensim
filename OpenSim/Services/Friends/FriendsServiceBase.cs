@@ -71,12 +71,14 @@ namespace OpenSim.Services.Friends
             //
             // We tried, but this doesn't exist. We can't proceed.
             //
-            if (dllName.Equals(String.Empty))
+            if (String.Empty.Equals(dllName))
                 throw new Exception("No StorageProvider configured");
 
-            string realm = friendsConfig.GetString("Realm", "Friends");
+            string realm = "Friends";
+            if (friendsConfig != null)
+                realm = friendsConfig.GetString("Realm", realm);
 
-            m_Database = LoadPlugin<IFriendsData>(dllName, new Object[] {connString, realm});
+            m_Database = LoadPlugin<IFriendsData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module");
         }
