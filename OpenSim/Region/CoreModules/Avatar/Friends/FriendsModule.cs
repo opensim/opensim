@@ -44,6 +44,7 @@ using OpenSim.Server.Base;
 using OpenSim.Framework.Servers.HttpServer;
 using log4net;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
@@ -250,6 +251,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnNewClient(IClientAPI client)
         {
             client.OnLogout += OnLogout;
+            client.OnEconomyDataRequest += SendPresence;
 
             if (m_Friends.ContainsKey(client.AgentId))
             {
@@ -311,5 +313,67 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
+        private void SendPresence(UUID agentID)
+        {
+            if (!m_Friends.ContainsKey(agentID))
+                return;
+
+            IClientAPI client = LocateClientObject(agentID);
+            if (client == null)
+                return;
+
+            List<string> friendList = new List<string>();
+
+            foreach (FriendInfo fi in m_Friends[agentID].Friends)
+                friendList.Add(fi.Friend);
+
+            PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
+
+            List<UUID> online = new List<UUID>();
+
+            foreach (PresenceInfo pi in presence)
+            {
+                if (pi.Online)
+                    online.Add(new UUID(pi.UserID));
+            }
+
+            client.SendAgentOnline(online.ToArray());
+        }
+
+        //
+        // Find the client for a ID
+        //
+        private IClientAPI LocateClientObject(UUID agentID)
+        {
+            Scene scene=GetClientScene(agentID);
+            if(scene == null)
+                return null;
+
+            ScenePresence presence=scene.GetScenePresence(agentID);
+            if(presence == null)
+                return null;
+
+            return presence.ControllingClient;
+        }
+
+        //
+        // Find the scene for an agent
+        //
+        private Scene GetClientScene(UUID agentId)
+        {
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                {
+                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    if (presence != null)
+                    {
+                        if (!presence.IsChildAgent)
+                            return scene;
+                    }
+                }
+            }
+            return null;
+        }
     }
 }
