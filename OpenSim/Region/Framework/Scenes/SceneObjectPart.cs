@@ -518,14 +518,12 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_scriptAccessPin = (int)value; }
         }
 
-        [XmlIgnore]
         public Byte[] TextureAnimation
         {
             get { return m_TextureAnimation; }
             set { m_TextureAnimation = value; }
         }
 
-        [XmlIgnore]
         public Byte[] ParticleSystem
         {
             get { return m_particleSystem; }
