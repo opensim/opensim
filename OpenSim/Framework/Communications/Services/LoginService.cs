@@ -88,15 +88,7 @@ namespace OpenSim.Framework.Communications.Services
                 m_welcomeMessage = welcomeMess;
             }
         }
-
-        /// <summary>
-        /// If the user is already logged in, try to notify the region that the user they've got is dead.
-        /// </summary>
-        /// <param name="theUser"></param>
-        public virtual void LogOffUser(UserProfileData theUser, string message)
-        {
-        }
-        
+       
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
         /// </summary>
@@ -1057,6 +1049,12 @@ namespace OpenSim.Framework.Communications.Services
         protected abstract RegionInfo RequestClosestRegion(string region);
         protected abstract RegionInfo GetRegionInfo(ulong homeRegionHandle);
         protected abstract RegionInfo GetRegionInfo(UUID homeRegionId);
+
+        /// <summary>
+        /// If the user is already logged in, try to notify the region that the user they've got is dead.
+        /// </summary>
+        /// <param name="theUser"></param>
+        public abstract void LogOffUser(UserProfileData theUser, string message);
 
         /// <summary>
         /// Prepare a login to the given region.  This involves both telling the region to expect a connection
