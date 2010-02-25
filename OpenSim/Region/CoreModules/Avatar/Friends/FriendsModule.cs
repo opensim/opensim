@@ -52,6 +52,25 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected int m_Port = 0;
 
+        protected List<Scene> m_Scenes = new List<Scene>();
+
+        protected IPresenceService m_PresenceService = null;
+        protected IFriendsService m_FriendsService = null;
+
+        protected IPresenceService PresenceService
+        {
+            get
+            {
+                if (m_PresenceService == null)
+                {
+                    if (m_Scenes.Count > 0)
+                        m_PresenceService = m_Scenes[0].RequestModuleInterface<IPresenceService>();
+                }
+
+                return m_PresenceService;
+            }
+        }
+
         public FriendsModule()
                 : base("POST", "/friends")
         {
@@ -63,6 +82,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friendsConfig != null)
             {
                 m_Port = friendsConfig.GetInt("Port", m_Port);
+
+                string connector = friendsConfig.GetString("Connector", String.Empty);
+                Object[] args = new Object[] { config };
+
+                m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(connector, args);
+            }
+
+            if (m_FriendsService == null)
+            {
+                m_log.Error("[FRIENDS]: No Connector defined in section Friends, or filed to load, cannot continue");
+                throw new Exception("Connector load error");
             }
 
             IHttpServer server = MainServer.GetHttpServer((uint)m_Port);
@@ -81,6 +111,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public void AddRegion(Scene scene)
         {
+            m_Scenes.Add(scene);
+            scene.RegisterModuleInterface<IFriendsModule>(this);
         }
 
         public void RegionLoaded(Scene scene)
@@ -89,6 +121,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         public void RemoveRegion(Scene scene)
         {
+            m_Scenes.Remove(scene);
         }
 
         public override byte[] Handle(string path, Stream requestData,
