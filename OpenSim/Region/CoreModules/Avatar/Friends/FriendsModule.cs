@@ -26,9 +26,10 @@
  */
 
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
+using System.Xml;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -36,17 +37,38 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Server.Base;
+using OpenSim.Framework.Servers.HttpServer;
+using log4net;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    public class FriendsModule : ISharedRegionModule, IFriendsModule
+    public class FriendsModule : BaseStreamHandler, ISharedRegionModule, IFriendsModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected int m_Port = 0;
+
+        public FriendsModule()
+                : base("POST", "/friends")
+        {
+        }
+
         public void Initialise(IConfigSource config)
         {
+            IConfig friendsConfig = config.Configs["Friends"];
+            if (friendsConfig != null)
+            {
+                m_Port = friendsConfig.GetInt("Port", m_Port);
+            }
+
+            IHttpServer server = MainServer.GetHttpServer((uint)m_Port);
+
+            server.AddStreamHandler(this);
+
         }
 
         public void PostInitialise()
@@ -69,6 +91,41 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
         }
 
+        public override byte[] Handle(string path, Stream requestData,
+                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
+        {
+            StreamReader sr = new StreamReader(requestData);
+            string body = sr.ReadToEnd();
+            sr.Close();
+            body = body.Trim();
+
+            m_log.DebugFormat("[XXX]: query String: {0}", body);
+
+            try
+            {
+                Dictionary<string, object> request =
+                        ServerUtils.ParseQueryString(body);
+
+                if (!request.ContainsKey("METHOD"))
+                    return FailureResult();
+
+                string method = request["METHOD"].ToString();
+                request.Remove("METHOD");
+
+                switch (method)
+                {
+                    case "TEST":
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.Debug("[FRIENDS]: Exception {0}" + e.ToString());
+            }
+
+            return FailureResult();
+        }
+
         public string Name
         {
             get { return "FriendsModule"; }
@@ -86,6 +143,49 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
             return 1;
+        }
+
+        private byte[] FailureResult()
+        {
+            return BoolResult(false);
+        }
+
+        private byte[] SuccessResult()
+        {
+            return BoolResult(true);
+        }
+
+        private byte[] BoolResult(bool value)
+        {
+            XmlDocument doc = new XmlDocument();
+
+            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
+                    "", "");
+
+            doc.AppendChild(xmlnode);
+
+            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
+                    "");
+
+            doc.AppendChild(rootElement);
+
+            XmlElement result = doc.CreateElement("", "RESULT", "");
+            result.AppendChild(doc.CreateTextNode(value.ToString()));
+
+            rootElement.AppendChild(result);
+
+            return DocToBytes(doc);
+        }
+
+        private byte[] DocToBytes(XmlDocument doc)
+        {
+            MemoryStream ms = new MemoryStream();
+            XmlTextWriter xw = new XmlTextWriter(ms, null);
+            xw.Formatting = Formatting.Indented;
+            doc.WriteTo(xw);
+            xw.Flush();
+
+            return ms.ToArray();
         }
     }
 }

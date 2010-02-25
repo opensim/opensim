@@ -1316,3 +1316,8 @@
 
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
     ;XmlRpcPort = 20800
+
+[Friends]
+    ; The port the friendslist interregion comms will listen on
+    ; Defaults to the simulator's TCP port
+    ;Port = 0
