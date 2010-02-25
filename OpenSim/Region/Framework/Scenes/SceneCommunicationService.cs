@@ -722,8 +722,10 @@ namespace OpenSim.Region.Framework.Scenes
                         //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
                         if (destLand.LandData.LandingType == (byte)1 && destLand.LandData.UserLocation != Vector3.Zero && avatar.GodLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(avatar.UUID) && destLand.LandData.OwnerID != avatar.UUID)
                         {
-                            avatar.ControllingClient.SendAgentAlertMessage("Can't TP to the destination; landing point set.", false);
-                            position = currentPos;
+                            //Disabling this behaviour for now pending review. ~CasperW
+
+                            //avatar.ControllingClient.SendAgentAlertMessage("Can't TP to the destination; landing point set.", false);
+                            //position = currentPos;
                         }
                     }
                     else
