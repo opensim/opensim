@@ -351,7 +351,7 @@ namespace OpenSim.Services.Connectors
                 }
 
                 Dictionary<string, object>.ValueCollection pinfosList = replyData.Values;
-                m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents returned {0} elements", pinfosList.Count);
+                //m_log.DebugFormat("[PRESENCE CONNECTOR]: GetAgents returned {0} elements", pinfosList.Count);
                 foreach (object presence in pinfosList)
                 {
                     if (presence is Dictionary<string, object>)
