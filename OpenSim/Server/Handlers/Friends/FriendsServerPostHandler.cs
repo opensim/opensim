@@ -138,7 +138,7 @@ namespace OpenSim.Server.Handlers.Friends
         {
             FriendInfo friend = new FriendInfo(request);
 
-            bool success = m_FriendsService.StoreFriend(friend.PrincipalID, friend.Friend, friend.TheirFlags);
+            bool success = m_FriendsService.StoreFriend(friend.PrincipalID, friend.Friend, friend.MyFlags);
 
             if (success)
                 return SuccessResult();

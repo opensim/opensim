@@ -150,7 +150,7 @@ namespace OpenSim.Services.Connectors
             FriendInfo finfo = new FriendInfo();
             finfo.PrincipalID = PrincipalID;
             finfo.Friend = Friend;
-            finfo.TheirFlags = flags;
+            finfo.MyFlags = flags;
 
             Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
 
