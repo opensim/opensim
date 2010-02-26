@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Capabilities;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 using log4net;
 using OpenMetaverse;
@@ -215,7 +216,7 @@ namespace OpenSim.Services.LLLoginService
         }
 
         public LLLoginResponse(UserAccount account, AgentCircuitData aCircuit, PresenceInfo pinfo,
-            GridRegion destination, List<InventoryFolderBase> invSkel, ILibraryService libService,
+            GridRegion destination, List<InventoryFolderBase> invSkel, FriendInfo[] friendsList, ILibraryService libService,
             string where, string startlocation, Vector3 position, Vector3 lookAt, string message,
             GridRegion home, IPEndPoint clientIP)
             : this()
@@ -230,8 +231,7 @@ namespace OpenSim.Services.LLLoginService
             SecureSessionID = aCircuit.SecureSessionID;
             Message = message;
             // While we don't have friends...
-            //BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
-            BuddList = new LLLoginResponse.BuddyList();
+            BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
 
             FillOutHomeData(pinfo, home);
@@ -607,15 +607,15 @@ namespace OpenSim.Services.LLLoginService
         }
 
 
-        private static LLLoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        private static LLLoginResponse.BuddyList ConvertFriendListItem(FriendInfo[] friendsList)
         {
             LLLoginResponse.BuddyList buddylistreturn = new LLLoginResponse.BuddyList();
-            foreach (FriendListItem fl in LFL)
+            foreach (FriendInfo finfo in friendsList)
             {
-                LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(fl.Friend);
-                buddyitem.BuddyID = fl.Friend;
-                buddyitem.BuddyRightsHave = (int)fl.FriendListOwnerPerms;
-                buddyitem.BuddyRightsGiven = (int)fl.FriendPerms;
+                LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(finfo.Friend);
+                buddyitem.BuddyID = finfo.Friend;
+                buddyitem.BuddyRightsHave = (int)finfo.TheirFlags;
+                buddyitem.BuddyRightsGiven = (int)finfo.MyFlags;
                 buddylistreturn.AddNewBuddy(buddyitem);
             }
             return buddylistreturn;
@@ -945,16 +945,16 @@ namespace OpenSim.Services.LLLoginService
             {
                 public int BuddyRightsHave = 1;
                 public int BuddyRightsGiven = 1;
-                public UUID BuddyID;
+                public string BuddyID;
 
                 public BuddyInfo(string buddyID)
                 {
-                    BuddyID = new UUID(buddyID);
+                    BuddyID = buddyID;
                 }
 
                 public BuddyInfo(UUID buddyID)
                 {
-                    BuddyID = buddyID;
+                    BuddyID = buddyID.ToString();
                 }
 
                 public Hashtable ToHashTable()
@@ -962,7 +962,7 @@ namespace OpenSim.Services.LLLoginService
                     Hashtable hTable = new Hashtable();
                     hTable["buddy_rights_has"] = BuddyRightsHave;
                     hTable["buddy_rights_given"] = BuddyRightsGiven;
-                    hTable["buddy_id"] = BuddyID.ToString();
+                    hTable["buddy_id"] = BuddyID;
                     return hTable;
                 }
             }
