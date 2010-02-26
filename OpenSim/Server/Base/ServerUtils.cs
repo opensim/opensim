@@ -140,12 +140,13 @@ namespace OpenSim.Server.Base
 
                 if (name.EndsWith("[]"))
                 {
-                    if (result.ContainsKey(name))
+                    string cleanName = name.Substring(0, name.Length - 2);
+                    if (result.ContainsKey(cleanName))
                     {
-                        if (!(result[name] is List<string>))
+                        if (!(result[cleanName] is List<string>))
                             continue;
 
-                        List<string> l = (List<string>)result[name];
+                        List<string> l = (List<string>)result[cleanName];
 
                         l.Add(value);
                     }
@@ -155,7 +156,7 @@ namespace OpenSim.Server.Base
 
                         newList.Add(value);
 
-                        result[name] = newList;
+                        result[cleanName] = newList;
                     }
                 }
                 else

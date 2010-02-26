@@ -227,7 +227,10 @@ namespace OpenSim.Server.Handlers.Presence
             string[] userIDs;
 
             if (!request.ContainsKey("uuids"))
+            {
+                m_log.DebugFormat("[PRESENCE HANDLER]: GetAgents called without required uuids argument");
                 return FailureResult();
+            }
 
             if (!(request["uuids"] is List<string>))
             {

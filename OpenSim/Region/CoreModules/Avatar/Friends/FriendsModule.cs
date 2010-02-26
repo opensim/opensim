@@ -331,11 +331,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void SendPresence(UUID agentID)
         {
             if (!m_Friends.ContainsKey(agentID))
+            {
+                m_log.DebugFormat("[FRIENDS MODULE]: agent {0} not found in local cache", agentID);
                 return;
+            }
 
             IClientAPI client = LocateClientObject(agentID);
             if (client == null)
+            {
+                m_log.DebugFormat("[FRIENDS MODULE]: agent's client {0} not found in local scene", agentID);
                 return;
+            }
 
             List<string> friendList = new List<string>();
 
