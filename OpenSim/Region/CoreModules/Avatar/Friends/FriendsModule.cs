@@ -325,7 +325,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             List<string> friendList = new List<string>();
 
             foreach (FriendInfo fi in m_Friends[agentID].Friends)
-                friendList.Add(fi.Friend);
+            {
+                if ((fi.TheirFlags & 1) != 0)
+                    friendList.Add(fi.Friend);
+            }
 
             PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
 
