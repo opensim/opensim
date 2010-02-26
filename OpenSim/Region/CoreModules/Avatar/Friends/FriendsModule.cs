@@ -261,6 +261,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnNewClient(IClientAPI client)
         {
+            client.OnInstantMessage += OnInstantMessage;
+            client.OnApproveFriendRequest += OnApproveFriendRequest;
+            client.OnDenyFriendRequest += OnDenyFriendRequest;
+            client.OnTerminateFriendship += OnTerminateFriendship;
+
+            client.OnGrantUserRights += OnGrantUserRights;
+
             client.OnLogout += OnLogout;
             client.OnEconomyDataRequest += SendPresence;
 
@@ -420,6 +427,26 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         client.SendAgentOffline(changed);
                 }
             }
+        }
+
+        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+        }
+
+        private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        {
+        }
+
+        private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
+        {
+        }
+
+        private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)
+        {
+        }
+
+        private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
+        {
         }
     }
 }
