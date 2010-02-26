@@ -26,51 +26,36 @@
  */
 
 using System;
-using OpenMetaverse;
-using OpenSim.Framework;
-using System.Collections.Generic;
+using Nini.Config;
+using OpenSim.Server.Base;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Server.Handlers.Base;
 
-namespace OpenSim.Services.Interfaces
+namespace OpenSim.Server.Handlers.Friends
 {
-    public struct FriendInfo
+    public class FriendsServiceConnector : ServiceConnector
     {
-        public UUID PrincipalID;
-        public string Friend;
-        public int MyFlags;
-        public int TheirFlags;
+        private IFriendsService m_FriendsService;
+        private string m_ConfigName = "FriendsService";
 
-        public FriendInfo(Dictionary<string, object> kvp)
+        public FriendsServiceConnector(IConfigSource config, IHttpServer server, string configName) :
+                base(config, server, configName)
         {
-            PrincipalID = UUID.Zero;
-            if (kvp.ContainsKey("PrincipalID") && kvp["PrincipalID"] != null)
-                UUID.TryParse(kvp["PrincipalID"].ToString(), out PrincipalID);
-            Friend = string.Empty;
-            if (kvp.ContainsKey("Friend") && kvp["Friend"] != null)
-                Friend = kvp["Friend"].ToString();
-            MyFlags = 0;
-            if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
-                Int32.TryParse(kvp["MyFlags"].ToString(), out MyFlags);
-            TheirFlags = 0;
-            if (kvp.ContainsKey("TheirFlags") && kvp["TheirFlags"] != null)
-                Int32.TryParse(kvp["TheirFlags"].ToString(), out TheirFlags);
+            IConfig serverConfig = config.Configs[m_ConfigName];
+            if (serverConfig == null)
+                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+
+            string gridService = serverConfig.GetString("LocalServiceModule",
+                    String.Empty);
+
+            if (gridService == String.Empty)
+                throw new Exception("No LocalServiceModule in config file");
+
+            Object[] args = new Object[] { config };
+            m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(gridService, args);
+
+            server.AddStreamHandler(new FriendsServerPostHandler(m_FriendsService));
         }
-
-        public Dictionary<string, object> ToKeyValuePairs()
-        {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PricipalID"] = PrincipalID.ToString();
-            result["Friend"] = Friend;
-            result["MyFlags"] = MyFlags.ToString();
-            result["TheirFlags"] = TheirFlags.ToString();
-
-            return result;
-        }
-    }
-
-    public interface IFriendsService
-    {
-        FriendInfo[] GetFriends(UUID PrincipalID);
-        bool StoreFriend(UUID PrincipalID, string Friend, int flags);
-        bool Delete(UUID PrincipalID, string Friend);
     }
 }

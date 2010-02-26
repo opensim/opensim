@@ -120,5 +120,6 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     GridService = "OpenSim.Services.GridService.dll:GridService"
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
+    FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
     WelcomeMessage = "Welcome, Avatar!"

@@ -119,6 +119,7 @@ ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003
     SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
     LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
     UserAgentService = "OpenSim.Services.HypergridService.dll:UserAgentService"
+    FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
 
     WelcomeMessage = "Welcome, Avatar!"
     ; Defaults for the users, if none is specified in the useraccounts table entry (ServiceURLs)
