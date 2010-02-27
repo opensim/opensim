@@ -78,7 +78,7 @@ namespace OpenSim.Services.Friends
 
         public bool Delete(UUID PrincipalID, string Friend)
         {
-            return false;
+            return m_Database.Delete(PrincipalID, Friend);
         }
 
     }

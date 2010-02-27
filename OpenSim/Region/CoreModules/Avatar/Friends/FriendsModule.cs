@@ -391,7 +391,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void ForwardFriendshipOffer(UUID agentID, UUID friendID, GridInstantMessage im)
         {
-            // !!!!!!!!
+            // !!!!!!!! This is a hack so that we don't have to keep state (transactionID/imSessionID)
+            // We stick this agent's ID as imSession, so that it's directly available on the receiving end
             im.imSessionID = im.fromAgentID;
 
             IClientAPI friendClient = LocateClientObject(friendID);
@@ -450,6 +451,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
+            m_log.DebugFormat("[FRIENDS]: {0} denied friendship to {1}", agentID, friendID);
+
             FriendsService.Delete(agentID, friendID.ToString());
             FriendsService.Delete(friendID, agentID.ToString());
 
