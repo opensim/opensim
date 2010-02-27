@@ -36,6 +36,7 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
@@ -48,12 +49,35 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public event PresenceChange OnPresenceChange;
         public event BulkPresenceData OnBulkPresenceData;
 
+        protected List<Scene> m_Scenes = new List<Scene>();
+
+        protected IPresenceService m_PresenceService = null;
+
+        protected IPresenceService PresenceService
+        {
+            get
+            {
+                if (m_PresenceService == null)
+                {
+                    if (m_Scenes.Count > 0)
+                        m_PresenceService = m_Scenes[0].RequestModuleInterface<IPresenceService>();
+                }
+
+                return m_PresenceService;
+            }
+        }
+
         public void Initialise(IConfigSource config)
         {
         }
 
         public void AddRegion(Scene scene)
         {
+            m_Scenes.Add(scene);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+
+            scene.RegisterModuleInterface<IPresenceModule>(this);
         }
 
         public void RegionLoaded(Scene scene)
@@ -62,6 +86,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void RemoveRegion(Scene scene)
         {
+            m_Scenes.Remove(scene);
         }
 
         public void PostInitialise()
@@ -87,6 +112,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         }
 
         public void OnNewClient(IClientAPI client)
+        {
+            client.AddGenericPacketHandler("requestonlinenotification", OnRequestOnlineNotification);
+        }
+
+        public void OnRequestOnlineNotification(Object sender, string method, List<String> args)
         {
         }
     }
