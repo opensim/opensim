@@ -38,6 +38,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 
 namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 {
@@ -118,6 +119,28 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         public void OnRequestOnlineNotification(Object sender, string method, List<String> args)
         {
+            if (!(sender is IClientAPI))
+                return;
+
+            IClientAPI client = (IClientAPI)sender;
+
+            PresenceInfo[] status = PresenceService.GetAgents(args.ToArray());
+
+            List<UUID> online = new List<UUID>();
+            List<UUID> offline = new List<UUID>();
+
+            foreach (PresenceInfo pi in status)
+            {
+                if (pi.Online)
+                    online.Add(new UUID(pi.UserID));
+                else
+                    offline.Add(new UUID(pi.UserID));
+            }
+
+            if (online.Count > 0)
+                client.SendAgentOnline(online.ToArray());
+            if (offline.Count > 0)
+                client.SendAgentOffline(offline.ToArray());
         }
     }
 }
