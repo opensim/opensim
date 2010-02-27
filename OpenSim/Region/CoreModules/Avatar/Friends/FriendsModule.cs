@@ -419,6 +419,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
             FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
+            // update the local cache
+            m_Friends[agentID].Friends = FriendsService.GetFriends(agentID);
 
             m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", agentID, friendID);
 
@@ -434,6 +436,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     (byte)OpenMetaverse.InstantMessageDialog.FriendshipAccepted, client.AgentId.ToString(), false, Vector3.Zero);
                 friendClient.SendInstantMessage(im);
                 client.SendAgentOnline(new UUID[] { friendID });
+                // update the local cache
+                m_Friends[friendID].Friends = FriendsService.GetFriends(friendID);
                 // we're done
                 return;
             }
