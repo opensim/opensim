@@ -45,6 +45,7 @@ using OpenSim.Framework.Servers.HttpServer;
 using log4net;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
@@ -91,6 +92,28 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 }
 
                 return m_PresenceService;
+            }
+        }
+
+        protected IFriendsService FriendsService
+        {
+            get
+            {
+                if (m_FriendsService == null)
+                {
+                    if (m_Scenes.Count > 0)
+                        m_FriendsService = m_Scenes[0].RequestModuleInterface<IFriendsService>();
+                }
+
+                return m_FriendsService;
+            }
+        }
+
+        protected IGridService GridService
+        {
+            get
+            {
+                return m_Scenes[0].GridService;
             }
         }
 
@@ -431,22 +454,66 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
         {
+            if (im.dialog == (byte)OpenMetaverse.InstantMessageDialog.FriendshipOffered)
+            { 
+                // we got a friendship offer
+                UUID principalID = new UUID(im.fromAgentID);
+                UUID friendID = new UUID(im.toAgentID);
+
+                // this user wants to be friends with the other user
+                FriendsService.StoreFriend(principalID, friendID.ToString(), 1);
+
+                // Now let's ask the other user to be friends with this user
+                ForwardFriendshipOffer(principalID, friendID, im);
+            }
+        }
+
+        private void ForwardFriendshipOffer(UUID agentID, UUID friendID, GridInstantMessage im)
+        {
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                friendClient.SendInstantMessage(im);
+                // we're done
+                return;
+            }
+
+            // The prospective friend is not here [as root]. Let's forward.
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                // ...
+                // m_FriendsSimConnector.FriendshipOffered(region, agentID, friemdID, im.message);
+            }
         }
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
+            FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
+
+            // TODO: Notify the new friend
         }
 
         private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
+            // TODO: Notify the friend-wanna-be
         }
 
         private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)
         {
+            FriendsService.Delete(agentID, exfriendID.ToString());
+
+            // TODO: Notify the exfriend
         }
 
         private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
         {
+            FriendsService.StoreFriend(requester, target.ToString(), rights);
+
+            // TODO: Notify the friend
         }
     }
 }
