@@ -123,6 +123,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
 
             IClientAPI client = (IClientAPI)sender;
+            m_log.DebugFormat("[PRESENCE MODULE]: OnlineNotification requested by {0}", client.Name);
 
             PresenceInfo[] status = PresenceService.GetAgents(args.ToArray());
 
@@ -131,10 +132,21 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             foreach (PresenceInfo pi in status)
             {
+                UUID uuid = new UUID(pi.UserID);
                 if (pi.Online)
-                    online.Add(new UUID(pi.UserID));
+                {
+                    if (!online.Contains(uuid))
+                    {
+                        online.Add(uuid);
+                        if (offline.Contains(uuid))
+                            offline.Remove(uuid);
+                    }
+                }
                 else
-                    offline.Add(new UUID(pi.UserID));
+                {
+                    if (!online.Contains(uuid) && !offline.Contains(uuid))
+                        offline.Add(uuid);
+                }
             }
 
             if (online.Count > 0)

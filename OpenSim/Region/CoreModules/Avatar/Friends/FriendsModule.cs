@@ -432,6 +432,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 GridInstantMessage im = new GridInstantMessage(client.Scene, client.AgentId, client.Name, friendID,
                     (byte)OpenMetaverse.InstantMessageDialog.FriendshipAccepted, client.AgentId.ToString(), false, Vector3.Zero);
                 friendClient.SendInstantMessage(im);
+                client.SendAgentOnline(new UUID[] { friendID });
                 // we're done
                 return;
             }
@@ -442,7 +443,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                 m_FriendsSimConnector.FriendshipApproved(region, agentID, friendID);
+                client.SendAgentOnline(new UUID[] { friendID });
             }
+
         }
 
         private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
