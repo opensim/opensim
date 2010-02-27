@@ -26,10 +26,8 @@
  */
 
 using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using System.Xml;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -40,16 +38,16 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Friends;
 using OpenSim.Server.Base;
 using OpenSim.Framework.Servers.HttpServer;
-using log4net;
 using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    public class FriendsModule : BaseStreamHandler, ISharedRegionModule, IFriendsModule
+    public class FriendsModule : ISharedRegionModule, IFriendsModule
     {
         protected class UserFriendData
         {
@@ -72,12 +70,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected int m_Port = 0;
-
         protected List<Scene> m_Scenes = new List<Scene>();
 
         protected IPresenceService m_PresenceService = null;
         protected IFriendsService m_FriendsService = null;
+        protected FriendsSimConnector m_FriendsSimConnector;
+
         protected Dictionary<UUID, UserFriendData> m_Friends =
                 new Dictionary<UUID, UserFriendData>();
 
@@ -117,22 +115,23 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        public FriendsModule()
-                : base("POST", "/friends")
-        {
-        }
-
         public void Initialise(IConfigSource config)
         {
             IConfig friendsConfig = config.Configs["Friends"];
             if (friendsConfig != null)
             {
-                m_Port = friendsConfig.GetInt("Port", m_Port);
+                int mPort = friendsConfig.GetInt("Port", 0);
 
                 string connector = friendsConfig.GetString("Connector", String.Empty);
                 Object[] args = new Object[] { config };
 
                 m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(connector, args);
+                m_FriendsSimConnector = new FriendsSimConnector();
+
+                // Instantiate the request handler
+                IHttpServer server = MainServer.GetHttpServer((uint)mPort);
+                server.AddStreamHandler(new FriendsRequestHandler(this));
+
             }
 
             if (m_FriendsService == null)
@@ -140,10 +139,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_log.Error("[FRIENDS]: No Connector defined in section Friends, or filed to load, cannot continue");
                 throw new Exception("Connector load error");
             }
-
-            IHttpServer server = MainServer.GetHttpServer((uint)m_Port);
-
-            server.AddStreamHandler(this);
 
         }
 
@@ -175,41 +170,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             m_Scenes.Remove(scene);
         }
 
-        public override byte[] Handle(string path, Stream requestData,
-                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
-        {
-            StreamReader sr = new StreamReader(requestData);
-            string body = sr.ReadToEnd();
-            sr.Close();
-            body = body.Trim();
-
-            m_log.DebugFormat("[XXX]: query String: {0}", body);
-
-            try
-            {
-                Dictionary<string, object> request =
-                        ServerUtils.ParseQueryString(body);
-
-                if (!request.ContainsKey("METHOD"))
-                    return FailureResult();
-
-                string method = request["METHOD"].ToString();
-                request.Remove("METHOD");
-
-                switch (method)
-                {
-                    case "TEST":
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Debug("[FRIENDS]: Exception {0}" + e.ToString());
-            }
-
-            return FailureResult();
-        }
-
         public string Name
         {
             get { return "FriendsModule"; }
@@ -237,49 +197,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     return (uint)fi.TheirFlags;
             }
             return 0;
-        }
-
-        private byte[] FailureResult()
-        {
-            return BoolResult(false);
-        }
-
-        private byte[] SuccessResult()
-        {
-            return BoolResult(true);
-        }
-
-        private byte[] BoolResult(bool value)
-        {
-            XmlDocument doc = new XmlDocument();
-
-            XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
-                    "", "");
-
-            doc.AppendChild(xmlnode);
-
-            XmlElement rootElement = doc.CreateElement("", "ServerResponse",
-                    "");
-
-            doc.AppendChild(rootElement);
-
-            XmlElement result = doc.CreateElement("", "RESULT", "");
-            result.AppendChild(doc.CreateTextNode(value.ToString()));
-
-            rootElement.AppendChild(result);
-
-            return DocToBytes(doc);
-        }
-
-        private byte[] DocToBytes(XmlDocument doc)
-        {
-            MemoryStream ms = new MemoryStream();
-            XmlTextWriter xw = new XmlTextWriter(ms, null);
-            xw.Formatting = Formatting.Indented;
-            doc.WriteTo(xw);
-            xw.Flush();
-
-            return ms.ToArray();
         }
 
         private void OnNewClient(IClientAPI client)
@@ -460,8 +377,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 UUID principalID = new UUID(im.fromAgentID);
                 UUID friendID = new UUID(im.toAgentID);
 
-                // this user wants to be friends with the other user
+                // This user wants to be friends with the other user.
+                // Let's add both relations to the DB, but one of them is inactive (-1)
                 FriendsService.StoreFriend(principalID, friendID.ToString(), 1);
+                FriendsService.StoreFriend(friendID, principalID.ToString(), -1);
 
                 // Now let's ask the other user to be friends with this user
                 ForwardFriendshipOffer(principalID, friendID, im);
@@ -476,7 +395,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 // the prospective friend in this sim as root agent
                 friendClient.SendInstantMessage(im);
                 // we're done
-                return;
+                return ;
             }
 
             // The prospective friend is not here [as root]. Let's forward.
@@ -485,35 +404,123 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friendSession != null)
             {
                 GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                // ...
-                // m_FriendsSimConnector.FriendshipOffered(region, agentID, friemdID, im.message);
+                m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
             }
+
+            // If the prospective friend is not online, he'll get the message upon login.
         }
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
             FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
 
-            // TODO: Notify the new friend
+            //
+            // Notify the friend
+            //
+
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                GridInstantMessage im = new GridInstantMessage(client.Scene, client.AgentId, client.Name, friendID,
+                    (byte)OpenMetaverse.InstantMessageDialog.FriendshipAccepted, client.AgentId.ToString(), false, Vector3.Zero);
+                friendClient.SendInstantMessage(im);
+                // we're done
+                return;
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipApproved(region, agentID, friendID);
+            }
         }
 
         private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
-            // TODO: Notify the friend-wanna-be
+            FriendsService.Delete(agentID, friendID.ToString());
+            FriendsService.Delete(friendID, agentID.ToString());
+
+            //
+            // Notify the friend
+            //
+
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                
+                GridInstantMessage im = new GridInstantMessage(client.Scene, client.AgentId, client.Name, friendID,
+                    (byte)OpenMetaverse.InstantMessageDialog.FriendshipDeclined, client.AgentId.ToString(), false, Vector3.Zero);
+                friendClient.SendInstantMessage(im);
+                // we're done
+                return;
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipDenied(region, agentID, friendID);
+            }
         }
 
         private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)
         {
             FriendsService.Delete(agentID, exfriendID.ToString());
+            FriendsService.Delete(exfriendID, agentID.ToString());
 
-            // TODO: Notify the exfriend
+            client.SendTerminateFriend(exfriendID);
+
+            //
+            // Notify the friend
+            //
+
+            IClientAPI friendClient = LocateClientObject(exfriendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                friendClient.SendTerminateFriend(exfriendID);
+                // we're done
+                return;
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { exfriendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipTerminated(region, agentID, exfriendID);
+            }
         }
 
         private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
         {
             FriendsService.StoreFriend(requester, target.ToString(), rights);
 
-            // TODO: Notify the friend
+            //
+            // Notify the friend
+            //
+
+            IClientAPI friendClient = LocateClientObject(target);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                //friendClient.???;
+                // we're done
+                return;
+            }
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.GrantRights(region, requester, target);
+            }
         }
     }
 }
