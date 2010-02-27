@@ -211,6 +211,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnLogout += OnLogout;
             client.OnEconomyDataRequest += SendPresence;
 
+            client.AddGenericPacketHandler("requestonlinenotification", OnRequestOnlineNotification);
+
             if (m_Friends.ContainsKey(client.AgentId))
             {
                 m_Friends[client.AgentId].Refcount++;
@@ -528,6 +530,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                 m_FriendsSimConnector.GrantRights(region, requester, target);
             }
+        }
+
+        public void OnRequestOnlineNotification(Object sender, string method, List<String> args)
+        {
         }
     }
 }
