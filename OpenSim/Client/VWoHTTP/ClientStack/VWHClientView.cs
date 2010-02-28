@@ -1211,7 +1211,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         {
         }
 
-        public void SendChangeUserRights(UUID friendID, int rights)
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
     }

@@ -1676,7 +1676,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
         }
 
-        public void SendChangeUserRights(UUID friendID, int rights)
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
     }

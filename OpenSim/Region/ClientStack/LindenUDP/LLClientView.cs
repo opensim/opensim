@@ -11606,12 +11606,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void SendChangeUserRights(UUID friendID, int rights)
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
             ChangeUserRightsPacket packet = (ChangeUserRightsPacket)PacketPool.Instance.GetPacket(PacketType.ChangeUserRights);
 
             packet.AgentData = new ChangeUserRightsPacket.AgentDataBlock();
-            packet.AgentData.AgentID = AgentId;
+            packet.AgentData.AgentID = agentID;
 
             packet.Rights = new ChangeUserRightsPacket.RightsBlock[1];
             packet.Rights[0] = new ChangeUserRightsPacket.RightsBlock();
