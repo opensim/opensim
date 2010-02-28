@@ -27,45 +27,139 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using OpenSim.Server.Base;
+using OpenSim.Framework.Servers.HttpServer;
 
 using OpenMetaverse;
+using log4net;
 
 namespace OpenSim.Services.Connectors.Friends
 {
     public class FriendsSimConnector
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "friendship_offered";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["ToID"] = friendID.ToString();
+            sendData["Message"] = message;
+
+            return Call(region, sendData);
+
         }
 
-        public bool FriendshipApproved(GridRegion region, UUID userID, UUID friendID)
+        public bool FriendshipApproved(GridRegion region, UUID userID, string userName, UUID friendID)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "friendship_approved";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["FromName"] = userName;
+            sendData["ToID"] = friendID.ToString();
+
+            return Call(region, sendData);
         }
 
-        public bool FriendshipDenied(GridRegion region, UUID userID, UUID friendID)
+        public bool FriendshipDenied(GridRegion region, UUID userID, string userName, UUID friendID)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "friendship_denied";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["FromName"] = userName;
+            sendData["ToID"] = friendID.ToString();
+
+            return Call(region, sendData);
         }
 
         public bool FriendshipTerminated(GridRegion region, UUID userID, UUID friendID)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "friendship_terminated";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["ToID"] = friendID.ToString();
+
+            return Call(region, sendData);
         }
 
-        public bool GrantRights(GridRegion region, UUID requester, UUID target)
+        public bool GrantRights(GridRegion region, UUID userID, UUID friendID)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "grant_rights";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["ToID"] = friendID.ToString();
+
+            return Call(region, sendData);
         }
 
         public bool StatusNotify(GridRegion region, UUID userID, UUID friendID, bool online)
         {
-            return true;
+            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+            sendData["METHOD"] = "status";
+
+            sendData["FromID"] = userID.ToString();
+            sendData["ToID"] = friendID.ToString();
+            sendData["Online"] = online.ToString();
+
+            return Call(region, sendData);
+        }
+
+        private bool Call(GridRegion region, Dictionary<string, object> sendData)
+        {
+            string reqString = ServerUtils.BuildQueryString(sendData);
+            // m_log.DebugFormat("[FRIENDS CONNECTOR]: queryString = {0}", reqString);
+            try
+            {
+                string url = "http://" + region.ExternalHostName + ":" + region.HttpPort;
+                string reply = SynchronousRestFormsRequester.MakeRequest("POST",
+                        url + "/friends",
+                        reqString);
+                if (reply != string.Empty)
+                {
+                    Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
+
+                    if (replyData.ContainsKey("RESULT"))
+                    {
+                        if (replyData["RESULT"].ToString().ToLower() == "true")
+                            return true;
+                        else
+                            return false;
+                    }
+                    else
+                        m_log.DebugFormat("[FRIENDS CONNECTOR]: reply data does not contain result field");
+
+                }
+                else
+                    m_log.DebugFormat("[FRIENDS CONNECTOR]: received empty reply");
+            }
+            catch (Exception e)
+            {
+                m_log.DebugFormat("[FRIENDS CONNECTOR]: Exception when contacting remote sim: {0}", e.Message);
+            }
+
+            return false;
         }
     }
 }

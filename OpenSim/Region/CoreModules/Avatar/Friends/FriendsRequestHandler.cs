@@ -75,8 +75,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 switch (method)
                 {
-                    case "TEST":
-                        break;
+                    case "friendship_offered":
+                        return FriendshipOffered(request);
+                    case "friendship_approved":
+                        return FriendshipApproved(request);
+                    case "friendship_denied":
+                        return FriendshipDenied(request);
+                    case "friendship_terminated":
+                        return FriendshipTerminated(request);
+                    case "grant_rights":
+                        return GrantRights(request);
+                    case "status":
+                        return StatusNotification(request);
                 }
             }
             catch (Exception e)
@@ -86,6 +96,146 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             return FailureResult();
         }
+
+        byte[] FriendshipOffered(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+            string message = string.Empty;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return FailureResult();
+
+            message = request["Message"].ToString();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, "", toID, 
+                (byte)InstantMessageDialog.FriendshipOffered, message, false, Vector3.Zero);
+            
+            if (m_FriendsModule.LocalFriendshipOffered(toID, im))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        byte[] FriendshipApproved(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+            string fromName = string.Empty;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            if (request.ContainsKey("FromName"))
+                fromName = request["FromName"].ToString();
+
+            if (m_FriendsModule.LocalFriendshipApproved(fromID, fromName, toID))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        byte[] FriendshipDenied(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+            string fromName = string.Empty;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            if (request.ContainsKey("FromName"))
+                fromName = request["FromName"].ToString();
+
+            if (m_FriendsModule.LocalFriendshipDenied(fromID, fromName, toID))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        byte[] FriendshipTerminated(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            if (m_FriendsModule.LocalFriendshipTerminated(toID))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        byte[] GrantRights(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            if (m_FriendsModule.LocalGrantRights(/* ??? */))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        byte[] StatusNotification(Dictionary<string, object> request)
+        {
+            UUID fromID = UUID.Zero;
+            UUID toID = UUID.Zero;
+            bool online = false;
+
+            if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID") || !request.ContainsKey("Online"))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["FromID"].ToString(), out fromID))
+                return FailureResult();
+
+            if (!UUID.TryParse(request["ToID"].ToString(), out toID))
+                return FailureResult();
+
+            if (!Boolean.TryParse(request["Online"].ToString(), out online))
+                return FailureResult();
+
+            if (m_FriendsModule.LocalStatusNotification(fromID, toID, online))
+                return SuccessResult();
+
+            return FailureResult();
+        }
+
+        #region Misc
 
         private byte[] FailureResult()
         {
@@ -130,5 +280,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return ms.ToArray();
         }
 
+        #endregion
     }
 }
