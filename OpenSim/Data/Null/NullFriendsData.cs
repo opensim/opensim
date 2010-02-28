@@ -26,49 +26,67 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
-using System.Threading;
-using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using Mono.Data.SqliteClient;
+using OpenSim.Data;
 
-namespace OpenSim.Data.SQLite
+namespace OpenSim.Data.Null
 {
-    /// <summary>
-    /// A SQLite Interface for Avatar Data
-    /// </summary>
-    public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
-            IAvatarData
+    public class NullFriendsData : IFriendsData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static List<FriendsData> m_Data = new List<FriendsData>();
 
-        public SQLiteAvatarData(string connectionString, string realm) :
-                base(connectionString, realm, "Avatar")
+        public NullFriendsData(string connectionString, string realm)
         {
         }
 
-        public bool Delete(UUID principalID, string name)
+        /// <summary>
+        /// Tries to implement the Get [] semantics, but it cuts corners.
+        /// Specifically, it gets all friendships even if they weren't accepted yet.
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public FriendsData[] GetFriends(UUID userID)
         {
-            SqliteCommand cmd = new SqliteCommand();
-
-            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
-            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
-            cmd.Parameters.Add(":Name", name);
-
-            try
+            List<FriendsData> lst = m_Data.FindAll(delegate (FriendsData fdata)
             {
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
+                return fdata.PrincipalID == userID;
+            });
 
+            if (lst != null)
+                return lst.ToArray();
+
+            return new FriendsData[0];
+        }
+
+        public bool Store(FriendsData data)
+        {
+            if (data == null)
                 return false;
-            }
-            finally
-            {
-                CloseCommand(cmd);
-            }
+
+            m_Data.Add(data);
+
+            return true;
         }
+
+        public bool Delete(UUID userID, string friendID)
+        {
+            List<FriendsData> lst = m_Data.FindAll(delegate(FriendsData fdata) { return fdata.PrincipalID == userID; });
+            if (lst != null)
+            {
+                FriendsData friend = lst.Find(delegate(FriendsData fdata) { return fdata.Friend == friendID; });
+                if (friendID != null)
+                {
+                    m_Data.Remove(friend);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
     }
 }
