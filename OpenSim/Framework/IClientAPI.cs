@@ -1478,5 +1478,6 @@ namespace OpenSim.Framework
         
         void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt);
         
+        void SendChangeUserRights(UUID friendID, int rights);
     }
 }

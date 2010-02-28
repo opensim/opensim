@@ -1209,5 +1209,9 @@ namespace OpenSim.Tests.Common.Mock
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
         }
+
+        public void SendChangeUserRights(UUID friendID, int rights)
+        {
+        }
     }
 }

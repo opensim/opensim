@@ -1195,6 +1195,10 @@ namespace OpenSim.Client.Sirikata.ClientStack
         {
         }
 
+        public void SendChangeUserRights(UUID friendID, int rights)
+        {
+        }
+
         #endregion
     }
 }

@@ -11605,5 +11605,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet.PropertiesData.LanguagesText = Utils.StringToBytes(languages);
             OutPacket(packet, ThrottleOutPacketType.Task);
         }
+
+        public void SendChangeUserRights(UUID friendID, int rights)
+        {
+            ChangeUserRightsPacket packet = (ChangeUserRightsPacket)PacketPool.Instance.GetPacket(PacketType.ChangeUserRights);
+
+            packet.AgentData = new ChangeUserRightsPacket.AgentDataBlock();
+            packet.AgentData.AgentID = AgentId;
+
+            packet.Rights = new ChangeUserRightsPacket.RightsBlock[1];
+            packet.Rights[0] = new ChangeUserRightsPacket.RightsBlock();
+            packet.Rights[0].AgentRelated = friendID;
+            packet.Rights[0].RelatedRights = rights;
+
+            OutPacket(packet, ThrottleOutPacketType.Task);
+        }
     }
 }

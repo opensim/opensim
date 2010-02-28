@@ -1149,5 +1149,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
         }
+
+        public void SendChangeUserRights(UUID friendID, int rights)
+        {
+        }
     }
 }

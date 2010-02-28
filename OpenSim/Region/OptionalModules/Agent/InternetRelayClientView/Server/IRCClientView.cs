@@ -1675,5 +1675,9 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
         {
         }
+
+        public void SendChangeUserRights(UUID friendID, int rights)
+        {
+        }
     }
 }
