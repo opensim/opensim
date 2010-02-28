@@ -1114,7 +1114,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This is called upon a very important packet sent from the client,
         /// so it's client-controlled. Never call this method directly.
         /// </summary>
-        public void CompleteMovement()
+        public void CompleteMovement(IClientAPI client)
         {
             //m_log.Debug("[SCENE PRESENCE]: CompleteMovement");
 
@@ -1159,6 +1159,10 @@ namespace OpenSim.Region.Framework.Scenes
                     m_agentTransfer.EnableChildAgents(this);
                 else
                     m_log.DebugFormat("[SCENE PRESENCE]: Unable to create child agents in neighbours, because AgentTransferModule is not active");
+
+                IFriendsModule friendsModule = m_scene.RequestModuleInterface<IFriendsModule>();
+                if (friendsModule != null)
+                    friendsModule.SendFriendsOnlineIfNeeded(ControllingClient);
             }
 
         }

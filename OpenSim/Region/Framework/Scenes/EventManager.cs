@@ -66,12 +66,15 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnClientConnectCoreDelegate OnClientConnect;
 
         public delegate void OnNewClientDelegate(IClientAPI client);
-
+        
         /// <summary>
         /// Deprecated in favour of OnClientConnect.
         /// Will be marked Obsolete after IClientCore has 100% of IClientAPI interfaces.
         /// </summary>
         public event OnNewClientDelegate OnNewClient;
+
+        public delegate void OnClientLoginDelegate(IClientAPI client);
+        public event OnClientLoginDelegate OnClientLogin;
 
         public delegate void OnNewPresenceDelegate(ScenePresence presence);
 
@@ -581,6 +584,28 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+        }
+
+        public void TriggerOnClientLogin(IClientAPI client)
+        {
+            OnClientLoginDelegate handlerClientLogin = OnClientLogin;
+            if (handlerClientLogin != null)
+            {
+                foreach (OnClientLoginDelegate d in handlerClientLogin.GetInvocationList())
+                {
+                    try
+                    {
+                        d(client);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat(
+                            "[EVENT MANAGER]: Delegate for TriggerOnClientLogin failed - continuing.  {0} {1}",
+                            e.Message, e.StackTrace);
+                    }
+                }
+            }
+
         }
 
         public void TriggerOnNewPresence(ScenePresence presence)

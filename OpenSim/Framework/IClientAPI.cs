@@ -93,6 +93,8 @@ namespace OpenSim.Framework
 
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
+    public delegate void GenericCall1(IClientAPI remoteClient);
+
     public delegate void GenericCall2();
 
     // really don't want to be passing packets in these events, so this is very temporary.
@@ -878,7 +880,7 @@ namespace OpenSim.Framework
         event DeRezObject OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;
-        event GenericCall2 OnCompleteMovementToRegion;
+        event GenericCall1 OnCompleteMovementToRegion;
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;

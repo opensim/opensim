@@ -2422,6 +2422,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="client"></param>
         public override void AddNewClient(IClientAPI client)
         {
+            bool vialogin = false;
+
             m_clientManager.Add(client);
 
             CheckHeartbeat();
@@ -2463,6 +2465,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if ((aCircuit.teleportFlags & (uint)Constants.TeleportFlags.ViaLogin) != 0)
                     {
                         m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
+                        vialogin = true;
                         IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
                         if (userVerification != null)
                         {
@@ -2512,7 +2515,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_LastLogin = Util.EnvironmentTickCount();
             EventManager.TriggerOnNewClient(client);
-
+            if (vialogin)
+                EventManager.TriggerOnClientLogin(client);
         }
 
         

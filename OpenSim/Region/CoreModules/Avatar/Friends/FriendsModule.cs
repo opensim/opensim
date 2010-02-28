@@ -79,6 +79,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         protected Dictionary<UUID, UserFriendData> m_Friends =
                 new Dictionary<UUID, UserFriendData>();
 
+        protected List<UUID> m_NeedsListOfFriends = new List<UUID>();
+
         protected IPresenceService PresenceService
         {
             get
@@ -170,6 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
             scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
+            scene.EventManager.OnClientLogin += OnClientLogin;
         }
 
         public void RegionLoaded(Scene scene)
@@ -220,7 +223,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             client.OnGrantUserRights += OnGrantUserRights;
 
             client.OnLogout += OnLogout;
-            client.OnEconomyDataRequest += SendPresence;
 
             if (m_Friends.ContainsKey(client.AgentId))
             {
@@ -285,30 +287,50 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             }
         }
 
-        private void SendPresence(UUID agentID)
+        private void OnClientLogin(IClientAPI client)
         {
+            UUID agentID = client.AgentId;
+
             // Inform the friends that this user is online
             StatusChange(agentID, true);
             
-            // Now send the list of online friends to this user
-            if (!m_Friends.ContainsKey(agentID))
+            // Register that we need to send the list of online friends to this user
+            lock (m_NeedsListOfFriends)
+                if (!m_NeedsListOfFriends.Contains(agentID))
+                {
+                    m_NeedsListOfFriends.Add(agentID);
+                }
+        }
+
+        public void SendFriendsOnlineIfNeeded(IClientAPI client)
+        {
+            UUID agentID = client.AgentId;
+            if (m_NeedsListOfFriends.Contains(agentID))
             {
-                m_log.DebugFormat("[FRIENDS MODULE]: agent {0} not found in local cache", agentID);
-                return;
+                if (!m_Friends.ContainsKey(agentID))
+                {
+                    m_log.DebugFormat("[FRIENDS MODULE]: agent {0} not found in local cache", agentID);
+                    return;
+                }
+
+                client = LocateClientObject(agentID);
+                if (client == null)
+                {
+                    m_log.DebugFormat("[FRIENDS MODULE]: agent's client {0} not found in local scene", agentID);
+                    return;
+                }
+
+                List<UUID> online = GetOnlineFriends(agentID);
+
+                if (online.Count > 0)
+                {
+                    m_log.DebugFormat("[FRIENDS MODULE]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
+                    client.SendAgentOnline(online.ToArray());
+                }
+
+                lock (m_NeedsListOfFriends)
+                    m_NeedsListOfFriends.Remove(agentID);
             }
-
-            IClientAPI client = LocateClientObject(agentID);
-            if (client == null)
-            {
-                m_log.DebugFormat("[FRIENDS MODULE]: agent's client {0} not found in local scene", agentID);
-                return;
-            }
-
-            List<UUID> online = GetOnlineFriends(agentID);
-
-            m_log.DebugFormat("[FRIENDS]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
-            client.SendAgentOnline(online.ToArray());
-
         }
 
         List<UUID> GetOnlineFriends(UUID userID)
