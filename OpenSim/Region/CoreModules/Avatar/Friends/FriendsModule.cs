@@ -567,19 +567,45 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
         {
+            if (!m_Friends.ContainsKey(remoteClient.AgentId))
+                return;
+
+            UserFriendData fd = m_Friends[remoteClient.AgentId];
+
             FriendsService.StoreFriend(requester, target.ToString(), rights);
 
-            //
-            // Notify the friend
-            //
-
-            IClientAPI friendClient = LocateClientObject(target);
-            if (friendClient != null)
+            foreach (FriendInfo fi in fd.Friends)
             {
-                // the prospective friend in this sim as root agent
-                //friendClient.???;
-                // we're done
-                return;
+                if (fi.Friend == target.ToString())
+                {
+                    IClientAPI friendClient = LocateClientObject(target);
+
+                    int delta = rights ^ fi.MyFlags;
+                    if ((delta & ~1) != 0)
+                    {
+                        remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
+                        //
+                        // Notify the friend
+                        //
+
+                        if (friendClient != null)
+                        {
+                            friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
+                        }
+                    }
+                    if ((delta & 1) != 0)
+                    {
+                        if (friendClient != null)
+                        {
+                            if ((rights & 1) != 0)
+                                friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) } );
+                            else
+                                friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) } );
+                        }
+                    }
+                    if (friendClient != null) // Local, we're done
+                        return;
+                }
             }
 
             PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
@@ -587,6 +613,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (friendSession != null)
             {
                 GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                // TODO: You might want to send the delta to save the lookup
+                // on the other end!!
                 m_FriendsSimConnector.GrantRights(region, requester, target);
             }
         }
