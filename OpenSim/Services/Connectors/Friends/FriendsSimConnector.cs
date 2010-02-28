@@ -62,5 +62,10 @@ namespace OpenSim.Services.Connectors.Friends
         {
             return true;
         }
+
+        public bool StatusNotify(GridRegion region, UUID userID, UUID friendID, bool online)
+        {
+            return true;
+        }
     }
 }
