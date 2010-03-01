@@ -335,7 +335,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             foreach (FriendInfo fi in m_Friends[userID].Friends)
             {
-                if ((fi.TheirFlags & 1) != 0)
+                if (((fi.TheirFlags & 1) != 0) && (fi.TheirFlags != -1))
                     friendList.Add(fi.Friend);
             }
 
