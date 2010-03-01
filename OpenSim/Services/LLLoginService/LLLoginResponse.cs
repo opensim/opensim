@@ -230,7 +230,6 @@ namespace OpenSim.Services.LLLoginService
             SessionID = aCircuit.SessionID;
             SecureSessionID = aCircuit.SecureSessionID;
             Message = message;
-            // While we don't have friends...
             BuddList = ConvertFriendListItem(friendsList);
             StartLocation = where;
 
@@ -612,6 +611,8 @@ namespace OpenSim.Services.LLLoginService
             LLLoginResponse.BuddyList buddylistreturn = new LLLoginResponse.BuddyList();
             foreach (FriendInfo finfo in friendsList)
             {
+                if (finfo.TheirFlags == -1)
+                    continue;
                 LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(finfo.Friend);
                 buddyitem.BuddyID = finfo.Friend;
                 buddyitem.BuddyRightsHave = (int)finfo.TheirFlags;

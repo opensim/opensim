@@ -194,10 +194,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             get { return null; }
         }
 
-        public void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage)
-        {
-        }
-
         public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
             if (!m_Friends.ContainsKey(principalID))
@@ -453,8 +449,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 // This user wants to be friends with the other user.
                 // Let's add both relations to the DB, but one of them is inactive (-1)
-                FriendsService.StoreFriend(principalID, friendID.ToString(), 1);
-                FriendsService.StoreFriend(friendID, principalID.ToString(), -1);
+                FriendsService.StoreFriend(principalID, friendID.ToString(), 0);
 
                 // Now let's ask the other user to be friends with this user
                 ForwardFriendshipOffer(principalID, friendID, im);
@@ -486,6 +481,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
             FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
+            FriendsService.StoreFriend(friendID, agentID.ToString(), 1);
             // update the local cache
             m_Friends[agentID].Friends = FriendsService.GetFriends(agentID);
 
