@@ -449,7 +449,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
                 // This user wants to be friends with the other user.
                 // Let's add both relations to the DB, but one of them is inactive (-1)
-                FriendsService.StoreFriend(principalID, friendID.ToString(), 0);
+                FriendsService.StoreFriend(friendID, principalID.ToString(), 0);
 
                 // Now let's ask the other user to be friends with this user
                 ForwardFriendshipOffer(principalID, friendID, im);
