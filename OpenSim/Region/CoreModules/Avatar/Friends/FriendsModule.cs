@@ -566,52 +566,64 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!m_Friends.ContainsKey(remoteClient.AgentId))
                 return;
 
+            m_log.DebugFormat("[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}", requester, rights, target);
+            // Let's find the friend in this user's friend list
             UserFriendData fd = m_Friends[remoteClient.AgentId];
-
-            FriendsService.StoreFriend(requester, target.ToString(), rights);
-
+            FriendInfo friend = new FriendInfo();
             foreach (FriendInfo fi in fd.Friends)
-            {
                 if (fi.Friend == target.ToString())
-                {
-                    IClientAPI friendClient = LocateClientObject(target);
+                    friend = fi;
 
-                    int delta = rights ^ fi.MyFlags;
-                    if ((delta & ~1) != 0)
-                    {
-                        remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
-                        //
-                        // Notify the friend
-                        //
-
-                        if (friendClient != null)
-                        {
-                            friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
-                        }
-                    }
-                    if ((delta & 1) != 0)
-                    {
-                        if (friendClient != null)
-                        {
-                            if ((rights & 1) != 0)
-                                friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) } );
-                            else
-                                friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) } );
-                        }
-                    }
-                    if (friendClient != null) // Local, we're done
-                        return;
-                }
-            }
-
-            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
-            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
-            if (friendSession != null)
+            if (!friend.PrincipalID.Equals(UUID.Zero)) // Found it
             {
-                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
-                // TODO: You might want to send the delta to save the lookup
-                // on the other end!!
-                m_FriendsSimConnector.GrantRights(region, requester, target);
+                FriendsService.StoreFriend(requester, target.ToString(), rights);
+
+                bool onlineBitChanged = ((rights ^ friend.MyFlags) & (int)FriendRights.CanSeeOnline) == 0;
+                if (!onlineBitChanged)
+                {
+                    remoteClient.SendChangeUserRights(requester, target, rights);
+                }
+
+                // Try local
+                if (LocalGrantRights(requester, target, friend.MyFlags, rights))
+                    return;
+
+
+                //int delta = rights ^ friend.MyFlags;
+                //if ((delta & ~1) != 0)
+                //{
+                //    //remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
+                //    //
+                //    // Notify the friend
+                //    //
+
+                //    if (friendClient != null)
+                //    {
+                //        friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
+                //    }
+                //}
+                //if ((delta & 1) != 0)
+                //{
+                //    if (friendClient != null)
+                //    {
+                //        if ((rights & 1) != 0)
+                //            friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) });
+                //        else
+                //            friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) });
+                //    }
+                //}
+                //if (friendClient != null) // Local, we're done
+                //    return;
+
+                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
+                PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+                if (friendSession != null)
+                {
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    // TODO: You might want to send the delta to save the lookup
+                    // on the other end!!
+                    m_FriendsSimConnector.GrantRights(region, requester, target);
+                }
             }
         }
 
@@ -681,10 +693,53 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        public bool LocalGrantRights()
+        public bool LocalGrantRights(UUID userID, UUID friendID, int myFlags, int rights)
         {
-            //  TODO
-            return true;
+            m_log.DebugFormat("XXX Trying to locate {0}", friendID);
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                bool onlineBitChanged = ((rights ^ myFlags) & (int)FriendRights.CanSeeOnline) == 0;
+                if (!onlineBitChanged)
+                    friendClient.SendChangeUserRights(userID, friendID, rights);
+                else
+                {
+                    if ((rights & (int)FriendRights.CanSeeOnline) == 1)
+                        friendClient.SendAgentOnline(new UUID[] { new UUID(userID) });
+                    else
+                        friendClient.SendAgentOffline(new UUID[] { new UUID(userID) });
+                }
+                return true;
+            }
+
+            return false;
+
+            //int delta = rights ^ friend.MyFlags;
+            //if ((delta & ~1) != 0)
+            //{
+            //    //remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
+            //    //
+            //    // Notify the friend
+            //    //
+
+            //    if (friendClient != null)
+            //    {
+            //        friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
+            //    }
+            //}
+            //if ((delta & 1) != 0)
+            //{
+            //    if (friendClient != null)
+            //    {
+            //        if ((rights & 1) != 0)
+            //            friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) });
+            //        else
+            //            friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) });
+            //    }
+            //}
+            //if (friendClient != null) // Local, we're done
+            //    return;
+
         }
 
         public bool LocalStatusNotification(UUID userID, UUID friendID, bool online)

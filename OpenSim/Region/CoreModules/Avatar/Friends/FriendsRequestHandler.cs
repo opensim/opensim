@@ -34,6 +34,7 @@ using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Framework.Servers.HttpServer;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
 
 using OpenMetaverse;
 using log4net;
@@ -205,7 +206,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!UUID.TryParse(request["ToID"].ToString(), out toID))
                 return FailureResult();
 
-            if (m_FriendsModule.LocalGrantRights(/* ??? */))
+            // !!!
+            if (m_FriendsModule.LocalGrantRights(UUID.Zero, UUID.Zero, 0, 0))
                 return SuccessResult();
 
             return FailureResult();
