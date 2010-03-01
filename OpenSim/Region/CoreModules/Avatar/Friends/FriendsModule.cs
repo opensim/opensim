@@ -403,7 +403,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 List<FriendInfo> friendList = new List<FriendInfo>();
                 foreach (FriendInfo fi in m_Friends[agentID].Friends)
                 {
-                    if ((fi.MyFlags & 1) != 0)
+                    if (((fi.MyFlags & 1) != 0) && (fi.TheirFlags != -1))
                         friendList.Add(fi);
                 }
                 foreach (FriendInfo fi in friendList)
