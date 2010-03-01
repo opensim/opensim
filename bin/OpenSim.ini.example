@@ -24,26 +24,26 @@
 
     ; To run a script every few minutes, set the script filename here
     ; timer_Script = "filename"
-    
+
     ; ##
     ; ## SYSTEM
     ; ##
-    
+
     ; Sets the method that OpenSim will use to fire asynchronous
     ; events. Valid values are UnsafeQueueUserWorkItem,
     ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread.
-    ; SmartThreadPool is reported to work well on Mono/Linux, but 
+    ; SmartThreadPool is reported to work well on Mono/Linux, but
     ; UnsafeQueueUserWorkItem has been benchmarked with better
     ; performance on .NET/Windows
     async_call_method = SmartThreadPool
-    
+
     ; There are several operations on large collections (such as
     ; the current avatar list) that can be run synchronously or
     ; in parallel. Running in parallel should increase performance
     ; on a multi-core system, but will make debugging more
     ; difficult if something deadlocks or times out
     use_async_when_possible = false
-    
+
     ; Max threads to allocate on the FireAndForget thread pool
     ; when running with the SmartThreadPool option above
     MaxPoolThreads = 15
@@ -96,7 +96,7 @@
 
     ; How many prims to send to each avatar in the scene on each Update()
     ; MaxPrimsPerFrame = 200
-    
+
     ; Combine all contiguous regions into one large region
     ; Order your regions from South to North, West to East in your regions.ini and then set this to true
     ; Warning!  Don't use this with regions that have existing content!, This will likely break them
@@ -283,7 +283,7 @@
     http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
 
     ; Hostname to use in llRequestURL/llRequestSecureURL
-    ; if not defined - default machine name is being used 
+    ; if not defined - default machine name is being used
     ; (on Windows this mean NETBIOS name - useably only inside local network)
     ; ExternalHostNameForLSL=127.0.0.1
     ; Uncomment below to enable llRemoteData/remote channels
@@ -305,11 +305,11 @@
 [ClientStack.LindenUDP]
     ; Set this to true to process incoming packets asynchronously. Networking is
     ; already separated from packet handling with a queue, so this will only
-    ; affect whether networking internals such as packet decoding and 
+    ; affect whether networking internals such as packet decoding and
     ; acknowledgement accounting are done synchronously or asynchronously
     ;
     ;async_packet_handling = false
-    
+
     ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
@@ -326,7 +326,7 @@
     ; net.core.rmem_max=X")
     ;
     ;client_socket_rcvbuf_size = 8388608
-    
+
     ; Maximum outbound bytes per second for a single scene. This can be used to
     ; throttle total outbound UDP traffic for a simulator. The default value is
     ; 0, meaning no throttling at the scene level. The example given here is
@@ -334,13 +334,13 @@
     ;
     ;scene_throttle_max_bps = 2621440
 
-    ; Maximum bits per second to send to any single client. This will override 
+    ; Maximum bits per second to send to any single client. This will override
     ; the user's viewer preference settings. The default value is 0, meaning no
     ; aggregate throttling on clients (only per-category throttling). The
     ; example given here is 1.5 megabits
     ;
     ;client_throttle_max_bps = 196608
-    
+
     ; Per-client bytes per second rates for the various throttle categories.
     ; These are default values that will be overriden by clients
     ;
@@ -352,7 +352,7 @@
     ;texture_default = 1000
     ;asset_default = 1000
     ;state_default = 1000
-    
+
     ; Per-client maximum burst rates in bytes per second for the various
     ; throttle categories. These are default values that will be overriden by
     ; clients
@@ -365,10 +365,10 @@
     ;texture_limit = 55750
     ;asset_limit = 27500
     ;state_limit = 37000
-    
+
     ; Configures how ObjectUpdates are aggregated. These numbers
     ; do not literally mean how many updates will be put in each
-    ; packet that goes over the wire, as packets are 
+    ; packet that goes over the wire, as packets are
     ; automatically split on a 1400 byte boundary. These control
     ; the balance between responsiveness of interest list updates
     ; and total throughput. Higher numbers will ensure more full-
@@ -526,7 +526,7 @@
     ; used to control llMove2Target
     body_pid_derivative = 35
     body_pid_gain = 25
-    
+
     ; maximum number of contact points to generate per collision
     contacts_per_collision = 80
 
@@ -715,7 +715,7 @@
     ;;arrival and departure of certain users. For example: admins, bots.
 
     ;exclude_list=User 1,User 2,User 3
-    
+
 
 ;[CMS]
     ;enabled = true
@@ -892,7 +892,7 @@
 
     ; Stack size per thread created
     ThreadStackSize = 262144
-    
+
     ; Set this to true (the default) to load each script into a separate
     ; AppDomain. Setting this to false will load all script assemblies into the
     ; current AppDomain, which will reduce the per-script overhead at the
@@ -1084,25 +1084,25 @@
     ; Enables the Mini Region Modules Script Engine.
     ; default is false
     Enabled = false
-	
-	; Runs MRM in a Security Sandbox
-	; WARNING: DISABLING IS A SECURITY RISK.
-	Sandboxed = true
-	
-	; The level sandbox to use, adjust at your OWN RISK.
-	; Valid values are: 
-	; *  FullTrust
+
+    ; Runs MRM in a Security Sandbox
+    ; WARNING: DISABLING IS A SECURITY RISK.
+    Sandboxed = true
+
+    ; The level sandbox to use, adjust at your OWN RISK.
+    ; Valid values are:
+    ; *  FullTrust
     ; *  SkipVerification
     ; *  Execution
     ; *  Nothing
     ; *  LocalIntranet
     ; *  Internet
     ; *  Everything
-	SandboxLevel = "Internet"
+    SandboxLevel = "Internet"
 
-	; Only allow Region Owners to run MRMs
-	; May represent a security risk if you disable this.
-	OwnerOnly = true
+    ; Only allow Region Owners to run MRMs
+    ; May represent a security risk if you disable this.
+    OwnerOnly = true
 
 [Hypergrid]
     ; Keep it false for now. Making it true requires the use of a special client in order to access inventory
@@ -1252,7 +1252,7 @@
 
 [WebStats]
 ; View region statistics via a web page
-; See http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page 
+; See http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page
 ; Use a web browser and type in the "Login URI" + "/SStats/"
 ; For example- http://127.0.0.1:9000/SStats/
 ; enabled=false
@@ -1271,7 +1271,7 @@
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
-    
+
     ; Disable this to prevent the default asset set from being inserted into the
     ; asset store each time the region starts
     AssetLoaderEnabled = true

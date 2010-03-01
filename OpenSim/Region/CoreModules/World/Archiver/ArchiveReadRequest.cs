@@ -432,6 +432,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
+
+            currentRegionSettings.Save();
             
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
 
