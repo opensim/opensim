@@ -26,49 +26,45 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Threading;
-using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using Mono.Data.SqliteClient;
 
 namespace OpenSim.Data.SQLite
 {
-    /// <summary>
-    /// A SQLite Interface for Avatar Data
-    /// </summary>
-    public class SQLiteAvatarData : SQLiteGenericTableHandler<AvatarBaseData>,
-            IAvatarData
+    public class SQLiteFriendsData : SQLiteGenericTableHandler<FriendsData>, IFriendsData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public SQLiteAvatarData(string connectionString, string realm) :
-                base(connectionString, realm, "Avatar")
+        public SQLiteFriendsData(string connectionString, string realm)
+            : base(connectionString, realm, "FriendsStore")
         {
         }
 
-        public bool Delete(UUID principalID, string name)
+        public FriendsData[] GetFriends(UUID userID)
         {
             SqliteCommand cmd = new SqliteCommand();
 
-            cmd.CommandText = String.Format("delete from {0} where `PrincipalID` = :PrincipalID and `Name` = :Name", m_Realm);
-            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
-            cmd.Parameters.Add(":Name", name);
+            cmd.CommandText = String.Format("select a.*,b.Flags as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = :PrincipalID and b.Flags is not null", m_Realm);
+            cmd.Parameters.Add(":PrincipalID", userID.ToString());
 
-            try
-            {
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
+            return DoQuery(cmd);
 
-                return false;
-            }
-            finally
-            {
-                CloseCommand(cmd);
-            }
         }
+
+        public bool Delete(UUID principalID, string friend)
+        {
+            SqliteCommand cmd = new SqliteCommand();
+
+            cmd.CommandText = String.Format("delete from {0} where PrincipalID = :PrincipalID and Friend = :Friend", m_Realm);
+            cmd.Parameters.Add(":PrincipalID", principalID.ToString());
+            cmd.Parameters.Add(":Friend", friend);
+
+            ExecuteNonQuery(cmd, cmd.Connection);
+
+            return true;
+        }
+
     }
 }
