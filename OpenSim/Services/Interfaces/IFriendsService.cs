@@ -32,12 +32,16 @@ using System.Collections.Generic;
 
 namespace OpenSim.Services.Interfaces
 {
-    public struct FriendInfo
+    public class FriendInfo
     {
         public UUID PrincipalID;
         public string Friend;
         public int MyFlags;
         public int TheirFlags;
+
+        public FriendInfo()
+        {
+        }
 
         public FriendInfo(Dictionary<string, object> kvp)
         {

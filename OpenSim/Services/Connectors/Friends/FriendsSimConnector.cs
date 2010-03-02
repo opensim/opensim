@@ -99,7 +99,7 @@ namespace OpenSim.Services.Connectors.Friends
             return Call(region, sendData);
         }
 
-        public bool GrantRights(GridRegion region, UUID userID, UUID friendID)
+        public bool GrantRights(GridRegion region, UUID userID, UUID friendID, int userFlags, int rights)
         {
             Dictionary<string, object> sendData = new Dictionary<string, object>();
             //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
@@ -108,6 +108,8 @@ namespace OpenSim.Services.Connectors.Friends
 
             sendData["FromID"] = userID.ToString();
             sendData["ToID"] = friendID.ToString();
+            sendData["UserFlags"] = userFlags.ToString();
+            sendData["Rights"] = rights.ToString();
 
             return Call(region, sendData);
         }

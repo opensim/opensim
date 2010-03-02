@@ -569,51 +569,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             m_log.DebugFormat("[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}", requester, rights, target);
             // Let's find the friend in this user's friend list
             UserFriendData fd = m_Friends[remoteClient.AgentId];
-            FriendInfo friend = new FriendInfo();
+            FriendInfo friend = null;
             foreach (FriendInfo fi in fd.Friends)
                 if (fi.Friend == target.ToString())
                     friend = fi;
 
-            if (!friend.PrincipalID.Equals(UUID.Zero)) // Found it
+            if (friend != null) // Found it
             {
+                // Store it on the DB
                 FriendsService.StoreFriend(requester, target.ToString(), rights);
 
-                bool onlineBitChanged = ((rights ^ friend.MyFlags) & (int)FriendRights.CanSeeOnline) == 0;
-                if (!onlineBitChanged)
-                {
-                    remoteClient.SendChangeUserRights(requester, target, rights);
-                }
+                // Store it in the local cache
+                int myFlags = friend.MyFlags;
+                friend.MyFlags = rights;
+
+                // Always send this back to the original client
+                remoteClient.SendChangeUserRights(requester, target, rights);
+
+                //
+                // Notify the friend
+                //
 
                 // Try local
-                if (LocalGrantRights(requester, target, friend.MyFlags, rights))
+                if (LocalGrantRights(requester, target, myFlags, rights))
                     return;
-
-
-                //int delta = rights ^ friend.MyFlags;
-                //if ((delta & ~1) != 0)
-                //{
-                //    //remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
-                //    //
-                //    // Notify the friend
-                //    //
-
-                //    if (friendClient != null)
-                //    {
-                //        friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
-                //    }
-                //}
-                //if ((delta & 1) != 0)
-                //{
-                //    if (friendClient != null)
-                //    {
-                //        if ((rights & 1) != 0)
-                //            friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) });
-                //        else
-                //            friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) });
-                //    }
-                //}
-                //if (friendClient != null) // Local, we're done
-                //    return;
 
                 PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
                 PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
@@ -622,7 +601,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
                     // TODO: You might want to send the delta to save the lookup
                     // on the other end!!
-                    m_FriendsSimConnector.GrantRights(region, requester, target);
+                    m_FriendsSimConnector.GrantRights(region, requester, target, myFlags, rights);
                 }
             }
         }
@@ -693,52 +672,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             return false;
         }
 
-        public bool LocalGrantRights(UUID userID, UUID friendID, int myFlags, int rights)
+        public bool LocalGrantRights(UUID userID, UUID friendID, int userFlags, int rights)
         {
-            m_log.DebugFormat("XXX Trying to locate {0}", friendID);
             IClientAPI friendClient = LocateClientObject(friendID);
             if (friendClient != null)
             {
-                bool onlineBitChanged = ((rights ^ myFlags) & (int)FriendRights.CanSeeOnline) == 0;
-                if (!onlineBitChanged)
-                    friendClient.SendChangeUserRights(userID, friendID, rights);
-                else
+                bool onlineBitChanged = ((rights ^ userFlags) & (int)FriendRights.CanSeeOnline) != 0;
+                if (onlineBitChanged)
                 {
                     if ((rights & (int)FriendRights.CanSeeOnline) == 1)
                         friendClient.SendAgentOnline(new UUID[] { new UUID(userID) });
                     else
                         friendClient.SendAgentOffline(new UUID[] { new UUID(userID) });
                 }
+                else
+                {
+                    bool canEditObjectsChanged = ((rights ^ userFlags) & (int)FriendRights.CanModifyObjects) != 0;
+                    if (canEditObjectsChanged)
+                        friendClient.SendChangeUserRights(userID, friendID, rights);
+                }
+
                 return true;
             }
 
             return false;
-
-            //int delta = rights ^ friend.MyFlags;
-            //if ((delta & ~1) != 0)
-            //{
-            //    //remoteClient.SendChangeUserRights(remoteClient.AgentId, target, rights & ~1);
-            //    //
-            //    // Notify the friend
-            //    //
-
-            //    if (friendClient != null)
-            //    {
-            //        friendClient.SendChangeUserRights(target, remoteClient.AgentId, rights & ~1);
-            //    }
-            //}
-            //if ((delta & 1) != 0)
-            //{
-            //    if (friendClient != null)
-            //    {
-            //        if ((rights & 1) != 0)
-            //            friendClient.SendAgentOnline(new UUID[] { new UUID(remoteClient.AgentId) });
-            //        else
-            //            friendClient.SendAgentOffline(new UUID[] { new UUID(remoteClient.AgentId) });
-            //    }
-            //}
-            //if (friendClient != null) // Local, we're done
-            //    return;
 
         }
 

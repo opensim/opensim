@@ -196,6 +196,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             UUID fromID = UUID.Zero;
             UUID toID = UUID.Zero;
+            int rights = 0, userFlags = 0;
 
             if (!request.ContainsKey("FromID") || !request.ContainsKey("ToID"))
                 return FailureResult();
@@ -206,8 +207,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!UUID.TryParse(request["ToID"].ToString(), out toID))
                 return FailureResult();
 
-            // !!!
-            if (m_FriendsModule.LocalGrantRights(UUID.Zero, UUID.Zero, 0, 0))
+            if (!Int32.TryParse(request["UserFlags"].ToString(), out userFlags))
+                return FailureResult();
+
+            if (!Int32.TryParse(request["Rights"].ToString(), out rights))
+                return FailureResult();
+
+            if (m_FriendsModule.LocalGrantRights(UUID.Zero, UUID.Zero, userFlags, rights))
                 return SuccessResult();
 
             return FailureResult();
