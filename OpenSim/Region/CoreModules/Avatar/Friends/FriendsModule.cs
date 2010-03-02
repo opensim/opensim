@@ -309,19 +309,52 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     return;
                 }
 
-                client = LocateClientObject(agentID);
-                if (client == null)
-                {
-                    m_log.DebugFormat("[FRIENDS MODULE]: agent's client {0} not found in local scene", agentID);
-                    return;
-                }
-
+                //
+                // Send the friends online
+                //
                 List<UUID> online = GetOnlineFriends(agentID);
-
                 if (online.Count > 0)
                 {
                     m_log.DebugFormat("[FRIENDS MODULE]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
                     client.SendAgentOnline(online.ToArray());
+                }
+
+                //
+                // Send outstanding friendship offers
+                //
+                if (m_Friends.ContainsKey(agentID))
+                {
+                    List<string> outstanding = new List<string>();
+
+                    foreach (FriendInfo fi in m_Friends[agentID].Friends)
+                        if (fi.TheirFlags == -1)
+                            outstanding.Add(fi.Friend);
+
+                    GridInstantMessage im = new GridInstantMessage(client.Scene, UUID.Zero, "", agentID, (byte)InstantMessageDialog.FriendshipOffered, "Will you be my friend?", true, Vector3.Zero);
+                    foreach (string fid in outstanding)
+                    {
+                        try
+                        {
+                            im.fromAgentID = new Guid(fid);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, new UUID(im.fromAgentID));
+                        im.fromAgentName = account.FirstName + " " + account.LastName;
+
+                        PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
+                        PresenceInfo presence = PresenceInfo.GetOnlinePresence(presences);
+                        if (presence != null)
+                            im.offline = 0;
+
+                        im.imSessionID = im.fromAgentID;
+
+                        // Finally
+                        LocalFriendshipOffered(agentID, im);
+                    }
                 }
 
                 lock (m_NeedsListOfFriends)
