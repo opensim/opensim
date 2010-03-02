@@ -2467,7 +2467,7 @@ namespace OpenSim.Region.Framework.Scenes
                         m_log.DebugFormat("[Scene]: Incoming client {0} {1} in region {2} via Login", aCircuit.firstname, aCircuit.lastname, RegionInfo.RegionName);
                         vialogin = true;
                         IUserAgentVerificationModule userVerification = RequestModuleInterface<IUserAgentVerificationModule>();
-                        if (userVerification != null)
+                        if (userVerification != null && ep != null)
                         {
                             if (!userVerification.VerifyClient(aCircuit, ep.ToString()))
                             {
@@ -2491,22 +2491,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 m_log.Debug("[Scene] Adding new agent " + client.Name + " to scene " + RegionInfo.RegionName);
-                /*
-                string logMsg = string.Format("[SCENE]: Adding new {0} agent for {1} in {2}",
-                                              ((aCircuit.child == true) ? "child" : "root"), client.Name,
-                                              RegionInfo.RegionName);
 
-                m_log.Debug(logMsg);
-                */
-
-                //CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
                 ScenePresence sp = CreateAndAddScenePresence(client);
-                sp.Appearance = aCircuit.Appearance;
+                if (aCircuit != null)
+                    sp.Appearance = aCircuit.Appearance;
 
                 // HERE!!! Do the initial attachments right here
                 // first agent upon login is a root agent by design.
                 // All other AddNewClient calls find aCircuit.child to be true
-                if (aCircuit == null || aCircuit.child == false)
+                if (aCircuit == null || (aCircuit != null && aCircuit.child == false))
                 {
                     sp.IsChildAgent = false;
                     Util.FireAndForget(delegate(object o) { sp.RezAttachments(); });
