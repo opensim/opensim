@@ -73,15 +73,12 @@ namespace OpenSim.Data.Tests
             a2.Data = asset1;
             a3.Data = asset1;
 
-            a1.Metadata.ContentType = "application/octet-stream";
-            a2.Metadata.ContentType = "application/octet-stream";
-            a3.Metadata.ContentType = "application/octet-stream";
-
             PropertyScrambler<AssetBase> scrambler = new PropertyScrambler<AssetBase>()
                 .DontScramble(x => x.Data)
                 .DontScramble(x => x.ID)
                 .DontScramble(x => x.FullID)
                 .DontScramble(x => x.Metadata.ID)
+                .DontScramble(x => x.Metadata.CreatorID)
                 .DontScramble(x => x.Metadata.ContentType)
                 .DontScramble(x => x.Metadata.FullID);
 
