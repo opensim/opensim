@@ -830,41 +830,15 @@ namespace OpenSim.Region.Framework.Scenes
                 pos.Y = crossedBorder.BorderLine.Z - 1;
             }
 
-
-            if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
+            if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
             {
-                Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
-                
-                if (pos.X < 0)
-                {
-                    emergencyPos.X = (int)Constants.RegionSize + pos.X;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    if (!(pos.Z < 0))
-                        emergencyPos.X = pos.X;
-                }
-                if (pos.Y < 0)
-                {
-                    emergencyPos.Y = (int)Constants.RegionSize + pos.Y;
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                    if (!(pos.Z < 0))
-                        emergencyPos.Z = pos.Z;
-                }
-                if (pos.Z < 0)
-                {
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    //Leave as 128
-                }
-
                 m_log.WarnFormat(
-                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
-                    pos, Name, UUID, emergencyPos);
+                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}. Clamping",
+                    pos, Name, UUID);
 
-                pos = emergencyPos;
+                if (pos.X < 0f) pos.X = 0f;
+                if (pos.Y < 0f) pos.Y = 0f;
+                if (pos.Z < 0f) pos.Z = 0f;
             }
 
             float localAVHeight = 1.56f;
@@ -875,7 +849,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             float posZLimit = 0;
 
-            if (pos.X <Constants.RegionSize && pos.Y < Constants.RegionSize)
+            if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
                 posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
             
             float newPosZ = posZLimit + localAVHeight / 2;
