@@ -2675,13 +2675,13 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.AgentID = UUID.Guid;
                 cadu.alwaysrun = m_setAlwaysRun;
                 cadu.AVHeight = m_avHeight;
-                sLLVector3 tempCameraCenter = new sLLVector3(new Vector3(m_CameraCenter.X, m_CameraCenter.Y, m_CameraCenter.Z));
+                Vector3 tempCameraCenter = m_CameraCenter;
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
                 if (m_scene.Permissions.IsGod(new UUID(cadu.AgentID)))
                     cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
-                cadu.Position = new sLLVector3(AbsolutePosition);
+                cadu.Position = AbsolutePosition;
                 cadu.regionHandle = m_rootRegionHandle;
                 float multiplier = 1;
                 int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
@@ -2696,7 +2696,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
-                cadu.Velocity = new sLLVector3(Velocity);
+                cadu.Velocity = Velocity;
 
                 AgentPosition agentpos = new AgentPosition();
                 agentpos.CopyFrom(cadu);
