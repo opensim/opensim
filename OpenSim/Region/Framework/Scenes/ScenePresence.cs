@@ -2659,7 +2659,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CheckForSignificantMovement()
         {
-            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
+            // Movement updates for agents in neighboring regions are sent directly to clients.
+            // This value only affects how often agent positions are sent to neighbor regions
+            // for things such as distance-based update prioritization
+            const float SIGNIFICANT_MOVEMENT = 2.0f;
+
+            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > SIGNIFICANT_MOVEMENT)
             {
                 posLastSignificantMove = AbsolutePosition;
                 m_scene.EventManager.TriggerSignificantClientMovement(m_controllingClient);
