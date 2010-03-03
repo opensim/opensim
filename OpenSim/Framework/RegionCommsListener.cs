@@ -45,7 +45,7 @@ namespace OpenSim.Framework
         private GenericCall2 handlerExpectChildAgent = null; // OnExpectChildAgent;
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser
         private UpdateNeighbours handlerNeighboursUpdate = null; // OnNeighboursUpdate;
-        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
+//        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         private LogOffUser handlerLogOffUser = null;
         private GetLandData handlerGetLandData = null;
 
