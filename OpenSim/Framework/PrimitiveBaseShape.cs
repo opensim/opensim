@@ -188,6 +188,40 @@ namespace OpenSim.Framework
             m_textureEntry = DEFAULT_TEXTURE;
         }
 
+        public PrimitiveBaseShape(Primitive prim)
+        {
+            PCode = (byte)prim.PrimData.PCode;
+            ExtraParams = new byte[1];
+
+            State = prim.PrimData.State;
+            PathBegin = Primitive.PackBeginCut(prim.PrimData.PathBegin);
+            PathEnd = Primitive.PackEndCut(prim.PrimData.PathEnd);
+            PathScaleX = Primitive.PackPathScale(prim.PrimData.PathScaleX);
+            PathScaleY = Primitive.PackPathScale(prim.PrimData.PathScaleY);
+            PathShearX = (byte)Primitive.PackPathShear(prim.PrimData.PathShearX);
+            PathShearY = (byte)Primitive.PackPathShear(prim.PrimData.PathShearY);
+            PathSkew = Primitive.PackPathTwist(prim.PrimData.PathSkew);
+            ProfileBegin = Primitive.PackBeginCut(prim.PrimData.ProfileBegin);
+            ProfileEnd = Primitive.PackEndCut(prim.PrimData.ProfileEnd);
+            Scale = prim.Scale;
+            PathCurve = (byte)prim.PrimData.PathCurve;
+            ProfileCurve = (byte)prim.PrimData.ProfileCurve;
+            ProfileHollow = Primitive.PackProfileHollow(prim.PrimData.ProfileHollow);
+            PathRadiusOffset = Primitive.PackPathTwist(prim.PrimData.PathRadiusOffset);
+            PathRevolutions = Primitive.PackPathRevolutions(prim.PrimData.PathRevolutions);
+            PathTaperX = Primitive.PackPathTaper(prim.PrimData.PathTaperX);
+            PathTaperY = Primitive.PackPathTaper(prim.PrimData.PathTaperY);
+            PathTwist = Primitive.PackPathTwist(prim.PrimData.PathTwist);
+            PathTwistBegin = Primitive.PackPathTwist(prim.PrimData.PathTwistBegin);
+
+            m_textureEntry = prim.Textures.GetBytes();
+
+            SculptEntry = (prim.Sculpt.Type != OpenMetaverse.SculptType.None);
+            SculptData = prim.Sculpt.GetBytes();
+            SculptTexture = prim.Sculpt.SculptTexture;
+            SculptType = (byte)prim.Sculpt.Type;
+        }
+
         [XmlIgnore]
         public Primitive.TextureEntry Textures
         {

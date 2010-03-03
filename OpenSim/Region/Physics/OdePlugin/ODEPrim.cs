@@ -2365,6 +2365,11 @@ Console.WriteLine(" JointCreateFixed");
 
         }
 
+        public override void VehicleFlags(int param, bool remove)
+        {
+            m_vehicle.ProcessVehicleFlags(param, remove);
+        }
+
         public override void SetVolumeDetect(int param)
         {
             lock (_parent_scene.OdeLock)

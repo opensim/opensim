@@ -274,7 +274,7 @@ namespace OpenSim.Framework
             get { return m_id; }
             set { m_id = value; }
         }
-        public ulong RegionHandle;
+        public UUID RegionID;
         public uint CircuitCode;
         public UUID SessionID;
 
@@ -321,7 +321,7 @@ namespace OpenSim.Framework
             OSDMap args = new OSDMap();
             args["message_type"] = OSD.FromString("AgentData");
 
-            args["region_handle"] = OSD.FromString(RegionHandle.ToString());
+            args["region_id"] = OSD.FromString(RegionID.ToString());
             args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
             args["agent_uuid"] = OSD.FromUUID(AgentID);
             args["session_uuid"] = OSD.FromUUID(SessionID);
@@ -334,6 +334,7 @@ namespace OpenSim.Framework
             args["left_axis"] = OSD.FromString(LeftAxis.ToString());
             args["up_axis"] = OSD.FromString(UpAxis.ToString());
 
+            
             args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
             args["far"] = OSD.FromReal(Far);
             args["aspect"] = OSD.FromReal(Aspect);
@@ -353,7 +354,7 @@ namespace OpenSim.Framework
             args["agent_access"] = OSD.FromString(AgentAccess.ToString());
 
             args["active_group_id"] = OSD.FromUUID(ActiveGroupID);
-
+          
             if ((Groups != null) && (Groups.Length > 0))
             {
                 OSDArray groups = new OSDArray(Groups.Length);
@@ -378,6 +379,7 @@ namespace OpenSim.Framework
             //    args["agent_textures"] = textures;
             //}
 
+           
             if ((AgentTextures != null) && (AgentTextures.Length > 0))
                 args["texture_entry"] = OSD.FromBinary(AgentTextures);
 
@@ -393,6 +395,7 @@ namespace OpenSim.Framework
                 args["wearables"] = wears;
             }
 
+            
             if ((Attachments != null) && (Attachments.Length > 0))
             {
                 OSDArray attachs = new OSDArray(Attachments.Length);
@@ -401,8 +404,10 @@ namespace OpenSim.Framework
                 args["attachments"] = attachs;
             }
 
+
             if ((CallbackURI != null) && (!CallbackURI.Equals("")))
                 args["callback_uri"] = OSD.FromString(CallbackURI);
+
 
             return args;
         }
@@ -414,8 +419,8 @@ namespace OpenSim.Framework
         /// <param name="hash"></param>
         public virtual void Unpack(OSDMap args)
         {
-            if (args.ContainsKey("region_handle"))
-                UInt64.TryParse(args["region_handle"].AsString(), out RegionHandle);
+            if (args.ContainsKey("region_id"))
+                UUID.TryParse(args["region_id"].AsString(), out RegionID);
 
             if (args["circuit_code"] != null)
                 UInt32.TryParse((string)args["circuit_code"].AsString(), out CircuitCode);
@@ -572,7 +577,7 @@ namespace OpenSim.Framework
         {
             System.Console.WriteLine("------------ AgentData ------------");
             System.Console.WriteLine("UUID: " + AgentID);
-            System.Console.WriteLine("Region: " + RegionHandle);
+            System.Console.WriteLine("Region: " + RegionID);
             System.Console.WriteLine("Position: " + Position);
         }
     }

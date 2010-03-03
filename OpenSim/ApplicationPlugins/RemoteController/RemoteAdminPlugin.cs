@@ -41,7 +41,7 @@ using OpenMetaverse;
 using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -49,6 +49,8 @@ using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
@@ -700,39 +702,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     {
                         // ok, client wants us to use an explicit UUID
                         // regardless of what the avatar name provided
-                        userID = new UUID((string) requestData["region_master_uuid"]);
+                        userID = new UUID((string) requestData["estate_owner_uuid"]);
                     }
-                    else
-                    {
-                        if (masterFirst != String.Empty && masterLast != String.Empty) // User requests a master avatar
-                        {
-                            // no client supplied UUID: look it up...
-                            CachedUserInfo userInfo
-                                = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(
-                                    masterFirst, masterLast);
-
-                            if (null == userInfo)
-                            {
-                                m_log.InfoFormat("master avatar does not exist, creating it");
-                                // ...or create new user
-                                userID = m_app.CommunicationsManager.UserAdminService.AddUser(
-                                    masterFirst, masterLast, masterPassword, "", region.RegionLocX, region.RegionLocY);
-
-                                if (userID == UUID.Zero)
-                                    throw new Exception(String.Format("failed to create new user {0} {1}",
-                                                                      masterFirst, masterLast));
-                            }
-                            else
-                            {
-                                userID = userInfo.UserProfile.ID;
-                            }
-                        }
-                    }
-
-                    region.MasterAvatarFirstName = masterFirst;
-                    region.MasterAvatarLastName = masterLast;
-                    region.MasterAvatarSandboxPassword = masterPassword;
-                    region.MasterAvatarAssignedUUID = userID;
 
                     bool persist = Convert.ToBoolean((string) requestData["persist"]);
                     if (persist)
@@ -777,6 +748,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     // If an access specification was provided, use it.
                     // Otherwise accept the default.
                     newscene.RegionInfo.EstateSettings.PublicAccess = getBoolean(requestData, "public", m_publicAccess);
+                    newscene.RegionInfo.EstateSettings.EstateOwner = userID;
                     if (persist)
                         newscene.RegionInfo.EstateSettings.Save();
 
@@ -1150,30 +1122,37 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     if (requestData.Contains("user_email"))
                         email = (string)requestData["user_email"];
 
-                    CachedUserInfo userInfo =
-                        m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
+                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
 
-                    if (null != userInfo)
-                        throw new Exception(String.Format("Avatar {0} {1} already exists", firstname, lastname));
+                    UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, firstname, lastname);
 
-                    UUID userID =
-                        m_app.CommunicationsManager.UserAdminService.AddUser(firstname, lastname,
-                                                                             passwd, email, regX, regY);
+                    if (null != account)
+                        throw new Exception(String.Format("Account {0} {1} already exists", firstname, lastname));
 
-                    if (userID == UUID.Zero)
+                    account = new UserAccount(scopeID, firstname, lastname, email);
+                    // REFACTORING PROBLEM: no method to set the password!
+
+                    bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
+
+                    if (!success)
                         throw new Exception(String.Format("failed to create new user {0} {1}",
                                                           firstname, lastname));
 
+                    GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
+                        (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
+                    if (home == null)
+                        m_log.WarnFormat("[RADMIN]: Unable to set home region for newly created user account {0} {1}", firstname, lastname);
+
                     // Establish the avatar's initial appearance
 
-                    updateUserAppearance(responseData, requestData, userID);
+                    updateUserAppearance(responseData, requestData, account.PrincipalID);
 
                     responseData["success"] = true;
-                    responseData["avatar_uuid"] = userID.ToString();
+                    responseData["avatar_uuid"] = account.PrincipalID.ToString();
 
                     response.Value = responseData;
 
-                    m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                    m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, account.PrincipalID);
                 }
                 catch (Exception e)
                 {
@@ -1242,21 +1221,27 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 string firstname = (string) requestData["user_firstname"];
                 string lastname = (string) requestData["user_lastname"];
 
-                CachedUserInfo userInfo
-                    = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(firstname, lastname);
-
                 responseData["user_firstname"] = firstname;
                 responseData["user_lastname"] = lastname;
 
-                if (null == userInfo)
+                UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+
+                UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, firstname, lastname);
+
+                if (null == account)
                 {
                     responseData["success"] = false;
                     responseData["lastlogin"] = 0;
                 }
                 else
                 {
+                    PresenceInfo[] pinfos = m_app.SceneManager.CurrentOrFirstScene.PresenceService.GetAgents(new string[] { account.PrincipalID.ToString() });
+                    if (pinfos != null && pinfos.Length >= 1)
+                        responseData["lastlogin"] = pinfos[0].Login;
+                    else
+                        responseData["lastlogin"] = 0;
+
                     responseData["success"] = true;
-                    responseData["lastlogin"] = userInfo.UserProfile.LastLogin;
                 }
 
                 response.Value = responseData;
@@ -1318,117 +1303,118 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcUpdateUserAccountMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[RADMIN]: UpdateUserAccount: new request");
+            m_log.Warn("[RADMIN]: This method needs update for 0.7");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable responseData = new Hashtable();
 
-            lock (rslock)
-            {
-                try
-                {
-                    Hashtable requestData = (Hashtable) request.Params[0];
+            //lock (rslock)
+            //{
+            //    try
+            //    {
+            //        Hashtable requestData = (Hashtable) request.Params[0];
 
-                    // check completeness
-                    checkStringParameters(request, new string[] {
-                            "password", "user_firstname",
-                            "user_lastname"});
+            //        // check completeness
+            //        checkStringParameters(request, new string[] {
+            //                "password", "user_firstname",
+            //                "user_lastname"});
 
-                    // check password
-                    if (!String.IsNullOrEmpty(m_requiredPassword) &&
-                        (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
+            //        // check password
+            //        if (!String.IsNullOrEmpty(m_requiredPassword) &&
+            //            (string) requestData["password"] != m_requiredPassword) throw new Exception("wrong password");
 
-                    // do the job
-                    string firstname = (string) requestData["user_firstname"];
-                    string lastname = (string) requestData["user_lastname"];
+            //        // do the job
+            //        string firstname = (string) requestData["user_firstname"];
+            //        string lastname = (string) requestData["user_lastname"];
 
-                    string passwd = String.Empty;
-                    uint? regX = null;
-                    uint? regY = null;
-                    uint? ulaX = null;
-                    uint? ulaY = null;
-                    uint? ulaZ = null;
-                    uint? usaX = null;
-                    uint? usaY = null;
-                    uint? usaZ = null;
-                    string aboutFirstLive = String.Empty;
-                    string aboutAvatar = String.Empty;
+            //        string passwd = String.Empty;
+            //        uint? regX = null;
+            //        uint? regY = null;
+            //        uint? ulaX = null;
+            //        uint? ulaY = null;
+            //        uint? ulaZ = null;
+            //        uint? usaX = null;
+            //        uint? usaY = null;
+            //        uint? usaZ = null;
+            //        string aboutFirstLive = String.Empty;
+            //        string aboutAvatar = String.Empty;
 
-                    if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
-                    if (requestData.ContainsKey("start_region_x"))
-                        regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-                    if (requestData.ContainsKey("start_region_y"))
-                        regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+            //        if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
+            //        if (requestData.ContainsKey("start_region_x"))
+            //            regX = Convert.ToUInt32((Int32) requestData["start_region_x"]);
+            //        if (requestData.ContainsKey("start_region_y"))
+            //            regY = Convert.ToUInt32((Int32) requestData["start_region_y"]);
 
-                    if (requestData.ContainsKey("start_lookat_x"))
-                        ulaX = Convert.ToUInt32((Int32) requestData["start_lookat_x"]);
-                    if (requestData.ContainsKey("start_lookat_y"))
-                        ulaY = Convert.ToUInt32((Int32) requestData["start_lookat_y"]);
-                    if (requestData.ContainsKey("start_lookat_z"))
-                        ulaZ = Convert.ToUInt32((Int32) requestData["start_lookat_z"]);
+            //        if (requestData.ContainsKey("start_lookat_x"))
+            //            ulaX = Convert.ToUInt32((Int32) requestData["start_lookat_x"]);
+            //        if (requestData.ContainsKey("start_lookat_y"))
+            //            ulaY = Convert.ToUInt32((Int32) requestData["start_lookat_y"]);
+            //        if (requestData.ContainsKey("start_lookat_z"))
+            //            ulaZ = Convert.ToUInt32((Int32) requestData["start_lookat_z"]);
 
-                    if (requestData.ContainsKey("start_standat_x"))
-                        usaX = Convert.ToUInt32((Int32) requestData["start_standat_x"]);
-                    if (requestData.ContainsKey("start_standat_y"))
-                        usaY = Convert.ToUInt32((Int32) requestData["start_standat_y"]);
-                    if (requestData.ContainsKey("start_standat_z"))
-                        usaZ = Convert.ToUInt32((Int32) requestData["start_standat_z"]);
-                    if (requestData.ContainsKey("about_real_world"))
-                        aboutFirstLive = (string)requestData["about_real_world"];
-                    if (requestData.ContainsKey("about_virtual_world"))
-                        aboutAvatar = (string)requestData["about_virtual_world"];
+            //        if (requestData.ContainsKey("start_standat_x"))
+            //            usaX = Convert.ToUInt32((Int32) requestData["start_standat_x"]);
+            //        if (requestData.ContainsKey("start_standat_y"))
+            //            usaY = Convert.ToUInt32((Int32) requestData["start_standat_y"]);
+            //        if (requestData.ContainsKey("start_standat_z"))
+            //            usaZ = Convert.ToUInt32((Int32) requestData["start_standat_z"]);
+            //        if (requestData.ContainsKey("about_real_world"))
+            //            aboutFirstLive = (string)requestData["about_real_world"];
+            //        if (requestData.ContainsKey("about_virtual_world"))
+            //            aboutAvatar = (string)requestData["about_virtual_world"];
 
-                    UserProfileData userProfile
-                        = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+            //        UserProfileData userProfile
+            //            = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
 
-                    if (null == userProfile)
-                        throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
+            //        if (null == userProfile)
+            //            throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
 
-                    if (!String.IsNullOrEmpty(passwd))
-                    {
-                        m_log.DebugFormat("[RADMIN]: UpdateUserAccount: updating password for avatar {0} {1}", firstname, lastname);
-                        string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
-                        userProfile.PasswordHash = md5PasswdHash;
-                    }
+            //        if (!String.IsNullOrEmpty(passwd))
+            //        {
+            //            m_log.DebugFormat("[RADMIN]: UpdateUserAccount: updating password for avatar {0} {1}", firstname, lastname);
+            //            string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
+            //            userProfile.PasswordHash = md5PasswdHash;
+            //        }
 
-                    if (null != regX) userProfile.HomeRegionX = (uint) regX;
-                    if (null != regY) userProfile.HomeRegionY = (uint) regY;
+            //        if (null != regX) userProfile.HomeRegionX = (uint) regX;
+            //        if (null != regY) userProfile.HomeRegionY = (uint) regY;
 
-                    if (null != usaX) userProfile.HomeLocationX = (uint) usaX;
-                    if (null != usaY) userProfile.HomeLocationY = (uint) usaY;
-                    if (null != usaZ) userProfile.HomeLocationZ = (uint) usaZ;
+            //        if (null != usaX) userProfile.HomeLocationX = (uint) usaX;
+            //        if (null != usaY) userProfile.HomeLocationY = (uint) usaY;
+            //        if (null != usaZ) userProfile.HomeLocationZ = (uint) usaZ;
 
-                    if (null != ulaX) userProfile.HomeLookAtX = (uint) ulaX;
-                    if (null != ulaY) userProfile.HomeLookAtY = (uint) ulaY;
-                    if (null != ulaZ) userProfile.HomeLookAtZ = (uint) ulaZ;
+            //        if (null != ulaX) userProfile.HomeLookAtX = (uint) ulaX;
+            //        if (null != ulaY) userProfile.HomeLookAtY = (uint) ulaY;
+            //        if (null != ulaZ) userProfile.HomeLookAtZ = (uint) ulaZ;
 
-                    if (String.Empty != aboutFirstLive) userProfile.FirstLifeAboutText = aboutFirstLive;
-                    if (String.Empty != aboutAvatar) userProfile.AboutText = aboutAvatar;
+            //        if (String.Empty != aboutFirstLive) userProfile.FirstLifeAboutText = aboutFirstLive;
+            //        if (String.Empty != aboutAvatar) userProfile.AboutText = aboutAvatar;
 
-                    // User has been created. Now establish gender and appearance.
+            //        // User has been created. Now establish gender and appearance.
 
-                    updateUserAppearance(responseData, requestData, userProfile.ID);
+            //        updateUserAppearance(responseData, requestData, userProfile.ID);
 
-                    if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
-                        throw new Exception("did not manage to update user profile");
+            //        if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
+            //            throw new Exception("did not manage to update user profile");
 
-                    responseData["success"] = true;
+            //        responseData["success"] = true;
 
-                    response.Value = responseData;
+            //        response.Value = responseData;
 
-                    m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}",
-                                     firstname, lastname,
-                                     userProfile.ID);
-                }
-                catch (Exception e)
-                {
-                    m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
-                    m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
+            //        m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}",
+            //                         firstname, lastname,
+            //                         userProfile.ID);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
+            //        m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
 
-                    responseData["success"] = false;
-                    responseData["error"] = e.Message;
+            //        responseData["success"] = false;
+            //        responseData["error"] = e.Message;
 
-                    response.Value = responseData;
-                }
-            }
+            //        response.Value = responseData;
+            //    }
+            //}
 
             m_log.Info("[RADMIN]: UpdateUserAccount: request complete");
             return response;
@@ -1445,72 +1431,73 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void updateUserAppearance(Hashtable responseData, Hashtable requestData, UUID userid)
         {
             m_log.DebugFormat("[RADMIN] updateUserAppearance");
+            m_log.Warn("[RADMIN]: This method needs update for 0.7");
 
-            string dmale   = m_config.GetString("default_male", "Default Male");
-            string dfemale = m_config.GetString("default_female", "Default Female");
-            string dneut   = m_config.GetString("default_female", "Default Default");
+            //string dmale   = m_config.GetString("default_male", "Default Male");
+            //string dfemale = m_config.GetString("default_female", "Default Female");
+            //string dneut   = m_config.GetString("default_female", "Default Default");
             string model   = String.Empty;
 
-            // Has a gender preference been supplied?
+            //// Has a gender preference been supplied?
 
-            if (requestData.Contains("gender"))
-            {
-                switch ((string)requestData["gender"])
-                {
-                    case "m" :
-                        model = dmale;
-                        break;
-                    case "f" :
-                        model = dfemale;
-                        break;
-                    case "n" :
-                    default :
-                        model = dneut;
-                        break;
-                }
-            }
+            //if (requestData.Contains("gender"))
+            //{
+            //    switch ((string)requestData["gender"])
+            //    {
+            //        case "m" :
+            //            model = dmale;
+            //            break;
+            //        case "f" :
+            //            model = dfemale;
+            //            break;
+            //        case "n" :
+            //        default :
+            //            model = dneut;
+            //            break;
+            //    }
+            //}
 
-            // Has an explicit model been specified?
+            //// Has an explicit model been specified?
 
-            if (requestData.Contains("model"))
-            {
-                model = (string)requestData["model"];
-            }
+            //if (requestData.Contains("model"))
+            //{
+            //    model = (string)requestData["model"];
+            //}
 
-            // No appearance attributes were set
+            //// No appearance attributes were set
 
-            if (model == String.Empty)
-            {
-                m_log.DebugFormat("[RADMIN] Appearance update not requested");
-                return;
-            }
+            //if (model == String.Empty)
+            //{
+            //    m_log.DebugFormat("[RADMIN] Appearance update not requested");
+            //    return;
+            //}
 
-            m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model {1}", userid, model);
+            //m_log.DebugFormat("[RADMIN] Setting appearance for avatar {0}, using model {1}", userid, model);
 
-            string[] nomens = model.Split();
-            if (nomens.Length != 2)
-            {
-                m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>", userid, model);
-                // nomens = dmodel.Split();
-                return;
-            }
+            //string[] nomens = model.Split();
+            //if (nomens.Length != 2)
+            //{
+            //    m_log.WarnFormat("[RADMIN] User appearance not set for {0}. Invalid model name : <{1}>", userid, model);
+            //    // nomens = dmodel.Split();
+            //    return;
+            //}
 
-            UserProfileData mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
+            //UserProfileData mprof = m_app.CommunicationsManager.UserService.GetUserProfile(nomens[0], nomens[1]);
 
-            // Is this the first time one of the default models has been used? Create it if that is the case
-            // otherwise default to male.
+            //// Is this the first time one of the default models has been used? Create it if that is the case
+            //// otherwise default to male.
 
-            if (mprof == null)
-            {
-                m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Appearance unchanged", model);
-                return;
-            }
+            //if (mprof == null)
+            //{
+            //    m_log.WarnFormat("[RADMIN] Requested model ({0}) not found. Appearance unchanged", model);
+            //    return;
+            //}
 
-            // Set current user's appearance. This bit is easy. The appearance structure is populated with
-            // actual asset ids, however to complete the magic we need to populate the inventory with the
-            // assets in question.
+            //// Set current user's appearance. This bit is easy. The appearance structure is populated with
+            //// actual asset ids, however to complete the magic we need to populate the inventory with the
+            //// assets in question.
 
-            establishAppearance(userid, mprof.ID);
+            //establishAppearance(userid, mprof.ID);
 
             m_log.DebugFormat("[RADMIN] Finished setting appearance for avatar {0}, using model {1}",
                               userid, model);
@@ -1525,8 +1512,10 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private void establishAppearance(UUID dest, UUID srca)
         {
             m_log.DebugFormat("[RADMIN] Initializing inventory for {0} from {1}", dest, srca);
-
-            AvatarAppearance ava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(srca);
+            AvatarAppearance ava = null;
+            AvatarData avatar = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(srca);
+            if (avatar != null)
+                ava = avatar.ToAvatarAppearance(srca);
 
             // If the model has no associated appearance we're done.
 
@@ -1619,7 +1608,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     throw new Exception("Unable to load both inventories");
                 }
 
-                m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(dest, ava);
+                AvatarData adata = new AvatarData(ava);
+                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(dest, adata);
             }
             catch (Exception e)
             {
@@ -1674,7 +1664,6 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     uint   regX     = 1000;
                     uint   regY     = 1000;
                     string passwd   = UUID.Random().ToString(); // No requirement to sign-in.
-                    CachedUserInfo UI;
                     UUID ID = UUID.Zero;
                     AvatarAppearance mava;
                     XmlNodeList avatars;
@@ -1693,7 +1682,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     assets = doc.GetElementsByTagName("RequiredAsset");
                     foreach (XmlNode asset in assets)
                     {
-                        AssetBase rass   = new AssetBase(UUID.Random(), GetStringAttribute(asset,"name",""), SByte.Parse(GetStringAttribute(asset,"type","")));
+                        AssetBase rass = new AssetBase(UUID.Random(), GetStringAttribute(asset, "name", ""), SByte.Parse(GetStringAttribute(asset, "type", "")), UUID.Zero.ToString());
                         rass.Description = GetStringAttribute(asset,"desc","");
                         rass.Local       = Boolean.Parse(GetStringAttribute(asset,"local",""));
                         rass.Temporary   = Boolean.Parse(GetStringAttribute(asset,"temporary",""));
@@ -1722,20 +1711,27 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             passwd = GetStringAttribute(avatar,"password",passwd);
 
                             string[] nomens = name.Split();
-                            UI = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(nomens[0], nomens[1]);
-                            if (null == UI)
+                            UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                            UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, nomens[0], nomens[1]);
+                            if (null == account)
                             {
-                                ID = m_app.CommunicationsManager.UserAdminService.AddUser(nomens[0], nomens[1],
-                                                                                         passwd, email, regX, regY);
-                                if (ID == UUID.Zero)
+                                account = new UserAccount(scopeID, nomens[0], nomens[1], email);
+                                bool success = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.StoreUserAccount(account);
+                                if (!success)
                                 {
                                     m_log.ErrorFormat("[RADMIN] Avatar {0} {1} was not created", nomens[0], nomens[1]);
                                     return false;
                                 }
+                                // !!! REFACTORING PROBLEM: need to set the password
+
+                                GridRegion home = m_app.SceneManager.CurrentOrFirstScene.GridService.GetRegionByPosition(scopeID, 
+                                    (int)(regX * Constants.RegionSize), (int)(regY * Constants.RegionSize));
+                                if (home != null)
+                                    m_app.SceneManager.CurrentOrFirstScene.PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
                             }
                             else
                             {
-                                ID = UI.UserProfile.ID;
+                                ID = account.PrincipalID;
                             }
 
                             m_log.DebugFormat("[RADMIN] User {0}[{1}] created or retrieved", name, ID);
@@ -1759,10 +1755,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                             iserv.GetUserInventory(ID, uic.callback);
 
                             // While the inventory is being fetched, setup for appearance processing
-                            if ((mava = m_app.CommunicationsManager.AvatarService.GetUserAppearance(ID)) == null)
-                            {
+                            AvatarData adata = m_app.SceneManager.CurrentOrFirstScene.AvatarService.GetAvatar(ID);
+                            if (adata != null)
+                                mava = adata.ToAvatarAppearance(ID);
+                            else
                                 mava = new AvatarAppearance();
-                            }
 
                             {
                                 AvatarWearable[] wearables = mava.Wearables;
@@ -1897,7 +1894,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                                     m_log.DebugFormat("[RADMIN] Outfit {0} load completed", oname);
                                 } // foreach outfit
                                 m_log.DebugFormat("[RADMIN] Inventory update complete for {0}", name);
-                                m_app.CommunicationsManager.AvatarService.UpdateUserAppearance(ID, mava);
+                                AvatarData adata2 = new AvatarData(mava);
+                                m_app.SceneManager.CurrentOrFirstScene.AvatarService.SetAvatar(ID, adata2);
                             }
                             catch (Exception e)
                             {
@@ -2509,17 +2507,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 if (requestData.Contains("users"))
                 {
-                    UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
+                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                    IUserAccountService userService = m_app.SceneManager.CurrentOrFirstScene.UserAccountService;
                     Scene s = m_app.SceneManager.CurrentScene;
                     Hashtable users = (Hashtable) requestData["users"];
                     List<UUID> uuids = new List<UUID>();
                     foreach (string name in users.Values)
                     {
                         string[] parts = name.Split();
-                        CachedUserInfo udata = ups.GetUserDetails(parts[0],parts[1]);
-                        if (udata != null)
+                        UserAccount account = userService.GetUserAccount(scopeID, parts[0], parts[1]);
+                        if (account != null)
                         {
-                            uuids.Add(udata.UserProfile.ID);
+                            uuids.Add(account.PrincipalID);
                             m_log.DebugFormat("[RADMIN] adding \"{0}\" to ACL for \"{1}\"", name, s.RegionInfo.RegionName);
                         }
                     }
@@ -2595,21 +2594,23 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 if (requestData.Contains("users"))
                 {
-                    UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
+                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                    IUserAccountService userService = m_app.SceneManager.CurrentOrFirstScene.UserAccountService;
+                    //UserProfileCacheService ups = m_app.CommunicationsManager.UserProfileCacheService;
                     Scene s = m_app.SceneManager.CurrentScene;
                     Hashtable users = (Hashtable) requestData["users"];
                     List<UUID> uuids = new List<UUID>();
-                   foreach (string name in users.Values)
+                    foreach (string name in users.Values)
                     {
                         string[] parts = name.Split();
-                        CachedUserInfo udata = ups.GetUserDetails(parts[0],parts[1]);
-                       if (udata != null)
+                        UserAccount account = userService.GetUserAccount(scopeID, parts[0], parts[1]);
+                        if (account != null)
                         {
-                            uuids.Add(udata.UserProfile.ID);
+                            uuids.Add(account.PrincipalID);
                         }
                     }
                     List<UUID> acl = new List<UUID>(s.RegionInfo.EstateSettings.EstateAccess);
-                   foreach (UUID uuid in uuids)
+                    foreach (UUID uuid in uuids)
                     {
                        if (acl.Contains(uuid))
                         {
@@ -2682,10 +2683,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 foreach (UUID user in acl)
                 {
-                    CachedUserInfo udata = m_app.CommunicationsManager.UserProfileCacheService.GetUserDetails(user);
-                   if (udata != null)
+                    UUID scopeID = m_app.SceneManager.CurrentOrFirstScene.RegionInfo.ScopeID;
+                    UserAccount account = m_app.SceneManager.CurrentOrFirstScene.UserAccountService.GetUserAccount(scopeID, user);
+                    if (account != null)
                     {
-                        users[user.ToString()] = udata.UserProfile.Name;
+                        users[user.ToString()] = account.FirstName + " " + account.LastName;
                     }
                 }
 

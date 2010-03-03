@@ -59,9 +59,10 @@ namespace OpenSim.Framework
             m_metadata.FullID = UUID.Zero;
             m_metadata.ID = UUID.Zero.ToString();
             m_metadata.Type = (sbyte)AssetType.Unknown;
+            m_metadata.CreatorID = String.Empty;
         }
 
-        public AssetBase(UUID assetID, string name, sbyte assetType)
+        public AssetBase(UUID assetID, string name, sbyte assetType, string creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -74,9 +75,10 @@ namespace OpenSim.Framework
             m_metadata.FullID = assetID;
             m_metadata.Name = name;
             m_metadata.Type = assetType;
+            m_metadata.CreatorID = creatorID;
         }
 
-        public AssetBase(string assetID, string name, sbyte assetType)
+        public AssetBase(string assetID, string name, sbyte assetType, string creatorID)
         {
             if (assetType == (sbyte)AssetType.Unknown)
             {
@@ -89,6 +91,7 @@ namespace OpenSim.Framework
             m_metadata.ID = assetID;
             m_metadata.Name = name;
             m_metadata.Type = assetType;
+            m_metadata.CreatorID = creatorID;
         }
 
         public bool ContainsReferences
@@ -220,7 +223,6 @@ namespace OpenSim.Framework
     public class AssetMetadata
     {
         private UUID m_fullid;
-        // m_id added as a dirty hack to transition from FullID to ID
         private string m_id;
         private string m_name = String.Empty;
         private string m_description = String.Empty;
@@ -230,8 +232,7 @@ namespace OpenSim.Framework
         private byte[] m_sha1;
         private bool m_local;
         private bool m_temporary;
-        //private Dictionary<string, Uri> m_methods = new Dictionary<string, Uri>();
-        //private OSDMap m_extra_data;
+        private string m_creatorid;
 
         public UUID FullID
         {
@@ -289,8 +290,21 @@ namespace OpenSim.Framework
 
         public string ContentType
         {
-            get { return m_content_type; }
-            set { m_content_type = value; }
+            get
+            {
+                if (!String.IsNullOrEmpty(m_content_type))
+                    return m_content_type;
+                else
+                    return SLUtil.SLAssetTypeToContentType(m_type);
+            }
+            set
+            {
+                m_content_type = value;
+
+                sbyte type = (sbyte)SLUtil.ContentTypeToSLAssetType(value);
+                if (type != -1)
+                    m_type = type;
+            }
         }
 
         public byte[] SHA1
@@ -311,16 +325,10 @@ namespace OpenSim.Framework
             set { m_temporary = value; }
         }
 
-        //public Dictionary<string, Uri> Methods
-        //{
-        //    get { return m_methods; }
-        //    set { m_methods = value; }
-        //}
-
-        //public OSDMap ExtraData
-        //{
-        //    get { return m_extra_data; }
-        //    set { m_extra_data = value; }
-        //}
+        public string CreatorID
+        {
+            get { return m_creatorid; }
+            set { m_creatorid = value; }
+        }
     }
 }

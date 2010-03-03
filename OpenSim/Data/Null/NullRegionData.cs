@@ -31,20 +31,31 @@ using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Data.Null
 {
     public class NullRegionData : IRegionData
     {
+        private static NullRegionData Instance = null;
+
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
 
         public NullRegionData(string connectionString, string realm)
         {
+            if (Instance == null)
+                Instance = this;
             //Console.WriteLine("[XXX] NullRegionData constructor");
         }
 
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
+            if (Instance != this)
+                return Instance.Get(regionName, scopeID);
+
             List<RegionData> ret = new List<RegionData>();
 
             foreach (RegionData r in m_regionData.Values)
@@ -69,6 +80,9 @@ namespace OpenSim.Data.Null
 
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
+            if (Instance != this)
+                return Instance.Get(posX, posY, scopeID);
+
             List<RegionData> ret = new List<RegionData>();
 
             foreach (RegionData r in m_regionData.Values)
@@ -85,6 +99,9 @@ namespace OpenSim.Data.Null
 
         public RegionData Get(UUID regionID, UUID scopeID)
         {
+            if (Instance != this)
+                return Instance.Get(regionID, scopeID);
+
             if (m_regionData.ContainsKey(regionID))
                 return m_regionData[regionID];
 
@@ -93,6 +110,9 @@ namespace OpenSim.Data.Null
 
         public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
         {
+            if (Instance != this)
+                return Instance.Get(startX, startY, endX, endY, scopeID);
+
             List<RegionData> ret = new List<RegionData>();
 
             foreach (RegionData r in m_regionData.Values)
@@ -106,6 +126,9 @@ namespace OpenSim.Data.Null
 
         public bool Store(RegionData data)
         {
+            if (Instance != this)
+                return Instance.Store(data);
+
             m_regionData[data.RegionID] = data;
 
             return true;
@@ -113,6 +136,9 @@ namespace OpenSim.Data.Null
 
         public bool SetDataItem(UUID regionID, string item, string value)
         {
+            if (Instance != this)
+                return Instance.SetDataItem(regionID, item, value);
+
             if (!m_regionData.ContainsKey(regionID))
                 return false;
 
@@ -123,12 +149,47 @@ namespace OpenSim.Data.Null
 
         public bool Delete(UUID regionID)
         {
+            if (Instance != this)
+                return Instance.Delete(regionID);
+
             if (!m_regionData.ContainsKey(regionID))
                 return false;
 
             m_regionData.Remove(regionID);
 
             return true;
+        }
+
+        public List<RegionData> GetDefaultRegions(UUID scopeID)
+        {
+            if (Instance != this)
+                return Instance.GetDefaultRegions(scopeID);
+
+            List<RegionData> ret = new List<RegionData>();
+
+            foreach (RegionData r in m_regionData.Values)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & 1) != 0)
+                    ret.Add(r);
+            }
+
+            return ret;
+        }
+
+        public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            if (Instance != this)
+                return Instance.GetFallbackRegions(scopeID, x, y);
+
+            List<RegionData> ret = new List<RegionData>();
+
+            foreach (RegionData r in m_regionData.Values)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & 2) != 0)
+                    ret.Add(r);
+            }
+
+            return ret;
         }
     }
 }

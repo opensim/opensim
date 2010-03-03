@@ -93,6 +93,8 @@ namespace OpenSim.Framework
 
     public delegate void SetAlwaysRun(IClientAPI remoteClient, bool SetAlwaysRun);
 
+    public delegate void GenericCall1(IClientAPI remoteClient);
+
     public delegate void GenericCall2();
 
     // really don't want to be passing packets in these events, so this is very temporary.
@@ -151,6 +153,8 @@ namespace OpenSim.Framework
     public delegate void AgentRequestSit(IClientAPI remoteClient, UUID agentID, UUID targetID, Vector3 offset);
 
     public delegate void AgentSit(IClientAPI remoteClient, UUID agentID);
+
+    public delegate void LandUndo(IClientAPI remoteClient);
 
     public delegate void AvatarPickerRequest(IClientAPI remoteClient, UUID agentdata, UUID queryID, string UserQuery);
 
@@ -419,9 +423,9 @@ namespace OpenSim.Framework
     public delegate void AcceptCallingCard(IClientAPI remoteClient, UUID transactionID, UUID folderID);
 
     public delegate void DeclineCallingCard(IClientAPI remoteClient, UUID transactionID);
-    
+
     public delegate void SoundTrigger(
-        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle);
+        UUID soundId, UUID ownerid, UUID objid, UUID parentid, double Gain, Vector3 Position, UInt64 Handle, float radius);
 
     public delegate void StartLure(byte lureType, string message, UUID targetID, IClientAPI client);
     public delegate void TeleportLureRequest(UUID lureID, uint teleportFlags, IClientAPI client);
@@ -826,6 +830,11 @@ namespace OpenSim.Framework
         /// </value>
         bool IsActive { get; set; }
 
+        /// <value>
+        /// Determines whether the client is logging out or not.
+        /// </value>
+        bool IsLoggingOut { get; set; }
+        
         bool SendLogoutPacketWhenClosing { set; }
 
         // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
@@ -871,7 +880,7 @@ namespace OpenSim.Framework
         event DeRezObject OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;
-        event GenericCall2 OnCompleteMovementToRegion;
+        event GenericCall1 OnCompleteMovementToRegion;
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
@@ -988,6 +997,8 @@ namespace OpenSim.Framework
         event ScriptAnswer OnScriptAnswer;
 
         event AgentSit OnUndo;
+        event AgentSit OnRedo;
+        event LandUndo OnLandUndo;
 
         event ForceReleaseControls OnForceReleaseControls;
         event GodLandStatRequest OnLandStatRequest;
@@ -1467,5 +1478,6 @@ namespace OpenSim.Framework
         
         void SendGroupTransactionsSummaryDetails(IClientAPI sender,UUID groupID, UUID transactionID, UUID sessionID,int amt);
         
+        void SendChangeUserRights(UUID agentID, UUID friendID, int rights);
     }
 }

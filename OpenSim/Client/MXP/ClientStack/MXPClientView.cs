@@ -160,6 +160,12 @@ namespace OpenSim.Client.MXP.ClientStack
             }
         }
 
+        public bool IsLoggingOut
+        {
+            get { return false ; }
+            set {  }
+        }
+
         #endregion
 
         #region Constructors
@@ -427,7 +433,7 @@ namespace OpenSim.Client.MXP.ClientStack
             pe.ObjectFragment.ObjectIndex = (uint)(m_scene.RegionInfo.RegionSettings.RegionUUID.GetHashCode() + ((long)int.MaxValue) / 2);
             pe.ObjectFragment.ParentObjectId = UUID.Zero.Guid;
             pe.ObjectFragment.ObjectName = "Terrain of " + m_scene.RegionInfo.RegionName;
-            pe.ObjectFragment.OwnerId = m_scene.RegionInfo.MasterAvatarAssignedUUID.Guid;
+            pe.ObjectFragment.OwnerId = m_scene.RegionInfo.EstateSettings.EstateOwner.Guid;
             pe.ObjectFragment.TypeId = Guid.Empty;
             pe.ObjectFragment.TypeName = "Terrain";
             pe.ObjectFragment.Acceleration = new MsdVector3f();
@@ -591,7 +597,7 @@ namespace OpenSim.Client.MXP.ClientStack
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;
-        public event GenericCall2 OnCompleteMovementToRegion;
+        public event GenericCall1 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
@@ -692,6 +698,8 @@ namespace OpenSim.Client.MXP.ClientStack
         public event UUIDNameRequest OnTeleportHomeRequest;
         public event ScriptAnswer OnScriptAnswer;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
@@ -898,7 +906,7 @@ namespace OpenSim.Client.MXP.ClientStack
 
             if (OnCompleteMovementToRegion != null)
             {
-                OnCompleteMovementToRegion();
+                OnCompleteMovementToRegion(this);
             }
 
             // Need to translate to MXP somehow
@@ -1696,6 +1704,10 @@ namespace OpenSim.Client.MXP.ClientStack
         }
 
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
+        {
+        }
+
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
     }

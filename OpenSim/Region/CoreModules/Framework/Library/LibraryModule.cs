@@ -31,12 +31,13 @@ using System.Reflection;
 
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Region.CoreModules.Avatar.Inventory.Archiver;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Server.Base;
 
 using OpenMetaverse;
 using log4net;
@@ -53,6 +54,8 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         private string m_LibraryName = "OpenSim Library";
         private Scene m_Scene;
 
+        private ILibraryService m_Library;
+
         #region ISharedRegionModule
 
         public void Initialise(IConfigSource config)
@@ -60,9 +63,22 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             m_Enabled = config.Configs["Modules"].GetBoolean("LibraryModule", m_Enabled);
             if (m_Enabled)
             {
-                IConfig libConfig = config.Configs["LibraryModule"];
+                IConfig libConfig = config.Configs["LibraryService"];
                 if (libConfig != null)
-                    m_LibraryName = libConfig.GetString("LibraryName", m_LibraryName);
+                {
+                    string dllName = libConfig.GetString("LocalServiceModule", string.Empty);
+                    m_log.Debug("[LIBRARY MODULE]: Library service dll is " + dllName);
+                    if (dllName != string.Empty)
+                    {
+                        Object[] args = new Object[] { config };
+                        m_Library = ServerUtils.LoadPlugin<ILibraryService>(dllName, args);
+                    }
+                }
+            }
+            if (m_Library == null)
+            {
+                m_log.Warn("[LIBRARY MODULE]: No local library service. Module will be disabled.");
+                m_Enabled = false;
             }
         }
 
@@ -91,10 +107,15 @@ namespace OpenSim.Region.CoreModules.Framework.Library
             {
                 m_Scene = scene;
             }
+            scene.RegisterModuleInterface<ILibraryService>(m_Library);
         }
 
         public void RemoveRegion(Scene scene)
         {
+            if (!m_Enabled)
+                return;
+
+            scene.UnregisterModuleInterface<ILibraryService>(m_Library);
         }
 
         public void RegionLoaded(Scene scene)
@@ -127,27 +148,23 @@ namespace OpenSim.Region.CoreModules.Framework.Library
 
         protected void LoadLibrariesFromArchives()
         {
-            InventoryFolderImpl lib = m_Scene.CommsManager.UserProfileCacheService.LibraryRoot;
+            InventoryFolderImpl lib = m_Library.LibraryRootFolder;
             if (lib == null)
             {
                 m_log.Debug("[LIBRARY MODULE]: No library. Ignoring Library Module");
                 return;
             }
 
-            lib.Name = m_LibraryName;
-
             RegionInfo regInfo = new RegionInfo();
             Scene m_MockScene = new Scene(regInfo);
-            m_MockScene.CommsManager = m_Scene.CommsManager;
-            LocalInventoryService invService = new LocalInventoryService((LibraryRootFolder)lib);
+            LocalInventoryService invService = new LocalInventoryService(lib);
             m_MockScene.RegisterModuleInterface<IInventoryService>(invService);
             m_MockScene.RegisterModuleInterface<IAssetService>(m_Scene.AssetService);
 
-            UserProfileData profile = new UserProfileData();
-            profile.FirstName = "OpenSim";
-            profile.ID = lib.Owner;
-            profile.SurName = "Library";
-            CachedUserInfo uinfo = new CachedUserInfo(invService, profile);
+            UserAccount uinfo = new UserAccount(lib.Owner);
+            uinfo.FirstName = "OpenSim";
+            uinfo.LastName = "Library";
+            uinfo.ServiceURLs = new Dictionary<string, object>();
 
             foreach (string iarFileName in Directory.GetFiles(pathToLibraries, "*.iar"))
             {
@@ -175,6 +192,15 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                     m_log.DebugFormat("[LIBRARY MODULE]: Exception when processing archive {0}: {1}", iarFileName, e.Message);
                 }
             }
+
+        }
+
+        private void DumpLibrary()
+        {
+            InventoryFolderImpl lib = m_Library.LibraryRootFolder;
+
+            m_log.DebugFormat(" - folder {0}", lib.Name);
+            DumpFolder(lib);
         }
 //
 //        private void DumpLibrary()

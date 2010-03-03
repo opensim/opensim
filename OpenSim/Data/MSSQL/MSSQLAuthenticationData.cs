@@ -53,6 +53,7 @@ namespace OpenSim.Data.MSSQL
             {
                 conn.Open();
                 Migration m = new Migration(conn, GetType().Assembly, "AuthStore");
+                m_database = new MSSQLManager(m_ConnectionString);
                 m.Update();
             }
         }
@@ -168,13 +169,14 @@ namespace OpenSim.Data.MSSQL
         {
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
-            string sql = "insert into tokens (UUID, token, validity) values (@principalID, @token, date_add(now(), interval @lifetime minute))";
+            
+            string sql = "insert into tokens (UUID, token, validity) values (@principalID, @token, @lifetime)";
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("@token", token));
-                cmd.Parameters.Add(m_database.CreateParameter("@lifetime", lifetime));
+                cmd.Parameters.Add(m_database.CreateParameter("@lifetime", DateTime.Now.AddMinutes(lifetime)));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
@@ -189,13 +191,15 @@ namespace OpenSim.Data.MSSQL
         {
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
-            string sql = "update tokens set validity = date_add(now(), interval @lifetime minute) where UUID = @principalID and token = @token and validity > now()";
+
+            DateTime validDate = DateTime.Now.AddMinutes(lifetime);
+            string sql = "update tokens set validity = @validDate where UUID = @principalID and token = @token and validity > GetDate()";
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("@principalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("@token", token));
-                cmd.Parameters.Add(m_database.CreateParameter("@lifetime", lifetime));
+                cmd.Parameters.Add(m_database.CreateParameter("@validDate", validDate));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
@@ -208,11 +212,13 @@ namespace OpenSim.Data.MSSQL
 
         private void DoExpire()
         {
-            string sql = "delete from tokens where validity < now()";
+            DateTime currentDateTime = DateTime.Now;
+            string sql = "delete from tokens where validity < @currentDateTime";
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 conn.Open();
+                cmd.Parameters.Add(m_database.CreateParameter("@currentDateTime", currentDateTime));
                 cmd.ExecuteNonQuery();
             }
             m_LastExpire = System.Environment.TickCount;

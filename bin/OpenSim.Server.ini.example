@@ -1,21 +1,23 @@
 ; * The startup section lists all the connectors to start up in this server
 ; * instance. This may be only one, or it may be the entire server suite.
 ; * Multiple connectors should be seaprated by commas.
+; * The startup section lists all the connectors to start up in this server
+; * instance. This may be only one, or it may be the entire server suite.
+; * Multiple connectors should be seaprated by commas.
 ; *
 ; * These are the IN connectors the server uses, the in connectors
-; * read this config file and load the needed OUT and database connectors
+; * read this config file and load the needed service and database connectors
 ; *
-; * Add "OpenSim.Server.Handlers.dll:AuthenticationServiceConnector" to
-; * enable the experimental authentication service
 ; *
 [Startup]
-ServiceConnectors = "OpenSim.Server.Handlers.dll:AssetServiceConnector,OpenSim.Server.Handlers.dll:InventoryServiceInConnector,OpenSim.Server.Handlers.dll:FreeswitchServerConnector,OpenSim.Server.Handlers.dll:GridServiceConnector"
+
+ServiceConnectors = "8003/OpenSim.Server.Handlers.dll:AssetServiceConnector,8003/OpenSim.Server.Handlers.dll:InventoryServiceInConnector,8002/OpenSim.Server.Handlers.dll:FreeswitchServerConnector,8003/OpenSim.Server.Handlers.dll:GridServiceConnector,8002/OpenSim.Server.Handlers.dll:GridInfoServerInConnector,8003/OpenSim.Server.Handlers.dll:AuthenticationServiceConnector,8002/OpenSim.Server.Handlers.dll:OpenIdServerConnector,8003/OpenSim.Server.Handlers.dll:AvatarServiceConnector,8002/OpenSim.Server.Handlers.dll:LLLoginServiceInConnector,8003/OpenSim.Server.Handlers.dll:PresenceServiceConnector,8003/OpenSim.Server.Handlers.dll:UserAccountServiceConnector,8003/OpenSim.Server.Handlers.dll:FriendsServiceConnector"
 
 ; * This is common for all services, it's the network setup for the entire
-; * server instance
+; * server instance, if none if specified above
 ; *
 [Network]
-port = 8003
+    port = 8003
 
 ; * The following are for the remote console
 ; * They have no effect for the local or basic console types
@@ -24,31 +26,47 @@ port = 8003
 ;ConsolePass = secret
 ;ConsolePort = 0
 
+[DatabaseService]
+    StorageProvider = "OpenSim.Data.MySQL.dll"
+    ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=opensim123;"
+
+
 ; * As an example, the below configuration precisely mimicks the legacy
 ; * asset server. It is read by the asset IN connector (defined above)
 ; * and it then loads the OUT connector (a local database module). That,
 ; * in turn, reads the asset loader and database connection information
 ; *
 [AssetService]
-LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
-DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
-AssetLoaderArgs = "assets/AssetSets.xml"
-StorageProvider = "OpenSim.Data.MySQL.dll"
-ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+    LocalServiceModule = "OpenSim.Services.AssetService.dll:AssetService"
+    DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
+    AssetLoaderArgs = "assets/AssetSets.xml"
 
 ; * This configuration loads the inventory server modules. It duplicates
 ; * the function of the legacy inventory server
 ; *
 [InventoryService]
-LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
-UserServerURI = "http://127.0.0.1:8002"
-SessionAuthentication = "false"
-StorageProvider = "OpenSim.Data.MySQL.dll"
-ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
+    LocalServiceModule = "OpenSim.Services.InventoryService.dll:InventoryService"
+    SessionAuthentication = "false"
+
+; * This is the new style grid service.
+; * "Realm" is the table that is used for user lookup.
+; * It defaults to "regions", which uses the legacy tables
+; *
+[GridService]
+    LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
+    Realm = "regions"
+    ; AllowDuplicateNames = "True"
+    ;; Next, we can specify properties of regions, including default and fallback regions
+    ;; The syntax is: Region_<RegionName> = "<flags>"
+    ;; or:            Region_<RegionID> = "<flags>"
+    ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut,Reservation,NoMove,Authenticate
+    ;; For example: 
+    ; Region_Welcome_Area = "DefaultRegion, FallbackRegion"
+    ; (replace spaces with underscore)
 
 ; * This is the configuration for the freeswitch server in grid mode
 [FreeswitchService]
-LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
+    LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
 
 ; * This is the new style authentication service. Currently, only MySQL
 ; * is implemented. "Realm" is the table that is used for user lookup.
@@ -56,31 +74,56 @@ LocalServiceModule = "OpenSim.Services.FreeswitchService.dll:FreeswitchService"
 ; * as an authentication source.
 ; *
 [AuthenticationService]
-AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
-StorageProvider = "OpenSim.Data.MySQL.dll"
-ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
-; Realm = "users"
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
 
+[OpenIdService]
+    ; for the server connector
+    AuthenticationServiceModule = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    UserAccountServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+	
 ; * This is the new style user service.
 ; * "Realm" is the table that is used for user lookup.
 ; * It defaults to "users", which uses the legacy tables
 ; *
 [UserAccountService]
-AuthenticationServiceModule = "OpenSim.Services.UserService.dll:UserAccountService"
-StorageProvider = "OpenSim.Data.MySQL.dll"
-ConnectionString = "Data Source=localhost;Database=grid;User ID=grid;Password=grid;"
-; Realm = "users"
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    ; Realm = "useraccounts"
+    ;; These are for creating new accounts by the service
+    AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridService = "OpenSim.Services.GridService.dll:GridService"
+    InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
 
-; * This is the new style grid service.
-; * "Realm" is the table that is used for user lookup.
-; * It defaults to "regions", which uses the legacy tables
-; *
-[GridService]
-LocalServiceModule = "OpenSim.Services.GridService.dll:GridService"
-StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
-ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=grid;"
-Realm = "regions"
+[PresenceService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.PresenceService.dll:PresenceService"
 
-; If true, duplicate region names are allowed on the grid.  If false, no duplicate names are allowed
-; Default is false
-; AllowDuplicateNames = "True"
+[AvatarService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.AvatarService.dll:AvatarService"
+
+[FriendsService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.FriendsService.dll:FriendsService"
+
+[LibraryService]
+    LibraryName = "OpenSim Library"
+    DefaultLibrary = "./inventory/Libraries.xml"
+
+[LoginService]
+    ; for the server connector
+    LocalServiceModule = "OpenSim.Services.LLLoginService.dll:LLLoginService"
+    ; for the service
+    UserAccountService = "OpenSim.Services.UserAccountService.dll:UserAccountService"
+    AuthenticationService = "OpenSim.Services.AuthenticationService.dll:PasswordAuthenticationService"
+    InventoryService = "OpenSim.Services.InventoryService.dll:InventoryService"
+    AvatarService = "OpenSim.Services.AvatarService.dll:AvatarService"
+    PresenceService = "OpenSim.Services.PresenceService.dll:PresenceService"
+    GridService = "OpenSim.Services.GridService.dll:GridService"
+    SimulationService ="OpenSim.Services.Connectors.dll:SimulationServiceConnector"
+    LibraryService = "OpenSim.Services.InventoryService.dll:LibraryService"
+    FriendsService = "OpenSim.Services.FriendsService.dll:FriendsService"
+
+    WelcomeMessage = "Welcome, Avatar!"

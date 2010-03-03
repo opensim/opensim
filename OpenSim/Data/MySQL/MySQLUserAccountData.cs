@@ -35,150 +35,50 @@ using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {
-    public class MySqlUserAccountData : MySqlFramework, IUserAccountData
+    public class MySqlUserAccountData : MySQLGenericTableHandler<UserAccountData>, IUserAccountData
     {
-        private string m_Realm;
-        private List<string> m_ColumnNames;
-        // private string m_connectionString;
-
         public MySqlUserAccountData(string connectionString, string realm)
-                : base(connectionString)
+                : base(connectionString, realm, "UserAccount")
         {
-            m_Realm = realm;
-            m_connectionString = connectionString;
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-                Migration m = new Migration(dbcon, GetType().Assembly, "UserStore");
-                m.Update();
-            }
         }
 
-        public List<UserAccountData> Query(UUID principalID, UUID scopeID, string query)
+        public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            return null;
-        }
+            string[] words = query.Split(new char[] {' '});
 
-        public UserAccountData Get(UUID principalID, UUID scopeID)
-        {
-            UserAccountData ret = new UserAccountData();
-            ret.Data = new Dictionary<string, object>();
-
-            string command = "select * from `"+m_Realm+"` where UUID = ?principalID";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            for (int i = 0 ; i < words.Length ; i++)
             {
-                dbcon.Open();
-                MySqlCommand cmd = new MySqlCommand(command, dbcon);
-
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-                IDataReader result = cmd.ExecuteReader();
-
-                if (result.Read())
+                if (words[i].Length < 3)
                 {
-                    ret.PrincipalID = principalID;
-                    UUID scope;
-                    UUID.TryParse(result["ScopeID"].ToString(), out scope);
-                    ret.ScopeID = scope;
-
-                    if (m_ColumnNames == null)
-                    {
-                        m_ColumnNames = new List<string>();
-
-                        DataTable schemaTable = result.GetSchemaTable();
-                        foreach (DataRow row in schemaTable.Rows)
-                            m_ColumnNames.Add(row["ColumnName"].ToString());
-                    }
-
-                    foreach (string s in m_ColumnNames)
-                    {
-                        if (s == "UUID")
-                            continue;
-                        if (s == "ScopeID")
-                            continue;
-
-                        ret.Data[s] = result[s].ToString();
-                    }
-
-                    return ret;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
-        public bool Store(UserAccountData data)
-        {
-            if (data.Data.ContainsKey("UUID"))
-                data.Data.Remove("UUID");
-            if (data.Data.ContainsKey("ScopeID"))
-                data.Data.Remove("ScopeID");
-
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string update = "update `" + m_Realm + "` set ";
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = ?" + field;
-
-                    first = false;
-
-                    cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
-                }
-
-                update += " where UUID = ?principalID";
-
-                if (data.ScopeID != UUID.Zero)
-                    update += " and ScopeID = ?scopeID";
-
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
-
-                if (ExecuteNonQuery(cmd) < 1)
-                {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `ScopeID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?scopeID, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
-                    {
-                        cmd.Dispose();
-                        return false;
-                    }
+                    if (i != words.Length - 1)
+                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
+                    Array.Resize(ref words, words.Length - 1);
                 }
             }
 
-            return true;
-        }
+            if (words.Length == 0)
+                return new UserAccountData[0];
 
-        public bool SetDataItem(UUID principalID, string item, string value)
-        {
-            using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" +
-                item + "` = ?" + item + " where UUID = ?UUID"))
+            if (words.Length > 2)
+                return new UserAccountData[0];
+
+            MySqlCommand cmd = new MySqlCommand();
+
+            if (words.Length == 1)
             {
-                cmd.Parameters.AddWithValue("?" + item, value);
-                cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?search or LastName like ?search)", m_Realm);
+                cmd.Parameters.AddWithValue("?search", "%" + words[0] + "%");
+                cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
+            }
+            else
+            {
+                cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?searchFirst or LastName like ?searchLast)", m_Realm);
+                cmd.Parameters.AddWithValue("?searchFirst", "%" + words[0] + "%");
+                cmd.Parameters.AddWithValue("?searchLast", "%" + words[1] + "%");
+                cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
             }
 
-            return false;
+            return DoQuery(cmd);
         }
     }
 }

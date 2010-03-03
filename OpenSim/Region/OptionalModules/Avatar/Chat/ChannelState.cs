@@ -483,12 +483,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                     case "%host"    :
                         result = result.Replace(vvar, rs.Host);
                         break;
-                    case "%master1" :
-                        result = result.Replace(vvar, rs.MA1);
-                        break;
-                    case "%master2" :
-                        result = result.Replace(vvar, rs.MA2);
-                        break;
                     case "%locx"    :
                         result = result.Replace(vvar, rs.LocX);
                         break;

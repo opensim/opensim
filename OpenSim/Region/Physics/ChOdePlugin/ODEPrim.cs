@@ -2426,6 +2426,14 @@ Console.WriteLine(" JointCreateFixed");
 			m_vehicle.ProcessFlagsVehicleRemove(flags);
         }
         
+        public override void VehicleFlags(int flags, bool remove)
+        {
+            if (!remove)
+                m_vehicle.ProcessFlagsVehicleSet(flags);
+            else
+                m_vehicle.ProcessFlagsVehicleRemove(flags);
+        }
+
         public override void SetVolumeDetect(int param)
         {
             lock (_parent_scene.OdeLock)

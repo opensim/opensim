@@ -44,7 +44,7 @@ namespace OpenSim.Data.MSSQL
         private static readonly ILog _Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MSSQLManager _Database;
-
+        private string m_connectionString;
         private FieldInfo[] _Fields;
         private Dictionary<string, FieldInfo> _FieldMap = new Dictionary<string, FieldInfo>();
 
@@ -58,21 +58,8 @@ namespace OpenSim.Data.MSSQL
         {
             if (!string.IsNullOrEmpty(connectionString))
             {
+                m_connectionString = connectionString;
                 _Database = new MSSQLManager(connectionString);
-            }
-            else
-            {
-                //TODO when can this be deleted 
-                IniFile iniFile = new IniFile("mssql_connection.ini");
-                string settingDataSource = iniFile.ParseFileReadValue("data_source");
-                string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
-                string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
-                string settingUserId = iniFile.ParseFileReadValue("user_id");
-                string settingPassword = iniFile.ParseFileReadValue("password");
-
-                _Database =
-                    new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId,
-                                     settingPassword);
             }
 
             //Migration settings
@@ -103,11 +90,11 @@ namespace OpenSim.Data.MSSQL
             string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
 
             bool insertEstate = false;
-
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionID", regionID));
-
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -124,7 +111,7 @@ namespace OpenSim.Data.MSSQL
                             }
                             else if (_FieldMap[name].GetValue(es) is UUID)
                             {
-                                _FieldMap[name].SetValue(es, new UUID((Guid) reader[name])); // uuid);
+                                _FieldMap[name].SetValue(es, new UUID((Guid)reader[name])); // uuid);
                             }
                             else
                             {
@@ -149,34 +136,36 @@ namespace OpenSim.Data.MSSQL
                 sql = string.Format("insert into estate_settings ({0}) values ( @{1})", String.Join(",", names.ToArray()), String.Join(", @", names.ToArray()));
 
                 //_Log.Debug("[DB ESTATE]: SQL: " + sql);
-                using (SqlConnection connection = _Database.DatabaseConnection())
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand insertCommand = new SqlCommand(sql, conn))
                 {
-                    using (SqlCommand insertCommand = connection.CreateCommand())
+                    insertCommand.CommandText = sql + " SET @ID = SCOPE_IDENTITY()";
+
+                    foreach (string name in names)
                     {
-                        insertCommand.CommandText = sql + " SET @ID = SCOPE_IDENTITY()";
-
-                        foreach (string name in names)
-                        {
-                            insertCommand.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
-                        }
-                        SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
-                        idParameter.Direction = ParameterDirection.Output;
-                        insertCommand.Parameters.Add(idParameter);
-
-                        insertCommand.ExecuteNonQuery();
-
-                        es.EstateID = Convert.ToUInt32(idParameter.Value);
+                        insertCommand.Parameters.Add(_Database.CreateParameter("@" + name, _FieldMap[name].GetValue(es)));
                     }
+                    SqlParameter idParameter = new SqlParameter("@ID", SqlDbType.Int);
+                    idParameter.Direction = ParameterDirection.Output;
+                    insertCommand.Parameters.Add(idParameter);
+                    conn.Open();
+                    insertCommand.ExecuteNonQuery();
+
+                    es.EstateID = Convert.ToUInt32(idParameter.Value);
                 }
 
-                using (AutoClosingSqlCommand cmd = _Database.Query("INSERT INTO [estate_map] ([RegionID] ,[EstateID]) VALUES (@RegionID, @EstateID)"))
+                sql = "INSERT INTO [estate_map] ([RegionID] ,[EstateID]) VALUES (@RegionID, @EstateID)";
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
+
                     cmd.Parameters.Add(_Database.CreateParameter("@RegionID", regionID));
                     cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
                     // This will throw on dupe key
                     try
                     {
-                       cmd.ExecuteNonQuery();
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
                     }
                     catch (Exception e)
                     {
@@ -187,12 +176,14 @@ namespace OpenSim.Data.MSSQL
                 // Munge and transfer the ban list
 
                 sql = string.Format("insert into estateban select {0}, bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = @UUID", es.EstateID);
-                using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
+
                     cmd.Parameters.Add(_Database.CreateParameter("@UUID", regionID));
                     try
                     {
-
+                        conn.Open();
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception)
@@ -226,7 +217,7 @@ namespace OpenSim.Data.MSSQL
 
             names.Remove("EstateID");
 
-            string sql = string.Format("UPDATE estate_settings SET ") ; 
+            string sql = string.Format("UPDATE estate_settings SET ");
             foreach (string name in names)
             {
                 sql += name + " = @" + name + ", ";
@@ -234,7 +225,8 @@ namespace OpenSim.Data.MSSQL
             sql = sql.Remove(sql.LastIndexOf(","));
             sql += " WHERE EstateID = @EstateID";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 foreach (string name in names)
                 {
@@ -242,6 +234,7 @@ namespace OpenSim.Data.MSSQL
                 }
 
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
@@ -266,12 +259,13 @@ namespace OpenSim.Data.MSSQL
 
             string sql = "select bannedUUID from estateban where EstateID = @EstateID";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 SqlParameter idParameter = new SqlParameter("@EstateID", SqlDbType.Int);
                 idParameter.Value = es.EstateID;
                 cmd.Parameters.Add(idParameter);
-
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -293,10 +287,11 @@ namespace OpenSim.Data.MSSQL
 
             string sql = string.Format("select uuid from {0} where EstateID = @EstateID", table);
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
-
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -313,20 +308,24 @@ namespace OpenSim.Data.MSSQL
         {
             //Delete first
             string sql = "delete from estateban where EstateID = @EstateID";
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
             //Insert after
             sql = "insert into estateban (EstateID, bannedUUID) values ( @EstateID, @bannedUUID )";
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 foreach (EstateBan b in es.EstateBans)
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("@EstateID", es.EstateID));
                     cmd.Parameters.Add(_Database.CreateParameter("@bannedUUID", b.BannedUserID));
+                    conn.Open();
                     cmd.ExecuteNonQuery();
                     cmd.Parameters.Clear();
                 }
@@ -337,14 +336,16 @@ namespace OpenSim.Data.MSSQL
         {
             //Delete first
             string sql = string.Format("delete from {0} where EstateID = @EstateID", table);
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
                 cmd.ExecuteNonQuery();
             }
 
             sql = string.Format("insert into {0} (EstateID, uuid) values ( @EstateID, @uuid )", table);
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@EstateID", estateID));
 
@@ -359,7 +360,7 @@ namespace OpenSim.Data.MSSQL
                     }
                     else
                         cmd.Parameters["@uuid"].Value = uuid.Guid; //.ToString(); //TODO check if this works
-
+                    conn.Open();
                     cmd.ExecuteNonQuery();
                 }
             }

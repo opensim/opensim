@@ -90,6 +90,10 @@ namespace OpenSim.Services.Interfaces
 
         List<GridRegion> GetRegionRange(UUID scopeID, int xmin, int xmax, int ymin, int ymax);
 
+        List<GridRegion> GetDefaultRegions(UUID scopeID);
+        List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y);
+
+        int GetRegionFlags(UUID scopeID, UUID regionID);
     }
 
     public class GridRegion
@@ -154,7 +158,8 @@ namespace OpenSim.Services.Interfaces
         public UUID TerrainImage = UUID.Zero;
         public byte Access;
         public int  Maturity;
-        public string RegionSecret;
+        public string RegionSecret = string.Empty;
+        public string Token = string.Empty;
 
         public GridRegion()
         {
@@ -200,12 +205,6 @@ namespace OpenSim.Services.Interfaces
             Maturity = ConvertFrom.RegionSettings.Maturity;
             RegionSecret = ConvertFrom.regionSecret;
             EstateOwner = ConvertFrom.EstateSettings.EstateOwner;
-            if (EstateOwner == UUID.Zero)
-            {
-                EstateOwner = ConvertFrom.MasterAvatarAssignedUUID;
-                ConvertFrom.EstateSettings.EstateOwner = EstateOwner;
-                ConvertFrom.EstateSettings.Save();
-            }
         }
 
         public GridRegion(GridRegion ConvertFrom)
@@ -267,8 +266,6 @@ namespace OpenSim.Services.Interfaces
 
                 return new IPEndPoint(ia, m_internalEndPoint.Port);
             }
-
-            set { m_externalHostName = value.ToString(); }
         }
 
         public string ExternalHostName
@@ -288,11 +285,6 @@ namespace OpenSim.Services.Interfaces
             get { return Util.UIntsToLong((uint)RegionLocX, (uint)RegionLocY); }
         }
 
-        public int getInternalEndPointPort()
-        {
-            return m_internalEndPoint.Port;
-        }
-
         public Dictionary<string, object> ToKeyValuePairs()
         {
             Dictionary<string, object> kvp = new Dictionary<string, object>();
@@ -308,6 +300,7 @@ namespace OpenSim.Services.Interfaces
             kvp["access"] = Access.ToString();
             kvp["regionSecret"] = RegionSecret;
             kvp["owner_uuid"] = EstateOwner.ToString();
+            kvp["Token"] = Token.ToString();
             // Maturity doesn't seem to exist in the DB
             return kvp;
         }
@@ -364,6 +357,9 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("owner_uuid"))
                 EstateOwner = new UUID(kvp["owner_uuid"].ToString());
+
+            if (kvp.ContainsKey("Token"))
+                Token = kvp["Token"].ToString();
 
         }
     }

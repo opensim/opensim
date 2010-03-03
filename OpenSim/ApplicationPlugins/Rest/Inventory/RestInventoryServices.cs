@@ -36,7 +36,7 @@ using System.Xml;
 using OpenMetaverse;
 using OpenMetaverse.Imaging;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
 using Timer=System.Timers.Timer;
@@ -143,203 +143,205 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
             Rest.Log.DebugFormat("{0} DoInventory ENTRY", MsgId);
 
-            // If we're disabled, do nothing.
+            // !!! REFACTORING PROBLEM
 
-            if (!enabled)
-            {
-                return;
-            }
+            //// If we're disabled, do nothing.
 
-            // Now that we know this is a serious attempt to
-            // access inventory data, we should find out who
-            // is asking, and make sure they are authorized
-            // to do so. We need to validate the caller's
-            // identity before revealing anything about the
-            // status quo. Authenticate throws an exception
-            // via Fail if no identity information is present.
-            //
-            // With the present HTTP server we can't use the
-            // builtin authentication mechanisms because they
-            // would be enforced for all in-bound requests.
-            // Instead we look at the headers ourselves and
-            // handle authentication directly.
+            //if (!enabled)
+            //{
+            //    return;
+            //}
 
-            try
-            {
-                if (!rdata.IsAuthenticated)
-                {
-                    rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));
-                }
-            }
-            catch (RestException e)
-            {
-                if (e.statusCode == Rest.HttpStatusCodeNotAuthorized)
-                {
-                    Rest.Log.WarnFormat("{0} User not authenticated", MsgId);
-                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, rdata.request.Headers.Get("Authorization"));
-                }
-                else
-                {
-                    Rest.Log.ErrorFormat("{0} User authentication failed", MsgId);
-                    Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, rdata.request.Headers.Get("Authorization"));
-                }
-                throw (e);
-            }
+            //// Now that we know this is a serious attempt to
+            //// access inventory data, we should find out who
+            //// is asking, and make sure they are authorized
+            //// to do so. We need to validate the caller's
+            //// identity before revealing anything about the
+            //// status quo. Authenticate throws an exception
+            //// via Fail if no identity information is present.
+            ////
+            //// With the present HTTP server we can't use the
+            //// builtin authentication mechanisms because they
+            //// would be enforced for all in-bound requests.
+            //// Instead we look at the headers ourselves and
+            //// handle authentication directly.
 
-            Rest.Log.DebugFormat("{0} Authenticated {1}", MsgId, rdata.userName);
+            //try
+            //{
+            //    if (!rdata.IsAuthenticated)
+            //    {
+            //        rdata.Fail(Rest.HttpStatusCodeNotAuthorized,String.Format("user \"{0}\" could not be authenticated", rdata.userName));
+            //    }
+            //}
+            //catch (RestException e)
+            //{
+            //    if (e.statusCode == Rest.HttpStatusCodeNotAuthorized)
+            //    {
+            //        Rest.Log.WarnFormat("{0} User not authenticated", MsgId);
+            //        Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, rdata.request.Headers.Get("Authorization"));
+            //    }
+            //    else
+            //    {
+            //        Rest.Log.ErrorFormat("{0} User authentication failed", MsgId);
+            //        Rest.Log.DebugFormat("{0} Authorization header: {1}", MsgId, rdata.request.Headers.Get("Authorization"));
+            //    }
+            //    throw (e);
+            //}
 
-            // We can only get here if we are authorized
-            //
-            // The requestor may have specified an UUID or
-            // a conjoined FirstName LastName string. We'll
-            // try both. If we fail with the first, UUID,
-            // attempt, we try the other. As an example, the
-            // URI for a valid inventory request might be:
-            //
-            // http://<host>:<port>/admin/inventory/Arthur Dent
-            //
-            // Indicating that this is an inventory request for
-            // an avatar named Arthur Dent. This is ALL that is
-            // required to designate a GET for an entire
-            // inventory.
-            //
+            //Rest.Log.DebugFormat("{0} Authenticated {1}", MsgId, rdata.userName);
+
+            //// We can only get here if we are authorized
+            ////
+            //// The requestor may have specified an UUID or
+            //// a conjoined FirstName LastName string. We'll
+            //// try both. If we fail with the first, UUID,
+            //// attempt, we try the other. As an example, the
+            //// URI for a valid inventory request might be:
+            ////
+            //// http://<host>:<port>/admin/inventory/Arthur Dent
+            ////
+            //// Indicating that this is an inventory request for
+            //// an avatar named Arthur Dent. This is ALL that is
+            //// required to designate a GET for an entire
+            //// inventory.
+            ////
 
 
-            // Do we have at least a user agent name?
+            //// Do we have at least a user agent name?
 
-            if (rdata.Parameters.Length < 1)
-            {
-                Rest.Log.WarnFormat("{0} Inventory: No user agent identifier specified", MsgId);
-                rdata.Fail(Rest.HttpStatusCodeBadRequest, "no user identity specified");
-            }
+            //if (rdata.Parameters.Length < 1)
+            //{
+            //    Rest.Log.WarnFormat("{0} Inventory: No user agent identifier specified", MsgId);
+            //    rdata.Fail(Rest.HttpStatusCodeBadRequest, "no user identity specified");
+            //}
 
-            // The first parameter MUST be the agent identification, either an UUID
-            // or a space-separated First-name Last-Name specification. We check for
-            // an UUID first, if anyone names their character using a valid UUID
-            // that identifies another existing avatar will cause this a problem...
+            //// The first parameter MUST be the agent identification, either an UUID
+            //// or a space-separated First-name Last-Name specification. We check for
+            //// an UUID first, if anyone names their character using a valid UUID
+            //// that identifies another existing avatar will cause this a problem...
 
-            try
-            {
-                rdata.uuid = new UUID(rdata.Parameters[PARM_USERID]);
-                Rest.Log.DebugFormat("{0} UUID supplied", MsgId);
-                rdata.userProfile = Rest.UserServices.GetUserProfile(rdata.uuid);
-            }
-            catch
-            {
-                string[] names = rdata.Parameters[PARM_USERID].Split(Rest.CA_SPACE);
-                if (names.Length == 2)
-                {
-                    Rest.Log.DebugFormat("{0} Agent Name supplied [2]", MsgId);
-                    rdata.userProfile = Rest.UserServices.GetUserProfile(names[0],names[1]);
-                }
-                else
-                {
-                    Rest.Log.WarnFormat("{0} A Valid UUID or both first and last names must be specified", MsgId);
-                    rdata.Fail(Rest.HttpStatusCodeBadRequest, "invalid user identity");
-                }
-            }
+            //try
+            //{
+            //    rdata.uuid = new UUID(rdata.Parameters[PARM_USERID]);
+            //    Rest.Log.DebugFormat("{0} UUID supplied", MsgId);
+            //    rdata.userProfile = Rest.UserServices.GetUserProfile(rdata.uuid);
+            //}
+            //catch
+            //{
+            //    string[] names = rdata.Parameters[PARM_USERID].Split(Rest.CA_SPACE);
+            //    if (names.Length == 2)
+            //    {
+            //        Rest.Log.DebugFormat("{0} Agent Name supplied [2]", MsgId);
+            //        rdata.userProfile = Rest.UserServices.GetUserProfile(names[0],names[1]);
+            //    }
+            //    else
+            //    {
+            //        Rest.Log.WarnFormat("{0} A Valid UUID or both first and last names must be specified", MsgId);
+            //        rdata.Fail(Rest.HttpStatusCodeBadRequest, "invalid user identity");
+            //    }
+            //}
 
-            // If the user profile is null then either the server is broken, or the
-            // user is not known. We always assume the latter case.
+            //// If the user profile is null then either the server is broken, or the
+            //// user is not known. We always assume the latter case.
 
-            if (rdata.userProfile != null)
-            {
-                Rest.Log.DebugFormat("{0} Profile obtained for agent {1} {2}",
-                                     MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-            }
-            else
-            {
-                Rest.Log.WarnFormat("{0} No profile for {1}", MsgId, rdata.path);
-                rdata.Fail(Rest.HttpStatusCodeNotFound, "unrecognized user identity");
-            }
+            //if (rdata.userProfile != null)
+            //{
+            //    Rest.Log.DebugFormat("{0} Profile obtained for agent {1} {2}",
+            //                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //}
+            //else
+            //{
+            //    Rest.Log.WarnFormat("{0} No profile for {1}", MsgId, rdata.path);
+            //    rdata.Fail(Rest.HttpStatusCodeNotFound, "unrecognized user identity");
+            //}
 
-            // If we get to here, then we have effectively validated the user's
-            // identity. Now we need to get the inventory. If the server does not
-            // have the inventory, we reject the request with an appropriate explanation.
-            //
-            // Note that inventory retrieval is an asynchronous event, we use the rdata
-            // class instance as the basis for our synchronization.
-            //
+            //// If we get to here, then we have effectively validated the user's
+            //// identity. Now we need to get the inventory. If the server does not
+            //// have the inventory, we reject the request with an appropriate explanation.
+            ////
+            //// Note that inventory retrieval is an asynchronous event, we use the rdata
+            //// class instance as the basis for our synchronization.
+            ////
 
-            rdata.uuid = rdata.userProfile.ID;
+            //rdata.uuid = rdata.userProfile.ID;
 
-            if (Rest.InventoryServices.HasInventoryForUser(rdata.uuid))
-            {
-                rdata.root = Rest.InventoryServices.GetRootFolder(rdata.uuid);
+            //if (Rest.InventoryServices.HasInventoryForUser(rdata.uuid))
+            //{
+            //    rdata.root = Rest.InventoryServices.GetRootFolder(rdata.uuid);
 
-                Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
-                                     MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //    Rest.Log.DebugFormat("{0} Inventory Root retrieved for {1} {2}",
+            //                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-                Rest.InventoryServices.GetUserInventory(rdata.uuid, rdata.GetUserInventory);
+            //    Rest.InventoryServices.GetUserInventory(rdata.uuid, rdata.GetUserInventory);
 
-                Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
-                                     MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //    Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}",
+            //                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-                lock (rdata)
-                {
-                    if (!rdata.HaveInventory)
-                    {
-                        rdata.startWD(1000);
-                        rdata.timeout = false;
-                        Monitor.Wait(rdata);
-                    }
-                }
+            //    lock (rdata)
+            //    {
+            //        if (!rdata.HaveInventory)
+            //        {
+            //            rdata.startWD(1000);
+            //            rdata.timeout = false;
+            //            Monitor.Wait(rdata);
+            //        }
+            //    }
 
-                if (rdata.timeout)
-                {
-                    Rest.Log.WarnFormat("{0} Inventory not available for {1} {2}. No response from service.",
-                                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-                    rdata.Fail(Rest.HttpStatusCodeServerError, "inventory server not responding");
-                }
+            //    if (rdata.timeout)
+            //    {
+            //        Rest.Log.WarnFormat("{0} Inventory not available for {1} {2}. No response from service.",
+            //                             MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //        rdata.Fail(Rest.HttpStatusCodeServerError, "inventory server not responding");
+            //    }
 
-                if (rdata.root == null)
-                {
-                    Rest.Log.WarnFormat("{0} Inventory is not available [1] for agent {1} {2}",
-                                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-                    rdata.Fail(Rest.HttpStatusCodeServerError, "inventory retrieval failed");
-                }
+            //    if (rdata.root == null)
+            //    {
+            //        Rest.Log.WarnFormat("{0} Inventory is not available [1] for agent {1} {2}",
+            //                             MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //        rdata.Fail(Rest.HttpStatusCodeServerError, "inventory retrieval failed");
+            //    }
 
-            }
-            else
-            {
-                Rest.Log.WarnFormat("{0} Inventory is not locally available for agent {1} {2}",
-                                     MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
-                rdata.Fail(Rest.HttpStatusCodeNotFound, "no local inventory for user");
-            }
+            //}
+            //else
+            //{
+            //    Rest.Log.WarnFormat("{0} Inventory is not locally available for agent {1} {2}",
+            //                         MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
+            //    rdata.Fail(Rest.HttpStatusCodeNotFound, "no local inventory for user");
+            //}
 
-            // If we get here, then we have successfully retrieved the user's information
-            // and inventory information is now available locally.
+            //// If we get here, then we have successfully retrieved the user's information
+            //// and inventory information is now available locally.
 
-            switch (rdata.method)
-            {
-                case Rest.HEAD   : // Do the processing, set the status code, suppress entity
-                    DoGet(rdata);
-                    rdata.buffer = null;
-                    break;
+            //switch (rdata.method)
+            //{
+            //    case Rest.HEAD   : // Do the processing, set the status code, suppress entity
+            //        DoGet(rdata);
+            //        rdata.buffer = null;
+            //        break;
 
-                case Rest.GET    : // Do the processing, set the status code, return entity
-                    DoGet(rdata);
-                    break;
+            //    case Rest.GET    : // Do the processing, set the status code, return entity
+            //        DoGet(rdata);
+            //        break;
 
-                case Rest.PUT    : // Update named element
-                    DoUpdate(rdata);
-                    break;
+            //    case Rest.PUT    : // Update named element
+            //        DoUpdate(rdata);
+            //        break;
 
-                case Rest.POST   : // Add new information to identified context.
-                    DoExtend(rdata);
-                    break;
+            //    case Rest.POST   : // Add new information to identified context.
+            //        DoExtend(rdata);
+            //        break;
 
-                case Rest.DELETE : // Delete information
-                    DoDelete(rdata);
-                    break;
+            //    case Rest.DELETE : // Delete information
+            //        DoDelete(rdata);
+            //        break;
 
-                default :
-                    Rest.Log.WarnFormat("{0} Method {1} not supported for {2}",
-                                        MsgId, rdata.method, rdata.path);
-                    rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed,
-                               String.Format("{0} not supported", rdata.method));
-                    break;
-            }
+            //    default :
+            //        Rest.Log.WarnFormat("{0} Method {1} not supported for {2}",
+            //                            MsgId, rdata.method, rdata.path);
+            //        rdata.Fail(Rest.HttpStatusCodeMethodNotAllowed,
+            //                   String.Format("{0} not supported", rdata.method));
+            //        break;
+            //}
         }
 
         #endregion Interface
@@ -1869,7 +1871,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 // Create AssetBase entity to hold the inlined asset
 
-                asset = new AssetBase(uuid, name, type);
+                asset = new AssetBase(uuid, name, type, UUID.Zero.ToString());
 
                 asset.Description = desc;
                 asset.Local       = local;

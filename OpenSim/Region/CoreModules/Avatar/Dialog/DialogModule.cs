@@ -31,9 +31,10 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Dialog
 {
@@ -116,12 +117,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             UUID avatarID, string objectName, UUID objectID, UUID ownerID,
             string message, UUID textureID, int ch, string[] buttonlabels)
         {
-            CachedUserInfo info = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(ownerID);
+            UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerID);
             string ownerFirstName, ownerLastName;
-            if (info != null)
+            if (account != null)
             {
-                ownerFirstName = info.UserProfile.FirstName;
-                ownerLastName = info.UserProfile.SurName;
+                ownerFirstName = account.FirstName;
+                ownerLastName = account.LastName;
             }
             else
             {

@@ -212,8 +212,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (script.StartsWith("//MRM:C#"))
             {
                 if (m_config.GetBoolean("OwnerOnly", true))
-                    if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.MasterAvatarAssignedUUID
-                        || m_scene.GetSceneObjectPart(localID).CreatorID != m_scene.RegionInfo.MasterAvatarAssignedUUID)
+                    if (m_scene.GetSceneObjectPart(localID).OwnerID != m_scene.RegionInfo.EstateSettings.EstateOwner
+                        || m_scene.GetSceneObjectPart(localID).CreatorID != m_scene.RegionInfo.EstateSettings.EstateOwner)
                         return;
 
                 script = ConvertMRMKeywords(script);
@@ -280,7 +280,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
         public void GetGlobalEnvironment(uint localID, out IWorld world, out IHost host)
         {
             // UUID should be changed to object owner.
-            UUID owner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            UUID owner = m_scene.RegionInfo.EstateSettings.EstateOwner;
             SEUser securityUser = new SEUser(owner, "Name Unassigned");
             SecurityCredential creds = new SecurityCredential(securityUser, m_scene);
 

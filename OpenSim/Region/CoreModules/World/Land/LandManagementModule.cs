@@ -239,10 +239,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject fullSimParcel = new LandObject(UUID.Zero, false, m_scene);
 
             fullSimParcel.SetLandBitmap(fullSimParcel.GetSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            else
-                fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            fullSimParcel.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
             fullSimParcel.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
             AddLandObject(fullSimParcel);
         }
@@ -1214,10 +1211,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 if (m_scene.Permissions.CanAbandonParcel(remote_client.AgentId, land))
                 {
-                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                        land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                    else
-                        land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     land.LandData.GroupID = UUID.Zero;
                     land.LandData.IsGroupOwned = false;
                     m_scene.ForEachClient(SendParcelOverlay);
@@ -1238,10 +1232,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 if (m_scene.Permissions.CanReclaimParcel(remote_client.AgentId, land))
                 {
-                    if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                        land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                    else
-                        land.LandData.OwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    land.LandData.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                     land.LandData.ClaimDate = Util.UnixTimeSinceEpoch();
                     land.LandData.GroupID = UUID.Zero;
                     land.LandData.IsGroupOwned = false;

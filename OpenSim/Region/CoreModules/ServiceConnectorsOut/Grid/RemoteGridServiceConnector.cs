@@ -188,9 +188,26 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             return rinfo;
         }
 
-        // Let's not override GetRegionsByName -- let's get them all from the grid server
+        public override List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
+        {
+            List<GridRegion> rinfo = m_LocalGridService.GetRegionsByName(scopeID, name, maxNumber);
+            List<GridRegion> grinfo = base.GetRegionsByName(scopeID, name, maxNumber);
+
+            if (grinfo != null)
+                rinfo.AddRange(grinfo);
+            return rinfo;
+        }
+
         // Let's not override GetRegionRange -- let's get them all from the grid server
 
+        public override int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            int flags = m_LocalGridService.GetRegionFlags(scopeID, regionID);
+            if (flags == -1)
+                flags = base.GetRegionFlags(scopeID, regionID);
+
+            return flags;
+        }
         #endregion
     }
 }

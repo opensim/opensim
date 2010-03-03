@@ -20,6 +20,38 @@
     ; change this to your grid-wide grid server
     ;
     GridServerURI = "http://mygridserver.com:8003"
+    ;AllowHypergridMapSearch = true
+
+[AvatarService]
+    ;
+    ; change this to your grid-wide grid server
+    ;
+    AvatarServerURI = "http://mygridserver.com:8003"
+
+[PresenceService]
+    ;
+    ; change this to your grid-wide presence server
+    ;
+    PresenceServerURI = "http://mygridserver.com:8003"
+
+[UserAccountService]
+    ;
+    ; change this to your grid-wide user accounts server
+    ;
+    UserAccountServerURI = "http://mygridserver.com:8003"
+
+[AuthenticationService]
+    ;
+    ; change this to your grid-wide authentication server
+    ;
+    AuthenticationServerURI = "http://mygridserver.com:8003"
+
+[FriendsService]
+    ;
+    ; change this to your grid-wide friends server
+    ;
+    FriendsServerURI = "http://mygridserver.com:8003"
+
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.

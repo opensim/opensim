@@ -553,7 +553,7 @@ namespace OpenSim.Framework
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[UTIL]: An error occurred while resolving {0}, {1}", dnsAddress, e);
+                m_log.WarnFormat("[UTIL]: An error occurred while resolving host name {0}, {1}", dnsAddress, e);
 
                 // Still going to throw the exception on for now, since this was what was happening in the first place
                 throw e;
@@ -589,11 +589,17 @@ namespace OpenSim.Framework
 
         public static IPAddress GetLocalHost()
         {
-            string dnsAddress = "localhost";
+            IPAddress[] iplist = GetLocalHosts();
 
-            IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+            if (iplist.Length == 0) // No accessible external interfaces
+            {
+                IPAddress[] loopback = Dns.GetHostAddresses("localhost");
+                IPAddress localhost = loopback[0];
 
-            foreach (IPAddress host in hosts)
+                return localhost;
+            }
+
+            foreach (IPAddress host in iplist)
             {
                 if (!IPAddress.IsLoopback(host) && host.AddressFamily == AddressFamily.InterNetwork)
                 {
@@ -601,15 +607,15 @@ namespace OpenSim.Framework
                 }
             }
 
-            if (hosts.Length > 0)
+            if (iplist.Length > 0)
             {
-                foreach (IPAddress host in hosts)
+                foreach (IPAddress host in iplist)
                 {
                     if (host.AddressFamily == AddressFamily.InterNetwork)
                         return host;
                 }
                 // Well all else failed...
-                return hosts[0];
+                return iplist[0];
             }
 
             return null;
@@ -1184,6 +1190,33 @@ namespace OpenSim.Framework
                 return args;
             }
             return null;
+        }
+
+        public static OSDMap GetOSDMap(string data)
+        {
+            OSDMap args = null;
+            try
+            {
+                OSD buffer;
+                // We should pay attention to the content-type, but let's assume we know it's Json
+                buffer = OSDParser.DeserializeJson(data);
+                if (buffer.Type == OSDType.Map)
+                {
+                    args = (OSDMap)buffer;
+                    return args;
+                }
+                else
+                {
+                    // uh?
+                    m_log.Debug(("[UTILS]: Got OSD of unexpected type " + buffer.Type.ToString()));
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                m_log.Debug("[UTILS]: exception on GetOSDMap " + ex.Message);
+                return null;
+            }
         }
 
         public static string[] Glob(string path)

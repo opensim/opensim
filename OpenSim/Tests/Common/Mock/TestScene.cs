@@ -29,7 +29,7 @@ using System;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
@@ -40,10 +40,10 @@ namespace OpenSim.Tests.Common.Mock
     {
         public TestScene(
             RegionInfo regInfo, AgentCircuitManager authen,
-            CommunicationsManager commsMan, SceneCommunicationService sceneGridService, StorageManager storeManager,
+            SceneCommunicationService sceneGridService, StorageManager storeManager,
             ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
             bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, commsMan, sceneGridService, storeManager, moduleLoader,
+            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
                    dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
         {
         }
@@ -56,7 +56,7 @@ namespace OpenSim.Tests.Common.Mock
         /// 
         /// <param name="agent"></param>
         /// <returns></returns>
-        public override bool AuthenticateUser(AgentCircuitData agent, out string reason)
+        public override bool VerifyUserPresence(AgentCircuitData agent, out string reason)
         {
             reason = String.Empty;
             return true;

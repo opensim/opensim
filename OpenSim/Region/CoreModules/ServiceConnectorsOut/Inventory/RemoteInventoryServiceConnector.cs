@@ -32,7 +32,7 @@ using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Statistics;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Services.Connectors;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -49,7 +49,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private bool m_Enabled = false;
         private bool m_Initialized = false;
         private Scene m_Scene;
-        private UserProfileCacheService m_UserProfileService; 
         private InventoryServicesConnector m_RemoteConnector;
 
         public Type ReplaceableInterface 
@@ -114,9 +113,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
             if (!m_Initialized)
             {
-                // ugh!
-                scene.CommsManager.UserProfileCacheService.SetInventoryService(this);
-                scene.CommsManager.UserService.SetInventoryService(this); 
                 m_Initialized = true;
             }
 
@@ -134,10 +130,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public void RegionLoaded(Scene scene)
         {
-            m_UserProfileService = m_Scene.CommsManager.UserProfileCacheService;
-            if (m_UserProfileService != null)
-                m_log.Debug("[XXXX] Set m_UserProfileService in " + m_Scene.RegionInfo.RegionName);
-
             if (!m_Enabled)
                 return;
 
@@ -345,23 +337,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private UUID GetSessionID(UUID userID)
         {
-            //if (m_Scene == null)
-            //{
-            //    m_log.Debug("[INVENTORY CONNECTOR]: OOPS! scene is null");
-            //}
-
-            if (m_UserProfileService == null)
-            {
-                //m_log.Debug("[INVENTORY CONNECTOR]: OOPS! UserProfileCacheService is null");
-                return UUID.Zero;
-            }
-
-            CachedUserInfo uinfo = m_UserProfileService.GetUserDetails(userID);
-            if (uinfo != null)
-                return uinfo.SessionID;
-            m_log.DebugFormat("[INVENTORY CONNECTOR]: user profile for {0} not found", userID);
             return UUID.Zero;
-
         }
 
     }

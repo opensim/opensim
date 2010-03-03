@@ -31,7 +31,7 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                                bool storeLocal, bool tempFile)
         {
             ourClient = remoteClient;
-            m_asset = new AssetBase(assetID, "blank", type);
+            m_asset = new AssetBase(assetID, "blank", type, remoteClient.AgentId.ToString());
             m_asset.Data = data;
             m_asset.Description = "empty";
             m_asset.Local = storeLocal;

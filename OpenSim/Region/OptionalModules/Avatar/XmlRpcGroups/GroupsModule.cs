@@ -43,6 +43,8 @@ using OpenSim.Region.CoreModules.Framework.EventQueue;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+using OpenSim.Services.Interfaces;
+
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using DirFindFlags = OpenMetaverse.DirectoryManager.DirFindFlags;
 
@@ -507,10 +509,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     {
                          if (m_debugEnabled)
                         {
-                            UserProfileData targetUserProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(member.AgentID);
-                            if (targetUserProfile != null)
+                            UserAccount targetUser = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, member.AgentID);
+                            if (targetUser != null)
                             {
-                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, targetUserProfile.Name, member.AcceptNotices);
+                                m_log.DebugFormat("[GROUPS]: Prepping group notice {0} for agent: {1} who Accepts Notices ({2})", NoticeID, targetUser.FirstName + " " + targetUser.LastName, member.AcceptNotices);
                             }
                             else
                             {
@@ -990,9 +992,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             remoteClient.SendEjectGroupMemberReply(remoteClient.AgentId, groupID, true);
 
             GroupRecord groupInfo = m_groupData.GetGroupRecord(grID, groupID, null);
-            UserProfileData userProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(ejecteeID);
-
-            if ((groupInfo == null) || (userProfile == null))
+            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, ejecteeID);
+            if ((groupInfo == null) || (account == null))
             {
                 return;
             }
@@ -1032,9 +1033,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             msg.toAgentID = remoteClient.AgentId.Guid;
             msg.timestamp = 0;
             msg.fromAgentName = remoteClient.Name;
-            if (userProfile != null)
+            if (account != null)
             {
-                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", remoteClient.Name, groupInfo.GroupName, userProfile.Name);
+                msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", remoteClient.Name, groupInfo.GroupName, account.FirstName + " " + account.LastName);
             }
             else
             {
@@ -1147,8 +1148,9 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     info.RequestID.AgentID = client.AgentId;
                     info.RequestID.SessionID = client.SessionId;
 
-                    UserProfileData userProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(client.AgentId);
-                    if (userProfile == null)
+                    //UserProfileData userProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(client.AgentId);
+                    UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, client.AgentId);
+                    if (account == null)
                     {
                         // This should be impossible.  If I've been passed a reference to a client
                         // that client should be registered with the UserService.  So something
@@ -1157,19 +1159,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                         m_log.WarnFormat("[GROUPS]: Could not find a user profile for {0} / {1}", client.Name, client.AgentId);
 
                         // Default to local user service and hope for the best?
-                        info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+                        // REFACTORING PROBLEM
+                        //info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
 
-                    }
-                    else if (userProfile is ForeignUserProfileData)
-                    {
-                        // They aren't from around here
-                        ForeignUserProfileData fupd = (ForeignUserProfileData)userProfile;
-                        info.RequestID.UserServiceURL = fupd.UserServerURI;
                     }
                     else
                     {
+                        string domain = string.Empty; //m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+                        if (account.ServiceURLs["HomeURI"] != null)
+                            domain = account.ServiceURLs["HomeURI"].ToString();
                         // They're a local user, use this:
-                        info.RequestID.UserServiceURL = m_sceneList[0].CommsManager.NetworkServersInfo.UserURL;
+                        info.RequestID.UserServiceURL = domain;
                     }
 
                     m_clientRequestIDInfo.Add(client.AgentId, info);
@@ -1342,12 +1342,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
             // TODO: All the client update functions need to be reexamined because most do too much and send too much stuff
-            UserProfileData userProfile = m_sceneList[0].CommsManager.UserService.GetUserProfile(dataForAgentID);
+            UserAccount account = m_sceneList[0].UserAccountService.GetUserAccount(remoteClient.Scene.RegionInfo.ScopeID, dataForAgentID);
             string firstname, lastname;
-            if (userProfile != null)
+            if (account != null)
             {
-                firstname = userProfile.FirstName;
-                lastname = userProfile.SurName;
+                firstname = account.FirstName;
+                lastname = account.LastName;
             }
             else
             {

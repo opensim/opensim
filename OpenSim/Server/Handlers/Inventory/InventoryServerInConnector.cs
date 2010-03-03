@@ -46,7 +46,7 @@ namespace OpenSim.Server.Handlers.Inventory
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IInventoryService m_InventoryService;
+        protected IInventoryService m_InventoryService;
 
         private bool m_doLookup = false;
 
@@ -54,11 +54,14 @@ namespace OpenSim.Server.Handlers.Inventory
         //private AuthedSessionCache m_session_cache = new AuthedSessionCache(INVENTORY_DEFAULT_SESSION_TIME);
 
         private string m_userserver_url;
-        private string m_ConfigName = "InventoryService";
+        protected string m_ConfigName = "InventoryService";
 
         public InventoryServiceInConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
+            if (configName != string.Empty)
+                m_ConfigName = configName;
+    
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
                 throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
@@ -328,46 +331,9 @@ namespace OpenSim.Server.Handlers.Inventory
         /// <param name="session_id"></param>
         /// <param name="avatar_id"></param>
         /// <returns></returns>
-        public bool CheckAuthSession(string session_id, string avatar_id)
+        public virtual bool CheckAuthSession(string session_id, string avatar_id)
         {
-            if (m_doLookup)
-            {
-                m_log.InfoFormat("[INVENTORY IN CONNECTOR]: checking authed session {0} {1}", session_id, avatar_id);
-
-                //if (m_session_cache.getCachedSession(session_id, avatar_id) == null)
-                //{
-                    // cache miss, ask userserver
-                    Hashtable requestData = new Hashtable();
-                    requestData["avatar_uuid"] = avatar_id;
-                    requestData["session_id"] = session_id;
-                    ArrayList SendParams = new ArrayList();
-                    SendParams.Add(requestData);
-                    XmlRpcRequest UserReq = new XmlRpcRequest("check_auth_session", SendParams);
-                    XmlRpcResponse UserResp = UserReq.Send(m_userserver_url, 3000);
-
-                    Hashtable responseData = (Hashtable)UserResp.Value;
-                    if (responseData.ContainsKey("auth_session") && responseData["auth_session"].ToString() == "TRUE")
-                    {
-                        m_log.Info("[INVENTORY IN CONNECTOR]: got authed session from userserver");
-                        //// add to cache; the session time will be automatically renewed
-                        //m_session_cache.Add(session_id, avatar_id);
-                        return true;
-                    }
-                //}
-                //else
-                //{
-                //    // cache hits
-                //    m_log.Info("[GRID AGENT INVENTORY]: got authed session from cache");
-                //    return true;
-                //}
-
-                    m_log.Warn("[INVENTORY IN CONNECTOR]: unknown session_id, request rejected");
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return true;
         }
 
     }

@@ -91,7 +91,7 @@ namespace OpenSim.Server.Handlers.Asset
 
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(metadata.Type);
+                            SLUtil.SLAssetTypeToContentType(metadata.Type);
                 }
                 else
                 {
@@ -111,7 +111,7 @@ namespace OpenSim.Server.Handlers.Asset
 
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     httpResponse.ContentType =
-                            ServerUtils.SLAssetTypeToContentType(asset.Type);
+                            SLUtil.SLAssetTypeToContentType(asset.Type);
                 }
                 else
                 {

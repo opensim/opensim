@@ -58,11 +58,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
             IConfig moduleConfig = config.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("SimulationService", "");
-                if (name == Name)
+                m_Enabled = moduleConfig.GetBoolean("SimulationServiceInConnector", false);
+                if (m_Enabled)
                 {
-                    m_Enabled = true;
-                    m_log.Info("[SIM SERVICE]: SimulationService enabled");
+                    m_log.Info("[SIM SERVICE]: SimulationService IN connector enabled");
 
                 }
             }
@@ -84,10 +83,21 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
 
         public string Name
         {
-            get { return "SimulationService"; }
+            get { return "SimulationServiceInConnectorModule"; }
         }
 
         public void AddRegion(Scene scene)
+        {
+            if (!m_Enabled)
+                return;
+
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+        }
+
+        public void RegionLoaded(Scene scene)
         {
             if (!m_Enabled)
                 return;
@@ -102,14 +112,6 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Simulation
 
                 ServerUtils.LoadPlugin<IServiceConnector>("OpenSim.Server.Handlers.dll:SimulationServiceInConnector", args);
             }
-        }
-
-        public void RemoveRegion(Scene scene)
-        {
-        }
-
-        public void RegionLoaded(Scene scene)
-        {
         }
 
         #endregion

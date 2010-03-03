@@ -102,8 +102,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_log.Info("[LOADREGIONSPLUGIN]: Loading specific shared modules...");
             m_log.Info("[LOADREGIONSPLUGIN]: DynamicTextureModule...");
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new DynamicTextureModule());
-            m_log.Info("[LOADREGIONSPLUGIN]: InstantMessageModule...");
-            m_openSim.ModuleLoader.LoadDefaultSharedModule(new InstantMessageModule());
             m_log.Info("[LOADREGIONSPLUGIN]: LoadImageURLModule...");
             m_openSim.ModuleLoader.LoadDefaultSharedModule(new LoadImageURLModule());
             m_log.Info("[LOADREGIONSPLUGIN]: XMLRPCModule...");

@@ -64,7 +64,7 @@ namespace OpenSim.Services.Base
                 foreach (Type pluginType in pluginAssembly.GetTypes())
                 {
                     if (pluginType.IsPublic)
-                    {
+                    {                        
                         if (className != String.Empty &&
                                 pluginType.ToString() !=
                                 pluginType.Namespace + "." + className)
@@ -84,8 +84,9 @@ namespace OpenSim.Services.Base
 
                 return null;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine("XXX Exception " + e.StackTrace);
                 return null;
             }
         }

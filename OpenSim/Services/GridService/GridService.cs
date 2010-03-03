@@ -34,6 +34,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Data;
+using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenMetaverse;
@@ -46,17 +47,58 @@ namespace OpenSim.Services.GridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
+        private bool m_DeleteOnUnregister = true;
+        private static GridService m_RootInstance = null;
+        protected IConfigSource m_config;
+        protected HypergridLinker m_HypergridLinker;
+
+        protected IAuthenticationService m_AuthenticationService = null;
         protected bool m_AllowDuplicateNames = false;
+        protected bool m_AllowHypergridMapSearch = false;
 
         public GridService(IConfigSource config)
             : base(config)
         {
             m_log.DebugFormat("[GRID SERVICE]: Starting...");
 
+            m_config = config;
             IConfig gridConfig = config.Configs["GridService"];
             if (gridConfig != null)
             {
+                m_DeleteOnUnregister = gridConfig.GetBoolean("DeleteOnUnregister", true);
+                
+                string authService = gridConfig.GetString("AuthenticationService", String.Empty);
+
+                if (authService != String.Empty)
+                {
+                    Object[] args = new Object[] { config };
+                    m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authService, args);
+                }
                 m_AllowDuplicateNames = gridConfig.GetBoolean("AllowDuplicateNames", m_AllowDuplicateNames);
+                m_AllowHypergridMapSearch = gridConfig.GetBoolean("AllowHypergridMapSearch", m_AllowHypergridMapSearch);
+            }
+            
+            if (m_RootInstance == null)
+            {
+                m_RootInstance = this;
+
+                if (MainConsole.Instance != null)
+                {
+                    MainConsole.Instance.Commands.AddCommand("grid", true,
+                            "show region",
+                            "show region <Region name>",
+                            "Show details on a region",
+                            String.Empty,
+                            HandleShowRegion);
+
+                    MainConsole.Instance.Commands.AddCommand("grid", true,
+                            "set region flags",
+                            "set region flags <Region name> <flags>",
+                            "Set database flags for region",
+                            String.Empty,
+                            HandleSetFlags);
+                }
+                m_HypergridLinker = new HypergridLinker(m_config, this, m_Database);
             }
         }
 
@@ -64,9 +106,48 @@ namespace OpenSim.Services.GridService
 
         public string RegisterRegion(UUID scopeID, GridRegion regionInfos)
         {
+            IConfig gridConfig = m_config.Configs["GridService"];
             // This needs better sanity testing. What if regionInfo is registering in
             // overlapping coords?
             RegionData region = m_Database.Get(regionInfos.RegionLocX, regionInfos.RegionLocY, scopeID);
+            if (region != null)
+            {
+                // There is a preexisting record
+                //
+                // Get it's flags
+                //
+                OpenSim.Data.RegionFlags rflags = (OpenSim.Data.RegionFlags)Convert.ToInt32(region.Data["flags"]);
+
+                // Is this a reservation?
+                //
+                if ((rflags & OpenSim.Data.RegionFlags.Reservation) != 0)
+                {
+                    // Regions reserved for the null key cannot be taken.
+                    //
+                    if (region.Data["PrincipalID"] == UUID.Zero.ToString())
+                        return "Region location us reserved";
+
+                    // Treat it as an auth request
+                    //
+                    // NOTE: Fudging the flags value here, so these flags
+                    //       should not be used elsewhere. Don't optimize
+                    //       this with the later retrieval of the same flags!
+                    //
+                    rflags |= OpenSim.Data.RegionFlags.Authenticate;
+                }
+
+                if ((rflags & OpenSim.Data.RegionFlags.Authenticate) != 0)
+                {
+                    // Can we authenticate at all?
+                    //
+                    if (m_AuthenticationService == null)
+                        return "No authentication possible";
+
+                    if (!m_AuthenticationService.Verify(new UUID(region.Data["PrincipalID"].ToString()), regionInfos.Token, 30))
+                        return "Bad authentication";
+                }
+            }
+
             if ((region != null) && (region.RegionID != regionInfos.RegionID))
             {
                 m_log.WarnFormat("[GRID SERVICE]: Region {0} tried to register in coordinates {1}, {2} which are already in use in scope {3}.", 
@@ -76,6 +157,9 @@ namespace OpenSim.Services.GridService
             if ((region != null) && (region.RegionID == regionInfos.RegionID) && 
                 ((region.posX != regionInfos.RegionLocX) || (region.posY != regionInfos.RegionLocY)))
             {
+                if ((Convert.ToInt32(region.Data["flags"]) & (int)OpenSim.Data.RegionFlags.NoMove) != 0)
+                    return "Can't move this region";
+
                 // Region reregistering in other coordinates. Delete the old entry
                 m_log.DebugFormat("[GRID SERVICE]: Region {0} ({1}) was previously registered at {2}-{3}. Deleting old entry.",
                     regionInfos.RegionName, regionInfos.RegionID, regionInfos.RegionLocX, regionInfos.RegionLocY);
@@ -110,8 +194,37 @@ namespace OpenSim.Services.GridService
             // Everything is ok, let's register
             RegionData rdata = RegionInfo2RegionData(regionInfos);
             rdata.ScopeID = scopeID;
+            
+            if (region != null)
+            {
+                int oldFlags = Convert.ToInt32(region.Data["flags"]);
+                if ((oldFlags & (int)OpenSim.Data.RegionFlags.LockedOut) != 0)
+                    return "Region locked out";
+
+                oldFlags &= ~(int)OpenSim.Data.RegionFlags.Reservation;
+
+                rdata.Data["flags"] = oldFlags.ToString(); // Preserve flags
+            }
+            else
+            {
+                rdata.Data["flags"] = "0";
+                if ((gridConfig != null) && rdata.RegionName != string.Empty)
+                {
+                    int newFlags = 0;
+                    string regionName = rdata.RegionName.Trim().Replace(' ', '_');
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + regionName, String.Empty));
+                    newFlags = ParseFlags(newFlags, gridConfig.GetString("Region_" + rdata.RegionID.ToString(), String.Empty));
+                    rdata.Data["flags"] = newFlags.ToString();
+                }
+            }
+
+            int flags = Convert.ToInt32(rdata.Data["flags"]);
+            flags |= (int)OpenSim.Data.RegionFlags.RegionOnline;
+            rdata.Data["flags"] = flags.ToString();
+
             try
             {
+                rdata.Data["last_seen"] = Util.UnixTimeSinceEpoch();
                 m_Database.Store(rdata);
             }
             catch (Exception e)
@@ -128,6 +241,30 @@ namespace OpenSim.Services.GridService
         public bool DeregisterRegion(UUID regionID)
         {
             m_log.DebugFormat("[GRID SERVICE]: Region {0} deregistered", regionID);
+            RegionData region = m_Database.Get(regionID, UUID.Zero);
+            if (region == null)
+                return false;
+
+            int flags = Convert.ToInt32(region.Data["flags"]);
+
+            if (!m_DeleteOnUnregister || (flags & (int)OpenSim.Data.RegionFlags.Persistent) != 0)
+            {
+                flags &= ~(int)OpenSim.Data.RegionFlags.RegionOnline;
+                region.Data["flags"] = flags.ToString();
+                region.Data["last_seen"] = Util.UnixTimeSinceEpoch();
+                try
+                {
+                    m_Database.Store(region);
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[GRID SERVICE]: Database exception: {0}", e);
+                }
+
+                return true;
+
+            }
+
             return m_Database.Delete(regionID);
         }
 
@@ -194,6 +331,13 @@ namespace OpenSim.Services.GridService
                 }
             }
 
+            if (m_AllowHypergridMapSearch && rdatas == null || (rdatas != null && rdatas.Count == 0) && name.Contains("."))
+            {
+                GridRegion r = m_HypergridLinker.LinkRegion(scopeID, name);
+                if (r != null)
+                    rinfos.Add(r);
+            }
+
             return rinfos;
         }
 
@@ -216,7 +360,7 @@ namespace OpenSim.Services.GridService
 
         #region Data structure conversions
 
-        protected RegionData RegionInfo2RegionData(GridRegion rinfo)
+        public RegionData RegionInfo2RegionData(GridRegion rinfo)
         {
             RegionData rdata = new RegionData();
             rdata.posX = (int)rinfo.RegionLocX;
@@ -229,7 +373,7 @@ namespace OpenSim.Services.GridService
             return rdata;
         }
 
-        protected GridRegion RegionData2RegionInfo(RegionData rdata)
+        public GridRegion RegionData2RegionInfo(RegionData rdata)
         {
             GridRegion rinfo = new GridRegion(rdata.Data);
             rinfo.RegionLocX = rdata.posX;
@@ -243,5 +387,142 @@ namespace OpenSim.Services.GridService
 
         #endregion 
 
+        public List<GridRegion> GetDefaultRegions(UUID scopeID)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetDefaultRegions(scopeID);
+
+            foreach (RegionData r in regions)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
+
+            return ret;
+        }
+
+        public List<GridRegion> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            List<GridRegion> ret = new List<GridRegion>();
+
+            List<RegionData> regions = m_Database.GetFallbackRegions(scopeID, x, y);
+
+            foreach (RegionData r in regions)
+            {
+                if ((Convert.ToInt32(r.Data["flags"]) & (int)OpenSim.Data.RegionFlags.RegionOnline) != 0)
+                    ret.Add(RegionData2RegionInfo(r));
+            }
+
+            m_log.DebugFormat("[GRID SERVICE]: Fallback returned {0} regions", ret.Count);
+            return ret;
+        }
+
+        public int GetRegionFlags(UUID scopeID, UUID regionID)
+        {
+            RegionData region = m_Database.Get(regionID, scopeID);
+
+            if (region != null)
+            {
+                int flags = Convert.ToInt32(region.Data["flags"]);
+                //m_log.DebugFormat("[GRID SERVICE]: Request for flags of {0}: {1}", regionID, flags);
+                return flags;
+            }
+            else
+                return -1;
+        }
+
+        private void HandleShowRegion(string module, string[] cmd)
+        {
+            if (cmd.Length != 3)
+            {
+                MainConsole.Instance.Output("Syntax: show region <region name>");
+                return;
+            }
+            List<RegionData> regions = m_Database.Get(cmd[2], UUID.Zero);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("Region not found");
+                return;
+            }
+
+            MainConsole.Instance.Output("Region Name          Region UUID");
+            MainConsole.Instance.Output("Location             URI");
+            MainConsole.Instance.Output("Owner ID                                Flags");
+            MainConsole.Instance.Output("-------------------------------------------------------------------------------");
+            foreach (RegionData r in regions)
+            {
+                OpenSim.Data.RegionFlags flags = (OpenSim.Data.RegionFlags)Convert.ToInt32(r.Data["flags"]);
+                MainConsole.Instance.Output(String.Format("{0,-20} {1}\n{2,-20} {3}\n{4,-39} {5}\n\n",
+                        r.RegionName, r.RegionID,
+                        String.Format("{0},{1}", r.posX, r.posY), "http://" + r.Data["serverIP"].ToString() + ":" + r.Data["serverPort"].ToString(),
+                        r.Data["owner_uuid"].ToString(), flags.ToString()));
+            }
+            return;
+        }
+
+        private int ParseFlags(int prev, string flags)
+        {
+            OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)prev;
+
+            string[] parts = flags.Split(new char[] {',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string p in parts)
+            {
+                int val;
+
+                try
+                {
+                    if (p.StartsWith("+"))
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
+                        f |= (OpenSim.Data.RegionFlags)val;
+                    }
+                    else if (p.StartsWith("-"))
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p.Substring(1));
+                        f &= ~(OpenSim.Data.RegionFlags)val;
+                    }
+                    else
+                    {
+                        val = (int)Enum.Parse(typeof(OpenSim.Data.RegionFlags), p);
+                        f |= (OpenSim.Data.RegionFlags)val;
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainConsole.Instance.Output("Error in flag specification: " + p);
+                }
+            }
+
+            return (int)f;
+        }
+
+        private void HandleSetFlags(string module, string[] cmd)
+        {
+            if (cmd.Length < 5)
+            {
+                MainConsole.Instance.Output("Syntax: set region flags <region name> <flags>");
+                return;
+            }
+
+            List<RegionData> regions = m_Database.Get(cmd[3], UUID.Zero);
+            if (regions == null || regions.Count < 1)
+            {
+                MainConsole.Instance.Output("Region not found");
+                return;
+            }
+
+            foreach (RegionData r in regions)
+            {
+                int flags = Convert.ToInt32(r.Data["flags"]);
+                flags = ParseFlags(flags, cmd[4]);
+                r.Data["flags"] = flags.ToString();
+                OpenSim.Data.RegionFlags f = (OpenSim.Data.RegionFlags)flags;
+
+                MainConsole.Instance.Output(String.Format("Set region {0} to {1}", r.RegionName, f));
+                m_Database.Store(r);
+            }
+        }
     }
 }

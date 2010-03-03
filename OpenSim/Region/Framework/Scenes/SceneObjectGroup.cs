@@ -369,14 +369,22 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 lockPartsForRead(true);
+
+                if (RootPart.GetStatusSandbox())
                 {
-                    foreach (SceneObjectPart part in m_parts.Values)
+                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, value) > 10)
                     {
-                        
-                        part.GroupPosition = val;
-                        
+                        RootPart.ScriptSetPhysicsStatus(false);
+                        Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                              ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                        lockPartsForRead(false);
+                        return;
                     }
                 }
+
+                foreach (SceneObjectPart part in m_parts.Values)
+                    part.GroupPosition = val;
+                        
                 lockPartsForRead(false);
 
                 //if (m_rootPart.PhysActor != null)
@@ -468,6 +476,34 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+        }
+
+        private SceneObjectPart m_PlaySoundMasterPrim = null;
+        public SceneObjectPart PlaySoundMasterPrim
+        {
+            get { return m_PlaySoundMasterPrim; }
+            set { m_PlaySoundMasterPrim = value; }
+        }
+
+        private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
+        public List<SceneObjectPart> PlaySoundSlavePrims
+        {
+            get { return m_LoopSoundSlavePrims; }
+            set { m_LoopSoundSlavePrims = value; }
+        }
+
+        private SceneObjectPart m_LoopSoundMasterPrim = null;
+        public SceneObjectPart LoopSoundMasterPrim
+        {
+            get { return m_LoopSoundMasterPrim; }
+            set { m_LoopSoundMasterPrim = value; }
+        }
+
+        private List<SceneObjectPart> m_LoopSoundSlavePrims = new List<SceneObjectPart>();
+        public List<SceneObjectPart> LoopSoundSlavePrims
+        {
+            get { return m_LoopSoundSlavePrims; }
+            set { m_LoopSoundSlavePrims = value; }
         }
 
         // The UUID for the Region this Object is in.
@@ -584,7 +620,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (m_rootPart.Shape.PCode != 9 || m_rootPart.Shape.State == 0)
                 m_rootPart.ParentID = 0;
-            if (m_rootPart.LocalId==0)
+            if (m_rootPart.LocalId == 0)
                 m_rootPart.LocalId = m_scene.AllocateLocalId();
 
             // No need to lock here since the object isn't yet in a scene
@@ -1586,6 +1622,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="part"></param>
         internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
         {
+//            m_log.DebugFormat(
+//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+            
             if (m_rootPart.UUID == part.UUID)
             {
                 if (IsAttachment)
@@ -1898,33 +1937,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         
-        public void rotLookAt(Quaternion target, float strength, float damping)
-        {
-            SceneObjectPart rootpart = m_rootPart;
-            if (rootpart != null)
-            {
-                if (IsAttachment)
-                {
-                /*
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                    if (avatar != null)
-                    {
-                    Rotate the Av?
-                    } */
-                }
-                else
-                {
-                    if (rootpart.PhysActor != null)
-                    {
-                        rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
-                        rootpart.PhysActor.APIDStrength = strength;
-                        rootpart.PhysActor.APIDDamping = damping;
-                        rootpart.PhysActor.APIDActive = true;
-                    }
-                }
-            }
-        }
-
         public void stopLookAt()
         {
             SceneObjectPart rootpart = m_rootPart;
@@ -2084,7 +2096,9 @@ namespace OpenSim.Region.Framework.Scenes
 
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    
+                    if (!IsSelected)
+                        part.UpdateLookAt();
+
                     part.SendScheduledUpdates();
                     
                 }
@@ -2434,7 +2448,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             AttachToBackup();
 
-
             // Here's the deal, this is ABSOLUTELY CRITICAL so the physics scene gets the update about the 
             // position of linkset prims.  IF YOU CHANGE THIS, YOU MUST TEST colliding with just linked and 
             // unmoved prims!
@@ -2449,9 +2462,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// an independent SceneObjectGroup.
         /// </summary>
         /// <param name="partID"></param>
-        public void DelinkFromGroup(uint partID)
+        /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
+        public SceneObjectGroup DelinkFromGroup(uint partID)
         {
-            DelinkFromGroup(partID, true);
+            return DelinkFromGroup(partID, true);
         }
 
         /// <summary>
@@ -2460,28 +2474,39 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="partID"></param>
         /// <param name="sendEvents"></param>
-        public void DelinkFromGroup(uint partID, bool sendEvents)
+        /// <returns>The object group of the newly delinked prim.  Null if part could not be found</returns>
+        public SceneObjectGroup DelinkFromGroup(uint partID, bool sendEvents)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
 
             if (linkPart != null)
             {
-                DelinkFromGroup(linkPart, sendEvents);
+                return DelinkFromGroup(linkPart, sendEvents);
             }
             else
             {
-                m_log.InfoFormat("[SCENE OBJECT GROUP]: " +
+                m_log.WarnFormat("[SCENE OBJECT GROUP]: " +
                                  "DelinkFromGroup(): Child prim {0} not found in object {1}, {2}",
                                  partID, LocalId, UUID);
+
+                return null;
             }
         }
 
-        public void DelinkFromGroup(SceneObjectPart linkPart, bool sendEvents)
+        /// <summary>
+        /// Delink the given prim from this group.  The delinked prim is established as
+        /// an independent SceneObjectGroup.
+        /// </summary>
+        /// <param name="partID"></param>
+        /// <param name="sendEvents"></param>
+        /// <returns>The object group of the newly delinked prim.</returns>
+        public SceneObjectGroup DelinkFromGroup(SceneObjectPart linkPart, bool sendEvents)
         {
-            linkPart.ClearUndoState();
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
 //                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
+            
+            linkPart.ClearUndoState();
 
             Quaternion worldRot = linkPart.GetWorldRotation();
 
@@ -2536,6 +2561,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             //HasGroupChanged = true;
             //ScheduleGroupForFullUpdate();
+
+            return objectGroup;
         }
 
         /// <summary>
@@ -2574,7 +2601,6 @@ namespace OpenSim.Region.Framework.Scenes
 
             part.LinkNum = linkNum;
 
-
             part.OffsetPosition = part.GroupPosition - AbsolutePosition;
 
             Quaternion rootRotation = m_rootPart.RotationOffset;
@@ -2604,11 +2630,14 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (m_rootPart.PhysActor.IsPhysical)
                     {
-                        Vector3 llmoveforce = pos - AbsolutePosition;
-                        Vector3 grabforce = llmoveforce;
-                        grabforce = (grabforce / 10) * m_rootPart.PhysActor.Mass;
-                        m_rootPart.PhysActor.AddForce(grabforce,true);
-                        m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                        if (!m_rootPart.BlockGrab)
+                        {
+                            Vector3 llmoveforce = pos - AbsolutePosition;
+                            Vector3 grabforce = llmoveforce;
+                            grabforce = (grabforce / 10) * m_rootPart.PhysActor.Mass;
+                            m_rootPart.PhysActor.AddForce(grabforce, true);
+                            m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
+                        }
                     }
                     else
                     {
@@ -2966,6 +2995,7 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
+                part.IgnoreUndoUpdate = true;
                 if (scale.X > m_scene.m_maxNonphys)
                     scale.X = m_scene.m_maxNonphys;
                 if (scale.Y > m_scene.m_maxNonphys)
@@ -2993,6 +3023,7 @@ namespace OpenSim.Region.Framework.Scenes
                         if (obPart.UUID != m_rootPart.UUID)
                         {
                             Vector3 oldSize = new Vector3(obPart.Scale);
+                            obPart.IgnoreUndoUpdate = true;
 
                             float f = 1.0f;
                             float a = 1.0f;
@@ -3050,6 +3081,8 @@ namespace OpenSim.Region.Framework.Scenes
                                     y *= a;
                                     z *= a;
                                 }
+                                obPart.IgnoreUndoUpdate = false;
+                                obPart.StoreUndoState();
                             }
                         }
                     }
@@ -3066,6 +3099,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     foreach (SceneObjectPart obPart in m_parts.Values)
                     {
+                        obPart.IgnoreUndoUpdate = true;
                         if (obPart.UUID != m_rootPart.UUID)
                         {
                             Vector3 currentpos = new Vector3(obPart.OffsetPosition);
@@ -3079,6 +3113,8 @@ namespace OpenSim.Region.Framework.Scenes
                             obPart.Resize(newSize);
                             obPart.UpdateOffSet(currentpos);
                         }
+                        obPart.IgnoreUndoUpdate = false;
+                        obPart.StoreUndoState();
                     }
                 }
                 lockPartsForRead(false);
@@ -3089,6 +3125,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
 
+                part.IgnoreUndoUpdate = false;
+                part.StoreUndoState();
                 HasGroupChanged = true;
                 ScheduleGroupForTerseUpdate();
             }
@@ -3104,13 +3142,26 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         public void UpdateGroupPosition(Vector3 pos)
         {
+            foreach (SceneObjectPart part in Children.Values)
+            {
+                part.StoreUndoState();
+            }
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
                 if (IsAttachment)
                 {
                     m_rootPart.AttachedPos = pos;
                 }
-
+                if (RootPart.GetStatusSandbox())
+                {
+                    if (Util.GetDistanceTo(RootPart.StatusSandboxPos, pos) > 10)
+                    {
+                        RootPart.ScriptSetPhysicsStatus(false);
+                        pos = AbsolutePosition;
+                        Scene.SimChat(Utils.StringToBytes("Hit Sandbox Limit"),
+                              ChatTypeEnum.DebugChannel, 0x7FFFFFFF, RootPart.AbsolutePosition, Name, UUID, false);
+                    }
+                }
                 AbsolutePosition = pos;
 
                 HasGroupChanged = true;
@@ -3129,7 +3180,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateSinglePosition(Vector3 pos, uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
-
+            foreach (SceneObjectPart parts in Children.Values)
+            {
+                parts.StoreUndoState();
+            }
             if (part != null)
             {
                 if (part.UUID == m_rootPart.UUID)
@@ -3151,6 +3205,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="pos"></param>
         private void UpdateRootPosition(Vector3 pos)
         {
+            foreach (SceneObjectPart part in Children.Values)
+            {
+                part.StoreUndoState();
+            }
             Vector3 newPos = new Vector3(pos.X, pos.Y, pos.Z);
             Vector3 oldPos =
                 new Vector3(AbsolutePosition.X + m_rootPart.OffsetPosition.X,
@@ -3195,6 +3253,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationR(Quaternion rot)
         {
+            foreach (SceneObjectPart parts in Children.Values)
+            {
+                parts.StoreUndoState();
+            }
             m_rootPart.UpdateRotation(rot);
 
             PhysicsActor actor = m_rootPart.PhysActor;
@@ -3215,6 +3277,10 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="rot"></param>
         public void UpdateGroupRotationPR(Vector3 pos, Quaternion rot)
         {
+            foreach (SceneObjectPart parts in Children.Values)
+            {
+                parts.StoreUndoState();
+            }
             m_rootPart.UpdateRotation(rot);
 
             PhysicsActor actor = m_rootPart.PhysActor;
@@ -3238,6 +3304,10 @@ namespace OpenSim.Region.Framework.Scenes
         public void UpdateSingleRotation(Quaternion rot, uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
+            foreach (SceneObjectPart parts in Children.Values)
+            {
+                parts.StoreUndoState();
+            }
             if (part != null)
             {
                 if (part.UUID == m_rootPart.UUID)
@@ -3268,8 +3338,11 @@ namespace OpenSim.Region.Framework.Scenes
                 }
                 else
                 {
+                    part.IgnoreUndoUpdate = true;
                     part.UpdateRotation(rot);
                     part.OffsetPosition = pos;
+                    part.IgnoreUndoUpdate = false;
+                    part.StoreUndoState();
                 }
             }
         }
@@ -3283,6 +3356,7 @@ namespace OpenSim.Region.Framework.Scenes
             Quaternion axRot = rot;
             Quaternion oldParentRot = m_rootPart.RotationOffset;
 
+            m_rootPart.StoreUndoState();
             m_rootPart.UpdateRotation(rot);
             if (m_rootPart.PhysActor != null)
             {
@@ -3296,6 +3370,7 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     if (prim.UUID != m_rootPart.UUID)
                     {
+                        prim.IgnoreUndoUpdate = true;
                         Vector3 axPos = prim.OffsetPosition;
                         axPos *= oldParentRot;
                         axPos *= Quaternion.Inverse(axRot);
@@ -3308,6 +3383,16 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
+
+            foreach (SceneObjectPart childpart in Children.Values)
+            {
+                if (childpart != m_rootPart)
+                {
+                    childpart.IgnoreUndoUpdate = false;
+                    childpart.StoreUndoState();
+                }
+            }
+
             lockPartsForRead(false);
 
             m_rootPart.ScheduleTerseUpdate();

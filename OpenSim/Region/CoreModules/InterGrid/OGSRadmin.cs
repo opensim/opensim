@@ -46,7 +46,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly List<Scene> m_scenes = new List<Scene>();
-        private CommunicationsManager m_com;
         private IConfigSource m_settings;
 
         #region Implementation of IRegionModuleBase
@@ -88,7 +87,6 @@ namespace OpenSim.Region.CoreModules.InterGrid
         {
             if (m_settings.Configs["Startup"].GetBoolean("gridmode", false))
             {
-                m_com = m_scenes[0].CommsManager;
                 MainServer.Instance.AddXmlRPCHandler("grid_message", GridWideMessage);
             }
         }
@@ -119,14 +117,15 @@ namespace OpenSim.Region.CoreModules.InterGrid
 
             Hashtable requestData = (Hashtable)req.Params[0];
 
-            if ((!requestData.Contains("password") || (string)requestData["password"] != m_com.NetworkServersInfo.GridRecvKey))
-            {
-                responseData["accepted"] = false;
-                responseData["success"] = false;
-                responseData["error"] = "Invalid Key";
-                response.Value = responseData;
-                return response;
-            }
+            // REFACTORING PROBLEM. This authorization needs to be replaced with some other
+            //if ((!requestData.Contains("password") || (string)requestData["password"] != m_com.NetworkServersInfo.GridRecvKey))
+            //{
+            //    responseData["accepted"] = false;
+            //    responseData["success"] = false;
+            //    responseData["error"] = "Invalid Key";
+            //    response.Value = responseData;
+            //    return response;
+            //}
 
             string message = (string)requestData["message"];
             string user = (string)requestData["user"];

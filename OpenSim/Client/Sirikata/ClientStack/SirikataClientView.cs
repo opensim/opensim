@@ -192,6 +192,11 @@ namespace OpenSim.Client.Sirikata.ClientStack
             get { return isActive; }
             set { isActive = value; }
         }
+        public bool IsLoggingOut
+        {
+            get { return false; }
+            set { }
+        }
 
         public bool SendLogoutPacketWhenClosing
         {
@@ -238,7 +243,7 @@ namespace OpenSim.Client.Sirikata.ClientStack
         public event DeRezObject OnDeRezObject;
         public event Action<IClientAPI> OnRegionHandShakeReply;
         public event GenericCall2 OnRequestWearables;
-        public event GenericCall2 OnCompleteMovementToRegion;
+        public event GenericCall1 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
@@ -338,6 +343,8 @@ namespace OpenSim.Client.Sirikata.ClientStack
         public event UUIDNameRequest OnTeleportHomeRequest;
         public event ScriptAnswer OnScriptAnswer;
         public event AgentSit OnUndo;
+        public event AgentSit OnRedo;
+        public event LandUndo OnLandUndo;
         public event ForceReleaseControls OnForceReleaseControls;
         public event GodLandStatRequest OnLandStatRequest;
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
@@ -1185,6 +1192,10 @@ namespace OpenSim.Client.Sirikata.ClientStack
         }
 
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
+        {
+        }
+
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
 

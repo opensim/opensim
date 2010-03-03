@@ -28,7 +28,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -36,121 +35,153 @@ using Nwc.XmlRpc;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
+using OpenSim.Services.Connectors.Friends;
+using OpenSim.Server.Base;
+using OpenSim.Framework.Servers.HttpServer;
+using FriendInfo = OpenSim.Services.Interfaces.FriendInfo;
+using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 namespace OpenSim.Region.CoreModules.Avatar.Friends
 {
-    /*
-        This module handles adding/removing friends, and the the presence
-        notification process for login/logoff of friends.
-
-        The presence notification works as follows:
-        - After the user initially connects to a region (so we now have a UDP
-          connection to work with), this module fetches the friends of user
-          (those are cached), their on-/offline status, and info about the
-          region they are in from the MessageServer.
-        - (*) It then informs the user about the on-/offline status of her friends.
-        - It then informs all online friends currently on this region-server about
-          user's new online status (this will save some network traffic, as local
-          messages don't have to be transferred inter-region, and it will be all
-          that has to be done in Standalone Mode).
-        - For the rest of the online friends (those not on this region-server),
-          this module uses the provided region-information to map users to
-          regions, and sends one notification to every region containing the
-          friends to inform on that server.
-        - The region-server will handle that in the following way:
-          - If it finds the friend, it informs her about the user being online.
-          - If it doesn't find the friend (maybe she TPed away in the meantime),
-            it stores that information.
-          - After it processed all friends, it returns the list of friends it
-            couldn't find.
-        - If this list isn't empty, the FriendsModule re-requests information
-          about those online friends that have been missed and starts at (*)
-          again until all friends have been found, or until it tried 3 times
-          (to prevent endless loops due to some uncaught error).
-
-        NOTE: Online/Offline notifications don't need to be sent on region change.
-
-        We implement two XMLRpc handlers here, handling all the inter-region things
-        we have to handle:
-        - On-/Offline-Notifications (bulk)
-        - Terminate Friendship messages (single)
-     */
-
-    public class FriendsModule : IRegionModule, IFriendsModule
+    public class FriendsModule : ISharedRegionModule, IFriendsModule
     {
-        private class Transaction
+        protected class UserFriendData
         {
-            public UUID agentID;
-            public string agentName;
-            public uint count;
+            public UUID PrincipalID;
+            public FriendInfo[] Friends;
+            public int Refcount;
+            public UUID RegionID;
 
-            public Transaction(UUID agentID, string agentName)
+            public bool IsFriend(string friend)
             {
-                this.agentID = agentID;
-                this.agentName = agentName;
-                this.count = 1;
+                foreach (FriendInfo fi in Friends)
+                {
+                    if (fi.Friend == friend)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+            
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected List<Scene> m_Scenes = new List<Scene>();
+
+        protected IPresenceService m_PresenceService = null;
+        protected IFriendsService m_FriendsService = null;
+        protected FriendsSimConnector m_FriendsSimConnector;
+
+        protected Dictionary<UUID, UserFriendData> m_Friends =
+                new Dictionary<UUID, UserFriendData>();
+
+        protected List<UUID> m_NeedsListOfFriends = new List<UUID>();
+
+        protected IPresenceService PresenceService
+        {
+            get
+            {
+                if (m_PresenceService == null)
+                {
+                    if (m_Scenes.Count > 0)
+                        m_PresenceService = m_Scenes[0].RequestModuleInterface<IPresenceService>();
+                }
+
+                return m_PresenceService;
             }
         }
 
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private Cache m_friendLists = new Cache(CacheFlags.AllowUpdate);
-
-        private Dictionary<UUID, ulong> m_rootAgents = new Dictionary<UUID, ulong>();
-
-        private Dictionary<UUID, UUID> m_pendingCallingcardRequests = new Dictionary<UUID,UUID>();
-
-        private Scene m_initialScene; // saves a lookup if we don't have a specific scene
-        private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong,Scene>();
-        private IMessageTransferModule m_TransferModule = null;
-
-        private IGridService m_gridServices = null;
-
-        #region IRegionModule Members
-
-        public void Initialise(Scene scene, IConfigSource config)
+        protected IFriendsService FriendsService
         {
-            lock (m_scenes)
+            get
             {
-                if (m_scenes.Count == 0)
+                if (m_FriendsService == null)
                 {
-                    MainServer.Instance.AddXmlRPCHandler("presence_update_bulk", processPresenceUpdateBulk);
-                    MainServer.Instance.AddXmlRPCHandler("terminate_friend", processTerminateFriend);
-                    m_friendLists.DefaultTTL = new TimeSpan(1, 0, 0);  // store entries for one hour max
-                    m_initialScene = scene;
+                    if (m_Scenes.Count > 0)
+                        m_FriendsService = m_Scenes[0].RequestModuleInterface<IFriendsService>();
                 }
 
-                if (!m_scenes.ContainsKey(scene.RegionInfo.RegionHandle))
-                    m_scenes[scene.RegionInfo.RegionHandle] = scene;
+                return m_FriendsService;
             }
-            
-            scene.RegisterModuleInterface<IFriendsModule>(this);
-            
-            scene.EventManager.OnNewClient += OnNewClient;
-            scene.EventManager.OnIncomingInstantMessage += OnGridInstantMessage;
-            scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-            scene.EventManager.OnMakeChildAgent += MakeChildAgent;
-            scene.EventManager.OnClientClosed += ClientClosed;
+        }
+
+        protected IGridService GridService
+        {
+            get
+            {
+                return m_Scenes[0].GridService;
+            }
+        }
+
+        public IScene Scene
+        {
+            get
+            {
+                if (m_Scenes.Count > 0)
+                    return m_Scenes[0];
+                else
+                    return null;
+            }
+        }
+
+        public void Initialise(IConfigSource config)
+        {
+            IConfig friendsConfig = config.Configs["Friends"];
+            if (friendsConfig != null)
+            {
+                int mPort = friendsConfig.GetInt("Port", 0);
+
+                string connector = friendsConfig.GetString("Connector", String.Empty);
+                Object[] args = new Object[] { config };
+
+                m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(connector, args);
+                m_FriendsSimConnector = new FriendsSimConnector();
+
+                // Instantiate the request handler
+                IHttpServer server = MainServer.GetHttpServer((uint)mPort);
+                server.AddStreamHandler(new FriendsRequestHandler(this));
+
+            }
+
+            if (m_FriendsService == null)
+            {
+                m_log.Error("[FRIENDS]: No Connector defined in section Friends, or filed to load, cannot continue");
+                throw new Exception("Connector load error");
+            }
+
         }
 
         public void PostInitialise()
         {
-            if (m_scenes.Count > 0)
-            {
-                m_TransferModule = m_initialScene.RequestModuleInterface<IMessageTransferModule>();
-                m_gridServices = m_initialScene.GridService;
-            }
-            if (m_TransferModule == null)
-                m_log.Error("[FRIENDS]: Unable to find a message transfer module, friendship offers will not work");
         }
 
         public void Close()
         {
+        }
+
+        public void AddRegion(Scene scene)
+        {
+            m_Scenes.Add(scene);
+            scene.RegisterModuleInterface<IFriendsModule>(this);
+
+            scene.EventManager.OnNewClient += OnNewClient;
+            scene.EventManager.OnClientClosed += OnClientClosed;
+            scene.EventManager.OnMakeRootAgent += OnMakeRootAgent;
+            scene.EventManager.OnMakeChildAgent += OnMakeChildAgent;
+            scene.EventManager.OnClientLogin += OnClientLogin;
+        }
+
+        public void RegionLoaded(Scene scene)
+        {
+        }
+
+        public void RemoveRegion(Scene scene)
+        {
+            m_Scenes.Remove(scene);
         }
 
         public string Name
@@ -158,997 +189,567 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             get { return "FriendsModule"; }
         }
 
-        public bool IsSharedModule
+        public Type ReplaceableInterface
         {
-            get { return true; }
+            get { return null; }
         }
 
-        #endregion
-
-        #region IInterregionFriendsComms
-
-        public List<UUID> InformFriendsInOtherRegion(UUID agentId, ulong destRegionHandle, List<UUID> friends, bool online)
+        public uint GetFriendPerms(UUID principalID, UUID friendID)
         {
-            List<UUID> tpdAway = new List<UUID>();
+            if (!m_Friends.ContainsKey(principalID))
+                return 0;
 
-            // destRegionHandle is a region on another server
-            uint x = 0, y = 0;
-            Utils.LongToUInts(destRegionHandle, out x, out y);
-            GridRegion info = m_gridServices.GetRegionByPosition(m_initialScene.RegionInfo.ScopeID, (int)x, (int)y);
-            if (info != null)
+            UserFriendData data = m_Friends[principalID];
+
+            foreach (FriendInfo fi in data.Friends)
             {
-                string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
-
-                Hashtable reqParams = new Hashtable();
-                reqParams["agentID"] = agentId.ToString();
-                reqParams["agentOnline"] = online;
-                int count = 0;
-                foreach (UUID uuid in friends)
-                {
-                    reqParams["friendID_" + count++] = uuid.ToString();
-                }
-                reqParams["friendCount"] = count;
-
-                IList parameters = new ArrayList();
-                parameters.Add(reqParams);
-                try
-                {
-                    XmlRpcRequest request = new XmlRpcRequest("presence_update_bulk", parameters);
-                    XmlRpcResponse response = request.Send(httpServer, 5000);
-                    Hashtable respData = (Hashtable)response.Value;
-
-                    count = (int)respData["friendCount"];
-                    for (int i = 0; i < count; ++i)
-                    {
-                        UUID uuid;
-                        if (UUID.TryParse((string)respData["friendID_" + i], out uuid)) tpdAway.Add(uuid);
-                    }
-                }
-                catch (WebException e)
-                {
-                    // Ignore connect failures, simulators come and go
-                    //
-                    if (!e.Message.Contains("ConnectFailure"))
-                    {
-                        m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
-                }
+                if (fi.Friend == friendID.ToString())
+                    return (uint)fi.TheirFlags;
             }
-            else m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}???", destRegionHandle);
-
-            return tpdAway;
+            return 0;
         }
-
-        public bool TriggerTerminateFriend(ulong destRegionHandle, UUID agentID, UUID exFriendID)
-        {
-            // destRegionHandle is a region on another server
-            uint x = 0, y = 0;
-            Utils.LongToUInts(destRegionHandle, out x, out y);
-            GridRegion info = m_gridServices.GetRegionByPosition(m_initialScene.RegionInfo.ScopeID, (int)x, (int)y);
-            if (info == null)
-            {
-                m_log.WarnFormat("[OGS1 GRID SERVICES]: Couldn't find region {0}", destRegionHandle);
-                return false; // region not found???
-            }
-
-            string httpServer = "http://" + info.ExternalEndPoint.Address + ":" + info.HttpPort + "/presence_update_bulk";
-
-            Hashtable reqParams = new Hashtable();
-            reqParams["agentID"] = agentID.ToString();
-            reqParams["friendID"] = exFriendID.ToString();
-
-            IList parameters = new ArrayList();
-            parameters.Add(reqParams);
-            try
-            {
-                XmlRpcRequest request = new XmlRpcRequest("terminate_friend", parameters);
-                XmlRpcResponse response = request.Send(httpServer, 5000);
-                Hashtable respData = (Hashtable)response.Value;
-
-                return (bool)respData["success"];
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[OGS1 GRID SERVICES]: InformFriendsInOtherRegion XMLRPC failure: ", e);
-                return false;
-            }
-        }
-
-        #endregion
-
-        #region Incoming XMLRPC messages
-        /// <summary>
-        /// Receive presence information changes about clients in other regions.
-        /// </summary>
-        /// <param name="req"></param>
-        /// <returns></returns>
-        public XmlRpcResponse processPresenceUpdateBulk(XmlRpcRequest req, IPEndPoint remoteClient)
-        {
-            Hashtable requestData = (Hashtable)req.Params[0];
-
-            List<UUID> friendsNotHere = new List<UUID>();
-
-            // this is called with the expectation that all the friends in the request are on this region-server.
-            // But as some time passed since we checked (on the other region-server, via the MessagingServer),
-            // some of the friends might have teleported away.
-            // Actually, even now, between this line and the sending below, some people could TP away. So,
-            // we'll have to lock the m_rootAgents list for the duration to prevent/delay that.
-            lock (m_rootAgents)
-            {
-                List<ScenePresence> friendsHere = new List<ScenePresence>();
-                
-                try
-                {
-                    UUID agentID = new UUID((string)requestData["agentID"]);
-                    bool agentOnline = (bool)requestData["agentOnline"];
-                    int count = (int)requestData["friendCount"];
-                    for (int i = 0; i < count; ++i)
-                    {
-                        UUID uuid;
-                        if (UUID.TryParse((string)requestData["friendID_" + i], out uuid))
-                        {
-                            if (m_rootAgents.ContainsKey(uuid)) friendsHere.Add(GetRootPresenceFromAgentID(uuid));
-                            else friendsNotHere.Add(uuid);
-                        }
-                    }
-
-                    // now send, as long as they are still here...
-                    UUID[] agentUUID = new UUID[] { agentID };
-                    if (agentOnline)
-                    {
-                        foreach (ScenePresence agent in friendsHere)
-                        {
-                            agent.ControllingClient.SendAgentOnline(agentUUID);
-                        }
-                    }
-                    else
-                    {
-                        foreach (ScenePresence agent in friendsHere)
-                        {
-                            agent.ControllingClient.SendAgentOffline(agentUUID);
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    m_log.Warn("[FRIENDS]: Got exception while parsing presence_update_bulk request:", e);
-                }
-            }
-
-            // no need to lock anymore; if TPs happen now, worst case is that we have an additional agent in this region,
-            // which should be caught on the next iteration...
-            Hashtable result = new Hashtable();
-            int idx = 0;
-            foreach (UUID uuid in friendsNotHere)
-            {
-                result["friendID_" + idx++] = uuid.ToString();
-            }
-            result["friendCount"] = idx;
-
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = result;
-
-            return response;
-        }
-
-        public XmlRpcResponse processTerminateFriend(XmlRpcRequest req, IPEndPoint remoteClient)
-        {
-            Hashtable requestData = (Hashtable)req.Params[0];
-
-            bool success = false;
-
-            UUID agentID;
-            UUID friendID;
-            if (requestData.ContainsKey("agentID") && UUID.TryParse((string)requestData["agentID"], out agentID) &&
-                requestData.ContainsKey("friendID") && UUID.TryParse((string)requestData["friendID"], out friendID))
-            {
-                // try to find it and if it is there, prevent it to vanish before we sent the message
-                lock (m_rootAgents)
-                {
-                    if (m_rootAgents.ContainsKey(agentID))
-                    {
-                        m_log.DebugFormat("[FRIEND]: Sending terminate friend {0} to agent {1}", friendID, agentID);
-                        GetRootPresenceFromAgentID(agentID).ControllingClient.SendTerminateFriend(friendID);
-                        success = true;
-                    }
-                }
-            }
-
-            // return whether we were successful
-            Hashtable result = new Hashtable();
-            result["success"] = success;
-
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = result;
-            return response;
-        }
-
-        #endregion
-
-        #region Scene events
 
         private void OnNewClient(IClientAPI client)
         {
-            // All friends establishment protocol goes over instant message
-            // There's no way to send a message from the sim
-            // to a user to 'add a friend' without causing dialog box spam
-
-            // Subscribe to instant messages
             client.OnInstantMessage += OnInstantMessage;
-
-            // Friend list management
             client.OnApproveFriendRequest += OnApproveFriendRequest;
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += OnTerminateFriendship;
 
-            // ... calling card handling...
-            client.OnOfferCallingCard += OnOfferCallingCard;
-            client.OnAcceptCallingCard += OnAcceptCallingCard;
-            client.OnDeclineCallingCard += OnDeclineCallingCard;
+            client.OnGrantUserRights += OnGrantUserRights;
 
-            // we need this one exactly once per agent session (see comments in the handler below)
-            client.OnEconomyDataRequest += OnEconomyDataRequest;
-
-            // if it leaves, we want to know, too
             client.OnLogout += OnLogout;
-            
-            client.OnGrantUserRights += GrantUserFriendRights;
-            client.OnTrackAgent += FindAgent;
-            client.OnFindAgent += FindAgent;
 
-        }
-
-        private void ClientClosed(UUID AgentId, Scene scene)
-        {
-            // agent's client was closed. As we handle logout in OnLogout, this here has only to handle
-            // TPing away (root agent is closed) or TPing/crossing in a region far enough away (client
-            // agent is closed).
-            // NOTE: In general, this doesn't mean that the agent logged out, just that it isn't around
-            // in one of the regions here anymore.
-            lock (m_rootAgents)
+            if (m_Friends.ContainsKey(client.AgentId))
             {
-                if (m_rootAgents.ContainsKey(AgentId))
-                {
-                    m_rootAgents.Remove(AgentId);
-                }
-            }
-        }
-
-        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, UUID regionID)
-        {
-            lock (m_rootAgents)
-            {
-                m_rootAgents[avatar.UUID] = avatar.RegionHandle;
-                // Claim User! my user!  Mine mine mine!
-            }
-        }
-
-        private void MakeChildAgent(ScenePresence avatar)
-        {
-            lock (m_rootAgents)
-            {
-                if (m_rootAgents.ContainsKey(avatar.UUID))
-                {
-                    // only delete if the region matches. As this is a shared module, the avatar could be
-                    // root agent in another region on this server.
-                    if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
-                    {
-                        m_rootAgents.Remove(avatar.UUID);
-//                        m_log.Debug("[FRIEND]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
-                    }
-                }
-            }
-        }
-        #endregion
-
-        private ScenePresence GetRootPresenceFromAgentID(UUID AgentID)
-        {
-            ScenePresence returnAgent = null;
-            lock (m_scenes)
-            {
-                ScenePresence queryagent = null;
-                foreach (Scene scene in m_scenes.Values)
-                {
-                    queryagent = scene.GetScenePresence(AgentID);
-                    if (queryagent != null)
-                    {
-                        if (!queryagent.IsChildAgent)
-                        {
-                            returnAgent = queryagent;
-                            break;
-                        }
-                    }
-                }
-            }
-            return returnAgent;
-        }
-
-        private ScenePresence GetAnyPresenceFromAgentID(UUID AgentID)
-        {
-            ScenePresence returnAgent = null;
-            lock (m_scenes)
-            {
-                ScenePresence queryagent = null;
-                foreach (Scene scene in m_scenes.Values)
-                {
-                    queryagent = scene.GetScenePresence(AgentID);
-                    if (queryagent != null)
-                    {
-                        returnAgent = queryagent;
-                        break;
-                    }
-                }
-            }
-            return returnAgent;
-        }
-        
-        public void OfferFriendship(UUID fromUserId, IClientAPI toUserClient, string offerMessage)
-        {
-            CachedUserInfo userInfo = m_initialScene.CommsManager.UserProfileCacheService.GetUserDetails(fromUserId);
-                
-            if (userInfo != null)
-            {
-                GridInstantMessage msg = new GridInstantMessage(
-                    toUserClient.Scene, fromUserId, userInfo.UserProfile.Name, toUserClient.AgentId,
-                    (byte)InstantMessageDialog.FriendshipOffered, offerMessage, false, Vector3.Zero); 
-            
-                FriendshipOffered(msg);
-            }
-            else
-            {
-                m_log.ErrorFormat("[FRIENDS]: No user found for id {0} in OfferFriendship()", fromUserId);
-            }
-        }
-
-        #region FriendRequestHandling
-
-        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
-        {
-            // Friend Requests go by Instant Message..    using the dialog param
-            // https://wiki.secondlife.com/wiki/ImprovedInstantMessage
-
-            if (im.dialog == (byte)InstantMessageDialog.FriendshipOffered) // 38
-            {
-                // fromAgentName is the *destination* name (the friend we offer friendship to)
-                ScenePresence initiator = GetAnyPresenceFromAgentID(new UUID(im.fromAgentID));
-                im.fromAgentName = initiator != null ? initiator.Name : "(hippo)";
-                
-                FriendshipOffered(im);
-            }
-            else if (im.dialog == (byte)InstantMessageDialog.FriendshipAccepted) // 39
-            {
-                FriendshipAccepted(client, im);
-            }
-            else if (im.dialog == (byte)InstantMessageDialog.FriendshipDeclined) // 40
-            {
-                FriendshipDeclined(client, im);
-            }
-        }
-        
-        /// <summary>
-        /// Invoked when a user offers a friendship.
-        /// </summary>
-        /// 
-        /// <param name="im"></param>
-        /// <param name="client"></param>
-        private void FriendshipOffered(GridInstantMessage im)
-        {
-            // this is triggered by the initiating agent:
-            // A local agent offers friendship to some possibly remote friend.
-            // A IM is triggered, processed here and sent to the friend (possibly in a remote region).
-
-            m_log.DebugFormat("[FRIEND]: Offer(38) - From: {0}, FromName: {1} To: {2}, Session: {3}, Message: {4}, Offline {5}",
-                       im.fromAgentID, im.fromAgentName, im.toAgentID, im.imSessionID, im.message, im.offline);
-
-            // 1.20 protocol sends an UUID in the message field, instead of the friendship offer text.
-            // For interoperability, we have to clear that
-            if (Util.isUUID(im.message)) im.message = "";
-
-            // be sneeky and use the initiator-UUID as transactionID. This means we can be stateless.
-            // we have to look up the agent name on friendship-approval, though.
-            im.imSessionID = im.fromAgentID;
-
-            if (m_TransferModule != null)
-            {
-                // Send it to whoever is the destination.
-                // If new friend is local, it will send an IM to the viewer.
-                // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
-                m_TransferModule.SendInstantMessage(
-                    im,
-                    delegate(bool success) 
-                    {
-                        m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                    }
-                );
-            }
-        }
-        
-        /// <summary>
-        /// Invoked when a user accepts a friendship offer.
-        /// </summary>
-        /// <param name="im"></param>
-        /// <param name="client"></param>
-        private void FriendshipAccepted(IClientAPI client, GridInstantMessage im)
-        {
-            m_log.DebugFormat("[FRIEND]: 39 - from client {0}, agent {2} {3}, imsession {4} to {5}: {6} (dialog {7})",
-              client.AgentId, im.fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
-        }
-        
-        /// <summary>
-        /// Invoked when a user declines a friendship offer.
-        /// </summary>
-        /// May not currently be used - see OnDenyFriendRequest() instead
-        /// <param name="im"></param>
-        /// <param name="client"></param>
-        private void FriendshipDeclined(IClientAPI client, GridInstantMessage im)
-        {
-            UUID fromAgentID = new UUID(im.fromAgentID);
-            UUID toAgentID = new UUID(im.toAgentID);
-            
-            // declining the friendship offer causes a type 40 IM being sent to the (possibly remote) initiator
-            // toAgentID is initiator, fromAgentID declined friendship
-            m_log.DebugFormat("[FRIEND]: 40 - from client {0}, agent {1} {2}, imsession {3} to {4}: {5} (dialog {6})",
-              client != null ? client.AgentId.ToString() : "<null>",
-              fromAgentID, im.fromAgentName, im.imSessionID, im.toAgentID, im.message, im.dialog);
-
-            // Send the decline to whoever is the destination.
-            GridInstantMessage msg 
-                = new GridInstantMessage(
-                    client.Scene, fromAgentID, client.Name, toAgentID,
-                    im.dialog, im.message, im.offline != 0, im.Position);
-            
-            // If new friend is local, it will send an IM to the viewer.
-            // If new friend is remote, it will cause a OnGridInstantMessage on the remote server
-            m_TransferModule.SendInstantMessage(msg,
-                delegate(bool success) {
-                    m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                }
-            );
-        }
-
-        private void OnGridInstantMessage(GridInstantMessage msg)
-        {
-            // This event won't be raised unless we have that agent,
-            // so we can depend on the above not trying to send
-            // via grid again
-            //m_log.DebugFormat("[FRIEND]: Got GridIM from {0}, to {1}, imSession {2}, message {3}, dialog {4}",
-            //                  msg.fromAgentID, msg.toAgentID, msg.imSessionID, msg.message, msg.dialog);
-            
-            if (msg.dialog == (byte)InstantMessageDialog.FriendshipOffered ||
-                msg.dialog == (byte)InstantMessageDialog.FriendshipAccepted ||
-                msg.dialog == (byte)InstantMessageDialog.FriendshipDeclined)
-            {
-                // this should succeed as we *know* the root agent is here.
-                m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success) {
-                        //m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                    }
-                );
-            }
-
-            if (msg.dialog == (byte)InstantMessageDialog.FriendshipAccepted)
-            {
-                // for accept friendship, we have to do a bit more
-                ApproveFriendship(new UUID(msg.fromAgentID), new UUID(msg.toAgentID), msg.fromAgentName);
-            }
-        }
-
-        private void ApproveFriendship(UUID fromAgentID, UUID toAgentID, string fromName)
-        {
-            m_log.DebugFormat("[FRIEND]: Approve friendship from {0} (ID: {1}) to {2}",
-                              fromAgentID, fromName, toAgentID);
-
-            // a new friend was added in the initiator's and friend's data, so the cache entries are wrong now.
-            lock (m_friendLists)
-            {
-                m_friendLists.Invalidate(fromAgentID.ToString());
-                m_friendLists.Invalidate(toAgentID.ToString());
-            }
-
-            // now send presence update and add a calling card for the new friend
-
-            ScenePresence initiator = GetAnyPresenceFromAgentID(toAgentID);
-            if (initiator == null)
-            {
-                // quite wrong. Shouldn't happen.
-                m_log.WarnFormat("[FRIEND]: Coudn't find initiator of friend request {0}", toAgentID);
+                m_Friends[client.AgentId].Refcount++;
                 return;
             }
 
-            m_log.DebugFormat("[FRIEND]: Tell {0} that {1} is online",
-                              initiator.Name, fromName);
-            // tell initiator that friend is online
-            initiator.ControllingClient.SendAgentOnline(new UUID[] { fromAgentID });
+            UserFriendData newFriends = new UserFriendData();
 
-            // find the folder for the friend...
-            //InventoryFolderImpl folder =
-            //    initiator.Scene.CommsManager.UserProfileCacheService.GetUserDetails(toAgentID).FindFolderForType((int)InventoryType.CallingCard);
-            IInventoryService invService = initiator.Scene.InventoryService;
-            InventoryFolderBase folder = invService.GetFolderForType(toAgentID, AssetType.CallingCard);
-            if (folder != null)
+            newFriends.PrincipalID = client.AgentId;
+            newFriends.Friends = m_FriendsService.GetFriends(client.AgentId);
+            newFriends.Refcount = 1;
+            newFriends.RegionID = UUID.Zero;
+
+            m_Friends.Add(client.AgentId, newFriends);
+            
+            //StatusChange(client.AgentId, true);
+        }
+
+        private void OnClientClosed(UUID agentID, Scene scene)
+        {
+            if (m_Friends.ContainsKey(agentID))
             {
-                // ... and add the calling card
-                CreateCallingCard(initiator.ControllingClient, fromAgentID, folder.ID, fromName);
+                if (m_Friends[agentID].Refcount == 1)
+                    m_Friends.Remove(agentID);
+                else
+                    m_Friends[agentID].Refcount--;
             }
+        }
+
+        private void OnLogout(IClientAPI client)
+        {
+            StatusChange(client.AgentId, false);
+            m_Friends.Remove(client.AgentId);
+        }
+
+        private void OnMakeRootAgent(ScenePresence sp)
+        {
+            UUID agentID = sp.ControllingClient.AgentId;
+
+            if (m_Friends.ContainsKey(agentID))
+            {
+                if (m_Friends[agentID].RegionID == UUID.Zero && m_Friends[agentID].Friends == null)
+                {
+                    m_Friends[agentID].Friends =
+                            m_FriendsService.GetFriends(agentID);
+                }
+                m_Friends[agentID].RegionID =
+                        sp.ControllingClient.Scene.RegionInfo.RegionID;
+            }
+        }
+
+
+        private void OnMakeChildAgent(ScenePresence sp)
+        {
+            UUID agentID = sp.ControllingClient.AgentId;
+
+            if (m_Friends.ContainsKey(agentID))
+            {
+                if (m_Friends[agentID].RegionID == sp.ControllingClient.Scene.RegionInfo.RegionID)
+                    m_Friends[agentID].RegionID = UUID.Zero;
+            }
+        }
+
+        private void OnClientLogin(IClientAPI client)
+        {
+            UUID agentID = client.AgentId;
+
+            // Inform the friends that this user is online
+            StatusChange(agentID, true);
+            
+            // Register that we need to send the list of online friends to this user
+            lock (m_NeedsListOfFriends)
+                if (!m_NeedsListOfFriends.Contains(agentID))
+                {
+                    m_NeedsListOfFriends.Add(agentID);
+                }
+        }
+
+        public void SendFriendsOnlineIfNeeded(IClientAPI client)
+        {
+            UUID agentID = client.AgentId;
+            if (m_NeedsListOfFriends.Contains(agentID))
+            {
+                if (!m_Friends.ContainsKey(agentID))
+                {
+                    m_log.DebugFormat("[FRIENDS MODULE]: agent {0} not found in local cache", agentID);
+                    return;
+                }
+
+                //
+                // Send the friends online
+                //
+                List<UUID> online = GetOnlineFriends(agentID);
+                if (online.Count > 0)
+                {
+                    m_log.DebugFormat("[FRIENDS MODULE]: User {0} in region {1} has {2} friends online", client.AgentId, client.Scene.RegionInfo.RegionName, online.Count);
+                    client.SendAgentOnline(online.ToArray());
+                }
+
+                //
+                // Send outstanding friendship offers
+                //
+                if (m_Friends.ContainsKey(agentID))
+                {
+                    List<string> outstanding = new List<string>();
+
+                    foreach (FriendInfo fi in m_Friends[agentID].Friends)
+                        if (fi.TheirFlags == -1)
+                            outstanding.Add(fi.Friend);
+
+                    GridInstantMessage im = new GridInstantMessage(client.Scene, UUID.Zero, "", agentID, (byte)InstantMessageDialog.FriendshipOffered, "Will you be my friend?", true, Vector3.Zero);
+                    foreach (string fid in outstanding)
+                    {
+                        try
+                        {
+                            im.fromAgentID = new Guid(fid);
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+
+                        UserAccount account = m_Scenes[0].UserAccountService.GetUserAccount(client.Scene.RegionInfo.ScopeID, new UUID(im.fromAgentID));
+                        im.fromAgentName = account.FirstName + " " + account.LastName;
+
+                        PresenceInfo[] presences = PresenceService.GetAgents(new string[] { fid });
+                        PresenceInfo presence = PresenceInfo.GetOnlinePresence(presences);
+                        if (presence != null)
+                            im.offline = 0;
+
+                        im.imSessionID = im.fromAgentID;
+
+                        // Finally
+                        LocalFriendshipOffered(agentID, im);
+                    }
+                }
+
+                lock (m_NeedsListOfFriends)
+                    m_NeedsListOfFriends.Remove(agentID);
+            }
+        }
+
+        List<UUID> GetOnlineFriends(UUID userID)
+        {
+            List<string> friendList = new List<string>();
+
+            foreach (FriendInfo fi in m_Friends[userID].Friends)
+            {
+                if (((fi.TheirFlags & 1) != 0) && (fi.TheirFlags != -1))
+                    friendList.Add(fi.Friend);
+            }
+
+            PresenceInfo[] presence = PresenceService.GetAgents(friendList.ToArray());
+
+            List<UUID> online = new List<UUID>();
+
+            foreach (PresenceInfo pi in presence)
+            {
+                if (pi.Online)
+                {
+                    online.Add(new UUID(pi.UserID));
+                    //m_log.DebugFormat("[XXX] {0} friend online {1}", userID, pi.UserID);
+                }
+            }
+
+            return online;
+        }
+
+        //
+        // Find the client for a ID
+        //
+        public IClientAPI LocateClientObject(UUID agentID)
+        {
+            Scene scene = GetClientScene(agentID);
+            if(scene == null)
+                return null;
+
+            ScenePresence presence = scene.GetScenePresence(agentID);
+            if(presence == null)
+                return null;
+
+            return presence.ControllingClient;
+        }
+
+        //
+        // Find the scene for an agent
+        //
+        private Scene GetClientScene(UUID agentId)
+        {
+            lock (m_Scenes)
+            {
+                foreach (Scene scene in m_Scenes)
+                {
+                    ScenePresence presence = scene.GetScenePresence(agentId);
+                    if (presence != null)
+                    {
+                        if (!presence.IsChildAgent)
+                            return scene;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Caller beware! Call this only for root agents.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="online"></param>
+        private void StatusChange(UUID agentID, bool online)
+        {
+            if (m_Friends.ContainsKey(agentID))
+            {
+                List<FriendInfo> friendList = new List<FriendInfo>();
+                foreach (FriendInfo fi in m_Friends[agentID].Friends)
+                {
+                    if (((fi.MyFlags & 1) != 0) && (fi.TheirFlags != -1))
+                        friendList.Add(fi);
+                }
+                foreach (FriendInfo fi in friendList)
+                {
+                    // Notify about this user status
+                    StatusNotify(fi, agentID, online);
+                }
+            }
+        }
+
+        private void StatusNotify(FriendInfo friend, UUID userID, bool online)
+        {
+            UUID friendID = UUID.Zero;
+
+            if (UUID.TryParse(friend.Friend, out friendID))
+            {
+                // Try local
+                if (LocalStatusNotification(userID, friendID, online))
+                    return;
+                
+                // The friend is not here [as root]. Let's forward.
+                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+                PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+                if (friendSession != null)
+                {
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    m_FriendsSimConnector.StatusNotify(region, userID, friendID, online);
+                }
+
+                // Friend is not online. Ignore.
+            }
+        }
+
+        private void OnInstantMessage(IClientAPI client, GridInstantMessage im)
+        {
+            if (im.dialog == (byte)OpenMetaverse.InstantMessageDialog.FriendshipOffered)
+            { 
+                // we got a friendship offer
+                UUID principalID = new UUID(im.fromAgentID);
+                UUID friendID = new UUID(im.toAgentID);
+
+                m_log.DebugFormat("[FRIENDS]: {0} offered friendship to {1}", principalID, friendID);
+
+                // This user wants to be friends with the other user.
+                // Let's add both relations to the DB, but one of them is inactive (-1)
+                FriendsService.StoreFriend(friendID, principalID.ToString(), 0);
+
+                // Now let's ask the other user to be friends with this user
+                ForwardFriendshipOffer(principalID, friendID, im);
+            }
+        }
+
+        private void ForwardFriendshipOffer(UUID agentID, UUID friendID, GridInstantMessage im)
+        {
+            // !!!!!!!! This is a hack so that we don't have to keep state (transactionID/imSessionID)
+            // We stick this agent's ID as imSession, so that it's directly available on the receiving end
+            im.imSessionID = im.fromAgentID;
+
+            // Try the local sim
+            if (LocalFriendshipOffered(friendID, im))
+                return;
+
+            // The prospective friend is not here [as root]. Let's forward.
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
+            {
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipOffered(region, agentID, friendID, im.message);
+            }
+
+            // If the prospective friend is not online, he'll get the message upon login.
         }
 
         private void OnApproveFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
-            m_log.DebugFormat("[FRIEND]: Got approve friendship from {0} {1}, agentID {2}, tid {3}",
-                              client.Name, client.AgentId, agentID, friendID);
+            FriendsService.StoreFriend(agentID, friendID.ToString(), 1);
+            FriendsService.StoreFriend(friendID, agentID.ToString(), 1);
+            // update the local cache
+            m_Friends[agentID].Friends = FriendsService.GetFriends(agentID);
 
-            // store the new friend persistently for both avatars
-            m_initialScene.StoreAddFriendship(friendID, agentID, (uint) FriendRights.CanSeeOnline);
+            m_log.DebugFormat("[FRIENDS]: {0} accepted friendship from {1}", agentID, friendID);
 
-            // The cache entries aren't valid anymore either, as we just added a friend to both sides.
-            lock (m_friendLists)
+            //
+            // Notify the friend
+            //
+
+            // Try Local
+            if (LocalFriendshipApproved(agentID, client.Name, friendID))
             {
-                m_friendLists.Invalidate(agentID.ToString());
-                m_friendLists.Invalidate(friendID.ToString());
+                client.SendAgentOnline(new UUID[] { friendID });
+                return;
             }
 
-            // if it's a local friend, we don't have to do the lookup
-            ScenePresence friendPresence = GetAnyPresenceFromAgentID(friendID);
-
-            if (friendPresence != null)
+            // The friend is not here
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
             {
-                m_log.Debug("[FRIEND]: Local agent detected.");
-
-                // create calling card
-                CreateCallingCard(client, friendID, callingCardFolders[0], friendPresence.Name);
-
-                // local message means OnGridInstantMessage won't be triggered, so do the work here.
-                friendPresence.ControllingClient.SendInstantMessage(
-                        new GridInstantMessage(client.Scene, agentID,
-                        client.Name, friendID,
-                        (byte)InstantMessageDialog.FriendshipAccepted,
-                        agentID.ToString(), false, Vector3.Zero));
-                ApproveFriendship(agentID, friendID, client.Name);
-            }
-            else
-            {
-                m_log.Debug("[FRIEND]: Remote agent detected.");
-
-                // fetch the friend's name for the calling card.
-                CachedUserInfo info = m_initialScene.CommsManager.UserProfileCacheService.GetUserDetails(friendID);
-
-                // create calling card
-                CreateCallingCard(client, friendID, callingCardFolders[0],
-                                  info.UserProfile.FirstName + " " + info.UserProfile.SurName);
-
-                // Compose (remote) response to friend.
-                GridInstantMessage msg = new GridInstantMessage(client.Scene, agentID, client.Name, friendID,
-                                                                (byte)InstantMessageDialog.FriendshipAccepted,
-                                                                agentID.ToString(), false, Vector3.Zero);
-                if (m_TransferModule != null)
-                {
-                    m_TransferModule.SendInstantMessage(msg,
-                        delegate(bool success) {
-                            m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                        }
-                    );
-                }
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipApproved(region, agentID, client.Name, friendID);
+                client.SendAgentOnline(new UUID[] { friendID });
             }
 
-            // tell client that new friend is online
-            client.SendAgentOnline(new UUID[] { friendID });
         }
 
         private void OnDenyFriendRequest(IClientAPI client, UUID agentID, UUID friendID, List<UUID> callingCardFolders)
         {
-            m_log.DebugFormat("[FRIEND]: Got deny friendship from {0} {1}, agentID {2}, tid {3}",
-                              client.Name, client.AgentId, agentID, friendID);
+            m_log.DebugFormat("[FRIENDS]: {0} denied friendship to {1}", agentID, friendID);
 
-            // Compose response to other agent.
-            GridInstantMessage msg = new GridInstantMessage(client.Scene, agentID, client.Name, friendID,
-                                                            (byte)InstantMessageDialog.FriendshipDeclined,
-                                                            agentID.ToString(), false, Vector3.Zero);
-            // send decline to initiator
-            if (m_TransferModule != null)
+            FriendsService.Delete(agentID, friendID.ToString());
+            FriendsService.Delete(friendID, agentID.ToString());
+
+            //
+            // Notify the friend
+            //
+
+            // Try local
+            if (LocalFriendshipDenied(agentID, client.Name, friendID))
+                return;
+
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { friendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
             {
-                m_TransferModule.SendInstantMessage(msg,
-                    delegate(bool success) {
-                        m_log.DebugFormat("[FRIEND]: sending IM success = {0}", success);
-                    }
-                );
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipDenied(region, agentID, client.Name, friendID);
             }
         }
 
         private void OnTerminateFriendship(IClientAPI client, UUID agentID, UUID exfriendID)
         {
-            // client.AgentId == agentID!
+            FriendsService.Delete(agentID, exfriendID.ToString());
+            FriendsService.Delete(exfriendID, agentID.ToString());
 
-            // this removes the friends from the stored friendlists. After the next login, they will be gone...
-            m_initialScene.StoreRemoveFriendship(agentID, exfriendID);
+            // Update local cache
+            m_Friends[agentID].Friends = FriendsService.GetFriends(agentID);
 
-            // ... now tell the two involved clients that they aren't friends anymore.
-
-            // I don't know why we have to tell <agent>, as this was caused by her, but that's how it works in SL...
             client.SendTerminateFriend(exfriendID);
 
-            // now send the friend, if online
-            ScenePresence presence = GetAnyPresenceFromAgentID(exfriendID);
-            if (presence != null)
-            {
-                m_log.DebugFormat("[FRIEND]: Sending terminate friend {0} to agent {1}", agentID, exfriendID);
-                presence.ControllingClient.SendTerminateFriend(agentID);
-            }
-            else
-            {
-                // retry 3 times, in case the agent TPed from the last known region...
-                for (int retry = 0; retry < 3; ++retry)
-                {
-                    // wasn't sent, so ex-friend wasn't around on this region-server. Fetch info and try to send
-                    UserAgentData data = m_initialScene.CommsManager.UserService.GetAgentByUUID(exfriendID);
-                    
-                    if (null == data)
-                        break;
-                    
-                    if (!data.AgentOnline)
-                    {
-                        m_log.DebugFormat("[FRIEND]: {0} is offline, so not sending TerminateFriend", exfriendID);
-                        break; // if ex-friend isn't online, we don't need to send
-                    }
+            //
+            // Notify the friend
+            //
 
-                    m_log.DebugFormat("[FRIEND]: Sending remote terminate friend {0} to agent {1}@{2}",
-                                      agentID, exfriendID, data.Handle);
-
-                    // try to send to foreign region, retry if it fails (friend TPed away, for example)
-                    if (TriggerTerminateFriend(data.Handle, exfriendID, agentID)) break;
-                }
-            }
-
-            // clean up cache: FriendList is wrong now...
-            lock (m_friendLists)
-            {
-                m_friendLists.Invalidate(agentID.ToString());
-                m_friendLists.Invalidate(exfriendID.ToString());
-            }
-        }
-
-        #endregion
-
-        #region CallingCards
-
-        private void OnOfferCallingCard(IClientAPI client, UUID destID, UUID transactionID)
-        {
-            m_log.DebugFormat("[CALLING CARD]: got offer from {0} for {1}, transaction {2}",
-                              client.AgentId, destID, transactionID);
-            // This might be slightly wrong. On a multi-region server, we might get the child-agent instead of the root-agent
-            // (or the root instead of the child)
-            ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
-            if (destAgent == null)
-            {
-                client.SendAlertMessage("The person you have offered a card to can't be found anymore.");
+            // Try local
+            if (LocalFriendshipTerminated(exfriendID))
                 return;
-            }
 
-            lock (m_pendingCallingcardRequests)
+            PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { exfriendID.ToString() });
+            PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+            if (friendSession != null)
             {
-                m_pendingCallingcardRequests[transactionID] = client.AgentId;
+                GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                m_FriendsSimConnector.FriendshipTerminated(region, agentID, exfriendID);
             }
-            // inform the destination agent about the offer
-            destAgent.ControllingClient.SendOfferCallingCard(client.AgentId, transactionID);
         }
 
-        private void CreateCallingCard(IClientAPI client, UUID creator, UUID folder, string name)
+        private void OnGrantUserRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
         {
-            InventoryItemBase item = new InventoryItemBase();
-            item.AssetID = UUID.Zero;
-            item.AssetType = (int)AssetType.CallingCard;
-            item.BasePermissions = (uint)PermissionMask.Copy;
-            item.CreationDate = Util.UnixTimeSinceEpoch();
-            item.CreatorId = creator.ToString();
-            item.CurrentPermissions = item.BasePermissions;
-            item.Description = "";
-            item.EveryOnePermissions = (uint)PermissionMask.None;
-            item.Flags = 0;
-            item.Folder = folder;
-            item.GroupID = UUID.Zero;
-            item.GroupOwned = false;
-            item.ID = UUID.Random();
-            item.InvType = (int)InventoryType.CallingCard;
-            item.Name = name;
-            item.NextPermissions = item.EveryOnePermissions;
-            item.Owner = client.AgentId;
-            item.SalePrice = 10;
-            item.SaleType = (byte)SaleType.Not;
-            ((Scene)client.Scene).AddInventoryItem(client, item);
-        }
+            if (!m_Friends.ContainsKey(remoteClient.AgentId))
+                return;
 
-        private void OnAcceptCallingCard(IClientAPI client, UUID transactionID, UUID folderID)
-        {
-            m_log.DebugFormat("[CALLING CARD]: User {0} ({1} {2}) accepted tid {3}, folder {4}",
-                              client.AgentId,
-                              client.FirstName, client.LastName,
-                              transactionID, folderID);
-            UUID destID;
-            lock (m_pendingCallingcardRequests)
+            m_log.DebugFormat("[FRIENDS MODULE]: User {0} changing rights to {1} for friend {2}", requester, rights, target);
+            // Let's find the friend in this user's friend list
+            UserFriendData fd = m_Friends[remoteClient.AgentId];
+            FriendInfo friend = null;
+            foreach (FriendInfo fi in fd.Friends)
+                if (fi.Friend == target.ToString())
+                    friend = fi;
+
+            if (friend != null) // Found it
             {
-                if (!m_pendingCallingcardRequests.TryGetValue(transactionID, out destID))
-                {
-                    m_log.WarnFormat("[CALLING CARD]: Got a AcceptCallingCard from {0} without an offer before.",
-                                     client.Name);
+                // Store it on the DB
+                FriendsService.StoreFriend(requester, target.ToString(), rights);
+
+                // Store it in the local cache
+                int myFlags = friend.MyFlags;
+                friend.MyFlags = rights;
+
+                // Always send this back to the original client
+                remoteClient.SendChangeUserRights(requester, target, rights);
+
+                //
+                // Notify the friend
+                //
+
+                // Try local
+                if (LocalGrantRights(requester, target, myFlags, rights))
                     return;
-                }
-                // else found pending calling card request with that transaction.
-                m_pendingCallingcardRequests.Remove(transactionID);
-            }
 
-
-            ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
-            // inform sender of the card that destination declined the offer
-            if (destAgent != null) destAgent.ControllingClient.SendAcceptCallingCard(transactionID);
-
-            // put a calling card into the inventory of receiver
-            CreateCallingCard(client, destID, folderID, destAgent.Name);
-        }
-
-        private void OnDeclineCallingCard(IClientAPI client, UUID transactionID)
-        {
-            m_log.DebugFormat("[CALLING CARD]: User {0} (ID:{1}) declined card, tid {2}",
-                              client.Name, client.AgentId, transactionID);
-            UUID destID;
-            lock (m_pendingCallingcardRequests)
-            {
-                if (!m_pendingCallingcardRequests.TryGetValue(transactionID, out destID))
+                PresenceInfo[] friendSessions = PresenceService.GetAgents(new string[] { target.ToString() });
+                PresenceInfo friendSession = PresenceInfo.GetOnlinePresence(friendSessions);
+                if (friendSession != null)
                 {
-                    m_log.WarnFormat("[CALLING CARD]: Got a AcceptCallingCard from {0} without an offer before.",
-                                     client.Name);
-                    return;
+                    GridRegion region = GridService.GetRegionByUUID(m_Scenes[0].RegionInfo.ScopeID, friendSession.RegionID);
+                    // TODO: You might want to send the delta to save the lookup
+                    // on the other end!!
+                    m_FriendsSimConnector.GrantRights(region, requester, target, myFlags, rights);
                 }
-                // else found pending calling card request with that transaction.
-                m_pendingCallingcardRequests.Remove(transactionID);
             }
-
-            ScenePresence destAgent = GetAnyPresenceFromAgentID(destID);
-            // inform sender of the card that destination declined the offer
-            if (destAgent != null) destAgent.ControllingClient.SendDeclineCallingCard(transactionID);
         }
 
-        /// <summary>
-        /// Send presence information about a client to other clients in both this region and others.
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="friendList"></param>
-        /// <param name="iAmOnline"></param>
-        private void SendPresenceState(IClientAPI client, List<FriendListItem> friendList, bool iAmOnline)
-        {
-            //m_log.DebugFormat("[FRIEND]: {0} logged {1}; sending presence updates", client.Name, iAmOnline ? "in" : "out");
+        #region Local
 
-            if (friendList == null || friendList.Count == 0)
+        public bool LocalFriendshipOffered(UUID toID, GridInstantMessage im)
+        {
+            IClientAPI friendClient = LocateClientObject(toID);
+            if (friendClient != null)
             {
-                //m_log.DebugFormat("[FRIEND]: {0} doesn't have friends.", client.Name);
-                return; // nothing we can do if she doesn't have friends...
+                // the prospective friend in this sim as root agent
+                friendClient.SendInstantMessage(im);
+                // we're done
+                return true;
+            }
+            return false;
+        }
+
+        public bool LocalFriendshipApproved(UUID userID, string userName, UUID friendID)
+        {
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+                GridInstantMessage im = new GridInstantMessage(Scene, userID, userName, friendID,
+                    (byte)OpenMetaverse.InstantMessageDialog.FriendshipAccepted, userID.ToString(), false, Vector3.Zero);
+                friendClient.SendInstantMessage(im);
+                // update the local cache
+                m_Friends[friendID].Friends = FriendsService.GetFriends(friendID);
+                // we're done
+                return true;
             }
 
-            // collect sets of friendIDs; to send to (online and offline), and to receive from
-            // TODO: If we ever switch to .NET >= 3, replace those Lists with HashSets.
-            // I can't believe that we have Dictionaries, but no Sets, considering Java introduced them years ago...
-            List<UUID> friendIDsToSendTo = new List<UUID>();
-            List<UUID> candidateFriendIDsToReceive = new List<UUID>();
+            return false;
+        }
+
+        public bool LocalFriendshipDenied(UUID userID, string userName, UUID friendID)
+        {
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
+            {
+                // the prospective friend in this sim as root agent
+
+                GridInstantMessage im = new GridInstantMessage(Scene, userID, userName, friendID,
+                    (byte)OpenMetaverse.InstantMessageDialog.FriendshipDeclined, userID.ToString(), false, Vector3.Zero);
+                friendClient.SendInstantMessage(im);
+                // we're done
+                return true;
+            }
             
-            foreach (FriendListItem item in friendList)
-            {
-                if (((item.FriendListOwnerPerms | item.FriendPerms) & (uint)FriendRights.CanSeeOnline) != 0)
-                {
-                    // friend is allowed to see my presence => add
-                    if ((item.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0) 
-                        friendIDsToSendTo.Add(item.Friend);
+            return false;
+        }
 
-                    if ((item.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0) 
-                        candidateFriendIDsToReceive.Add(item.Friend);
-                }
+        public bool LocalFriendshipTerminated(UUID exfriendID)
+        {
+            IClientAPI friendClient = LocateClientObject(exfriendID);
+            if (friendClient != null)
+            {
+                // the friend in this sim as root agent
+                friendClient.SendTerminateFriend(exfriendID);
+                // update local cache
+                m_Friends[exfriendID].Friends = FriendsService.GetFriends(exfriendID);
+                // we're done
+                return true;
             }
 
-            // we now have a list of "interesting" friends (which we have to find out on-/offline state for),
-            // friends we want to send our online state to (if *they* are online, too), and
-            // friends we want to receive online state for (currently unknown whether online or not)
+            return false;
+        }
 
-            // as this processing might take some time and friends might TP away, we try up to three times to
-            // reach them. Most of the time, we *will* reach them, and this loop won't loop
-            int retry = 0;
-            do
+        public bool LocalGrantRights(UUID userID, UUID friendID, int userFlags, int rights)
+        {
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
             {
-                // build a list of friends to look up region-information and on-/offline-state for
-                List<UUID> friendIDsToLookup = new List<UUID>(friendIDsToSendTo);
-                foreach (UUID uuid in candidateFriendIDsToReceive)
+                bool onlineBitChanged = ((rights ^ userFlags) & (int)FriendRights.CanSeeOnline) != 0;
+                if (onlineBitChanged)
                 {
-                    if (!friendIDsToLookup.Contains(uuid)) friendIDsToLookup.Add(uuid);
-                }
-
-                m_log.DebugFormat(
-                    "[FRIEND]: {0} to lookup, {1} to send to, {2} candidates to receive from for agent {3}",
-                    friendIDsToLookup.Count, friendIDsToSendTo.Count, candidateFriendIDsToReceive.Count, client.Name);
-
-                // we have to fetch FriendRegionInfos, as the (cached) FriendListItems don't
-                // necessarily contain the correct online state...
-                Dictionary<UUID, FriendRegionInfo> friendRegions = m_initialScene.GetFriendRegionInfos(friendIDsToLookup);
-                m_log.DebugFormat(
-                    "[FRIEND]: Found {0} regionInfos for {1} friends of {2}",
-                    friendRegions.Count, friendIDsToLookup.Count, client.Name);
-
-                // argument for SendAgentOn/Offline; we shouldn't generate that repeatedly within loops.
-                UUID[] agentArr = new UUID[] { client.AgentId };
-
-                // first, send to friend presence state to me, if I'm online...
-                if (iAmOnline)
-                {
-                    List<UUID> friendIDsToReceive = new List<UUID>();
-                    
-                    for (int i = candidateFriendIDsToReceive.Count - 1; i >= 0; --i)
-                    {
-                        UUID uuid = candidateFriendIDsToReceive[i];
-                        FriendRegionInfo info;
-                        if (friendRegions.TryGetValue(uuid, out info) && info != null && info.isOnline)
-                        {
-                            friendIDsToReceive.Add(uuid);
-                        }
-                    }
-                    
-                    m_log.DebugFormat(
-                        "[FRIEND]: Sending {0} online friends to {1}", friendIDsToReceive.Count, client.Name);
-                    
-                    if (friendIDsToReceive.Count > 0) 
-                        client.SendAgentOnline(friendIDsToReceive.ToArray());
-
-                    // clear them for a possible second iteration; we don't have to repeat this
-                    candidateFriendIDsToReceive.Clear();
-                }
-
-                // now, send my presence state to my friends
-                for (int i = friendIDsToSendTo.Count - 1; i >= 0; --i)
-                {
-                    UUID uuid = friendIDsToSendTo[i];
-                    FriendRegionInfo info;
-                    if (friendRegions.TryGetValue(uuid, out info) && info != null && info.isOnline)
-                    {
-                        // any client is good enough, root or child...
-                        ScenePresence agent = GetAnyPresenceFromAgentID(uuid);
-                        if (agent != null)
-                        {
-                            //m_log.DebugFormat("[FRIEND]: Found local agent {0}", agent.Name);
-
-                            // friend is online and on this server...
-                            if (iAmOnline) agent.ControllingClient.SendAgentOnline(agentArr);
-                            else agent.ControllingClient.SendAgentOffline(agentArr);
-
-                            // done, remove it
-                            friendIDsToSendTo.RemoveAt(i);
-                        }
-                    }
+                    if ((rights & (int)FriendRights.CanSeeOnline) == 1)
+                        friendClient.SendAgentOnline(new UUID[] { new UUID(userID) });
                     else
-                    {
-                        //m_log.DebugFormat("[FRIEND]: Friend {0} ({1}) is offline; not sending.", uuid, i);
-
-                        // friend is offline => no need to try sending
-                        friendIDsToSendTo.RemoveAt(i);
-                    }
-                }
-
-                m_log.DebugFormat("[FRIEND]: Have {0} friends to contact via inter-region comms.", friendIDsToSendTo.Count);
-
-                // we now have all the friends left that are online (we think), but not on this region-server
-                if (friendIDsToSendTo.Count > 0)
-                {
-                    // sort them into regions
-                    Dictionary<ulong, List<UUID>> friendsInRegion = new Dictionary<ulong,List<UUID>>();
-                    foreach (UUID uuid in friendIDsToSendTo)
-                    {
-                        ulong handle = friendRegions[uuid].regionHandle; // this can't fail as we filtered above already
-                        List<UUID> friends;
-                        if (!friendsInRegion.TryGetValue(handle, out friends))
-                        {
-                            friends = new List<UUID>();
-                            friendsInRegion[handle] = friends;
-                        }
-                        friends.Add(uuid);
-                    }
-                    m_log.DebugFormat("[FRIEND]: Found {0} regions to send to.", friendRegions.Count);
-
-                    // clear uuids list and collect missed friends in it for the next retry
-                    friendIDsToSendTo.Clear();
-
-                    // send bulk updates to the region
-                    foreach (KeyValuePair<ulong, List<UUID>> pair in friendsInRegion)
-                    {
-                        //m_log.DebugFormat("[FRIEND]: Inform {0} friends in region {1} that user {2} is {3}line",
-                        //                  pair.Value.Count, pair.Key, client.Name, iAmOnline ? "on" : "off");
-
-                        friendIDsToSendTo.AddRange(InformFriendsInOtherRegion(client.AgentId, pair.Key, pair.Value, iAmOnline));
-                    }
-                }
-                // now we have in friendIDsToSendTo only the agents left that TPed away while we tried to contact them.
-                // In most cases, it will be empty, and it won't loop here. But sometimes, we have to work harder and try again...
-            }
-            while (++retry < 3 && friendIDsToSendTo.Count > 0);
-        }
-
-        private void OnEconomyDataRequest(UUID agentID)
-        {
-            // KLUDGE: This is the only way I found to get a message (only) after login was completed and the
-            // client is connected enough to receive UDP packets).
-            // This packet seems to be sent only once, just after connection was established to the first
-            // region after login.
-            // We use it here to trigger a presence update; the old update-on-login was never be heard by
-            // the freshly logged in viewer, as it wasn't connected to the region at that time.
-            // TODO: Feel free to replace this by a better solution if you find one.
-
-            // get the agent. This should work every time, as we just got a packet from it
-            //ScenePresence agent = GetRootPresenceFromAgentID(agentID);
-            // KLUDGE 2: As this is sent quite early, the avatar isn't here as root agent yet. So, we have to cheat a bit
-            ScenePresence agent = GetAnyPresenceFromAgentID(agentID);
-
-            // just to be paranoid...
-            if (agent == null)
-            {
-                m_log.ErrorFormat("[FRIEND]: Got a packet from agent {0} who can't be found anymore!?", agentID);
-                return;
-            }
-
-            List<FriendListItem> fl;
-            lock (m_friendLists)
-            {
-                fl = (List<FriendListItem>)m_friendLists.Get(agent.ControllingClient.AgentId.ToString(),
-                                                             m_initialScene.GetFriendList);
-            }
-
-            // tell everyone that we are online
-            SendPresenceState(agent.ControllingClient, fl, true);
-        }
-
-        private void OnLogout(IClientAPI remoteClient)
-        {
-            List<FriendListItem> fl;
-            lock (m_friendLists)
-            {
-                fl = (List<FriendListItem>)m_friendLists.Get(remoteClient.AgentId.ToString(),
-                                                             m_initialScene.GetFriendList);
-            }
-
-            // tell everyone that we are offline
-            SendPresenceState(remoteClient, fl, false);
-        }
-        private void GrantUserFriendRights(IClientAPI remoteClient, UUID requester, UUID target, int rights)
-        {
-            ((Scene)remoteClient.Scene).CommsManager.UpdateUserFriendPerms(requester, target, (uint)rights);
-        }
-        public void FindAgent(IClientAPI remoteClient, UUID hunter, UUID target)
-        {
-            List<FriendListItem> friendList = GetUserFriends(hunter);
-            foreach (FriendListItem item in friendList)
-            {
-                if (item.onlinestatus == true)
-                {
-                    if (item.Friend == target && (item.FriendPerms & (uint)FriendRights.CanSeeOnMap) != 0)
-                    {
-                        ScenePresence SPTarget = ((Scene)remoteClient.Scene).GetScenePresence(target);
-                        string regionname =  SPTarget.Scene.RegionInfo.RegionName;
-                        remoteClient.SendScriptTeleportRequest("FindAgent", regionname,new Vector3(SPTarget.AbsolutePosition),new Vector3(SPTarget.Lookat));
-                    }
+                        friendClient.SendAgentOffline(new UUID[] { new UUID(userID) });
                 }
                 else
                 {
-                    remoteClient.SendAgentAlertMessage("The agent you are looking for is not online.", false);
+                    bool canEditObjectsChanged = ((rights ^ userFlags) & (int)FriendRights.CanModifyObjects) != 0;
+                    if (canEditObjectsChanged)
+                        friendClient.SendChangeUserRights(userID, friendID, rights);
                 }
+
+                return true;
             }
+
+            return false;
+
         }
 
-        public List<FriendListItem> GetUserFriends(UUID agentID)
+        public bool LocalStatusNotification(UUID userID, UUID friendID, bool online)
         {
-            List<FriendListItem> fl;
-            lock (m_friendLists)
+            IClientAPI friendClient = LocateClientObject(friendID);
+            if (friendClient != null)
             {
-                fl = (List<FriendListItem>)m_friendLists.Get(agentID.ToString(),
-                        m_initialScene.GetFriendList);
+                //m_log.DebugFormat("[FRIENDS]: Notify {0} that user {1} is {2}", friend.Friend, userID, online);
+                // the  friend in this sim as root agent
+                if (online)
+                    friendClient.SendAgentOnline(new UUID[] { userID });
+                else
+                    friendClient.SendAgentOffline(new UUID[] { userID });
+                // we're done
+                return true;
             }
 
-            return fl;
+            return false;
         }
+        #endregion
+
     }
-    #endregion
 }

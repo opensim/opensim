@@ -44,7 +44,7 @@ namespace OpenSim.Services.PresenceService
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = "agents";
+            string realm = "Presence";
 
             //
             // Try reading the [DatabaseService] section, if it exists
@@ -77,7 +77,7 @@ namespace OpenSim.Services.PresenceService
 
             m_Database = LoadPlugin<IPresenceData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+                throw new Exception("Could not find a storage interface in the given module " + dllName);
 
         }
     }

@@ -343,6 +343,12 @@
     <Key Name="assetType" Value="0" />
     <Key Name="fileName" Value="femaleface.jp2"/>
   </Section>
+  <Section Name="Hyperlink Map Texture">
+    <Key Name="assetID" Value="00000000-0000-1111-9999-000000000013"/>
+    <Key Name="name" Value="Hyperlink Map Texture"/>
+    <Key Name="assetType" Value="0" />
+    <Key Name="fileName" Value="hg2.jp2"/>
+  </Section>
   <Section Name="Moon">
     <Key Name="assetID" Value="ec4b9f0b-d008-45c6-96a4-01dd947ac621"/>
     <Key Name="name" Value="Moon"/>

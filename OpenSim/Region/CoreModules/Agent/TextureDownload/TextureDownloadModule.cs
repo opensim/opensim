@@ -33,7 +33,7 @@ using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using BlockingQueue = OpenSim.Framework.BlockingQueue<OpenSim.Region.Framework.Interfaces.ITextureSender>;
@@ -214,8 +214,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureDownload
                 {
                     Scene scene = (Scene)client.Scene;
 
-                    CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(client.AgentId);
-                    if (profile == null) // Deny unknown user
+                    ScenePresence sp = scene.GetScenePresence(client.AgentId);
+                    if (sp == null) // Deny unknown user
                         return;
 
                     IInventoryService invService = scene.InventoryService;

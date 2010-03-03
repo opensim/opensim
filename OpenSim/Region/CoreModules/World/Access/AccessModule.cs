@@ -33,7 +33,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -109,7 +108,7 @@ namespace OpenSim.Region.CoreModules.World
             {
                 foreach (Scene s in m_SceneList)
                 {
-                    if(!ProcessCommand(s, cmd))
+                    if (!ProcessCommand(s, cmd))
                         break;
                 }
             }

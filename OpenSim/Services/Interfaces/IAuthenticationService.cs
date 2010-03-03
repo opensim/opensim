@@ -66,6 +66,17 @@ namespace OpenSim.Services.Interfaces
         bool Release(UUID principalID, string token);
 
         //////////////////////////////////////////////////////
+        // SetPassword for a principal
+        //
+        // This method exists for the service, but may or may not
+        // be served remotely. That is, the authentication
+        // handlers may not include one handler for this,
+        // because it's a bit risky. Such handlers require
+        // authentication/authorization.
+        //
+        bool SetPassword(UUID principalID, string passwd);
+
+        //////////////////////////////////////////////////////
         // Grid
         //
         // We no longer need a shared secret between grid

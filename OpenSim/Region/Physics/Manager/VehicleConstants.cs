@@ -91,7 +91,9 @@ namespace OpenSim.Region.Physics.Manager
         BANKING_EFFICIENCY = 38,
         BANKING_MIX = 39,
         BANKING_TIMESCALE = 40,
-        REFERENCE_FRAME = 44
+        REFERENCE_FRAME = 44,
+        BLOCK_EXIT = 45,
+        ROLL_FRAME = 46
 
     }
 
@@ -107,7 +109,13 @@ namespace OpenSim.Region.Physics.Manager
         LIMIT_MOTOR_UP = 64,
         MOUSELOOK_STEER = 128,
         MOUSELOOK_BANK = 256,
-        CAMERA_DECOUPLED = 512
+        CAMERA_DECOUPLED = 512,
+        NO_X = 1024,
+        NO_Y = 2048,
+        NO_Z = 4096,
+        LOCK_HOVER_HEIGHT = 8192,
+        NO_DEFLECTION = 16392,
+        LOCK_ROTATION = 32784
     }
         
 }

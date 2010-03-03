@@ -65,9 +65,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
         public void Initialise (OpenSimBase openSim)
         {
-            m_log.DebugFormat("[REGIONMODULES]: Initializing...");
             m_openSim = openSim;
-            openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
+            m_openSim.ApplicationRegistry.RegisterInterface<IRegionModulesController>(this);
+            m_log.DebugFormat("[REGIONMODULES]: Initializing...");
 
             // Who we are
             string id = AddinManager.CurrentAddin.Id;
@@ -81,9 +81,9 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             // The [Modules] section in the ini file
             IConfig modulesConfig =
-                    openSim.ConfigSource.Source.Configs["Modules"];
+                    m_openSim.ConfigSource.Source.Configs["Modules"];
             if (modulesConfig == null)
-                modulesConfig = openSim.ConfigSource.Source.AddConfig("Modules");
+                modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
 
             // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in
@@ -104,7 +104,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                             continue;
 
                         // Split off port, if present
-                        string[] moduleParts = moduleString.Split(new char[] {'/'}, 2);
+                        string[] moduleParts = moduleString.Split(new char[] { '/' }, 2);
                         // Format is [port/][class]
                         string className = moduleParts[0];
                         if (moduleParts.Length > 1)
@@ -134,7 +134,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                             continue;
 
                         // Split off port, if present
-                        string[] moduleParts = moduleString.Split(new char[] {'/'}, 2);
+                        string[] moduleParts = moduleString.Split(new char[] { '/' }, 2);
                         // Format is [port/][class]
                         string className = moduleParts[0];
                         if (moduleParts.Length > 1)
@@ -162,7 +162,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             //
             foreach (TypeExtensionNode node in m_sharedModules)
             {
-                Object[] ctorArgs = new Object[] {(uint)0};
+                Object[] ctorArgs = new Object[] { (uint)0 };
 
                 // Read the config again
                 string moduleString =
@@ -172,7 +172,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 if (moduleString != String.Empty)
                 {
                     // Get the port number from the string
-                    string[] moduleParts = moduleString.Split(new char[] {'/'},
+                    string[] moduleParts = moduleString.Split(new char[] { '/' },
                             2);
                     if (moduleParts.Length > 1)
                         ctorArgs[0] = Convert.ToUInt32(moduleParts[0]);
@@ -195,18 +195,22 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
                 // OK, we're up and running
                 m_sharedInstances.Add(module);
-                module.Initialise(openSim.ConfigSource.Source);
+                module.Initialise(m_openSim.ConfigSource.Source);
             }
+
+
+        }
+
+        public void PostInitialise ()
+        {
+            m_log.DebugFormat("[REGIONMODULES]: PostInitializing...");
 
             // Immediately run PostInitialise on shared modules
             foreach (ISharedRegionModule module in m_sharedInstances)
             {
                 module.PostInitialise();
             }
-        }
 
-        public void PostInitialise ()
-        {
         }
 
 #endregion

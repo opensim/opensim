@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             IConfig assetConfig = source.Configs["AuthenticationService"];
             if (assetConfig == null)
             {
-                m_log.Error("[USER CONNECTOR]: AuthenticationService missing from OpanSim.ini");
+                m_log.Error("[AUTH CONNECTOR]: AuthenticationService missing from OpanSim.ini");
                 throw new Exception("Authentication connector init error");
             }
 
@@ -76,7 +76,7 @@ namespace OpenSim.Services.Connectors
 
             if (serviceURI == String.Empty)
             {
-                m_log.Error("[USER CONNECTOR]: No Server URI named in section AuthenticationService");
+                m_log.Error("[AUTH CONNECTOR]: No Server URI named in section AuthenticationService");
                 throw new Exception("Authentication connector init error");
             }
             m_ServerURI = serviceURI;
@@ -145,6 +145,12 @@ namespace OpenSim.Services.Connectors
                 return false;
 
             return true;
+        }
+
+        public bool SetPassword(UUID principalID, string passwd)
+        {
+            // nope, we don't do this
+            return false;
         }
     }
 }

@@ -141,7 +141,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             RegionInfo regionInfo = new RegionInfo(0,0,null,null);
             FakeStorageManager storageManager = new FakeStorageManager();
 
-            new Scene(regionInfo, null, null, null, storageManager, null, false, false, false, null, null);
+            new Scene(regionInfo, null, null, storageManager, null, false, false, false, null, null);
         }
     }
 }

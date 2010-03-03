@@ -35,6 +35,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes.Types;
 using OpenSim.Region.Physics.Manager;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -476,6 +477,15 @@ namespace OpenSim.Region.Framework.Scenes
                     part.Undo();
             }
         }
+        protected internal void HandleRedo(IClientAPI remoteClient, UUID primId)
+        {
+            if (primId != UUID.Zero)
+            {
+                SceneObjectPart part = m_parentScene.GetSceneObjectPart(primId);
+                if (part != null)
+                    part.Redo();
+            }
+        }
 
         protected internal void HandleObjectGroupUpdate(
             IClientAPI remoteClient, UUID GroupID, uint objectLocalID, UUID Garbage)
@@ -532,33 +542,32 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
         public SceneObjectGroup RezSingleAttachment(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
-            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient,
-                itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
-                false, false, remoteClient.AgentId, true);
-
-            if (objatt != null)
+            IInventoryAccessModule invAccess = m_parentScene.RequestModuleInterface<IInventoryAccessModule>();
+            if (invAccess != null)
             {
-                bool tainted = false;
-                if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
-                    tainted = true;
+                SceneObjectGroup objatt = invAccess.RezObject(remoteClient,
+                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                    false, false, remoteClient.AgentId, true);
 
-                if (AttachObject(
-                    remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false))
+
+                if (objatt != null)
                 {
+                    bool tainted = false;
+                    if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
+                        tainted = true;
+
+                    AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
                     objatt.ScheduleGroupForFullUpdate();
                     if (tainted)
                         objatt.HasGroupChanged = true;
-    
+
                     // Fire after attach, so we don't get messy perms dialogs
                     // 3 == AttachedRez
                     objatt.CreateScriptInstances(0, true, m_parentScene.DefaultScriptEngine, 3);
-
-                    // Do this last so that event listeners have access to all the effects of the attachment
-                    m_parentScene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
                 }
+                return objatt;
             }
-            
-            return objatt;
+            return null;
         }
 
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
@@ -669,7 +678,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // it get cleaned up
                     //
                     group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                    group.HasGroupChanged = false;                   
+                    group.HasGroupChanged = false;
                 }
                 else
                 {

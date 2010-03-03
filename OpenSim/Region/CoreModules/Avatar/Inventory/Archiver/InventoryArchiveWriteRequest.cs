@@ -37,10 +37,11 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Region.CoreModules.World.Archiver;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 {
@@ -54,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private const string STAR_WILDCARD = "*";
 
         private InventoryArchiverModule m_module;
-        private CachedUserInfo m_userInfo;
+        private UserAccount m_userInfo;
         private string m_invPath;
         protected TarArchiveWriter m_archiveWriter;
         protected UuidGatherer m_assetGatherer;
@@ -89,7 +90,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public InventoryArchiveWriteRequest(
             Guid id, InventoryArchiverModule module, Scene scene, 
-            CachedUserInfo userInfo, string invPath, string savePath)
+            UserAccount userInfo, string invPath, string savePath)
             : this(
                 id,
                 module,
@@ -105,7 +106,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// </summary>
         public InventoryArchiveWriteRequest(
             Guid id, InventoryArchiverModule module, Scene scene, 
-            CachedUserInfo userInfo, string invPath, Stream saveStream)
+            UserAccount userInfo, string invPath, Stream saveStream)
         {
             m_id = id;
             m_module = module;
@@ -148,7 +149,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             m_userUuids[inventoryItem.CreatorIdAsUuid] = 1;
 
             InventoryItemBase saveItem = (InventoryItemBase)inventoryItem.Clone();
-            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.CommsManager);
+            saveItem.CreatorId = OspResolver.MakeOspa(saveItem.CreatorIdAsUuid, m_scene.UserAccountService);
 
             string serialization = UserInventoryItemSerializer.Serialize(saveItem);
             m_archiveWriter.WriteFile(filename, serialization);
@@ -215,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             InventoryFolderBase inventoryFolder = null;
             InventoryItemBase inventoryItem = null;
-            InventoryFolderBase rootFolder = m_scene.InventoryService.GetRootFolder(m_userInfo.UserProfile.ID);
+            InventoryFolderBase rootFolder = m_scene.InventoryService.GetRootFolder(m_userInfo.PrincipalID);
 
             bool foundStar = false;
 
@@ -318,14 +319,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             foreach (UUID creatorId in m_userUuids.Keys)
             {
                 // Record the creator of this item
-                CachedUserInfo creator 
-                    = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(creatorId);
+                UserAccount creator = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, creatorId);
 
                 if (creator != null)
                 {
                     m_archiveWriter.WriteFile(
-                        ArchiveConstants.USERS_PATH + creator.UserProfile.Name + ".xml",
-                        UserProfileSerializer.Serialize(creator.UserProfile));
+                        ArchiveConstants.USERS_PATH + creator.FirstName + " " + creator.LastName + ".xml",
+                        UserProfileSerializer.Serialize(creator.PrincipalID, creator.FirstName, creator.LastName));
                 }
                 else
                 {

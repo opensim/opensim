@@ -533,7 +533,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
-      <Reference name="Ode.NET.dll" />    
+      <Reference name="Ode.NET.dll" />
       <Reference name="log4net.dll"/>
 
       <Files>
@@ -600,8 +600,6 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
-    
 
     <Project frameworkVersion="v3_5" name="OpenSim.Region.Physics.Meshing" path="OpenSim/Region/Physics/Meshing" type="Library">
       <Configuration name="Debug">
@@ -676,6 +674,7 @@
       <Reference name="System"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
@@ -814,202 +813,7 @@
 
     <!-- OpenSim.Framework.Communications -->
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.Communications.Local" path="OpenSim/Region/Communications/Local" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Data" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Region.Communications.OGS1" path="OpenSim/Region/Communications/OGS1" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data" />
-      <Reference name="OpenSim.Framework.Communications" />
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Region.Communications.Local" />
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- OGS projects -->
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.Communications.OGS1" path="OpenSim/Grid/Communications/OGS1" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications" />
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.Framework" path="OpenSim/Grid/Framework" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.GridServer" path="OpenSim/Grid/GridServer" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="Mono.Addins.dll" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MySQL"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="Nini.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.GridServer.Modules" path="OpenSim/Grid/GridServer.Modules" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Data.MySQL"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Grid.GridServer"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
-      </Files>
-    </Project>
 
 
     <Project frameworkVersion="v3_5" name="OpenSim.Server.Base" path="OpenSim/Server/Base" type="Library">
@@ -1068,7 +872,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Services.UserService" path="OpenSim/Services/UserService" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.UserAccountService" path="OpenSim/Services/UserAccountService" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1082,6 +886,38 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Web"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.FriendsService" path="OpenSim/Services/Friends" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Web"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -1126,162 +962,6 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="XMLRPC.dll" />
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.UserServer.Modules" path="OpenSim/Grid/UserServer.Modules" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Web"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework.Capabilities"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Services.Connectors"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenSim.Grid.Communications.OGS1"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.StructuredData.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="DotNetOpenId.dll"/>
-      <Reference name="Nini.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.UserServer" path="OpenSim/Grid/UserServer" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Web"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Framework.Statistics"/>
-      <Reference name="OpenSim.Grid.Communications.OGS1"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenSim.Grid.UserServer.Modules"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.StructuredData.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="Nini.dll"/>
-      <Reference name="DotNetOpenId.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.MessagingServer.Modules" path="OpenSim/Grid/MessagingServer.Modules" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Services.Connectors"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="Nini.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
-
-    <Project frameworkVersion="v3_5" name="OpenSim.Grid.MessagingServer" path="OpenSim/Grid/MessagingServer" type="Exe">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Data"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Grid.Framework"/>
-      <Reference name="OpenSim.Grid.MessagingServer.Modules"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="Nini.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -1426,6 +1106,39 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.PresenceService" path="OpenSim/Services/PresenceService" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -1443,7 +1156,7 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Services.PresenceService" path="OpenSim/Services/PresenceService" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.AvatarService" path="OpenSim/Services/AvatarService" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1488,6 +1201,7 @@
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
+      <Reference name="System.Xml"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenSim.Framework"/>
@@ -1498,6 +1212,73 @@
       <Reference name="OpenSim.Services.Base"/>
       <Reference name="OpenSim.Services.Connectors"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+    
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.LLLoginService" path="OpenSim/Services/LLLoginService" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Capabilities"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Server.Base"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenMetaverse.StructuredData.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Services.HypergridService" path="OpenSim/Services/HypergridService" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="System.Xml"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
+      <Reference name="OpenSim.Services.Base"/>
+      <Reference name="OpenSim.Services.Connectors"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Server.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
 
@@ -1535,6 +1316,7 @@
       <Reference name="XMLRPC.dll" />
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenId.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true">
@@ -1649,7 +1431,7 @@
       <Reference name="OpenSim.Region.Physics.Manager"/>
 
       <Reference name="GlynnTucker.Cache.dll"/>
-      
+
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
@@ -1657,8 +1439,8 @@
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
-	  
-	  <!-- To allow regions to have mono addins -->
+
+      <!-- To allow regions to have mono addins -->
       <Reference name="Mono.Addins.dll" />
 
       <Files>
@@ -1741,7 +1523,6 @@
       <Reference name="log4net.dll"/>
       <Reference name="DotNetOpenMail.dll"/>
 
-	  
       <Files>
         <Match pattern="*.cs" recurse="true">
           <Exclude name="Tests" pattern="Tests" />
@@ -1750,8 +1531,7 @@
       </Files>
     </Project>
 
-
-<Project frameworkVersion="v3_5" name="OpenSim.Region.RegionCombinerModule" path="OpenSim/Region/RegionCombinerModule" type="Library">
+    <Project frameworkVersion="v3_5" name="OpenSim.Region.RegionCombinerModule" path="OpenSim/Region/RegionCombinerModule" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1779,8 +1559,8 @@
       <Reference name="OpenSim.Region.CoreModules" />
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
-	  
-	  <!-- To allow regions to have mono addins -->
+
+      <!-- To allow regions to have mono addins -->
       <Reference name="Mono.Addins.dll" />
 
       <Files>
@@ -1788,9 +1568,6 @@
         <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
       </Files>
     </Project>
-
-
-
 
     <Project frameworkVersion="v3_5" name="OpenSim.Region.Communications.Hypergrid" path="OpenSim/Region/Communications/Hypergrid" type="Library">
       <Configuration name="Debug">
@@ -2043,49 +1820,6 @@
       </Files>
     </Project>
 
-  <Project frameworkVersion="v3_5" name="OpenSim.ApplicationPlugins.CreateCommsManager" path="OpenSim/ApplicationPlugins/CreateCommsManager" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="Mono.Addins.dll" />
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="OpenMetaverseTypes.dll" />
-      <Reference name="OpenMetaverse.StructuredData.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="OpenSim"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Region.ClientStack"/>
-      <Reference name="OpenSim.Region.CoreModules"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Filesystem"/>
-      <Reference name="OpenSim.Framework.RegionLoader.Web"/>
-      <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="OpenSim.Region.Communications.OGS1"/>
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Region.Communications.Hypergrid"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-        <Match pattern="*.addin.xml" path="Resources" buildAction="EmbeddedResource" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.ApplicationPlugins.RemoteController" path="OpenSim/ApplicationPlugins/RemoteController" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2269,6 +2003,7 @@
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="Nini.dll" />
@@ -2304,11 +2039,9 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-	
-	
-	<!-- Client Stack Modules -->
-	
-	
+
+    <!-- Client Stack Modules -->
+
     <Project frameworkVersion="v3_5" name="OpenSim.Client.MXP" path="OpenSim/Client/MXP" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2329,6 +2062,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Services.Interfaces"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="protobuf-net"/>
@@ -2357,10 +2091,10 @@
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="System"/>
-	  <Reference name="System.Drawing"/>
+      <Reference name="System.Drawing"/>
       <Reference name="OpenSim.Framework"/>
-	  <Reference name="OpenSim.Framework.Servers"/>
-	  <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Framework.Servers"/>
+      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Services.Interfaces"/>
@@ -2402,7 +2136,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-	
+
     <Project frameworkVersion="v3_5" name="OpenSim.Client.Linden" path="OpenSim/Client/Linden" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -2995,6 +2729,60 @@
       </Files>
     </Project>
 
+    <Project frameworkVersion="v3_5" name="OpenSim.Tests.Clients.PresenceClient" path="OpenSim/Tests/Clients/Presence" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Services.Interfaces" />
+      <Reference name="OpenSim.Services.Connectors" />
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project frameworkVersion="v3_5" name="OpenSim.Tests.Clients.UserAccountClient" path="OpenSim/Tests/Clients/UserAccounts" type="Exe">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System"/>
+      <Reference name="OpenMetaverseTypes.dll"/>
+      <Reference name="OpenMetaverse.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Services.Interfaces" />
+      <Reference name="OpenSim.Services.Connectors" />
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
 
     <!-- Test assemblies -->
     <Project frameworkVersion="v3_5" name="OpenSim.Tests.Common" path="OpenSim/Tests/Common" type="Library">
@@ -3052,7 +2840,7 @@
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System"/>
       <Reference name="System.Xml"/>
-	    <Reference name="System.Core"/>
+      <Reference name="System.Core"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Data"/>
       <Reference name="OpenMetaverse.dll"/>
@@ -3061,7 +2849,7 @@
       <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Region.CoreModules"/>
-	    <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="OpenSim.Tests.Common"/>
       <Reference name="log4net.dll"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="nunit.framework.dll" />
@@ -3235,42 +3023,6 @@
       </Files>
     </Project>
 
-    <Project frameworkVersion="v3_5" name="OpenSim.Framework.Communications.Tests" path="OpenSim/Framework/Communications/Tests" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="log4net.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="nunit.framework.dll" />
-      <Reference name="XMLRPC.dll"/>
-      <Reference name="OpenMetaverse.dll"/>
-      <Reference name="OpenMetaverseTypes.dll"/>
-      <Reference name="OpenSim.Client.Linden"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Servers.HttpServer"/>
-      <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Region.Framework"/>
-      <Reference name="OpenSim.Region.Communications.Local"/>
-      <Reference name="OpenSim.Tests.Common"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project frameworkVersion="v3_5" name="OpenSim.Region.CoreModules.Tests" path="OpenSim/Region/CoreModules" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -3302,7 +3054,7 @@
       <Reference name="OpenSim.Region.CoreModules"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Services.Interfaces"/>
-      
+
       <!-- Unit tests -->
       <Reference name="OpenSim.Tests.Common"/>
       <Reference name="Nini.dll"/>
@@ -3331,6 +3083,7 @@
         <Match path="World/Serialiser/Tests" pattern="*.cs" recurse="true" />
         <Match path="World/Terrain/Tests" pattern="*.cs" recurse="true" />
         <Match path="ServiceConnectorsOut/Grid/Tests" pattern="*.cs" recurse="true" />
+        <Match path="ServiceConnectorsOut/Presence/Tests" pattern="*.cs" recurse="true" />
       </Files>
     </Project>
 
@@ -3562,9 +3315,3 @@
 
   </Solution>
 </Prebuild>
-
-
-
-
-
-

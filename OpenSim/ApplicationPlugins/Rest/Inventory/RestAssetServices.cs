@@ -261,7 +261,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 modified = (asset != null);
                 created  = !modified;
 
-                asset             = new AssetBase(uuid, xml.GetAttribute("name"), SByte.Parse(xml.GetAttribute("type")));
+                asset = new AssetBase(uuid, xml.GetAttribute("name"), SByte.Parse(xml.GetAttribute("type")), UUID.Zero.ToString());
                 asset.Description = xml.GetAttribute("desc");
                 asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
                 asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;
@@ -338,7 +338,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             modified = (asset != null);
             created  = !modified;
 
-            asset             = new AssetBase(uuid, xml.GetAttribute("name"), SByte.Parse(xml.GetAttribute("type")));
+            asset             = new AssetBase(uuid, xml.GetAttribute("name"), SByte.Parse(xml.GetAttribute("type")), UUID.Zero.ToString());
             asset.Description = xml.GetAttribute("desc");
             asset.Local       = Int32.Parse(xml.GetAttribute("local")) != 0;
             asset.Temporary   = Int32.Parse(xml.GetAttribute("temporary")) != 0;

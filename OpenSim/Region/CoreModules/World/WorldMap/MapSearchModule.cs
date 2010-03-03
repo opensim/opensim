@@ -32,7 +32,6 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.Region.Framework.Scenes.Hypergrid;
 using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
@@ -104,25 +103,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (info != null) regionInfos.Add(info);
             }
 
-            if ((regionInfos.Count == 0) && IsHypergridOn())
-            {
-                // OK, we tried but there are no regions matching that name.
-                // Let's check quickly if this is a domain name, and if so link to it
-                if (mapName.Contains("."))
-                {
-                    // It probably is a domain name. Try to link to it.
-                    GridRegion regInfo;
-                    Scene cScene = GetClientScene(remoteClient);
-                    IHyperlinkService hyperService = cScene.RequestModuleInterface<IHyperlinkService>();
-                    if (hyperService != null)
-                    {
-                        regInfo = hyperService.TryLinkRegion(remoteClient, mapName);
-                        if (regInfo != null)
-                            regionInfos.Add(regInfo);
-                    }
-                }
-            }
-
             List<MapBlockData> blocks = new List<MapBlockData>();
 
             MapBlockData data;
@@ -156,11 +136,6 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             blocks.Add(data);
 
             remoteClient.SendMapBlock(blocks, 0);
-        }
-
-        private bool IsHypergridOn()
-        {
-            return (m_scene.SceneGridService is HGSceneCommunicationService);
         }
 
         private Scene GetClientScene(IClientAPI client)

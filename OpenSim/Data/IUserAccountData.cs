@@ -36,20 +36,18 @@ namespace OpenSim.Data
     {
         public UUID PrincipalID;
         public UUID ScopeID;
-        public Dictionary<string, object> Data;
+        public string FirstName;
+        public string LastName;
+        public Dictionary<string, string> Data;
     }
 
     /// <summary>
-    /// An interface for connecting to the authentication datastore
+    /// An interface for connecting to the user accounts datastore
     /// </summary>
     public interface IUserAccountData
     {
-        UserAccountData Get(UUID principalID, UUID ScopeID);
-
-        List<UserAccountData> Query(UUID principalID, UUID ScopeID, string query);
-
+        UserAccountData[] Get(string[] fields, string[] values);
         bool Store(UserAccountData data);
-
-        bool SetDataItem(UUID principalID, string item, string value);
+        UserAccountData[] GetUsers(UUID scopeID, string query);
     }
 }

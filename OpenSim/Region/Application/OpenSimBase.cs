@@ -36,8 +36,7 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Services;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
@@ -84,8 +83,6 @@ namespace OpenSim
         protected ConfigSettings m_configSettings;
 
         protected ConfigurationLoader m_configLoader;
-
-        protected GridInfoService m_gridInfoService;
 
         public ConsoleCommand CreateAccount = null;
 
@@ -555,35 +552,6 @@ namespace OpenSim
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
             scene.PhysicsScene.SetWaterLevel((float) regionInfo.RegionSettings.WaterHeight);
 
-            // TODO: Remove this cruft once MasterAvatar is fully deprecated
-            //Master Avatar Setup
-            UserProfileData masterAvatar;
-            if (scene.RegionInfo.MasterAvatarAssignedUUID == UUID.Zero)
-            {
-                masterAvatar =
-                    m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarFirstName,
-                                                               scene.RegionInfo.MasterAvatarLastName,
-                                                               scene.RegionInfo.MasterAvatarSandboxPassword);
-            }
-            else
-            {
-                masterAvatar = m_commsManager.UserService.SetupMasterUser(scene.RegionInfo.MasterAvatarAssignedUUID);
-                scene.RegionInfo.MasterAvatarFirstName = masterAvatar.FirstName;
-                scene.RegionInfo.MasterAvatarLastName = masterAvatar.SurName;
-            }
-
-            if (masterAvatar == null)
-            {
-                m_log.Info("[PARCEL]: No master avatar found, using null.");
-                scene.RegionInfo.MasterAvatarAssignedUUID = UUID.Zero;
-            }
-            else
-            {
-                m_log.InfoFormat("[PARCEL]: Found master avatar {0} {1} [" + masterAvatar.ID.ToString() + "]",
-                                 scene.RegionInfo.MasterAvatarFirstName, scene.RegionInfo.MasterAvatarLastName);
-                scene.RegionInfo.MasterAvatarAssignedUUID = masterAvatar.ID;
-            }
-
             return scene;
         }
 
@@ -606,15 +574,10 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager)
         {
-            bool hgrid = ConfigSource.Source.Configs["Startup"].GetBoolean("hypergrid", false);
-            if (hgrid)
-                return HGCommands.CreateScene(regionInfo, circuitManager, m_commsManager, 
-                storageManager, m_moduleLoader, m_configSettings, m_config, m_version);
-
-            SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
+            SceneCommunicationService sceneGridService = new SceneCommunicationService();
 
             return new Scene(
-                regionInfo, circuitManager, m_commsManager, sceneGridService,
+                regionInfo, circuitManager, sceneGridService,
                 storageManager, m_moduleLoader, false, m_configSettings.PhysicalPrim,
                 m_configSettings.See_into_region_from_neighbor, m_config.Source, m_version);
         }

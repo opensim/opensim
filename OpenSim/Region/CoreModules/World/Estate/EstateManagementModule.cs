@@ -57,10 +57,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!m_scene.RegionInfo.EstateSettings.UseGlobalTime)
                 sun=(uint)(m_scene.RegionInfo.EstateSettings.SunPosition*1024.0) + 0x1800;
             UUID estateOwner;
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                estateOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            else
-                estateOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            estateOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             if (m_scene.Permissions.IsGod(remote_client.AgentId))
                 estateOwner = remote_client.AgentId;
@@ -241,8 +238,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (user == m_scene.RegionInfo.EstateSettings.EstateOwner)
                 return; // never process EO
-            if (user == m_scene.RegionInfo.MasterAvatarAssignedUUID)
-                return; // never process owner
 
             if ((estateAccessType & 4) != 0) // User add
             {
@@ -709,16 +704,9 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 lsri.TaskID = sog.UUID;
                                 lsri.TaskLocalID = sog.LocalId;
                                 lsri.TaskName = sog.GetPartName(obj);
-                                if (m_scene.CommsManager.UUIDNameCachedTest(sog.OwnerID))
-                                {
-                                    lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
-                                }
-                                else
-                                {
-                                    lsri.OwnerName = "waiting";
-                                    lock (uuidNameLookupList)
-                                        uuidNameLookupList.Add(sog.OwnerID);
-                                }
+                                lsri.OwnerName = "waiting";
+                                lock (uuidNameLookupList)
+                                    uuidNameLookupList.Add(sog.OwnerID);
 
                                 if (filter.Length != 0)
                                 {
@@ -769,7 +757,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             for (int i = 0; i < uuidarr.Length; i++)
             {
                 // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
-                m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                m_scene.GetUserName(uuidarr[i]);
                 // we drop it.  It gets cached though...  so we're ready for the next request.
             }
         }
@@ -808,14 +796,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            else
-                args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-
-            // Fudge estate owner
-            //if (m_scene.Permissions.IsGod(remoteClient.AgentId))
-            //    args.SimOwner = remoteClient.AgentId;
+            args.SimOwner = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             args.terrainBase0 = UUID.Zero;
             args.terrainBase1 = UUID.Zero;
@@ -1194,8 +1175,6 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public bool IsManager(UUID avatarID)
         {
-            if (avatarID == m_scene.RegionInfo.MasterAvatarAssignedUUID)
-                return true;
             if (avatarID == m_scene.RegionInfo.EstateSettings.EstateOwner)
                 return true;
 

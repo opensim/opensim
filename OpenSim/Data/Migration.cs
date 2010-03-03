@@ -128,7 +128,7 @@ namespace OpenSim.Data
                 return;
 
             // to prevent people from killing long migrations.
-            m_log.InfoFormat("[MIGRATIONS] Upgrading {0} to latest revision.", _type);
+            m_log.InfoFormat("[MIGRATIONS] Upgrading {0} to latest revision {1}.", _type, migrations.Keys[migrations.Count - 1]);
             m_log.Info("[MIGRATIONS] NOTE: this may take a while, don't interupt this process!");
 
             DbCommand cmd = _conn.CreateCommand();
@@ -138,7 +138,15 @@ namespace OpenSim.Data
                 cmd.CommandText = kvp.Value;
                 // we need to up the command timeout to infinite as we might be doing long migrations.
                 cmd.CommandTimeout = 0;
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception e)
+                {
+                    m_log.DebugFormat("[MIGRATIONS] Cmd was {0}", cmd.CommandText);
+                    m_log.DebugFormat("[MIGRATIONS]: An error has occurred in the migration {0}.\n This may mean you could see errors trying to run OpenSim. If you see database related errors, you will need to fix the issue manually. Continuing.", e.Message);
+                }
 
                 if (version == 0)
                 {
@@ -246,7 +254,8 @@ namespace OpenSim.Data
                 if (m.Success)
                 {
                     int version = int.Parse(m.Groups[1].ToString());
-                    if (version > after) {
+                    if (version > after)
+                    {
                         using (Stream resource = _assem.GetManifestResourceStream(s))
                         {
                             using (StreamReader resourceReader = new StreamReader(resource))

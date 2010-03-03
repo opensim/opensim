@@ -19,38 +19,31 @@
     ; inside your firewall, separate patterns with a ';'
     ; HttpProxyExceptions = ".mydomain.com;localhost"
 
-    ; Set this to true if you are connecting your regions to a grid
-    ; Set this to false if you are running in standalone mode
-    gridmode = false
-
-    ; Set this to true if you want Hypergrid functionality
-    hypergrid = false
-
     startup_console_commands_file = "startup_commands.txt"
     shutdown_console_commands_file = "shutdown_commands.txt"
 
     ; To run a script every few minutes, set the script filename here
     ; timer_Script = "filename"
-    
+
     ; ##
     ; ## SYSTEM
     ; ##
-    
+
     ; Sets the method that OpenSim will use to fire asynchronous
     ; events. Valid values are UnsafeQueueUserWorkItem,
     ; QueueUserWorkItem, BeginInvoke, SmartThreadPool, and Thread.
-    ; SmartThreadPool is reported to work well on Mono/Linux, but 
+    ; SmartThreadPool is reported to work well on Mono/Linux, but
     ; UnsafeQueueUserWorkItem has been benchmarked with better
     ; performance on .NET/Windows
     async_call_method = SmartThreadPool
-    
+
     ; There are several operations on large collections (such as
     ; the current avatar list) that can be run synchronously or
     ; in parallel. Running in parallel should increase performance
     ; on a multi-core system, but will make debugging more
     ; difficult if something deadlocks or times out
     use_async_when_possible = false
-    
+
     ; Max threads to allocate on the FireAndForget thread pool
     ; when running with the SmartThreadPool option above
     MaxPoolThreads = 15
@@ -103,7 +96,7 @@
 
     ; How many prims to send to each avatar in the scene on each Update()
     ; MaxPrimsPerFrame = 200
-    
+
     ; Combine all contiguous regions into one large region
     ; Order your regions from South to North, West to East in your regions.ini and then set this to true
     ; Warning!  Don't use this with regions that have existing content!, This will likely break them
@@ -118,7 +111,7 @@
     ;InworldRestartShutsDown = false
 
     ; ##
-    ; ## STORAGE
+    ; ## PRIM STORAGE
     ; ##
 
     ; *** Prim Storage - only leave one storage_plugin uncommented ***
@@ -134,22 +127,13 @@
     ; --- To use MySQL storage, supply your own connection string (this is only an example):
     ;     note that the supplied account needs create privilegies if you want it to auto-create needed tables.
     ;
-    ; -->>> There are multiple connection strings defined in several places in this file. Check it carefully!
+    ; -->>> There are multiple connection strings defined in several places. Check it carefully!
     ;
     ; storage_plugin="OpenSim.Data.MySQL.dll"
     ; storage_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
     ; If you want to use a different database/server for estate data, then
     ; uncomment and change this connect string. Defaults to the above if not set
     ; estate_connection_string="Data Source=localhost;Database=opensim;User ID=opensim;Password=*****;";
-
-    ; Select whether you want to use local or grid asset storage.
-    ;
-    ; If you're running in standalone, you definitely want local, since there is no grid (hence this is redundant, and should
-    ; really be eliminated).  The database itself is defined in asset_plugin below
-    ;
-    ; If you're running a region server connecting to a grid, you probably want grid mode, since this will use the
-    ; grid asset server.  If you select local in grid mode, then you will use a database as specified in asset_plugin to store assets
-    ; locally.  This will mean you won't be able to take items using your assets to other people's regions.
 
     ; Persistence of changed objects happens during regular sweeps. The following control that behaviour to
     ; prevent frequently changing objects from heavily loading the region data store.
@@ -284,63 +268,11 @@
     ;SMTP_SERVER_LOGIN=foo
     ;SMTP_SERVER_PASSWORD=bar
 
-
-[Communications]
-    ;InterregionComms = "LocalComms"
-    InterregionComms = "RESTComms"
-
-
-[StandAlone]
-    ; If this is set to true then OpenSim only allows in users who already have accounts.
-    ; An account can be created using the "create user" console command.
-    ;
-    ; If this is set to false then an account is automatically created for a user who logs in
-    ; without one.  PLEASE NOTE THAT IN THIS MODE NO PASSWORD CHECKS ARE PERFORMED.
-    ; Therefore, any user can log into any account.  If accounts_authenticate is later switched to
-    ; true then the passwords will need to be reset (using the "reset user password" console command) since
-    ; automatically created accounts have their password set to the string "test".
-    ;
-    ; This setting applies to standalone mode only, not grid or other modes.  Default is true.
-    accounts_authenticate = true
-
-    welcome_message = "Welcome to OpenSimulator"
-
-    ; Inventory database provider
-    inventory_plugin = "OpenSim.Data.SQLite.dll"
-    ; inventory_plugin = "OpenSim.Data.MySQL.dll"
-
-    ; Inventory source SQLite example
-    inventory_source = "URI=file:inventoryStore.db,version=3"
-    ; Inventory Source MySQL example
-    ;inventory_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
-    ; User Data Database provider
-    ;
-    ; Multiple providers can be specified by separating them with commas (whitespace is unimportant)
-    ; If multiple providers are specified then if a profile is requested, each is queried until one
-    ; provides a valid profile, or until all providers have been queried.
-    ; Unfortunately the order of querying is currently undefined (it may not be the order in which
-    ; providers are specified here).  This needs to be fixed
-    ;
-    userDatabase_plugin = "OpenSim.Data.SQLite.dll"
-    ; userDatabase_plugin = "OpenSim.Data.MySQL.dll"
-
-    ; User source SQLite example
-    user_source = "URI=file:userprofiles.db,version=3"
-    ; User Source MySQL example
-    ;user_source = "Data Source=localhost;Database=opensim;User ID=opensim;Password=****;"
-
-    ; Specifies the location and filename of the default inventory library control file.  The path can be relative or absolute
-    ; Default is ./inventory/Libraries.xml
-    LibrariesXMLFile="./inventory/Libraries.xml"
-
 [Network]
     ConsoleUser = "Test"
     ConsolePass = "secret"
     http_listener_port = 9000
     console_port = 0
-    default_location_x = 1000
-    default_location_y = 1000
 
     ; ssl config: Experimental!  The auto https config only really works definately on windows XP now
     ; you need a Cert Request/Signed pair installed in the MY store with the CN specified below
@@ -351,27 +283,12 @@
     http_listener_ssl_cert = "" ; Currently unused, but will be used for OSHttpServer
 
     ; Hostname to use in llRequestURL/llRequestSecureURL
-    ; if not defined - default machine name is being used 
+    ; if not defined - default machine name is being used
     ; (on Windows this mean NETBIOS name - useably only inside local network)
     ; ExternalHostNameForLSL=127.0.0.1
     ; Uncomment below to enable llRemoteData/remote channels
     ; remoteDataPort = 20800
 
-    grid_server_url = "http://127.0.0.1:8003"
-    grid_send_key = "null"
-    grid_recv_key = "null"
-
-    user_server_url = "http://127.0.0.1:8002"
-    user_send_key = "null"
-    user_recv_key = "null"
-
-    asset_server_url = "http://127.0.0.1:8003"
-
-    inventory_server_url = "http://127.0.0.1:8003"
-
-    ; The MessagingServer is a companion of the UserServer. It uses
-    ; user_send_key and user_recv_key, too
-    messaging_server_url = "http://127.0.0.1:8006"
 
     ; What is reported as the "X-Secondlife-Shard"
     ; Defaults to the user server url if not set
@@ -388,11 +305,11 @@
 [ClientStack.LindenUDP]
     ; Set this to true to process incoming packets asynchronously. Networking is
     ; already separated from packet handling with a queue, so this will only
-    ; affect whether networking internals such as packet decoding and 
+    ; affect whether networking internals such as packet decoding and
     ; acknowledgement accounting are done synchronously or asynchronously
     ;
     ;async_packet_handling = false
-    
+
     ; The client socket receive buffer size determines how many
     ; incoming requests we can process; the default on .NET is 8192
     ; which is about 2 4k-sized UDP datagrams. On mono this is
@@ -409,7 +326,7 @@
     ; net.core.rmem_max=X")
     ;
     ;client_socket_rcvbuf_size = 8388608
-    
+
     ; Maximum outbound bytes per second for a single scene. This can be used to
     ; throttle total outbound UDP traffic for a simulator. The default value is
     ; 0, meaning no throttling at the scene level. The example given here is
@@ -417,13 +334,13 @@
     ;
     ;scene_throttle_max_bps = 2621440
 
-    ; Maximum bits per second to send to any single client. This will override 
+    ; Maximum bits per second to send to any single client. This will override
     ; the user's viewer preference settings. The default value is 0, meaning no
     ; aggregate throttling on clients (only per-category throttling). The
     ; example given here is 1.5 megabits
     ;
     ;client_throttle_max_bps = 196608
-    
+
     ; Per-client bytes per second rates for the various throttle categories.
     ; These are default values that will be overriden by clients
     ;
@@ -435,7 +352,7 @@
     ;texture_default = 1000
     ;asset_default = 1000
     ;state_default = 1000
-    
+
     ; Per-client maximum burst rates in bytes per second for the various
     ; throttle categories. These are default values that will be overriden by
     ; clients
@@ -448,10 +365,10 @@
     ;texture_limit = 55750
     ;asset_limit = 27500
     ;state_limit = 37000
-    
+
     ; Configures how ObjectUpdates are aggregated. These numbers
     ; do not literally mean how many updates will be put in each
-    ; packet that goes over the wire, as packets are 
+    ; packet that goes over the wire, as packets are
     ; automatically split on a 1400 byte boundary. These control
     ; the balance between responsiveness of interest list updates
     ; and total throughput. Higher numbers will ensure more full-
@@ -612,7 +529,7 @@
     ; used to control llMove2Target
     body_pid_derivative = 35
     body_pid_gain = 25
-    
+
     ; maximum number of contact points to generate per collision
     contacts_per_collision = 80
 
@@ -801,7 +718,7 @@
     ;;arrival and departure of certain users. For example: admins, bots.
 
     ;exclude_list=User 1,User 2,User 3
-    
+
 
 ;[CMS]
     ;enabled = true
@@ -984,7 +901,7 @@
 
     ; Stack size per thread created
     ThreadStackSize = 262144
-    
+
     ; Set this to true (the default) to load each script into a separate
     ; AppDomain. Setting this to false will load all script assemblies into the
     ; current AppDomain, which will reduce the per-script overhead at the
@@ -1074,7 +991,7 @@
     ; DisableUndergroundMovement = true
 
 
-[GridInfo]
+[GridInfoService]
     ; These settings are used to return information on a get_grid_info call.
     ; Client launcher scripts and third-party clients make use of this to
     ; autoconfigure the client and to provide a nice user experience. If you
@@ -1179,25 +1096,25 @@
     ; Enables the Mini Region Modules Script Engine.
     ; default is false
     Enabled = false
-	
-	; Runs MRM in a Security Sandbox
-	; WARNING: DISABLING IS A SECURITY RISK.
-	Sandboxed = true
-	
-	; The level sandbox to use, adjust at your OWN RISK.
-	; Valid values are: 
-	; *  FullTrust
+
+    ; Runs MRM in a Security Sandbox
+    ; WARNING: DISABLING IS A SECURITY RISK.
+    Sandboxed = true
+
+    ; The level sandbox to use, adjust at your OWN RISK.
+    ; Valid values are:
+    ; *  FullTrust
     ; *  SkipVerification
     ; *  Execution
     ; *  Nothing
     ; *  LocalIntranet
     ; *  Internet
     ; *  Everything
-	SandboxLevel = "Internet"
+    SandboxLevel = "Internet"
 
-	; Only allow Region Owners to run MRMs
-	; May represent a security risk if you disable this.
-	OwnerOnly = true
+    ; Only allow Region Owners to run MRMs
+    ; May represent a security risk if you disable this.
+    OwnerOnly = true
 
 [Hypergrid]
     ; Keep it false for now. Making it true requires the use of a special client in order to access inventory
@@ -1347,7 +1264,7 @@
 
 [WebStats]
 ; View region statistics via a web page
-; See http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page 
+; See http://opensimulator.org/wiki/FAQ#Region_Statistics_on_a_Web_Page
 ; Use a web browser and type in the "Login URI" + "/SStats/"
 ; For example- http://127.0.0.1:9000/SStats/
 ; enabled=false
@@ -1369,14 +1286,14 @@
 [AssetService]
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
-    
+
     ; Disable this to prevent the default asset set from being inserted into the
     ; asset store each time the region starts
     AssetLoaderEnabled = true
 
 [GridService]
     ;; default standalone, overridable in StandaloneCommon.ini
-	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+    StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; The following is the configuration section for the new style services
@@ -1414,3 +1331,13 @@
 
     ;XmlRpcRouterModule = "XmlRpcRouterModule"
     ;XmlRpcPort = 20800
+
+[Friends]
+    ; The port the friendslist interregion comms will listen on
+    ; Defaults to the simulator's TCP port
+    ;Port = 0
+
+    ; Uncomment one of the lines below. Use FriendsService for local
+    ; operation, Connectors for remote operation
+    ;Connector = "OpenSim.Services.FriendsService.dll"
+    Connector = "OpenSim.Services.Connectors.dll"

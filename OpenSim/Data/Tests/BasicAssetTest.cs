@@ -66,9 +66,9 @@ namespace OpenSim.Data.Tests
         [Test]
         public void T010_StoreSimpleAsset()
         {
-            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture);
-            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture);
-            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture);
+            AssetBase a1 = new AssetBase(uuid1, "asset one", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase a2 = new AssetBase(uuid2, "asset two", (sbyte)AssetType.Texture, UUID.Zero.ToString());
+            AssetBase a3 = new AssetBase(uuid3, "asset three", (sbyte)AssetType.Texture, UUID.Zero.ToString());
             a1.Data = asset1;
             a2.Data = asset1;
             a3.Data = asset1;
@@ -78,11 +78,14 @@ namespace OpenSim.Data.Tests
                 .DontScramble(x => x.ID)
                 .DontScramble(x => x.FullID)
                 .DontScramble(x => x.Metadata.ID)
+                .DontScramble(x => x.Metadata.CreatorID)
+                .DontScramble(x => x.Metadata.ContentType)
                 .DontScramble(x => x.Metadata.FullID);
 
             scrambler.Scramble(a1);
             scrambler.Scramble(a2);
             scrambler.Scramble(a3);
+
 
             db.StoreAsset(a1);
             db.StoreAsset(a2);

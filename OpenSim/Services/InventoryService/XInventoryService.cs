@@ -87,7 +87,7 @@ namespace OpenSim.Services.InventoryService
                 throw new Exception("Could not find a storage interface in the given module");
         }
 
-        public bool CreateUserInventory(UUID principalID)
+        public virtual bool CreateUserInventory(UUID principalID)
         {
             // This is braindeaad. We can't ever communicate that we fixed
             // an existing inventory. Well, just return root folder status,
@@ -99,7 +99,7 @@ namespace OpenSim.Services.InventoryService
 
             if (rootFolder == null)
             {
-                rootFolder = ConvertToOpenSim(CreateFolder(principalID, UUID.Zero, (int)AssetType.Folder, "My Inventory"));
+                rootFolder = ConvertToOpenSim(CreateFolder(principalID, UUID.Zero, (int)AssetType.RootFolder, "My Inventory"));
                 result = true;
             }
 
@@ -137,7 +137,7 @@ namespace OpenSim.Services.InventoryService
             return result;
         }
 
-        private XInventoryFolder CreateFolder(UUID principalID, UUID parentID, int type, string name)
+        protected XInventoryFolder CreateFolder(UUID principalID, UUID parentID, int type, string name)
         {
             XInventoryFolder newFolder = new XInventoryFolder();
 
@@ -153,7 +153,7 @@ namespace OpenSim.Services.InventoryService
             return newFolder;
         }
 
-        private XInventoryFolder[] GetSystemFolders(UUID principalID)
+        protected virtual XInventoryFolder[] GetSystemFolders(UUID principalID)
         {
             XInventoryFolder[] allFolders = m_Database.GetFolders(
                     new string[] { "agentID" },
@@ -171,7 +171,7 @@ namespace OpenSim.Services.InventoryService
             return sysFolders;
         }
 
-        public List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
+        public virtual List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
             XInventoryFolder[] allFolders = m_Database.GetFolders(
                     new string[] { "agentID" },
@@ -191,7 +191,7 @@ namespace OpenSim.Services.InventoryService
             return folders;
         }
 
-        public InventoryFolderBase GetRootFolder(UUID principalID)
+        public virtual InventoryFolderBase GetRootFolder(UUID principalID)
         {
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "parentFolderID"},
@@ -203,7 +203,7 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(folders[0]);
         }
 
-        public InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
+        public virtual InventoryFolderBase GetFolderForType(UUID principalID, AssetType type)
         {
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "agentID", "type"},
@@ -215,7 +215,7 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(folders[0]);
         }
 
-        public InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
+        public virtual InventoryCollection GetFolderContent(UUID principalID, UUID folderID)
         {
             // This method doesn't receive a valud principal id from the
             // connector. So we disregard the principal and look
@@ -250,7 +250,7 @@ namespace OpenSim.Services.InventoryService
             return inventory;
         }
         
-        public List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
+        public virtual List<InventoryItemBase> GetFolderItems(UUID principalID, UUID folderID)
         {
             // Since we probably don't get a valid principal here, either ...
             //
@@ -266,18 +266,18 @@ namespace OpenSim.Services.InventoryService
             return invItems;
         }
 
-        public bool AddFolder(InventoryFolderBase folder)
+        public virtual bool AddFolder(InventoryFolderBase folder)
         {
             XInventoryFolder xFolder = ConvertFromOpenSim(folder);
             return m_Database.StoreFolder(xFolder);
         }
 
-        public bool UpdateFolder(InventoryFolderBase folder)
+        public virtual bool UpdateFolder(InventoryFolderBase folder)
         {
             return AddFolder(folder);
         }
 
-        public bool MoveFolder(InventoryFolderBase folder)
+        public virtual bool MoveFolder(InventoryFolderBase folder)
         {
             XInventoryFolder[] x = m_Database.GetFolders(
                     new string[] { "folderID" },
@@ -293,7 +293,7 @@ namespace OpenSim.Services.InventoryService
 
         // We don't check the principal's ID here
         //
-        public bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
+        public virtual bool DeleteFolders(UUID principalID, List<UUID> folderIDs)
         {
             // Ignore principal ID, it's bogus at connector level
             //
@@ -308,7 +308,7 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public bool PurgeFolder(InventoryFolderBase folder)
+        public virtual bool PurgeFolder(InventoryFolderBase folder)
         {
             XInventoryFolder[] subFolders = m_Database.GetFolders(
                     new string[] { "parentFolderID" },
@@ -325,17 +325,17 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public bool AddItem(InventoryItemBase item)
+        public virtual bool AddItem(InventoryItemBase item)
         {
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
 
-        public bool UpdateItem(InventoryItemBase item)
+        public virtual bool UpdateItem(InventoryItemBase item)
         {
             return m_Database.StoreItem(ConvertFromOpenSim(item));
         }
 
-        public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
+        public virtual bool MoveItems(UUID principalID, List<InventoryItemBase> items)
         {
             // Principal is b0rked. *sigh*
             //
@@ -347,7 +347,7 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public bool DeleteItems(UUID principalID, List<UUID> itemIDs)
+        public virtual bool DeleteItems(UUID principalID, List<UUID> itemIDs)
         {
             // Just use the ID... *facepalms*
             //
@@ -357,7 +357,7 @@ namespace OpenSim.Services.InventoryService
             return true;
         }
 
-        public InventoryItemBase GetItem(InventoryItemBase item)
+        public virtual InventoryItemBase GetItem(InventoryItemBase item)
         {
             XInventoryItem[] items = m_Database.GetItems(
                     new string[] { "inventoryID" },
@@ -369,7 +369,7 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(items[0]);
         }
 
-        public InventoryFolderBase GetFolder(InventoryFolderBase folder)
+        public virtual InventoryFolderBase GetFolder(InventoryFolderBase folder)
         {
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "folderID"},
@@ -381,7 +381,7 @@ namespace OpenSim.Services.InventoryService
             return ConvertToOpenSim(folders[0]);
         }
 
-        public List<InventoryItemBase> GetActiveGestures(UUID principalID)
+        public virtual List<InventoryItemBase> GetActiveGestures(UUID principalID)
         {
             XInventoryItem[] items = m_Database.GetActiveGestures(principalID);
 
@@ -396,7 +396,7 @@ namespace OpenSim.Services.InventoryService
             return ret;
         }
 
-        public int GetAssetPermissions(UUID principalID, UUID assetID)
+        public virtual int GetAssetPermissions(UUID principalID, UUID assetID)
         {
             return m_Database.GetAssetPermissions(principalID, assetID);
         }
@@ -421,7 +421,7 @@ namespace OpenSim.Services.InventoryService
 
         // CM Helpers
         //
-        private InventoryFolderBase ConvertToOpenSim(XInventoryFolder folder)
+        protected InventoryFolderBase ConvertToOpenSim(XInventoryFolder folder)
         {
             InventoryFolderBase newFolder = new InventoryFolderBase();
 
@@ -435,7 +435,7 @@ namespace OpenSim.Services.InventoryService
             return newFolder;
         }
 
-        private XInventoryFolder ConvertFromOpenSim(InventoryFolderBase folder)
+        protected XInventoryFolder ConvertFromOpenSim(InventoryFolderBase folder)
         {
             XInventoryFolder newFolder = new XInventoryFolder();
 
@@ -449,7 +449,7 @@ namespace OpenSim.Services.InventoryService
             return newFolder;
         }
 
-        private InventoryItemBase ConvertToOpenSim(XInventoryItem item)
+        protected InventoryItemBase ConvertToOpenSim(XInventoryItem item)
         {
             InventoryItemBase newItem = new InventoryItemBase();
 
@@ -468,7 +468,10 @@ namespace OpenSim.Services.InventoryService
             newItem.EveryOnePermissions = (uint)item.inventoryEveryOnePermissions;
             newItem.GroupPermissions = (uint)item.inventoryGroupPermissions;
             newItem.GroupID = item.groupID;
-            newItem.GroupOwned = item.groupOwned;
+            if (item.groupOwned == 0)
+                newItem.GroupOwned = false;
+            else
+                newItem.GroupOwned = true;
             newItem.SalePrice = item.salePrice;
             newItem.SaleType = (byte)item.saleType;
             newItem.Flags = (uint)item.flags;
@@ -477,7 +480,7 @@ namespace OpenSim.Services.InventoryService
             return newItem;
         }
 
-        private XInventoryItem ConvertFromOpenSim(InventoryItemBase item)
+        protected XInventoryItem ConvertFromOpenSim(InventoryItemBase item)
         {
             XInventoryItem newItem = new XInventoryItem();
 
@@ -496,7 +499,10 @@ namespace OpenSim.Services.InventoryService
             newItem.inventoryEveryOnePermissions = (int)item.EveryOnePermissions;
             newItem.inventoryGroupPermissions = (int)item.GroupPermissions;
             newItem.groupID = item.GroupID;
-            newItem.groupOwned = item.GroupOwned;
+            if (item.GroupOwned)
+                newItem.groupOwned = 1;
+            else
+                newItem.groupOwned = 0;
             newItem.salePrice = item.SalePrice;
             newItem.saleType = (int)item.SaleType;
             newItem.flags = (int)item.Flags;

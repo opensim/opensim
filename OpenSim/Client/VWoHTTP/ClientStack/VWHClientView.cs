@@ -196,7 +196,11 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
             get { throw new System.NotImplementedException(); }
             set { throw new System.NotImplementedException(); }
         }
-
+        public bool IsLoggingOut
+        {
+            get { throw new System.NotImplementedException(); }
+            set { throw new System.NotImplementedException(); }
+        }
         public bool SendLogoutPacketWhenClosing
         {
             set { throw new System.NotImplementedException(); }
@@ -242,7 +246,7 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event DeRezObject OnDeRezObject = delegate { };
         public event Action<IClientAPI> OnRegionHandShakeReply = delegate { };
         public event GenericCall2 OnRequestWearables = delegate { };
-        public event GenericCall2 OnCompleteMovementToRegion = delegate { };
+        public event GenericCall1 OnCompleteMovementToRegion = delegate { };
         public event UpdateAgent OnAgentUpdate = delegate { };
         public event AgentRequestSit OnAgentRequestSit = delegate { };
         public event AgentSit OnAgentSit = delegate { };
@@ -343,6 +347,8 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public event UUIDNameRequest OnTeleportHomeRequest = delegate { };
         public event ScriptAnswer OnScriptAnswer = delegate { };
         public event AgentSit OnUndo = delegate { };
+        public event AgentSit OnRedo = delegate { };
+        public event LandUndo OnLandUndo = delegate { };
         public event ForceReleaseControls OnForceReleaseControls = delegate { };
         public event GodLandStatRequest OnLandStatRequest = delegate { };
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest = delegate { };
@@ -1202,6 +1208,10 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         }
 
         public void SendGroupActiveProposals(UUID groupID, UUID transactionID, GroupActiveProposals[] Proposals)
+        {
+        }
+
+        public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
     }

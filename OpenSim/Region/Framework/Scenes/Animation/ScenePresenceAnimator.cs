@@ -385,7 +385,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 }
             }
 
-            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation);
+            AssetBase Animasset = new AssetBase(UUID.Random(), "Random Animation", (sbyte)AssetType.Animation, m_scenePresence.UUID.ToString());
             Animasset.Data = anim.ToBytes();
             Animasset.Temporary = true;
             Animasset.Local = true;
@@ -419,15 +419,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (m_scenePresence.IsChildAgent)
                 return;
-            
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
 
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
-
-            m_scenePresence.ControllingClient.SendAnimations(
-                animIDs, sequenceNums, m_scenePresence.ControllingClient.AgentId, objectIDs);
+            m_scenePresence.Scene.ForEachScenePresence(
+                delegate(ScenePresence SP)
+                {
+                    SP.Animator.SendAnimPack();
+                });
         }
 
         /// <summary>

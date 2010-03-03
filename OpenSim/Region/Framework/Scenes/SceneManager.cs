@@ -468,11 +468,11 @@ namespace OpenSim.Region.Framework.Scenes
             return presences;
         }
 
-        public RegionInfo GetRegionInfo(ulong regionHandle)
+        public RegionInfo GetRegionInfo(UUID regionID)
         {
             foreach (Scene scene in m_localScenes)
             {
-                if (scene.RegionInfo.RegionHandle == regionHandle)
+                if (scene.RegionInfo.RegionID == regionID)
                 {
                     return scene.RegionInfo;
                 }

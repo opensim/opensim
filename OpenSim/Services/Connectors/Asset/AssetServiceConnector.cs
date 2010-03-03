@@ -93,7 +93,7 @@ namespace OpenSim.Services.Connectors
         }
 
         public AssetBase Get(string id)
-        {            
+        {
             string uri = m_ServerURI + "/assets/" + id;
 
             AssetBase asset = null;
@@ -243,7 +243,7 @@ namespace OpenSim.Services.Connectors
                 if (metadata == null)
                     return false;
 
-                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type);
+                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type, UUID.Zero.ToString());
                 asset.Metadata = metadata;
             }
             asset.Data = data;

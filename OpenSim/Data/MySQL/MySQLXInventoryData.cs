@@ -41,9 +41,6 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySQLXInventoryData : IXInventoryData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
         private MySQLGenericTableHandler<XInventoryFolder> m_Folders;
         private MySqlItemHandler m_Items;
 

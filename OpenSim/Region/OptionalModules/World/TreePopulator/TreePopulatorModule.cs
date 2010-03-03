@@ -306,8 +306,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
 
             m_log.InfoFormat("[TREES]: New tree planting for copse {0}", copsename);
             UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-            if (uuid == UUID.Zero)
-                uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
             foreach (Copse copse in m_copse)
             {
@@ -760,8 +758,6 @@ namespace OpenSim.Region.OptionalModules.World.TreePopulator
                 Util.GetDistanceTo(position, copse.m_seed_point) <= copse.m_range)
             {
                 UUID uuid = m_scene.RegionInfo.EstateSettings.EstateOwner;
-                if (uuid == UUID.Zero)
-                    uuid = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
                 CreateTree(uuid, copse, position);
             }

@@ -524,7 +524,7 @@ namespace OpenSim.Data.Tests
             }
         }
 
-        [Test]
+        //[Test]
         public void T016_RandomSogWithSceneParts()
         {
             PropertyScrambler<SceneObjectPart> scrambler =

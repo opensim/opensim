@@ -36,10 +36,11 @@ using Nwc.XmlRpc;
 using Mono.Addins;
 using OpenMetaverse;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.OptionalModules.World.MoneyModule
 {
@@ -65,7 +66,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         // private UUID EconomyBaseAccount = UUID.Zero;
 
         private float EnergyEfficiency = 0f;
-        private bool gridmode = false;
         // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
         private bool m_sellEnabled = false;
@@ -242,7 +242,6 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
             if (config == "Startup" && startupConfig != null)
             {
-                gridmode = startupConfig.GetBoolean("gridmode", false);
                 m_enabled = (startupConfig.GetString("economymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
             }
 
@@ -292,18 +291,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         private void GetClientFunds(IClientAPI client)
         {
-            // Here we check if we're in grid mode
-            // I imagine that the 'check balance'
-            // function for the client should be here or shortly after
-
-            if (gridmode)
-            {
-                CheckExistAndRefreshFunds(client.AgentId);
-            }
-            else
-            {
-                CheckExistAndRefreshFunds(client.AgentId);
-            }
+            CheckExistAndRefreshFunds(client.AgentId);
 
         }
 
@@ -398,10 +386,10 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         {
             // try avatar username surname
             Scene scene = GetRandomScene();
-            CachedUserInfo profile = scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
-            if (profile != null && profile.UserProfile != null)
+            UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, agentID);
+            if (account != null)
             {
-                string avatarname = profile.UserProfile.FirstName + " " + profile.UserProfile.SurName;
+                string avatarname = account.FirstName + " " + account.LastName;
                 return avatarname;
             }
             else

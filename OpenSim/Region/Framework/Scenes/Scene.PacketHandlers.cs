@@ -32,7 +32,7 @@ using OpenMetaverse;
 using OpenMetaverse.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -371,14 +371,16 @@ namespace OpenSim.Region.Framework.Scenes
         {
             //EventManager.TriggerAvatarPickerRequest();
 
-            List<AvatarPickerAvatar> AvatarResponses = new List<AvatarPickerAvatar>();
-            AvatarResponses = m_sceneGridService.GenerateAgentPickerRequestResponse(RequestID, query);
+            List<UserAccount> accounts = UserAccountService.GetUserAccounts(RegionInfo.ScopeID, query);
+
+            if (accounts == null)
+                return;
 
             AvatarPickerReplyPacket replyPacket = (AvatarPickerReplyPacket) PacketPool.Instance.GetPacket(PacketType.AvatarPickerReply);
             // TODO: don't create new blocks if recycling an old packet
 
             AvatarPickerReplyPacket.DataBlock[] searchData =
-                new AvatarPickerReplyPacket.DataBlock[AvatarResponses.Count];
+                new AvatarPickerReplyPacket.DataBlock[accounts.Count];
             AvatarPickerReplyPacket.AgentDataBlock agentData = new AvatarPickerReplyPacket.AgentDataBlock();
 
             agentData.AgentID = avatarID;
@@ -387,16 +389,16 @@ namespace OpenSim.Region.Framework.Scenes
             //byte[] bytes = new byte[AvatarResponses.Count*32];
 
             int i = 0;
-            foreach (AvatarPickerAvatar item in AvatarResponses)
+            foreach (UserAccount item in accounts)
             {
-                UUID translatedIDtem = item.AvatarID;
+                UUID translatedIDtem = item.PrincipalID;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Utils.StringToBytes((string) item.firstName);
-                searchData[i].LastName = Utils.StringToBytes((string) item.lastName);
+                searchData[i].FirstName = Utils.StringToBytes((string) item.FirstName);
+                searchData[i].LastName = Utils.StringToBytes((string) item.LastName);
                 i++;
             }
-            if (AvatarResponses.Count == 0)
+            if (accounts.Count == 0)
             {
                 searchData = new AvatarPickerReplyPacket.DataBlock[0];
             }
@@ -455,7 +457,24 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             );
         }
-        
+
+        public void HandleUUIDNameRequest(UUID uuid, IClientAPI remote_client)
+        {
+            if (LibraryService != null && (LibraryService.LibraryRootFolder.Owner == uuid))
+            {
+                remote_client.SendNameReply(uuid, "Mr", "OpenSim");
+            }
+            else
+            {
+                string[] names = GetUserNames(uuid);
+                if (names.Length == 2)
+                {
+                    remote_client.SendNameReply(uuid, names[0], names[1]);
+                }
+
+            }
+        }
+
         /// <summary>
         /// Handle a fetch inventory request from the client
         /// </summary>
@@ -464,7 +483,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="ownerID"></param>
         public void HandleFetchInventory(IClientAPI remoteClient, UUID itemID, UUID ownerID)
         {
-            if (ownerID == CommsManager.UserProfileCacheService.LibraryRoot.Owner)
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null && ownerID == LibraryService.LibraryRootFolder.Owner)
             {
                 //m_log.Debug("request info for library item");
                 return;
@@ -498,13 +517,14 @@ namespace OpenSim.Region.Framework.Scenes
             // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
             // can be handled transparently).
             InventoryFolderImpl fold = null;
-            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
-            {
-                remoteClient.SendInventoryFolderDetails(
-                    fold.Owner, folderID, fold.RequestListOfItems(),
-                    fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
-                return;
-            }
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
+                {
+                    remoteClient.SendInventoryFolderDetails(
+                        fold.Owner, folderID, fold.RequestListOfItems(),
+                        fold.RequestListOfFolders(), fold.Version, fetchFolders, fetchItems);
+                    return;
+                }
 
             // We're going to send the reply async, because there may be
             // an enormous quantity of packets -- basically the entire inventory!
@@ -552,15 +572,16 @@ namespace OpenSim.Region.Framework.Scenes
             // CachedUserInfo so that this class doesn't have to know the details (and so that multiple libraries, etc.
             // can be handled transparently).
             InventoryFolderImpl fold;
-            if ((fold = CommsManager.UserProfileCacheService.LibraryRoot.FindFolder(folderID)) != null)
-            {
-                version = 0;
-                InventoryCollection ret = new InventoryCollection();
-                ret.Folders = new List<InventoryFolderBase>();
-                ret.Items = fold.RequestListOfItems();
+            if (LibraryService != null && LibraryService.LibraryRootFolder != null)
+                if ((fold = LibraryService.LibraryRootFolder.FindFolder(folderID)) != null)
+                {
+                    version = 0;
+                    InventoryCollection ret = new InventoryCollection();
+                    ret.Folders = new List<InventoryFolderBase>();
+                    ret.Items = fold.RequestListOfItems();
 
-                return ret;
-            }
+                    return ret;
+                }
 
             InventoryCollection contents = new InventoryCollection();
 

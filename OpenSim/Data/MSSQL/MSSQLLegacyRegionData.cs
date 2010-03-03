@@ -54,28 +54,16 @@ namespace OpenSim.Data.MSSQL
         /// The database manager
         /// </summary>
         private MSSQLManager _Database;
-      
+        private string m_connectionString;
         /// <summary>
         /// Initialises the region datastore
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
         public void Initialise(string connectionString)
         {
-            if (!string.IsNullOrEmpty(connectionString))
-            {
-                _Database = new MSSQLManager(connectionString);
-            }
-            else
-            {
-                IniFile iniFile = new IniFile("mssql_connection.ini");
-                string settingDataSource = iniFile.ParseFileReadValue("data_source");
-                string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");
-                string settingPersistSecurityInfo = iniFile.ParseFileReadValue("persist_security_info");
-                string settingUserId = iniFile.ParseFileReadValue("user_id");
-                string settingPassword = iniFile.ParseFileReadValue("password");
+            m_connectionString = connectionString;
+            _Database = new MSSQLManager(connectionString);
 
-                _Database = new MSSQLManager(settingDataSource, settingInitialCatalog, settingPersistSecurityInfo, settingUserId, settingPassword);
-            }
 
             //Migration settings
             _Database.CheckMigration(_migrationStore);
@@ -102,17 +90,18 @@ namespace OpenSim.Data.MSSQL
             SceneObjectGroup grp = null;
 
 
-            string query = "SELECT *, " +
+            string sql = "SELECT *, " +
                            "sort = CASE WHEN prims.UUID = prims.SceneGroupID THEN 0 ELSE 1 END " +
                            "FROM prims " +
                            "LEFT JOIN primshapes ON prims.UUID = primshapes.UUID " +
                            "WHERE RegionUUID = @RegionUUID " +
                            "ORDER BY SceneGroupID asc, sort asc, LinkNumber asc";
 
-            using (AutoClosingSqlCommand command = _Database.Query(query))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand command = new SqlCommand(sql, conn))
             {
                 command.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID));
-
+                conn.Open();
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -122,7 +111,7 @@ namespace OpenSim.Data.MSSQL
                             sceneObjectPart.Shape = PrimitiveBaseShape.Default;
                         else
                             sceneObjectPart.Shape = BuildShape(reader);
-                        
+
                         prims[sceneObjectPart.UUID] = sceneObjectPart;
 
                         UUID groupID = new UUID((Guid)reader["SceneGroupID"]);
@@ -133,7 +122,7 @@ namespace OpenSim.Data.MSSQL
                                 objects[grp.UUID] = grp;
 
                             lastGroupID = groupID;
-                            
+
                             // There sometimes exist OpenSim bugs that 'orphan groups' so that none of the prims are
                             // recorded as the root prim (for which the UUID must equal the persisted group UUID).  In
                             // this case, force the UUID to be the same as the group UUID so that at least these can be
@@ -142,7 +131,7 @@ namespace OpenSim.Data.MSSQL
                             if (sceneObjectPart.UUID != groupID && groupID != UUID.Zero)
                             {
                                 _Log.WarnFormat(
-                                    "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID", 
+                                    "[REGION DB]: Found root prim {0} {1} at {2} where group was actually {3}.  Forcing UUID to group UUID",
                                     sceneObjectPart.Name, sceneObjectPart.UUID, sceneObjectPart.GroupPosition, groupID);
 
                                 sceneObjectPart.UUID = groupID;
@@ -174,8 +163,10 @@ namespace OpenSim.Data.MSSQL
             // LoadItems only on those
             List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
             string qry = "select distinct primID from primitems";
-            using (AutoClosingSqlCommand command = _Database.Query(qry))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand command = new SqlCommand(qry, conn))
             {
+                conn.Open();
                 using (SqlDataReader itemReader = command.ExecuteReader())
                 {
                     while (itemReader.Read())
@@ -205,14 +196,16 @@ namespace OpenSim.Data.MSSQL
         /// <param name="allPrims">all prims with inventory on a region</param>
         private void LoadItems(List<SceneObjectPart> allPrimsWithInventory)
         {
-            
-            using (AutoClosingSqlCommand command = _Database.Query("SELECT * FROM primitems WHERE PrimID = @PrimID"))
+            string sql = "SELECT * FROM primitems WHERE PrimID = @PrimID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand command = new SqlCommand(sql, conn))
             {
+                conn.Open();
                 foreach (SceneObjectPart objectPart in allPrimsWithInventory)
                 {
                     command.Parameters.Clear();
                     command.Parameters.Add(_Database.CreateParameter("@PrimID", objectPart.UUID));
-                 
+                    
                     List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
 
                     using (SqlDataReader reader = command.ExecuteReader())
@@ -241,8 +234,9 @@ namespace OpenSim.Data.MSSQL
         {
             _Log.InfoFormat("[MSSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Children.Count);
 
-            using (SqlConnection conn = _Database.DatabaseConnection())
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
             {
+                conn.Open();
                 SqlTransaction transaction = conn.BeginTransaction();
 
                 try
@@ -437,8 +431,12 @@ ELSE
             lock (_Database)
             {
                 //Using the non transaction mode.
-                using (AutoClosingSqlCommand cmd = _Database.Query(sqlPrimShapes))
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand())
                 {
+                    cmd.Connection = conn;
+                    cmd.CommandText = sqlPrimShapes;
+                    conn.Open();
                     cmd.Parameters.Add(_Database.CreateParameter("objectID", objectID));
                     cmd.ExecuteNonQuery();
 
@@ -466,24 +464,30 @@ ELSE
 
             //Delete everything from PrimID
             //TODO add index on PrimID in DB, if not already exist
-            using (AutoClosingSqlCommand cmd = _Database.Query("DELETE PRIMITEMS WHERE primID = @primID"))
+
+            string sql = "DELETE PRIMITEMS WHERE primID = @primID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@primID", primID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
-            string sql =
+            sql =
                 @"INSERT INTO primitems (
             itemID,primID,assetID,parentFolderID,invType,assetType,name,description,creationDate,creatorID,ownerID,lastOwnerID,groupID,
             nextPermissions,currentPermissions,basePermissions,everyonePermissions,groupPermissions,flags) 
             VALUES (@itemID,@primID,@assetID,@parentFolderID,@invType,@assetType,@name,@description,@creationDate,@creatorID,@ownerID,
             @lastOwnerID,@groupID,@nextPermissions,@currentPermissions,@basePermissions,@everyonePermissions,@groupPermissions,@flags)";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 foreach (TaskInventoryItem taskItem in items)
                 {
                     cmd.Parameters.AddRange(CreatePrimInventoryParameters(taskItem));
+                    conn.Open();
                     cmd.ExecuteNonQuery();
 
                     cmd.Parameters.Clear();
@@ -505,11 +509,12 @@ ELSE
 
             string sql = "select top 1 RegionUUID, Revision, Heightfield from terrain where RegionUUID = @RegionUUID order by Revision desc";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 // MySqlParameter param = new MySqlParameter();
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
-
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     int rev;
@@ -549,19 +554,23 @@ ELSE
 
             //Delete old terrain map
             string sql = "delete from terrain where RegionUUID=@RegionUUID";
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
             sql = "insert into terrain(RegionUUID, Revision, Heightfield) values(@RegionUUID, @Revision, @Heightfield)";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionID));
                 cmd.Parameters.Add(_Database.CreateParameter("@Revision", revision));
                 cmd.Parameters.Add(_Database.CreateParameter("@Heightfield", serializeTerrain(terrain)));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
@@ -580,11 +589,12 @@ ELSE
             string sql = "select * from land where RegionUUID = @RegionUUID";
 
             //Retrieve all land data from region
-            using (AutoClosingSqlCommand cmdLandData = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmdLandData.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionUUID));
-
-                using (SqlDataReader readerLandData = cmdLandData.ExecuteReader())
+                cmd.Parameters.Add(_Database.CreateParameter("@RegionUUID", regionUUID));
+                conn.Open();
+                using (SqlDataReader readerLandData = cmd.ExecuteReader())
                 {
                     while (readerLandData.Read())
                     {
@@ -597,10 +607,12 @@ ELSE
             foreach (LandData LandData in LandDataForRegion)
             {
                 sql = "select * from landaccesslist where LandUUID = @LandUUID";
-                using (AutoClosingSqlCommand cmdAccessList = _Database.Query(sql))
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
-                    cmdAccessList.Parameters.Add(_Database.CreateParameter("@LandUUID", LandData.GlobalID));
-                    using (SqlDataReader readerAccessList = cmdAccessList.ExecuteReader())
+                    cmd.Parameters.Add(_Database.CreateParameter("@LandUUID", LandData.GlobalID));
+                    conn.Open();
+                    using (SqlDataReader readerAccessList = cmd.ExecuteReader())
                     {
                         while (readerAccessList.Read())
                         {
@@ -632,17 +644,20 @@ ELSE
 VALUES
 (@UUID,@RegionUUID,@LocalLandID,@Bitmap,@Name,@Description,@OwnerUUID,@IsGroupOwned,@Area,@AuctionID,@Category,@ClaimDate,@ClaimPrice,@GroupUUID,@SalePrice,@LandStatus,@LandFlags,@LandingType,@MediaAutoScale,@MediaTextureUUID,@MediaURL,@MusicURL,@PassHours,@PassPrice,@SnapshotUUID,@UserLocationX,@UserLocationY,@UserLocationZ,@UserLookAtX,@UserLookAtY,@UserLookAtZ,@AuthbuyerID,@OtherCleanTime,@Dwell)";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddRange(CreateLandParameters(parcel.LandData, parcel.RegionUUID));
-
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
             sql = "INSERT INTO [landaccesslist] ([LandUUID],[AccessUUID],[Flags]) VALUES (@LandUUID,@AccessUUID,@Flags)";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
+                conn.Open();
                 foreach (ParcelManager.ParcelAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
                 {
                     cmd.Parameters.AddRange(CreateLandAccessParameters(parcelAccessEntry, parcel.RegionUUID));
@@ -659,15 +674,20 @@ VALUES
         /// <param name="globalID">UUID of landobject</param>
         public void RemoveLandObject(UUID globalID)
         {
-            using (AutoClosingSqlCommand cmd = _Database.Query("delete from land where UUID=@UUID"))
+            string sql = "delete from land where UUID=@UUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@UUID", globalID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
-
-            using (AutoClosingSqlCommand cmd = _Database.Query("delete from landaccesslist where LandUUID=@UUID"))
+            sql = "delete from landaccesslist where LandUUID=@UUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@UUID", globalID));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
@@ -690,9 +710,11 @@ VALUES
         {
             string sql = "select * from regionsettings where regionUUID = @regionUUID";
             RegionSettings regionSettings;
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionUUID));
+                conn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -724,9 +746,12 @@ VALUES
         {
             //Little check if regionUUID already exist in DB
             string regionUUID;
-            using (AutoClosingSqlCommand cmd = _Database.Query("SELECT regionUUID FROM regionsettings WHERE regionUUID = @regionUUID"))
+            string sql = "SELECT regionUUID FROM regionsettings WHERE regionUUID = @regionUUID";
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("@regionUUID", regionSettings.RegionUUID));
+                conn.Open();
                 regionUUID = cmd.ExecuteScalar().ToString();
             }
 
@@ -737,8 +762,8 @@ VALUES
             else
             {
                 //This method only updates region settings!!! First call LoadRegionSettings to create new region settings in DB
-                string sql =
-                    @"UPDATE [regionsettings] SET [block_terraform] = @block_terraform ,[block_fly] = @block_fly ,[allow_damage] = @allow_damage 
+                sql =
+                   @"UPDATE [regionsettings] SET [block_terraform] = @block_terraform ,[block_fly] = @block_fly ,[allow_damage] = @allow_damage 
 ,[restrict_pushing] = @restrict_pushing ,[allow_land_resell] = @allow_land_resell ,[allow_land_join_divide] = @allow_land_join_divide 
 ,[block_show_in_search] = @block_show_in_search ,[agent_limit] = @agent_limit ,[object_bonus] = @object_bonus ,[maturity] = @maturity 
 ,[disable_scripts] = @disable_scripts ,[disable_collisions] = @disable_collisions ,[disable_physics] = @disable_physics 
@@ -750,10 +775,11 @@ VALUES
 ,[covenant] = @covenant , [sunvectorx] = @sunvectorx, [sunvectory] = @sunvectory, [sunvectorz] = @sunvectorz,  [Sandbox] = @Sandbox, [loaded_creation_datetime] = @loaded_creation_datetime, [loaded_creation_id] = @loaded_creation_id
  WHERE [regionUUID] = @regionUUID";
 
-                using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+                using (SqlConnection conn = new SqlConnection(m_connectionString))
+                using (SqlCommand cmd = new SqlCommand(sql, conn))
                 {
                     cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));
-
+                    conn.Open();
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -810,9 +836,11 @@ VALUES
                                 @elevation_2_ne,@elevation_1_se,@elevation_2_se,@elevation_1_sw,@elevation_2_sw,@water_height,@terrain_raise_limit,
                                 @terrain_lower_limit,@use_estate_sun,@fixed_sun,@sun_position,@covenant,@sunvectorx,@sunvectory, @sunvectorz, @Sandbox, @loaded_creation_datetime, @loaded_creation_id)";
 
-            using (AutoClosingSqlCommand cmd = _Database.Query(sql))
+            using (SqlConnection conn = new SqlConnection(m_connectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddRange(CreateRegionSettingParameters(regionSettings));
+                conn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
@@ -916,15 +944,15 @@ VALUES
             newData.PassHours = Convert.ToSingle(row["PassHours"]);
             newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
 
-//            UUID authedbuyer;
-//            UUID snapshotID;
-//
-//            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
-//                newData.AuthBuyerID = authedbuyer;
-//
-//            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
-//                newData.SnapshotID = snapshotID;
-            newData.AuthBuyerID = new UUID((Guid) row["AuthBuyerID"]);
+            //            UUID authedbuyer;
+            //            UUID snapshotID;
+            //
+            //            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
+            //                newData.AuthBuyerID = authedbuyer;
+            //
+            //            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
+            //                newData.SnapshotID = snapshotID;
+            newData.AuthBuyerID = new UUID((Guid)row["AuthBuyerID"]);
             newData.SnapshotID = new UUID((Guid)row["SnapshotUUID"]);
 
             newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
@@ -1193,7 +1221,7 @@ VALUES
         #endregion
 
         #region Create parameters methods
-        
+
         /// <summary>
         /// Creates the prim inventory parameters.
         /// </summary>
@@ -1477,7 +1505,7 @@ VALUES
 
             parameters.Add(_Database.CreateParameter("CollisionSound", prim.CollisionSound));
             parameters.Add(_Database.CreateParameter("CollisionSoundVolume", prim.CollisionSoundVolume));
-            if  (prim.PassTouches)
+            if (prim.PassTouches)
                 parameters.Add(_Database.CreateParameter("PassTouches", 1));
             else
                 parameters.Add(_Database.CreateParameter("PassTouches", 0));
@@ -1532,7 +1560,7 @@ VALUES
 
             return parameters.ToArray();
         }
-        
+
         #endregion
 
         #endregion

@@ -58,7 +58,7 @@ namespace OpenSim.Data
         public int saleType;
         public int creationDate;
         public UUID groupID;
-        public bool groupOwned;
+        public int groupOwned;
         public int flags;
         public UUID inventoryID;
         public UUID avatarID;

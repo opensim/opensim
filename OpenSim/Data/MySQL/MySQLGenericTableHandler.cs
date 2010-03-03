@@ -39,10 +39,6 @@ namespace OpenSim.Data.MySQL
 {
     public class MySQLGenericTableHandler<T> : MySqlFramework where T: class, new()
     {
-        private static readonly ILog m_log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-
         protected Dictionary<string, FieldInfo> m_Fields =
                 new Dictionary<string, FieldInfo>();
 
@@ -99,12 +95,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public T[] Get(string field, string key)
+        public virtual T[] Get(string field, string key)
         {
             return Get(new string[] { field }, new string[] { key });
         }
 
-        public T[] Get(string[] fields, string[] keys)
+        public virtual T[] Get(string[] fields, string[] keys)
         {
             if (fields.Length != keys.Length)
                 return new T[0];
@@ -198,7 +194,7 @@ namespace OpenSim.Data.MySQL
             return result.ToArray();
         }
 
-        public T[] Get(string where)
+        public virtual T[] Get(string where)
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
@@ -212,7 +208,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public bool Store(T row)
+        public virtual bool Store(T row)
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
@@ -252,7 +248,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public bool Delete(string field, string val)
+        public virtual bool Delete(string field, string val)
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {

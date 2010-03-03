@@ -129,10 +129,10 @@ namespace OpenSim.Data.MSSQL
             using (SqlConnection conn = new SqlConnection(m_ConnectionString))
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(m_database.CreateParameter("@startX", startX.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@startY", startY.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@endX", endX.ToString()));
-                cmd.Parameters.Add(m_database.CreateParameter("@endY", endY.ToString()));
+                cmd.Parameters.Add(m_database.CreateParameter("@startX", startX));
+                cmd.Parameters.Add(m_database.CreateParameter("@startY", startY));
+                cmd.Parameters.Add(m_database.CreateParameter("@endX", endX));
+                cmd.Parameters.Add(m_database.CreateParameter("@endY", endY));
                 cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
                 conn.Open();
                 return RunCommand(cmd);
@@ -306,6 +306,38 @@ namespace OpenSim.Data.MSSQL
                     return true;
             }
             return false;
+        }
+
+        public List<RegionData> GetDefaultRegions(UUID scopeID)
+        {
+            string sql = "SELECT * FROM [" + m_Realm + "] WHERE (flags & 1) <> 0";
+            if (scopeID != UUID.Zero)
+                sql += " AND ScopeID = @scopeID";
+
+            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
+                conn.Open();
+                return RunCommand(cmd);
+            }
+            
+        }
+
+        public List<RegionData> GetFallbackRegions(UUID scopeID, int x, int y)
+        {
+            string sql = "SELECT * FROM [" + m_Realm + "] WHERE (flags & 2) <> 0";
+            if (scopeID != UUID.Zero)
+                sql += " AND ScopeID = @scopeID";
+
+            using (SqlConnection conn = new SqlConnection(m_ConnectionString))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.Add(m_database.CreateParameter("@scopeID", scopeID));
+                conn.Open();
+                // TODO: distance-sort results
+                return RunCommand(cmd);
+            }
         }
     }
 }

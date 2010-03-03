@@ -38,10 +38,11 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Region.CoreModules.World.Archiver
 {
@@ -73,7 +74,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         public ArchiveReadRequest(Scene scene, string loadPath, bool merge, Guid requestId)
         {
             m_scene = scene;
-            m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
+
+            try
+            {
+                m_loadStream = new GZipStream(GetStream(loadPath), CompressionMode.Decompress);
+            }
+            catch (EntryPointNotFoundException e)
+            {
+                m_log.ErrorFormat(
+                    "[ARCHIVER]: Mismatch between Mono and zlib1g library version when trying to create compression stream."
+                        + "If you've manually installed Mono, have you appropriately updated zlib1g as well?");
+                m_log.Error(e);
+            }
+        
             m_errorMessage = String.Empty;
             m_merge = merge;
             m_requestId = requestId;
@@ -181,10 +194,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Try to retain the original creator/owner/lastowner if their uuid is present on this grid
             // otherwise, use the master avatar uuid instead
-            UUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-
-            if (m_scene.RegionInfo.EstateSettings.EstateOwner != UUID.Zero)
-                masterAvatarId = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
             // Reload serialized parcels
             m_log.InfoFormat("[ARCHIVER]: Loading {0} parcels.  Please wait.", serialisedParcels.Count);
@@ -193,7 +202,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 LandData parcel = LandDataSerializer.Deserialize(serialisedParcel);
                 if (!ResolveUserUuid(parcel.OwnerID))
-                    parcel.OwnerID = masterAvatarId;
+                    parcel.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
                 landData.Add(parcel);
             }
             m_scene.EventManager.TriggerIncomingLandDataFromStorage(landData);
@@ -232,13 +241,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 foreach (SceneObjectPart part in sceneObject.Children.Values)
                 {
                     if (!ResolveUserUuid(part.CreatorID))
-                        part.CreatorID = masterAvatarId;
+                        part.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     if (!ResolveUserUuid(part.OwnerID))
-                        part.OwnerID = masterAvatarId;
+                        part.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     if (!ResolveUserUuid(part.LastOwnerID))
-                        part.LastOwnerID = masterAvatarId;
+                        part.LastOwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
 
                     // And zap any troublesome sit target information
                     part.SitTargetOrientation = new Quaternion(0, 0, 0, 1);
@@ -253,11 +262,14 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     {
                         if (!ResolveUserUuid(kvp.Value.OwnerID))
                         {
-                            kvp.Value.OwnerID = masterAvatarId;
-                        }
-                        if (!ResolveUserUuid(kvp.Value.CreatorID))
-                        {
-                            kvp.Value.CreatorID = masterAvatarId;
+                            if (!ResolveUserUuid(kvp.Value.OwnerID))
+                            {
+                                kvp.Value.OwnerID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                            }
+                            if (!ResolveUserUuid(kvp.Value.CreatorID))
+                            {
+                                kvp.Value.CreatorID = m_scene.RegionInfo.EstateSettings.EstateOwner;
+                            }
                         }
                     }
                     part.TaskInventory.LockItemsForRead(false);
@@ -291,8 +303,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             if (!m_validUserUuids.ContainsKey(uuid))
             {
-                CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(uuid);
-                if (profile != null && profile.UserProfile != null)
+                UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, uuid);
+                if (account != null)
                     m_validUserUuids.Add(uuid, true);
                 else
                     m_validUserUuids.Add(uuid, false);
@@ -337,7 +349,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType);
+                AssetBase asset = new AssetBase(new UUID(uuid), String.Empty, assetType, UUID.Zero.ToString());
                 asset.Data = data;
 
                 // We're relying on the asset service to do the sensible thing and not store the asset if it already
@@ -422,6 +434,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             currentRegionSettings.TerrainTexture4 = loadedRegionSettings.TerrainTexture4;
             currentRegionSettings.UseEstateSun = loadedRegionSettings.UseEstateSun;
             currentRegionSettings.WaterHeight = loadedRegionSettings.WaterHeight;
+
+            currentRegionSettings.Save();
             
             IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
 

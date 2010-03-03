@@ -32,8 +32,7 @@ using NUnit.Framework.SyntaxHelpers;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Region.Communications.Local;
+
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Tests.Common;
 using OpenSim.Tests.Common.Mock;
@@ -95,16 +94,24 @@ namespace OpenSim.Region.Framework.Scenes.Tests
             // Turn off the timer on the async sog deleter - we'll crank it by hand for this test.
             AsyncSceneObjectGroupDeleter sogd = scene.SceneObjectGroupDeleter;
             sogd.Enabled = false;
-                
+
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
-            
-            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
-            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
-            
+
+            try
+            {
+                IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
+                scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.StackTrace);
+            }
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
+
             Assert.That(retrievedPart, Is.Not.Null);
             
             sogd.InventoryDeQueueAndDelete();
+
             SceneObjectPart retrievedPart2 = scene.GetSceneObjectPart(part.LocalId);
             Assert.That(retrievedPart2, Is.Null);
         }

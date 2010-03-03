@@ -8,8 +8,6 @@
     </Dependencies>
 
     <Extension path = "/OpenSim/RegionModules">
-        <RegionModule id="LLStandaloneLoginModule" type="OpenSim.Client.Linden.LLStandaloneLoginModule" />
-        <RegionModule id="LLProxyLoginModule" type="OpenSim.Client.Linden.LLProxyLoginModule" />
         <RegionModule id="LLClientStackModule" type="OpenSim.Client.Linden.LLClientStackModule" />
     </Extension>
 </Addin>

@@ -31,7 +31,6 @@ using OpenMetaverse;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Client;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes.Types;
 

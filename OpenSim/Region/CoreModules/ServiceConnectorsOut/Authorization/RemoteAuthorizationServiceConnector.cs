@@ -139,9 +139,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authorization
             
             if (scene != null)
             {
-                UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(new UUID(userID));
-                isAuthorized = IsAuthorizedForRegion(userID, profile.FirstName, profile.SurName,
-                    profile.Email, scene.RegionInfo.RegionName, regionID, out message);
+                UserAccount account = scene.UserAccountService.GetUserAccount(UUID.Zero, userID);
+                isAuthorized = IsAuthorizedForRegion(userID, account.FirstName, account.LastName,
+                    account.Email, scene.RegionInfo.RegionName, regionID, out message);
             }
             else
             {

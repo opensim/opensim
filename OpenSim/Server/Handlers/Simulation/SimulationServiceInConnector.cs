@@ -37,22 +37,15 @@ namespace OpenSim.Server.Handlers.Simulation
 {
     public class SimulationServiceInConnector : ServiceConnector
     {
-        private ISimulationService m_SimulationService;
+        private ISimulationService m_LocalSimulationService;
         private IAuthenticationService m_AuthenticationService;
 
         public SimulationServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
                 base(config, server, String.Empty)
         {
-            IConfig serverConfig = config.Configs["SimulationService"];
-            if (serverConfig == null)
-                throw new Exception("No section 'SimulationService' in config file");
-
-            bool authentication = serverConfig.GetBoolean("RequireAuthentication", false);
-
-            if (authentication)
-                m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();
-
-            bool foreignGuests = serverConfig.GetBoolean("AllowForeignGuests", false);
+            //IConfig serverConfig = config.Configs["SimulationService"];
+            //if (serverConfig == null)
+            //    throw new Exception("No section 'SimulationService' in config file");
 
             //string simService = serverConfig.GetString("LocalServiceModule",
             //        String.Empty);
@@ -61,20 +54,18 @@ namespace OpenSim.Server.Handlers.Simulation
             //    throw new Exception("No SimulationService in config file");
 
             //Object[] args = new Object[] { config };
-            m_SimulationService = scene.RequestModuleInterface<ISimulationService>();
+            m_LocalSimulationService = scene.RequestModuleInterface<ISimulationService>();
                     //ServerUtils.LoadPlugin<ISimulationService>(simService, args);
-            if (m_SimulationService == null)
-                throw new Exception("No Local ISimulationService Module");
-
-
 
             //System.Console.WriteLine("XXXXXXXXXXXXXXXXXXX m_AssetSetvice == null? " + ((m_AssetService == null) ? "yes" : "no"));
-            server.AddStreamHandler(new AgentGetHandler(m_SimulationService, m_AuthenticationService));
-            server.AddStreamHandler(new AgentPostHandler(m_SimulationService, m_AuthenticationService, foreignGuests));
-            server.AddStreamHandler(new AgentPutHandler(m_SimulationService, m_AuthenticationService));
-            server.AddStreamHandler(new AgentDeleteHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentGetHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentPostHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentPutHandler(m_SimulationService, m_AuthenticationService));
+            //server.AddStreamHandler(new AgentDeleteHandler(m_SimulationService, m_AuthenticationService));
+            server.AddHTTPHandler("/agent/", new AgentHandler(m_LocalSimulationService).Handler);
+            server.AddHTTPHandler("/object/", new ObjectHandler(m_LocalSimulationService).Handler);
+
             //server.AddStreamHandler(new ObjectPostHandler(m_SimulationService, authentication));
-            //server.AddStreamHandler(new NeighborPostHandler(m_SimulationService, authentication));
         }
     }
 }

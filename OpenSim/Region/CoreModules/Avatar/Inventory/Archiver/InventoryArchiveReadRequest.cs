@@ -37,7 +37,7 @@ using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Communications.Cache;
+
 using OpenSim.Framework.Communications.Osp;
 using OpenSim.Framework.Serialization;
 using OpenSim.Framework.Serialization.External;
@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         protected TarArchiveReader archive;
 
-        private CachedUserInfo m_userInfo;
+        private UserAccount m_userInfo;
         private string m_invPath;
 
         /// <value>
@@ -67,7 +67,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         private Stream m_loadStream;
 
         public InventoryArchiveReadRequest(
-            Scene scene, CachedUserInfo userInfo, string invPath, string loadPath)
+            Scene scene, UserAccount userInfo, string invPath, string loadPath)
             : this(
                 scene,
                 userInfo,
@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         }
 
         public InventoryArchiveReadRequest(
-            Scene scene, CachedUserInfo userInfo, string invPath, Stream loadStream)
+            Scene scene, UserAccount userInfo, string invPath, Stream loadStream)
         {
             m_scene = scene;
             m_userInfo = userInfo;
@@ -103,7 +103,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             //InventoryFolderImpl rootDestinationFolder = m_userInfo.RootFolder.FindFolderByPath(m_invPath);
             InventoryFolderBase rootDestinationFolder 
                 = InventoryArchiveUtils.FindFolderByPath(
-                    m_scene.InventoryService, m_userInfo.UserProfile.ID, m_invPath);
+                    m_scene.InventoryService, m_userInfo.PrincipalID, m_invPath);
 
             if (null == rootDestinationFolder)
             {
@@ -280,7 +280,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
                 // even though there is a AssetType.RootCategory
                 destFolder 
                     = new InventoryFolderBase(
-                        newFolderId, newFolderName, m_userInfo.UserProfile.ID, 
+                        newFolderId, newFolderName, m_userInfo.PrincipalID, 
                         (short)AssetType.Unknown, destFolder.ID, 1);
                 m_scene.InventoryService.AddFolder(destFolder);
                 
@@ -357,7 +357,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             // Don't use the item ID that's in the file
             item.ID = UUID.Random();
 
-            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.CommsManager); 
+            UUID ospResolvedId = OspResolver.ResolveOspa(item.CreatorId, m_scene.UserAccountService); 
             if (UUID.Zero != ospResolvedId)
             {
                 item.CreatorIdAsUuid = ospResolvedId;
@@ -368,10 +368,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             }
             else
             {
-                item.CreatorIdAsUuid = m_userInfo.UserProfile.ID;
+                item.CreatorIdAsUuid = m_userInfo.PrincipalID;
             }
             
-            item.Owner = m_userInfo.UserProfile.ID;
+            item.Owner = m_userInfo.PrincipalID;
 
             // Reset folder ID to the one in which we want to load it
             item.Folder = loadFolder.ID;
@@ -416,7 +416,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 //m_log.DebugFormat("[INVENTORY ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
 
-                AssetBase asset = new AssetBase(new UUID(uuid), "RandomName", assetType);
+                AssetBase asset = new AssetBase(new UUID(uuid), "RandomName", assetType, UUID.Zero.ToString());
                 asset.Data = data;
 
                 m_scene.AssetService.Store(asset);

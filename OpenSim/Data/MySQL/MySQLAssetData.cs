@@ -122,7 +122,7 @@ namespace OpenSim.Data.MySQL
                             {
                                 if (dbReader.Read())
                                 {
-                                    asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["assetType"]);
+                                    asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["assetType"], UUID.Zero.ToString());
                                     asset.Data = (byte[])dbReader["data"];
                                     asset.Description = (string)dbReader["description"];
 

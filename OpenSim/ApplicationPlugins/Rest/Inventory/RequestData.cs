@@ -35,6 +35,9 @@ using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
+using OpenSim.Services.Interfaces;
+
+using OpenMetaverse;
 
 namespace OpenSim.ApplicationPlugins.Rest.Inventory
 {
@@ -658,7 +661,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         {
 
             int x;
-            string HA1;
             string first;
             string last;
 
@@ -675,17 +677,13 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 last  = String.Empty;
             }
 
-            UserProfileData udata = Rest.UserServices.GetUserProfile(first, last);
+            UserAccount account = Rest.UserServices.GetUserAccount(UUID.Zero, first, last);
 
             // If we don't recognize the user id, perhaps it is god?
-
-            if (udata == null)
+            if (account == null)
                 return pass == Rest.GodKey;
 
-            HA1 = HashToString(pass);
-            HA1 = HashToString(String.Format("{0}:{1}",HA1,udata.PasswordSalt));
-
-            return (0 == sc.Compare(HA1, udata.PasswordHash));
+            return (Rest.AuthServices.Authenticate(account.PrincipalID, pass, 1) != string.Empty);
 
         }
 
@@ -897,11 +895,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 last  = String.Empty;
             }
 
-            UserProfileData udata = Rest.UserServices.GetUserProfile(first, last);
-
+            UserAccount account = Rest.UserServices.GetUserAccount(UUID.Zero, first, last);
             // If we don;t recognize the user id, perhaps it is god?
 
-            if (udata == null)
+            if (account == null)
             {
                 Rest.Log.DebugFormat("{0} Administrator", MsgId);
                 return Rest.GodKey;
@@ -909,7 +906,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             else
             {
                 Rest.Log.DebugFormat("{0} Normal User {1}", MsgId, user);
-                return udata.PasswordHash;
+
+                // !!! REFACTORING PROBLEM
+                // This is what it was. It doesn't work in 0.7
+                // Nothing retrieves the password from the authentication service, there's only authentication.
+                //return udata.PasswordHash;
+                return string.Empty;
             }
 
         }
