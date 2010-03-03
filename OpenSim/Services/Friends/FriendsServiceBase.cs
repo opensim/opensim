@@ -27,13 +27,12 @@
 
 using System;
 using System.Reflection;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Data;
 using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
-using Nini.Config;
-using log4net;
 
 namespace OpenSim.Services.Friends
 {
@@ -80,7 +79,11 @@ namespace OpenSim.Services.Friends
 
             m_Database = LoadPlugin<IFriendsData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
-                throw new Exception("Could not find a storage interface in the given module");
+            {
+                throw new Exception(
+                    string.Format(
+                        "Could not find a storage interface {0} in the given StorageProvider {1}", "IFriendsData", dllName));
+            }
         }
     }
 }
