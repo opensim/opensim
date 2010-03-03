@@ -568,8 +568,8 @@ namespace OpenSim.Region.Framework.Scenes
         private List<SceneObjectPart> m_PlaySoundSlavePrims = new List<SceneObjectPart>();
         public List<SceneObjectPart> PlaySoundSlavePrims
         {
-            get { return m_LoopSoundSlavePrims; }
-            set { m_LoopSoundSlavePrims = value; }
+            get { return m_PlaySoundSlavePrims; }
+            set { m_PlaySoundSlavePrims = value; }
         }
 
         private SceneObjectPart m_LoopSoundMasterPrim = null;
