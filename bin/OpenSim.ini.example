@@ -979,52 +979,6 @@
     ; DisableUndergroundMovement = true
 
 
-[GridInfoService]
-    ; These settings are used to return information on a get_grid_info call.
-    ; Client launcher scripts and third-party clients make use of this to
-    ; autoconfigure the client and to provide a nice user experience. If you
-    ; want to facilitate that, you should configure the settings here according
-    ; to your grid or standalone setup.
-    ;
-    ; See http://opensimulator.org/wiki/GridInfo
-
-    ; login uri: for grid this is the user server URI
-    login = http://127.0.0.1:9000/
-
-    ; long grid name: the long name of your grid
-    gridname = "the lost continent of hippo"
-
-    ; short grid name: the short name of your grid
-    gridnick = "hippogrid"
-
-    ; login page: optional: if it exists it will be used to tell the client to use
-    ;                       this as splash page
-    ; currently unused
-    ;welcome = http://127.0.0.1/welcome
-
-    ; helper uri: optional: if it exists if will be used to tell the client to use
-    ;                       this for all economy related things
-    ; currently unused
-    ;economy = http://127.0.0.1:9000/
-
-    ; web page of grid: optional: page providing further information about your grid
-    ; currently unused
-    ;about = http://127.0.0.1/about/
-
-    ; account creation: optional: page providing further information about obtaining
-    ;                             a user account on your grid
-    ; currently unused
-    ;register = http://127.0.0.1/register
-
-    ; help: optional: page providing further assistance for users of your grid
-    ; currently unused
-    ;help = http://127.0.0.1/help
-
-    ; password help: optional: page providing password assistance for users of your grid
-    ; currently unused
-    ;password = http://127.0.0.1/password
-
-
 [OpenGridProtocol]
     ;These are the settings for the Open Grid Protocol..  the Agent Domain, Region Domain,   you know..
     ;On/true or Off/false
