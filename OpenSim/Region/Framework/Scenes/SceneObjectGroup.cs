@@ -1490,50 +1490,21 @@ namespace OpenSim.Region.Framework.Scenes
 
         #endregion
 
-        #region Client Updating
-
         public void SendFullUpdateToClient(IClientAPI remoteClient)
         {
-            SendPartFullUpdate(remoteClient, RootPart, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
+            RootPart.SendFullUpdate(
+                remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, RootPart.UUID));
 
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     if (part != RootPart)
-                        SendPartFullUpdate(remoteClient, part, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
+                        part.SendFullUpdate(
+                            remoteClient, m_scene.Permissions.GenerateClientFlags(remoteClient.AgentId, part.UUID));
                 }
             }
         }
-
-        /// <summary>
-        /// Send a full update to the client for the given part
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="part"></param>
-        internal void SendPartFullUpdate(IClientAPI remoteClient, SceneObjectPart part, uint clientFlags)
-        {
-//            m_log.DebugFormat(
-//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
-            
-            if (m_rootPart.UUID == part.UUID)
-            {
-                if (IsAttachment)
-                {
-                    part.SendFullUpdateToClient(remoteClient, m_rootPart.AttachedPos, clientFlags);
-                }
-                else
-                {
-                    part.SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
-                }
-            }
-            else
-            {
-                part.SendFullUpdateToClient(remoteClient, clientFlags);
-            }
-        }
-
-        #endregion
 
         #region Copying
 

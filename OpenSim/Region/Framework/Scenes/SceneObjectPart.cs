@@ -2834,29 +2834,59 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
-        {
-            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
-        }
+//        /// <summary>
+//        ///
+//        /// </summary>
+//        /// <param name="remoteClient"></param>
+//        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
+//        {
+//            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
+//        }
+
 
         /// <summary>
-        ///
+        /// Send a full update to the client for the given part
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="clientFlags"></param>
+        protected internal void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
+        {
+//            m_log.DebugFormat(
+//                "[SOG]: Sendinging part full update to {0} for {1} {2}", remoteClient.Name, part.Name, part.LocalId);
+            
+            if (IsRoot)
+            {
+                if (IsAttachment)
+                {
+                    SendFullUpdateToClient(remoteClient, AttachedPos, clientFlags);
+                }
+                else
+                {
+                    SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
+                }
+            }
+            else
+            {
+                SendFullUpdateToClient(remoteClient, clientFlags);
+            }
+        }        
+
+        /// <summary>
+        /// Send a full update for this part to all clients.
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Length; i++)
             {
-                // Ugly reference :(
-                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
-                                                 avatars[i].GenerateClientFlags(UUID));
+                SendFullUpdate(avatars[i].ControllingClient, avatars[i].GenerateClientFlags(UUID));
             }
         }
 
+        /// <summary>
+        /// Send a full update to all clients except the one nominated.
+        /// </summary>
+        /// <param name="agentID"></param>
         public void SendFullUpdateToAllClientsExcept(UUID agentID)
         {
             ScenePresence[] avatars = m_parentGroup.Scene.GetScenePresences();
@@ -2864,10 +2894,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // Ugly reference :(
                 if (avatars[i].UUID != agentID)
-                {
-                    m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
-                                                    avatars[i].GenerateClientFlags(UUID));
-                }
+                    SendFullUpdate(avatars[i].ControllingClient, avatars[i].GenerateClientFlags(UUID));
             }
         }
 
