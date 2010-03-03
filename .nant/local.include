@@ -43,11 +43,6 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.tests)==0}" /> 
 
-  <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.framework.communications.tests">
-    <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
-  </exec>
-  <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.framework.communications.tests)==0}" /> 
-
   <exec program="${nunitcmd}" failonerror="true" resultproperty="testresult.opensim.framework.servers.tests">
     <arg value="./bin/OpenSim.Framework.Servers.Tests.dll" />
   </exec>
@@ -106,17 +101,6 @@
       <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Servers.cov" />
     </exec>
 
-    <exec program="mono">
-      <arg value="--debug" />
-      <arg value="--profile=monocov:outfile=./cov/OpenSim.Framework.Communications.cov,+[OpenSim.Framework.Communications]" />
-      <arg value="/usr/lib/nunit/nunit-console.exe" />
-      <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
-    </exec>
-    <delete dir="./cov/OpenSim.Framework.Communications" />
-    <exec program="monocov">
-      <arg value="--export-html=./cov/OpenSim.Framework.Servers ./cov/OpenSim.Framework.Communications.cov" />
-    </exec>
-    
 <!--
     <exec program="mono">
       <arg value="&#45;&#45;debug" />
@@ -227,11 +211,6 @@
     <arg value="-xml=test-results/OpenSim.Framework.Tests.dll-Results.xml" />
   </exec>
 
- <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.communications.tests">
-    <arg value="./bin/OpenSim.Framework.Communications.Tests.dll" />
-    <arg value="-xml=test-results/OpenSim.Framework.Communications.Tests.dll-Results.xml" />
-  </exec>
-
  <exec program="${nunitcmd}" failonerror="false" resultproperty="testresult.opensim.framework.serialization.tests">
     <arg value="./bin/OpenSim.Framework.Serialization.Tests.dll" />
     <arg value="-xml=test-results/OpenSim.Framework.Serialization.Tests.dll-Results.xml" />
@@ -301,7 +280,6 @@
 <!--       <test> -->
 <!--         <assemblies> -->
 <!--           <include name="./bin/OpenSim.Framework.Tests.dll" /> -->
-<!--           <include name="./bin/OpenSim.Framework.Communications.Tests.dll"/> -->
 <!--           <include name="./bin/OpenSim.Framework.Servers.Tests.dll" /> -->
 <!--           <include name="./bin/OpenSim.Region.ClientStack.LindenUDP.Tests.dll" /> -->
 <!--           <include name="./bin/OpenSim.Region.ScriptEngine.Tests.dll" /> -->
