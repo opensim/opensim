@@ -567,8 +567,10 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             ApplyPhysics(m_scene.m_physicalPrim);
-            
-            ScheduleGroupForFullUpdate();
+
+            // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
+            // for the same object with very different properties.  The caller must schedule the update.            
+            //ScheduleGroupForFullUpdate();
         }
 
         public Vector3 GroupScale()
@@ -956,10 +958,11 @@ namespace OpenSim.Region.Framework.Scenes
                 // don't attach attachments to child agents
                 if (avatar.IsChildAgent) return;
 
+//                m_log.DebugFormat("[SOG]: Adding attachment {0} to avatar {1}", Name, avatar.Name);
+                                  
                 DetachFromBackup();
 
                 // Remove from database and parcel prim count
-                //
                 m_scene.DeleteFromStorage(UUID);
                 m_scene.EventManager.TriggerParcelPrimCountTainted();
 
@@ -985,7 +988,6 @@ namespace OpenSim.Region.Framework.Scenes
                 SetAttachmentPoint(Convert.ToByte(attachmentpoint));
 
                 avatar.AddAttachment(this);
-                m_log.Debug("[SOG]: Added attachment " + UUID + " to avatar " + avatar.UUID);
 
                 if (!silent)
                 {
@@ -1001,6 +1003,12 @@ namespace OpenSim.Region.Framework.Scenes
                     IsSelected = false; // fudge....
                     ScheduleGroupForFullUpdate();
                 }
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[SOG]: Tried to add attachment {0} to avatar with UUID {1} in region {2} but the avatar is not present", 
+                    UUID, agentID, Scene.RegionInfo.RegionName);
             }
         }
 
@@ -1986,6 +1994,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScheduleFullUpdateToAvatar(ScenePresence presence)
         {
+//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
+            
             RootPart.AddFullUpdateToAvatar(presence);
 
             lock (m_parts)
@@ -2000,6 +2010,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ScheduleTerseUpdateToAvatar(ScenePresence presence)
         {
+//            m_log.DebugFormat("[SOG]: Scheduling terse update for {0} {1} just to avatar {2}", Name, UUID, presence.Name);
+            
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -2014,6 +2026,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
+//            m_log.DebugFormat("[SOG]: Scheduling full update for {0} {1}", Name, UUID);
+            
             checkAtTargets();
             RootPart.ScheduleFullUpdate();
 
@@ -2032,6 +2046,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
+//            m_log.DebugFormat("[SOG]: Scheduling terse update for {0} {1}", Name, UUID);
+            
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -2045,9 +2061,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Immediately send a full update for this scene object.
         /// </summary>
         public void SendGroupFullUpdate()
-        {
+        {                       
             if (IsDeleted)
                 return;
+
+//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);            
             
             RootPart.SendFullUpdateToAllClients();
 
@@ -2064,7 +2082,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Immediately send an update for this scene object's root prim only.
         /// This is for updates regarding the object as a whole, and none of its parts in particular.
-        /// Note: this may not be cused by opensim (it probably should) but it's used by
+        /// Note: this may not be used by opensim (it probably should) but it's used by
         /// external modules.
         /// </summary>
         public void SendGroupRootTerseUpdate()
@@ -2079,6 +2097,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (m_scene == null) // Need to check here as it's null during object creation
                 return;
+            
             m_scene.SceneGraph.AddToUpdateList(this);
         }
 
@@ -3557,7 +3576,9 @@ namespace OpenSim.Region.Framework.Scenes
                 HasGroupChanged = true;
             }
 
-            ScheduleGroupForFullUpdate();
+            // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
+            // for the same object with very different properties.  The caller must schedule the update.
+            //ScheduleGroupForFullUpdate();
         }
 
         public void TriggerScriptChangedEvent(Changed val)
