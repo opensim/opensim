@@ -411,6 +411,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
         /// <summary>
         /// Rez an object into the scene from the user's inventory
         /// </summary>
+        /// FIXME: It would be really nice if inventory access modules didn't also actually do the work of rezzing
+        /// things to the scene.  The caller should be doing that, I think.
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
         /// <param name="RayEnd"></param>
@@ -500,13 +502,17 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         group.RootPart.IsAttachment = true;
                     }
 
-                    m_Scene.AddNewSceneObject(group, true);
+                    // For attachments, we must make sure that only a single object update occurs after we've finished
+                    // all the necessary operations.
+                    m_Scene.AddNewSceneObject(group, true, false);
 
                     //  m_log.InfoFormat("ray end point for inventory rezz is {0} {1} {2} ", RayEnd.X, RayEnd.Y, RayEnd.Z);
                     // if attachment we set it's asset id so object updates can reflect that
                     // if not, we set it's position in world.
                     if (!attachment)
                     {
+                        group.ScheduleGroupForFullUpdate();
+                        
                         float offsetHeight = 0;
                         pos = m_Scene.GetNewRezLocation(
                             RayStart, RayEnd, RayTargetID, Quaternion.Identity,
@@ -562,6 +568,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                                     part.GroupMask = 0; // DO NOT propagate here
                                 }
                             }
+                            
                             group.ApplyNextOwnerPermissions();
                         }
                     }
@@ -569,7 +576,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     foreach (SceneObjectPart part in partList)
                     {
                         if (part.OwnerID != item.Owner)
-                        {
+                        {                            
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);
@@ -591,10 +598,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                         {
                             group.ClearPartAttachmentData();
                         }
-                    }
-
-                    if (!attachment)
-                    {
+                        
                         // Fire on_rez
                         group.CreateScriptInstances(0, true, m_Scene.DefaultScriptEngine, 0);
 
