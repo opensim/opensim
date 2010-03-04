@@ -47,9 +47,9 @@ namespace OpenSim.Services.AuthenticationService
     public class PasswordAuthenticationService :
             AuthenticationServiceBase, IAuthenticationService
     {
-        //private static readonly ILog m_log =
-        //        LogManager.GetLogger(
-        //        MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
  
         public PasswordAuthenticationService(IConfigSource config) :
                 base(config)
@@ -59,23 +59,27 @@ namespace OpenSim.Services.AuthenticationService
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
             AuthenticationData data = m_Database.Get(principalID);
-            
-            if (!data.Data.ContainsKey("passwordHash") ||
-                !data.Data.ContainsKey("passwordSalt"))
+
+            if (data != null && data.Data != null)
             {
-                return String.Empty;
+                if (!data.Data.ContainsKey("passwordHash") ||
+                    !data.Data.ContainsKey("passwordSalt"))
+                {
+                    return String.Empty;
+                }
+
+                string hashed = Util.Md5Hash(password + ":" +
+                        data.Data["passwordSalt"].ToString());
+
+                //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
+
+                if (data.Data["passwordHash"].ToString() == hashed)
+                {
+                    return GetToken(principalID, lifetime);
+                }
             }
 
-            string hashed = Util.Md5Hash(password + ":" +
-                    data.Data["passwordSalt"].ToString());
-
-            //m_log.DebugFormat("[PASS AUTH]: got {0}; hashed = {1}; stored = {2}", password, hashed, data.Data["passwordHash"].ToString());
-
-            if (data.Data["passwordHash"].ToString() == hashed)
-            {
-                return GetToken(principalID, lifetime);
-            }
-
+            m_log.DebugFormat("[AUTH SERVICE]: PrincipalID {0} or its data not found", principalID);
             return String.Empty;
         }
     }

@@ -97,6 +97,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     /// </summary>
     public class LLClientView : IClientAPI, IClientCore, IClientIM, IClientChat, IClientIPEndpoint, IStatsCollector
     {
+        /// <value>
+        /// Debug packet level.  At the moment, only 255 does anything (prints out all in and out packets).
+        /// </value>
+        protected int m_debugPacketLevel = 0;
+        
         #region Events
 
         public event GenericMessage OnGenericMessage;
@@ -472,6 +477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SetDebugPacketLevel(int newDebug)
         {
+            m_debugPacketLevel = newDebug;
         }
 
         #region Client Methods
@@ -10952,7 +10958,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUDPServer.LogPacketHeader(false, m_circuitCode, 0, packet.Type, (ushort)packet.Length);
             #endregion BinaryStats
 
-            m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, true);
+            OutPacket(packet, throttlePacketType, true);
         }
 
         /// <summary>
@@ -10965,6 +10971,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// handles splitting manually</param>
         protected void OutPacket(Packet packet, ThrottleOutPacketType throttlePacketType, bool doAutomaticSplitting)
         {
+            if (m_debugPacketLevel >= 255)
+                m_log.DebugFormat("[CLIENT]: Packet OUT {0}", packet.Type);
+            
             m_udpServer.SendPacket(m_udpClient, packet, throttlePacketType, doAutomaticSplitting);
         }
 
@@ -11036,10 +11045,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack">OpenMetaverse.packet</param>
         public void ProcessInPacket(Packet Pack)
         {
-//            m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack);
+            if (m_debugPacketLevel >= 255)
+                m_log.DebugFormat("[CLIENT]: Packet IN {0}", Pack.Type);
             
             if (!ProcessPacketMethod(Pack))
-                m_log.Warn("[CLIENT]: unhandled packet " + Pack);
+                m_log.Warn("[CLIENT]: unhandled packet " + Pack.Type);
 
             PacketPool.Instance.ReturnPacket(Pack);
         }

@@ -280,6 +280,15 @@ namespace OpenSim.Services.UserAccountService
             if (null == account)
             {
                 account = new UserAccount(UUID.Zero, firstName, lastName, email);
+                if (account.ServiceURLs == null)
+                {
+                    account.ServiceURLs = new Dictionary<string, object>();
+                    account.ServiceURLs["HomeURI"] = string.Empty;
+                    account.ServiceURLs["GatekeeperURI"] = string.Empty;
+                    account.ServiceURLs["InventoryServerURI"] = string.Empty;
+                    account.ServiceURLs["AssetServerURI"] = string.Empty;
+                }
+
                 if (StoreUserAccount(account))
                 {
                     bool success = false;
