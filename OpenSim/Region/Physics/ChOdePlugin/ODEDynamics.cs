@@ -116,6 +116,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
 //        private Vector3 m_angObjectVel = Vector3.Zero;					// current body angular velocity
         private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
+        
+        private Vector3 m_angularLock = Vector3.One;
 
 		//Deflection properties        
         // private float m_angularDeflectionEfficiency = 0;
@@ -295,6 +297,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             
         }//end ProcessRotationVehicleParam
+        
+        internal void SetAngularLock(Vector3 pValue)
+        {
+	        m_angularLock = pValue;
+        }
         
         internal void ProcessFlagsVehicleSet(int flags)
         {
@@ -649,8 +656,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 //if(frcount == 0) Console.WriteLine("MoveAngular ");	
         
         	// Get what the body is doing, this includes 'external' influences
+ 			d.Quaternion rot = d.BodyGetQuaternion(Body);
+ 	        Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);	// rotq = rotation of object
+ 	        Quaternion irotq = Quaternion.Inverse(rotq);
         	d.Vector3 angularObjectVel = d.BodyGetAngularVel(Body);
         	Vector3 angObjectVel = new Vector3(angularObjectVel.X, angularObjectVel.Y, angularObjectVel.Z);
+         	angObjectVel = angObjectVel * irotq;	// ============ Converts to LOCAL rotation
+        	
 //if(frcount == 0) Console.WriteLine("V0 = {0}", angObjectVel);        	
 //   	Vector3 FrAaccel = m_lastAngularVelocity - angObjectVel;
 //    Vector3 initavel =  angObjectVel;       	
@@ -694,8 +706,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 			{
 	            float VAservo = 1.0f / (m_verticalAttractionTimescale * pTimestep);
 	    	    // get present body rotation
-	    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
-	    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
+//	    	    d.Quaternion rot = d.BodyGetQuaternion(Body);
+//	    	    Quaternion rotq = new Quaternion(rot.X, rot.Y, rot.Z, rot.W);
 	    	    // make a vector pointing up
 				Vector3 verterr = Vector3.Zero;
 				verterr.Z = 1.0f;
@@ -706,7 +718,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 				// negative. Similar for tilt and |.Y|. .X and .Y must be modulated to prevent a stable inverted body.
 				
 				if (verterr.Z < 0.0f)
-				{	// Defelction from vertical exceeds 90-degrees. This method will ensure stable return to
+				{	// Deflection from vertical exceeds 90-degrees. This method will ensure stable return to
 					// vertical, BUT for some reason a z-rotation is imparted to the object. TBI.
 //Console.WriteLine("InvertFlip");	
 					verterr.X = 2.0f - verterr.X;
@@ -781,9 +793,22 @@ namespace OpenSim.Region.Physics.OdePlugin
 				m_lastAngularVelocity = Vector3.Zero; // Reduce small value to zero.
 			}
 	*/		
+//if(frcount == 0) Console.WriteLine("angularLock {0}", m_angularLock);			
+
+		    if (!m_angularLock.ApproxEquals(Vector3.One, 0.003f))
+	        {
+                if (m_angularLock.X == 0)
+	            	m_lastAngularVelocity.X = 0f;
+	            if (m_angularLock.Y == 0)
+	            	m_lastAngularVelocity.Y = 0f;
+	            if (m_angularLock.Z == 0)
+	            	m_lastAngularVelocity.Z = 0f;
+	        }        
 			// Apply to the body
 // Vector3 aInc = m_lastAngularVelocity - initavel;
-//if(frcount == 0) Console.WriteLine("Inc {0}", aInc);			
+//if(frcount == 0) Console.WriteLine("Inc {0}", aInc);	
+			m_lastAngularVelocity = m_lastAngularVelocity * rotq; // ================ Converts to WORLD rotation
+
 			d.BodySetAngularVel (Body, m_lastAngularVelocity.X, m_lastAngularVelocity.Y, m_lastAngularVelocity.Z);
 //if(frcount == 0) Console.WriteLine("V4 = {0}", m_lastAngularVelocity);        	
 				
