@@ -875,40 +875,15 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            if (pos.X < 0 || pos.Y < 0 || pos.Z < 0)
+            if (pos.X < 0f || pos.Y < 0f || pos.Z < 0f)
             {
-                Vector3 emergencyPos = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 128);
-                
-                if (pos.X < 0)
-                {
-                    emergencyPos.X = (int)Constants.RegionSize + pos.X;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    if (!(pos.Z < 0))
-                        emergencyPos.X = pos.X;
-                }
-                if (pos.Y < 0)
-                {
-                    emergencyPos.Y = (int)Constants.RegionSize + pos.Y;
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                    if (!(pos.Z < 0))
-                        emergencyPos.Z = pos.Z;
-                }
-                if (pos.Z < 0)
-                {
-                    if (!(pos.X < 0))
-                        emergencyPos.X = pos.X;
-                    if (!(pos.Y < 0))
-                        emergencyPos.Y = pos.Y;
-                    //Leave as 128
-                }
-
                 m_log.WarnFormat(
-                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
-                    pos, Name, UUID, emergencyPos);
+                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}. Clamping",
+                    pos, Name, UUID);
 
-                pos = emergencyPos;
+                if (pos.X < 0f) pos.X = 0f;
+                if (pos.Y < 0f) pos.Y = 0f;
+                if (pos.Z < 0f) pos.Z = 0f;
             }
 
             float localAVHeight = 1.56f;
@@ -919,7 +894,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             float posZLimit = 0;
 
-            if (pos.X <Constants.RegionSize && pos.Y < Constants.RegionSize)
+            if (pos.X < Constants.RegionSize && pos.Y < Constants.RegionSize)
                 posZLimit = (float)m_scene.Heightmap[(int)pos.X, (int)pos.Y];
             
             float newPosZ = posZLimit + localAVHeight / 2;
@@ -2881,7 +2856,12 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         protected void CheckForSignificantMovement()
         {
-            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
+            // Movement updates for agents in neighboring regions are sent directly to clients.
+            // This value only affects how often agent positions are sent to neighbor regions
+            // for things such as distance-based update prioritization
+            const float SIGNIFICANT_MOVEMENT = 2.0f;
+
+            if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > SIGNIFICANT_MOVEMENT)
             {
                 posLastSignificantMove = AbsolutePosition;
                 m_scene.EventManager.TriggerSignificantClientMovement(m_controllingClient);
@@ -2897,13 +2877,13 @@ namespace OpenSim.Region.Framework.Scenes
                 cadu.AgentID = UUID.Guid;
                 cadu.alwaysrun = m_setAlwaysRun;
                 cadu.AVHeight = m_avHeight;
-                sLLVector3 tempCameraCenter = new sLLVector3(new Vector3(m_CameraCenter.X, m_CameraCenter.Y, m_CameraCenter.Z));
+                Vector3 tempCameraCenter = m_CameraCenter;
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
                 if (m_scene.Permissions.IsGod(new UUID(cadu.AgentID)))
                     cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
-                cadu.Position = new sLLVector3(AbsolutePosition);
+                cadu.Position = AbsolutePosition;
                 cadu.regionHandle = m_rootRegionHandle;
                 float multiplier = 1;
                 int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
@@ -2918,7 +2898,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString());
                 cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
-                cadu.Velocity = new sLLVector3(Velocity);
+                cadu.Velocity = Velocity;
 
                 AgentPosition agentpos = new AgentPosition();
                 agentpos.CopyFrom(cadu);

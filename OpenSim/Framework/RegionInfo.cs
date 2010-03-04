@@ -654,7 +654,7 @@ namespace OpenSim.Framework
 
         private void ReadNiniConfig(IConfigSource source, string name)
         {
-            bool creatingNew = false;
+//            bool creatingNew = false;
 
             if (source.Configs.Count == 0)
             {
@@ -671,7 +671,7 @@ namespace OpenSim.Framework
 
                 source.AddConfig(name);
 
-                creatingNew = true;
+//                creatingNew = true;
             }
 
             if (name == String.Empty)
@@ -681,7 +681,7 @@ namespace OpenSim.Framework
             {
                 source.AddConfig(name);
 
-                creatingNew = true;
+//                creatingNew = true;
             }
 
             IConfig config = source.Configs[name];
@@ -700,15 +700,8 @@ namespace OpenSim.Framework
 
             RegionID = new UUID(regionUUID);
             originRegionID = RegionID; // What IS this?!
-
-            
-            // Region name
-            //
+          
             RegionName = name;
-
-            
-            // Region location
-            //
             string location = config.GetString("Location", String.Empty);
 
             if (location == String.Empty)
@@ -724,12 +717,9 @@ namespace OpenSim.Framework
 
 
             // Datastore (is this implemented? Omitted from example!)
-            //
             DataStore = config.GetString("Datastore", String.Empty);
 
-
             // Internal IP
-            //
             IPAddress address;
             
             if (config.Contains("InternalAddress"))

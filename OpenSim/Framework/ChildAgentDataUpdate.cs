@@ -41,14 +41,14 @@ namespace OpenSim.Framework
         public Guid AgentID;
         public bool alwaysrun;
         public float AVHeight;
-        public sLLVector3 cameraPosition;
+        public Vector3 cameraPosition;
         public float drawdistance;
         public float godlevel;
         public uint GroupAccess;
-        public sLLVector3 Position;
+        public Vector3 Position;
         public ulong regionHandle;
         public byte[] throttles;
-        public sLLVector3 Velocity;
+        public Vector3 Velocity;
 
         public ChildAgentDataUpdate()
         {
@@ -177,14 +177,13 @@ namespace OpenSim.Framework
             Size = new Vector3();
             Size.Z = cAgent.AVHeight;
 
-            Center = new Vector3(cAgent.cameraPosition.x, cAgent.cameraPosition.y, cAgent.cameraPosition.z);
+            Center = cAgent.cameraPosition;
             Far = cAgent.drawdistance;
-            Position = new Vector3(cAgent.Position.x, cAgent.Position.y, cAgent.Position.z);
+            Position = cAgent.Position;
             RegionHandle = cAgent.regionHandle;
             Throttles = cAgent.throttles;
-            Velocity = new Vector3(cAgent.Velocity.x, cAgent.Velocity.y, cAgent.Velocity.z);
+            Velocity = cAgent.Velocity;
         }
-
     }
 
     public class AgentGroupData

@@ -103,15 +103,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public event GetLandData OnGetLandData;
 
-        private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
-        private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
-        private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
-        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
+//        private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
+//        private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
+//        private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
+//        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         //private RegionUp handlerRegionUp = null; // OnRegionUp;
-        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
+//        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
         //private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
-        private LogOffUser handlerLogOffUser = null;
-        private GetLandData handlerGetLandData = null; // OnGetLandData
+//        private LogOffUser handlerLogOffUser = null;
+//        private GetLandData handlerGetLandData = null; // OnGetLandData
 
         public KiPrimitiveDelegate KiPrimitive;
 
