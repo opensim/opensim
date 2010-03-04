@@ -416,7 +416,6 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public list(params object[] args)
             {
-                m_data = new object[args.Length];
                 m_data = args;
             }
 
