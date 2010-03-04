@@ -217,7 +217,7 @@ namespace OpenSim.Data.Null
 
             foreach (KeyValuePair<UUID, PresenceData> kvp in m_presenceData)
             {
-                m_log.DebugFormat("Online: {0}", kvp.Value.Data["Online"]);
+//                m_log.DebugFormat("Online: {0}", kvp.Value.Data["Online"]);
                 
                 bool on = false;
                 if (bool.TryParse(kvp.Value.Data["Online"], out on) && on)
