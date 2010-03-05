@@ -112,7 +112,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                         itemId = group.GetFromItemID();
                     }
 
-                    m_scene.AttachObject(remoteClient, AttachmentPt, itemId, group);
+                    SetAttachmentInventoryStatus(remoteClient, AttachmentPt, itemId, group);
 
                     group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
                     
@@ -167,5 +167,50 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             
             return att.UUID;
         }
+
+        /// <summary>
+        /// Update the user inventory to reflect an attachment
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="itemID"></param>
+        /// <param name="att"></param>
+        public void SetAttachmentInventoryStatus(
+            IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
+        {
+//            m_log.DebugFormat(
+//                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}", 
+//                att.Name, remoteClient.Name, AttachmentPt, itemID);
+            
+            if (UUID.Zero == itemID)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
+                return;
+            }
+
+            if (0 == AttachmentPt)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error attachment point.");
+                return;
+            }
+
+            if (null == att.RootPart)
+            {
+                m_log.Error("[SCENE INVENTORY]: Unable to save attachment for a prim without the rootpart!");
+                return;
+            }
+
+            ScenePresence presence;
+            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                // XXYY!!
+                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                item = m_scene.InventoryService.GetItem(item);
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /* att.UUID */);
+
+                if (m_scene.AvatarFactory != null)
+                    m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+            }
+        }        
     }
 }

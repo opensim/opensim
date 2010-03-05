@@ -1874,50 +1874,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        /// <summary>
-        /// This registers the item as attached in a user's inventory
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <param name="itemID"></param>
-        /// <param name="att"></param>
-        public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
-        {
-//            m_log.DebugFormat(
-//                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}", 
-//                att.Name, remoteClient.Name, AttachmentPt, itemID);
-            
-            if (UUID.Zero == itemID)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
-                return;
-            }
-
-            if (0 == AttachmentPt)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error attachment point.");
-                return;
-            }
-
-            if (null == att.RootPart)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment for a prim without the rootpart!");
-                return;
-            }
-
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                // XXYY!!
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /* att.UUID */);
-
-                if (m_AvatarFactory != null)
-                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-            }
-        }
-
         public void DetachSingleAttachmentToGround(UUID itemID, IClientAPI remoteClient)
         {
             SceneObjectPart part = GetSceneObjectPart(itemID);
