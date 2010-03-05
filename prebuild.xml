@@ -158,7 +158,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Drawing"/>
       <Reference name="System.Web"/>
-      <Reference name="BclExtras.dll"/>
+      <Reference name="BclExtras35.dll"/>
       <Reference name="OpenMetaverseTypes.dll"/>
       <Reference name="OpenMetaverse.dll"/>
       <Reference name="OpenMetaverse.StructuredData.dll"/>
@@ -1605,7 +1605,7 @@
       <Reference name="OpenSim.Region.ClientStack"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Services.Interfaces"/>
-      <Reference name="BclExtras.dll"/>
+      <Reference name="BclExtras35.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
