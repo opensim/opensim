@@ -504,7 +504,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
 
             // Calls attach with a Zero position
-            if (AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
+            if (m_parentScene.AttachmentsModule.AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
             {
                 m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
     
@@ -547,8 +547,10 @@ namespace OpenSim.Region.Framework.Scenes
                     if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
                         tainted = true;
 
-                    AttachObject(remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
+                    m_parentScene.AttachmentsModule.AttachObject(
+                        remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
                     //objatt.ScheduleGroupForFullUpdate();
+                    
                     if (tainted)
                         objatt.HasGroupChanged = true;
 
@@ -603,86 +605,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Attach a scene object to an avatar.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="objectLocalID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <param name="rot"></param>
-        /// <param name="attachPos"></param>
-        /// <param name="silent"></param>
-        /// <returns>true if the attachment was successful, false otherwise</returns>
-        protected internal bool AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent)
-        {
-            SceneObjectGroup group = GetGroupByPrim(objectLocalID);
-            if (group != null)
-            {
-                if (m_parentScene.Permissions.CanTakeObject(group.UUID, remoteClient.AgentId))
-                {
-                    // If the attachment point isn't the same as the one previously used
-                    // set it's offset position = 0 so that it appears on the attachment point
-                    // and not in a weird location somewhere unknown.
-                    if (AttachmentPt != 0 && AttachmentPt != (uint)group.GetAttachmentPoint())
-                    {
-                        attachPos = Vector3.Zero;
-                    }
-
-                    // AttachmentPt 0 means the client chose to 'wear' the attachment.
-                    if (AttachmentPt == 0)
-                    {
-                        // Check object for stored attachment point
-                        AttachmentPt = (uint)group.GetAttachmentPoint();
-                    }
-
-                    // if we still didn't find a suitable attachment point.......
-                    if (AttachmentPt == 0)
-                    {
-                        // Stick it on left hand with Zero Offset from the attachment point.
-                        AttachmentPt = (uint)AttachmentPoint.LeftHand;
-                        attachPos = Vector3.Zero;
-                    }
-
-                    group.SetAttachmentPoint((byte)AttachmentPt);
-                    group.AbsolutePosition = attachPos;
-
-                    // Saves and gets itemID
-                    UUID itemId;
-
-                    if (group.GetFromItemID() == UUID.Zero)
-                    {
-                        m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId, out itemId);
-                    }
-                    else
-                    {
-                        itemId = group.GetFromItemID();
-                    }
-
-                    m_parentScene.AttachObject(remoteClient, AttachmentPt, itemId, group);
-
-                    group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos, silent);
-                    // In case it is later dropped again, don't let
-                    // it get cleaned up
-                    //
-                    group.RootPart.RemFlag(PrimFlags.TemporaryOnRez);
-                    group.HasGroupChanged = false;
-                }
-                else
-                {
-                    remoteClient.SendAgentAlertMessage("You don't have sufficient permissions to attach this object", false);
-                    return false;
-                }
-            }
-            else
-            {
-                m_log.DebugFormat("[SCENE GRAPH]: AttachObject found no such scene object {0}", objectLocalID);
-                return false;
-            }
-
-            return true;
         }
 
         protected internal ScenePresence CreateAndAddChildScenePresence(IClientAPI client, AvatarAppearance appearance)

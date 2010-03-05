@@ -1903,21 +1903,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Attach an object.
-        /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="pos"></param>
-        /// <param name="silent"></param>
-        /// <returns>true if the object was successfully attached, false otherwise</returns>
-        public bool AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
-        {
-            return m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
-        }
-
-        /// <summary>
         /// This registers the item as attached in a user's inventory
         /// </summary>
         /// <param name="remoteClient"></param>
