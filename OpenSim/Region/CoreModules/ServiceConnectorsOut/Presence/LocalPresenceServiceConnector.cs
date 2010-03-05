@@ -47,7 +47,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
         private bool m_Enabled = false;
 
         private PresenceDetector m_PresenceDetector;
-        private IPresenceService m_PresenceService;
+
+        /// <summary>
+        /// Underlying presence service.  Do not use directly.
+        /// </summary>
+        public IPresenceService m_PresenceService;
 
         public LocalPresenceServicesConnector()
         {

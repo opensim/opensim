@@ -51,15 +51,6 @@ namespace OpenSim.Data.Null
                 Instance = this;
 
                 //Console.WriteLine("[XXX] NullRegionData constructor");
-                // Let's stick in a test presence
-                /*
-                PresenceData p = new PresenceData();
-                p.SessionID = UUID.Zero;
-                p.UserID = UUID.Zero.ToString();
-                p.Data = new Dictionary<string, string>();
-                p.Data["Online"] = true.ToString();
-                m_presenceData.Add(UUID.Zero, p);
-                */
             }
         }
 

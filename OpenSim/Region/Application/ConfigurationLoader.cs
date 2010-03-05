@@ -42,6 +42,8 @@ namespace OpenSim
     /// </summary>
     public class ConfigurationLoader
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         /// <summary>
         /// Various Config settings the region needs to start
         /// Physics Engine, Mesh Engine, GridMode, PhysicsPrim allowed, Neighbor, 
@@ -59,17 +61,6 @@ namespace OpenSim
         /// Grid Service Information.  This refers to classes and addresses of the grid service
         /// </summary>
         protected NetworkServersInfo m_networkServersInfo;
-
-        /// <summary>
-        /// Console logger
-        /// </summary>
-        private static readonly ILog m_log =
-                LogManager.GetLogger(
-                MethodBase.GetCurrentMethod().DeclaringType);
-
-        public ConfigurationLoader()
-        {
-        }
 
         /// <summary>
         /// Loads the region configuration
@@ -188,7 +179,6 @@ namespace OpenSim
             }
 
             // Make sure command line options take precedence
-            //
             m_config.Source.Merge(argvSource);
 
             ReadConfigSettings();

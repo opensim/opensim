@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public static class SLUtil
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         #region SL / file extension / content-type conversions
 
         public static string SLAssetTypeToContentType(int assetType)
@@ -190,7 +194,12 @@ namespace OpenSim.Framework
         /// <returns></returns>        
         public static string ParseNotecardToString(string rawInput)
         {
-            return string.Join("\n", ParseNotecardToList(rawInput).ToArray());
+            string[] output = ParseNotecardToList(rawInput).ToArray();
+
+//            foreach (string line in output)
+//                m_log.DebugFormat("[PARSE NOTECARD]: ParseNotecardToString got line {0}", line);
+            
+            return string.Join("\n", output);
         }
                 
         /// <summary>
@@ -254,6 +263,7 @@ namespace OpenSim.Framework
                             if (ln.Length > need)
                                 ln = ln.Substring(0, need);
 
+//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", ln);
                             output.Add(ln);
                             count += ln.Length + 1;
                             idx++;
