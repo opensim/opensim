@@ -142,6 +142,8 @@
   </exec>
   <fail message="Failures reported in unit tests." unless="${int::parse(testresult.opensim.data.mysql.tests)==0}" /> 
 
+  <delete dir="%temp%"/>
+
 </target>
 
 <target name="test-cov" depends="build">
