@@ -1862,35 +1862,7 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
             }
 
-            return RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
-        }
-
-        /// <summary>
-        /// Update the user inventory to reflect an attachment
-        /// </summary>
-        /// <param name="att"></param>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
-        public UUID RezSingleAttachment(SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
-        {
-            m_log.DebugFormat(
-                "[USER INVENTORY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
-                remoteClient.Name, att.Name, itemID);
-            
-            if (!att.IsDeleted)
-                AttachmentPt = att.RootPart.AttachmentPoint;
-
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
-
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-            }
-            return att.UUID;
+            return AttachmentsModule.SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
         }
 
         public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,

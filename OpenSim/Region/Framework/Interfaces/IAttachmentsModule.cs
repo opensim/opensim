@@ -28,6 +28,7 @@
 using System;
 using OpenMetaverse;
 using OpenSim.Framework;
+using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
 {        
@@ -45,5 +46,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>true if the object was successfully attached, false otherwise</returns>        
         bool AttachObject(
             IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent);
+
+        /// <summary>
+        /// Update the user inventory to the attachment of an item
+        /// </summary>
+        /// <param name="att"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns></returns>        
+        UUID SetAttachmentInventoryStatus(
+            SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
     }
 }

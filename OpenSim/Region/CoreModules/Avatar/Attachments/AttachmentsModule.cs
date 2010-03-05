@@ -137,5 +137,35 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             return true;
         }        
+
+        /// <summary>
+        /// Update the user inventory to reflect an attachment
+        /// </summary>
+        /// <param name="att"></param>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns></returns>
+        public UUID SetAttachmentInventoryStatus(
+            SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        {
+            m_log.DebugFormat(
+                "[USER INVENTORY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
+                remoteClient.Name, att.Name, itemID);
+            
+            if (!att.IsDeleted)
+                AttachmentPt = att.RootPart.AttachmentPoint;
+
+            ScenePresence presence;
+            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
+                item = m_scene.InventoryService.GetItem(item);
+
+                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
+            }
+            
+            return att.UUID;
+        }
     }
 }
