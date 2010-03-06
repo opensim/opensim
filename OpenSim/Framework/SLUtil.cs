@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
     public static class SLUtil
     {
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         #region SL / file extension / content-type conversions
 
         public static string SLAssetTypeToContentType(int assetType)
@@ -181,5 +186,107 @@ namespace OpenSim.Framework
         }
 
         #endregion SL / file extension / content-type conversions
+
+        /// <summary>
+        /// Parse a notecard in Linden format to a string of ordinary text.
+        /// </summary>
+        /// <param name="rawInput"></param>
+        /// <returns></returns>        
+        public static string ParseNotecardToString(string rawInput)
+        {
+            string[] output = ParseNotecardToList(rawInput).ToArray();
+
+//            foreach (string line in output)
+//                m_log.DebugFormat("[PARSE NOTECARD]: ParseNotecardToString got line {0}", line);
+            
+            return string.Join("\n", output);
+        }
+                
+        /// <summary>
+        /// Parse a notecard in Linden format to a list of ordinary lines.
+        /// </summary>
+        /// <param name="rawInput"></param>
+        /// <returns></returns>
+        public static List<string> ParseNotecardToList(string rawInput)
+        {
+            string[] input = rawInput.Replace("\r", "").Split('\n');            
+            int idx = 0;
+            int level = 0;
+            List<string> output = new List<string>();
+            string[] words;
+
+            while (idx < input.Length)
+            {
+                if (input[idx] == "{")
+                {
+                    level++;
+                    idx++;
+                    continue;
+                }
+
+                if (input[idx]== "}")
+                {
+                    level--;
+                    idx++;
+                    continue;
+                }
+
+                switch (level)
+                {
+                case 0:
+                    words = input[idx].Split(' '); // Linden text ver
+                    // Notecards are created *really* empty. Treat that as "no text" (just like after saving an empty notecard)
+                    if (words.Length < 3)
+                        return output;
+
+                    int version = int.Parse(words[3]);
+                    if (version != 2)
+                        return output;
+                    break;
+                case 1:
+                    words = input[idx].Split(' ');
+                    if (words[0] == "LLEmbeddedItems")
+                        break;
+                    if (words[0] == "Text")
+                    {
+                        int len = int.Parse(words[2]);
+                        idx++;
+
+                        int count = -1;
+
+                        while (count < len)
+                        {
+                            // int l = input[idx].Length;
+                            string ln = input[idx];
+
+                            int need = len-count-1;
+                            if (ln.Length > need)
+                                ln = ln.Substring(0, need);
+
+//                            m_log.DebugFormat("[PARSE NOTECARD]: Adding line {0}", ln);
+                            output.Add(ln);
+                            count += ln.Length + 1;
+                            idx++;
+                        }
+
+                        return output;
+                    }
+                    break;
+                case 2:
+                    words = input[idx].Split(' '); // count
+                    if (words[0] == "count")
+                    {
+                        int c = int.Parse(words[1]);
+                        if (c > 0)
+                            return output;
+                        break;
+                    }
+                    break;
+                }
+                idx++;
+            }
+            
+            return output;
+        }
     }
 }

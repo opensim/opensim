@@ -279,7 +279,31 @@ namespace OpenSim.Services.LLLoginService
 
                 GridRegion region = null;
 
-                if (pinfo.HomeRegionID.Equals(UUID.Zero) || (region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID)) == null)
+                bool tryDefaults = false;
+
+                if (pinfo.HomeRegionID.Equals(UUID.Zero))
+                {
+                    m_log.WarnFormat(
+                        "[LLOGIN SERVICE]: User {0} {1} tried to login to a 'home' start location but they have none set",
+                        account.FirstName, account.LastName);
+                    
+                    tryDefaults = true;
+                }
+                else
+                {
+                    region = m_GridService.GetRegionByUUID(account.ScopeID, pinfo.HomeRegionID);
+
+                    if (null == region)
+                    {
+                        m_log.WarnFormat(
+                            "[LLOGIN SERVICE]: User {0} {1} has a recorded home region of {2} but this cannot be found by the grid service", 
+                            account.FirstName, account.LastName, pinfo.HomeRegionID);
+                        
+                        tryDefaults = true;
+                    }
+                }
+                
+                if (tryDefaults)
                 {
                     List<GridRegion> defaults = m_GridService.GetDefaultRegions(account.ScopeID);
                     if (defaults != null && defaults.Count > 0)
@@ -288,7 +312,8 @@ namespace OpenSim.Services.LLLoginService
                         where = "safe";
                     }
                     else
-                        m_log.WarnFormat("[LLOGIN SERVICE]: User {0} {1} does not have a home set and this grid does not have default locations.",
+                        m_log.WarnFormat(
+                            "[LLOGIN SERVICE]: User {0} {1} does not have a valid home and this grid does not have default locations.",
                             account.FirstName, account.LastName);
                 }
 
@@ -318,8 +343,8 @@ namespace OpenSim.Services.LLLoginService
                     position = pinfo.Position;
                     lookAt = pinfo.LookAt;
                 }
+                
                 return region;
-
             }
             else
             {
