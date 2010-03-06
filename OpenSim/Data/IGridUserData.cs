@@ -33,7 +33,7 @@ using OpenSim.Framework;
 namespace OpenSim.Data
 {
     // This MUST be a ref type!
-    public class UserGridData
+    public class GridUserData
     {
         public string UserID;
         public Dictionary<string, string> Data;
@@ -42,9 +42,9 @@ namespace OpenSim.Data
     /// <summary>
     /// An interface for connecting to the user grid datastore
     /// </summary>
-    public interface IUserGridData 
+    public interface IGridUserData 
     {
-        UserGridData GetUserGridData(string userID);        
-        bool StoreUserGridData(UserGridData data);
+        GridUserData GetGridUserData(string userID);        
+        bool StoreGridUserData(GridUserData data);
     }
 }

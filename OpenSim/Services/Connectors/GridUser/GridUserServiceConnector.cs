@@ -26,39 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
-using System.Threading;
-using log4net;
-using OpenMetaverse;
-using OpenSim.Framework;
-using MySql.Data.MySqlClient;
 
-namespace OpenSim.Data.MySQL
-{
-    /// <summary>
-    /// A MySQL Interface for user grid data
-    /// </summary>
-    public class MySQLUserGridData : MySQLGenericTableHandler<UserGridData>, IUserGridData
-    {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public MySQLUserGridData(string connectionString, string realm) : base(connectionString, realm, "UserGrid") {}
-
-        public UserGridData GetUserGridData(string userID)
+namespace OpenSim.Services.Connectors
+{     
+    public class GridUserServiceConnector
+    {       
+        public GridUserServiceConnector()
         {
-            UserGridData[] ret = Get("UserID", userID);
-
-            if (ret.Length == 0)
-                return null;
-
-            return ret[0];
-        }        
-
-        public bool StoreUserGridData(UserGridData data)
-        {
-            return Store(data);
         }
     }
 }

@@ -34,16 +34,16 @@ namespace OpenSim.Services.Interfaces
     /// <summary>
     /// Records user information specific to a grid but which is not part of a user's account.
     /// </summary>
-    public class UserGridInfo
+    public class GridUserInfo
     {
         public string UserID;
         public UUID HomeRegionID;
         public Vector3 HomePosition;
         public Vector3 HomeLookAt;
 
-        public UserGridInfo() {}
+        public GridUserInfo() {}
         
-        public UserGridInfo(Dictionary<string, object> kvp)
+        public GridUserInfo(Dictionary<string, object> kvp)
         {
             if (kvp.ContainsKey("UserID"))
                 UserID = kvp["UserID"].ToString();
@@ -67,9 +67,9 @@ namespace OpenSim.Services.Interfaces
         }
     }
     
-    public interface IUserGridService
+    public interface IGridUserService
     {
-        UserGridInfo GetUserGridInfo(string userID);
-        bool StoreUserGridInfo(UserGridInfo info);
+        GridUserInfo GetGridUserInfo(string userID);
+        bool StoreGridUserInfo(GridUserInfo info);
     }
 }

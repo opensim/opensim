@@ -27,50 +27,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
-using Nini.Config;
-using OpenSim.Data;
-using OpenSim.Services.Interfaces;
-using OpenSim.Framework.Console;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-
-using OpenMetaverse;
+using System.Threading;
 using log4net;
+using OpenMetaverse;
+using OpenSim.Framework;
+using MySql.Data.MySqlClient;
 
-namespace OpenSim.Services.UserAccountService
+namespace OpenSim.Data.MySQL
 {
-    public class UserGridService : UserGridServiceBase, IUserGridService
+    /// <summary>
+    /// A MySQL Interface for user grid data
+    /// </summary>
+    public class MySQLGridUserData : MySQLGenericTableHandler<GridUserData>, IGridUserData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public UserGridService(IConfigSource config) : base(config) 
+        public MySQLGridUserData(string connectionString, string realm) : base(connectionString, realm, "UserGrid") {}
+
+        public GridUserData GetGridUserData(string userID)
         {
-            m_log.Debug("[USER GRID SERVICE]: Starting user grid service");
-        }
+            GridUserData[] ret = Get("UserID", userID);
 
-        public UserGridInfo GetUserGridInfo(string userID)
+            if (ret.Length == 0)
+                return null;
+
+            return ret[0];
+        }        
+
+        public bool StoreGridUserData(GridUserData data)
         {
-            UserGridData d = m_Database.GetUserGridData(userID);
-            
-            UserGridInfo info = new UserGridInfo();
-            info.UserID = d.UserID;
-            info.HomeRegionID = new UUID(d.Data["HomeRegionID"]);
-            info.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
-            info.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
-
-            return info;            
-        }
-        
-        public bool StoreUserGridInfo(UserGridInfo info)
-        {
-            UserGridData d = new UserGridData();
-
-            d.Data["UserID"] = info.UserID;
-            d.Data["HomeRegionID"] = info.HomeRegionID.ToString();
-            d.Data["HomePosition"] = info.HomePosition.ToString();
-            d.Data["HomeLookAt"] = info.HomeLookAt.ToString();
-
-            return m_Database.StoreUserGridData(d);
+            return Store(data);
         }
     }
 }

@@ -26,13 +26,51 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Nini.Config;
+using OpenSim.Data;
+using OpenSim.Services.Interfaces;
+using OpenSim.Framework.Console;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace OpenSim.Services.Connectors
-{     
-    public class UserGridServiceConnector
-    {       
-        public UserGridServiceConnector()
+using OpenMetaverse;
+using log4net;
+
+namespace OpenSim.Services.UserAccountService
+{
+    public class GridUserService : GridUserServiceBase, IGridUserService
+    {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public GridUserService(IConfigSource config) : base(config) 
         {
+            m_log.Debug("[USER GRID SERVICE]: Starting user grid service");
+        }
+
+        public GridUserInfo GetGridUserInfo(string userID)
+        {
+            GridUserData d = m_Database.GetGridUserData(userID);
+            
+            GridUserInfo info = new GridUserInfo();
+            info.UserID = d.UserID;
+            info.HomeRegionID = new UUID(d.Data["HomeRegionID"]);
+            info.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
+            info.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
+
+            return info;            
+        }
+        
+        public bool StoreGridUserInfo(GridUserInfo info)
+        {
+            GridUserData d = new GridUserData();
+
+            d.Data["UserID"] = info.UserID;
+            d.Data["HomeRegionID"] = info.HomeRegionID.ToString();
+            d.Data["HomePosition"] = info.HomePosition.ToString();
+            d.Data["HomeLookAt"] = info.HomeLookAt.ToString();
+
+            return m_Database.StoreGridUserData(d);
         }
     }
 }

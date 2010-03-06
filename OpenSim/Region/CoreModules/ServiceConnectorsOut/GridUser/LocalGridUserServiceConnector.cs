@@ -37,13 +37,13 @@ using OpenSim.Services.Interfaces;
 
 using OpenMetaverse;
 
-namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
+namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser
 {
-    public class LocalUserGridServicesConnector : ISharedRegionModule, IUserGridService
+    public class LocalGridUserServicesConnector : ISharedRegionModule, IGridUserService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IUserGridService m_service;
+        private IGridUserService m_service;
 
         private bool m_Enabled = false;
 
@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
 
         public string Name
         {
-            get { return "LocalUserGridServicesConnector"; }
+            get { return "LocalGridUserServicesConnector"; }
         }
 
         public void Initialise(IConfigSource source)
@@ -62,13 +62,13 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
             IConfig moduleConfig = source.Configs["Modules"];
             if (moduleConfig != null)
             {
-                string name = moduleConfig.GetString("UserGridServices", "");
+                string name = moduleConfig.GetString("GridUserServices", "");
                 if (name == Name)
                 {
-                    IConfig userConfig = source.Configs["UserGridService"];
+                    IConfig userConfig = source.Configs["GridUserService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[LOCAL USER GRID SERVICE CONNECTOR]: UserGridService missing from ini files");
+                        m_log.Error("[LOCAL GRID USER SERVICE CONNECTOR]: GridUserService missing from ini files");
                         return;
                     }
 
@@ -76,20 +76,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
 
                     if (serviceDll == String.Empty)
                     {
-                        m_log.Error("[LOCAL USER GRID SERVICE CONNECTOR]: No LocalServiceModule named in section UserGridService");
+                        m_log.Error("[LOCAL GRID USER SERVICE CONNECTOR]: No LocalServiceModule named in section GridUserService");
                         return;
                     }
 
                     Object[] args = new Object[] { source };
-                    m_service = ServerUtils.LoadPlugin<IUserGridService>(serviceDll, args);
+                    m_service = ServerUtils.LoadPlugin<IGridUserService>(serviceDll, args);
 
                     if (m_service == null)
                     {
-                        m_log.Error("[LOCAL USER GRID SERVICE CONNECTOR]: Can't load UserGrid service");
+                        m_log.Error("[LOCAL GRID USER SERVICE CONNECTOR]: Can't load GridUser service");
                         return;
                     }
                     m_Enabled = true;
-                    m_log.Info("[LOCAL USER GRID SERVICE CONNECTOR]: Local UserGrid connector enabled");
+                    m_log.Info("[LOCAL GRID USER SERVICE CONNECTOR]: Local GridUser connector enabled");
                 }
             }
         }
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
             if (!m_Enabled)
                 return;
 
-            scene.RegisterModuleInterface<IUserGridService>(m_service);
+            scene.RegisterModuleInterface<IGridUserService>(m_service);
         }
 
         public void RemoveRegion(Scene scene)
@@ -126,14 +126,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserGrid
                 return;
         }
 
-        public UserGridInfo GetUserGridInfo(string userID)
+        public GridUserInfo GetGridUserInfo(string userID)
         {
-            return m_service.GetUserGridInfo(userID);
+            return m_service.GetGridUserInfo(userID);
         }
         
-        public bool StoreUserGridInfo(UserGridInfo info)
+        public bool StoreGridUserInfo(GridUserInfo info)
         {
-            return m_service.StoreUserGridInfo(info);
+            return m_service.StoreGridUserInfo(info);
         }
     }
 }

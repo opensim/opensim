@@ -35,15 +35,15 @@ using OpenSim.Services.Base;
 
 namespace OpenSim.Services.UserAccountService
 {
-    public class UserGridServiceBase : ServiceBase
+    public class GridUserServiceBase : ServiceBase
     {
-        protected IUserGridData m_Database = null;
+        protected IGridUserData m_Database = null;
 
-        public UserGridServiceBase(IConfigSource config) : base(config)
+        public GridUserServiceBase(IConfigSource config) : base(config)
         {
             string dllName = String.Empty;
             string connString = String.Empty;
-            string realm = "UserGrid";
+            string realm = "GridUser";
 
             //
             // Try reading the [DatabaseService] section, if it exists
@@ -58,9 +58,9 @@ namespace OpenSim.Services.UserAccountService
             }
 
             //
-            // [PresenceService] section overrides [DatabaseService], if it exists
+            // [GridUsetService] section overrides [DatabaseService], if it exists
             //
-            IConfig presenceConfig = config.Configs["PresenceService"];
+            IConfig presenceConfig = config.Configs["GridUserService"];
             if (presenceConfig != null)
             {
                 dllName = presenceConfig.GetString("StorageProvider", dllName);
@@ -74,7 +74,7 @@ namespace OpenSim.Services.UserAccountService
             if (dllName.Equals(String.Empty))
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IUserGridData>(dllName, new Object[] { connString, realm });
+            m_Database = LoadPlugin<IGridUserData>(dllName, new Object[] { connString, realm });
             if (m_Database == null)
                 throw new Exception("Could not find a storage interface in the given module " + dllName);
         }
