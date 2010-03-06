@@ -1132,10 +1132,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public int GetInaccurateNeighborCount()
         {
-            lock (m_neighbours)
-            {
-                return m_neighbours.Count;
-            }
+            return m_neighbours.Count;
         }
 
         // This is the method that shuts down the scene.
