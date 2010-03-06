@@ -85,8 +85,10 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_taintVelocity;
         private Vector3 m_taintTorque;
         private Quaternion m_taintrot;
-        private Vector3 m_angularlock = Vector3.One;
-        private Vector3 m_taintAngularLock = Vector3.One;
+        private Vector3 m_angularlock = Vector3.One;				// Current setting
+        private Vector3 m_taintAngularLock = Vector3.One;			// Request from LSL
+        
+        
         private IntPtr Amotor = IntPtr.Zero;
 
         private Vector3 m_PIDTarget;
@@ -405,10 +407,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_disabled = false;
 
                 // The body doesn't already have a finite rotation mode set here
-                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0.0f)) && _parent == null)
+      /* ###          if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0.0f)) && _parent == null)
                 {
                     createAMotor(m_angularlock);
-                }
+                }  */
                 if (m_vehicle.Type != Vehicle.TYPE_NONE)
                 {
                     m_vehicle.Enable(Body, _parent_scene);
@@ -958,8 +960,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
-
+                    
+                    // ##*
                 if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
+//Console.WriteLine("ALchange req {0}    is {1}", m_taintAngularLock, m_angularlock);
                     changeAngularLock(timestep);
  
             }
@@ -970,15 +974,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
 
-        private void changeAngularLock(float timestep)
+        private void changeAngularLock(float timestep)  // ##*
         {
             // do we have a Physical object?
-            if (Body != IntPtr.Zero)
-            {
+//            if (Body != IntPtr.Zero)
+//            {
                 //Check that we have a Parent
                 //If we have a parent then we're not authorative here
                 if (_parent == null)
                 {
+//Console.WriteLine("Alock changed to {0}",   m_taintAngularLock);
+		            m_angularlock = m_taintAngularLock;
+        		    m_vehicle.SetAngularLock(m_angularlock);
+
+		    	    
+/*
                     if (!m_taintAngularLock.ApproxEquals(Vector3.One, 0f))
                     {
                         //d.BodySetFiniteRotationMode(Body, 0);
@@ -997,7 +1007,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             // Store this for later in case we get turned into a separate body
             m_angularlock = m_taintAngularLock;
-            
+            m_vehicle.SetAngularLock(m_angularlock);  
+            	}  */
+            }
         }
 
         private void changelink(float timestep)
@@ -1140,10 +1152,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 prm.m_disabled = false;
 
                                 // The body doesn't already have a finite rotation mode set here
-                                if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
+        /*  ###                      if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
                                 {
                                     prm.createAMotor(m_angularlock);
-                                }
+                                } */
                                 prm.Body = Body;
                                 _parent_scene.addActivePrim(prm);
                             }
@@ -1183,10 +1195,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_disabled = false;
 
                             // The body doesn't already have a finite rotation mode set here
-                            if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
+               /* ###             if ((!m_angularlock.ApproxEquals(Vector3.Zero, 0f)) && _parent == null)
                             {
                                 createAMotor(m_angularlock);
-                            }
+                            } */
                             d.BodySetPosition(Body, Position.X, Position.Y, Position.Z);
                             if (m_vehicle.Type != Vehicle.TYPE_NONE) m_vehicle.Enable(Body, _parent_scene);
                             _parent_scene.addActivePrim(this);
@@ -1600,14 +1612,17 @@ Console.WriteLine(" JointCreateFixed");
             	{
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
-	                if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.Zero, 0.003f))
+            		// m_angularlock = <1,1,1> means no lock. a 0 on axis means locked.
+            		
+// NB this may be wrong - may lock global axis! Should be LOCAL axis!            		
+	                if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.One, 0.003f))
 	                {
 	                    d.Vector3 avel2 = d.BodyGetAngularVel(Body);
-	                    if (m_angularlock.X == 1)
+	                    if (m_angularlock.X == 0)
 	                        avel2.X = 0;
-	                    if (m_angularlock.Y == 1)
+	                    if (m_angularlock.Y == 0)
 	                        avel2.Y = 0;
-	                    if (m_angularlock.Z == 1)
+	                    if (m_angularlock.Z == 0)
 	                        avel2.Z = 0;
 	                    d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
 	                }
@@ -1808,6 +1823,17 @@ Console.WriteLine(" JointCreateFixed");
     //	                    d.BodyAddRelTorque(Body, rotforce.X, rotforce.Y, rotforce.Z);
     	                    RLAservo = timestep / m_APIDStrength * scaler;
     	                    rotforce = rotforce * RLAservo * diff_angle ;
+    	                    
+		                    if (m_angularlock.X == 0)
+		                        rotforce.X = 0;
+		                    if (m_angularlock.Y == 0)
+		                        rotforce.Y = 0;
+		                    if (m_angularlock.Z == 0)
+		                        rotforce.Z = 0;
+    	                    
+    	                    
+    	                    
+    	                    
 							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
 //Console.WriteLine("axis= " + diff_axis + "    angle= " + diff_angle + "servo= " + RLAservo);							
 						}
@@ -1878,11 +1904,11 @@ Console.WriteLine(" JointCreateFixed");
             {
 	            // KF: If this is a root prim do BodySet
                 d.BodySetQuaternion(Body, ref myrot);
-	            if (m_isphysical)
+	     /* ###       if (m_isphysical)
 	            {
                     if (!m_angularlock.ApproxEquals(Vector3.One, 0f))
 	                    createAMotor(m_angularlock);
-	            }
+	            }  */
 	        }
 	        else
 	        {
@@ -2516,7 +2542,14 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
         }
-
+/*        
+        public Vector3 AngularLock
+        {
+        	get { return m_angularlock; }
+        	set { }
+        }
+        
+*/
         public override float CollisionScore
         {
             get { return m_collisionscore; }
@@ -2922,8 +2955,9 @@ Console.WriteLine(" JointCreateFixed");
         public override PIDHoverType PIDHoverType { set { m_PIDHoverType = value; } }
         public override float PIDHoverTau { set { m_PIDHoverTau = value; } }
 
-        private void createAMotor(Vector3 axis)
+        private void createAMotor(Vector3 axis)  // ##*
         {
+Console.WriteLine("  createAMotor called! ----------------------------");      
             if (Body == IntPtr.Zero)
                 return;
 
