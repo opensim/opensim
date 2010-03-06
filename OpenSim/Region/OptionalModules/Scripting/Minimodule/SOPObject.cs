@@ -767,7 +767,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.Minimodule
             if (!CanEdit())
                 return;
 
-            GetSOP().SendSound(asset.ToString(), volume, true, 0);
+            GetSOP().SendSound(asset.ToString(), volume, true, 0, 0, false, false);
         }
 
         #endregion

@@ -149,6 +149,8 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         }
         
+        public override void VehicleFlags(int param, bool remove) { }
+
         public override void SetVolumeDetect(int param)
         {
 

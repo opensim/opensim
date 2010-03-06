@@ -26,6 +26,7 @@
  */
 
 using OpenMetaverse;
+using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Region.Framework.Scenes
 {
@@ -35,29 +36,21 @@ namespace OpenSim.Region.Framework.Scenes
         public Vector3 Scale = Vector3.Zero;
         public Quaternion Rotation = Quaternion.Identity;
 
-        public UndoState(Vector3 pos, Quaternion rot, Vector3 scale)
-        {
-            Position = pos;
-            Rotation = rot;
-            Scale = scale;
-        }
-
         public UndoState(SceneObjectPart part)
         {
             if (part != null)
             {
                 if (part.ParentID == 0)
                 {
-                    Position = part.AbsolutePosition;
+                    Position = part.ParentGroup.AbsolutePosition;
                     Rotation = part.RotationOffset;
-
+                    Scale = part.Shape.Scale;
                 }
                 else
                 {
                     Position = part.OffsetPosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
-
                 }
             }
         }
@@ -68,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if (part.ParentID == 0)
                 {
-                    if (Position == part.AbsolutePosition && Rotation == part.RotationOffset)
+                    if (Position == part.ParentGroup.AbsolutePosition && Rotation == part.ParentGroup.Rotation)
                         return true;
                     else
                         return false;
@@ -93,24 +86,78 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if (part.ParentID == 0)
                 {
-                    part.ParentGroup.AbsolutePosition = Position;
-                    part.UpdateRotation(Rotation);
+                    if (Position != Vector3.Zero)
+                        part.ParentGroup.AbsolutePosition = Position;
+                    part.RotationOffset = Rotation;
+                    if (Scale != Vector3.Zero)
+                        part.Resize(Scale);
                     part.ParentGroup.ScheduleGroupForTerseUpdate();
                 }
                 else
                 {
-                    part.OffsetPosition = Position;
+                    if (Position != Vector3.Zero)
+                        part.OffsetPosition = Position;
                     part.UpdateRotation(Rotation);
-                    part.Resize(Scale);
+                    if (Scale != Vector3.Zero)
+                        part.Resize(Scale); part.ScheduleTerseUpdate();
+                }
+                part.Undoing = false;
+
+            }
+        }
+        public void PlayfwdState(SceneObjectPart part)
+        {
+            if (part != null)
+            {
+                part.Undoing = true;
+
+                if (part.ParentID == 0)
+                {
+                    if (Position != Vector3.Zero)
+                        part.ParentGroup.AbsolutePosition = Position;
+                    if (Rotation != Quaternion.Identity)
+                        part.UpdateRotation(Rotation);
+                    if (Scale != Vector3.Zero)
+                        part.Resize(Scale);
+                    part.ParentGroup.ScheduleGroupForTerseUpdate();
+                }
+                else
+                {
+                    if (Position != Vector3.Zero)
+                        part.OffsetPosition = Position;
+                    if (Rotation != Quaternion.Identity)
+                        part.UpdateRotation(Rotation);
+                    if (Scale != Vector3.Zero)
+                        part.Resize(Scale);
                     part.ScheduleTerseUpdate();
                 }
                 part.Undoing = false;
 
             }
         }
+    }
+    public class LandUndoState
+    {
+        public ITerrainModule m_terrainModule;
+        public ITerrainChannel m_terrainChannel;
 
-        public UndoState()
+        public LandUndoState(ITerrainModule terrainModule, ITerrainChannel terrainChannel)
         {
+            m_terrainModule = terrainModule;
+            m_terrainChannel = terrainChannel;
+        }
+
+        public bool Compare(ITerrainChannel terrainChannel)
+        {
+            if (m_terrainChannel != terrainChannel)
+                return false;
+            else
+                return false;
+        }
+
+        public void PlaybackState()
+        {
+            m_terrainModule.UndoTerrain(m_terrainChannel);
         }
     }
 }

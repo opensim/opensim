@@ -262,7 +262,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Returns a new unallocated local ID
         /// </summary>
         /// <returns>A brand new local ID</returns>
-        protected internal uint AllocateLocalId()
+        public uint AllocateLocalId()
         {
             uint myID;
 

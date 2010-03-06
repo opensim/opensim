@@ -500,6 +500,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public BulletXScene(String sceneIdentifier)
         {
             //identifier = sceneIdentifier;
+            cDispatcher = new CollisionDispatcherLocal(this);
+            Vector3 worldMinDim = new Vector3((float)minXY, (float)minXY, (float)minZ);
+            Vector3 worldMaxDim = new Vector3((float)maxXY, (float)maxXY, (float)maxZ);
+            opCache = new AxisSweep3(worldMinDim, worldMaxDim, maxHandles);
+            sicSolver = new SequentialImpulseConstraintSolver();
+
+            lock (BulletXLock)
+            {
+                ddWorld = new DiscreteDynamicsWorld(cDispatcher, opCache, sicSolver);
+                ddWorld.Gravity = new Vector3(0, 0, -gravity);
+            }
+            //this._heightmap = new float[65536];
         }
 
         public static float Gravity
@@ -582,12 +594,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             pos.Y = position.Y;
             pos.Z = position.Z + 20;
             BulletXCharacter newAv = null;
-            newAv.Flying = isFlying;
             lock (BulletXLock)
             {
                 newAv = new BulletXCharacter(avName, this, pos);
                 _characters.Add(newAv.RigidBody, newAv);
             }
+            newAv.Flying = isFlying;
             return newAv;
         }
 
@@ -992,9 +1004,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         
         public override void VehicleFlagsRemove(int flags)
         {
-
         }
         
+        public override void VehicleFlags(int param, bool remove)
+        {
+
+        }
+
         public override void SetVolumeDetect(int param)
         {
 

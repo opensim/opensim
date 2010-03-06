@@ -2357,12 +2357,17 @@ Console.WriteLine(" JointCreateFixed");
                 
         public override void VehicleFlagsSet(int flags)
         {
-
+            VehicleFlags(flags, false);
         }
         
         public override void VehicleFlagsRemove(int flags)
         {
+            VehicleFlags(flags, true);
+        }
 
+        public override void VehicleFlags(int param, bool remove)
+        {
+            m_vehicle.ProcessVehicleFlags(param, remove);
         }
 
         public override void SetVolumeDetect(int param)

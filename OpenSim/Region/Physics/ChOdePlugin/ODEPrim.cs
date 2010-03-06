@@ -2416,6 +2416,14 @@ Console.WriteLine(" JointCreateFixed");
             m_vehicle.ProcessRotationVehicleParam((Vehicle) param, rotation);
         }
         
+        public override void VehicleFlags(int flags, bool remove)
+        {
+            if (!remove)
+                VehicleFlagsSet(flags);
+            else
+                VehicleFlagsRemove(flags);
+        }
+
         public override void VehicleFlagsSet(int flags)
         {
 			m_vehicle.ProcessFlagsVehicleSet(flags);
