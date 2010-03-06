@@ -1858,7 +1858,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (att == null)
             {
-                DetachSingleAttachmentToInv(itemID, remoteClient);
+                AttachmentsModule.ShowDetachInUserInventory(itemID, remoteClient);
                 return UUID.Zero;
             }
 
@@ -1902,24 +1902,6 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.SendRemoveInventoryItem(inventoryID);
             }
             SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);
-        }
-
-        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
-        {
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                presence.Appearance.DetachAttachment(itemID);
-
-                // Save avatar attachment information
-                if (m_AvatarFactory != null)
-                {
-                    m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", ItemID: " + itemID);
-                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-            }
-
-            m_sceneGraph.DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

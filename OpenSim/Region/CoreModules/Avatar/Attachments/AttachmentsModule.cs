@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -131,26 +132,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
             else
             {
-                m_log.DebugFormat("[SCENE GRAPH]: AttachObject found no such scene object {0}", objectLocalID);
+                m_log.DebugFormat("[ATTACHMENTS MODULE]: AttachObject found no such scene object {0}", objectLocalID);
                 return false;
             }
 
             return true;
-        }        
-
-        /// <summary>
-        /// Update the user inventory to reflect an attachment
-        /// </summary>
-        /// <param name="att"></param>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
+        }
+        
         public UUID SetAttachmentInventoryStatus(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
         {
             m_log.DebugFormat(
-                "[USER INVENTORY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
+                "[ATTACHMENTS MODULEY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
                 remoteClient.Name, att.Name, itemID);
             
             if (!att.IsDeleted)
@@ -184,19 +177,19 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             
             if (UUID.Zero == itemID)
             {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
+                m_log.Error("[ATTACHMENTS MODULE]: Unable to save attachment. Error inventory item ID.");
                 return;
             }
 
             if (0 == AttachmentPt)
             {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error attachment point.");
+                m_log.Error("[ATTACHMENTS MODULE]: Unable to save attachment. Error attachment point.");
                 return;
             }
 
             if (null == att.RootPart)
             {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment for a prim without the rootpart!");
+                m_log.Error("[ATTACHMENTS MODULE]: Unable to save attachment for a prim without the rootpart!");
                 return;
             }
 
@@ -210,6 +203,54 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 if (m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+            }
+        }        
+
+        public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
+        {
+            ScenePresence presence;
+            if (m_scene.TryGetAvatar(remoteClient.AgentId, out presence))
+            {
+                presence.Appearance.DetachAttachment(itemID);
+
+                // Save avatar attachment information
+                if (m_scene.AvatarFactory != null)
+                {
+                    m_log.Debug("[ATTACHMENTS MODULE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", ItemID: " + itemID);
+                    m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
+                }
+            }
+
+            DetachSingleAttachmentToInv(itemID, remoteClient);
+        }        
+
+        // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
+        // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
+        protected void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
+        {
+            if (itemID == UUID.Zero) // If this happened, someone made a mistake....
+                return;
+
+            // We can NOT use the dictionries here, as we are looking
+            // for an entity by the fromAssetID, which is NOT the prim UUID
+            List<EntityBase> detachEntities = m_scene.GetEntities();
+            SceneObjectGroup group;
+
+            foreach (EntityBase entity in detachEntities)
+            {
+                if (entity is SceneObjectGroup)
+                {
+                    group = (SceneObjectGroup)entity;
+                    if (group.GetFromItemID() == itemID)
+                    {
+                        m_scene.EventManager.TriggerOnAttach(group.LocalId, itemID, UUID.Zero);
+                        group.DetachToInventoryPrep();
+                        m_log.Debug("[ATTACHMENTS MODULE]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+                        m_scene.UpdateKnownItem(remoteClient, group,group.GetFromItemID(), group.OwnerID);
+                        m_scene.DeleteSceneObject(group, false);
+                        return;
+                    }
+                }
             }
         }        
     }

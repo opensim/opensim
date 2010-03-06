@@ -2646,10 +2646,12 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
         {
             client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
-            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;
-            client.OnDetachAttachmentIntoInv += DetachSingleAttachmentToInv;
+            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;            
             client.OnObjectAttach += m_sceneGraph.AttachObject;
             client.OnObjectDetach += m_sceneGraph.DetachObject;
+
+            if (AttachmentsModule != null)
+                client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
         }
 
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
@@ -2696,8 +2698,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         protected virtual void UnsubscribeToClientEvents(IClientAPI client)
-        {
-            
+        {            
         }
 
         /// <summary>
@@ -2718,7 +2719,6 @@ namespace OpenSim.Region.Framework.Scenes
             UnSubscribeToClientGodEvents(client);
 
             UnSubscribeToClientNetworkEvents(client);
-
 
             // EventManager.TriggerOnNewClient(client);
         }
@@ -2799,12 +2799,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {
-            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;
+        {            
             client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;
-            client.OnDetachAttachmentIntoInv -= DetachSingleAttachmentToInv;
+            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;            
             client.OnObjectAttach -= m_sceneGraph.AttachObject;
             client.OnObjectDetach -= m_sceneGraph.DetachObject;
+
+            if (AttachmentsModule != null)               
+                client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
         }
 
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)

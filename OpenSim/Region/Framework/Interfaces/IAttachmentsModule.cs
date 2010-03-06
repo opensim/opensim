@@ -57,5 +57,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns></returns>        
         UUID SetAttachmentInventoryStatus(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+
+        /// <summary>
+        /// Update the user inventory to show a detach.
+        /// </summary>
+        /// <param name="itemID">
+        /// A <see cref="UUID"/>
+        /// </param>
+        /// <param name="remoteClient">
+        /// A <see cref="IClientAPI"/>
+        /// </param>
+        void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient);
     }
 }

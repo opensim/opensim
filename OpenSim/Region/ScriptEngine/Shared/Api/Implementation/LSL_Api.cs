@@ -2931,8 +2931,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
 
-                m_ScriptEngine.World.DetachSingleAttachmentToInv(itemID,
-                        presence.ControllingClient);
+                IAttachmentsModule attachmentsModule = m_ScriptEngine.World.AttachmentsModule;
+                if (attachmentsModule != null)
+                    attachmentsModule.ShowDetachInUserInventory(itemID, presence.ControllingClient);
             }
         }
 

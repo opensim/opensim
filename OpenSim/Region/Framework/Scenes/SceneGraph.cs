@@ -452,7 +452,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (group != null)
             {
                 //group.DetachToGround();
-                m_parentScene.DetachSingleAttachmentToInv(group.GetFromItemID(), remoteClient);
+                m_parentScene.AttachmentsModule.ShowDetachInUserInventory(group.GetFromItemID(), remoteClient);
             }
         }
 
@@ -572,39 +572,6 @@ namespace OpenSim.Region.Framework.Scenes
             }
             
             return null;
-        }
-
-        // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
-        // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
-        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
-        {
-            if (itemID == UUID.Zero) // If this happened, someone made a mistake....
-                return;
-
-            // We can NOT use the dictionries here, as we are looking
-            // for an entity by the fromAssetID, which is NOT the prim UUID
-            //
-            List<EntityBase> detachEntities = GetEntities();
-            SceneObjectGroup group;
-
-            foreach (EntityBase entity in detachEntities)
-            {
-                if (entity is SceneObjectGroup)
-                {
-                    group = (SceneObjectGroup)entity;
-                    if (group.GetFromItemID() == itemID)
-                    {
-                        m_parentScene.SendAttachEvent(group.LocalId, itemID, UUID.Zero);
-                        group.DetachToInventoryPrep();
-                        m_log.Debug("[DETACH]: Saving attachpoint: " +
-                                ((uint)group.GetAttachmentPoint()).ToString());
-                        m_parentScene.UpdateKnownItem(remoteClient, group,
-                                group.GetFromItemID(), group.OwnerID);
-                        m_parentScene.DeleteSceneObject(group, false);
-                        return;
-                    }
-                }
-            }
         }
 
         protected internal ScenePresence CreateAndAddChildScenePresence(IClientAPI client, AvatarAppearance appearance)
