@@ -190,6 +190,21 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="agentID"></param>
         public abstract void RemoveClient(UUID agentID);
 
+        public bool TryGetAvatar(UUID agentID, out object scenePresence)
+        {
+            scenePresence = null;
+            ScenePresence sp = null;
+            if (TryGetAvatar(agentID, out sp))
+            {
+                scenePresence = sp;
+                return true;
+            }
+
+            return false;
+        }
+
+        public abstract bool TryGetAvatar(UUID agentID, out ScenePresence scenePresence);
+
         #endregion
 
         /// <summary>

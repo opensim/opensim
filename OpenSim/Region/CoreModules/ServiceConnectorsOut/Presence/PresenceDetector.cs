@@ -77,23 +77,28 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
 
         public void OnNewClient(IClientAPI client)
         {
-            client.OnLogout += OnLogout;
+            client.OnConnectionClosed += OnConnectionClose;
         }
 
-        public void OnLogout(IClientAPI client)
+        public void OnConnectionClose(IClientAPI client)
         {
-            client.OnLogout -= OnLogout;
-            
-            ScenePresence sp = null;
-            Vector3 position = new Vector3(128, 128, 0);
-            Vector3 lookat = new Vector3(0, 1, 0);
-
-            if (m_aScene.TryGetAvatar(client.AgentId, out sp))
+            if (client.IsLoggingOut)
             {
-                position = sp.AbsolutePosition;
-                lookat = sp.Lookat;
+                object sp = null;
+                Vector3 position = new Vector3(128, 128, 0);
+                Vector3 lookat = new Vector3(0, 1, 0);
+
+                if (client.Scene.TryGetAvatar(client.AgentId, out sp))
+                {
+                    if (sp is ScenePresence)
+                    {
+                        position = ((ScenePresence)sp).AbsolutePosition;
+                        lookat = ((ScenePresence)sp).Lookat;
+                    }
+                }
+
+                m_PresenceService.LogoutAgent(client.SessionId, position, lookat);
             }
-            m_PresenceService.LogoutAgent(client.SessionId, position, lookat);
 
         }
     }
