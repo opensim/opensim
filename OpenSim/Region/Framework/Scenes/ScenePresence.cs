@@ -2872,6 +2872,9 @@ namespace OpenSim.Region.Framework.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, m_lastChildAgentUpdatePosition) >= Scene.ChildReprioritizationDistance ||
                 Util.GetDistanceTo(CameraPosition, m_lastChildAgentUpdateCamPosition) >= Scene.ChildReprioritizationDistance)
             {
+                m_lastChildAgentUpdatePosition = AbsolutePosition;
+                m_lastChildAgentUpdateCamPosition = CameraPosition;
+
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
                 cadu.ActiveGroupID = UUID.Zero.Guid;
                 cadu.AgentID = UUID.Guid;
@@ -2880,8 +2883,6 @@ namespace OpenSim.Region.Framework.Scenes
                 Vector3 tempCameraCenter = m_CameraCenter;
                 cadu.cameraPosition = tempCameraCenter;
                 cadu.drawdistance = m_DrawDistance;
-                if (m_scene.Permissions.IsGod(new UUID(cadu.AgentID)))
-                    cadu.godlevel = m_godlevel;
                 cadu.GroupAccess = 0;
                 cadu.Position = AbsolutePosition;
                 cadu.regionHandle = m_rootRegionHandle;
@@ -2904,9 +2905,6 @@ namespace OpenSim.Region.Framework.Scenes
                 agentpos.CopyFrom(cadu);
 
                 m_scene.SendOutChildAgentUpdates(agentpos, this);
-
-                m_lastChildAgentUpdatePosition = AbsolutePosition;
-                m_lastChildAgentUpdateCamPosition = CameraPosition;
             }
         }
 

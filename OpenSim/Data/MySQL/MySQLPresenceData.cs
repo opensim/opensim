@@ -122,7 +122,7 @@ namespace OpenSim.Data.MySQL
             cmd.CommandText = String.Format("select * from {0} where UserID=?UserID", m_Realm);
 
             cmd.Parameters.AddWithValue("?UserID", userID);
-;
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             { 
                 dbcon.Open();
@@ -131,7 +131,6 @@ namespace OpenSim.Data.MySQL
 
                 using (IDataReader reader = cmd.ExecuteReader())
                 {
-
                     List<UUID> deleteSessions = new List<UUID>();
                     int online = 0;
 
@@ -143,6 +142,7 @@ namespace OpenSim.Data.MySQL
                             deleteSessions.Add(new UUID(reader["SessionID"].ToString()));
                     }
 
+                    // Leave one session behind so that we can pick up details such as home location
                     if (online == 0 && deleteSessions.Count > 0)
                         deleteSessions.RemoveAt(0);
 

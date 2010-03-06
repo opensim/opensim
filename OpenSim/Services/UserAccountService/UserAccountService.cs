@@ -280,7 +280,7 @@ namespace OpenSim.Services.UserAccountService
             if (null == account)
             {
                 account = new UserAccount(UUID.Zero, firstName, lastName, email);
-                if (account.ServiceURLs == null)
+                if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
                 {
                     account.ServiceURLs = new Dictionary<string, object>();
                     account.ServiceURLs["HomeURI"] = string.Empty;

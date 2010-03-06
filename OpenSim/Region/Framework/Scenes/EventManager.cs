@@ -110,21 +110,24 @@ namespace OpenSim.Region.Framework.Scenes
         public event OnSetRootAgentSceneDelegate OnSetRootAgentScene;
 
         /// <summary>
-        /// Called when an object is touched/grabbed.
+        /// Fired when an object is touched/grabbed.
         /// </summary>
         /// The originalID is the local ID of the part that was actually touched.  The localID itself is always that of
-        /// the root part.
-        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
+        /// the root part.        
         public event ObjectGrabDelegate OnObjectGrab;
+        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);        
         
         public event ObjectGrabDelegate OnObjectGrabbing;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
 
-        public event OnPermissionErrorDelegate OnPermissionError;
+        public event OnPermissionErrorDelegate OnPermissionError;        
 
-        public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
+        /// <summary>
+        /// Fired when a new script is created.
+        /// </summary>
         public event NewRezScript OnRezScript;
+        public delegate void NewRezScript(uint localID, UUID itemID, string script, int startParam, bool postOnRez, string engine, int stateSource);
 
         public delegate void RemoveScript(uint localID, UUID itemID);
         public event RemoveScript OnRemoveScript;
@@ -166,38 +169,35 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void ClientClosed(UUID clientID, Scene scene);
 
-        public event ClientClosed OnClientClosed;
+        public event ClientClosed OnClientClosed;        
 
+        /// <summary>
+        /// This is fired when a scene object property that a script might be interested in (such as color, scale or
+        /// inventory) changes.  Only enough information is sent for the LSL changed event
+        /// (see http://lslwiki.net/lslwiki/wakka.php?wakka=changed)
+        /// </summary>
+        public event ScriptChangedEvent OnScriptChangedEvent;
         public delegate void ScriptChangedEvent(uint localID, uint change);
 
-        public event ScriptChangedEvent OnScriptChangedEvent;
-
         public delegate void ScriptControlEvent(uint localID, UUID item, UUID avatarID, uint held, uint changed);
-
         public event ScriptControlEvent OnScriptControlEvent;
 
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, Vector3 targetpos, Vector3 atpos);
-
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
         public delegate void ScriptNotAtTargetEvent(uint localID);
-
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
         public delegate void ScriptAtRotTargetEvent(uint localID, uint handle, Quaternion targetrot, Quaternion atrot);
-
         public event ScriptAtRotTargetEvent OnScriptAtRotTargetEvent;
 
         public delegate void ScriptNotAtRotTargetEvent(uint localID);
-
         public event ScriptNotAtRotTargetEvent OnScriptNotAtRotTargetEvent;
 
         public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
-
         public event ScriptColliding OnScriptColliderStart;
         public event ScriptColliding OnScriptColliding;
         public event ScriptColliding OnScriptCollidingEnd;
-
         public event ScriptColliding OnScriptLandColliderStart;
         public event ScriptColliding OnScriptLandColliding;
         public event ScriptColliding OnScriptLandColliderEnd;

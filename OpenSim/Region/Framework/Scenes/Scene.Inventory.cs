@@ -1862,39 +1862,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (att == null)
             {
-                DetachSingleAttachmentToInv(itemID, remoteClient);
+                AttachmentsModule.ShowDetachInUserInventory(itemID, remoteClient);
                 return UUID.Zero;
             }
 
-            return RezSingleAttachment(att, remoteClient, itemID, AttachmentPt);
-        }
-
-        /// <summary>
-        /// Update the user inventory to reflect an attachment
-        /// </summary>
-        /// <param name="att"></param>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
-        public UUID RezSingleAttachment(SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
-        {
-            m_log.DebugFormat(
-                "[USER INVENTORY]: Updating inventory of {0} to show attachment of {1} (item ID {2})", 
-                remoteClient.Name, att.Name, itemID);
-            
-            if (!att.IsDeleted)
-                AttachmentPt = att.RootPart.AttachmentPoint;
-
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
-
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /*att.UUID*/);
-            }
-            return att.UUID;
+            return AttachmentsModule.SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
         }
 
         public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
@@ -1903,65 +1875,6 @@ namespace OpenSim.Region.Framework.Scenes
             foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
             {
                 RezSingleAttachment(remoteClient, obj.ItemID, obj.AttachmentPt);
-            }
-        }
-
-        /// <summary>
-        /// Attach an object.
-        /// </summary>
-        /// <param name="controllingClient"></param>
-        /// <param name="localID"></param>
-        /// <param name="attachPoint"></param>
-        /// <param name="rot"></param>
-        /// <param name="pos"></param>
-        /// <param name="silent"></param>
-        /// <returns>true if the object was successfully attached, false otherwise</returns>
-        public bool AttachObject(IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent)
-        {
-            return m_sceneGraph.AttachObject(controllingClient, localID, attachPoint, rot, pos, silent);
-        }
-
-        /// <summary>
-        /// This registers the item as attached in a user's inventory
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <param name="itemID"></param>
-        /// <param name="att"></param>
-        public void AttachObject(IClientAPI remoteClient, uint AttachmentPt, UUID itemID, SceneObjectGroup att)
-        {
-//            m_log.DebugFormat(
-//                "[USER INVENTORY]: Updating attachment {0} for {1} at {2} using item ID {3}", 
-//                att.Name, remoteClient.Name, AttachmentPt, itemID);
-            
-            if (UUID.Zero == itemID)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error inventory item ID.");
-                return;
-            }
-
-            if (0 == AttachmentPt)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment. Error attachment point.");
-                return;
-            }
-
-            if (null == att.RootPart)
-            {
-                m_log.Error("[SCENE INVENTORY]: Unable to save attachment for a prim without the rootpart!");
-                return;
-            }
-
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                // XXYY!!
-                InventoryItemBase item = new InventoryItemBase(itemID, remoteClient.AgentId);
-                item = InventoryService.GetItem(item);
-                presence.Appearance.SetAttachment((int)AttachmentPt, itemID, item.AssetID /* att.UUID */);
-
-                if (m_AvatarFactory != null)
-                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
             }
         }
 
@@ -1993,24 +1906,6 @@ namespace OpenSim.Region.Framework.Scenes
                 remoteClient.SendRemoveInventoryItem(inventoryID);
             }
             SendAttachEvent(part.ParentGroup.LocalId, itemID, UUID.Zero);
-        }
-
-        public void DetachSingleAttachmentToInv(UUID itemID, IClientAPI remoteClient)
-        {
-            ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
-            {
-                presence.Appearance.DetachAttachment(itemID);
-
-                // Save avatar attachment information
-                if (m_AvatarFactory != null)
-                {
-                    m_log.Info("[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId + ", ItemID: " + itemID);
-                    m_AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-            }
-
-            m_sceneGraph.DetachSingleAttachmentToInv(itemID, remoteClient);
         }
 
         public void GetScriptRunning(IClientAPI controllingClient, UUID objectID, UUID itemID)

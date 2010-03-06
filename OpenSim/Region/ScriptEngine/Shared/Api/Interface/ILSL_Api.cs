@@ -135,6 +135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
            LSL_Key llGetLinkKey(int linknum);
         LSL_String llGetLinkName(int linknum);
        LSL_Integer llGetLinkNumber();
+       LSL_List llGetLinkPrimitiveParams(int linknum, LSL_List rules);
        LSL_Integer llGetListEntryType(LSL_List src, int index);
        LSL_Integer llGetListLength(LSL_List src);
         LSL_Vector llGetLocalPos();
@@ -206,6 +207,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llInstantMessage(string user, string message);
         LSL_String llIntegerToBase64(int number);
         LSL_String llKey2Name(string id);
+        void llLinkParticleSystem(int linknum, LSL_List rules);
         LSL_String llList2CSV(LSL_List src);
          LSL_Float llList2Float(LSL_List src, int index);
        LSL_Integer llList2Integer(LSL_List src, int index);
@@ -322,6 +324,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetLinkColor(int linknumber, LSL_Vector color, int face);
               void llSetLinkPrimitiveParams(int linknumber, LSL_List rules);
               void llSetLinkTexture(int linknumber, string texture, int face);
+              void llSetLinkTextureAnim(int linknum, int mode, int face, int sizex, int sizey, double start, double length, double rate);
               void llSetLocalRot(LSL_Rotation rot);
               void llSetObjectDesc(string desc);
               void llSetObjectName(string name);
@@ -330,6 +333,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
               void llSetPayPrice(int price, LSL_List quick_pay_buttons);
               void llSetPos(LSL_Vector pos);
               void llSetPrimitiveParams(LSL_List rules);
+              void llSetLinkPrimitiveParamsFast(int linknum, LSL_List rules);
               void llSetPrimURL(string url);
               void llSetRemoteScriptAccessPin(int pin);
               void llSetRot(LSL_Rotation rot);
