@@ -4707,5 +4707,10 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Error("[Physics] " + ex);
             }
         }
+
+        public Color4 GetTextColor()
+        {
+            return new Color4((byte)Color.R, (byte)Color.G, (byte)Color.B, (byte)(0xFF - Color.A));
+        }
     }
 }
