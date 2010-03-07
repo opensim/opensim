@@ -5873,7 +5873,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 for (int i = 0; i < rules.Length; i += 2)
                 {
-                    switch (Convert.ToInt32(rules.Data[i]))
+                    switch (rules.GetLSLIntegerItem(i))
                     {
                         case (int)ScriptBaseClass.PSYS_PART_FLAGS:
                             prules.PartDataFlags = (Primitive.ParticleSystem.ParticleDataFlags)(uint)rules.GetLSLIntegerItem(i + 1);
