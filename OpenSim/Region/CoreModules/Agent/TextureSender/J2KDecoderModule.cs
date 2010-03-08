@@ -144,41 +144,54 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <param name="j2kData">JPEG2000 data</param>
         private void DoJ2KDecode(UUID assetID, byte[] j2kData)
         {
-//            int DecodeTime = 0;
-//            DecodeTime = Environment.TickCount;
+            bool USE_CSJ2K = true;
+
+            //int DecodeTime = 0;
+            //DecodeTime = Environment.TickCount;
             OpenJPEG.J2KLayerInfo[] layers;
 
             if (!TryLoadCacheForAsset(assetID, out layers))
             {
-                try
+                if (USE_CSJ2K)
                 {
-                    List<int> layerStarts = CSJ2K.J2kImage.GetLayerBoundaries(new MemoryStream(j2kData));
-
-                    if (layerStarts != null && layerStarts.Count > 0)
+                    try
                     {
-                        layers = new OpenJPEG.J2KLayerInfo[layerStarts.Count];
+                        List<int> layerStarts = CSJ2K.J2kImage.GetLayerBoundaries(new MemoryStream(j2kData));
 
-                        for (int i = 0; i < layerStarts.Count; i++)
+                        if (layerStarts != null && layerStarts.Count > 0)
                         {
-                            OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
+                            layers = new OpenJPEG.J2KLayerInfo[layerStarts.Count];
 
-                            if (i == 0)
-                                layer.Start = 0;
-                            else
-                                layer.Start = layerStarts[i];
+                            for (int i = 0; i < layerStarts.Count; i++)
+                            {
+                                OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
 
-                            if (i == layerStarts.Count - 1)
-                                layer.End = j2kData.Length;
-                            else
-                                layer.End = layerStarts[i + 1] - 1;
+                                if (i == 0)
+                                    layer.Start = 0;
+                                else
+                                    layer.Start = layerStarts[i];
 
-                            layers[i] = layer;
+                                if (i == layerStarts.Count - 1)
+                                    layer.End = j2kData.Length;
+                                else
+                                    layer.End = layerStarts[i + 1] - 1;
+
+                                layers[i] = layer;
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        m_log.Warn("[J2KDecoderModule]: CSJ2K threw an exception decoding texture " + assetID + ": " + ex.Message);
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    m_log.Warn("[J2KDecoderModule]: CSJ2K threw an exception decoding texture " + assetID + ": " + ex.Message);
+                    int components;
+                    if (!OpenJPEG.DecodeLayerBoundaries(j2kData, out layers, out components))
+                    {
+                        m_log.Warn("[J2KDecoderModule]: OpenJPEG failed to decode texture " + assetID);
+                    }
                 }
 
                 if (layers == null || layers.Length == 0)
