@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -84,6 +85,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         // caches ExtendedLandData
         private Cache parcelInfoCache;
+        private Vector3? forcedPosition = null;
 
         #region INonSharedRegionModule Members
 
@@ -136,6 +138,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
         }
 
+        private bool OnVerifyUserConnection(ScenePresence scenePresence, out string reason)
+        {
+            ILandObject nearestParcel = m_scene.GetNearestAllowedParcel(scenePresence.UUID, scenePresence.AbsolutePosition.X, scenePresence.AbsolutePosition.Y);
+            reason = "You are not allowed to enter this sim.";
+            return nearestParcel != null;
+        }
+
         void EventManagerOnNewClient(IClientAPI client)
         {
             //Register some client events
@@ -153,12 +162,47 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
+            client.OnPreAgentUpdate += ClientOnPreAgentUpdate;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
             {
                 SendLandUpdate((ScenePresence)presenceEntity, true);
                 SendParcelOverlay(client);
+            }
+        }
+
+        void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
+        {
+            //If we are forcing a position for them to go
+            if( forcedPosition != null )
+            {
+                ScenePresence clientAvatar = m_scene.GetScenePresence(remoteClient.AgentId);
+
+                //Putting the user into flying, both keeps the avatar in fligth when it bumps into something and stopped from going another direction AND
+                //When the avatar walks into a ban line on the ground, it prevents getting stuck
+                agentData.ControlFlags = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+
+
+                //Make sure we stop if they get about to the right place to prevent yoyo and prevents getting stuck on banlines
+                if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition.Value) < .2)
+                {
+                    Debug.WriteLine(string.Format("Stopping force position because {0} is close enough to position {1}", forcedPosition.Value, clientAvatar.AbsolutePosition));
+                    forcedPosition = null;
+                }
+                //if we are far away, teleport 
+                else if(Vector3.Distance(clientAvatar.AbsolutePosition,forcedPosition.Value) > 3 )
+                {
+                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}",forcedPosition.Value,clientAvatar.AbsolutePosition));
+                    clientAvatar.Teleport(forcedPosition.Value);
+                    forcedPosition = null;
+                }
+                else
+                {
+                    //Forces them toward the forced position we want if they aren't there yet
+                    agentData.UseClientAgentPosition = true;
+                    agentData.ClientAgentPosition = forcedPosition.Value;
+                }
             }
         }
 
@@ -267,15 +311,30 @@ namespace OpenSim.Region.CoreModules.World.Land
             {
                 avatar.ControllingClient.SendAlertMessage(
                     "You are not allowed on this parcel because you are banned. Please go away.");
-
-                avatar.PhysicsActor.Position = avatar.lastKnownAllowedPosition;
-                avatar.PhysicsActor.Velocity = Vector3.Zero;
             }
             else
             {
                 avatar.ControllingClient.SendAlertMessage(
                     "You are not allowed on this parcel because you are banned; however, the grid administrator has disabled ban lines globally. Please obey the land owner's requests or you can be banned from the entire sim!");
             }
+        }
+
+        
+
+        private void ForceAvatarToPosition(ScenePresence avatar, Vector3? position)
+        {
+            if (m_scene.Permissions.IsGod(avatar.UUID)) return;
+            if (position.HasValue)
+            {
+                forcedPosition = position;
+            }
+        }
+
+        public void SendYouAreRestrictedNotice(ScenePresence avatar)
+        {
+            avatar.ControllingClient.SendAlertMessage( 
+                "You are not allowed on this parcel because the land owner has restricted access.");
+            
         }
 
         public void EventManagerOnAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, UUID regionID)
@@ -295,11 +354,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                         if (parcelAvatarIsEntering.IsBannedFromLand(avatar.UUID))
                         {
                             SendYouAreBannedNotice(avatar);
+                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
                         }
                         else if (parcelAvatarIsEntering.IsRestrictedFromLand(avatar.UUID))
                         {
-                            avatar.ControllingClient.SendAlertMessage(
-                                "You are not allowed on this parcel because the land owner has restricted access. For now, you can enter, but please respect the land owner's decisions (or he can ban you!).");
+                            SendYouAreRestrictedNotice(avatar);
+                            ForceAvatarToPosition(avatar, m_scene.GetNearestAllowedPosition(avatar));
                         }
                         else
                         {
@@ -400,7 +460,26 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else if (clientAvatar.AbsolutePosition.Z < LandChannel.BAN_LINE_SAFETY_HIEGHT &&
                              parcel.IsBannedFromLand(clientAvatar.UUID))
                     {
-                        SendYouAreBannedNotice(clientAvatar);
+                        //once we've sent the message once, keep going toward the target until we are done
+                        if (forcedPosition == null)
+                        {
+                            SendYouAreBannedNotice(clientAvatar);
+                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
+                        }
+                    }
+                    else if ( parcel.IsRestrictedFromLand(clientAvatar.UUID))
+                    {
+                        //once we've sent the message once, keep going toward the target until we are done
+                        if (forcedPosition == null)
+                        {
+                            SendYouAreRestrictedNotice(clientAvatar);
+                            ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
+                        }
+                    }
+                    else
+                    {
+                        //when we are finally in a safe place, lets release the forced position lock
+                        forcedPosition = null;   
                     }
                 }
             }
@@ -412,7 +491,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
             if (over != null)
             {
-                if (!over.IsBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= LandChannel.BAN_LINE_SAFETY_HIEGHT)
+                if (!over.IsRestrictedFromLand(avatar.UUID) && (!over.IsBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= LandChannel.BAN_LINE_SAFETY_HIEGHT))
                 {
                     avatar.lastKnownAllowedPosition =
                         new Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
