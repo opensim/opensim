@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <returns>Returns true if the piece of land contains the specified point</returns>
         public bool ContainsPoint(int x, int y)
         {
-            if (x >= 0 && y >= 0 && x <= Constants.RegionSize && x <= Constants.RegionSize)
+            if (x >= 0 && y >= 0 && x <= Constants.RegionSize && y <= Constants.RegionSize)
             {
                 return (LandBitmap[x / 4, y / 4] == true);
             }
@@ -286,7 +286,8 @@ namespace OpenSim.Region.CoreModules.World.Land
                 entry.AgentID = avatar;
                 entry.Flags = AccessList.Ban;
                 entry.Time = new DateTime();
-                if (LandData.ParcelAccessList.Contains(entry))
+                //See if they are on the list, but make sure the owner isn't banned
+                if (LandData.ParcelAccessList.Contains(entry) && LandData.OwnerID != avatar )
                 {
                     //They are banned, so lets send them a notice about this parcel
                     return true;
@@ -303,7 +304,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                 entry.AgentID = avatar;
                 entry.Flags = AccessList.Access;
                 entry.Time = new DateTime();
-                if (!LandData.ParcelAccessList.Contains(entry))
+
+                //If they are not on the access list and are not the owner
+                if (!LandData.ParcelAccessList.Contains(entry) && LandData.OwnerID != avatar)
                 {
                     //They are not allowed in this parcel, but not banned, so lets send them a notice about this parcel
                     return true;

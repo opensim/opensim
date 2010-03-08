@@ -127,6 +127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ObjectDeselect OnObjectDetach;
         public event ObjectDrop OnObjectDrop;
         public event GenericCall1 OnCompleteMovementToRegion;
+        public event UpdateAgent OnPreAgentUpdate;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
         public event AgentSit OnAgentSit;
@@ -4880,7 +4881,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     UpdateAgent handlerAgentUpdate = OnAgentUpdate;
                     lastarg = arg; // save this set of arguments for nexttime
                     if (handlerAgentUpdate != null)
+                    {
+                        OnPreAgentUpdate(this, arg);
                         OnAgentUpdate(this, arg);
+                    }
 
                     handlerAgentUpdate = null;
                 }
