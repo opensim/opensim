@@ -59,6 +59,20 @@ namespace OpenSim.Framework
                     return "application/vnd.ll.gesture";
                 case AssetType.Simstate:
                     return "application/x-metaverse-simstate";
+                case AssetType.FavoriteFolder:
+                    return "application/vnd.ll.favoritefolder";
+                case AssetType.Link:
+                    return "application/vnd.ll.link";
+                case AssetType.LinkFolder:
+                    return "application/vnd.ll.linkfolder";
+                case AssetType.CurrentOutfitFolder:
+                    return "application/vnd.ll.currentoutfitfolder";
+                case AssetType.OutfitFolder:
+                    return "application/vnd.ll.outfitfolder";
+                case AssetType.MyOutfitsFolder:
+                    return "application/vnd.ll.myoutfitsfolder";
+                case AssetType.InboxFolder:
+                    return "application/vnd.ll.inboxfolder";
                 case AssetType.Unknown:
                 default:
                     return "application/octet-stream";
@@ -123,6 +137,20 @@ namespace OpenSim.Framework
                     return (sbyte)AssetType.Gesture;
                 case "application/x-metaverse-simstate":
                     return (sbyte)AssetType.Simstate;
+                case "application/vnd.ll.favoritefolder":
+                    return (sbyte)AssetType.FavoriteFolder;
+                case "application/vnd.ll.link":
+                    return (sbyte)AssetType.Link;
+                case "application/vnd.ll.linkfolder":
+                    return (sbyte)AssetType.LinkFolder;
+                case "application/vnd.ll.currentoutfitfolder":
+                    return (sbyte)AssetType.CurrentOutfitFolder;
+                case "application/vnd.ll.outfitfolder":
+                    return (sbyte)AssetType.OutfitFolder;
+                case "application/vnd.ll.myoutfitsfolder":
+                    return (sbyte)AssetType.MyOutfitsFolder;
+                case "application/vnd.ll.inboxfolder":
+                    return (sbyte)AssetType.InboxFolder;
                 case "application/octet-stream":
                 default:
                     return (sbyte)AssetType.Unknown;
