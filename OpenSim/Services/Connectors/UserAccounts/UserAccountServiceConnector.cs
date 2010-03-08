@@ -131,7 +131,7 @@ namespace OpenSim.Services.Connectors
             //sendData["SCOPEID"] = scopeID.ToString();
             sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
             sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getagents";
+            sendData["METHOD"] = "getaccounts";
 
             sendData["ScopeID"] = scopeID.ToString();
             sendData["query"] = query;

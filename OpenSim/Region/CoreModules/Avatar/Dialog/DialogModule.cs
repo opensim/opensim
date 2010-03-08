@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using log4net;
@@ -151,7 +152,30 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
             // region as the sending avatar.
             SendNotificationToUsersInRegion(fromAvatarID, fromAvatarName, message);
         }
-        
+
+        public void SendTextBoxToUser(UUID avatarid, string message, int chatChannel, string name, UUID objectid, UUID ownerid)
+        {
+             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, ownerid);
+            string ownerFirstName, ownerLastName;
+            if (account != null)
+            {
+                ownerFirstName = account.FirstName;
+                ownerLastName = account.LastName;
+            }
+            else
+            {
+                ownerFirstName = "(unknown";
+                ownerLastName = "user)";
+            }
+
+
+            ScenePresence sp = m_scene.GetScenePresence(avatarid);
+            
+            if (sp != null) {
+                sp.ControllingClient.SendTextBoxRequest(message, chatChannel, name, ownerFirstName, ownerLastName, objectid);
+            }
+        }
+
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)
         {
