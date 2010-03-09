@@ -1200,6 +1200,10 @@ namespace OpenSim.Client.Sirikata.ClientStack
         {
         }
 
+        public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
+        {
+        }
+
         #endregion
     }
 }

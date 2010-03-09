@@ -4201,10 +4201,34 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             ScriptSleep(5000);
         }
 
-        public void llTextBox(string avatar, string message, int chat_channel)
+        public void llTextBox(string agent, string message, int chatChannel)
         {
+            IDialogModule dm = World.RequestModuleInterface<IDialogModule>();
+
+            if (dm == null)
+                return;
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llTextBox");
+            UUID av = new UUID();
+            if (!UUID.TryParse(agent,out av))
+            {
+                LSLError("First parameter to llDialog needs to be a key");
+                return;
+            }
+
+            if( message == string.Empty)
+            {
+                ShoutError("Trying to use llTextBox with empty message.");
+            }
+            else if (message.Length > 512)
+            {
+                ShoutError("Trying to use llTextBox with message over 512 characters.");
+            }
+            else
+            {
+                dm.SendTextBoxToUser(av, message, chatChannel, m_host.Name, m_host.UUID, m_host.OwnerID);
+                ScriptSleep(1000);
+            }
         }
 
         public void llModifyLand(int action, int brush)
@@ -4219,6 +4243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public void llCollisionSound(string impact_sound, double impact_volume)
         {
+
             m_host.AddScriptLPS(1);
             // TODO: Parameter check logic required.
             UUID soundId = UUID.Zero;

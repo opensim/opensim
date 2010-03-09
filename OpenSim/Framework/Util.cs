@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -1443,6 +1444,7 @@ namespace OpenSim.Framework
         }
 
         #endregion FireAndForget Threading Pattern
+
         /// <summary>
         /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
         /// and negative every 24.9 days. This trims down TickCount so it doesn't wrap
@@ -1467,5 +1469,21 @@ namespace OpenSim.Framework
             Int32 diff = EnvironmentTickCount() - prevValue;
             return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
         }
+
+        /// <summary>
+        /// Prints the call stack at any given point. Useful for debugging.
+        /// </summary>
+        public static void PrintCallStack()
+        {
+            StackTrace stackTrace = new StackTrace();           // get call stack
+            StackFrame[] stackFrames = stackTrace.GetFrames();  // get method calls (frames)
+
+            // write call stack method names
+            foreach (StackFrame stackFrame in stackFrames)
+            {
+                m_log.Debug(stackFrame.GetMethod().DeclaringType + "." + stackFrame.GetMethod().Name); // write method name
+            }
+        }
+
     }
 }

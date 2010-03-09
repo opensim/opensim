@@ -609,16 +609,17 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             if (IsFriendWithPerms(user, objectOwner))
                 return objectOwnerMask;
 
-            // Estate users should be able to edit anything in the sim
-            if (IsEstateManager(user) && m_RegionOwnerIsGod && (!IsAdministrator(objectOwner)) || objectOwner == user)
+            // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
+            if (IsEstateManager(user) && m_RegionOwnerIsGod)
                 return objectOwnerMask;
 
             // Admin should be able to edit anything in the sim (including admin objects)
             if (IsAdministrator(user))
                 return objectOwnerMask;
-        
+            
             // Users should be able to edit what is over their land.
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
+            Vector3 taskPos = task.AbsolutePosition;
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(taskPos.X, taskPos.Y);
             if (parcel != null && parcel.LandData.OwnerID == user && m_ParcelOwnerIsGod)
             {
                 // Admin objects should not be editable by the above

@@ -257,6 +257,10 @@
     ; to be enabled from the console if this is set
     ; StartDisabled = false
 
+    ; Image decoding. Use CSJ2K for layer boundary decoding if true,
+    ; OpenJPEG if false
+    ; UseCSJ2K = true
+
 [SMTP]
     enabled=false
 

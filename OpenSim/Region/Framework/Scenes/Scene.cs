@@ -4307,7 +4307,7 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetGroupByPrim(localID);
         }
 
-        public bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
+        public override bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
         {
             return m_sceneGraph.TryGetAvatar(avatarId, out avatar);
         }

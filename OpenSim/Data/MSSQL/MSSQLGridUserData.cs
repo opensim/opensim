@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,56 +26,43 @@
  */
 
 using System;
-using NUnit.Framework;
+using System.Collections.Generic;
+using System.Data;
+using System.Reflection;
+using System.Threading;
+using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
+using System.Data.SqlClient;
 
-namespace OpenSim.Region.Framework.Scenes.Tests
+namespace OpenSim.Data.MSSQL
 {
     /// <summary>
-    /// Scene presence tests
+    /// A MSSQL Interface for Avatar Storage
     /// </summary>
-    [TestFixture]
-    public class SceneBaseTests
+    public class MSSQLGridUserData : MSSQLGenericTableHandler<GridUserData>,
+            IGridUserData
     {
-        private class SceneBaseImpl : SceneBase
-        {
-            public override void Update()
-            {
-                throw new NotImplementedException();
-            }
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            public override void LoadWorldMap()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void AddNewClient(IClientAPI client)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void RemoveClient(UUID agentID)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void OtherRegionUp(GridRegion otherRegion)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool TryGetAvatar(UUID agentID, out ScenePresence scenePresence)
-            {
-                throw new NotImplementedException();
-            }
+        public MSSQLGridUserData(string connectionString, string realm) :
+            base(connectionString, realm, "UserGrid")
+        {            
         }
 
-        [Test]
-        public void TestConstructor()
+        public GridUserData GetGridUserData(string userID)
         {
-            new SceneBaseImpl();
+            GridUserData[] ret = Get("UserID", userID);
+
+            if (ret.Length == 0)
+                return null;
+
+            return ret[0];
+        }   
+
+        public bool StoreGridUserData(GridUserData data)
+        {
+            return Store(data);
         }
     }
 }

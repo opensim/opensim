@@ -72,7 +72,7 @@ namespace OpenSim.Data.MSSQL
             using (SqlCommand cmd = new SqlCommand())
             {
 
-                cmd.CommandText = String.Format("select a.*,b.Flags as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = ?PrincipalID and b.Flags is not null", m_Realm);
+                cmd.CommandText = String.Format("select a.*,case when b.Flags is null then -1 else b.Flags end as TheirFlags from {0} as a left join {0} as b on a.PrincipalID = b.Friend and a.Friend = b.PrincipalID where a.PrincipalID = @PrincipalID", m_Realm);
                 cmd.Parameters.Add(m_database.CreateParameter("@PrincipalID", principalID.ToString()));
                 cmd.Connection = conn;
                 conn.Open();

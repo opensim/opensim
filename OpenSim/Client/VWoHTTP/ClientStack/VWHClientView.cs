@@ -1215,5 +1215,9 @@ namespace OpenSim.Client.VWoHTTP.ClientStack
         public void SendChangeUserRights(UUID agentID, UUID friendID, int rights)
         {
         }
+
+        public void SendTextBoxRequest(string message, int chatChannel, string objectname, string ownerFirstName, string ownerLastName, UUID objectId)
+        {
+        }
     }
 }
