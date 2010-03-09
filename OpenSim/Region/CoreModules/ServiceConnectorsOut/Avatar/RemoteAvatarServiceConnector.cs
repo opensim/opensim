@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Avatar
                     IConfig userConfig = source.Configs["AvatarService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpanSim.ini");
+                        m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
                         return;
                     }
 

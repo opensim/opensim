@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
                     //IConfig userConfig = config.Configs["SimulationService"];
                     //if (userConfig == null)
                     //{
-                    //    m_log.Error("[AVATAR CONNECTOR]: SimulationService missing from OpanSim.ini");
+                    //    m_log.Error("[AVATAR CONNECTOR]: SimulationService missing from OpenSim.ini");
                     //    return;
                     //}
 
