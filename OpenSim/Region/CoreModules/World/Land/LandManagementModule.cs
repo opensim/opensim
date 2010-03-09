@@ -161,10 +161,6 @@ namespace OpenSim.Region.CoreModules.World.Land
             client.OnParcelInfoRequest += ClientOnParcelInfoRequest;
             client.OnParcelDwellRequest += ClientOnParcelDwellRequest;
             client.OnParcelDeedToGroup += ClientOnParcelDeedToGroup;
-            client.OnParcelGodMark += ClientOnParcelGodMark;
-            client.OnSimWideDeletes += ClientOnSimWideDeletes;
-            client.OnParcelFreezeUser += ClientOnParcelFreezeUser;
-            client.OnParcelEjectUser += ClientOnParcelEjectUser;
 
             EntityBase presenceEntity;
             if (m_scene.Entities.TryGetValue(client.AgentId, out presenceEntity) && presenceEntity is ScenePresence)
@@ -273,7 +269,22 @@ namespace OpenSim.Region.CoreModules.World.Land
             return parcelsNear;
         }
 
-        
+        public void KickUserOffOfParcel(ScenePresence avatar)
+        {
+            if (avatar.GodLevel == 0)
+            {
+                List<ILandObject> parcelsNear = ParcelsNearPoint(avatar.AbsolutePosition);
+                foreach (ILandObject check in parcelsNear)
+                {
+                    if (check.IsEitherBannedOrRestricted(avatar.UUID) != true)
+                    {
+                        Vector3 target = check.LandData.UserLocation;
+                        avatar.TeleportWithMomentum(target);
+                        return;
+                    }
+                }
+            }
+        }
         public void MoveUserOutOfParcel(ScenePresence avatar)
         {
             if (avatar.GodLevel == 0)
@@ -290,6 +301,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             Vector3 target = new Vector3(avatar.AbsolutePosition.X + x, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z);
                             avatar.TeleportWithMomentum(target);
+                            avatar.Velocity = new Vector3(-avatar.Velocity.X - 5, avatar.Velocity.Y, avatar.Velocity.Z);
                             return;
                         }
                     }
@@ -303,71 +315,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                         {
                             Vector3 target = new Vector3(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y + y, avatar.AbsolutePosition.Z);
                             avatar.TeleportWithMomentum(target);
+                            avatar.Velocity = new Vector3(avatar.Velocity.X, -avatar.Velocity.Y - 5, avatar.Velocity.Z);
                             return;
                         }
-                    }
-                }
-                List<ILandObject> allParcels = new List<ILandObject>();
-                allParcels = AllParcels();
-                if (allParcels.Count != 1)
-                {
-                    foreach (ILandObject parcel in allParcels)
-                    {
-                        if (parcel.IsEitherBannedOrRestricted(avatar.UUID) != true)
-                        {
-                            Vector3 temptarget = parcel.LandData.UserLocation;
-                            if (parcel.ContainsPoint((int)parcel.LandData.UserLocation.X, (int)parcel.LandData.UserLocation.Y))
-                            {
-                                avatar.TeleportWithMomentum(temptarget);
-                                return;
-                            }
-                            else
-                            {
-                                for (int x = 0; x <= Constants.RegionSize / 3; x += 3)
-                                {
-                                    for (int y = 0; y <= Constants.RegionSize / 3; y += 3)
-                                    {
-                                        if (parcel.ContainsPoint(x, y))
-                                        {
-                                            temptarget = new Vector3(x, y, avatar.AbsolutePosition.Z);
-                                            avatar.TeleportWithMomentum(temptarget);
-                                            return;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                //Move to region side
-                if (avatar.AbsolutePosition.X > avatar.AbsolutePosition.Y)
-                {
-                    if (avatar.AbsolutePosition.X > .5 * Constants.RegionSize)
-                    {
-                        Vector3 target = new Vector3(Constants.RegionSize, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z); ;
-                        avatar.TeleportWithMomentum(target);
-                        return;
-                    }
-                    else
-                    {
-                        Vector3 target = new Vector3(0, avatar.AbsolutePosition.Y, avatar.AbsolutePosition.Z); ;
-                        avatar.TeleportWithMomentum(target);
-                        return;
-                    }
-                }
-                else
-                {
-                    if (avatar.AbsolutePosition.Y > .5 * Constants.RegionSize)
-                    {
-                        Vector3 target = new Vector3(avatar.AbsolutePosition.X, Constants.RegionSize, avatar.AbsolutePosition.Z); ;
-                        avatar.TeleportWithMomentum(target);
-                        return;
-                    }
-                    else
-                    {
-                        Vector3 target = new Vector3(avatar.AbsolutePosition.X, 0, avatar.AbsolutePosition.Z); ;
-                        avatar.TeleportWithMomentum(target);
-                        return;
                     }
                 }
             }
@@ -412,12 +362,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (checkBan.IsRestrictedFromLand(avatar.ControllingClient.AgentId))
                         {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, true, (int)ParcelResult.Multiple, avatar.ControllingClient);
+                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar.ControllingClient);
                             return;
                         }
                         if (checkBan.IsBannedFromLand(avatar.ControllingClient.AgentId))
                         {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, true, (int)ParcelResult.Multiple, avatar.ControllingClient);
+                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar.ControllingClient);
                             return;
                         }
                     }
@@ -432,12 +382,12 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (checkBan.IsRestrictedFromLand(avatar.ControllingClient.AgentId))
                         {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, true, (int)ParcelResult.Multiple, avatar.ControllingClient);
+                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar.ControllingClient);
                             return;
                         }
                         if (checkBan.IsBannedFromLand(avatar.ControllingClient.AgentId))
                         {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, true, (int)ParcelResult.Multiple, avatar.ControllingClient);
+                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar.ControllingClient);
                             return;
                         }
                     }
@@ -545,18 +495,6 @@ namespace OpenSim.Region.CoreModules.World.Land
                 if (m_scene.Permissions.CanEditParcel(agentID, land))
                 {
                     land.UpdateAccessList(flags, entries, remote_client);
-                    List<ScenePresence> presences = ((Scene)remote_client.Scene).GetAvatars();
-                    foreach (ScenePresence presence in presences)
-                    {
-                        land = GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
-                        if (land != null)
-                        {
-                            if (land.IsEitherBannedOrRestricted(presence.UUID))
-                            {
-                                MoveUserOutOfParcel(presence);
-                            }
-                        }
-                    }
                 }
             }
             else
@@ -1122,25 +1060,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 m_landList.TryGetValue(localID, out land);
             }
 
-            if (land != null)
-            {
-                land.UpdateLandProperties(args, remote_client);
-                if ((args.ParcelFlags & (uint)(ParcelFlags.UseBanList | ParcelFlags.UseAccessList | ParcelFlags.UseAccessGroup | ParcelFlags.UsePassList)) != 0)
-                {
-                    List<ScenePresence> presences = ((Scene)remote_client.Scene).GetAvatars();
-                    foreach (ScenePresence presence in presences)
-                    {
-                        land = GetLandObject(presence.AbsolutePosition.X, presence.AbsolutePosition.Y);
-                        if (land != null)
-                        {
-                            if (land.IsEitherBannedOrRestricted(presence.UUID))
-                            {
-                                MoveUserOutOfParcel(presence);
-                            }
-                        }
-                    }
-                }
-            }
+            if (land != null) land.UpdateLandProperties(args, remote_client);
         }
 
         public void ClientOnParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client)
@@ -1552,6 +1472,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             UpdateLandObject(localID, land.LandData);
         }
+
         public void ClientOnParcelGodMark(IClientAPI client, UUID god, int landID)
         {
             ILandObject land = null;
@@ -1567,6 +1488,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             land.LandData.Name = DefaultGodParcelName;
             land.SendLandUpdateToAvatarsOverMe();
         }
+
         private void ClientOnSimWideDeletes(IClientAPI client, UUID agentID, int flags, UUID targetID)
         {
             ScenePresence SP;
