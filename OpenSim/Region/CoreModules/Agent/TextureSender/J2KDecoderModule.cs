@@ -60,6 +60,8 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
         #region IRegionModule
 
+        private bool m_useCSJ2K = true;
+
         public string Name { get { return "J2KDecoderModule"; } }
         public bool IsSharedModule { get { return true; } }
 
@@ -73,6 +75,12 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                 m_scene = scene;
 
             scene.RegisterModuleInterface<IJ2KDecoder>(this);
+
+            IConfig startupConfig = source.Configs["Startup"];
+            if (startupConfig != null)
+            {
+                m_useCSJ2K = startupConfig.GetBoolean("UseCSJ2K", m_useCSJ2K);
+            }
         }
 
         public void PostInitialise()
@@ -144,15 +152,13 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         /// <param name="j2kData">JPEG2000 data</param>
         private void DoJ2KDecode(UUID assetID, byte[] j2kData)
         {
-            bool USE_CSJ2K = true;
-
             //int DecodeTime = 0;
             //DecodeTime = Environment.TickCount;
             OpenJPEG.J2KLayerInfo[] layers;
 
             if (!TryLoadCacheForAsset(assetID, out layers))
             {
-                if (USE_CSJ2K)
+                if (m_useCSJ2K)
                 {
                     try
                     {

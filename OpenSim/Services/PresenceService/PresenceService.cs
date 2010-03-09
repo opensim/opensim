@@ -206,7 +206,7 @@ namespace OpenSim.Services.PresenceService
                 }
             }
 
-            m_log.DebugFormat("[PRESENCE SERVICE]: GetAgents for {0} userIDs found {1} presences", userIDs.Length, info.Count);
+            // m_log.DebugFormat("[PRESENCE SERVICE]: GetAgents for {0} userIDs found {1} presences", userIDs.Length, info.Count);
             return info.ToArray();
         }
 
