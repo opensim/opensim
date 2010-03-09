@@ -68,7 +68,7 @@ namespace OpenSim.Services.Connectors
             IConfig assetConfig = source.Configs["InventoryService"];
             if (assetConfig == null)
             {
-                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpanSim.ini");
+                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
                 throw new Exception("Inventory connector init error");
             }
 
