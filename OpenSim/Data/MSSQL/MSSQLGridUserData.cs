@@ -47,7 +47,7 @@ namespace OpenSim.Data.MSSQL
 
         public MSSQLGridUserData(string connectionString, string realm) :
             base(connectionString, realm, "UserGrid")
-        {            
+        {
         }
 
         public GridUserData GetGridUserData(string userID)
@@ -58,7 +58,7 @@ namespace OpenSim.Data.MSSQL
                 return null;
 
             return ret[0];
-        }   
+        }
 
         public bool StoreGridUserData(GridUserData data)
         {

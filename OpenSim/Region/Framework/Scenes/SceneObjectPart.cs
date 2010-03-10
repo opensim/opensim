@@ -2869,7 +2869,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 SendFullUpdateToClient(remoteClient, clientFlags);
             }
-        }        
+        }
 
         /// <summary>
         /// Send a full update for this part to all clients.

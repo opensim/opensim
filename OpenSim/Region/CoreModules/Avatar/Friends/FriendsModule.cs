@@ -394,11 +394,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public IClientAPI LocateClientObject(UUID agentID)
         {
             Scene scene = GetClientScene(agentID);
-            if(scene == null)
+            if (scene == null)
                 return null;
 
             ScenePresence presence = scene.GetScenePresence(agentID);
-            if(presence == null)
+            if (presence == null)
                 return null;
 
             return presence.ControllingClient;

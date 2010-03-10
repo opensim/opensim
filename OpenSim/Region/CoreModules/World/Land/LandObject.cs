@@ -287,7 +287,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 entry.Flags = AccessList.Ban;
                 entry.Time = new DateTime();
                 //See if they are on the list, but make sure the owner isn't banned
-                if (LandData.ParcelAccessList.Contains(entry) && LandData.OwnerID != avatar )
+                if (LandData.ParcelAccessList.Contains(entry) && LandData.OwnerID != avatar)
                 {
                     //They are banned, so lets send them a notice about this parcel
                     return true;

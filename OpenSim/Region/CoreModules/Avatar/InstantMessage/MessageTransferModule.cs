@@ -108,7 +108,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             if (!m_Enabled)
                 return;
 
-            lock(m_Scenes)
+            lock (m_Scenes)
             {
                 m_Scenes.Remove(scene);
             }

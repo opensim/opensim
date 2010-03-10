@@ -36,7 +36,7 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.Avatar.Attachments
-{        
+{
     public class AttachmentsModule : IAttachmentsModule, IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -204,7 +204,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                 if (m_scene.AvatarFactory != null)
                     m_scene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
             }
-        }        
+        }
 
         public void ShowDetachInUserInventory(UUID itemID, IClientAPI remoteClient)
         {
@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             }
 
             DetachSingleAttachmentToInv(itemID, remoteClient);
-        }        
+        }
 
         // What makes this method odd and unique is it tries to detach using an UUID....     Yay for standards.
         // To LocalId or UUID, *THAT* is the question. How now Brown UUID??
@@ -252,6 +252,6 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     }
                 }
             }
-        }        
+        }
     }
 }

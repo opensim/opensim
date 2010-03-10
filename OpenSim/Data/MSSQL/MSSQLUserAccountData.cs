@@ -43,7 +43,7 @@ namespace OpenSim.Data.MSSQL
         {
         }
         //private string m_Realm;
-        //private List<string> m_ColumnNames = null;        
+        //private List<string> m_ColumnNames = null;
         //private MSSQLManager m_database;
 
         //public MSSQLUserAccountData(string connectionString, string realm)

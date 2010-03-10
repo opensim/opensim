@@ -175,7 +175,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         void ClientOnPreAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //If we are forcing a position for them to go
-            if( forcedPosition != null )
+            if (forcedPosition != null)
             {
                 ScenePresence clientAvatar = m_scene.GetScenePresence(remoteClient.AgentId);
 
@@ -191,7 +191,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     forcedPosition = null;
                 }
                 //if we are far away, teleport 
-                else if(Vector3.Distance(clientAvatar.AbsolutePosition,forcedPosition.Value) > 3 )
+                else if (Vector3.Distance(clientAvatar.AbsolutePosition,forcedPosition.Value) > 3)
                 {
                     Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}",forcedPosition.Value,clientAvatar.AbsolutePosition));
                     clientAvatar.Teleport(forcedPosition.Value);
@@ -332,7 +332,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendYouAreRestrictedNotice(ScenePresence avatar)
         {
-            avatar.ControllingClient.SendAlertMessage( 
+            avatar.ControllingClient.SendAlertMessage(
                 "You are not allowed on this parcel because the land owner has restricted access.");
             
         }
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                             ForceAvatarToPosition(clientAvatar, m_scene.GetNearestAllowedPosition(clientAvatar));
                         }
                     }
-                    else if ( parcel.IsRestrictedFromLand(clientAvatar.UUID))
+                    else if (parcel.IsRestrictedFromLand(clientAvatar.UUID))
                     {
                         //once we've sent the message once, keep going toward the target until we are done
                         if (forcedPosition == null)
@@ -479,7 +479,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     else
                     {
                         //when we are finally in a safe place, lets release the forced position lock
-                        forcedPosition = null;   
+                        forcedPosition = null;
                     }
                 }
             }
