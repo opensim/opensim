@@ -46,7 +46,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Connection string for ADO.net
         /// </summary>
-        private readonly string connectionString;      
+        private readonly string connectionString;
 
         /// <summary>
         /// Initialize the manager and set the connectionstring
@@ -196,7 +196,7 @@ namespace OpenSim.Data.MSSQL
 
                 migration.Update();
             }
-        }        
+        }
 
         /// <summary>
         /// Returns the version of this DB provider

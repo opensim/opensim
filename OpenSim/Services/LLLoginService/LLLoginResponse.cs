@@ -623,7 +623,7 @@ namespace OpenSim.Services.LLLoginService
         }
 
         private InventoryData GetInventorySkeleton(List<InventoryFolderBase> folders)
-        {            
+        {
             UUID rootID = UUID.Zero;
             ArrayList AgentInventoryArray = new ArrayList();
             Hashtable TempHash;

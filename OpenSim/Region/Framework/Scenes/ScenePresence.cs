@@ -146,7 +146,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private float m_sitAvatarHeight = 2.0f;
 
-        private float m_godlevel;
+        private int m_godLevel;
+        private int m_userLevel;
 
         private bool m_invulnerable = true;
 
@@ -294,9 +295,14 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_invulnerable; }
         }
 
-        public float GodLevel
+        public int UserLevel
         {
-            get { return m_godlevel; }
+            get { return m_userLevel; }
+        }
+
+        public int GodLevel
+        {
+            get { return m_godLevel; }
         }
 
         public ulong RegionHandle
@@ -667,6 +673,10 @@ namespace OpenSim.Region.Framework.Scenes
             m_uuid = client.AgentId;
             m_regionInfo = reginfo;
             m_localId = m_scene.AllocateLocalId();
+
+            UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
+
+            m_userLevel = account.UserLevel;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -2967,17 +2977,17 @@ namespace OpenSim.Region.Framework.Scenes
                 if (account != null)
                 {
                     if (account.UserLevel > 0)
-                        m_godlevel = account.UserLevel;
+                        m_godLevel = account.UserLevel;
                     else
-                        m_godlevel = 200;
+                        m_godLevel = 200;
                 }
             }
             else
             {
-                m_godlevel = 0;
+                m_godLevel = 0;
             }
 
-            ControllingClient.SendAdminResponse(token, (uint)m_godlevel);
+            ControllingClient.SendAdminResponse(token, (uint)m_godLevel);
         }
 
         #region Child Agent Updates
@@ -3068,7 +3078,7 @@ namespace OpenSim.Region.Framework.Scenes
             cAgent.ControlFlags = (uint)m_AgentControlFlags;
 
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
-                cAgent.GodLevel = (byte)m_godlevel;
+                cAgent.GodLevel = (byte)m_godLevel;
             else 
                 cAgent.GodLevel = (byte) 0;
 
@@ -3157,7 +3167,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_AgentControlFlags = (AgentManager.ControlFlags)cAgent.ControlFlags; 
 
             if (m_scene.Permissions.IsGod(new UUID(cAgent.AgentID)))
-                m_godlevel = cAgent.GodLevel;
+                m_godLevel = cAgent.GodLevel;
             m_setAlwaysRun = cAgent.AlwaysRun;
 
             uint i = 0;

@@ -58,7 +58,7 @@ namespace OpenSim.Services.UserAccountService
             info.HomePosition = Vector3.Parse(d.Data["HomePosition"]);
             info.HomeLookAt = Vector3.Parse(d.Data["HomeLookAt"]);
 
-            return info;            
+            return info;
         }
         
         public bool StoreGridUserInfo(GridUserInfo info)

@@ -134,7 +134,7 @@ namespace OpenSim.Data.MySQL
                     List<UUID> deleteSessions = new List<UUID>();
                     int online = 0;
 
-                    while(reader.Read())
+                    while (reader.Read())
                     {
                         if (bool.Parse(reader["Online"].ToString()))
                             online++;

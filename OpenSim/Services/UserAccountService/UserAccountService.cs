@@ -200,7 +200,9 @@ namespace OpenSim.Services.UserAccountService
             }
 
             if (d.Length < 1)
+            {
                 return null;
+            }
 
             return MakeUserAccount(d[0]);
         }

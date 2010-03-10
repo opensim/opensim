@@ -490,6 +490,14 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
             if (m_allowGridGods)
             {
+                ScenePresence sp = m_scene.GetScenePresence(user);
+                if (sp != null)
+                {
+                    if (sp.UserLevel >= 200)
+                        return true;
+                    return false;
+                }
+
                 UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, user);
                 if (account != null)
                 {
@@ -610,7 +618,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
                 return objectOwnerMask;
 
             // Estate users should be able to edit anything in the sim if RegionOwnerIsGod is set
-            if (IsEstateManager(user) && m_RegionOwnerIsGod)
+            if (m_RegionOwnerIsGod && IsEstateManager(user) && !IsAdministrator(objectOwner))
                 return objectOwnerMask;
 
             // Admin should be able to edit anything in the sim (including admin objects)

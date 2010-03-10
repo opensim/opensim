@@ -28,9 +28,9 @@
 using System;
 
 namespace OpenSim.Services.Connectors
-{     
+{
     public class GridUserServiceConnector
-    {       
+    {
         public GridUserServiceConnector()
         {
         }
