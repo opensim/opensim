@@ -334,7 +334,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             }
             catch (Exception e)
             {
-                m_log.Debug("[HGrid]: Exception " + e.Message);
+                m_log.Debug("[USER AGENT CONNECTOR]: Unable to contact remote server ");
                 reason = "Exception: " + e.Message;
                 return false;
             }
