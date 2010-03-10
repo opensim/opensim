@@ -47,9 +47,9 @@ namespace OpenSim.Services.LLLoginService
 {
     public class LLFailedLoginResponse : OpenSim.Services.Interfaces.FailedLoginResponse
     {
-        string m_key;
-        string m_value;
-        string m_login;
+        protected string m_key;
+        protected string m_value;
+        protected string m_login;
 
         public static LLFailedLoginResponse UserProblem;
         public static LLFailedLoginResponse AuthorizationProblem;
