@@ -202,16 +202,14 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (!m_pollHandlers.ContainsKey(methodName))
                 {
                     m_pollHandlers.Add(methodName,args);
-                    pollHandlerResult = true;
-                    
+                    pollHandlerResult = true;                    
                 }
             }
             
             if (pollHandlerResult)
                 return AddHTTPHandler(methodName, handler);
 
-            return false;
-            
+            return false;            
         }
 
         // Note that the agent string is provided simply to differentiate
