@@ -929,7 +929,9 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers.HttpServer"/>
+      <Reference name="OpenSim.Region.Framework"/>
       <Reference name="OpenSim.Server.Base"/>
+      <Reference name="Mono.Addins" />
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
       <Reference name="XMLRPC.dll" />
