@@ -73,7 +73,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// true if the handler was successfully registered, false if a handler with the same name already existed.
         /// </returns>
         bool AddHTTPHandler(string methodName, GenericHTTPMethod handler);
-
          
         bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args);
 
