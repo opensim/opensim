@@ -64,7 +64,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_taintVelocity;
         private Vector3 m_taintTorque;
         private Quaternion m_taintrot;
-        private Vector3 m_angularlock = Vector3.One;				// Current setting
+        private Vector3 m_angularEnable = Vector3.One;				// Current setting
         private Vector3 m_taintAngularLock = Vector3.One;			// Request from LSL
         
         
@@ -216,8 +216,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private Vector3 m_angularMotorDVel = Vector3.Zero;				// decayed angular motor
 //        private Vector3 m_angObjectVel = Vector3.Zero;					// current body angular velocity
         private Vector3 m_lastAngularVelocity = Vector3.Zero;			// what was last applied to body
-        
-        private Vector3 m_angularLock = Vector3.One;
 
 		//Deflection properties        
         // private float m_angularDeflectionEfficiency = 0;
@@ -1401,8 +1399,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changefloatonwater(timestep);
                     
                     // ##*
-                if (!m_angularlock.ApproxEquals(m_taintAngularLock,0f))
-//Console.WriteLine("ALchange req {0}    is {1}", m_taintAngularLock, m_angularlock);
+                if (!m_angularEnable.ApproxEquals(m_taintAngularLock,0f))
+Console.WriteLine("ALchange req {0}    is {1}", m_taintAngularLock, m_angularEnable);
                     changeAngularLock(timestep);
  
             }
@@ -1422,8 +1420,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //If we have a parent then we're not authorative here
                 if (_parent == null)
                 {
-//Console.WriteLine("Alock changed to {0}",   m_taintAngularLock);
-		            m_angularlock = m_taintAngularLock;
+Console.WriteLine("Alock changed to {0}",   m_taintAngularLock);
+		            m_angularEnable = m_taintAngularLock;
             }
         }
 
@@ -3703,15 +3701,15 @@ Console.WriteLine(" JointCreateFixed");
 //if(frcount == 0) Console.WriteLine("V3 = {0}", angObjectVel);        	
 			
 					m_lastAngularVelocity = angObjectVel;
-//if(frcount == 0) Console.WriteLine("angularLock {0}", m_angularLock);			
+if(frcount == 0) Console.WriteLine("angularEnable {0}", m_angularEnable);			
 
-				    if (!m_angularLock.ApproxEquals(Vector3.One, 0.003f))
+				    if (!m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
 			        {
-		                if (m_angularLock.X == 0)
+		                if (m_angularEnable.X == 0)
 			            	m_lastAngularVelocity.X = 0f;
-			            if (m_angularLock.Y == 0)
+			            if (m_angularEnable.Y == 0)
 			            	m_lastAngularVelocity.Y = 0f;
-			            if (m_angularLock.Z == 0)
+			            if (m_angularEnable.Z == 0)
 			            	m_lastAngularVelocity.Z = 0f;
 			        }        
 					// Apply to the body
@@ -3727,18 +3725,18 @@ Console.WriteLine(" JointCreateFixed");
             	{
             		if(!d.BodyIsEnabled (Body))  d.BodyEnable (Body); // KF add 161009
             		// NON-'VEHICLES' are dealt with here
-            		// m_angularlock = <1,1,1> means no lock. a 0 on axis means locked.
+            		// m_angularEnable = <1,1,1> means no lock. a 0 on axis means locked.
             		
 // NB this may be wrong - may lock global axis! Should be LOCAL axis!
 					/// Dynamics Angular Lock ========================================================================
-	                if (d.BodyIsEnabled(Body) && !m_angularlock.ApproxEquals(Vector3.One, 0.003f))
+	                if (d.BodyIsEnabled(Body) && !m_angularEnable.ApproxEquals(Vector3.One, 0.003f))
 	                {
 	                    d.Vector3 avel2 = d.BodyGetAngularVel(Body);
-	                    if (m_angularlock.X == 0)
+	                    if (m_angularEnable.X == 0)
 	                        avel2.X = 0;
-	                    if (m_angularlock.Y == 0)
+	                    if (m_angularEnable.Y == 0)
 	                        avel2.Y = 0;
-	                    if (m_angularlock.Z == 0)
+	                    if (m_angularEnable.Z == 0)
 	                        avel2.Z = 0;
 	                    d.BodySetAngularVel(Body, avel2.X, avel2.Y, avel2.Z);
 	                }
@@ -3938,11 +3936,11 @@ Console.WriteLine(" JointCreateFixed");
     	                    RLAservo = timestep / m_APIDStrength * scaler;
     	                    rotforce = rotforce * RLAservo * diff_angle ;
     	                    
-		                    if (m_angularlock.X == 0)
+		                    if (m_angularEnable.X == 0)
 		                        rotforce.X = 0;
-		                    if (m_angularlock.Y == 0)
+		                    if (m_angularEnable.Y == 0)
 		                        rotforce.Y = 0;
-		                    if (m_angularlock.Z == 0)
+		                    if (m_angularEnable.Z == 0)
 		                        rotforce.Z = 0;
     	                    
 							d.BodySetAngularVel (Body,  rotforce.X, rotforce.Y, rotforce.Z);
