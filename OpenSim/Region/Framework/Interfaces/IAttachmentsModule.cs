@@ -35,17 +35,28 @@ namespace OpenSim.Region.Framework.Interfaces
     public interface IAttachmentsModule
     {
         /// <summary>
+        /// Attach an object to an avatar from the world.
+        /// </summary>
+        /// <param name="controllingClient"></param>
+        /// <param name="localID"></param>
+        /// <param name="attachPoint"></param>
+        /// <param name="rot"></param>
+        /// <param name="silent"></param>
+        void AttachObject(
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent);
+
+        /// <summary>
         /// Attach an object to an avatar.
         /// </summary>
         /// <param name="controllingClient"></param>
         /// <param name="localID"></param>
         /// <param name="attachPoint"></param>
         /// <param name="rot"></param>
-        /// <param name="pos"></param>
+        /// <param name="attachPos"></param>
         /// <param name="silent"></param>
-        /// <returns>true if the object was successfully attached, false otherwise</returns>
+        /// <returns>true if the object was successfully attached, false otherwise</returns>        
         bool AttachObject(
-            IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent);
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);     
 
         /// <summary>
         /// Update the user inventory to the attachment of an item

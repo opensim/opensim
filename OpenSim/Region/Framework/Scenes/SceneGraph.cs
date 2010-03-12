@@ -487,41 +487,6 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        /// Event Handling routine for Attach Object
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="objectLocalID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <param name="rot"></param>
-        protected internal void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, bool silent)
-        {
-            // If we can't take it, we can't attach it!
-            SceneObjectPart part = m_parentScene.GetSceneObjectPart(objectLocalID);
-            if (part == null)
-                return;
-
-            if (!m_parentScene.Permissions.CanTakeObject(part.UUID, remoteClient.AgentId))
-                return;
-
-            // Calls attach with a Zero position
-            if (m_parentScene.AttachmentsModule.AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, Vector3.Zero, false))
-            {
-                m_parentScene.SendAttachEvent(objectLocalID, part.ParentGroup.GetFromItemID(), remoteClient.AgentId);
-    
-                // Save avatar attachment information
-                ScenePresence presence;
-                if (m_parentScene.AvatarFactory != null && m_parentScene.TryGetAvatar(remoteClient.AgentId, out presence))
-                {
-                    m_log.Info(
-                        "[SCENE]: Saving avatar attachment. AgentID: " + remoteClient.AgentId 
-                            + ", AttachmentPoint: " + AttachmentPt);
-                    
-                    m_parentScene.AvatarFactory.UpdateDatabase(remoteClient.AgentId, presence.Appearance);
-                }
-            }
-        }
-
-        /// <summary>
         /// Rez an attachment
         /// </summary>
         /// <param name="remoteClient"></param>
