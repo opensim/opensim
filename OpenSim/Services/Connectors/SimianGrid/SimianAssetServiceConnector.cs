@@ -85,24 +85,27 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["AssetService"];
-            if (gridConfig == null)
+            if (Simian.IsSimianEnabled(source, "AssetServices"))
             {
-                m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
-                throw new Exception("Asset connector init error");
+                IConfig gridConfig = source.Configs["AssetService"];
+                if (gridConfig == null)
+                {
+                    m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
+                    throw new Exception("Asset connector init error");
+                }
+
+                string serviceUrl = gridConfig.GetString("AssetServerURI");
+                if (String.IsNullOrEmpty(serviceUrl))
+                {
+                    m_log.Error("[ASSET CONNECTOR]: No AssetServerURI in section AssetService");
+                    throw new Exception("Asset connector init error");
+                }
+
+                if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
+                    serviceUrl = serviceUrl + '/';
+
+                m_serverUrl = serviceUrl;
             }
-
-            string serviceUrl = gridConfig.GetString("AssetServerURI");
-            if (String.IsNullOrEmpty(serviceUrl))
-            {
-                m_log.Info("[ASSET CONNECTOR]: No AssetServerURI in section AssetService, skipping SimianAssetServiceConnector");
-                return;
-            }
-
-            if (!serviceUrl.EndsWith("/"))
-                serviceUrl = serviceUrl + '/';
-
-            m_serverUrl = serviceUrl;
         }
 
         #region IAssetService

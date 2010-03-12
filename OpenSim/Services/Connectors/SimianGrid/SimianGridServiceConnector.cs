@@ -80,21 +80,24 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["GridService"];
-            if (gridConfig == null)
+            if (Simian.IsSimianEnabled(source, "GridServices"))
             {
-                m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
-                throw new Exception("Grid connector init error");
-            }
+                IConfig gridConfig = source.Configs["GridService"];
+                if (gridConfig == null)
+                {
+                    m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
+                    throw new Exception("Grid connector init error");
+                }
 
-            string serviceUrl = gridConfig.GetString("GridServerURI");
-            if (String.IsNullOrEmpty(serviceUrl))
-            {
-                m_log.Info("[GRID CONNECTOR]: No Server URI named in section GridService, skipping SimianGridServiceConnector");
-                return;
-            }
+                string serviceUrl = gridConfig.GetString("GridServerURI");
+                if (String.IsNullOrEmpty(serviceUrl))
+                {
+                    m_log.Error("[GRID CONNECTOR]: No Server URI named in section GridService");
+                    throw new Exception("Grid connector init error");
+                }
 
-            m_serverUrl = serviceUrl;
+                m_serverUrl = serviceUrl;
+            }
         }
 
         #region IGridService

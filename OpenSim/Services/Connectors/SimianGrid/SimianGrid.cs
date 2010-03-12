@@ -25,7 +25,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using Mono.Addins;
+using Nini.Config;
 
 [assembly: Addin("SimianGrid", "1.0")]
 [assembly: AddinDependency("OpenSim", "0.5")]
+
+public static class Simian
+{
+    public static bool IsSimianEnabled(IConfigSource config, string moduleName)
+    {
+        if (config.Configs["Modules"] != null)
+        {
+            string module = config.Configs["Modules"].GetString("AuthenticationServices");
+            return !String.IsNullOrEmpty(module) && module.Contains("Simian");
+        }
+
+        return false;
+    }
+}

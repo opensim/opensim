@@ -92,23 +92,38 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["InventoryService"];
-            if (gridConfig == null)
+            if (Simian.IsSimianEnabled(source, "InventoryServices"))
             {
-                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
-                throw new Exception("Inventory connector init error");
+                IConfig gridConfig = source.Configs["InventoryService"];
+                if (gridConfig == null)
+                {
+                    m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
+                    throw new Exception("Inventory connector init error");
+                }
+
+                string serviceUrl = gridConfig.GetString("InventoryServerURI");
+                if (String.IsNullOrEmpty(serviceUrl))
+                {
+                    m_log.Error("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
+                    throw new Exception("Inventory connector init error");
+                }
+
+                m_serverUrl = serviceUrl;
+
+                gridConfig = source.Configs["UserAccountService"];
+                if (gridConfig != null)
+                {
+                    serviceUrl = gridConfig.GetString("UserAccountServerURI");
+                    if (!String.IsNullOrEmpty(serviceUrl))
+                        m_userServerUrl = serviceUrl;
+                    else
+                        m_log.Info("[INVENTORY CONNECTOR]: No Server URI named in section UserAccountService");
+                }
+                else
+                {
+                    m_log.Warn("[INVENTORY CONNECTOR]: UserAccountService missing from OpenSim.ini");
+                }
             }
-
-            string serviceUrl = gridConfig.GetString("InventoryServerURI");
-            if (String.IsNullOrEmpty(serviceUrl))
-            {
-                m_log.Info("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService, skipping SimianInventoryServiceConnector");
-                return;
-            }
-
-            // FIXME: Get the user server URL too
-
-            m_serverUrl = serviceUrl;
         }
 
         /// <summary>

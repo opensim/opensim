@@ -104,21 +104,24 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["PresenceService"];
-            if (gridConfig == null)
+            if (Simian.IsSimianEnabled(source, "PresenceServices"))
             {
-                m_log.Error("[PRESENCE CONNECTOR]: PresenceService missing from OpenSim.ini");
-                throw new Exception("Presence connector init error");
-            }
+                IConfig gridConfig = source.Configs["PresenceService"];
+                if (gridConfig == null)
+                {
+                    m_log.Error("[PRESENCE CONNECTOR]: PresenceService missing from OpenSim.ini");
+                    throw new Exception("Presence connector init error");
+                }
 
-            string serviceUrl = gridConfig.GetString("PresenceServerURI");
-            if (String.IsNullOrEmpty(serviceUrl))
-            {
-                m_log.Info("[PRESENCE CONNECTOR]: No PresenceServerURI in section PresenceService, skipping SimianPresenceServiceConnector");
-                return;
-            }
+                string serviceUrl = gridConfig.GetString("PresenceServerURI");
+                if (String.IsNullOrEmpty(serviceUrl))
+                {
+                    m_log.Error("[PRESENCE CONNECTOR]: No PresenceServerURI in section PresenceService");
+                    throw new Exception("Presence connector init error");
+                }
 
-            m_serverUrl = serviceUrl;
+                m_serverUrl = serviceUrl;
+            }
         }
 
         #region IPresenceService
