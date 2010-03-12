@@ -2044,6 +2044,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_lastColliders.Remove(localID);
             }
+
             if (m_parentGroup == null)
                 return;
             if (m_parentGroup.IsDeleted)

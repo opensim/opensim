@@ -108,12 +108,11 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         private bool[] m_colliderarr = new bool[11];
         private bool[] m_colliderGroundarr = new bool[11];
 
-
-
         private BulletDotNETScene m_parent_scene;
 
         public int m_eventsubscription = 0;
-        // private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
+        private CollisionEventUpdate CollisionEventsThisFrame = null;
+        private int m_requestedUpdateFrequency = 0;
 
         public BulletDotNETCharacter(string avName, BulletDotNETScene parent_scene, Vector3 pos, Vector3 size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
@@ -212,7 +211,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_mass = Mass;
 
             Body = new btRigidBody(m_mass, m_bodyMotionState, Shell);
-            Body.setUserPointer(new IntPtr((int)Body.Handle));
+            // this is used for self identification. User localID instead of body handle
+            Body.setUserPointer(new IntPtr((int)m_localID));
             
             if (ClosestCastResult != null)
                 ClosestCastResult.Dispose();
@@ -717,6 +717,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         public override void SubscribeEvents(int ms)
         {
             m_eventsubscription = ms;
+            m_requestedUpdateFrequency = ms;
             m_parent_scene.addCollisionEventReporting(this);
         }
 
@@ -724,6 +725,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
              m_parent_scene.remCollisionEventReporting(this);
             m_eventsubscription = 0;
+            m_requestedUpdateFrequency = 0;
         }
 
         public override bool SubscribedEvents()
@@ -731,6 +733,29 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             if (m_eventsubscription > 0)
                 return true;
             return false;
+        }
+
+        public void AddCollision(uint collideWith, ContactPoint contact)
+        {
+            if (CollisionEventsThisFrame == null)
+            {
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            }
+            CollisionEventsThisFrame.addCollider(collideWith, contact);
+        }
+
+        public void SendCollisions()
+        {
+            if (m_eventsubscription >= m_requestedUpdateFrequency)
+            {
+                if (CollisionEventsThisFrame != null)
+                {
+                    base.SendCollisionUpdate(CollisionEventsThisFrame);
+                }
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+                m_eventsubscription = 0;
+            }
+            return;
         }
 
         internal void Dispose()

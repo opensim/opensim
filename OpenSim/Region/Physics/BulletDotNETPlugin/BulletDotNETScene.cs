@@ -47,7 +47,9 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         // private string m_sceneIdentifier = string.Empty;
         
         private List<BulletDotNETCharacter> m_characters = new List<BulletDotNETCharacter>();
+        private Dictionary<uint, BulletDotNETCharacter> m_charactersLocalID = new Dictionary<uint, BulletDotNETCharacter>();
         private List<BulletDotNETPrim> m_prims = new List<BulletDotNETPrim>();
+        private Dictionary<uint, BulletDotNETPrim> m_primsLocalID = new Dictionary<uint, BulletDotNETPrim>();
         private List<BulletDotNETPrim> m_activePrims = new List<BulletDotNETPrim>();
         private List<PhysicsActor> m_taintedActors = new List<PhysicsActor>();
         private btDiscreteDynamicsWorld m_world;
@@ -134,7 +136,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
             m_world = new btDiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, m_collisionConfiguration);
             m_world.setGravity(m_gravity);
-            //EnableCollisionInterface();
+            EnableCollisionInterface();
             
 
         }
@@ -145,7 +147,16 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                                                                   avCapRadius, avStandupTensor, avDensity,
                                                                   avHeightFudgeFactor, avMovementDivisorWalk,
                                                                   avMovementDivisorRun);
-            m_characters.Add(chr);
+            try
+            {
+                m_characters.Add(chr);
+                m_charactersLocalID.Add(chr.m_localID, chr);
+            }
+            catch
+            {
+                // noop if it's already there
+                m_log.Debug("[PHYSICS] BulletDotNet: adding duplicate avatar localID");
+            }
             AddPhysicsActorTaint(chr);
             return chr;
         }
@@ -154,6 +165,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             BulletDotNETCharacter chr = (BulletDotNETCharacter) actor;
 
+            m_charactersLocalID.Remove(chr.m_localID);
             m_characters.Remove(chr);
             m_world.removeRigidBody(chr.Body);
             m_world.removeCollisionObject(chr.Body);
@@ -279,7 +291,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     prim.Move(timeStep);
                 }
             }
-            float steps = m_world.stepSimulation(timeStep * 1000, 10, WorldTimeComp);
+            float steps = m_world.stepSimulation(timeStep, 10, WorldTimeComp);
 
             foreach (BulletDotNETCharacter chr in m_characters)
             {
@@ -296,18 +308,65 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             }
             if (m_CollisionInterface != null)
             {
-                List<int> collisions = m_CollisionInterface.GetContactList();
-                lock (collisions)
+                List<BulletDotNETPrim> primsWithCollisions = new List<BulletDotNETPrim>();
+                List<BulletDotNETCharacter> charactersWithCollisions = new List<BulletDotNETCharacter>();
+
+                // get the collisions that happened this tick
+                List<BulletDotNET.ContactAddedCallbackHandler.ContactInfo> collisions = m_CollisionInterface.GetContactList();
+                // passed back the localID of the prim so we can associate the prim
+                foreach (BulletDotNET.ContactAddedCallbackHandler.ContactInfo ci in collisions)
                 {
-                    foreach (int pvalue in collisions)
-                    {
-                        System.Console.Write(string.Format("{0} ", pvalue));
-                    }
+                    // ContactPoint = { contactPoint, contactNormal, penetrationDepth }
+                    ContactPoint contact = new ContactPoint(new Vector3(ci.pX, ci.pY, ci.pZ),
+                                    new Vector3(ci.nX, ci.nY, ci.nZ), ci.depth);
+                    
+                    ProcessContact(ci.contact, ci.contactWith, contact, ref primsWithCollisions, ref charactersWithCollisions);
+                    ProcessContact(ci.contactWith, ci.contact, contact, ref primsWithCollisions, ref charactersWithCollisions);
+
                 }
                 m_CollisionInterface.Clear();
-
+                // for those prims and characters that had collisions cause collision events
+                foreach (BulletDotNETPrim bdnp in primsWithCollisions)
+                {
+                    bdnp.SendCollisions();
+                }
+                foreach (BulletDotNETCharacter bdnc in charactersWithCollisions)
+                {
+                    bdnc.SendCollisions();
+                }
             }
             return steps;
+        }
+
+        private void ProcessContact(uint cont, uint contWith, ContactPoint contact, 
+                    ref List<BulletDotNETPrim> primsWithCollisions,
+                    ref List<BulletDotNETCharacter> charactersWithCollisions)
+        {
+            BulletDotNETPrim bdnp;
+            // collisions with a normal prim?
+            if (m_primsLocalID.TryGetValue(cont, out bdnp))
+            {
+                // Added collision event to the prim. This creates a pile of events
+                // that will be sent to any subscribed listeners.
+                bdnp.AddCollision(contWith, contact);
+                if (!primsWithCollisions.Contains(bdnp))
+                {
+                    primsWithCollisions.Add(bdnp);
+                }
+            }
+            else
+            {
+                BulletDotNETCharacter bdnc;
+                // if not a prim, maybe it's one of the characters
+                if (m_charactersLocalID.TryGetValue(cont, out bdnc))
+                {
+                    bdnc.AddCollision(contWith, contact);
+                    if (!charactersWithCollisions.Contains(bdnc))
+                    {
+                        charactersWithCollisions.Add(bdnc);
+                    }
+                }
+            }
         }
 
         public override void GetResults()
@@ -387,6 +446,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             m_terrainTransform = new btTransform(QuatIdentity, m_terrainPosition);
             m_terrainMotionState = new btDefaultMotionState(m_terrainTransform);
             TerrainBody = new btRigidBody(0, m_terrainMotionState, m_terrainShape);
+            TerrainBody.setUserPointer((IntPtr)0);
             m_world.addRigidBody(TerrainBody);
 
 
@@ -459,6 +519,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             lock (m_prims)
             {
+                m_primsLocalID.Clear();
                 foreach (BulletDotNETPrim prim in m_prims)
                 {
                     if (prim.Body != null)
@@ -513,6 +574,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
                     m_world.removeRigidBody(body);
                 }
                 remActivePrim(prm);
+                m_primsLocalID.Remove(prm.m_localID);
                 m_prims.Remove(prm);
             }
 
@@ -686,9 +748,18 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
             {
                 if (!m_prims.Contains(pPrim))
                 {
-                    m_prims.Add(pPrim);
+                    try
+                    {
+                        m_prims.Add(pPrim);
+                        m_primsLocalID.Add(pPrim.m_localID, pPrim);
+                    }
+                    catch
+                    {
+                        // noop if it's already there
+                        m_log.Debug("[PHYSICS] BulletDotNet: adding duplicate prim localID");
+                    }
                     m_world.addRigidBody(pPrim.Body);
-                    m_log.Debug("ADDED");
+                    // m_log.Debug("[PHYSICS] added prim to scene");
                 }
             }
         }
@@ -696,8 +767,8 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             if (m_CollisionInterface == null)
             {
-                m_CollisionInterface = new ContactAddedCallbackHandler();
-                m_world.SetCollisionAddedCallback(m_CollisionInterface);
+                m_CollisionInterface = new ContactAddedCallbackHandler(m_world);
+                // m_world.SetCollisionAddedCallback(m_CollisionInterface);
             }
         }
         

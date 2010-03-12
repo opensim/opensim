@@ -78,24 +78,27 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            IConfig gridConfig = source.Configs["AvatarService"];
-            if (gridConfig == null)
+            if (Simian.IsSimianEnabled(source, "AvatarServices"))
             {
-                m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
-                throw new Exception("Avatar connector init error");
+                IConfig gridConfig = source.Configs["AvatarService"];
+                if (gridConfig == null)
+                {
+                    m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
+                    throw new Exception("Avatar connector init error");
+                }
+
+                string serviceUrl = gridConfig.GetString("AvatarServerURI");
+                if (String.IsNullOrEmpty(serviceUrl))
+                {
+                    m_log.Error("[AVATAR CONNECTOR]: No AvatarServerURI in section AvatarService");
+                    throw new Exception("Avatar connector init error");
+                }
+
+                if (!serviceUrl.EndsWith("/"))
+                    serviceUrl = serviceUrl + '/';
+
+                m_serverUrl = serviceUrl;
             }
-
-            string serviceUrl = gridConfig.GetString("AvatarServerURI");
-            if (String.IsNullOrEmpty(serviceUrl))
-            {
-                m_log.Info("[AVATAR CONNECTOR]: No AvatarServerURI in section AvatarService, skipping SimianAvatarServiceConnector");
-                return;
-            }
-
-            if (!serviceUrl.EndsWith("/"))
-                serviceUrl = serviceUrl + '/';
-
-            m_serverUrl = serviceUrl;
         }
 
         #region IAvatarService
