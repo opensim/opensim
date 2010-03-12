@@ -51,24 +51,24 @@ namespace OpenSim.Services.LLLoginService
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static bool Initialized = false;
 
-        private IUserAccountService m_UserAccountService;
-        private IAuthenticationService m_AuthenticationService;
-        private IInventoryService m_InventoryService;
-        private IGridService m_GridService;
-        private IPresenceService m_PresenceService;
+        protected IUserAccountService m_UserAccountService;
+        protected IAuthenticationService m_AuthenticationService;
+        protected IInventoryService m_InventoryService;
+        protected IGridService m_GridService;
+        protected IPresenceService m_PresenceService;
         private ISimulationService m_LocalSimulationService;
         private ISimulationService m_RemoteSimulationService;
-        private ILibraryService m_LibraryService;
-        private IFriendsService m_FriendsService;
-        private IAvatarService m_AvatarService;
+        protected ILibraryService m_LibraryService;
+        protected IFriendsService m_FriendsService;
+        protected IAvatarService m_AvatarService;
         private IUserAgentService m_UserAgentService;
 
         private GatekeeperServiceConnector m_GatekeeperConnector;
 
         private string m_DefaultRegionName;
-        private string m_WelcomeMessage;
+        protected string m_WelcomeMessage;
         private bool m_RequireInventory;
-        private int m_MinLoginLevel;
+        protected int m_MinLoginLevel;
         private string m_GatekeeperURL;
 
         IConfig m_LoginServerConfig;
@@ -286,7 +286,7 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        private GridRegion FindDestination(UserAccount account, PresenceInfo pinfo, UUID sessionID, string startLocation, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt)
+        protected GridRegion FindDestination(UserAccount account, PresenceInfo pinfo, UUID sessionID, string startLocation, out GridRegion gatekeeper, out string where, out Vector3 position, out Vector3 lookAt)
         {
             m_log.DebugFormat("[LLOGIN SERVICE]: FindDestination for start location {0}", startLocation);
 
@@ -497,7 +497,7 @@ namespace OpenSim.Services.LLLoginService
             }
         }
 
-        private AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarData avatar,
+        protected AgentCircuitData LaunchAgentAtGrid(GridRegion gatekeeper, GridRegion destination, UserAccount account, AvatarData avatar,
             UUID session, UUID secureSession, Vector3 position, string currentWhere, out string where, out string reason)
         {
             where = currentWhere;
