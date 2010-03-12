@@ -2338,10 +2338,10 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
             
             ScenePresence sp = GetScenePresence(userID);
-            if (sp != null)
+            if (sp != null && AttachmentsModule != null)
             {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
+                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);                
+                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
             }
 
             return false;

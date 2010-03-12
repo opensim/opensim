@@ -56,7 +56,16 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>        
         bool AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);     
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);
+
+        /// <summary>
+        /// Rez an attachment from user inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
+        SceneObjectGroup RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);        
 
         /// <summary>
         /// Update the user inventory to the attachment of an item

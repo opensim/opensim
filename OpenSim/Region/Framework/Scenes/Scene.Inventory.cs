@@ -1854,7 +1854,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_log.DebugFormat("[USER INVENTORY]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
             
-            SceneObjectGroup att = m_sceneGraph.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
+            SceneObjectGroup att = AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt);
 
             if (att == null)
             {
