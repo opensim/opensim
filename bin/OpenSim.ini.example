@@ -1248,6 +1248,7 @@
     ;Include-HGStandalone = "config-include/StandaloneHypergrid.ini"
     ;Include-Grid         = "config-include/Grid.ini"
     ;Include-HGGrid       = "config-include/GridHypergrid.ini"
+    ;Include-SimianGrid   = "config-include/SimianGrid.ini"
 
     ; Then choose
     ; config-include/StandaloneCommon.ini.example (if you're in standlone) OR
