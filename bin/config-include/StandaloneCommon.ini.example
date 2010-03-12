@@ -1,18 +1,23 @@
+; This is the main configuration file for standalone OpenSim instances
+
 [DatabaseService]
     ;
-    ;### Choose the DB
+    ; ### Choose the DB
     ;
-    ;--- For SQLite
-    StorageProvider = "OpenSim.Data.SQLite.dll"
-    ;--- For MySql
+
+    ; SQLite
+    ; Uncomment this line if you want to use sqlite storage
+    Include-Storage = "config-include/storage/SQLiteStandalone.ini";
+
+    ; For MySql.  
+    ; Uncomment these lines if you want to use mysql storage 
+    ; Change the connection string to your db details
     ;StorageProvider = "OpenSim.Data.MySQL.dll"
     ;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
 
 [AssetService]
-
     DefaultAssetLoader = "OpenSim.Framework.AssetLoader.Filesystem.dll"
     AssetLoaderArgs = "assets/AssetSets.xml"
-
 
 [Modules]
     ;; Choose 0 or 1 cache modules, and the corresponding config file, if it exists.
@@ -35,10 +40,10 @@
 
 [GridService]
     ;; For in-memory region storage (default)
-	StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
+	  StorageProvider = "OpenSim.Data.Null.dll:NullRegionData"
     ;;--- For MySql region storage (alternative)
- 	;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
-	;ConnectionString = "Data Source=localhost;Database=opensim;User ID=opensim;Password=***;"
+ 	  ;StorageProvider = "OpenSim.Data.MySQL.dll:MySqlRegionData"
+
     ;; Next, we can specify properties of regions, including default and fallback regions
     ;; The syntax is: Region_<RegioName> = "<flags>"
     ;; where <flags> can be DefaultRegion, FallbackRegion, NoDirectLogin, Persistent, LockedOut

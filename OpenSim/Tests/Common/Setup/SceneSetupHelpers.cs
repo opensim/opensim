@@ -215,6 +215,9 @@ namespace OpenSim.Tests.Common.Setup
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher",   new IniConfigSource(), "test");
 
+            // It's really not a good idea to use static variables as they carry over between tests, leading to
+            // problems that are extremely hard to debug.  Really, these static fields need to be eliminated -
+            // tests using multiple regions that need to share modules need to find another solution.
             m_assetService = null;
             m_inventoryService = null;
             m_gridService = null;

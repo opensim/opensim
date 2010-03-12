@@ -34,6 +34,7 @@ namespace OpenSim.Tests.Common.Mock
 {        
     public class MockUserAccountService : IUserAccountService
     {        
+
         public MockUserAccountService(IConfigSource config) {}
         
         public UserAccount GetUserAccount(UUID scopeID, UUID userID) { return new UserAccount(); }

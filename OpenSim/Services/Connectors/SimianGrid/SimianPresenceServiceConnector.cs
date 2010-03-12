@@ -51,7 +51,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// message routing) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianPresenceServiceConnector : IPresenceService, ISharedRegionModule
+    public class SimianPresenceServiceConnector : IPresenceService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

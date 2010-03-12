@@ -47,7 +47,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Stores and retrieves friend lists from the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianFriendsServiceConnector : IFriendsService, ISharedRegionModule
+    public class SimianFriendsServiceConnector : IFriendsService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

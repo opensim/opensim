@@ -60,7 +60,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianProfiles : INonSharedRegionModule
+    public class SimianProfiles
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

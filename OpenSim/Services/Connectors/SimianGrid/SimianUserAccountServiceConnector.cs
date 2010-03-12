@@ -47,7 +47,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// users) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianUserAccountServiceConnector : IUserAccountService, ISharedRegionModule
+    public class SimianUserAccountServiceConnector : IUserAccountService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(

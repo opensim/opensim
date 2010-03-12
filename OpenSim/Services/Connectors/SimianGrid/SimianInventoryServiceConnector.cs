@@ -61,7 +61,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects avatar inventories to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianInventoryServiceConnector : IInventoryService, ISharedRegionModule
+    public class SimianInventoryServiceConnector : IInventoryService
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
