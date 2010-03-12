@@ -1842,35 +1842,12 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnAttach(localID, itemID, avatarID);
         }
 
-        /// <summary>
-        /// Called when the client receives a request to rez a single attachment on to the avatar from inventory
-        /// (RezSingleAttachmentFromInv packet).
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
-        public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
-        {
-            m_log.DebugFormat("[USER INVENTORY]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
-            
-            SceneObjectGroup att = AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt);
-
-            if (att == null)
-            {
-                AttachmentsModule.ShowDetachInUserInventory(itemID, remoteClient);
-                return UUID.Zero;
-            }
-
-            return AttachmentsModule.SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
-        }
-
         public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
                                        RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
         {
             foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
             {
-                RezSingleAttachment(remoteClient, obj.ItemID, obj.AttachmentPt);
+                AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
             }
         }
 
