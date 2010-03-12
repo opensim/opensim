@@ -394,11 +394,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         public IClientAPI LocateClientObject(UUID agentID)
         {
             Scene scene = GetClientScene(agentID);
-            if(scene == null)
+            if (scene == null)
                 return null;
 
             ScenePresence presence = scene.GetScenePresence(agentID);
-            if(presence == null)
+            if (presence == null)
                 return null;
 
             return presence.ControllingClient;
@@ -481,7 +481,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 m_log.DebugFormat("[FRIENDS]: {0} offered friendship to {1}", principalID, friendID);
 
                 // This user wants to be friends with the other user.
-                // Let's add both relations to the DB, but one of them is inactive (-1)
+                // Let's add the relation backwards, in case the other is not online
                 FriendsService.StoreFriend(friendID, principalID.ToString(), 0);
 
                 // Now let's ask the other user to be friends with this user

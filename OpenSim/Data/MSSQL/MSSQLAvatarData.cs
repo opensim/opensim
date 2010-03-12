@@ -47,7 +47,7 @@ namespace OpenSim.Data.MSSQL
         
         public MSSQLAvatarData(string connectionString, string realm) :
                 base(connectionString, realm, "Avatar")
-        {            
+        {
         }
 
         public bool Delete(UUID principalID, string name)

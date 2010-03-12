@@ -31,7 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.Framework.Interfaces
-{        
+{
     public interface IAttachmentsModule
     {
         /// <summary>
@@ -43,7 +43,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="rot"></param>
         /// <param name="pos"></param>
         /// <param name="silent"></param>
-        /// <returns>true if the object was successfully attached, false otherwise</returns>        
+        /// <returns>true if the object was successfully attached, false otherwise</returns>
         bool AttachObject(
             IClientAPI controllingClient, uint localID, uint attachPoint, Quaternion rot, Vector3 pos, bool silent);
 
@@ -54,7 +54,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
         /// <param name="AttachmentPt"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         UUID SetAttachmentInventoryStatus(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
 

@@ -110,7 +110,7 @@ namespace OpenSim.Data.MSSQL
         {
             List<string> constraints = new List<string>();
             string query = string.Format(@"SELECT 
-                            COL_NAME(ic.object_id,ic.column_id) AS column_name                                
+                            COL_NAME(ic.object_id,ic.column_id) AS column_name
                             FROM sys.indexes AS i
                             INNER JOIN sys.index_columns AS ic 
                               ON i.object_id = ic.object_id AND i.index_id = ic.index_id
@@ -157,7 +157,7 @@ namespace OpenSim.Data.MSSQL
                 string where = String.Join(" AND ", terms.ToArray());
 
                 string query = String.Format("SELECT * FROM {0} WHERE {1}",
-                        m_Realm, where);                
+                        m_Realm, where);
 
                 cmd.Connection = conn;
                 cmd.CommandText = query;
@@ -296,7 +296,7 @@ namespace OpenSim.Data.MSSQL
                 query.AppendFormat("[{0}] = {1} ", names[i], values[i]);
                 if (constraints.Count > 0)
                 {
-                    List<string> terms = new List<string>();       
+                    List<string> terms = new List<string>();
                     for (int j = 0; j < constraints.Count; j++)
                     {
                         terms.Add(" [" + constraints[j].Key + "] = @" + constraints[j].Key);

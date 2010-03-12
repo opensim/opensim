@@ -44,7 +44,7 @@ namespace OpenSim.Data
     /// </summary>
     public interface IGridUserData 
     {
-        GridUserData GetGridUserData(string userID);        
+        GridUserData GetGridUserData(string userID);
         bool StoreGridUserData(GridUserData data);
     }
 }

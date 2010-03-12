@@ -197,7 +197,7 @@ namespace OpenSim.Data.MySQL
         public virtual T[] Get(string where)
         {
             using (MySqlCommand cmd = new MySqlCommand())
-            {            
+            {
                 string query = String.Format("select * from {0} where {1}",
                                              m_Realm, where);
                 

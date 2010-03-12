@@ -569,7 +569,7 @@ namespace OpenSim.Region.Framework.Scenes
             ApplyPhysics(m_scene.m_physicalPrim);
 
             // Don't trigger the update here - otherwise some client issues occur when multiple updates are scheduled
-            // for the same object with very different properties.  The caller must schedule the update.            
+            // for the same object with very different properties.  The caller must schedule the update.
             //ScheduleGroupForFullUpdate();
         }
 
@@ -2032,11 +2032,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// Immediately send a full update for this scene object.
         /// </summary>
         public void SendGroupFullUpdate()
-        {                       
+        {
             if (IsDeleted)
                 return;
 
-//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);            
+//            m_log.DebugFormat("[SOG]: Sending immediate full group update for {0} {1}", Name, UUID);
             
             RootPart.SendFullUpdateToAllClients();
 

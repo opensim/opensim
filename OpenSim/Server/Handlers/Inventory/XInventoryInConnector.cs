@@ -289,7 +289,7 @@ namespace OpenSim.Server.Handlers.Asset
                 foreach (InventoryItemBase i in icoll.Items)
                     items[i.ID.ToString()] = EncodeItem(i);
                 result["ITEMS"] = items;
-            }            
+            }
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
             m_log.DebugFormat("[XXX]: resp string: {0}", xmlString);

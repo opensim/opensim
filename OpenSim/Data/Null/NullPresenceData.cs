@@ -55,7 +55,7 @@ namespace OpenSim.Data.Null
         }
 
         public bool Store(PresenceData data)
-        {                      
+        {
             if (Instance != this)
                 return Instance.Store(data);
 
@@ -113,7 +113,7 @@ namespace OpenSim.Data.Null
         }
 
         public bool SetHomeLocation(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
-        {            
+        {
             if (Instance != this)
                 return Instance.SetHomeLocation(userID, regionID, position, lookAt);
 
@@ -130,28 +130,28 @@ namespace OpenSim.Data.Null
                     p.Data["HomePosition"] = position.ToString();
                     p.Data["HomeLookAt"] = lookAt.ToString();
                     foundone = true;
-                }                
+                }
             }
 
             return foundone;
         }
 
         public PresenceData[] Get(string field, string data)
-        {            
+        {
             if (Instance != this)
                 return Instance.Get(field, data);
 
 //            m_log.DebugFormat(
-//                "[NULL PRESENCE DATA]: Getting presence data for field {0} with parameter {1}", field, data);            
+//                "[NULL PRESENCE DATA]: Getting presence data for field {0} with parameter {1}", field, data);
 
             List<PresenceData> presences = new List<PresenceData>();
             if (field == "UserID")
             {
                 foreach (PresenceData p in m_presenceData.Values)
                 {
-                    if (p.UserID == data)                        
+                    if (p.UserID == data)
                     {
-                        presences.Add(p);                    
+                        presences.Add(p);
 //                        Console.WriteLine("HOME for " + p.UserID + " is " + (p.Data.ContainsKey("HomeRegionID") ? p.Data["HomeRegionID"] : "Not found"));
                     }
                 }
@@ -194,7 +194,7 @@ namespace OpenSim.Data.Null
         }
 
         public void Prune(string userID)
-        {                       
+        {
             if (Instance != this)
             {
                 Instance.Prune(userID);

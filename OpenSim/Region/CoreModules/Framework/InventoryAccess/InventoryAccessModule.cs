@@ -576,7 +576,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     foreach (SceneObjectPart part in partList)
                     {
                         if (part.OwnerID != item.Owner)
-                        {                            
+                        {
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.Owner;
                             part.Inventory.ChangeInventoryOwner(item.Owner);

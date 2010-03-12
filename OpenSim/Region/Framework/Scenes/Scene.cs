@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -1975,7 +1976,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
-        }        
+        }
 
         /// <summary>
         /// Delete every object from the scene
@@ -2643,7 +2644,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
         {
             client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
-            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;            
+            client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;
             client.OnObjectAttach += m_sceneGraph.AttachObject;
             client.OnObjectDetach += m_sceneGraph.DetachObject;
 
@@ -2695,7 +2696,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         protected virtual void UnsubscribeToClientEvents(IClientAPI client)
-        {            
+        {
         }
 
         /// <summary>
@@ -2796,13 +2797,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {            
+        {
             client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;
-            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;            
+            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;
             client.OnObjectAttach -= m_sceneGraph.AttachObject;
             client.OnObjectDetach -= m_sceneGraph.DetachObject;
 
-            if (AttachmentsModule != null)               
+            if (AttachmentsModule != null)
                 client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
         }
 
@@ -3224,6 +3225,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// also return a reason.</returns>
         public bool NewUserConnection(AgentCircuitData agent, uint teleportFlags, out string reason)
         {
+            TeleportFlags tp = (TeleportFlags)teleportFlags;
             //Teleport flags:
             //
             // TeleportFlags.ViaGodlikeLure - Border Crossing
@@ -3256,6 +3258,17 @@ namespace OpenSim.Region.Framework.Scenes
                 agent.AgentID, agent.circuitcode);
 
             CapsModule.NewUserConnection(agent);
+
+            ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
+
+            //On login or border crossing test land permisions
+            if (tp != TeleportFlags.Default)
+            {
+                if (land != null && !TestLandRestrictions(agent, land, out reason))
+                {
+                    return false;
+                }
+            }
 
             ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
             if (sp != null)
@@ -3329,7 +3342,6 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
                 // Honor parcel landing type and position.
-                ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                 if (land != null)
                 {
                     if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero)
@@ -3342,6 +3354,40 @@ namespace OpenSim.Region.Framework.Scenes
             agent.teleportFlags = teleportFlags;
             m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
 
+            return true;
+        }
+
+        private bool TestLandRestrictions(AgentCircuitData agent, ILandObject land,  out string reason)
+        {
+      
+            bool banned = land.IsBannedFromLand(agent.AgentID);
+            bool restricted = land.IsRestrictedFromLand(agent.AgentID);
+
+            if (banned || restricted)
+            {
+                ILandObject nearestParcel = GetNearestAllowedParcel(agent.AgentID, agent.startpos.X, agent.startpos.Y);
+                if (nearestParcel != null)
+                {
+                    //Move agent to nearest allowed
+                    Vector3 newPosition = GetParcelCenterAtGround(nearestParcel);
+                    agent.startpos.X = newPosition.X;
+                    agent.startpos.Y = newPosition.Y;
+                }
+                else
+                {
+                    if (banned)
+                    {
+                        reason = "Cannot regioncross into banned parcel.";
+                    }
+                    else
+                    {
+                        reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+                                   RegionInfo.RegionName);
+                    }
+                    return false;
+                }
+            }
+            reason = "";
             return true;
         }
 
@@ -3474,6 +3520,18 @@ namespace OpenSim.Region.Framework.Scenes
             // }
 
             return true;
+        }
+
+        private ILandObject GetParcelAtPoint(float x, float y)
+        {
+            foreach (var parcel in AllParcels())
+            {
+                if (parcel.ContainsPoint((int)x,(int)y))
+                {
+                    return parcel;
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -4747,6 +4805,176 @@ namespace OpenSim.Region.Framework.Scenes
         public override bool AllowScriptCrossings
         {
             get { return m_allowScriptCrossings; }
+        }
+
+        public Vector3? GetNearestAllowedPosition(ScenePresence avatar)
+        {
+            //simulate to make sure we have pretty up to date positions
+            PhysicsScene.Simulate(0);
+
+            ILandObject nearestParcel = GetNearestAllowedParcel(avatar.UUID, avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+
+            if (nearestParcel != null)
+            {
+                Vector3 dir = Vector3.Normalize(Vector3.Multiply(avatar.Velocity, -1));
+                //Try to get a location that feels like where they came from
+                Vector3? nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
+                if (nearestPoint != null)
+                {
+                    Debug.WriteLine("Found a sane previous position based on velocity, sending them to: " + nearestPoint.ToString());
+                    return nearestPoint.Value;
+                }
+
+                //Sometimes velocity might be zero (local teleport), so try finding point along path from avatar to center of nearest parcel
+                Vector3 directionToParcelCenter = Vector3.Subtract(GetParcelCenterAtGround(nearestParcel), avatar.AbsolutePosition);
+                dir = Vector3.Normalize(directionToParcelCenter);
+                nearestPoint = GetNearestPointInParcelAlongDirectionFromPoint(avatar.AbsolutePosition, dir, nearestParcel);
+                if (nearestPoint != null)
+                {
+                    Debug.WriteLine("They had a zero velocity, sending them to: " + nearestPoint.ToString());
+                    return nearestPoint.Value;
+                }
+
+                //Ultimate backup if we have no idea where they are 
+                Debug.WriteLine("Have no idea where they are, sending them to: " + avatar.lastKnownAllowedPosition.ToString());
+                return avatar.lastKnownAllowedPosition;
+
+            }
+
+            //Go to the edge, this happens in teleporting to a region with no available parcels
+            Vector3 nearestRegionEdgePoint = GetNearestRegionEdgePosition(avatar);
+            //Debug.WriteLine("They are really in a place they don't belong, sending them to: " + nearestRegionEdgePoint.ToString());
+            return nearestRegionEdgePoint;
+            return null;
+        }
+
+        private Vector3 GetParcelCenterAtGround(ILandObject parcel)
+        {
+            Vector2 center = GetParcelCenter(parcel);
+            return GetPositionAtGround(center.X, center.Y);
+        }
+
+        private Vector3? GetNearestPointInParcelAlongDirectionFromPoint(Vector3 pos, Vector3 direction, ILandObject parcel)
+        {
+            Vector3 unitDirection = Vector3.Normalize(direction);
+            //Making distance to search go through some sane limit of distance
+            for (float distance = 0; distance < Constants.RegionSize * 2; distance += .5f)
+            {
+                Vector3 testPos = Vector3.Add(pos, Vector3.Multiply(unitDirection, distance));
+                if (parcel.ContainsPoint((int)testPos.X, (int)testPos.Y))
+                {
+                    return testPos;
+                }
+            }
+            return null;
+        }
+
+        public ILandObject GetNearestAllowedParcel(UUID avatarId, float x, float y)
+        {
+            List<ILandObject> all = AllParcels();
+            float minParcelDistance = float.MaxValue;
+            ILandObject nearestParcel = null;
+
+            foreach (var parcel in all)
+            {
+                if (!parcel.IsEitherBannedOrRestricted(avatarId))
+                {
+                    float parcelDistance = GetParcelDistancefromPoint(parcel, x, y);
+                    if (parcelDistance < minParcelDistance)
+                    {
+                        minParcelDistance = parcelDistance;
+                        nearestParcel = parcel;
+                    }
+                }
+            }
+
+            return nearestParcel;
+        }
+
+        private List<ILandObject> AllParcels()
+        {
+            return LandChannel.AllParcels();
+        }
+
+        private float GetParcelDistancefromPoint(ILandObject parcel, float x, float y)
+        {
+            return Vector2.Distance(new Vector2(x, y), GetParcelCenter(parcel));
+        }
+
+        //calculate the average center point of a parcel
+        private Vector2 GetParcelCenter(ILandObject parcel)
+        {
+            int count = 0;
+            int avgx = 0;
+            int avgy = 0;
+            for (int x = 0; x < Constants.RegionSize; x++)
+            {
+                for (int y = 0; y < Constants.RegionSize; y++)
+                {
+                    //Just keep a running average as we check if all the points are inside or not
+                    if (parcel.ContainsPoint(x, y))
+                    {
+                        if (count == 0)
+                        {
+                            avgx = x;
+                            avgy = y;
+                        }
+                        else
+                        {
+                            avgx = (avgx * count + x) / (count + 1);
+                            avgy = (avgy * count + y) / (count + 1);
+                        }
+                        count += 1;
+                    }
+                }
+            }
+            return new Vector2(avgx, avgy);
+        }
+
+        private Vector3 GetNearestRegionEdgePosition(ScenePresence avatar)
+        {
+            float xdistance = avatar.AbsolutePosition.X < Constants.RegionSize / 2 ? avatar.AbsolutePosition.X : Constants.RegionSize - avatar.AbsolutePosition.X;
+            float ydistance = avatar.AbsolutePosition.Y < Constants.RegionSize / 2 ? avatar.AbsolutePosition.Y : Constants.RegionSize - avatar.AbsolutePosition.Y;
+
+            //find out what vertical edge to go to
+            if (xdistance < ydistance)
+            {
+                if (avatar.AbsolutePosition.X < Constants.RegionSize / 2)
+                {
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, 0.0f, avatar.AbsolutePosition.Y);
+                }
+                else
+                {
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, Constants.RegionSize, avatar.AbsolutePosition.Y);
+                }
+            }
+            //find out what horizontal edge to go to
+            else
+            {
+                if (avatar.AbsolutePosition.Y < Constants.RegionSize / 2)
+                {
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, 0.0f);
+                }
+                else
+                {
+                    return GetPositionAtAvatarHeightOrGroundHeight(avatar, avatar.AbsolutePosition.X, Constants.RegionSize);
+                }
+            }
+        }
+
+        private Vector3 GetPositionAtAvatarHeightOrGroundHeight(ScenePresence avatar, float x, float y)
+        {
+            Vector3 ground = GetPositionAtGround(x, y);
+            if (avatar.AbsolutePosition.Z > ground.Z)
+            {
+                ground.Z = avatar.AbsolutePosition.Z;
+            }
+            return ground;
+        }
+
+        private Vector3 GetPositionAtGround(float x, float y)
+        {
+            return new Vector3(x, y, GetGroundHeight(x, y));
         }
     }
 }

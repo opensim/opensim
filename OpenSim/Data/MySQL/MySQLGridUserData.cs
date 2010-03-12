@@ -54,7 +54,7 @@ namespace OpenSim.Data.MySQL
                 return null;
 
             return ret[0];
-        }        
+        }
 
         public bool StoreGridUserData(GridUserData data)
         {

@@ -881,6 +881,7 @@ namespace OpenSim.Framework
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;
         event GenericCall1 OnCompleteMovementToRegion;
+        event UpdateAgent OnPreAgentUpdate;
         event UpdateAgent OnAgentUpdate;
         event AgentRequestSit OnAgentRequestSit;
         event AgentSit OnAgentSit;
