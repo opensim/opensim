@@ -56,6 +56,9 @@
         <RegionModule id="RemotePresenceServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.RemotePresenceServicesConnector" />
         <RegionModule id="LocalUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.LocalUserAccountServicesConnector" />
         <RegionModule id="RemoteUserAccountServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts.RemoteUserAccountServicesConnector" />
+        
+        <RegionModule id="LocalGridUserServicesConnector" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.GridUser.LocalGridUserServicesConnector" />
+        
         <RegionModule id="LocalSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.LocalSimulationConnectorModule" />
         <RegionModule id="RemoteSimulationConnectorModule" type="OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation.RemoteSimulationConnectorModule" />
       <!-- Service connectors IN modules -->
