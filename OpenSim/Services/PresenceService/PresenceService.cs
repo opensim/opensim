@@ -72,6 +72,10 @@ namespace OpenSim.Services.PresenceService
                 data.Data["HomeRegionID"] = d[0].Data["HomeRegionID"];
                 data.Data["HomePosition"] = d[0].Data["HomePosition"];
                 data.Data["HomeLookAt"] = d[0].Data["HomeLookAt"];
+                data.Data["Position"] = d[0].Data["Position"];
+                data.Data["LookAt"] = d[0].Data["LookAt"];
+
+                data.RegionID = d[0].RegionID;
             }
             else
             {
