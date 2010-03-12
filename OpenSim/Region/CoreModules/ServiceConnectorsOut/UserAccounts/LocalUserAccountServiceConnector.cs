@@ -73,33 +73,31 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                     IConfig userConfig = source.Configs["UserAccountService"];
                     if (userConfig == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: UserAccountService missing from OpenSim.ini");
+                        m_log.Error("[LOCAL USER ACCOUNT SERVICE CONNECTOR]: UserAccountService missing from OpenSim.ini");
                         return;
                     }
 
-                    string serviceDll = userConfig.GetString("LocalServiceModule",
-                            String.Empty);
+                    string serviceDll = userConfig.GetString("LocalServiceModule", String.Empty);
 
                     if (serviceDll == String.Empty)
                     {
-                        m_log.Error("[USER CONNECTOR]: No LocalServiceModule named in section UserService");
+                        m_log.Error("[LOCAL USER ACCOUNT SERVICE CONNECTOR]: No LocalServiceModule named in section UserService");
                         return;
                     }
 
                     Object[] args = new Object[] { source };
-                    m_UserService =
-                            ServerUtils.LoadPlugin<IUserAccountService>(serviceDll,
-                            args);
+                    m_UserService = ServerUtils.LoadPlugin<IUserAccountService>(serviceDll, args);
 
                     if (m_UserService == null)
                     {
-                        m_log.Error("[USER CONNECTOR]: Can't load user account service");
+                        m_log.ErrorFormat(
+                            "[LOCAL USER ACCOUNT SERVICE CONNECTOR]: Cannot load user account service specified as {0}", serviceDll);
                         return;
                     }
                     m_Enabled = true;
                     m_Cache = new UserAccountCache();
 
-                    m_log.Info("[USER CONNECTOR]: Local user connector enabled");
+                    m_log.Info("[LOCAL USER ACCOUNT SERVICE CONNECTOR]: Local user connector enabled");
                 }
             }
         }
@@ -134,6 +132,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         {
             if (!m_Enabled)
                 return;
+
+            m_log.InfoFormat("[LOCAL USER ACCOUNT SERVICE CONNECTOR]: Enabled local user accounts for region {0}", scene.RegionInfo.RegionName);
         }
 
         #endregion

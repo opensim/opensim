@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -25,46 +25,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
+using System.Collections.Generic;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Framework;
-using OpenSim.Region.Framework.Scenes;
+using OpenMetaverse;
+using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Tests.Common.Mock
-{
-    public class TestScene : Scene
-    {
-        public TestScene(
-            RegionInfo regInfo, AgentCircuitManager authen,
-            SceneCommunicationService sceneGridService, StorageManager storeManager,
-            ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim,
-            bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
-            : base(regInfo, authen, sceneGridService, storeManager, moduleLoader,
-                   dumpAssetsToFile, physicalPrim, SeeIntoRegionFromNeighbor, config, simulatorVersion)
-        {
-        }
+{        
+    public class MockUserAccountService : IUserAccountService
+    {        
+        public MockUserAccountService(IConfigSource config) {}
         
-        /// <summary>
-        /// Temporarily override session authentication for tests (namely teleport).
-        /// </summary>
-        /// 
-        /// TODO: This needs to be mocked out properly.
-        /// 
-        /// <param name="agent"></param>
-        /// <returns></returns>
-        public override bool VerifyUserPresence(AgentCircuitData agent, out string reason)
-        {
-            reason = String.Empty;
-            return true;
-        }
-            
-        public AsyncSceneObjectGroupDeleter SceneObjectGroupDeleter
-        {
-            get { return m_asyncSceneObjectDeleter; }
-        }      
+        public UserAccount GetUserAccount(UUID scopeID, UUID userID) { return new UserAccount(); }
+        public UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName) { return new UserAccount(); }           
+        public UserAccount GetUserAccount(UUID scopeID, string Email) { return new UserAccount(); }
+        public List<UserAccount> GetUserAccounts(UUID scopeID, string query) { return new List<UserAccount>(); }
+        public bool StoreUserAccount(UserAccount data) { return true; }
     }
 }

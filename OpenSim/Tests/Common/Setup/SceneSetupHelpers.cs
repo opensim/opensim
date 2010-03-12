@@ -128,7 +128,7 @@ namespace OpenSim.Tests.Common.Setup
         /// <param name="realServices">Starts real inventory and asset services, as opposed to mock ones, if true</param>
         /// <returns></returns>
         public static TestScene SetupScene(
-            string name, UUID id, uint x, uint y,  String realServices)
+            string name, UUID id, uint x, uint y, String realServices)
         {
             bool newScene = false;
 
@@ -179,15 +179,16 @@ namespace OpenSim.Tests.Common.Setup
                     StartAssetService(testScene, true);
                 else
                     StartAssetService(testScene, false);
+                
                 if (realServices.Contains("inventory"))
                     StartInventoryService(testScene, true);
                 else
                     StartInventoryService(testScene, false);
+                
                 if (realServices.Contains("grid"))
                     StartGridService(testScene, true);
-                if (realServices.Contains("useraccounts"))
-                    StartUserAccountService(testScene, true);
-
+                
+                StartUserAccountService(testScene, realServices.Contains("useraccounts"));
             }
             // If not, make sure the shared module gets references to this new scene
             else
@@ -196,9 +197,13 @@ namespace OpenSim.Tests.Common.Setup
                 m_assetService.RegionLoaded(testScene);
                 m_inventoryService.AddRegion(testScene);
                 m_inventoryService.RegionLoaded(testScene);
+                m_userAccountService.AddRegion(testScene);
+                m_userAccountService.RegionLoaded(testScene);
             }
+            
             m_inventoryService.PostInitialise();
             m_assetService.PostInitialise();
+            m_userAccountService.PostInitialise();
 
             testScene.SetModuleInterfaces();
 
@@ -209,6 +214,11 @@ namespace OpenSim.Tests.Common.Setup
             physicsPluginManager.LoadPluginsFromAssembly("Physics/OpenSim.Region.Physics.BasicPhysicsPlugin.dll");
             testScene.PhysicsScene
                 = physicsPluginManager.GetPhysicsScene("basicphysics", "ZeroMesher",   new IniConfigSource(), "test");
+
+            m_assetService = null;
+            m_inventoryService = null;
+            m_gridService = null;
+            m_userAccountService = null;
             
             return testScene;
         }
@@ -273,6 +283,11 @@ namespace OpenSim.Tests.Common.Setup
             //testScene.AddRegionModule(m_gridService.Name, m_gridService);
         }
 
+        /// <summary>
+        /// Start a user account service, whether real or mock
+        /// </summary>
+        /// <param name="testScene"></param>
+        /// <param name="real">Starts a real service if true, a mock service if not</param>
         private static void StartUserAccountService(Scene testScene, bool real)
         {
             IConfigSource config = new IniConfigSource();
@@ -280,8 +295,14 @@ namespace OpenSim.Tests.Common.Setup
             config.AddConfig("UserAccountService");
             config.Configs["Modules"].Set("UserAccountServices", "LocalUserAccountServicesConnector");
             config.Configs["UserAccountService"].Set("StorageProvider", "OpenSim.Data.Null.dll");
+            
             if (real)
-                config.Configs["UserAccountService"].Set("LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
+                config.Configs["UserAccountService"].Set(
+                    "LocalServiceModule", "OpenSim.Services.UserAccountService.dll:UserAccountService");
+            else
+                config.Configs["UserAccountService"].Set(
+                    "LocalServiceModule", "OpenSim.Tests.Common.dll:MockUserAccountService");
+            
             if (m_userAccountService == null)
             {
                 ISharedRegionModule userAccountService = new LocalUserAccountServicesConnector();
@@ -292,9 +313,8 @@ namespace OpenSim.Tests.Common.Setup
             //    config.Configs["GridService"].Set("LocalServiceModule", "OpenSim.Tests.Common.dll:TestGridService");
             m_userAccountService.AddRegion(testScene);
             m_userAccountService.RegionLoaded(testScene);
-            //testScene.AddRegionModule(m_gridService.Name, m_gridService);
+            testScene.AddRegionModule(m_userAccountService.Name, m_userAccountService);
         }
-
 
         /// <summary>
         /// Setup modules for a scene using their default settings.
