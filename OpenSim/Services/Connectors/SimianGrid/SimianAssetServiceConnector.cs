@@ -101,7 +101,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                     throw new Exception("Asset connector init error");
                 }
 
-                if (!serviceUrl.EndsWith("/"))
+                if (!serviceUrl.EndsWith("/") && !serviceUrl.EndsWith("="))
                     serviceUrl = serviceUrl + '/';
 
                 m_serverUrl = serviceUrl;
