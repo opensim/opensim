@@ -95,15 +95,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["InventoryService"];
             if (gridConfig == null)
             {
-                m_log.Info("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini, skipping SimianInventoryServiceConnector");
-                return;
+                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
+                throw new Exception("Inventory connector init error");
             }
 
             string serviceUrl = gridConfig.GetString("InventoryServerURI");
             if (String.IsNullOrEmpty(serviceUrl))
             {
-                m_log.Error("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService");
-                throw new Exception("Inventory connector init error");
+                m_log.Info("[INVENTORY CONNECTOR]: No Server URI named in section InventoryService, skipping SimianInventoryServiceConnector");
+                return;
             }
 
             // FIXME: Get the user server URL too

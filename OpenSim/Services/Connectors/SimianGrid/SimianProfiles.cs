@@ -91,15 +91,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["UserAccountService"];
             if (gridConfig == null)
             {
-                m_log.Error("[PROFILES]: UserAccountService missing from OpenSim.ini, skipping SimianProfiles");
-                return;
+                m_log.Error("[PROFILES]: UserAccountService missing from OpenSim.ini");
+                throw new Exception("Profiles init error");
             }
 
             string serviceUrl = gridConfig.GetString("UserAccountServerURI");
             if (String.IsNullOrEmpty(serviceUrl))
             {
-                m_log.Error("[PROFILES]: No UserAccountServerURI in section UserAccountService");
-                throw new Exception("Profiles init error");
+                m_log.Info("[PROFILES]: No UserAccountServerURI in section UserAccountService, skipping SimianProfiles");
+                return;
             }
 
             if (!serviceUrl.EndsWith("/"))

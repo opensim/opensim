@@ -79,15 +79,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig assetConfig = source.Configs["FriendsService"];
             if (assetConfig == null)
             {
-                m_log.Info("[FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini, skipping SimianFriendsServiceConnector");
-                return;
+                m_log.Error("[FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini");
+                throw new Exception("Friends connector init error");
             }
 
             string serviceURI = assetConfig.GetString("FriendsServerURI");
             if (String.IsNullOrEmpty(serviceURI))
             {
-                m_log.Error("[FRIENDS CONNECTOR]: No Server URI named in section FriendsService");
-                throw new Exception("Friends connector init error");
+                m_log.Info("[FRIENDS CONNECTOR]: No Server URI named in section FriendsService, skipping SimianFriendsServiceConnector");
+                return;
             }
 
             m_serverUrl = serviceURI;

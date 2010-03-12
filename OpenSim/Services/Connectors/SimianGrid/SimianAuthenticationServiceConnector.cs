@@ -76,15 +76,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig assetConfig = source.Configs["AuthenticationService"];
             if (assetConfig == null)
             {
-                m_log.Info("[AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini, skipping SimianAuthenticationServiceConnector");
-                return;
+                m_log.Error("[AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini");
+                throw new Exception("Authentication connector init error");
             }
 
             string serviceURI = assetConfig.GetString("AuthenticationServerURI");
             if (String.IsNullOrEmpty(serviceURI))
             {
-                m_log.Error("[AUTH CONNECTOR]: No Server URI named in section AuthenticationService");
-                throw new Exception("Authentication connector init error");
+                m_log.Info("[AUTH CONNECTOR]: No Server URI named in section AuthenticationService, skipping SimianAuthenticationServiceConnector");
+                return;
             }
 
             m_serverUrl = serviceURI;
