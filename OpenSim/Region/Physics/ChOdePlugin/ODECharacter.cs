@@ -734,16 +734,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
         
-        public override void VehicleFlagsSet(int flags)
+        public override void VehicleFlags(int flags, bool remove)
         {
-
         }
-        
-        public override void VehicleFlagsRemove(int flags)
-        {
 
-        }
-        
         public override void SetVolumeDetect(int param)
         {
 

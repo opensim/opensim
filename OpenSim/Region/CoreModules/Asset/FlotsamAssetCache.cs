@@ -69,7 +69,7 @@ namespace Flotsam.RegionModules.AssetCache
 
         private readonly List<char> m_InvalidChars = new List<char>();
 
-        private int m_LogLevel = 1;
+        private int m_LogLevel = 0;
         private ulong m_HitRateDisplay = 1; // How often to display hit statistics, given in requests
 
         private static ulong m_Requests;
@@ -156,7 +156,7 @@ namespace Flotsam.RegionModules.AssetCache
                     m_WaitOnInprogressTimeout = assetConfig.GetInt("WaitOnInprogressTimeout", 3000);
 #endif
 
-                    m_LogLevel = assetConfig.GetInt("LogLevel", 1);
+                    m_LogLevel = assetConfig.GetInt("LogLevel", 0);
                     m_HitRateDisplay = (ulong)assetConfig.GetInt("HitRateDisplay", 1000);
 
                     m_FileExpiration = TimeSpan.FromHours(assetConfig.GetDouble("FileCacheTimeout", m_DefaultFileExpiration));

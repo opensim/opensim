@@ -208,8 +208,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void VehicleFloatParam(int param, float value);
         public abstract void VehicleVectorParam(int param, Vector3 value);
         public abstract void VehicleRotationParam(int param, Quaternion rotation);
-        public abstract void VehicleFlagsSet(int flags);
-        public abstract void VehicleFlagsRemove(int flags);
+        public abstract void VehicleFlags(int param, bool remove);
 
         public abstract void SetVolumeDetect(int param);    // Allows the detection of collisions with inherently non-physical prims. see llVolumeDetect for more
 
@@ -353,17 +352,12 @@ namespace OpenSim.Region.Physics.Manager
         {
 
         }
-        
-        public override void VehicleFlagsSet(int flags)
-        {
 
-        }
-        
-        public override void VehicleFlagsRemove(int flags)
+        public override void VehicleFlags(int param, bool remove)
         {
-
+            
         }
-        
+
         public override void SetVolumeDetect(int param)
         {
 

@@ -150,7 +150,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <returns>
         /// A list of inventory items with that name.
         /// If no inventory item has that name then an empty list is returned.
-        /// </returns>        
+        /// </returns>
         IList<TaskInventoryItem> GetInventoryItems(string name);
 
         /// <summary>

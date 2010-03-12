@@ -44,8 +44,6 @@ namespace OpenSim.Server.Handlers.Asset
 {
     public class XInventoryInConnector : ServiceConnector
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         private IInventoryService m_InventoryService;
         private string m_ConfigName = "InventoryService";
 
@@ -197,7 +195,7 @@ namespace OpenSim.Server.Handlers.Asset
             if (!request.ContainsKey("PRINCIPAL"))
                 return FailureResult();
 
-            if(m_InventoryService.CreateUserInventory(new UUID(request["PRINCIPAL"].ToString())))
+            if (m_InventoryService.CreateUserInventory(new UUID(request["PRINCIPAL"].ToString())))
                 result["RESULT"] = "True";
             else
                 result["RESULT"] = "False";

@@ -190,6 +190,8 @@ namespace OpenSim
 
             PrintFileToConsole("startuplogo.txt");
 
+            m_log.InfoFormat("[NETWORK]: Using {0} as SYSTEMIP", Util.GetLocalHost().ToString());
+
             // For now, start at the 'root' level by default
             if (m_sceneManager.Scenes.Count == 1) // If there is only one region, select it
                 ChangeSelectedRegion("region",
@@ -367,7 +369,6 @@ namespace OpenSim
             m_console.Commands.AddCommand("hypergrid", false, "unlink-region",
                                           "unlink-region <local name> or <HostName>:<HttpPort> <cr>",
                                           "Unlink a hypergrid region", RunCommand);
-
         }
 
         public override void ShutdownSpecific()
@@ -433,7 +434,7 @@ namespace OpenSim
                     // kick client...
                     if (alert != null)
                         presence.ControllingClient.Kick(alert);
-                    else 
+                    else
                         presence.ControllingClient.Kick("\nThe OpenSim manager kicked you out.\n");
 
                     // ...and close on our side
@@ -639,7 +640,6 @@ namespace OpenSim
                 }
             }
         }
-
 
         /// <summary>
         /// Load, Unload, and list Region modules in use
@@ -972,7 +972,6 @@ namespace OpenSim
                                            scene.RegionInfo.RegionLocX,
                                            scene.RegionInfo.RegionLocY,
                                            scene.RegionInfo.InternalEndPoint.Port));
-                                
                             });
                     break;
 
@@ -1097,7 +1096,7 @@ namespace OpenSim
             }
             else
             {
-	      MainConsole.Instance.Output(string.Format("A user with the name {0} {1} already exists!", firstName, lastName));
+                MainConsole.Instance.Output(string.Format("A user with the name {0} {1} already exists!", firstName, lastName));
             }
         }
 

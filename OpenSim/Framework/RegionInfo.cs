@@ -790,7 +790,6 @@ namespace OpenSim.Framework
             else
                 m_externalHostName = externalName;
 
-
             // Master avatar cruft
             //
             string masterAvatarUUID;

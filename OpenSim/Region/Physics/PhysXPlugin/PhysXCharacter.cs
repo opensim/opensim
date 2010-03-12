@@ -28,36 +28,36 @@
 using System;
 using System.Collections.Generic;
 using Nini.Config;
-using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using PhysXWrapper;
+using Quaternion=OpenMetaverse.Quaternion;
+using System.Reflection;
+using log4net;
+using OpenMetaverse;
 
-namespace OpenSim.Region.Physics.BasicPhysicsPlugin
+namespace OpenSim.Region.Physics.PhysXPlugin
 {
-    public class BasicActor : PhysicsActor
+    public class PhysXCharacter : PhysicsActor
     {
         private Vector3 _position;
         private Vector3 _velocity;
+        private Vector3 m_rotationalVelocity = Vector3.Zero;
         private Vector3 _acceleration;
-        private Vector3 _size;
-        private Vector3 m_rotationalVelocity;
+        private NxCharacter _character;
         private bool flying;
-        private bool iscolliding;
+        private bool iscolliding = false;
+        private float gravityAccel;
 
-        public BasicActor()
+        public PhysXCharacter(NxCharacter character)
         {
+            _character = character;
         }
 
         public override int PhysicsActorType
         {
             get { return (int) ActorTypes.Agent; }
             set { return; }
-        }
-
-        public override Vector3 RotationalVelocity
-        {
-            get { return m_rotationalVelocity; }
-            set { m_rotationalVelocity = value; }
         }
 
         public override bool SetAlwaysRun
@@ -128,6 +128,12 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { return; }
         }
 
+        public override Vector3 RotationalVelocity
+        {
+            get { return m_rotationalVelocity; }
+            set { m_rotationalVelocity = value; }
+        }
+
         public override bool Stopped
         {
             get { return false; }
@@ -136,21 +142,21 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         public override Vector3 Position
         {
             get { return _position; }
-            set { _position = value; }
+            set
+            {
+                _position = value;
+                Vec3 ps = new Vec3();
+                ps.X = value.X;
+                ps.Y = value.Y;
+                ps.Z = value.Z;
+                _character.Position = ps;
+            }
         }
 
         public override Vector3 Size
         {
-            get { return _size; }
-            set {
-                  _size = value;
-                  _size.Z = _size.Z / 2.0f;
-                }
-        }
-
-        public override PrimitiveBaseShape Shape
-        {
-            set { return; }
+            get { return Vector3.Zero; }
+            set { }
         }
 
         public override float Mass
@@ -172,27 +178,22 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
 
         public override void VehicleFloatParam(int param, float value)
         {
-
         }
 
         public override void VehicleVectorParam(int param, Vector3 value)
         {
-
         }
 
         public override void VehicleRotationParam(int param, Quaternion rotation)
         {
-
         }
 
         public override void VehicleFlags(int param, bool remove)
         {
-
         }
 
         public override void SetVolumeDetect(int param)
         {
-
         }
 
         public override Vector3 CenterOfMass
@@ -211,15 +212,15 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             set { _velocity = value; }
         }
 
-        public override Vector3 Torque
-        {
-            get { return Vector3.Zero; }
-            set { return; }
-        }
-
         public override float CollisionScore
         {
             get { return 0f; }
+            set { }
+        }
+
+        public override bool Kinematic
+        {
+            get { return false; }
             set { }
         }
 
@@ -234,10 +235,23 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
             get { return _acceleration; }
         }
 
-        public override bool Kinematic
+        public void SetAcceleration(Vector3 accel)
         {
-            get { return true; }
-            set { }
+            _acceleration = accel;
+        }
+
+        public override void AddForce(Vector3 force, bool pushforce)
+        {
+        }
+
+        public override Vector3 Torque
+        {
+            get { return Vector3.Zero; }
+            set { return; }
+        }
+
+        public override void AddAngularForce(Vector3 force, bool pushforce)
+        {
         }
 
         public override void link(PhysicsActor obj)
@@ -252,90 +266,85 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
         }
 
-        public void SetAcceleration(Vector3 accel)
-        {
-            _acceleration = accel;
-        }
-
-        public override void AddForce(Vector3 force, bool pushforce)
-        {
-        }
-
-        public override void AddAngularForce(Vector3 force, bool pushforce)
-        {
-        }
-
         public override void SetMomentum(Vector3 momentum)
         {
+        }
+
+        public void Move(float timeStep)
+        {
+            Vec3 vec = new Vec3();
+            vec.X = _velocity.X*timeStep;
+            vec.Y = _velocity.Y*timeStep;
+            if (flying)
+            {
+                vec.Z = (_velocity.Z)*timeStep;
+            }
+            else
+            {
+                gravityAccel += -9.8f;
+                vec.Z = (gravityAccel + _velocity.Z)*timeStep;
+            }
+            int res = _character.Move(vec);
+            if (res == 1)
+            {
+                gravityAccel = 0;
+            }
+        }
+
+        public override PrimitiveBaseShape Shape
+        {
+            set { return; }
+        }
+
+        public void UpdatePosition()
+        {
+            Vec3 vec = _character.Position;
+            _position.X = vec.X;
+            _position.Y = vec.Y;
+            _position.Z = vec.Z;
         }
 
         public override void CrossingFailure()
         {
         }
 
-        public override Vector3 PIDTarget
+        public override Vector3 PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
+
+        public override float PIDHoverHeight { set { return; } }
+        public override bool PIDHoverActive { set { return; } }
+        public override PIDHoverType PIDHoverType { set { return; } }
+        public override float PIDHoverTau { set { return; } }
+
+        public override Quaternion APIDTarget
         {
             set { return; }
         }
 
-        public override bool PIDActive
-        {
-            set { return; }
-        }
-
-        public override float PIDTau
-        {
-            set { return; }
-        }
-
-        public override float PIDHoverHeight
-        {
-            set { return; }
-        }
-
-        public override bool PIDHoverActive
-        {
-            set { return; }
-        }
-
-        public override PIDHoverType PIDHoverType
-        {
-            set { return; }
-        }
-
-        public override float PIDHoverTau
-        {
-            set { return; }
-        }
-
-        public override Quaternion APIDTarget 
-        { 
-            set { return; }
-        }
-        
         public override bool APIDActive
-        { 
+        {
             set { return; }
         }
-        
+
         public override float APIDStrength
-        { 
+        {
             set { return; }
         }
-        
+
         public override float APIDDamping
-        { 
+        {
             set { return; }
         }
 
         public override void SubscribeEvents(int ms)
         {
-        }
 
+        }
         public override void UnSubscribeEvents()
         {
-        }
 
+        }
         public override bool SubscribedEvents()
         {
             return false;

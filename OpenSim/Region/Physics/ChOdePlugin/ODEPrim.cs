@@ -344,7 +344,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             set {
         
-Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);        
+//Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);        
                 // This only makes the object not collidable if the object
                 // is physical or the object is modified somehow *IN THE FUTURE*
                 // without this, if an avatar selects prim, they can walk right
@@ -486,15 +486,10 @@ Console.WriteLine("Sel {0}  {1}  {2}", m_primName, value,   m_isphysical);
         {
             ProcessRotationVehicleParam((Vehicle) param, rotation);
         }
-        
-        public override void VehicleFlagsSet(int flags)
+
+        public override void VehicleFlags(int param, bool remove)
         {
-			ProcessFlagsVehicleSet(flags);
-        }
-        
-        public override void VehicleFlagsRemove(int flags)
-        {
-			ProcessFlagsVehicleRemove(flags);
+            ProcessVehicleFlags(param, remove);
         }
         
         public override void SetVolumeDetect(int param)
@@ -2425,8 +2420,9 @@ Console.WriteLine(" JointCreateFixed");
         public void UpdatePositionAndVelocity()
         {
         	return;   // moved to the MOVE() method
+        }
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
-            if (_parent == null)
+/*            if (_parent == null)
             {
                 Vector3 pv = Vector3.Zero;
                 bool lastZeroFlag = _zeroFlag;
@@ -2635,7 +2631,7 @@ Console.WriteLine(" JointCreateFixed");
                 }
             }
         }
-
+*/
         public Matrix4 FromDMass(d.Mass pMass)
         {
             Matrix4 obj;
@@ -2682,7 +2678,7 @@ Console.WriteLine(" JointCreateFixed");
         {
             _parent_scene.remCollisionEventReporting(this);
             m_eventsubscription = 0;
-        }
+        }        
 
         public void AddCollisionEvent(uint CollidedWith, ContactPoint contact)
         {
@@ -3038,15 +3034,17 @@ Console.WriteLine(" JointCreateFixed");
             }
             
         }//end ProcessRotationVehicleParam
-
-        internal void ProcessFlagsVehicleSet(int flags)
+        
+        internal void ProcessVehicleFlags(int pParam, bool remove)
         {
-        	m_flags |= (VehicleFlag)flags;
-        }
-
-        internal void ProcessFlagsVehicleRemove(int flags)
-        {
-        	m_flags &= ~((VehicleFlag)flags);         
+            if (remove)
+            {
+        		m_flags &= ~((VehicleFlag)pParam);         
+			}
+			else
+			{
+        		m_flags |= (VehicleFlag)pParam;
+        	}
         }
         
         internal void ProcessTypeChange(Vehicle pType)
@@ -3253,7 +3251,7 @@ Console.WriteLine(" JointCreateFixed");
                     d.Vector3 vec = d.BodyGetPosition(Body);
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
-                    d.Vector3 rotvel = d.BodyGetAngularVel(Body);
+      //              d.Vector3 rotvel = d.BodyGetAngularVel(Body);
                     d.Vector3 torque = d.BodyGetTorque(Body);
                     _torque = new Vector3(torque.X, torque.Y, torque.Z);
                     Vector3 l_position = Vector3.Zero;

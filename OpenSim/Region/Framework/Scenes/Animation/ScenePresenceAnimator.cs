@@ -419,15 +419,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             if (m_scenePresence.IsChildAgent)
                 return;
-            
-            UUID[] animIDs;
-            int[] sequenceNums;
-            UUID[] objectIDs;
 
-            m_animations.GetArrays(out animIDs, out sequenceNums, out objectIDs);
-
-            m_scenePresence.ControllingClient.SendAnimations(
-                animIDs, sequenceNums, m_scenePresence.ControllingClient.AgentId, objectIDs);
+            m_scenePresence.Scene.ForEachScenePresence(
+                delegate(ScenePresence SP)
+                {
+                    SP.Animator.SendAnimPack();
+                });
         }
 
         /// <summary>
