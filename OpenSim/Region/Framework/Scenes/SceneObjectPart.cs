@@ -747,7 +747,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary></summary>
         public Vector3 Acceleration
         {
-            get { return m_acceleration; }
+			get 
+			{ 
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
+				{
+					m_acceleration = actor.Acceleration;
+				}
+				return m_acceleration;
+			} 
+            
             set { m_acceleration = value; }
         }
 
