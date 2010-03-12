@@ -46,7 +46,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects to the SimianGrid asset service
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianAssetServiceConnector : IAssetService
+    public class SimianAssetServiceConnector : IAssetService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -73,9 +73,9 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAssetServiceConnector() { }
         public string Name { get { return "SimianAssetServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IAssetService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IAssetService>(this); }
-
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IAssetService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IAssetService>(this); } }
+        
         #endregion ISharedRegionModule
 
         public SimianAssetServiceConnector(IConfigSource source)
@@ -88,8 +88,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["AssetService"];
             if (gridConfig == null)
             {
-                m_log.Error("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini");
-                throw new Exception("Asset connector init error");
+                m_log.Info("[ASSET CONNECTOR]: AssetService missing from OpenSim.ini, skipping SimianAssetServiceConnector");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("AssetServerURI");

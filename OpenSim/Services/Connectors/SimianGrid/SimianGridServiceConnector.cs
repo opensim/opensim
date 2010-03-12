@@ -51,7 +51,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianGridServiceConnector : IGridService
+    public class SimianGridServiceConnector : IGridService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -68,8 +68,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianGridServiceConnector() { }
         public string Name { get { return "SimianGridServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IGridService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IGridService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IGridService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IGridService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -83,8 +83,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["GridService"];
             if (gridConfig == null)
             {
-                m_log.Error("[GRID CONNECTOR]: GridService missing from OpenSim.ini");
-                throw new Exception("Grid connector init error");
+                m_log.Info("[GRID CONNECTOR]: GridService missing from OpenSim.ini, skipping SimianGridServiceConnector");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("GridServerURI");

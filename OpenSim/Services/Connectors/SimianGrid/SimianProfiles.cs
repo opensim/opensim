@@ -60,7 +60,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianProfiles
+    public class SimianProfiles : INonSharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -69,15 +69,15 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private string m_serverUrl = String.Empty;
 
         #region INonSharedRegionModule
-
+        
         public Type ReplaceableInterface { get { return null; } }
         public void RegionLoaded(Scene scene) { }
         public void Close() { }
 
         public SimianProfiles() { }
         public string Name { get { return "SimianProfiles"; } }
-        public void AddRegion(Scene scene) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; }
-        public void RemoveRegion(Scene scene) { scene.EventManager.OnClientConnect -= ClientConnectHandler; }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { CheckEstateManager(scene); scene.EventManager.OnClientConnect += ClientConnectHandler; } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.EventManager.OnClientConnect -= ClientConnectHandler; } }
 
         #endregion INonSharedRegionModule
 
@@ -91,8 +91,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["UserAccountService"];
             if (gridConfig == null)
             {
-                m_log.Error("[PROFILES]: UserAccountService missing from OpenSim.ini");
-                throw new Exception("Profiles init error");
+                m_log.Error("[PROFILES]: UserAccountService missing from OpenSim.ini, skipping SimianProfiles");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("UserAccountServerURI");

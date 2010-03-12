@@ -48,7 +48,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects avatar appearance data to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianAvatarServiceConnector : IAvatarService
+    public class SimianAvatarServiceConnector : IAvatarService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -66,8 +66,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAvatarServiceConnector() { }
         public string Name { get { return "SimianAvatarServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IAvatarService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IAvatarService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IAvatarService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IAvatarService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -81,8 +81,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["AvatarService"];
             if (gridConfig == null)
             {
-                m_log.Error("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini");
-                throw new Exception("Avatar connector init error");
+                m_log.Info("[AVATAR CONNECTOR]: AvatarService missing from OpenSim.ini, skipping SimianAvatarServiceConnector");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("AvatarServerURI");

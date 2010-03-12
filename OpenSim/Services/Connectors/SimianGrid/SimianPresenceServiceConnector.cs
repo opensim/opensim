@@ -51,7 +51,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// message routing) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianPresenceServiceConnector : IPresenceService
+    public class SimianPresenceServiceConnector : IPresenceService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -70,23 +70,29 @@ namespace OpenSim.Services.Connectors.SimianGrid
         public string Name { get { return "SimianPresenceServiceConnector"; } }
         public void AddRegion(Scene scene)
         {
-            scene.RegisterModuleInterface<IPresenceService>(this);
+            if (!String.IsNullOrEmpty(m_serverUrl))
+            {
+                scene.RegisterModuleInterface<IPresenceService>(this);
 
-            scene.EventManager.OnMakeRootAgent += MakeRootAgentHandler;
-            scene.EventManager.OnNewClient += NewClientHandler;
-            scene.EventManager.OnSignificantClientMovement += SignificantClientMovementHandler;
+                scene.EventManager.OnMakeRootAgent += MakeRootAgentHandler;
+                scene.EventManager.OnNewClient += NewClientHandler;
+                scene.EventManager.OnSignificantClientMovement += SignificantClientMovementHandler;
 
-            LogoutRegionAgents(scene.RegionInfo.RegionID);
+                LogoutRegionAgents(scene.RegionInfo.RegionID);
+            }
         }
         public void RemoveRegion(Scene scene)
         {
-            scene.UnregisterModuleInterface<IPresenceService>(this);
+            if (!String.IsNullOrEmpty(m_serverUrl))
+            {
+                scene.UnregisterModuleInterface<IPresenceService>(this);
 
-            scene.EventManager.OnMakeRootAgent -= MakeRootAgentHandler;
-            scene.EventManager.OnNewClient -= NewClientHandler;
-            scene.EventManager.OnSignificantClientMovement -= SignificantClientMovementHandler;
+                scene.EventManager.OnMakeRootAgent -= MakeRootAgentHandler;
+                scene.EventManager.OnNewClient -= NewClientHandler;
+                scene.EventManager.OnSignificantClientMovement -= SignificantClientMovementHandler;
 
-            LogoutRegionAgents(scene.RegionInfo.RegionID);
+                LogoutRegionAgents(scene.RegionInfo.RegionID);
+            }
         }
 
         #endregion ISharedRegionModule
@@ -101,8 +107,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["PresenceService"];
             if (gridConfig == null)
             {
-                m_log.Error("[PRESENCE CONNECTOR]: PresenceService missing from OpenSim.ini");
-                throw new Exception("Presence connector init error");
+                m_log.Info("[PRESENCE CONNECTOR]: PresenceService missing from OpenSim.ini, skipping SimianPresenceServiceConnector");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("PresenceServerURI");

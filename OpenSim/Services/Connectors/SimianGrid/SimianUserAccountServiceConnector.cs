@@ -47,14 +47,14 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// users) to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianUserAccountServiceConnector : IUserAccountService
+    public class SimianUserAccountServiceConnector : IUserAccountService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_serverUrl = String.Empty;
-        private ExpiringCache<UUID, UserAccount> m_accountCache = new ExpiringCache<UUID, UserAccount>();
+        private ExpiringCache<UUID, UserAccount> m_accountCache;
 
         #region ISharedRegionModule
 
@@ -65,8 +65,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianUserAccountServiceConnector() { }
         public string Name { get { return "SimianUserAccountServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IUserAccountService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IUserAccountService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IUserAccountService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IUserAccountService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -80,8 +80,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig assetConfig = source.Configs["UserAccountService"];
             if (assetConfig == null)
             {
-                m_log.Error("[ACCOUNT CONNECTOR]: UserAccountService missing from OpenSim.ini");
-                throw new Exception("User account connector init error");
+                m_log.Error("[ACCOUNT CONNECTOR]: UserAccountService missing from OpenSim.ini, skipping SimianUserAccountServiceConnector");
+                return;
             }
 
             string serviceURI = assetConfig.GetString("UserAccountServerURI");
@@ -91,6 +91,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 throw new Exception("User account connector init error");
             }
 
+            m_accountCache = new ExpiringCache<UUID, UserAccount>();
             m_serverUrl = serviceURI;
         }
 

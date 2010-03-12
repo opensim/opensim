@@ -47,7 +47,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Stores and retrieves friend lists from the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianFriendsServiceConnector : IFriendsService
+    public class SimianFriendsServiceConnector : IFriendsService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -64,8 +64,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianFriendsServiceConnector() { }
         public string Name { get { return "SimianFriendsServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IFriendsService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IFriendsService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IFriendsService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IFriendsService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -79,8 +79,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig assetConfig = source.Configs["FriendsService"];
             if (assetConfig == null)
             {
-                m_log.Error("[FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini");
-                throw new Exception("Friends connector init error");
+                m_log.Info("[FRIENDS CONNECTOR]: FriendsService missing from OpenSim.ini, skipping SimianFriendsServiceConnector");
+                return;
             }
 
             string serviceURI = assetConfig.GetString("FriendsServerURI");

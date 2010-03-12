@@ -61,7 +61,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects avatar inventories to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianInventoryServiceConnector : IInventoryService
+    public class SimianInventoryServiceConnector : IInventoryService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -80,8 +80,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianInventoryServiceConnector() { }
         public string Name { get { return "SimianInventoryServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IInventoryService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IInventoryService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IInventoryService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IInventoryService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -95,8 +95,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig gridConfig = source.Configs["InventoryService"];
             if (gridConfig == null)
             {
-                m_log.Error("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini");
-                throw new Exception("Inventory connector init error");
+                m_log.Info("[INVENTORY CONNECTOR]: InventoryService missing from OpenSim.ini, skipping SimianInventoryServiceConnector");
+                return;
             }
 
             string serviceUrl = gridConfig.GetString("InventoryServerURI");

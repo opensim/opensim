@@ -44,7 +44,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
     /// Connects authentication/authorization to the SimianGrid backend
     /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule")]
-    public class SimianAuthenticationServiceConnector : IAuthenticationService
+    public class SimianAuthenticationServiceConnector : IAuthenticationService, ISharedRegionModule
     {
         private static readonly ILog m_log =
                 LogManager.GetLogger(
@@ -61,8 +61,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public SimianAuthenticationServiceConnector() { }
         public string Name { get { return "SimianAuthenticationServiceConnector"; } }
-        public void AddRegion(Scene scene) { scene.RegisterModuleInterface<IAuthenticationService>(this); }
-        public void RemoveRegion(Scene scene) { scene.UnregisterModuleInterface<IAuthenticationService>(this); }
+        public void AddRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.RegisterModuleInterface<IAuthenticationService>(this); } }
+        public void RemoveRegion(Scene scene) { if (!String.IsNullOrEmpty(m_serverUrl)) { scene.UnregisterModuleInterface<IAuthenticationService>(this); } }
 
         #endregion ISharedRegionModule
 
@@ -76,8 +76,8 @@ namespace OpenSim.Services.Connectors.SimianGrid
             IConfig assetConfig = source.Configs["AuthenticationService"];
             if (assetConfig == null)
             {
-                m_log.Error("[AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini");
-                throw new Exception("Authentication connector init error");
+                m_log.Info("[AUTH CONNECTOR]: AuthenticationService missing from OpenSim.ini, skipping SimianAuthenticationServiceConnector");
+                return;
             }
 
             string serviceURI = assetConfig.GetString("AuthenticationServerURI");
