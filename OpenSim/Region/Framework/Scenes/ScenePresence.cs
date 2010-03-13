@@ -676,7 +676,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
 
-            m_userLevel = account.UserLevel;
+            if (account != null)
+                m_userLevel = account.UserLevel;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
