@@ -1020,7 +1020,7 @@ namespace PrimMesher
         {
             this.faceUVs = new List<UVCoord>();
             foreach (Coord c in this.coords)
-                this.faceUVs.Add(new UVCoord(1.0f - (0.5f + c.X), 1.0f - (0.5f - c.Y)));
+                this.faceUVs.Add(new UVCoord(0.5f + c.X, 0.5f - c.Y));
         }
 
         internal Profile Copy()
