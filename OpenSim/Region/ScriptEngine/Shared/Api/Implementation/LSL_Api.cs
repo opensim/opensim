@@ -4017,13 +4017,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+                
+                //This delay should only occur when giving inventory to avatars.
+                ScriptSleep(3000);
             }
             else
             {
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, objId);
             }
-            ScriptSleep(3000);
+            
         }
 
         [DebuggerNonUserCode]
