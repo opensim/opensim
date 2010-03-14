@@ -1955,7 +1955,7 @@ namespace OpenSim.Region.Framework.Scenes
                 else
                 {
                     if (rootpart.PhysActor != null)
-                    {
+                    {									// APID must be implemented in your physics system for this to function.
                         rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
                         rootpart.PhysActor.APIDStrength = strength;
                         rootpart.PhysActor.APIDDamping = damping;
@@ -1971,7 +1971,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (rootpart != null)
             {
                 if (rootpart.PhysActor != null)
-                {
+                {							// APID must be implemented in your physics system for this to function.
                     rootpart.PhysActor.APIDActive = false;
                 }
             }
