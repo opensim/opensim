@@ -818,7 +818,16 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary></summary>
         public Vector3 Acceleration
         {
-            get { return m_acceleration; }
+			get 
+			{ 
+                PhysicsActor actor = PhysActor;
+                if (actor != null)
+				{
+					m_acceleration = actor.Acceleration;
+				}
+				return m_acceleration;
+			} 
+            
             set { m_acceleration = value; }
         }
 
@@ -2696,38 +2705,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void RotLookAt(Quaternion target, float strength, float damping)
         {
-            rotLookAt(target, strength, damping);
-        }
-
-        public void rotLookAt(Quaternion target, float strength, float damping)
-        {
-            if (IsAttachment)
-            {
-                /*
-                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
-                    if (avatar != null)
-                    {
-                    Rotate the Av?
-                    } */
-            }
-            else
-            {
-                APIDDamp = damping;
-                APIDStrength = strength;
-                APIDTarget = target;
-            }
-        }
-
-        public void startLookAt(Quaternion rot, float damp, float strength)
-        {
-            APIDDamp = damp;
-            APIDStrength = strength;
-            APIDTarget = rot;
-        }
-
-        public void stopLookAt()
-        {
-            APIDTarget = Quaternion.Identity;
+        	m_parentGroup.rotLookAt(target, strength, damping);  // This calls method in SceneObjectGroup.
         }
 
         /// <summary>
@@ -3225,22 +3203,6 @@ namespace OpenSim.Region.Framework.Scenes
                 PhysActor.VehicleRotationParam(param, rotation);
             }
         }
-        
-        public void SetVehicleFlags(int flags)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFlagsSet(flags);
-            }
-        } 
-        
-        public void RemoveVehicleFlags(int flags)
-        {
-            if (PhysActor != null)
-            {
-                PhysActor.VehicleFlagsRemove(flags);
-            }
-        } 
 
         /// <summary>
         /// Set the color of prim faces
@@ -3494,7 +3456,7 @@ namespace OpenSim.Region.Framework.Scenes
         
         public void StopLookAt()
         {
-            m_parentGroup.stopLookAt();
+            m_parentGroup.stopLookAt();    // This calls method in SceneObjectGroup.
 
             m_parentGroup.ScheduleGroupForTerseUpdate();
         }

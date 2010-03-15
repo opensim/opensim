@@ -188,14 +188,6 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
         }
 
-        public override void VehicleFlagsSet(int param)
-        {
-        }
-
-        public override void VehicleFlagsRemove(int param)
-        {
-        }
-
         public override void VehicleFlags(int param, bool remove)
         {
         }

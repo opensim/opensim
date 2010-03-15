@@ -396,17 +396,7 @@ namespace OpenSim.Region.Physics.BulletDotNETPlugin
         {
             //TODO:
         }
-        
-        public override void VehicleFlagsSet(int flags)
-        {
 
-        }
-        
-        public override void VehicleFlagsRemove(int flags)
-        {
-
-        }
-        
         public override void VehicleFlags(int param, bool remove)
         {
 

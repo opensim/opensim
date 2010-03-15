@@ -878,7 +878,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (land != null)
                 {
                     //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_godlevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_godLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
                     {
                         pos = land.LandData.UserLocation;
                     }

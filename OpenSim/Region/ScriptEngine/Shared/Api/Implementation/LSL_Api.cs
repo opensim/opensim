@@ -2899,10 +2899,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             // the angles of rotation in radians into rotation value
 
             LSL_Types.Quaternion rot = llEuler2Rot(angle);
+            /*
             Quaternion rotation = new Quaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s);
             m_host.startLookAt(rotation, (float)damping, (float)strength);
+                This would only work if your physics system contains an APID controller */
             // Orient the object to the angle calculated
-            //llSetRot(rot);
+            llSetRot(rot);
         }
         
         public void llRotLookAt(LSL_Rotation target, double strength, double damping)
@@ -4018,13 +4020,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 if (m_TransferModule != null)
                     m_TransferModule.SendInstantMessage(msg, delegate(bool success) {});
+                
+                //This delay should only occur when giving inventory to avatars.
+                ScriptSleep(3000);
             }
             else
             {
                 // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, objId);
             }
-            ScriptSleep(3000);
+            
         }
 
         [DebuggerNonUserCode]

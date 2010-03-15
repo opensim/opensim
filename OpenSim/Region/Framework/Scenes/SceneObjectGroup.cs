@@ -383,8 +383,10 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 foreach (SceneObjectPart part in m_parts.Values)
+                {
                     part.GroupPosition = val;
-                        
+                }
+
                 lockPartsForRead(false);
 
                 //if (m_rootPart.PhysActor != null)
@@ -1914,13 +1916,40 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
         
+        public void rotLookAt(Quaternion target, float strength, float damping)
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                if (IsAttachment)
+                {
+                /*
+                    ScenePresence avatar = m_scene.GetScenePresence(rootpart.AttachedAvatar);
+                    if (avatar != null)
+                    {
+                    Rotate the Av?
+                    } */
+                }
+                else
+                {
+                    if (rootpart.PhysActor != null)
+                    {									// APID must be implemented in your physics system for this to function.
+                        rootpart.PhysActor.APIDTarget = new Quaternion(target.X, target.Y, target.Z, target.W);
+                        rootpart.PhysActor.APIDStrength = strength;
+                        rootpart.PhysActor.APIDDamping = damping;
+                        rootpart.PhysActor.APIDActive = true;
+                    }
+                }
+            }
+        }
+
         public void stopLookAt()
         {
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
                 if (rootpart.PhysActor != null)
-                {
+                {							// APID must be implemented in your physics system for this to function.
                     rootpart.PhysActor.APIDActive = false;
                 }
             }
@@ -3345,22 +3374,21 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             lockPartsForRead(true);
+
+            foreach (SceneObjectPart prim in m_parts.Values)
             {
-                foreach (SceneObjectPart prim in m_parts.Values)
+                if (prim.UUID != m_rootPart.UUID)
                 {
-                    if (prim.UUID != m_rootPart.UUID)
-                    {
-                        prim.IgnoreUndoUpdate = true;
-                        Vector3 axPos = prim.OffsetPosition;
-                        axPos *= oldParentRot;
-                        axPos *= Quaternion.Inverse(axRot);
-                        prim.OffsetPosition = axPos;
-                        Quaternion primsRot = prim.RotationOffset;
-                        Quaternion newRot = primsRot * oldParentRot;
-                        newRot *= Quaternion.Inverse(axRot);
-                        prim.RotationOffset = newRot;
-                        prim.ScheduleTerseUpdate();
-                    }
+                    prim.IgnoreUndoUpdate = true;
+                    Vector3 axPos = prim.OffsetPosition;
+                    axPos *= oldParentRot;
+                    axPos *= Quaternion.Inverse(axRot);
+                    prim.OffsetPosition = axPos;
+                    Quaternion primsRot = prim.RotationOffset;
+                    Quaternion newRot = primsRot * oldParentRot;
+                    newRot *= Quaternion.Inverse(axRot);
+                    prim.RotationOffset = newRot;
+                    prim.ScheduleTerseUpdate();
                 }
             }
 
