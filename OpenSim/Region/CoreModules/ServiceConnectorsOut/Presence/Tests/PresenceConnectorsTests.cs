@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
             m_LocalConnector = new LocalPresenceServicesConnector(config);
 
             // Let's stick in a test presence
-            m_LocalConnector.m_PresenceService.LoginAgent(UUID.Zero.ToString(), UUID.Zero, UUID.Zero);           
+            m_LocalConnector.m_PresenceService.LoginAgent(UUID.Zero.ToString(), UUID.Zero, UUID.Zero);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence.Tests
                 p.Data = new Dictionary<string, string>();
                 p.Data["Online"] = true.ToString();
                 m_presenceData.Add(UUID.Zero, p);
-                */            
+                */
 
             string user1 = UUID.Zero.ToString();
             UUID session1 = UUID.Zero;

@@ -86,6 +86,7 @@ namespace OpenSim.Region.Framework.Scenes.Tests
         public void TestDeleteSceneObjectAsync()
         {
             TestHelper.InMethod();
+            //log4net.Config.XmlConfigurator.Configure();
             
             UUID agentId = UUID.Parse("00000000-0000-0000-0000-000000000001");
             
@@ -97,15 +98,9 @@ namespace OpenSim.Region.Framework.Scenes.Tests
 
             SceneObjectPart part = SceneSetupHelpers.AddSceneObject(scene);
 
-            try
-            {
-                IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
-                scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception: " + e.StackTrace);
-            }
+            IClientAPI client = SceneSetupHelpers.AddRootAgent(scene, agentId);
+            scene.DeRezObject(client, part.LocalId, UUID.Zero, DeRezAction.Delete, UUID.Zero);
+
             SceneObjectPart retrievedPart = scene.GetSceneObjectPart(part.LocalId);
 
             Assert.That(retrievedPart, Is.Not.Null);

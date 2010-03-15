@@ -57,6 +57,12 @@ namespace OpenSim.Server.Base
             return ret;
         }
 
+        /// <summary>
+        /// Load a plugin from a dll with the given class or interface
+        /// </summary>
+        /// <param name="dllName"></param>
+        /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
+        /// <returns></returns>        
         public static T LoadPlugin<T>(string dllName, Object[] args) where T:class
         {
             string[] parts = dllName.Split(new char[] {':'});
@@ -71,6 +77,13 @@ namespace OpenSim.Server.Base
             return LoadPlugin<T>(dllName, className, args);
         }
 
+        /// <summary>
+        /// Load a plugin from a dll with the given class or interface
+        /// </summary>
+        /// <param name="dllName"></param>
+        /// <param name="className"></param>
+        /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
+        /// <returns></returns>
         public static T LoadPlugin<T>(string dllName, string className, Object[] args) where T:class
         {
             string interfaceName = typeof(T).ToString();
@@ -83,28 +96,15 @@ namespace OpenSim.Server.Base
                 {
                     if (pluginType.IsPublic)
                     {
-                        if (className != String.Empty &&
-                                pluginType.ToString() !=
-                                pluginType.Namespace + "." + className)
+                        if (className != String.Empty 
+                            && pluginType.ToString() != pluginType.Namespace + "." + className)
                             continue;
-                        Type typeInterface =
-                                pluginType.GetInterface(interfaceName, true);
+                        
+                        Type typeInterface = pluginType.GetInterface(interfaceName, true);
+                        
                         if (typeInterface != null)
                         {
-                            T plug = null;
-                            try
-                            {
-                                plug = (T)Activator.CreateInstance(pluginType,
-                                        args);
-                            }
-                            catch (Exception e)
-                            {
-                                if (!(e is System.MissingMethodException))
-                                    m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
-                                return null;
-                            }
-
-                            return plug;
+                            return (T)Activator.CreateInstance(pluginType, args);
                         }
                     }
                 }
@@ -113,7 +113,7 @@ namespace OpenSim.Server.Base
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e);
+                m_log.Error(string.Format("Error loading plugin from {0}", dllName), e);
                 return null;
             }
         }

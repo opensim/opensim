@@ -2003,7 +2003,7 @@ namespace OpenSim.Region.Framework.Scenes
         public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup, bool sendClientUpdates)
         {
             return m_sceneGraph.AddNewSceneObject(sceneObject, attachToBackup, sendClientUpdates);
-        }        
+        }
 
         /// <summary>
         /// Delete every object from the scene
@@ -2365,10 +2365,10 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
             
             ScenePresence sp = GetScenePresence(userID);
-            if (sp != null)
+            if (sp != null && AttachmentsModule != null)
             {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
+                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);                
+                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
             }
 
             return false;
@@ -2669,14 +2669,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {
-            client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
+        {            
             client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;            
-            client.OnObjectAttach += m_sceneGraph.AttachObject;
             client.OnObjectDetach += m_sceneGraph.DetachObject;
 
             if (AttachmentsModule != null)
+            {
+                client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
+                client.OnObjectAttach += AttachmentsModule.AttachObject;
                 client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
+            }
         }
 
         public virtual void SubscribeToClientTeleportEvents(IClientAPI client)
@@ -2723,7 +2725,7 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         protected virtual void UnsubscribeToClientEvents(IClientAPI client)
-        {            
+        {
         }
 
         /// <summary>
@@ -2801,7 +2803,6 @@ namespace OpenSim.Region.Framework.Scenes
             client.OnRezObject -= RezObject;
         }
 
-
         public virtual void UnSubscribeToClientInventoryEvents(IClientAPI client)
         {
             client.OnCreateNewInventoryItem -= CreateNewInventoryItem;
@@ -2824,14 +2825,16 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
-        {            
-            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;
-            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;            
-            client.OnObjectAttach -= m_sceneGraph.AttachObject;
+        {
+            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;            
             client.OnObjectDetach -= m_sceneGraph.DetachObject;
 
-            if (AttachmentsModule != null)               
+            if (AttachmentsModule != null)
+            {
+                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;            
+                client.OnObjectAttach -= AttachmentsModule.AttachObject;
                 client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
+            }
         }
 
         public virtual void UnSubscribeToClientTeleportEvents(IClientAPI client)
@@ -3559,7 +3562,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             foreach (var parcel in AllParcels())
             {
-                if( parcel.ContainsPoint((int)x,(int)y))
+                if (parcel.ContainsPoint((int)x,(int)y))
                 {
                     return parcel;
                 }
@@ -4998,7 +5001,7 @@ namespace OpenSim.Region.Framework.Scenes
         private Vector3 GetPositionAtAvatarHeightOrGroundHeight(ScenePresence avatar, float x, float y)
         {
             Vector3 ground = GetPositionAtGround(x, y);
-            if( avatar.AbsolutePosition.Z > ground.Z)
+            if (avatar.AbsolutePosition.Z > ground.Z)
             {
                 ground.Z = avatar.AbsolutePosition.Z;
             }

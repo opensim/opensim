@@ -126,7 +126,7 @@ namespace OpenSim.Services.Connectors
                     });
 
             if (ret == null)
-                return null;            
+                return null;
             if (ret.Count == 0)
                 return null;
 

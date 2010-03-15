@@ -1106,18 +1106,18 @@ namespace OpenSim.Region.Framework.Scenes
             if (folder == null)
                 return;
 
-            m_log.DebugFormat("[AGENT INVENTORY]: Send Inventory Folder {0} Update to {1} {2}", folder.Name, client.FirstName, client.LastName);
+            // Fetch the folder contents
             InventoryCollection contents = InventoryService.GetFolderContent(client.AgentId, folder.ID);
-            InventoryFolderBase containingFolder = new InventoryFolderBase();
-            containingFolder.ID = folder.ID;
-            containingFolder.Owner = client.AgentId;
-            containingFolder = InventoryService.GetFolder(containingFolder);
-            if (containingFolder != null)
-            {
-                int version = containingFolder.Version;
 
-                client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, version, fetchFolders, fetchItems);
-            }
+            // Fetch the folder itself to get its current version
+            InventoryFolderBase containingFolder = new InventoryFolderBase(folder.ID, client.AgentId);
+            containingFolder = InventoryService.GetFolder(containingFolder);
+
+            //m_log.DebugFormat("[AGENT INVENTORY]: Sending inventory folder contents ({0} nodes) for \"{1}\" to {2} {3}",
+            //    contents.Folders.Count + contents.Items.Count, containingFolder.Name, client.FirstName, client.LastName);
+
+            if (containingFolder != null)
+                client.SendInventoryFolderDetails(client.AgentId, folder.ID, contents.Items, contents.Folders, containingFolder.Version, fetchFolders, fetchItems);
         }
 
         /// <summary>
@@ -1846,35 +1846,12 @@ namespace OpenSim.Region.Framework.Scenes
             EventManager.TriggerOnAttach(localID, itemID, avatarID);
         }
 
-        /// <summary>
-        /// Called when the client receives a request to rez a single attachment on to the avatar from inventory
-        /// (RezSingleAttachmentFromInv packet).
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="AttachmentPt"></param>
-        /// <returns></returns>
-        public UUID RezSingleAttachment(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
-        {
-            m_log.DebugFormat("[USER INVENTORY]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
-            
-            SceneObjectGroup att = m_sceneGraph.RezSingleAttachment(remoteClient, itemID, AttachmentPt);
-
-            if (att == null)
-            {
-                AttachmentsModule.ShowDetachInUserInventory(itemID, remoteClient);
-                return UUID.Zero;
-            }
-
-            return AttachmentsModule.SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
-        }
-
         public void RezMultipleAttachments(IClientAPI remoteClient, RezMultipleAttachmentsFromInvPacket.HeaderDataBlock header,
                                        RezMultipleAttachmentsFromInvPacket.ObjectDataBlock[] objects)
         {
             foreach (RezMultipleAttachmentsFromInvPacket.ObjectDataBlock obj in objects)
             {
-                RezSingleAttachment(remoteClient, obj.ItemID, obj.AttachmentPt);
+                AttachmentsModule.RezSingleAttachmentFromInventory(remoteClient, obj.ItemID, obj.AttachmentPt);
             }
         }
 

@@ -140,14 +140,20 @@ namespace OpenSim.Services.Interfaces
         UserAccount GetUserAccount(UUID scopeID, UUID userID);
         UserAccount GetUserAccount(UUID scopeID, string FirstName, string LastName);
         UserAccount GetUserAccount(UUID scopeID, string Email);
-        // Returns the list of avatars that matches both the search
-        // criterion and the scope ID passed
-        //
+
+        /// <summary>
+        /// Returns the list of avatars that matches both the search criterion and the scope ID passed
+        /// </summary>
+        /// <param name="scopeID"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
 
-        // Store the data given, wich replaces the sotred data, therefore
-        // must be complete.
-        //
+        /// <summary>
+        /// Store the data given, wich replaces the sotred data, therefore must be complete.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         bool StoreUserAccount(UserAccount data);
     }
 }

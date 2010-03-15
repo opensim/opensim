@@ -119,26 +119,27 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public override UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
-            UserAccount account = m_Cache.Get(userID);
-            if (account != null)
+            bool inCache = false;
+            UserAccount account = m_Cache.Get(userID, out inCache);
+            if (inCache)
                 return account;
 
             account = base.GetUserAccount(scopeID, userID);
-            if (account != null)
-                m_Cache.Cache(account);
+            m_Cache.Cache(userID, account);
 
             return account;
         }
 
         public override UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
-            UserAccount account = m_Cache.Get(firstName + " " + lastName);
-            if (account != null)
+            bool inCache = false;
+            UserAccount account = m_Cache.Get(firstName + " " + lastName, out inCache);
+            if (inCache)
                 return account;
 
             account = base.GetUserAccount(scopeID, firstName, lastName);
             if (account != null)
-                m_Cache.Cache(account);
+                m_Cache.Cache(account.PrincipalID, account);
 
             return account;
         }

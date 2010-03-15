@@ -827,15 +827,16 @@ namespace PrimMesher
 
                 if (createFaces)
                 {
-                    int numOuterVerts = this.coords.Count;
-                    int numHollowVerts = hollowCoords.Count;
-                    int numTotalVerts = numOuterVerts + numHollowVerts;
+                    //int numOuterVerts = this.coords.Count;
+                    //numOuterVerts = this.coords.Count;
+                    //int numHollowVerts = hollowCoords.Count;
+                    int numTotalVerts = this.numOuterVerts + this.numHollowVerts;
 
-                    if (numOuterVerts == numHollowVerts)
+                    if (this.numOuterVerts == this.numHollowVerts)
                     {
                         Face newFace = new Face();
 
-                        for (int coordIndex = 0; coordIndex < numOuterVerts - 1; coordIndex++)
+                        for (int coordIndex = 0; coordIndex < this.numOuterVerts - 1; coordIndex++)
                         {
                             newFace.v1 = coordIndex;
                             newFace.v2 = coordIndex + 1;
@@ -850,12 +851,12 @@ namespace PrimMesher
                     }
                     else
                     {
-                        if (numOuterVerts < numHollowVerts)
+                        if (this.numOuterVerts < this.numHollowVerts)
                         {
                             Face newFace = new Face();
                             int j = 0; // j is the index for outer vertices
-                            int maxJ = numOuterVerts - 1;
-                            for (int i = 0; i < numHollowVerts; i++) // i is the index for inner vertices
+                            int maxJ = this.numOuterVerts - 1;
+                            for (int i = 0; i < this.numHollowVerts; i++) // i is the index for inner vertices
                             {
                                 if (j < maxJ)
                                     if (angles.angles[j + 1].angle - hollowAngles.angles[i].angle < hollowAngles.angles[i].angle - angles.angles[j].angle + 0.000001f)
@@ -879,8 +880,8 @@ namespace PrimMesher
                         {
                             Face newFace = new Face();
                             int j = 0; // j is the index for inner vertices
-                            int maxJ = numHollowVerts - 1;
-                            for (int i = 0; i < numOuterVerts; i++)
+                            int maxJ = this.numHollowVerts - 1;
+                            for (int i = 0; i < this.numOuterVerts; i++)
                             {
                                 if (j < maxJ)
                                     if (hollowAngles.angles[j + 1].angle - angles.angles[i].angle < angles.angles[i].angle - hollowAngles.angles[j].angle + 0.000001f)
@@ -981,7 +982,7 @@ namespace PrimMesher
                 int startVert = hasProfileCut && !hasHollow ? 1 : 0;
                 if (startVert > 0)
                     this.faceNumbers.Add(-1);
-                for (int i = 0; i < numOuterVerts - 1; i++)
+                for (int i = 0; i < this.numOuterVerts - 1; i++)
                     this.faceNumbers.Add(sides < 5 ? faceNum++ : faceNum);
 
                 //if (!hasHollow && !hasProfileCut)
@@ -994,7 +995,7 @@ namespace PrimMesher
 
                 if (hasHollow)
                 {
-                    for (int i = 0; i < numHollowVerts; i++)
+                    for (int i = 0; i < this.numHollowVerts; i++)
                         this.faceNumbers.Add(faceNum);
 
                     faceNum++;
@@ -1019,7 +1020,7 @@ namespace PrimMesher
         {
             this.faceUVs = new List<UVCoord>();
             foreach (Coord c in this.coords)
-                this.faceUVs.Add(new UVCoord(1.0f - (0.5f + c.X), 1.0f - (0.5f - c.Y)));
+                this.faceUVs.Add(new UVCoord(0.5f + c.X, 0.5f - c.Y));
         }
 
         internal Profile Copy()
@@ -1348,7 +1349,6 @@ namespace PrimMesher
                 float stepSize = twoPi / this.stepsPerRevolution;
 
                 int step = (int)(startAngle / stepSize);
-//                int firstStep = step;
                 float angle = startAngle;
 
                 bool done = false;
@@ -1738,7 +1738,6 @@ namespace PrimMesher
                 // append this layer
 
                 int coordsLen = this.coords.Count;
-//                int lastCoordsLen = coordsLen;
                 newLayer.AddValue2FaceVertexIndices(coordsLen);
 
                 this.coords.AddRange(newLayer.coords);

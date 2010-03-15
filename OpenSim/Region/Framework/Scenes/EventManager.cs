@@ -113,15 +113,15 @@ namespace OpenSim.Region.Framework.Scenes
         /// Fired when an object is touched/grabbed.
         /// </summary>
         /// The originalID is the local ID of the part that was actually touched.  The localID itself is always that of
-        /// the root part.        
+        /// the root part.
         public event ObjectGrabDelegate OnObjectGrab;
-        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);        
+        public delegate void ObjectGrabDelegate(uint localID, uint originalID, Vector3 offsetPos, IClientAPI remoteClient, SurfaceTouchEventArgs surfaceArgs);
         
         public event ObjectGrabDelegate OnObjectGrabbing;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
         public event ScriptResetDelegate OnScriptReset;
 
-        public event OnPermissionErrorDelegate OnPermissionError;        
+        public event OnPermissionErrorDelegate OnPermissionError;
 
         /// <summary>
         /// Fired when a new script is created.
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public delegate void ClientClosed(UUID clientID, Scene scene);
 
-        public event ClientClosed OnClientClosed;        
+        public event ClientClosed OnClientClosed;
 
         /// <summary>
         /// This is fired when a scene object property that a script might be interested in (such as color, scale or

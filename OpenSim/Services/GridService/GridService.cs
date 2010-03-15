@@ -123,8 +123,7 @@ namespace OpenSim.Services.GridService
                 if ((rflags & OpenSim.Data.RegionFlags.Reservation) != 0)
                 {
                     // Regions reserved for the null key cannot be taken.
-                    //
-                    if (region.Data["PrincipalID"] == UUID.Zero.ToString())
+                    if ((string)region.Data["PrincipalID"] == UUID.Zero.ToString())
                         return "Region location us reserved";
 
                     // Treat it as an auth request
@@ -132,7 +131,6 @@ namespace OpenSim.Services.GridService
                     // NOTE: Fudging the flags value here, so these flags
                     //       should not be used elsewhere. Don't optimize
                     //       this with the later retrieval of the same flags!
-                    //
                     rflags |= OpenSim.Data.RegionFlags.Authenticate;
                 }
 
@@ -489,7 +487,7 @@ namespace OpenSim.Services.GridService
                         f |= (OpenSim.Data.RegionFlags)val;
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     MainConsole.Instance.Output("Error in flag specification: " + p);
                 }

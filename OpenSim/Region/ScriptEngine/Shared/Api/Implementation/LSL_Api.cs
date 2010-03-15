@@ -4221,7 +4221,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return;
             }
 
-            if( message == string.Empty)
+            if (message == string.Empty)
             {
                 ShoutError("Trying to use llTextBox with empty message.");
             }

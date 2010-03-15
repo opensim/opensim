@@ -686,7 +686,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             UserAccount account = m_scene.UserAccountService.GetUserAccount(m_scene.RegionInfo.ScopeID, m_uuid);
 
-            m_userLevel = account.UserLevel;
+            if (account != null)
+                m_userLevel = account.UserLevel;
 
             IGroupsModule gm = m_scene.RequestModuleInterface<IGroupsModule>();
             if (gm != null)
@@ -3957,7 +3958,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (null == m_appearance)
             {
-                m_log.WarnFormat("[ATTACHMENT] Appearance has not been initialized for agent {0}", UUID);
+                m_log.WarnFormat("[ATTACHMENT]: Appearance has not been initialized for agent {0}", UUID);
                 return;
             }
 
@@ -3981,12 +3982,12 @@ namespace OpenSim.Region.Framework.Scenes
                 try
                 {
                     // Rez from inventory
-                    UUID asset = m_scene.RezSingleAttachment(ControllingClient,
-                            itemID, (uint)p);
+                    UUID asset 
+                        = m_scene.AttachmentsModule.RezSingleAttachmentFromInventory(ControllingClient, itemID, (uint)p);
 
-                    m_log.InfoFormat("[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
-                            p, itemID, assetID, asset);
-
+                    m_log.InfoFormat(
+                        "[ATTACHMENT]: Rezzed attachment in point {0} from item {1} and asset {2} ({3})",
+                        p, itemID, assetID, asset);
                 }
                 catch (Exception e)
                 {

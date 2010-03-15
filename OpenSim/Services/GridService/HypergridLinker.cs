@@ -168,10 +168,11 @@ namespace OpenSim.Services.GridService
             }
 
             // Sanity check. 
-            IPAddress ipaddr = null;
+            //IPAddress ipaddr = null;
             try
             {
-                ipaddr = Util.GetHostFromDNS(host);
+                //ipaddr = Util.GetHostFromDNS(host);
+                Util.GetHostFromDNS(host);
             }
             catch 
             {

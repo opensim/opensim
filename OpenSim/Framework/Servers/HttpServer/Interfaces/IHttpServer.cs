@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         bool AddAgentHandler(string agent, IHttpAgentHandler handler);
         
         /// <summary>
-        /// Add a handler for an HTTP request
+        /// Add a handler for an HTTP request.
         /// </summary>
         /// 
         /// This handler can actually be invoked either as 
@@ -66,6 +66,10 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// or
         /// 
         /// http://localhost:9000/object/
+        ///
+        /// In addition, the handler invoked by the HTTP server for any request is the one when best matches the request
+        /// URI.  So if a handler for "/myapp/" is registered and a request for "/myapp/page" is received, then
+        /// the "/myapp/" handler is invoked if no "/myapp/page" handler exists.
         /// 
         /// <param name="methodName"></param>
         /// <param name="handler"></param>
@@ -73,7 +77,6 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// true if the handler was successfully registered, false if a handler with the same name already existed.
         /// </returns>
         bool AddHTTPHandler(string methodName, GenericHTTPMethod handler);
-
          
         bool AddPollServiceHTTPHandler(string methodName, GenericHTTPMethod handler, PollServiceEventArgs args);
 

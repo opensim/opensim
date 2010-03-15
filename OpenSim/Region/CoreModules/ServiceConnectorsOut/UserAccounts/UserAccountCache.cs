@@ -36,50 +36,58 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 {
     public class UserAccountCache
     {
-        //private static readonly ILog m_log =
-        //        LogManager.GetLogger(
-        //        MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private ICnmCache<UUID, UserAccount> m_UUIDCache;
-        private Dictionary<string, UUID> m_NameCache;
+        private static readonly ILog m_log =
+                LogManager.GetLogger(
+                MethodBase.GetCurrentMethod().DeclaringType);
+        private ExpiringCache<UUID, UserAccount> m_UUIDCache;
+        private ExpiringCache<string, UUID> m_NameCache;
 
         public UserAccountCache()
         {
             // Warning: the size values are a bit fuzzy. What matters
             // most for this cache is the count value (128 entries).
-            m_UUIDCache = CnmSynchronizedCache<UUID, UserAccount>.Synchronized(new CnmMemoryCache<UUID, UserAccount>(
-                        128, 128*512, TimeSpan.FromMinutes(30.0)));
-            m_NameCache = new Dictionary<string, UUID>(); // this one is unbound
+            m_UUIDCache = new ExpiringCache<UUID, UserAccount>();
+            m_NameCache = new ExpiringCache<string, UUID>(); // this one is unbound
         }
 
-        public void Cache(UserAccount account)
+        public void Cache(UUID userID, UserAccount account)
         {
-            m_UUIDCache.Set(account.PrincipalID, account, 512);
-            m_NameCache[account.Name] = account.PrincipalID;
+            // Cache even null accounts
+            m_UUIDCache.AddOrUpdate(userID, account, DateTime.Now + TimeSpan.FromMinutes(2.0d));
+            if (account != null)
+                m_NameCache.AddOrUpdate(account.Name, account.PrincipalID, DateTime.Now + TimeSpan.FromMinutes(2.0d));
 
-            //m_log.DebugFormat("[USER CACHE]: cached user {0} {1}", account.FirstName, account.LastName);
+            m_log.DebugFormat("[USER CACHE]: cached user {0}", userID);
         }
 
-        public UserAccount Get(UUID userID)
+        public UserAccount Get(UUID userID, out bool inCache)
         {
             UserAccount account = null;
+            inCache = false;
             if (m_UUIDCache.TryGetValue(userID, out account))
             {
                 //m_log.DebugFormat("[USER CACHE]: Account {0} {1} found in cache", account.FirstName, account.LastName);
+                inCache = true;
                 return account;
             }
 
             return null;
         }
 
-        public UserAccount Get(string name)
+        public UserAccount Get(string name, out bool inCache)
         {
-            if (!m_NameCache.ContainsKey(name))
+            inCache = false;
+            if (!m_NameCache.Contains(name))
                 return null;
 
             UserAccount account = null;
-            if (m_UUIDCache.TryGetValue(m_NameCache[name], out account))
-                return account;
+            UUID uuid = UUID.Zero;
+            if (m_NameCache.TryGetValue(name, out uuid))
+                if (m_UUIDCache.TryGetValue(uuid, out account))
+                {
+                    inCache = true;
+                    return account;
+                }
 
             return null;
         }

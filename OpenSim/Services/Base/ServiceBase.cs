@@ -72,7 +72,7 @@ namespace OpenSim.Services.Base
 //                    m_log.DebugFormat("[SERVICE BASE]: Found type {0}", pluginType);
 
                     if (pluginType.IsPublic)
-                    {                        
+                    {
                         if (className != String.Empty &&
                                 pluginType.ToString() !=
                                 pluginType.Namespace + "." + className)
