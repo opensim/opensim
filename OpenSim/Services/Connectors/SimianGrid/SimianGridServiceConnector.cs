@@ -80,7 +80,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "GridServices"))
+            if (Simian.IsSimianEnabled(source, "GridServices", this.Name))
             {
                 IConfig gridConfig = source.Configs["GridService"];
                 if (gridConfig == null)
