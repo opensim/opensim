@@ -168,6 +168,81 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
             return true;
         }
+
+        public UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        {
+            m_log.DebugFormat("[ATTACHMENTS MODULE]: Rezzing single attachment from item {0} for {1}", itemID, remoteClient.Name);
+            
+            return RezSingleAttachmentFromInventory(remoteClient, itemID, AttachmentPt, true);
+        }
+
+        public UUID RezSingleAttachmentFromInventory(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus)
+        {                        
+            SceneObjectGroup att = RezSingleAttachmentFromInventoryInternal(remoteClient, itemID, AttachmentPt);
+
+            if (updateInventoryStatus)
+            {
+                if (att == null)
+                {
+                    ShowDetachInUserInventory(itemID, remoteClient);
+                }
+    
+                SetAttachmentInventoryStatus(att, remoteClient, itemID, AttachmentPt);
+            }
+
+            if (null == att)
+                return UUID.Zero;
+            else
+                return att.UUID;            
+        }        
+
+        protected SceneObjectGroup RezSingleAttachmentFromInventoryInternal(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt)
+        {
+            IInventoryAccessModule invAccess = m_scene.RequestModuleInterface<IInventoryAccessModule>();
+            if (invAccess != null)
+            {
+                SceneObjectGroup objatt = invAccess.RezObject(remoteClient,
+                    itemID, Vector3.Zero, Vector3.Zero, UUID.Zero, (byte)1, true,
+                    false, false, remoteClient.AgentId, true);
+
+//                m_log.DebugFormat(
+//                    "[ATTACHMENTS MODULE]: Retrieved single object {0} for attachment to {1} on point {2}", 
+//                    objatt.Name, remoteClient.Name, AttachmentPt);
+                
+                if (objatt != null)
+                {
+                    bool tainted = false;
+                    if (AttachmentPt != 0 && AttachmentPt != objatt.GetAttachmentPoint())
+                        tainted = true;
+
+                    AttachObject(
+                        remoteClient, objatt.LocalId, AttachmentPt, Quaternion.Identity, objatt.AbsolutePosition, false);
+                    //objatt.ScheduleGroupForFullUpdate();
+                    
+                    if (tainted)
+                        objatt.HasGroupChanged = true;
+
+                    // Fire after attach, so we don't get messy perms dialogs
+                    // 3 == AttachedRez
+                    objatt.CreateScriptInstances(0, true, m_scene.DefaultScriptEngine, 3);
+
+                    // Do this last so that event listeners have access to all the effects of the attachment
+                    m_scene.EventManager.TriggerOnAttach(objatt.LocalId, itemID, remoteClient.AgentId);
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[ATTACHMENTS MODULE]: Could not retrieve item {0} for attaching to avatar {1} at point {2}", 
+                        itemID, remoteClient.Name, AttachmentPt);
+                }
+                
+                return objatt;
+            }
+            
+            return null;
+        }        
         
         public UUID SetAttachmentInventoryStatus(
             SceneObjectGroup att, IClientAPI remoteClient, UUID itemID, uint AttachmentPt)

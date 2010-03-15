@@ -2338,10 +2338,10 @@ namespace OpenSim.Region.Framework.Scenes
             //m_log.DebugFormat(" >>> IncomingCreateObject(userID, itemID) <<< {0} {1}", userID, itemID);
             
             ScenePresence sp = GetScenePresence(userID);
-            if (sp != null)
+            if (sp != null && AttachmentsModule != null)
             {
-                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);
-                m_sceneGraph.RezSingleAttachment(sp.ControllingClient, itemID, attPt);
+                uint attPt = (uint)sp.Appearance.GetAttachpoint(itemID);                
+                AttachmentsModule.RezSingleAttachmentFromInventory(sp.ControllingClient, itemID, attPt);
             }
 
             return false;
@@ -2642,13 +2642,13 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         public virtual void SubscribeToClientAttachmentEvents(IClientAPI client)
-        {
-            client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
+        {            
             client.OnRezMultipleAttachmentsFromInv += RezMultipleAttachments;            
             client.OnObjectDetach += m_sceneGraph.DetachObject;
 
             if (AttachmentsModule != null)
             {
+                client.OnRezSingleAttachmentFromInv += AttachmentsModule.RezSingleAttachmentFromInventory;
                 client.OnObjectAttach += AttachmentsModule.AttachObject;
                 client.OnDetachAttachmentIntoInv += AttachmentsModule.ShowDetachInUserInventory;
             }
@@ -2799,12 +2799,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         public virtual void UnSubscribeToClientAttachmentEvents(IClientAPI client)
         {
-            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;
-            client.OnRezSingleAttachmentFromInv -= RezSingleAttachment;            
+            client.OnRezMultipleAttachmentsFromInv -= RezMultipleAttachments;            
             client.OnObjectDetach -= m_sceneGraph.DetachObject;
 
             if (AttachmentsModule != null)
             {
+                client.OnRezSingleAttachmentFromInv -= AttachmentsModule.RezSingleAttachmentFromInventory;            
                 client.OnObjectAttach -= AttachmentsModule.AttachObject;
                 client.OnDetachAttachmentIntoInv -= AttachmentsModule.ShowDetachInUserInventory;
             }

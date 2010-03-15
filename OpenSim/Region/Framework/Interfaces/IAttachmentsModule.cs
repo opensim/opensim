@@ -56,7 +56,30 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="silent"></param>
         /// <returns>true if the object was successfully attached, false otherwise</returns>        
         bool AttachObject(
-            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);     
+            IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, Quaternion rot, Vector3 attachPos, bool silent);
+
+        /// <summary>
+        /// Rez an attachment from user inventory and change inventory status to match.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <returns>The scene object that was attached.  Null if the scene object could not be found</returns>
+        UUID RezSingleAttachmentFromInventory(IClientAPI remoteClient, UUID itemID, uint AttachmentPt);
+
+        /// <summary>
+        /// Rez an attachment from user inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="updateinventoryStatus">
+        /// If true, we also update the user's inventory to show that the attachment is set.  If false, we do not.
+        /// False is required so that we don't attempt to update information when a user enters a scene with the
+        /// attachment already correctly set up in inventory.
+        /// <returns>The uuid of the scene object that was attached.  Null if the scene object could not be found</returns>
+        UUID RezSingleAttachmentFromInventory(
+            IClientAPI remoteClient, UUID itemID, uint AttachmentPt, bool updateInventoryStatus);
 
         /// <summary>
         /// Update the user inventory to the attachment of an item
