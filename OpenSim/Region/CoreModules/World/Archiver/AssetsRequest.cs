@@ -74,7 +74,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// uuids to request
         /// </value>
-        protected ICollection<UUID> m_uuids;
+        protected IDictionary<UUID, AssetType> m_uuids;
 
         /// <value>
         /// Callback used when all the assets requested have been received.
@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         protected AssetsArchiver m_assetsArchiver;
 
         protected internal AssetsRequest(
-            AssetsArchiver assetsArchiver, ICollection<UUID> uuids, 
+            AssetsArchiver assetsArchiver, IDictionary<UUID, AssetType> uuids, 
             IAssetService assetService, AssetsRequestCallback assetsRequestCallback)
         {
             m_assetsArchiver = assetsArchiver;
@@ -132,9 +132,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return;
             }
             
-            foreach (UUID uuid in m_uuids)
+            foreach (KeyValuePair<UUID, AssetType> kvp in m_uuids)
             {
-                m_assetService.Get(uuid.ToString(), this, AssetRequestCallback);
+                m_assetService.Get(kvp.Key.ToString(), kvp.Value, PreAssetRequestCallback);
             }
 
             m_requestCallbackTimer.Enabled = true;
@@ -157,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 // Calculate which uuids were not found.  This is an expensive way of doing it, but this is a failure
                 // case anyway.
                 List<UUID> uuids = new List<UUID>();
-                foreach (UUID uuid in m_uuids)
+                foreach (UUID uuid in m_uuids.Keys)
                 {
                     uuids.Add(uuid);
                 }
@@ -198,6 +198,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 m_assetsArchiver.ForceClose();
             }
+        }
+
+        protected void PreAssetRequestCallback(string fetchedAssetID, object assetType, AssetBase fetchedAsset)
+        {
+            // Check for broken asset types and fix them with the AssetType gleaned by UuidGatherer
+            if (fetchedAsset != null && fetchedAsset.Type == (sbyte)AssetType.Unknown)
+            {
+                AssetType type = (AssetType)assetType;
+                m_log.InfoFormat("[ARCHIVER]: Rewriting broken asset type for {0} to {1}", fetchedAsset.ID, type);
+                fetchedAsset.Type = (sbyte)type;
+            }
+
+            AssetRequestCallback(fetchedAssetID, this, fetchedAsset);
         }
 
         /// <summary>

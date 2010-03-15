@@ -84,9 +84,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="assetUuid">The uuid of the asset for which to gather referenced assets</param>
         /// <param name="assetType">The type of the asset for the uuid given</param>
         /// <param name="assetUuids">The assets gathered</param>
-        public void GatherAssetUuids(UUID assetUuid, AssetType assetType, IDictionary<UUID, int> assetUuids)
+        public void GatherAssetUuids(UUID assetUuid, AssetType assetType, IDictionary<UUID, AssetType> assetUuids)
         {
-            assetUuids[assetUuid] = 1;
+            assetUuids[assetUuid] = assetType;
 
             if (AssetType.Bodypart == assetType || AssetType.Clothing == assetType)
             {
@@ -116,7 +116,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// 
         /// <param name="sceneObject">The scene object for which to gather assets</param>
         /// <param name="assetUuids">The assets gathered</param>
-        public void GatherAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, int> assetUuids)
+        public void GatherAssetUuids(SceneObjectGroup sceneObject, IDictionary<UUID, AssetType> assetUuids)
         {
 //            m_log.DebugFormat(
 //                "[ASSET GATHERER]: Getting assets for object {0}, {1}", sceneObject.Name, sceneObject.UUID);
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Framework.Scenes
                     Primitive.TextureEntry textureEntry = part.Shape.Textures;
 
                     // Get the prim's default texture.  This will be used for faces which don't have their own texture
-                    assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
+                    assetUuids[textureEntry.DefaultTexture.TextureID] = AssetType.Texture;
                     
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
@@ -141,13 +141,13 @@ namespace OpenSim.Region.Framework.Scenes
                         if (texture != null)
                         {
                             //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
-                            assetUuids[texture.TextureID] = 1;
+                            assetUuids[texture.TextureID] = AssetType.Texture;
                         }
                     }
                     
                     // If the prim is a sculpt then preserve this information too
                     if (part.Shape.SculptTexture != UUID.Zero)
-                        assetUuids[part.Shape.SculptTexture] = 1;
+                        assetUuids[part.Shape.SculptTexture] = AssetType.Texture;
                     
                     TaskInventoryDictionary taskDictionary = (TaskInventoryDictionary)part.TaskInventory.Clone();
                     
@@ -217,7 +217,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="scriptUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetScriptAssetUuids(UUID scriptUuid, IDictionary<UUID, int> assetUuids)
+        protected void GetScriptAssetUuids(UUID scriptUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase scriptAsset = GetAsset(scriptUuid);
 
@@ -232,7 +232,9 @@ namespace OpenSim.Region.Framework.Scenes
                 {
                     UUID uuid = new UUID(uuidMatch.Value);
                     //m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
-                    assetUuids[uuid] = 1;
+
+                    // Assume AssetIDs embedded in scripts are textures
+                    assetUuids[uuid] = AssetType.Texture;
                 }
             }
         }
@@ -242,7 +244,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="wearableAssetUuid"></param>
         /// <param name="assetUuids">Dictionary in which to record the references</param>
-        protected void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, int> assetUuids)
+        protected void GetWearableAssetUuids(UUID wearableAssetUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase assetBase = GetAsset(wearableAssetUuid);
 
@@ -257,8 +259,7 @@ namespace OpenSim.Region.Framework.Scenes
     
                 foreach (UUID uuid in wearableAsset.Textures.Values)
                 {
-                    //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
-                    assetUuids[uuid] = 1;
+                    assetUuids[uuid] = AssetType.Texture;
                 }
             }
         }
@@ -270,7 +271,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="assetUuids"></param>
-        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, int> assetUuids)
+        protected void GetSceneObjectAssetUuids(UUID sceneObjectUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase objectAsset = GetAsset(sceneObjectUuid);
 
@@ -284,7 +285,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        protected void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, int> assetUuids)
+        protected void GetGestureAssetUuids(UUID gestureUuid, IDictionary<UUID, AssetType> assetUuids)
         {
             AssetBase assetBase = GetAsset(gestureUuid);
 
@@ -316,7 +317,7 @@ namespace OpenSim.Region.Framework.Scenes
                 // If it can be parsed as a UUID, it is an asset ID
                 UUID uuid;
                 if (UUID.TryParse(id, out uuid))
-                    assetUuids[uuid] = 1;
+                    assetUuids[uuid] = AssetType.Animation;
             }
         }
     }
