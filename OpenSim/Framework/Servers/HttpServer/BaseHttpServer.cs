@@ -42,6 +42,7 @@ using Nwc.XmlRpc;
 using OpenMetaverse.StructuredData;
 using CoolHTTPListener = HttpServer.HttpListener;
 using HttpListener=System.Net.HttpListener;
+using LogPrio=HttpServer.LogPrio;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
@@ -294,7 +295,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                             headervals[headername] = req.Headers[headername];
                         }
     
-                        keysvals.Add("headers",headervals);
+                        keysvals.Add("headers", headervals);
                         keysvals.Add("querystringkeys", querystringkeys);
     
                         psEvArgs.Request(psreq.RequestID, keysvals);
@@ -341,7 +342,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 //  the request can be passed through to the other handlers. This is a low
                 //  probability event; if a request is matched it is normally expected to be
                 //  handled
-                //m_log.Debug("[BASE HTTP SERVER]: Handling Request" + request.RawUrl);
+//                m_log.Debug("[BASE HTTP SERVER]: Handling request to " + request.RawUrl);
 
                 IHttpAgentHandler agentHandler;
 
@@ -496,7 +497,8 @@ namespace OpenSim.Framework.Servers.HttpServer
                 {
                     case null:
                     case "text/html":
-                        //m_log.Info("[Debug BASE HTTP SERVER]: found a text/html content type");
+//                        m_log.DebugFormat(
+//                            "[BASE HTTP SERVER]: Found a text/html content type for request {0}", request.RawUrl);
                         HandleHTTPRequest(request, response);
                         return;
 
@@ -524,10 +526,11 @@ namespace OpenSim.Framework.Servers.HttpServer
                             HandleLLSDRequests(request, response);
                             return;
                         }
-                        //m_log.Info("[Debug BASE HTTP SERVER]: Checking for HTTP Handler");
+                    
+//                        m_log.DebugFormat("[BASE HTTP SERVER]: Checking for HTTP Handler for request {0}", request.RawUrl);
                         if (DoWeHaveAHTTPHandler(request.RawUrl))
                         {
-                            //m_log.Info("[Debug BASE HTTP SERVER]: found HTTP Handler");
+//                            m_log.DebugFormat("[BASE HTTP SERVER]: Found HTTP Handler for request {0}", request.RawUrl);
                             HandleHTTPRequest(request, response);
                             return;
                         }
@@ -623,7 +626,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private bool TryGetHTTPHandler(string handlerKey, out GenericHTTPMethod HTTPHandler)
         {
-            //m_log.DebugFormat("[BASE HTTP HANDLER]: Looking for HTTP handler for {0}", handlerKey);
+//            m_log.DebugFormat("[BASE HTTP HANDLER]: Looking for HTTP handler for {0}", handlerKey);
             
             string bestMatch = null;
 
@@ -943,7 +946,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 catch (IOException e)
                 {
-                    m_log.DebugFormat("[BASE HTTP SERVER]: LLSD IOException {0}.", e);
+                    m_log.WarnFormat("[BASE HTTP SERVER]: LLSD IOException {0}.", e);
                 }
                 catch (SocketException e)
                 {
@@ -1218,7 +1221,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
 
         public void HandleHTTPRequest(OSHttpRequest request, OSHttpResponse response)
-        {
+        {            
+//            m_log.DebugFormat(
+//                "[BASE HTTP SERVER]: HandleHTTPRequest for request to {0}, method {1}", 
+//                request.RawUrl, request.HttpMethod);
+            
             switch (request.HttpMethod)
             {
                 case "OPTIONS":
@@ -1233,6 +1240,8 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         private void HandleContentVerbs(OSHttpRequest request, OSHttpResponse response)
         {
+//            m_log.DebugFormat("[BASE HTTP SERVER]: HandleContentVerbs for request to {0}", request.RawUrl);
+            
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
             //
@@ -1273,13 +1282,15 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             foreach (string queryname in querystringkeys)
             {
+//                m_log.DebugFormat(
+//                    "[BASE HTTP SERVER]: Got query paremeter {0}={1}", queryname, request.QueryString[queryname]);
                 keysvals.Add(queryname, request.QueryString[queryname]);
                 requestVars.Add(queryname, keysvals[queryname]);
             }
 
             foreach (string headername in rHeaders)
             {
-                //m_log.Warn("[HEADER]: " + headername + "=" + request.Headers[headername]);
+//                m_log.Debug("[BASE HTTP SERVER]: " + headername + "=" + request.Headers[headername]);
                 headervals[headername] = request.Headers[headername];
             }
 
@@ -1288,15 +1299,16 @@ namespace OpenSim.Framework.Servers.HttpServer
                 host = (string)headervals["Host"];
             }
 
-            keysvals.Add("headers",headervals);
+            keysvals.Add("headers", headervals);
             keysvals.Add("querystringkeys", querystringkeys);
             keysvals.Add("requestvars", requestVars);
+//            keysvals.Add("form", request.Form);
 
             if (keysvals.Contains("method"))
             {
-                //m_log.Warn("[HTTP]: Contains Method");
+//                m_log.Debug("[BASE HTTP SERVER]: Contains Method");
                 string method = (string) keysvals["method"];
-                //m_log.Warn("[HTTP]: " + requestBody);
+//                m_log.Debug("[BASE HTTP SERVER]: " + requestBody);
                 GenericHTTPMethod requestprocessor;
                 bool foundHandler = TryGetHTTPHandler(method, out requestprocessor);
                 if (foundHandler)
@@ -1308,13 +1320,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 else
                 {
-                    //m_log.Warn("[HTTP]: Handler Not Found");
+//                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found");
                     SendHTML404(response, host);
                 }
             }
             else
             {
-
                 GenericHTTPMethod requestprocessor;
                 bool foundHandler = TryGetHTTPHandlerPathBased(request.RawUrl, out requestprocessor);
                 if (foundHandler)
@@ -1326,7 +1337,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 }
                 else
                 {
-                    //m_log.Warn("[HTTP]: Handler Not Found");
+//                    m_log.Warn("[BASE HTTP SERVER]: Handler Not Found2");
                     SendHTML404(response, host);
                 }
             }
@@ -1374,8 +1385,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     {
                         if (String.IsNullOrEmpty(bestMatch) || searchquery.Length > bestMatch.Length)
                         {
-                            // You have to specifically register for '/' and to get it, you must specificaly request it
-                            //
+                            // You have to specifically register for '/' and to get it, you must specifically request it
                             if (pattern == "/" && searchquery == "/" || pattern != "/")
                                 bestMatch = pattern;
                         }
@@ -1814,30 +1824,36 @@ namespace OpenSim.Framework.Servers.HttpServer
     /// <summary>
     /// Relays HttpServer log messages to our own logging mechanism.
     /// </summary>
-    /// There is also a UseTraceLogs line in this file that can be uncommented for more detailed log information
+    /// To use this you must uncomment the switch section
+    ///
+    /// You may also be able to get additional trace information from HttpServer if you uncomment the UseTraceLogs
+    /// property in StartHttp() for the HttpListener
     public class HttpServerLogWriter : ILogWriter
     {
-        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Write(object source, LogPrio priority, string message)
         {
             /*
             switch (priority)
             {
-                case HttpServer.LogPrio.Debug:
-                    m_log.DebugFormat("[{0}]: {1}", source.ToString(), message);
+                case LogPrio.Trace:
+                    m_log.DebugFormat("[{0}]: {1}", source, message);
+                    break;                
+                case LogPrio.Debug:
+                    m_log.DebugFormat("[{0}]: {1}", source, message);
                     break;
-                case HttpServer.LogPrio.Error:
-                    m_log.ErrorFormat("[{0}]: {1}", source.ToString(), message);
+                case LogPrio.Error:
+                    m_log.ErrorFormat("[{0}]: {1}", source, message);
                     break;
-                case HttpServer.LogPrio.Info:
-                    m_log.InfoFormat("[{0}]: {1}", source.ToString(), message);
+                case LogPrio.Info:
+                    m_log.InfoFormat("[{0}]: {1}", source, message);
                     break;
-                case HttpServer.LogPrio.Warning:
-                    m_log.WarnFormat("[{0}]: {1}", source.ToString(), message);
+                case LogPrio.Warning:
+                    m_log.WarnFormat("[{0}]: {1}", source, message);
                     break;
-                case HttpServer.LogPrio.Fatal:
-                    m_log.ErrorFormat("[{0}]: FATAL! - {1}", source.ToString(), message);
+                case LogPrio.Fatal:
+                    m_log.ErrorFormat("[{0}]: FATAL! - {1}", source, message);
                     break;
                 default:
                     break;
