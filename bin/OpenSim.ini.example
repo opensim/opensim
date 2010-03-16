@@ -37,13 +37,6 @@
     ; performance on .NET/Windows
     async_call_method = SmartThreadPool
 
-    ; There are several operations on large collections (such as
-    ; the current avatar list) that can be run synchronously or
-    ; in parallel. Running in parallel should increase performance
-    ; on a multi-core system, but will make debugging more
-    ; difficult if something deadlocks or times out
-    use_async_when_possible = false
-
     ; Max threads to allocate on the FireAndForget thread pool
     ; when running with the SmartThreadPool option above
     MaxPoolThreads = 15

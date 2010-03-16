@@ -131,7 +131,6 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds;
         private volatile bool m_backingup;
-        private bool m_useAsyncWhenPossible;
 
         private Dictionary<UUID, ReturnInfo> m_returns = new Dictionary<UUID, ReturnInfo>();
         private Dictionary<UUID, SceneObjectGroup> m_groupsWithTargets = new Dictionary<UUID, SceneObjectGroup>();
@@ -653,9 +652,6 @@ namespace OpenSim.Region.Framework.Scenes
                 // Region config overrides global config
                 //
                 IConfig startupConfig = m_config.Configs["Startup"];
-
-                // Should we try to run loops synchronously or asynchronously?
-                m_useAsyncWhenPossible = startupConfig.GetBoolean("use_async_when_possible", false);
 
                 //Animation states
                 m_useFlySlow = startupConfig.GetBoolean("enableflyslow", false);
@@ -4289,20 +4285,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void ForEachClient(Action<IClientAPI> action)
         {
-            ForEachClient(action, m_useAsyncWhenPossible);
-        }
-
-        public void ForEachClient(Action<IClientAPI> action, bool doAsynchronous)
-        {
-            // FIXME: Asynchronous iteration is disabled until we have a threading model that
-            // can support calling this function from an async packet handler without
-            // potentially deadlocking
             m_clientManager.ForEachSync(action);
-
-            //if (doAsynchronous)
-            //    m_clientManager.ForEach(action);
-            //else
-            //    m_clientManager.ForEachSync(action);
         }
 
         public bool TryGetClient(UUID avatarID, out IClientAPI client)
