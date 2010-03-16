@@ -1115,6 +1115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.TouchUV;
         }
 
+        [DebuggerNonUserCode]
         public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
