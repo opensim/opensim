@@ -63,6 +63,11 @@ namespace OpenSim.Services.Connectors.Simulation
             return null;
         }
 
+        public ISimulationService GetInnerService()
+        {
+            return null;
+        }
+
         #region Agents
 
         protected virtual string AgentPath()
