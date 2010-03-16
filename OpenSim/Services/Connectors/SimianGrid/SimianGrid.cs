@@ -39,7 +39,7 @@ public static class Simian
         if (config.Configs["Modules"] != null)
         {
             string module = config.Configs["Modules"].GetString(moduleName);
-            return !String.IsNullOrEmpty(module) && module == connectorName;
+            return !String.IsNullOrEmpty(module) && module.EndsWith(connectorName);
         }
 
         return false;
