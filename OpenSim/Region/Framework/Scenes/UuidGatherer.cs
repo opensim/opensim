@@ -129,19 +129,20 @@ namespace OpenSim.Region.Framework.Scenes
                 try
                 {
                     Primitive.TextureEntry textureEntry = part.Shape.Textures;
-
-                    // Get the prim's default texture.  This will be used for faces which don't have their own texture
-                    assetUuids[textureEntry.DefaultTexture.TextureID] = AssetType.Texture;
-                    
-                    // XXX: Not a great way to iterate through face textures, but there's no
-                    // other method available to tell how many faces there actually are
-                    //int i = 0;
-                    foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
+                    if (textureEntry != null)
                     {
-                        if (texture != null)
+                        // Get the prim's default texture.  This will be used for faces which don't have their own texture
+                        if (textureEntry.DefaultTexture != null)
+                            assetUuids[textureEntry.DefaultTexture.TextureID] = AssetType.Texture;
+
+                        if (textureEntry.FaceTextures != null)
                         {
-                            //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
-                            assetUuids[texture.TextureID] = AssetType.Texture;
+                            // Loop through the rest of the texture faces (a non-null face means the face is different from DefaultTexture)
+                            foreach (Primitive.TextureEntryFace texture in textureEntry.FaceTextures)
+                            {
+                                if (texture != null)
+                                    assetUuids[texture.TextureID] = AssetType.Texture;
+                            }
                         }
                     }
                     
