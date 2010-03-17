@@ -3599,9 +3599,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
             ScenePresence presence;
-            m_sceneGraph.TryGetAvatar(agentID, out presence);
-
-            if (presence != null)
+            if(m_sceneGraph.TryGetAvatar(agentID, out presence))
             {
                 try
                 {
@@ -3776,9 +3774,7 @@ namespace OpenSim.Region.Framework.Scenes
                                             Vector3 lookAt, uint teleportFlags)
         {
             ScenePresence sp;
-            m_sceneGraph.TryGetAvatar(remoteClient.AgentId, out sp);
-
-            if (sp != null)
+            if(m_sceneGraph.TryGetAvatar(remoteClient.AgentId, out sp))
             {
                 uint regionX = m_regInfo.RegionLocX;
                 uint regionY = m_regInfo.RegionLocY;
@@ -4134,6 +4130,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         //The idea is to have a group of method that return a list of avatars meeting some requirement
         // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
+        // 
+        // GetAvatars returns a new list of all root agent presences in the scene
+        // GetScenePresences returns a new list of all presences in the scene or a filter may be passed.
+        // GetScenePresence returns the presence with matching UUID or first/last name.
+        // ForEachScenePresence requests the Scene to run a delegate function against all presences.
 
         /// <summary>
         /// Return a list of all avatars in this region.
@@ -4150,7 +4151,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// This list is a new object, so it can be iterated over without locking.
         /// </summary>
         /// <returns></returns>
-        public ScenePresence[] GetScenePresences()
+        public List<ScenePresence> GetScenePresences()
         {
             return m_sceneGraph.GetScenePresences();
         }
@@ -4176,6 +4177,28 @@ namespace OpenSim.Region.Framework.Scenes
             return m_sceneGraph.GetScenePresence(avatarID);
         }
 
+        /// <summary>
+        /// Request the ScenePresence in this region by first/last name.
+        /// Should normally only be a single match, but first is always returned
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns></returns>
+        public ScenePresence GetScenePresence(string firstName, string lastName)
+        {
+            return m_sceneGraph.GetScenePresence(firstName, lastName);
+        }
+
+        /// <summary>
+        /// Request the ScenePresence in this region by localID.
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns></returns>
+        public ScenePresence GetScenePresence(uint localID)
+        {
+            return m_sceneGraph.GetScenePresence(localID);
+        }
+
         public override bool PresenceChildStatus(UUID avatarID)
         {
             ScenePresence cp = GetScenePresence(avatarID);
@@ -4191,25 +4214,14 @@ namespace OpenSim.Region.Framework.Scenes
         }
 
         /// <summary>
-        ///
+        /// Performs action on all scene presences.
         /// </summary>
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            // We don't want to try to send messages if there are no avatars.
             if (m_sceneGraph != null)
             {
-                try
-                {
-                    ScenePresence[] presences = GetScenePresences();
-                    for (int i = 0; i < presences.Length; i++)
-                        action(presences[i]);
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("[BUG] in " + RegionInfo.RegionName + ": " + e.ToString());
-                    m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
-                }
+                m_sceneGraph.ForEachScenePresence(action);
             }
         }
 

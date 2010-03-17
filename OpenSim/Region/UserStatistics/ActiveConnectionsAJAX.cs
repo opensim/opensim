@@ -68,7 +68,7 @@ namespace OpenSim.Region.UserStatistics
             HTMLUtil.OL_O(ref output, "");
             foreach (Scene scene in all_scenes)
             {
-                ScenePresence[] avatarInScene = scene.GetScenePresences();
+                List<ScenePresence> avatarInScene = scene.GetScenePresences();
 
                 HTMLUtil.LI_O(ref output, String.Empty);
                 output.Append(scene.RegionInfo.RegionName);

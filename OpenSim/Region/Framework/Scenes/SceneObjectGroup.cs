@@ -1268,22 +1268,20 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
 //                    part.Inventory.RemoveScriptInstances();
-
-                    ScenePresence[] avatars = Scene.GetScenePresences();
-                    for (int i = 0; i < avatars.Length; i++)
+                    Scene.ForEachScenePresence(delegate(ScenePresence avatar)
                     {
-                        if (avatars[i].ParentID == LocalId)
+                        if (avatar.ParentID == LocalId)
                         {
-                            avatars[i].StandUp();
+                            avatar.StandUp();
                         }
 
                         if (!silent)
                         {
                             part.UpdateFlag = 0;
                             if (part == m_rootPart)
-                                avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                                avatar.ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                         }
-                    }
+                    });
                 }
             }
         }

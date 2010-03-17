@@ -469,12 +469,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
         {
             // Get a fresh list that will not change as people get teleported away
-            ScenePresence[] presences = m_scene.GetScenePresences();
+            List<ScenePresence> presences = m_scene.GetScenePresences();
 
-            for (int i = 0; i < presences.Length; i++)
+            foreach(ScenePresence p in presences)
             {
-                ScenePresence p = presences[i];
-
                 if (p.UUID != senderID)
                 {
                     // make sure they are still there, we could be working down a long list
