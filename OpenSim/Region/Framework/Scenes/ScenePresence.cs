@@ -463,7 +463,8 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 PhysicsActor actor = m_physicsActor;
-                if (actor != null)
+//                if (actor != null)
+                if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
                     m_pos = actor.Position;
 
                 return m_parentPosition + m_pos;
@@ -484,7 +485,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_pos = value;
+                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
+                    m_pos = value;
                 m_parentPosition = Vector3.Zero;
             }
         }
@@ -1267,6 +1269,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_log.Error("[AVATAR]: NonFinite Avatar position detected... Reset Position. Mantis this please. Error #9999902");
 
                 m_pos = m_LastFinitePos;
+                
                 if (!m_pos.IsFinite())
                 {
                     m_pos.X = 127f;
@@ -1904,6 +1907,7 @@ namespace OpenSim.Region.Framework.Scenes
 					{
 						m_avUnscriptedSitPos = Vector3.Zero;	// Zero = Sit on prim center
 						autopilotTarget = part.AbsolutePosition;
+//Console.WriteLine("UsSmall autopilotTarget={0}", autopilotTarget);						
     	       		}
     	       		else return; 		// occupied small
     	       	}	// end large/small
@@ -2280,7 +2284,8 @@ namespace OpenSim.Region.Framework.Scenes
                         m_pos += SIT_TARGET_ADJUSTMENT;
                         m_bodyRot = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
-	    	            part.IsOccupied = true;                        
+	    	            part.IsOccupied = true;
+Console.WriteLine("Scripted Sit ofset {0}", m_pos);	    	                                
                     }
                     else
                     {
@@ -3348,6 +3353,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_callbackURI = cAgent.CallbackURI;
 
             m_pos = cAgent.Position;
+            
             m_velocity = cAgent.Velocity;
             m_CameraCenter = cAgent.Center;
             //m_avHeight = cAgent.Size.Z;
