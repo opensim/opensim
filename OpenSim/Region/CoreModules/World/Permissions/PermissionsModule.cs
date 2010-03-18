@@ -1276,13 +1276,104 @@ namespace OpenSim.Region.CoreModules.World.Permissions
 
         private bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene)
         {
-            if (objects.Count == 0)
-                return false;
-
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericObjectPermission(user, objects[0].UUID, false);
+            GroupPowers powers;
+            ILandObject l;
+
+            ScenePresence sp = scene.GetScenePresence(user);
+            if (sp == null)
+                return false;
+
+            IClientAPI client = sp.ControllingClient;
+
+            foreach (SceneObjectGroup g in new List<SceneObjectGroup>(objects))
+            {
+                // Any user can return their own objects at any time
+                //
+                if (GenericObjectPermission(user, g.UUID, false))
+                    continue;
+
+                // This is a short cut for efficiency. If land is non-null,
+                // then all objects are on that parcel and we can save
+                // ourselves the checking for each prim. Much faster.
+                //
+                if (land != null)
+                {
+                    l = land;
+                }
+                else
+                {
+                    Vector3 pos = g.AbsolutePosition;
+
+                    l = scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                }
+
+                // If it's not over any land, then we can't do a thing
+                if (l == null)
+                {
+                    objects.Remove(g);
+                    continue;
+                }
+
+                // If we own the land outright, then allow
+                //
+                if (l.LandData.OwnerID == user)
+                    continue;
+
+                // Group voodoo
+                //
+                if (land.LandData.IsGroupOwned)
+                {
+                    powers = (GroupPowers)client.GetGroupPowers(land.LandData.GroupID);
+                    // Not a group member, or no rights at all
+                    //
+                    if (powers == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // Group deeded object?
+                    //
+                    if (g.OwnerID == l.LandData.GroupID &&
+                        (powers & GroupPowers.ReturnGroupOwned) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // Group set object?
+                    //
+                    if (g.GroupID == l.LandData.GroupID &&
+                        (powers & GroupPowers.ReturnGroupSet) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    if ((powers & GroupPowers.ReturnNonGroup) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // So we can remove all objects from this group land.
+                    // Fine.
+                    //
+                    continue;
+                }
+
+                // By default, we can't remove
+                //
+                objects.Remove(g);
+            }
+
+            if (objects.Count == 0)
+                return false;
+
+            return true;
         }
 
         private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
