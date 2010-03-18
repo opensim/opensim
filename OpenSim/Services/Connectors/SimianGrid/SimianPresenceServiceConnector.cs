@@ -104,7 +104,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "PresenceServices"))
+            if (Simian.IsSimianEnabled(source, "PresenceServices", this.Name))
             {
                 IConfig gridConfig = source.Configs["PresenceService"];
                 if (gridConfig == null)

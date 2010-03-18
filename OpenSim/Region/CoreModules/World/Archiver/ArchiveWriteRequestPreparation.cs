@@ -100,7 +100,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <exception cref="System.IO.IOException">if there was an io problem with creating the file</exception>
         public void ArchiveRegion()
         {
-            Dictionary<UUID, int> assetUuids = new Dictionary<UUID, int>();
+            Dictionary<UUID, AssetType> assetUuids = new Dictionary<UUID, AssetType>();
 
             List<EntityBase> entities = m_scene.GetEntities();
             List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
@@ -142,18 +142,18 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             
             // Make sure that we also request terrain texture assets
             RegionSettings regionSettings = m_scene.RegionInfo.RegionSettings;
-            
+
             if (regionSettings.TerrainTexture1 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_1)
-                assetUuids[regionSettings.TerrainTexture1] = 1;
+                assetUuids[regionSettings.TerrainTexture1] = AssetType.Texture;
             
             if (regionSettings.TerrainTexture2 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_2)
-                assetUuids[regionSettings.TerrainTexture2] = 1;
+                assetUuids[regionSettings.TerrainTexture2] = AssetType.Texture;
             
             if (regionSettings.TerrainTexture3 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_3)
-                assetUuids[regionSettings.TerrainTexture3] = 1;
+                assetUuids[regionSettings.TerrainTexture3] = AssetType.Texture;
             
             if (regionSettings.TerrainTexture4 != RegionSettings.DEFAULT_TERRAIN_TEXTURE_4)
-                assetUuids[regionSettings.TerrainTexture4] = 1;
+                assetUuids[regionSettings.TerrainTexture4] = AssetType.Texture;
 
             TarArchiveWriter archiveWriter = new TarArchiveWriter(m_saveStream);
             
@@ -168,7 +168,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     m_requestId);
             
             new AssetsRequest(
-                new AssetsArchiver(archiveWriter), assetUuids.Keys, 
+                new AssetsArchiver(archiveWriter), assetUuids, 
                 m_scene.AssetService, awre.ReceivedAllAssets).Execute();
         }
     }

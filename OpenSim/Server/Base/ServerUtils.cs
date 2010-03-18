@@ -101,10 +101,23 @@ namespace OpenSim.Server.Base
                             continue;
                         
                         Type typeInterface = pluginType.GetInterface(interfaceName, true);
-                        
+
                         if (typeInterface != null)
                         {
-                            return (T)Activator.CreateInstance(pluginType, args);
+                            T plug = null;
+                            try
+                            {
+                                plug = (T)Activator.CreateInstance(pluginType,
+                                        args);
+                            }
+                            catch (Exception e)
+                            {
+                                if (!(e is System.MissingMethodException))
+                                    m_log.ErrorFormat("Error loading plugin from {0}, exception {1}", dllName, e.InnerException);
+                                return null;
+                            }
+
+                            return plug;
                         }
                     }
                 }

@@ -87,31 +87,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         
         public void SendAlertToUser(string firstName, string lastName, string message, bool modal)
         {
-            ScenePresence[] presenceList = m_scene.GetScenePresences();
-
-            for (int i = 0; i < presenceList.Length; i++)
-            {
-                ScenePresence presence = presenceList[i];
-
-                if (presence.Firstname == firstName && presence.Lastname == lastName)
-                {
-                    presence.ControllingClient.SendAgentAlertMessage(message, modal);
-                    break;
-                }
-            }
+            ScenePresence presence = m_scene.GetScenePresence(firstName, lastName);
+            if(presence != null)
+                presence.ControllingClient.SendAgentAlertMessage(message, modal);
         }
         
         public void SendGeneralAlert(string message)
         {
-            ScenePresence[] presenceList = m_scene.GetScenePresences();
-
-            for (int i = 0; i < presenceList.Length; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                ScenePresence presence = presenceList[i];
-
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendAlertMessage(message);
-            }
+            });
         }
 
         public void SendDialogToUser(
@@ -179,14 +166,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Dialog
         public void SendNotificationToUsersInRegion(
             UUID fromAvatarID, string fromAvatarName, string message)
         {
-            ScenePresence[] presences = m_scene.GetScenePresences();
-
-            for (int i = 0; i < presences.Length; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                ScenePresence presence = presences[i];
                 if (!presence.IsChildAgent)
                     presence.ControllingClient.SendBlueBoxMessage(fromAvatarID, fromAvatarName, message);
-            }
+            });
         }
         
         /// <summary>

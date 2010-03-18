@@ -1020,7 +1020,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     // Handle outgoing packets, resends, acknowledgements, and pings for each
                     // client. m_packetSent will be set to true if a packet is sent
-                    m_scene.ForEachClient(clientPacketHandler, false);
+                    m_scene.ForEachClient(clientPacketHandler);
 
                     // If nothing was sent, sleep for the minimum amount of time before a
                     // token bucket could get more tokens

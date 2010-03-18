@@ -251,13 +251,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                                     // if you want tree blocks on the map comment the above line and uncomment the below line
                                     //mapdotspot = Color.PaleGreen;
 
-                                    if (part.Shape.Textures == null)
+                                    Primitive.TextureEntry textureEntry = part.Shape.Textures;
+
+                                    if (textureEntry == null || textureEntry.DefaultTexture == null)
                                         continue;
 
-                                    if (part.Shape.Textures.DefaultTexture == null)
-                                        continue;
-
-                                    Color4 texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                    Color4 texcolor = textureEntry.DefaultTexture.RGBA;
 
                                     // Not sure why some of these are null, oh well.
 

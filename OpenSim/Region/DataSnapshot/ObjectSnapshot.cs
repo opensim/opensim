@@ -203,44 +203,54 @@ namespace OpenSim.Region.DataSnapshot.Providers
         {
             string bestguess = string.Empty;
             Dictionary<UUID, int> counts = new Dictionary<UUID, int>();
-            if (sog.RootPart.Shape != null && sog.RootPart.Shape.ProfileShape == ProfileShape.Square &&
-                sog.RootPart.Shape.Textures != null && sog.RootPart.Shape.Textures.FaceTextures != null)
-            {
-                if (sog.RootPart.Shape.Textures.DefaultTexture.TextureID != UUID.Zero &&
-                    sog.RootPart.Shape.Textures.DefaultTexture.TextureID != m_DefaultImage &&
-                    sog.RootPart.Shape.Textures.DefaultTexture.TextureID != m_BlankImage &&
-                    sog.RootPart.Shape.Textures.DefaultTexture.RGBA.A < 50)
-                {
-                    counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] = 8;
-                }
 
-                foreach (Primitive.TextureEntryFace tentry in sog.RootPart.Shape.Textures.FaceTextures)
+            PrimitiveBaseShape shape = sog.RootPart.Shape;
+            if (shape != null && shape.ProfileShape == ProfileShape.Square)
+            {
+                Primitive.TextureEntry textures = shape.Textures;
+                if (textures != null)
                 {
-                    if (tentry != null)
+                    if (textures.DefaultTexture != null &&
+                        textures.DefaultTexture.TextureID != UUID.Zero &&
+                        textures.DefaultTexture.TextureID != m_DefaultImage &&
+                        textures.DefaultTexture.TextureID != m_BlankImage &&
+                        textures.DefaultTexture.RGBA.A < 50f)
                     {
-                        if (tentry.TextureID != UUID.Zero && tentry.TextureID != m_DefaultImage && tentry.TextureID != m_BlankImage && tentry.RGBA.A < 50)
+                        counts[textures.DefaultTexture.TextureID] = 8;
+                    }
+
+                    if (textures.FaceTextures != null)
+                    {
+                        foreach (Primitive.TextureEntryFace tentry in textures.FaceTextures)
                         {
-                            int c = 0;
-                            counts.TryGetValue(tentry.TextureID, out c);
-                            counts[tentry.TextureID] = c + 1;
-                            // decrease the default texture count
-                            if (counts.ContainsKey(sog.RootPart.Shape.Textures.DefaultTexture.TextureID))
-                                counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] = counts[sog.RootPart.Shape.Textures.DefaultTexture.TextureID] - 1;
+                            if (tentry != null)
+                            {
+                                if (tentry.TextureID != UUID.Zero && tentry.TextureID != m_DefaultImage && tentry.TextureID != m_BlankImage && tentry.RGBA.A < 50)
+                                {
+                                    int c = 0;
+                                    counts.TryGetValue(tentry.TextureID, out c);
+                                    counts[tentry.TextureID] = c + 1;
+                                    // decrease the default texture count
+                                    if (counts.ContainsKey(textures.DefaultTexture.TextureID))
+                                        counts[textures.DefaultTexture.TextureID] = counts[textures.DefaultTexture.TextureID] - 1;
+                                }
+                            }
+                        }
+                    }
+
+                    // Let's pick the most unique texture
+                    int min = 9999;
+                    foreach (KeyValuePair<UUID, int> kv in counts)
+                    {
+                        if (kv.Value < min && kv.Value >= 1)
+                        {
+                            bestguess = kv.Key.ToString();
+                            min = kv.Value;
                         }
                     }
                 }
-
-                // Let's pick the most unique texture
-                int min = 9999;
-                foreach (KeyValuePair<UUID, int> kv in counts)
-                {
-                    if (kv.Value < min && kv.Value >= 1)
-                    {
-                        bestguess = kv.Key.ToString();
-                        min = kv.Value;
-                    }
-                }
             }
+
             return bestguess;
         }
     }
