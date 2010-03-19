@@ -1115,6 +1115,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             return detectedParams.TouchUV;
         }
 
+        [DebuggerNonUserCode]
         public virtual void llDie()
         {
             m_host.AddScriptLPS(1);
@@ -4192,6 +4193,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 ScenePresence presence = World.GetScenePresence(agentId);
                 if (presence != null)
                 {
+                    // agent must not be a god
+                    if (presence.GodLevel >= 200) return;
+
                     // agent must be over the owners land
                     if (m_host.OwnerID == World.LandChannel.GetLandObject(
                             presence.AbsolutePosition.X, presence.AbsolutePosition.Y).LandData.OwnerID)

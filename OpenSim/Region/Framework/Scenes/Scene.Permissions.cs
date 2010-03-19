@@ -48,7 +48,7 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool EditObjectInventoryHandler(UUID objectID, UUID editorID, Scene scene);
     public delegate bool MoveObjectHandler(UUID objectID, UUID moverID, Scene scene);
     public delegate bool ObjectEntryHandler(UUID objectID, bool enteringRegion, Vector3 newPoint, Scene scene);
-    public delegate bool ReturnObjectHandler(UUID objectID, UUID returnerID, Scene scene);
+    public delegate bool ReturnObjectsHandler(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene);
     public delegate bool InstantMessageHandler(UUID user, UUID target, Scene startScene);
     public delegate bool InventoryTransferHandler(UUID user, UUID target, Scene startScene);
     public delegate bool ViewScriptHandler(UUID script, UUID objectID, UUID user, Scene scene);
@@ -81,7 +81,6 @@ namespace OpenSim.Region.Framework.Scenes
     public delegate bool CopyUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool DeleteUserInventoryHandler(UUID itemID, UUID userID);
     public delegate bool TeleportHandler(UUID userID, Scene scene);
-    public delegate bool UseObjectReturnHandler(ILandObject landData, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene);
     #endregion
 
     public class ScenePermissions
@@ -107,7 +106,7 @@ namespace OpenSim.Region.Framework.Scenes
         public event EditObjectInventoryHandler OnEditObjectInventory;
         public event MoveObjectHandler OnMoveObject;
         public event ObjectEntryHandler OnObjectEntry;
-        public event ReturnObjectHandler OnReturnObject;
+        public event ReturnObjectsHandler OnReturnObjects;
         public event InstantMessageHandler OnInstantMessage;
         public event InventoryTransferHandler OnInventoryTransfer;
         public event ViewScriptHandler OnViewScript;
@@ -140,7 +139,6 @@ namespace OpenSim.Region.Framework.Scenes
         public event CopyUserInventoryHandler OnCopyUserInventory;
         public event DeleteUserInventoryHandler OnDeleteUserInventory;
         public event TeleportHandler OnTeleport;
-        public event UseObjectReturnHandler OnUseObjectReturn;
         #endregion
 
         #region Object Permission Checks
@@ -377,15 +375,15 @@ namespace OpenSim.Region.Framework.Scenes
         #endregion
 
         #region RETURN OBJECT
-        public bool CanReturnObject(UUID objectID, UUID returnerID)
+        public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects)
         {
-            ReturnObjectHandler handler = OnReturnObject;
+            ReturnObjectsHandler handler = OnReturnObjects;
             if (handler != null)
             {
                 Delegate[] list = handler.GetInvocationList();
-                foreach (ReturnObjectHandler h in list)
+                foreach (ReturnObjectsHandler h in list)
                 {
-                    if (h(objectID, returnerID, m_scene) == false)
+                    if (h(land, user, objects, m_scene) == false)
                         return false;
                 }
             }
@@ -944,21 +942,6 @@ namespace OpenSim.Region.Framework.Scenes
                 foreach (TeleportHandler h in list)
                 {
                     if (h(userID, m_scene) == false)
-                        return false;
-                }
-            }
-            return true;
-        }
-
-        public bool CanUseObjectReturn(ILandObject landData, uint type , IClientAPI client, List<SceneObjectGroup> retlist)
-        {
-            UseObjectReturnHandler handler = OnUseObjectReturn;
-            if (handler != null)
-            {
-                Delegate[] list = handler.GetInvocationList();
-                foreach (UseObjectReturnHandler h in list)
-                {
-                    if (h(landData, type, client, retlist, m_scene) == false)
                         return false;
                 }
             }

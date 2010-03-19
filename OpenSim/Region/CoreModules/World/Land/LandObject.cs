@@ -915,7 +915,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             foreach (List<SceneObjectGroup> ol in returns.Values)
             {
-                if (m_scene.Permissions.CanUseObjectReturn(this, type, remote_client, ol))
+                if (m_scene.Permissions.CanReturnObjects(this, remote_client.AgentId, ol))
                     m_scene.returnObjects(ol.ToArray(), remote_client.AgentId);
             }
         }
