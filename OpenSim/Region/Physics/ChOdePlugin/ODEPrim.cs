@@ -804,6 +804,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_isphysical && Body != IntPtr.Zero)
             {
                 d.BodyDisable(Body);
+                Halt();
             }
         }
 
@@ -2972,7 +2973,8 @@ Console.WriteLine(" JointCreateFixed");
 			m_wLinObjectVel = Vector3.Zero;
 			m_angularMotorDirection = Vector3.Zero;		
 			m_lastAngularVelocity = Vector3.Zero;
-			m_angularMotorDVel = Vector3.Zero;	
+			m_angularMotorDVel = Vector3.Zero;
+			_acceleration = Vector3.Zero;	
 		}
 		
 		private void UpdateLinDecay()
