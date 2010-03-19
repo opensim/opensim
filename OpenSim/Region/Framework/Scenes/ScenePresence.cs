@@ -455,8 +455,9 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 PhysicsActor actor = m_physicsActor;
-                if (actor != null)
-                    m_pos = actor.Position;
+//                if (actor != null)
+                if ((actor != null) && (m_parentID == 0))   // KF Do NOT update m_pos here if Av is sitting!
+                    m_pos = actor.Position;                
 
                 return m_parentPosition + m_pos;
             }
@@ -476,7 +477,8 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                 }
 
-                m_pos = value;
+                if (m_parentID == 0)   // KF Do NOT update m_pos here if Av is sitting!
+                    m_pos = value;
                 m_parentPosition = Vector3.Zero;
             }
         }
