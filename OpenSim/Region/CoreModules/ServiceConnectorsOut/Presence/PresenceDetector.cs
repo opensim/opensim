@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Presence
                 Vector3 position = new Vector3(128, 128, 0);
                 Vector3 lookat = new Vector3(0, 1, 0);
 
-                if (client.Scene.TryGetAvatar(client.AgentId, out sp))
+                if (client.Scene.TryGetScenePresence(client.AgentId, out sp))
                 {
                     if (sp is ScenePresence)
                     {

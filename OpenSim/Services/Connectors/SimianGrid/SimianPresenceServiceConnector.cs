@@ -301,7 +301,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
         private void SignificantClientMovementHandler(IClientAPI client)
         {
             ScenePresence sp;
-            if (client.Scene is Scene && ((Scene)client.Scene).TryGetAvatar(client.AgentId, out sp))
+            if (client.Scene is Scene && ((Scene)client.Scene).TryGetScenePresence(client.AgentId, out sp))
                 ReportAgent(sp.ControllingClient.SessionId, sp.Scene.RegionInfo.RegionID, sp.AbsolutePosition, sp.Lookat);
         }
 
@@ -312,7 +312,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                 client.OnConnectionClosed -= LogoutHandler;
 
                 object obj;
-                if (client.Scene.TryGetAvatar(client.AgentId, out obj) && obj is ScenePresence)
+                if (client.Scene.TryGetScenePresence(client.AgentId, out obj) && obj is ScenePresence)
                 {
                     // The avatar is still in the scene, we can get the exact logout position
                     ScenePresence sp = (ScenePresence)obj;

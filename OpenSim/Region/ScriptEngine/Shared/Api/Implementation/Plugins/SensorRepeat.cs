@@ -472,7 +472,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 ScenePresence sp;
                 // Try direct lookup by UUID
-                if(!m_CmdManager.m_ScriptEngine.World.TryGetAvatar(ts.keyID, out sp))
+                if(!m_CmdManager.m_ScriptEngine.World.TryGetScenePresence(ts.keyID, out sp))
                     return sensedEntities;
                 senseEntity(sp);
             }

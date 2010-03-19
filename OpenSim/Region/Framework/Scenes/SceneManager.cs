@@ -486,11 +486,11 @@ namespace OpenSim.Region.Framework.Scenes
             ForEachCurrentScene(delegate(Scene scene) { scene.HandleEditCommand(cmdparams); });
         }
 
-        public bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
+        public bool TryGetScenePresence(UUID avatarId, out ScenePresence avatar)
         {
             foreach (Scene scene in m_localScenes)
             {
-                if (scene.TryGetAvatar(avatarId, out avatar))
+                if (scene.TryGetScenePresence(avatarId, out avatar))
                 {
                     return true;
                 }
@@ -505,7 +505,7 @@ namespace OpenSim.Region.Framework.Scenes
             ScenePresence avatar = null;
             foreach (Scene mScene in m_localScenes)
             {
-                if (mScene.TryGetAvatar(avatarId, out avatar))
+                if (mScene.TryGetScenePresence(avatarId, out avatar))
                 {
                     scene = mScene;
                     return true;

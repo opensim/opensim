@@ -756,7 +756,7 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
-        protected internal bool TryGetAvatar(UUID agentID, out ScenePresence avatar)
+        protected internal bool TryGetScenePresence(UUID agentID, out ScenePresence avatar)
         {
             lock (m_scenePresences)
             {

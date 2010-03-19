@@ -680,7 +680,7 @@ namespace OpenSim.Region.Framework.Scenes
                     if (m_parentGroup != null) // TODO can there be a SOP without a SOG?
                     {
                         ScenePresence avatar;
-                        if (m_parentGroup.Scene.TryGetAvatar(m_sitTargetAvatar, out avatar))
+                        if (m_parentGroup.Scene.TryGetScenePresence(m_sitTargetAvatar, out avatar))
                         {
                             avatar.ParentPosition = GetWorldPosition();
                         }

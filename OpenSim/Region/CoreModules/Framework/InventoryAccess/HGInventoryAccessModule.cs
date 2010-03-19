@@ -190,7 +190,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             if (account == null) // foreign
             {
                 ScenePresence sp = null;
-                if (m_Scene.TryGetAvatar(userID, out sp))
+                if (m_Scene.TryGetScenePresence(userID, out sp))
                 {
                     AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
                     if (aCircuit.ServiceURLs.ContainsKey("AssetServerURI"))

@@ -5978,7 +5978,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     || avSetStartLocationRequestPacket.StartLocationData.LocationPos.Y == 255.5f)
                 {
                     ScenePresence avatar = null;
-                    if (((Scene)m_scene).TryGetAvatar(AgentId, out avatar))
+                    if (((Scene)m_scene).TryGetScenePresence(AgentId, out avatar))
                     {
                         if (avSetStartLocationRequestPacket.StartLocationData.LocationPos.X == 255.5f)
                         {

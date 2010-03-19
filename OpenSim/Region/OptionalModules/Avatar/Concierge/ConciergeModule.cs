@@ -520,7 +520,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         // protected void AnnounceToAgentsRegion(Scene scene, string msg)
         // {
         //     ScenePresence agent = null;
-        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetAvatar(client.AgentId, out agent)) 
+        //     if ((client.Scene is Scene) && (client.Scene as Scene).TryGetScenePresence(client.AgentId, out agent)) 
         //         AnnounceToAgentsRegion(agent, msg);
         //     else
         //         m_log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);

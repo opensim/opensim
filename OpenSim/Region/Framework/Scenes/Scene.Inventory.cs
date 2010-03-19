@@ -132,7 +132,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence avatar;
 
-            if (TryGetAvatar(avatarId, out avatar))
+            if (TryGetScenePresence(avatarId, out avatar))
             {
                 IInventoryAccessModule invAccess = RequestModuleInterface<IInventoryAccessModule>();
                 if (invAccess != null)
@@ -230,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence avatar;
 
-            if (TryGetAvatar(avatarId, out avatar))
+            if (TryGetScenePresence(avatarId, out avatar))
             {
                 return CapsUpdateTaskInventoryScriptAsset(
                     avatar.ControllingClient, itemId, primId, isScriptRunning, data);
@@ -683,7 +683,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (transactionID == UUID.Zero)
             {
                 ScenePresence presence;
-                if (TryGetAvatar(remoteClient.AgentId, out presence))
+                if (TryGetScenePresence(remoteClient.AgentId, out presence))
                 {
                     byte[] data = null;
 
@@ -941,7 +941,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             ScenePresence avatar;
 
-            if (TryGetAvatar(avatarId, out avatar))
+            if (TryGetScenePresence(avatarId, out avatar))
             {
                 return MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
             }
@@ -1055,7 +1055,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ScenePresence avatar;
 
-            if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+            if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
@@ -1083,7 +1083,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             ScenePresence avatar = null;
-            if (TryGetAvatar(destID, out avatar))
+            if (TryGetScenePresence(destID, out avatar))
             {
                 //profile.SendInventoryDecendents(avatar.ControllingClient,
                 //        profile.RootFolder.ID, true, false);
@@ -1420,7 +1420,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             ScenePresence avatar;
 
-            if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+            if (TryGetScenePresence(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
@@ -1860,7 +1860,7 @@ namespace OpenSim.Region.Framework.Scenes
             UUID inventoryID = part.ParentGroup.GetFromItemID();
 
             ScenePresence presence;
-            if (TryGetAvatar(remoteClient.AgentId, out presence))
+            if (TryGetScenePresence(remoteClient.AgentId, out presence))
             {
                 if (!Permissions.CanRezObject(part.ParentGroup.Children.Count, remoteClient.AgentId, presence.AbsolutePosition))
                     return;

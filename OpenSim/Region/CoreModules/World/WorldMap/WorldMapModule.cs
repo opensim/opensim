@@ -210,7 +210,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
             // this is here because CAPS map requests work even beyond the 10,000 limit.
             ScenePresence avatarPresence = null;
 
-            m_scene.TryGetAvatar(agentID, out avatarPresence);
+            m_scene.TryGetScenePresence(agentID, out avatarPresence);
 
             if (avatarPresence != null)
             {
@@ -489,7 +489,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 if (mrs.agentID != UUID.Zero)
                 {
                     ScenePresence av = null;
-                    m_scene.TryGetAvatar(mrs.agentID, out av);
+                    m_scene.TryGetScenePresence(mrs.agentID, out av);
                     if (av != null)
                     {
                         if (response.ContainsKey(mrs.itemtype.ToString()))

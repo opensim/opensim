@@ -502,7 +502,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         private UUID GetSessionID(UUID userID)
         {
             ScenePresence sp = null;
-            if (m_Scene.TryGetAvatar(userID, out sp))
+            if (m_Scene.TryGetScenePresence(userID, out sp))
             {
                 return sp.ControllingClient.SessionId;
             }
@@ -521,7 +521,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (account == null) // foreign user
             {
                 ScenePresence sp = null;
-                m_Scene.TryGetAvatar(userID, out sp);
+                m_Scene.TryGetScenePresence(userID, out sp);
                 if (sp != null)
                 {
                     AgentCircuitData aCircuit = m_Scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
