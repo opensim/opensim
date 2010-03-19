@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Runtime.Remoting.Lifetime;
 using System.Threading;
 using System.Reflection;
@@ -309,6 +310,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llDialog(avatar, message, buttons, chat_channel);
         }
 
+        [DebuggerNonUserCode]
         public void llDie()
         {
             m_LSL_Functions.llDie();

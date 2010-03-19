@@ -78,7 +78,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "AvatarServices"))
+            if (Simian.IsSimianEnabled(source, "AvatarServices", this.Name))
             {
                 IConfig gridConfig = source.Configs["AvatarService"];
                 if (gridConfig == null)

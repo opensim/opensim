@@ -881,7 +881,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (land != null)
                 {
                     //Don't restrict gods, estate managers, or land owners to the TP point. This behaviour mimics agni.
-                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_godLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
+                    if (land.LandData.LandingType == (byte)1 && land.LandData.UserLocation != Vector3.Zero && m_userLevel < 200 && !m_scene.RegionInfo.EstateSettings.IsEstateManager(m_uuid) && land.LandData.OwnerID != m_uuid)
                     {
                         pos = land.LandData.UserLocation;
                     }
@@ -959,14 +959,11 @@ namespace OpenSim.Region.Framework.Scenes
 
             m_isChildAgent = false;
 
-            ScenePresence[] animAgents = m_scene.GetScenePresences();
-            for (int i = 0; i < animAgents.Length; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence presence)
             {
-                ScenePresence presence = animAgents[i];
-
                 if (presence != this)
                     presence.Animator.SendAnimPackToClient(ControllingClient);
-            }
+            });
 
             m_scene.EventManager.TriggerOnMakeRootAgent(this);
         }
@@ -2671,13 +2668,10 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
         public void SendInitialFullUpdateToAllClients()
         {
             m_perfMonMS = Util.EnvironmentTickCount();
-
-            ScenePresence[] avatars = m_scene.GetScenePresences();
-
-            for (int i = 0; i < avatars.Length; i++)
+            int avUpdates = 0;
+            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
-                ScenePresence avatar = avatars[i];
-
+                ++avUpdates;
                 // only send if this is the root (children are only "listening posts" in a foreign region)
                 if (!IsChildAgent)
                 {
@@ -2693,9 +2687,9 @@ Console.WriteLine("Scripted Sit ofset {0}", m_pos);
                         avatar.Animator.SendAnimPackToClient(ControllingClient);
                     }
                 }
-            }
+            });
 
-            m_scene.StatsReporter.AddAgentUpdates(avatars.Length);
+            m_scene.StatsReporter.AddAgentUpdates(avUpdates);
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
 
             //Animator.SendAnimPack();

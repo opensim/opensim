@@ -73,7 +73,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "AuthenticationServices"))
+            if (Simian.IsSimianEnabled(source, "AuthenticationServices", this.Name))
             {
                 IConfig assetConfig = source.Configs["AuthenticationService"];
                 if (assetConfig == null)

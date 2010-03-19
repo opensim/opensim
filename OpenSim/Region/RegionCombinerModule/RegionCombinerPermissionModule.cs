@@ -135,9 +135,9 @@ namespace OpenSim.Region.RegionCombinerModule
             return m_rootScene.Permissions.CanObjectEntry(objectid, enteringregion, newpoint);
         }
 
-        public bool CanReturnObject(UUID objectid, UUID returnerid, Scene scene)
+        public bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene)
         {
-            return m_rootScene.Permissions.CanReturnObject(objectid, returnerid);
+            return m_rootScene.Permissions.CanReturnObjects(land, user, objects);
         }
 
         public bool CanRezObject(int objectcount, UUID owner, Vector3 objectposition, Scene scene)
@@ -263,11 +263,6 @@ namespace OpenSim.Region.RegionCombinerModule
         public bool CanTeleport(UUID userid, Scene scene)
         {
             return m_rootScene.Permissions.CanTeleport(userid);
-        }
-
-        public bool CanUseObjectReturn(ILandObject landdata, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene)
-        {
-            return m_rootScene.Permissions.CanUseObjectReturn(landdata, type, client, retlist);
         }
 
         #endregion

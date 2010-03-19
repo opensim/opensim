@@ -156,6 +156,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return m_localBackend.GetScene(handle);
         }
 
+        public ISimulationService GetInnerService()
+        {
+            return m_localBackend;
+        }
+
         /**
          * Agent-related communications
          */

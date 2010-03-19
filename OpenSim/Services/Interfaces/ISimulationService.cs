@@ -36,6 +36,7 @@ namespace OpenSim.Services.Interfaces
     public interface ISimulationService
     {
         IScene GetScene(ulong regionHandle);
+        ISimulationService GetInnerService();
 
         #region Agents
 

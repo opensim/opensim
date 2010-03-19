@@ -642,7 +642,7 @@ namespace Flotsam.RegionModules.AssetCache
         {
             UuidGatherer gatherer = new UuidGatherer(m_AssetService);
 
-            Dictionary<UUID, int> assets = new Dictionary<UUID, int>();
+            Dictionary<UUID, AssetType> assets = new Dictionary<UUID, AssetType>();
             foreach (Scene s in m_Scenes)
             {
                 StampRegionStatusFile(s.RegionInfo.RegionID);

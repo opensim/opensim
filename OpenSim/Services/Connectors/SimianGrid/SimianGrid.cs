@@ -34,12 +34,12 @@ using Nini.Config;
 
 public static class Simian
 {
-    public static bool IsSimianEnabled(IConfigSource config, string moduleName)
+    public static bool IsSimianEnabled(IConfigSource config, string moduleName, string connectorName)
     {
         if (config.Configs["Modules"] != null)
         {
-            string module = config.Configs["Modules"].GetString("AuthenticationServices");
-            return !String.IsNullOrEmpty(module) && module.Contains("Simian");
+            string module = config.Configs["Modules"].GetString(moduleName);
+            return !String.IsNullOrEmpty(module) && module.EndsWith(connectorName);
         }
 
         return false;

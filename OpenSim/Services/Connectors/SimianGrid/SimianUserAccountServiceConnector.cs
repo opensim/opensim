@@ -77,7 +77,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "UserAccountServices"))
+            if (Simian.IsSimianEnabled(source, "UserAccountServices", this.Name))
             {
                 IConfig assetConfig = source.Configs["UserAccountService"];
                 if (assetConfig == null)

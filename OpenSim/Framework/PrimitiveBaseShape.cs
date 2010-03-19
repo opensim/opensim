@@ -227,8 +227,12 @@ namespace OpenSim.Framework
         {
             get
             {
-                //m_log.DebugFormat("[PRIMITIVE BASE SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
-                return new Primitive.TextureEntry(m_textureEntry, 0, m_textureEntry.Length);
+                //m_log.DebugFormat("[SHAPE]: get m_textureEntry length {0}", m_textureEntry.Length);
+                try { return new Primitive.TextureEntry(m_textureEntry, 0, m_textureEntry.Length); }
+                catch { }
+
+                m_log.Warn("[SHAPE]: Failed to decode texture, length=" + ((m_textureEntry != null) ? m_textureEntry.Length : 0));
+                return new Primitive.TextureEntry(null);
             }
 
             set { m_textureEntry = value.GetBytes(); }

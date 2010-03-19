@@ -92,7 +92,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
 
         public void Initialise(IConfigSource source)
         {
-            if (Simian.IsSimianEnabled(source, "InventoryServices"))
+            if (Simian.IsSimianEnabled(source, "InventoryServices", this.Name))
             {
                 IConfig gridConfig = source.Configs["InventoryService"];
                 if (gridConfig == null)

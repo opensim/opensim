@@ -166,6 +166,11 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
             return m_sceneList[0];
         }
 
+        public ISimulationService GetInnerService()
+        {
+            return this;
+        }
+
         /**
          * Agent-related communications
          */

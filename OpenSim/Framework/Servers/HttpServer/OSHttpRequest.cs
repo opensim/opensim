@@ -127,6 +127,11 @@ namespace OpenSim.Framework.Servers.HttpServer
         }
         private Hashtable _query;
 
+        /// <value>
+        /// POST request values, if applicable
+        /// </value>
+//        public Hashtable Form { get; private set; }
+
         public string RawUrl
         {
             get { return _request.Uri.AbsolutePath; }
@@ -228,6 +233,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 _log.ErrorFormat("[OSHttpRequest]: Error parsing querystring");
             }
+
+//            Form = new Hashtable();
+//            foreach (HttpInputItem item in req.Form)
+//            {
+//                _log.DebugFormat("[OSHttpRequest]: Got form item {0}={1}", item.Name, item.Value);
+//                Form.Add(item.Name, item.Value);
+//            }
         }
 
         public override string ToString()
