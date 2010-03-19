@@ -697,10 +697,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.None, "osGetAgents");
 
             LSL_List result = new LSL_List();
-            foreach (ScenePresence avatar in World.GetAvatars())
+            World.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                result.Add(avatar.Name);
-            }
+                if (!sp.IsChildAgent)
+                    result.Add(sp.Name);
+            });
             return result;
         }
 
@@ -1985,19 +1986,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             CheckThreatLevel(ThreatLevel.Severe, "osKickAvatar");
             if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
             {
-                foreach (ScenePresence presence in World.GetAvatars())
+                World.ForEachScenePresence(delegate(ScenePresence sp)
                 {
-                    if ((presence.Firstname == FirstName) &&
-                        presence.Lastname == SurName)
+                    if (!sp.IsChildAgent &&
+                        sp.Firstname == FirstName &&
+                        sp.Lastname == SurName)
                     {
                         // kick client...
                         if (alert != null)
-                            presence.ControllingClient.Kick(alert);
+                            sp.ControllingClient.Kick(alert);
 
                         // ...and close on our side
-                        presence.Scene.IncomingCloseAgent(presence.UUID);
+                        sp.Scene.IncomingCloseAgent(sp.UUID);
                     }
-                }
+                });
             }
         }
         

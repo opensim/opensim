@@ -5092,7 +5092,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Integer llGetRegionAgentCount()
         {
             m_host.AddScriptLPS(1);
-            return new LSL_Integer(World.GetAvatars().Count);
+            return new LSL_Integer(World.GetRootAgentCount());
         }
 
         public LSL_Vector llGetRegionCorner()
@@ -8771,17 +8771,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     landObject.SetMediaUrl(url);
 
                     // now send to all (non-child) agents
-                    List<ScenePresence> agents = World.GetAvatars();
-                    foreach (ScenePresence agent in agents)
+                    World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        agent.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
-                                                                      landData.MediaID,
-                                                                      landData.MediaAutoScale,
-                                                                      mediaType,
-                                                                      description,
-                                                                      width, height,
-                                                                      loop);
-                    }
+                        if (!sp.IsChildAgent)
+                        {
+                            sp.ControllingClient.SendParcelMediaUpdate(landData.MediaURL,
+                                                                          landData.MediaID,
+                                                                          landData.MediaAutoScale,
+                                                                          mediaType,
+                                                                          description,
+                                                                          width, height,
+                                                                          loop);
+                        }
+                    });
                 }
                 else if (!presence.IsChildAgent)
                 {
@@ -8802,13 +8804,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 if (presence == null)
                 {
                     // send to all (non-child) agents
-                    List<ScenePresence> agents = World.GetAvatars();
-                    foreach (ScenePresence agent in agents)
+                    World.ForEachScenePresence(delegate(ScenePresence sp)
                     {
-                        agent.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
-                                                                       (ParcelMediaCommandEnum)commandToSend,
-                                                                       time);
-                    }
+                        if (!sp.IsChildAgent)
+                        {
+                            sp.ControllingClient.SendParcelMediaCommand(0x4, // TODO what is this?
+                                                                           (ParcelMediaCommandEnum)commandToSend,
+                                                                           time);
+                        }
+                    });
                 }
                 else if (!presence.IsChildAgent)
                 {

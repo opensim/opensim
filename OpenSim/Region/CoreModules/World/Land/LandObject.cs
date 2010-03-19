@@ -332,36 +332,38 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         public void SendLandUpdateToAvatarsOverMe(bool snap_selection)
         {
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            ILandObject over = null;
-            for (int i = 0; i < avatars.Count; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence avatar)
             {
+                if (avatar.IsChildAgent)
+                    return;
+
+                ILandObject over = null;
                 try
                 {
                     over =
-                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.X), 0, ((int)Constants.RegionSize - 1)),
-                                                          Util.Clamp<int>((int)Math.Round(avatars[i].AbsolutePosition.Y), 0, ((int)Constants.RegionSize - 1)));
+                        m_scene.LandChannel.GetLandObject(Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.X), 0, ((int)Constants.RegionSize - 1)),
+                                                          Util.Clamp<int>((int)Math.Round(avatar.AbsolutePosition.Y), 0, ((int)Constants.RegionSize - 1)));
                 }
                 catch (Exception)
                 {
-                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatars[i].AbsolutePosition.X) + " y: " +
-                               Math.Round(avatars[i].AbsolutePosition.Y));
+                    m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " +
+                               Math.Round(avatar.AbsolutePosition.Y));
                 }
 
                 if (over != null)
                 {
                     if (over.LandData.LocalID == LandData.LocalID)
                     {
-                        if (((over.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0) && 
+                        if (((over.LandData.Flags & (uint)ParcelFlags.AllowDamage) != 0) &&
                             m_scene.RegionInfo.RegionSettings.AllowDamage)
-                            avatars[i].Invulnerable = false;
+                            avatar.Invulnerable = false;
                         else
-                            avatars[i].Invulnerable = true;
+                            avatar.Invulnerable = true;
 
-                        SendLandUpdateToClient(snap_selection, avatars[i].ControllingClient);
+                        SendLandUpdateToClient(snap_selection, avatar.ControllingClient);
                     }
                 }
-            }
+            });
         }
 
         #endregion

@@ -468,26 +468,20 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private void handleEstateTeleportAllUsersHomeRequest(IClientAPI remover_client, UUID invoice, UUID senderID)
         {
-            // Get a fresh list that will not change as people get teleported away
-            List<ScenePresence> presences = m_scene.GetScenePresences();
-
-            foreach(ScenePresence p in presences)
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                if (p.UUID != senderID)
+                if (sp.UUID != senderID)
                 {
+                    ScenePresence p = m_scene.GetScenePresence(sp.UUID);
                     // make sure they are still there, we could be working down a long list
-                    ScenePresence s = m_scene.GetScenePresence(p.UUID);
-                    if (s != null)
+                    // Also make sure they are actually in the region
+                    if (p != null && !p.IsChildAgent)
                     {
-                        // Also make sure they are actually in the region
-                        if (!s.IsChildAgent)
-                        {
-                            s.ControllingClient.SendTeleportLocationStart();
-                            m_scene.TeleportClientHome(s.UUID, s.ControllingClient);
-                        }
+                        p.ControllingClient.SendTeleportLocationStart();
+                        m_scene.TeleportClientHome(p.UUID, p.ControllingClient);
                     }
                 }
-            }
+            });
         }
         private void AbortTerrainXferHandler(IClientAPI remoteClient, ulong XferID)
         {
@@ -765,12 +759,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void sendRegionInfoPacketToAll()
         {
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-
-            for (int i = 0; i < avatars.Count; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                HandleRegionInfoRequest(avatars[i].ControllingClient);
-            }
+                if (!sp.IsChildAgent)
+                    HandleRegionInfoRequest(sp.ControllingClient);
+            });
         }
 
         public void sendRegionHandshake(IClientAPI remoteClient)

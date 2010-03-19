@@ -3269,7 +3269,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            ScenePresence sp = m_sceneGraph.GetScenePresence(agent.AgentID);
+            ScenePresence sp = GetScenePresence(agent.AgentID);
             if (sp != null)
             {
                 m_log.DebugFormat(
@@ -3561,8 +3561,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="message">message to display to the user.  Reason for being logged off</param>
         public void HandleLogOffUserFromGrid(UUID AvatarID, UUID RegionSecret, string message)
         {
-            ScenePresence loggingOffUser = null;
-            loggingOffUser = GetScenePresence(AvatarID);
+            ScenePresence loggingOffUser = GetScenePresence(AvatarID);
             if (loggingOffUser != null)
             {
                 UUID localRegionSecret = UUID.Zero;
@@ -3598,8 +3597,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="isFlying"></param>
         public virtual void AgentCrossing(UUID agentID, Vector3 position, bool isFlying)
         {
-            ScenePresence presence;
-            if(m_sceneGraph.TryGetAvatar(agentID, out presence))
+            ScenePresence presence = GetScenePresence(agentID);
+            if(presence != null)
             {
                 try
                 {
@@ -3773,8 +3772,8 @@ namespace OpenSim.Region.Framework.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, Vector3 position,
                                             Vector3 lookAt, uint teleportFlags)
         {
-            ScenePresence sp;
-            if(m_sceneGraph.TryGetAvatar(remoteClient.AgentId, out sp))
+            ScenePresence sp = GetScenePresence(remoteClient.AgentId);
+            if (sp != null)
             {
                 uint regionX = m_regInfo.RegionLocX;
                 uint regionY = m_regInfo.RegionLocY;
@@ -3952,17 +3951,17 @@ namespace OpenSim.Region.Framework.Scenes
                     m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16}{5,-16}{6,-16}", "Firstname", "Lastname",
                                       "Agent ID", "Session ID", "Circuit", "IP", "World");
 
-                    foreach (ScenePresence scenePresence in GetAvatars())
+                    ForEachScenePresence(delegate(ScenePresence sp)
                     {
                         m_log.ErrorFormat("{0,-16}{1,-16}{2,-25}{3,-25}{4,-16},{5,-16}{6,-16}",
-                                          scenePresence.Firstname,
-                                          scenePresence.Lastname,
-                                          scenePresence.UUID,
-                                          scenePresence.ControllingClient.AgentId,
+                                          sp.Firstname,
+                                          sp.Lastname,
+                                          sp.UUID,
+                                          sp.ControllingClient.AgentId,
                                           "Unknown",
                                           "Unknown",
                                           RegionInfo.RegionName);
-                    }
+                    });
 
                     break;
             }
@@ -4128,72 +4127,42 @@ namespace OpenSim.Region.Framework.Scenes
             m_sceneGraph.RemovePhysicalPrim(num);
         }
 
-        //The idea is to have a group of method that return a list of avatars meeting some requirement
-        // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
-        // 
-        // GetAvatars returns a new list of all root agent presences in the scene
-        // GetScenePresences returns a new list of all presences in the scene or a filter may be passed.
-        // GetScenePresence returns the presence with matching UUID or first/last name.
-        // ForEachScenePresence requests the Scene to run a delegate function against all presences.
-
-        /// <summary>
-        /// Return a list of all avatars in this region.
-        /// This list is a new object, so it can be iterated over without locking.
-        /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetAvatars()
+        public int GetRootAgentCount()
         {
-            return m_sceneGraph.GetAvatars();
+            return m_sceneGraph.GetRootAgentCount();
+        }
+
+        public int GetChildAgentCount()
+        {
+            return m_sceneGraph.GetChildAgentCount();
         }
 
         /// <summary>
-        /// Return a list of all ScenePresences in this region.  This returns child agents as well as root agents.
-        /// This list is a new object, so it can be iterated over without locking.
+        /// Request a scene presence by UUID. Fast, indexed lookup.
         /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetScenePresences()
+        /// <param name="agentID"></param>
+        /// <returns>null if the presence was not found</returns>
+        public ScenePresence GetScenePresence(UUID agentID)
         {
-            return m_sceneGraph.GetScenePresences();
+            return m_sceneGraph.GetScenePresence(agentID);
         }
 
         /// <summary>
-        /// Request a filtered list of ScenePresences in this region.
-        /// This list is a new object, so it can be iterated over without locking.
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
-        {
-            return m_sceneGraph.GetScenePresences(filter);
-        }
-
-        /// <summary>
-        /// Request a scene presence by UUID
-        /// </summary>
-        /// <param name="avatarID"></param>
-        /// <returns></returns>
-        public ScenePresence GetScenePresence(UUID avatarID)
-        {
-            return m_sceneGraph.GetScenePresence(avatarID);
-        }
-
-        /// <summary>
-        /// Request the ScenePresence in this region by first/last name.
-        /// Should normally only be a single match, but first is always returned
+        /// Request the scene presence by name.
         /// </summary>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
-        /// <returns></returns>
+        /// <returns>null if the presence was not found</returns>
         public ScenePresence GetScenePresence(string firstName, string lastName)
         {
             return m_sceneGraph.GetScenePresence(firstName, lastName);
         }
 
         /// <summary>
-        /// Request the ScenePresence in this region by localID.
+        /// Request the scene presence by localID.
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns></returns>
+        /// <returns>null if the presence was not found</returns>
         public ScenePresence GetScenePresence(uint localID)
         {
             return m_sceneGraph.GetScenePresence(localID);

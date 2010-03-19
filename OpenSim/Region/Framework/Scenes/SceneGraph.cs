@@ -699,116 +699,84 @@ namespace OpenSim.Region.Framework.Scenes
             return null;
         }
 
-        // The idea is to have a group of method that return a list of avatars meeting some requirement
-        // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
-        // 
-        // GetAvatars returns a new list of all root agent presences in the scene
-        // GetScenePresences returns a new list of all presences in the scene or a filter may be passed.
-        // GetScenePresence returns the presence with matching UUID or the first presence matching the passed filter.
-        // ForEachScenePresence requests the Scene to run a delegate function against all presences.
-
         /// <summary>
-        /// Request a list of all avatars in this region (no child agents)
-        /// This list is a new object, so it can be iterated over without locking.
-        /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetAvatars()
-        {
-            return GetScenePresences(delegate(ScenePresence scenePresence)
-            {
-                return !scenePresence.IsChildAgent;
-            });
-        }
-
-        /// <summary>
-        /// Request a list of m_scenePresences in this World
-        /// Returns a copy so it can be iterated without a lock.
+        /// Request a copy of m_scenePresences in this World
         /// There is no guarantee that presences will remain in the scene after the list is returned.
+        /// This list should remain private to SceneGraph. Callers wishing to iterate should instead
+        /// pass a delegate to ForEachScenePresence.
         /// </summary>
         /// <returns></returns>
-        protected internal List<ScenePresence> GetScenePresences()
+        private List<ScenePresence> GetScenePresences()
         {
-            List<ScenePresence> result;
             lock (m_scenePresences)
-            {
-                result = new List<ScenePresence>(m_scenePresenceArray.Length);
-                result.AddRange(m_scenePresenceArray);
-            }
-            return result;
+                return new List<ScenePresence>(m_scenePresenceArray);
         }
 
         /// <summary>
-        /// Request a filtered list of m_scenePresences in this World
-        /// Returns a copy so it can be iterated without a lock.
-        /// There is no guarantee that presences will remain in the scene after the list is returned.
-        /// </summary>
-        /// <returns></returns>
-        protected internal List<ScenePresence> GetScenePresences(FilterAvatarList filter)
-        {
-            List<ScenePresence> result = new List<ScenePresence>();
-            // Check each ScenePresence against the filter
-            ForEachScenePresence(delegate(ScenePresence presence)
-            {
-                if (filter(presence))
-                    result.Add(presence);
-            });
-            return result;
-        }
-
-        /// <summary>
-        /// Request the ScenePresence in this region matching filter. 
-        /// Only the first match is returned. 
-        /// 
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        protected internal ScenePresence GetScenePresence(FilterAvatarList filter)
-        {
-            ScenePresence result = null;
-            // Get all of the ScenePresences
-            List<ScenePresence> presences = GetScenePresences();
-            foreach (ScenePresence presence in presences)
-            {
-                if (filter(presence))
-                {
-                    result = presence;
-                    break;
-                }
-            }
-            return result;
-        }
-
-        protected internal ScenePresence GetScenePresence(string firstName, string lastName)
-        {
-            return GetScenePresence(delegate(ScenePresence presence)
-            {
-                return(presence.Firstname == firstName && presence.Lastname == lastName);
-            });
-        }
-
-        /// <summary>
-        /// Request a scene presence by UUID
+        /// Request a scene presence by UUID. Fast, indexed lookup.
         /// </summary>
         /// <param name="agentID"></param>
-        /// <returns>null if the agent was not found</returns>
+        /// <returns>null if the presence was not found</returns>
         protected internal ScenePresence GetScenePresence(UUID agentID)
         {
             ScenePresence sp;
-            TryGetAvatar(agentID, out sp);
+            lock (m_scenePresences)
+            {
+                m_scenePresences.TryGetValue(agentID, out sp);
+            }
             return sp;
         }
 
         /// <summary>
-        /// Request the ScenePresence in this region by localID.
+        /// Request the scene presence by name.
+        /// </summary>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <returns>null if the presence was not found</returns>
+        protected internal ScenePresence GetScenePresence(string firstName, string lastName)
+        {
+            foreach (ScenePresence presence in GetScenePresences())
+            {
+                if (presence.Firstname == firstName && presence.Lastname == lastName)
+                    return presence;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Request the scene presence by localID.
         /// </summary>
         /// <param name="localID"></param>
-        /// <returns></returns>
+        /// <returns>null if the presence was not found</returns>
         protected internal ScenePresence GetScenePresence(uint localID)
         {
-            return GetScenePresence(delegate(ScenePresence presence)
+            foreach (ScenePresence presence in GetScenePresences())
+                if (presence.LocalId == localID)
+                    return presence;
+            return null;
+        }
+
+        protected internal bool TryGetAvatar(UUID agentID, out ScenePresence avatar)
+        {
+            lock (m_scenePresences)
             {
-                return (presence.LocalId == localID);
-            });
+                m_scenePresences.TryGetValue(agentID, out avatar);
+            }
+            return (avatar != null);
+        }
+
+        protected internal bool TryGetAvatarByName(string name, out ScenePresence avatar)
+        {
+            avatar = null;
+            foreach (ScenePresence presence in GetScenePresences())
+            {
+                if (String.Compare(name, presence.ControllingClient.Name, true) == 0)
+                {
+                    avatar = presence;
+                    break;
+                }
+            }
+            return (avatar != null);
         }
 
         /// <summary>
@@ -962,24 +930,6 @@ namespace OpenSim.Region.Framework.Scenes
             return group.GetChildPart(fullID);
         }
 
-        protected internal bool TryGetAvatar(UUID avatarId, out ScenePresence avatar)
-        {
-            lock (m_scenePresences)
-            {
-                m_scenePresences.TryGetValue(avatarId, out avatar);
-            }
-            return (avatar != null);
-        }
-
-        protected internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
-        {
-            avatar = GetScenePresence(delegate(ScenePresence presence)
-            {
-                return (String.Compare(avatarName, presence.ControllingClient.Name, true) == 0);
-            });
-            return (avatar != null);
-        }
-
         /// <summary>
         /// Returns a list of the entities in the scene.  This is a new list so no locking is required to iterate over
         /// it
@@ -1042,6 +992,10 @@ namespace OpenSim.Region.Framework.Scenes
                 return UUID.Zero;
         }
 
+        /// <summary>
+        /// Performs action on all scene object groups.
+        /// </summary>
+        /// <param name="action"></param>
         protected internal void ForEachSOG(Action<SceneObjectGroup> action)
         {
             List<SceneObjectGroup> objlist = new List<SceneObjectGroup>(SceneObjectGroupsByFullID.Values);
@@ -1061,23 +1015,41 @@ namespace OpenSim.Region.Framework.Scenes
 
         
         /// <summary>
-        /// Performs action on all scene presences.
+        /// Performs action on all scene presences. This can ultimately run the actions in parallel but
+        /// any delegates passed in will need to implement their own locking on data they reference and
+        /// modify outside of the scope of the delegate. 
         /// </summary>
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            List<ScenePresence> presences = GetScenePresences();
-            try
-            {
-                foreach(ScenePresence presence in presences)
+            // Once all callers have their delegates configured for parallelism, we can unleash this
+            /*
+            Action<ScenePresence> protectedAction = new Action<ScenePresence>(delegate(ScenePresence sp)
                 {
-                    action(presence);
-                }
-            }
-            catch (Exception e)
+                    try
+                    {
+                        action(sp);
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                        m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
+                    }
+                });
+            Parallel.ForEach<ScenePresence>(GetScenePresences(), protectedAction);
+            */
+            // For now, perform actiona serially
+            foreach (ScenePresence sp in GetScenePresences())
             {
-                m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
-                m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
+                try
+                {
+                    action(sp);
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[BUG] in " + m_parentScene.RegionInfo.RegionName + ": " + e.ToString());
+                    m_log.Info("[BUG] Stack Trace: " + e.StackTrace);
+                }
             }
         }
         

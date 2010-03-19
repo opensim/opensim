@@ -454,8 +454,10 @@ namespace OpenSim.Region.Framework.Scenes
 
             ForEachCurrentScene(delegate(Scene scene)
             {
-                List<ScenePresence> scenePresences = scene.GetScenePresences();
-                presences.AddRange(scenePresences);
+                scene.ForEachScenePresence(delegate(ScenePresence sp)
+                {
+                    presences.Add(sp);
+                });
             });
 
             return presences;

@@ -191,9 +191,9 @@ namespace OpenSim.Region.CoreModules.World.Land
                     forcedPosition = null;
                 }
                 //if we are far away, teleport 
-                else if (Vector3.Distance(clientAvatar.AbsolutePosition,forcedPosition.Value) > 3)
+                else if (Vector3.Distance(clientAvatar.AbsolutePosition, forcedPosition.Value) > 3)
                 {
-                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}",forcedPosition.Value,clientAvatar.AbsolutePosition));
+                    Debug.WriteLine(string.Format("Teleporting out because {0} is too far from avatar position {1}", forcedPosition.Value, clientAvatar.AbsolutePosition));
                     clientAvatar.Teleport(forcedPosition.Value);
                     forcedPosition = null;
                 }
@@ -374,30 +374,27 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
         }
 
-        public void SendOutNearestBanLine(IClientAPI avatar)
+        public void SendOutNearestBanLine(IClientAPI client)
         {
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            foreach (ScenePresence presence in avatars)
+            ScenePresence sp = m_scene.GetScenePresence(client.AgentId);
+            if (sp == null || sp.IsChildAgent)
+                return;
+
+            List<ILandObject> checkLandParcels = ParcelsNearPoint(sp.AbsolutePosition);
+            foreach (ILandObject checkBan in checkLandParcels)
             {
-                if (presence.UUID == avatar.AgentId)
+                if (checkBan.IsBannedFromLand(client.AgentId))
                 {
-                    List<ILandObject> checkLandParcels = ParcelsNearPoint(presence.AbsolutePosition);
-                    foreach (ILandObject checkBan in checkLandParcels)
-                    {
-                        if (checkBan.IsBannedFromLand(avatar.AgentId))
-                        {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, false, (int)ParcelResult.Single, avatar);
-                            return; //Only send one
-                        }
-                        if (checkBan.IsRestrictedFromLand(avatar.AgentId))
-                        {
-                            checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, avatar);
-                            return; //Only send one
-                        }
-                    }
-                    return;
+                    checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionBanned, false, (int)ParcelResult.Single, client);
+                    return; //Only send one
+                }
+                if (checkBan.IsRestrictedFromLand(client.AgentId))
+                {
+                    checkBan.SendLandProperties((int)ParcelPropertiesStatus.CollisionNotOnAccessList, false, (int)ParcelResult.Single, client);
+                    return; //Only send one
                 }
             }
+            return;
         }
 
         public void SendLandUpdate(ScenePresence avatar, bool force)

@@ -2396,35 +2396,33 @@ namespace OpenSim.Region.Framework.Scenes
 
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            for (int i = 0; i < avatars.Count; i++)
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                // Requested by LibOMV.   Send Course Location on self.
-                //if (avatars[i] != this)
-                //{
-                    if (avatars[i].ParentID != 0)
+                if (sp.IsChildAgent)
+                    return;
+
+                if (sp.ParentID != 0)
+                {
+                    // sitting avatar
+                    SceneObjectPart sop = m_scene.GetSceneObjectPart(sp.ParentID);
+                    if (sop != null)
                     {
-                        // sitting avatar
-                        SceneObjectPart sop = m_scene.GetSceneObjectPart(avatars[i].ParentID);
-                        if (sop != null)
-                        {
-                            CoarseLocations.Add(sop.AbsolutePosition + avatars[i].m_pos);
-                            AvatarUUIDs.Add(avatars[i].UUID);
-                        }
-                        else
-                        {
-                            // we can't find the parent..  ! arg!
-                            CoarseLocations.Add(avatars[i].m_pos);
-                            AvatarUUIDs.Add(avatars[i].UUID);
-                        }
+                        CoarseLocations.Add(sop.AbsolutePosition + sp.m_pos);
+                        AvatarUUIDs.Add(sp.UUID);
                     }
                     else
                     {
-                        CoarseLocations.Add(avatars[i].m_pos);
-                        AvatarUUIDs.Add(avatars[i].UUID);
+                        // we can't find the parent..  ! arg!
+                        CoarseLocations.Add(sp.m_pos);
+                        AvatarUUIDs.Add(sp.UUID);
                     }
-                //}
-            }
+                }
+                else
+                {
+                    CoarseLocations.Add(sp.m_pos);
+                    AvatarUUIDs.Add(sp.UUID);
+                }
+            });
 
             m_controllingClient.SendCoarseLocationUpdate(AvatarUUIDs, CoarseLocations);
 
@@ -2498,13 +2496,15 @@ namespace OpenSim.Region.Framework.Scenes
             m_perfMonMS = Util.EnvironmentTickCount();
 
             // only send update from root agents to other clients; children are only "listening posts"
-            List<ScenePresence> avatars = m_scene.GetAvatars();
-            foreach (ScenePresence avatar in avatars)
+            int count = 0;
+            m_scene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                SendFullUpdateToOtherClient(avatar);
-
-            }
-            m_scene.StatsReporter.AddAgentUpdates(avatars.Count);
+                if (sp.IsChildAgent)
+                    return;
+                SendFullUpdateToOtherClient(sp);
+                ++count;
+            });
+            m_scene.StatsReporter.AddAgentUpdates(count);
             m_scene.StatsReporter.AddAgentTime(Util.EnvironmentTickCountSubtract(m_perfMonMS));
 
             Animator.SendAnimPack();

@@ -707,36 +707,37 @@ namespace OpenSim.Region.RegionCombinerModule
                     return;
             }
 
-            List<ScenePresence> avatars = connectiondata.RegionScene.GetAvatars();
             List<Vector3> CoarseLocations = new List<Vector3>();
             List<UUID> AvatarUUIDs = new List<UUID>();
-            for (int i = 0; i < avatars.Count; i++)
+            connectiondata.RegionScene.ForEachScenePresence(delegate(ScenePresence sp)
             {
-                if (avatars[i].UUID != presence.UUID)
+                if (sp.IsChildAgent)
+                    return;
+                if (sp.UUID != presence.UUID)
                 {
-                    if (avatars[i].ParentID != 0)
+                    if (sp.ParentID != 0)
                     {
                         // sitting avatar
-                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(avatars[i].ParentID);
+                        SceneObjectPart sop = connectiondata.RegionScene.GetSceneObjectPart(sp.ParentID);
                         if (sop != null)
                         {
-                            CoarseLocations.Add(sop.AbsolutePosition + avatars[i].AbsolutePosition);
-                            AvatarUUIDs.Add(avatars[i].UUID);
+                            CoarseLocations.Add(sop.AbsolutePosition + sp.AbsolutePosition);
+                            AvatarUUIDs.Add(sp.UUID);
                         }
                         else
                         {
                             // we can't find the parent..  ! arg!
-                            CoarseLocations.Add(avatars[i].AbsolutePosition);
-                            AvatarUUIDs.Add(avatars[i].UUID);
+                            CoarseLocations.Add(sp.AbsolutePosition);
+                            AvatarUUIDs.Add(sp.UUID);
                         }
                     }
                     else
                     {
-                        CoarseLocations.Add(avatars[i].AbsolutePosition);
-                        AvatarUUIDs.Add(avatars[i].UUID);
+                        CoarseLocations.Add(sp.AbsolutePosition);
+                        AvatarUUIDs.Add(sp.UUID);
                     }
                 }
-            }
+            });
             DistributeCourseLocationUpdates(CoarseLocations, AvatarUUIDs, connectiondata, presence);
         }
 
