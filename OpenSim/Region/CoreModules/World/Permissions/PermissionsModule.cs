@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnIssueEstateCommand += CanIssueEstateCommand; //FULLY IMPLEMENTED
             m_scene.Permissions.OnMoveObject += CanMoveObject; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnObjectEntry += CanObjectEntry;
-            m_scene.Permissions.OnReturnObject += CanReturnObject; //NOT YET IMPLEMENTED
+            m_scene.Permissions.OnReturnObjects += CanReturnObjects; //NOT YET IMPLEMENTED
             m_scene.Permissions.OnRezObject += CanRezObject; //MAYBE FULLY IMPLEMENTED
             m_scene.Permissions.OnRunConsoleCommand += CanRunConsoleCommand;
             m_scene.Permissions.OnRunScript += CanRunScript; //NOT YET IMPLEMENTED
@@ -247,7 +247,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             m_scene.Permissions.OnDeleteUserInventory += CanDeleteUserInventory; //NOT YET IMPLEMENTED
             
             m_scene.Permissions.OnTeleport += CanTeleport; //NOT YET IMPLEMENTED
-            m_scene.Permissions.OnUseObjectReturn += CanUseObjectReturn; //NOT YET IMPLEMENTED
 
             m_scene.AddCommand(this, "bypass permissions",
                     "bypass permissions <true / false>",
@@ -1275,12 +1274,106 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return false;
         }
 
-        private bool CanReturnObject(UUID objectID, UUID returnerID, Scene scene)
+        private bool CanReturnObjects(ILandObject land, UUID user, List<SceneObjectGroup> objects, Scene scene)
         {
             DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
             if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-            return GenericObjectPermission(returnerID, objectID, false);
+            GroupPowers powers;
+            ILandObject l;
+
+            ScenePresence sp = scene.GetScenePresence(user);
+            if (sp == null)
+                return false;
+
+            IClientAPI client = sp.ControllingClient;
+
+            foreach (SceneObjectGroup g in new List<SceneObjectGroup>(objects))
+            {
+                // Any user can return their own objects at any time
+                //
+                if (GenericObjectPermission(user, g.UUID, false))
+                    continue;
+
+                // This is a short cut for efficiency. If land is non-null,
+                // then all objects are on that parcel and we can save
+                // ourselves the checking for each prim. Much faster.
+                //
+                if (land != null)
+                {
+                    l = land;
+                }
+                else
+                {
+                    Vector3 pos = g.AbsolutePosition;
+
+                    l = scene.LandChannel.GetLandObject(pos.X, pos.Y);
+                }
+
+                // If it's not over any land, then we can't do a thing
+                if (l == null)
+                {
+                    objects.Remove(g);
+                    continue;
+                }
+
+                // If we own the land outright, then allow
+                //
+                if (l.LandData.OwnerID == user)
+                    continue;
+
+                // Group voodoo
+                //
+                if (land.LandData.IsGroupOwned)
+                {
+                    powers = (GroupPowers)client.GetGroupPowers(land.LandData.GroupID);
+                    // Not a group member, or no rights at all
+                    //
+                    if (powers == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // Group deeded object?
+                    //
+                    if (g.OwnerID == l.LandData.GroupID &&
+                        (powers & GroupPowers.ReturnGroupOwned) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // Group set object?
+                    //
+                    if (g.GroupID == l.LandData.GroupID &&
+                        (powers & GroupPowers.ReturnGroupSet) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    if ((powers & GroupPowers.ReturnNonGroup) == (GroupPowers)0)
+                    {
+                        objects.Remove(g);
+                        continue;
+                    }
+
+                    // So we can remove all objects from this group land.
+                    // Fine.
+                    //
+                    continue;
+                }
+
+                // By default, we can't remove
+                //
+                objects.Remove(g);
+            }
+
+            if (objects.Count == 0)
+                return false;
+
+            return true;
         }
 
         private bool CanRezObject(int objectCount, UUID owner, Vector3 objectPosition, Scene scene)
@@ -1747,67 +1840,6 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             return GenericObjectPermission(agentID, prim, false);
         }
 
-        private bool CanUseObjectReturn(ILandObject parcel, uint type, IClientAPI client, List<SceneObjectGroup> retlist, Scene scene)
-        {
-            DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
-            if (m_bypassPermissions) return m_bypassPermissionsValue;
-
-            long powers = 0;
-            if (parcel.LandData.GroupID != UUID.Zero)
-                client.GetGroupPowers(parcel.LandData.GroupID);
-
-            switch (type)
-            {
-            case (uint)ObjectReturnType.Owner:
-                // Don't let group members return owner's objects, ever
-                //
-                if (parcel.LandData.IsGroupOwned)
-                {
-                    if ((powers & (long)GroupPowers.ReturnGroupOwned) != 0)
-                        return true;
-                }
-                else
-                {
-                    if (parcel.LandData.OwnerID != client.AgentId)
-                        return false;
-                }
-        return GenericParcelOwnerPermission(client.AgentId, parcel, (ulong)GroupPowers.ReturnGroupOwned);
-            case (uint)ObjectReturnType.Group:
-                if (parcel.LandData.OwnerID != client.AgentId)
-                {
-                    // If permissionis granted through a group...
-                    //
-                    if ((powers & (long)GroupPowers.ReturnGroupSet) != 0)
-                    {
-                        foreach (SceneObjectGroup g in new List<SceneObjectGroup>(retlist))
-                        {
-                            // check for and remove group owned objects unless
-                            // the user also has permissions to return those
-                            //
-                            if (g.OwnerID == g.GroupID &&
-                                    ((powers & (long)GroupPowers.ReturnGroupOwned) == 0))
-                            {
-                                retlist.Remove(g);
-                            }
-                        }
-                        // And allow the operation
-                        //
-                        return true;
-                    }
-                }
-                return GenericParcelOwnerPermission(client.AgentId, parcel, (ulong)GroupPowers.ReturnGroupSet);
-            case (uint)ObjectReturnType.Other:
-                if ((powers & (long)GroupPowers.ReturnNonGroup) != 0)
-                    return true;
-                return GenericParcelOwnerPermission(client.AgentId, parcel, (ulong)GroupPowers.ReturnNonGroup);
-            case (uint)ObjectReturnType.List:
-                break;
-            }
-
-            return GenericParcelOwnerPermission(client.AgentId, parcel, 0);
-        // Is it correct to be less restrictive for lists of objects to be returned?
-        }
-        
         private bool CanCompileScript(UUID ownerUUID, int scriptType, Scene scene) {
              //m_log.DebugFormat("check if {0} is allowed to compile {1}", ownerUUID, scriptType);
             switch (scriptType) {
