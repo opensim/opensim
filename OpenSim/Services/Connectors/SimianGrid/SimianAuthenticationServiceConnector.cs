@@ -114,7 +114,7 @@ namespace OpenSim.Services.Connectors.SimianGrid
                         {
                             string credential = identity["Credential"].AsString();
 
-                            if (password == credential || Utils.MD5String(password) == credential)
+                            if (password == credential || "$1$" + Utils.MD5String(password) == credential)
                                 return Authorize(principalID);
                         }
                     }
