@@ -604,7 +604,7 @@ namespace OpenSim.Region.Framework.Scenes
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
             if (m_storageManager.EstateDataStore != null)
             {
-                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID);
+                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
             }
 
             //Bind Storage Manager functions to some land manager functions for this scene

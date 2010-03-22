@@ -121,7 +121,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        public EstateSettings LoadEstateSettings(UUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
@@ -129,11 +129,11 @@ namespace OpenSim.Data.MySQL
             string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
                 " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = ?RegionID";
 
-            bool migration = true;
-
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
+
+                bool found = false;
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
@@ -144,7 +144,7 @@ namespace OpenSim.Data.MySQL
                     {
                         if (r.Read())
                         {
-                            migration = false;
+                            found = true;
 
                             foreach (string name in FieldList)
                             {
@@ -172,7 +172,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-                if (migration)
+                if (!found && create)
                 {
                     // Migration case
                     List<string> names = new List<string>(FieldList);
@@ -217,14 +217,6 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?EstateID", es.EstateID.ToString());
 
                         // This will throw on dupe key
-                        try { cmd.ExecuteNonQuery(); }
-                        catch (Exception) { }
-
-                        // Munge and transfer the ban list
-                        cmd.Parameters.Clear();
-                        cmd.CommandText = "insert into estateban select " + es.EstateID.ToString() + ", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = ?UUID";
-                        cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
-
                         try { cmd.ExecuteNonQuery(); }
                         catch (Exception) { }
 

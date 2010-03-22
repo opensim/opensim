@@ -83,7 +83,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="regionID">region ID.</param>
         /// <returns></returns>
-        public EstateSettings LoadEstateSettings(UUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
             EstateSettings es = new EstateSettings();
 
@@ -127,7 +127,7 @@ namespace OpenSim.Data.MSSQL
             }
 
 
-            if (insertEstate)
+            if (insertEstate && create)
             {
                 List<string> names = new List<string>(FieldList);
 
@@ -170,25 +170,6 @@ namespace OpenSim.Data.MSSQL
                     catch (Exception e)
                     {
                         _Log.DebugFormat("[ESTATE DB]: Error inserting regionID and EstateID in estate_map: {0}", e);
-                    }
-                }
-
-                // Munge and transfer the ban list
-
-                sql = string.Format("insert into estateban select {0}, bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = @UUID", es.EstateID);
-                using (SqlConnection conn = new SqlConnection(m_connectionString))
-                using (SqlCommand cmd = new SqlCommand(sql, conn))
-                {
-
-                    cmd.Parameters.Add(_Database.CreateParameter("@UUID", regionID));
-                    try
-                    {
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception)
-                    {
-                        _Log.Debug("[ESTATE DB]: Error setting up estateban from regionban");
                     }
                 }
 

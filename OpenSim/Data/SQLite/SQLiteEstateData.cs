@@ -80,7 +80,7 @@ namespace OpenSim.Data.SQLite
             get { return new List<string>(m_FieldMap.Keys).ToArray(); }
         }
 
-        public EstateSettings LoadEstateSettings(UUID regionID)
+        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
             EstateSettings es = new EstateSettings();
             es.OnSave += StoreEstateSettings;
@@ -120,10 +120,8 @@ namespace OpenSim.Data.SQLite
                 }
                 r.Close();
             }
-            else
+            else if (create)
             {
-                // Migration case
-                //
                 r.Close();
 
                 List<string> names = new List<string>(FieldList);
@@ -168,20 +166,6 @@ namespace OpenSim.Data.SQLite
                 cmd.Parameters.Add(":EstateID", es.EstateID.ToString());
 
                 // This will throw on dupe key
-                try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception)
-                {
-                }
-
-                // Munge and transfer the ban list
-                //
-                cmd.Parameters.Clear();
-                cmd.CommandText = "insert into estateban select "+es.EstateID.ToString()+", bannedUUID, bannedIp, bannedIpHostMask, '' from regionban where regionban.regionUUID = :UUID";
-                cmd.Parameters.Add(":UUID", regionID.ToString());
-
                 try
                 {
                     cmd.ExecuteNonQuery();

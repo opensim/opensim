@@ -34,7 +34,7 @@ namespace OpenSim.Region.Framework.Interfaces
     {
         void Initialise(string connectstring);
 
-        EstateSettings LoadEstateSettings(UUID regionID);
+        EstateSettings LoadEstateSettings(UUID regionID, bool create);
         void StoreEstateSettings(EstateSettings es);
     }
 }
