@@ -320,5 +320,30 @@ namespace OpenSim.Data.SQLite
 
             return uuids.ToArray();
         }
+
+        public EstateSettings LoadEstateSettings(int estateID)
+        {
+            return new EstateSettings();
+        }
+
+        public List<int> GetEstates(string search)
+        {
+            return new List<int>();
+        }
+
+        public bool LinkRegion(UUID regionID, int estateID)
+        {
+            return false;
+        }
+
+        public List<UUID> GetRegions(int estateID)
+        {
+            return new List<UUID>();
+        }
+
+        public bool DeleteEstate(int estateID)
+        {
+            return false;
+        }
     }
 }

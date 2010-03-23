@@ -150,7 +150,7 @@ namespace OpenSim.Services.Interfaces
         List<UserAccount> GetUserAccounts(UUID scopeID, string query);
 
         /// <summary>
-        /// Store the data given, wich replaces the sotred data, therefore must be complete.
+        /// Store the data given, wich replaces the stored data, therefore must be complete.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>

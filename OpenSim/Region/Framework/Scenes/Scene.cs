@@ -604,7 +604,44 @@ namespace OpenSim.Region.Framework.Scenes
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
             if (m_storageManager.EstateDataStore != null)
             {
-                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
+                m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, false);
+                if (m_regInfo.EstateSettings.EstateID == 0) // No record at all
+                {
+                    MainConsole.Instance.Output("Your region is not part of an estate.");
+                    while (true)
+                    {
+                        string response = MainConsole.Instance.CmdPrompt("Do you wish to join an existing estate?", "no", new List<string>() {"yes", "no"});
+                        if (response == "no")
+                        {
+                            // Create a new estate
+                            m_regInfo.EstateSettings = m_storageManager.EstateDataStore.LoadEstateSettings(m_regInfo.RegionID, true);
+
+                            m_regInfo.EstateSettings.EstateName = MainConsole.Instance.CmdPrompt("New estate name", m_regInfo.EstateSettings.EstateName);
+                            m_regInfo.EstateSettings.Save();
+                            break;
+                        }
+                        else
+                        {
+                            response = MainConsole.Instance.CmdPrompt("Estate name to join", "None");
+                            if (response == "None")
+                                continue;
+
+                            List<int> estateIDs = m_storageManager.EstateDataStore.GetEstates(response);
+                            if (estateIDs.Count < 1)
+                            {
+                                MainConsole.Instance.Output("The name you have entered matches no known estate. Please try again");
+                                continue;
+                            }
+
+                            int estateID = estateIDs[0];
+
+                            if (m_storageManager.EstateDataStore.LinkRegion(m_regInfo.RegionID, estateID))
+                                break;
+
+                            MainConsole.Instance.Output("Joining the estate failed. Please try again.");
+                        }
+                    }
+                }
             }
 
             //Bind Storage Manager functions to some land manager functions for this scene
@@ -1215,6 +1252,82 @@ namespace OpenSim.Region.Framework.Scenes
             m_dialogModule = RequestModuleInterface<IDialogModule>();
             m_capsModule = RequestModuleInterface<ICapabilitiesModule>();
             m_teleportModule = RequestModuleInterface<IEntityTransferModule>();
+
+            // Shoving this in here for now, because we have the needed
+            // interfaces at this point
+            //
+            // TODO: Find a better place for this
+            //
+            while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero)
+            {
+                MainConsole.Instance.Output("The current estate has no owner set.");
+                string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test");
+                string last = MainConsole.Instance.CmdPrompt("Estate owner last name", "User");
+
+                UserAccount account = UserAccountService.GetUserAccount(m_regInfo.ScopeID, first, last);
+
+                if (account == null)
+                {
+                    account = new UserAccount(m_regInfo.ScopeID, first, last, String.Empty);
+                    if (account.ServiceURLs == null || (account.ServiceURLs != null && account.ServiceURLs.Count == 0))
+                    {
+                        account.ServiceURLs = new Dictionary<string, object>();
+                        account.ServiceURLs["HomeURI"] = string.Empty;
+                        account.ServiceURLs["GatekeeperURI"] = string.Empty;
+                        account.ServiceURLs["InventoryServerURI"] = string.Empty;
+                        account.ServiceURLs["AssetServerURI"] = string.Empty;
+                    }
+
+                    if (UserAccountService.StoreUserAccount(account))
+                    {
+                        string password = MainConsole.Instance.PasswdPrompt("Password");
+                        string email = MainConsole.Instance.CmdPrompt("Email", "");
+
+                        account.Email = email;
+                        UserAccountService.StoreUserAccount(account);
+
+                        bool success = false;
+                        success = AuthenticationService.SetPassword(account.PrincipalID, password);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set password for account {0} {1}.",
+                               first, last);
+
+                        GridRegion home = null;
+                        if (GridService != null)
+                        {
+                            List<GridRegion> defaultRegions = GridService.GetDefaultRegions(UUID.Zero);
+                            if (defaultRegions != null && defaultRegions.Count >= 1)
+                                home = defaultRegions[0];
+
+                            if (PresenceService != null && home != null)
+                                PresenceService.SetHomeLocation(account.PrincipalID.ToString(), home.RegionID, new Vector3(128, 128, 0), new Vector3(0, 1, 0));
+                            else
+                                m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to set home for account {0} {1}.",
+                                   first, last);
+
+                        }
+                        else
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to retrieve home region for account {0} {1}.",
+                               first, last);
+
+                        if (InventoryService != null)
+                            success = InventoryService.CreateUserInventory(account.PrincipalID);
+                        if (!success)
+                            m_log.WarnFormat("[USER ACCOUNT SERVICE]: Unable to create inventory for account {0} {1}.",
+                               first, last);
+
+
+                        m_log.InfoFormat("[USER ACCOUNT SERVICE]: Account {0} {1} created successfully", first, last);
+
+                        m_regInfo.EstateSettings.EstateOwner = account.PrincipalID;
+                        m_regInfo.EstateSettings.Save();
+                    }
+                }
+                else
+                {
+                    MainConsole.Instance.Output("You appear to be connected to a grid and can't create users from here. Please enter the name of an existing user");
+                }
+            }
         }
 
         #endregion

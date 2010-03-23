@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using OpenMetaverse;
 using OpenSim.Framework;
 
@@ -35,6 +36,11 @@ namespace OpenSim.Region.Framework.Interfaces
         void Initialise(string connectstring);
 
         EstateSettings LoadEstateSettings(UUID regionID, bool create);
+        EstateSettings LoadEstateSettings(int estateID);
         void StoreEstateSettings(EstateSettings es);
+        List<int> GetEstates(string search);
+        bool LinkRegion(UUID regionID, int estateID);
+        List<UUID> GetRegions(int estateID);
+        bool DeleteEstate(int estateID);
     }
 }
