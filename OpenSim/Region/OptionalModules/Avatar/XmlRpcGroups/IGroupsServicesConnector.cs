@@ -55,7 +55,6 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         GroupInviteInfo GetAgentToGroupInvite(GroupRequestID requestID, UUID inviteID);
         void RemoveAgentToGroupInvite(GroupRequestID requestID, UUID inviteID);
 
-
         void AddAgentToGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
         void RemoveAgentFromGroupRole(GroupRequestID requestID, UUID AgentID, UUID GroupID, UUID RoleID);
         List<GroupRolesData> GetAgentGroupRoles(GroupRequestID requestID, UUID AgentID, UUID GroupID);
