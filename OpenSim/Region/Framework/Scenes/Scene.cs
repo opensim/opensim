@@ -1258,7 +1258,7 @@ namespace OpenSim.Region.Framework.Scenes
             //
             // TODO: Find a better place for this
             //
-            while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero)
+            while (m_regInfo.EstateSettings.EstateOwner == UUID.Zero && MainConsole.Instance != null)
             {
                 MainConsole.Instance.Output("The current estate has no owner set.");
                 string first = MainConsole.Instance.CmdPrompt("Estate owner first name", "Test");
